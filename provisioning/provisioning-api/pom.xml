@@ -25,23 +25,23 @@
 	<name>midPoint Provisioning - api</name>
 	<groupId>com.evolveum.midpoint.provisioning</groupId>
 	<artifactId>provisioning-api</artifactId>
-	<version>2.1.1p2-SNAPSHOT</version>
+	<version>2.1.2</version>
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>provisioning</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>2.1.1p2-SNAPSHOT</version>
+		<version>2.1.2</version>
 	</parent>
 	<dependencies>
  		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>2.1.1p2-SNAPSHOT</version>
+			<version>2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>2.1.1p2-SNAPSHOT</version>
+			<version>2.1.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

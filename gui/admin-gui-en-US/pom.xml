@@ -26,11 +26,11 @@
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui-en-US</artifactId>
     <packaging>jar</packaging>
-    <version>2.1.1p2-SNAPSHOT</version>
+    <version>2.1.2</version>
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>2.1.1p2-SNAPSHOT</version>
+        <version>2.1.2</version>
     </parent>
     <build>
         <resources>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>2.1.1p2-SNAPSHOT</version>
+            <version>2.1.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

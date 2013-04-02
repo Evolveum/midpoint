@@ -29,7 +29,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>2.1.1p2-SNAPSHOT</version>
+        <version>2.1.2</version>
     </parent>
     <dependencies>
     	<dependency>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>2.1.1p2-SNAPSHOT</version>
+            <version>2.1.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -97,13 +97,13 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>prism</artifactId>
-                                    <version>2.1.1p2-SNAPSHOT</version>
+                                    <version>2.1.2</version>
                                     <type>jar</type>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>schema</artifactId>
-                                    <version>2.1.1p2-SNAPSHOT</version>
+                                    <version>2.1.2</version>
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
@@ -211,7 +211,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>2.1.1p2-SNAPSHOT</version>
+                        <version>2.1.2</version>
                     </dependency>
                 </dependencies>
             </plugin>
