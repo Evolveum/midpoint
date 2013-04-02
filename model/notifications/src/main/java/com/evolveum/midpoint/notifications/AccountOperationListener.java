@@ -96,7 +96,12 @@ public class AccountOperationListener implements ResourceOperationListener {
     }
 
     private void notifyAny(OperationStatus status, ResourceOperationDescription operationDescription, Task task, OperationResult result) {
-        executeNotifyAny(status, operationDescription, task, result);
+        try {
+            executeNotifyAny(status, operationDescription, task, result);
+        } catch (RuntimeException e) {
+            result.recordFatalError("An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
+            LoggingUtils.logException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
+        }
 
         // todo work correctly with operationResult (in whole notification module)
         if (result.isUnknown()) {
@@ -180,18 +185,21 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     private PrismObject<UserType> findRequestee(String accountOid, Task task, OperationResult result, boolean isDelete) {
         PrismObject<UserType> user;
-        try {
-            user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("listAccountShadowOwner for account " + accountOid + " yields " + user);
-            }
-        } catch (ObjectNotFoundException e) {
-            LOGGER.trace("There's a problem finding account " + accountOid + ", no notification will be sent", e);
-            return null;
-        }
 
-        if (user != null) {
-            return user;
+        if (accountOid != null) {
+            try {
+                user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("listAccountShadowOwner for account " + accountOid + " yields " + user);
+                }
+            } catch (ObjectNotFoundException e) {
+                LOGGER.trace("There's a problem finding account " + accountOid + ", no notification will be sent", e);
+                return null;
+            }
+
+            if (user != null) {
+                return user;
+            }
         }
 
         String userOid = task.getRequesteeOid();
