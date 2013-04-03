@@ -219,6 +219,19 @@ public class PrettyPrinter {
 		return prettyPrint(Arrays.asList(value));
 	}
 	
+	public static String prettyPrint(byte[] value) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("byte[");
+		for(int i=0; i<value.length; i++) {
+			sb.append(Byte.toString(value[i]));
+			if (i<value.length-1) {
+				sb.append(',');
+			}
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+	
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";
@@ -250,7 +263,14 @@ public class PrettyPrinter {
 			return PrettyPrinter.prettyPrint((Collection<?>)value);
 		}
 		if (value.getClass().isArray()) {
-			return PrettyPrinter.prettyPrint((Object[])value);
+			Class<?> cclass = value.getClass().getComponentType();
+			if (cclass.isPrimitive()) {
+				if (cclass == byte.class) {
+					PrettyPrinter.prettyPrint((byte[])value);
+				}
+			} else {
+				return PrettyPrinter.prettyPrint((Object[])value);
+			}
 		}
 		if (value instanceof Node) {
 			// This is interface, won't catch it using reflection
