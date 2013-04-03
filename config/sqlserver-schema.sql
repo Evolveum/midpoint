@@ -400,6 +400,7 @@ CREATE TABLE m_resource_shadow (
   dead                          BIT,
   failedOperationType           INT,
   intent                        NVARCHAR(255),
+  kind                          INT,
   name_norm                     NVARCHAR(255),
   name_orig                     NVARCHAR(255),
   objectChange                  NVARCHAR(MAX),

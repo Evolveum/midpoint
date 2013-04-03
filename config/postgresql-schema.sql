@@ -400,6 +400,7 @@ CREATE TABLE m_resource_shadow (
   dead                          BOOLEAN,
   failedOperationType           INT4,
   intent                        VARCHAR(255),
+  kind                          INT4,
   name_norm                     VARCHAR(255),
   name_orig                     VARCHAR(255),
   objectChange                  TEXT,

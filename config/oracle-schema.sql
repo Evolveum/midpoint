@@ -402,6 +402,7 @@ CREATE TABLE m_resource_shadow (
   dead                          NUMBER(1, 0),
   failedOperationType           NUMBER(10, 0),
   intent                        VARCHAR2(255 CHAR),
+  kind                          NUMBER(10, 0),
   name_norm                     VARCHAR2(255 CHAR),
   name_orig                     VARCHAR2(255 CHAR),
   objectChange                  CLOB,
