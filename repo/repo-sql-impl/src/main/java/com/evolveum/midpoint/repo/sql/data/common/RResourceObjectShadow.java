@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationTypeType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
@@ -84,6 +85,14 @@ public class RResourceObjectShadow extends RObject {
     private RAnyContainer attributes;
     @QueryAttribute
     private XMLGregorianCalendar synchronizationTimestamp;
+    @QueryAttribute(enumerated = true)
+    private RShadowKind kind;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public RShadowKind getKind() {
+        return kind;
+    }
 
     @Columns(columns = {
             @Column(name = "class_namespace"),
@@ -186,6 +195,10 @@ public class RResourceObjectShadow extends RObject {
 
     public void setObjectChange(String objectChange) {
         this.objectChange = objectChange;
+    }
+
+    public void setKind(RShadowKind kind) {
+        this.kind = kind;
     }
 
     public void setResourceRef(REmbeddedReference resourceRef) {
@@ -303,6 +316,9 @@ public class RResourceObjectShadow extends RObject {
         }
 
         jaxb.setDead(repo.isDead());
+        if (repo.getKind() != null) {
+            jaxb.setKind(repo.getKind().getKind());
+        }
 
         List situations = RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription());
         if (!situations.isEmpty()) {
@@ -331,6 +347,7 @@ public class RResourceObjectShadow extends RObject {
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectClass(jaxb.getObjectClass());
         repo.setIntent(jaxb.getIntent());
+        repo.setKind(RShadowKind.toRepoType(jaxb.getKind()));
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
             RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
