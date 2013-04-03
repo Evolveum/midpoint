@@ -61,7 +61,6 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -304,6 +303,18 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		return ResourceObjectShadowType.class.isAssignableFrom(getObjectTypeClass());
 	}
 
+	public ShadowKindType getKind() {
+		if (!isShadow()) {
+			return null;
+		}
+		if (getObjectOld()!=null) {
+			return ((PrismObject<ResourceObjectShadowType>)getObjectOld()).asObjectable().getKind();
+		}
+		if (getObjectNew()!=null) {
+			return ((PrismObject<ResourceObjectShadowType>)getObjectNew()).asObjectable().getKind();
+		}
+		return null;
+	}
 	
 	public PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> getAccountConstructionDeltaSetTriple() {
 		return accountConstructionDeltaSetTriple;
@@ -577,10 +588,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	    		if (resource == null) {
 		    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 		    	}
-		    	if (AccountShadowType.class.isAssignableFrom(getObjectTypeClass())) {
-			    	if (resourceShadowDiscriminator == null) {
-			    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-			    	}
+		    	if (resourceShadowDiscriminator == null) {
+		    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 		    	}
     		}
     	}

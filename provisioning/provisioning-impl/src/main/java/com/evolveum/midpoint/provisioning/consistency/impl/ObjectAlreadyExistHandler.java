@@ -36,23 +36,15 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 
 @Component
 public class ObjectAlreadyExistHandler extends ErrorHandler {
 
-//	@Autowired
-//	@Qualifier("cacheRepositoryService")
-//	private RepositoryService cacheRepositoryService;
-//	@Autowired
-//	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private PrismContext prismContext;
-//	@Autowired(required = true)
-//	private TaskManager taskManager;
 
 	@Override
 	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
@@ -75,14 +67,17 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
 		ObjectQuery query = createQueryByIcfName(shadow);
-		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, task, operationResult);
+		final List<PrismObject<ResourceObjectShadowType>> foundAccount = getExistingAccount(query, task, operationResult);
 
-		PrismObject<AccountShadowType> resourceAccount = null;
+		PrismObject<ResourceObjectShadowType> resourceAccount = null;
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
 			resourceAccount = foundAccount.get(0);
 		}
 
 		if (resourceAccount != null) {
+			// Original object and found object share the same object class, therefore they must
+			// also share a kind. We can use this short-cut.
+			resourceAccount.asObjectable().setKind(shadow.getKind());
 			change.setCurrentShadow(resourceAccount);
 			// TODO: task initialization
 //			Task task = taskManager.createTaskInstance();
@@ -106,12 +101,12 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		// TODO: error handling
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
 				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES),
+		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES),
 				nameProperty.getDefinition(), nameProperty.getValues());
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(AccountShadowType.class,
-				AccountShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
-		EqualsFilter objectClassFilter = EqualsFilter.createEqual(AccountShadowType.class, prismContext,
-				AccountShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
+		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ResourceObjectShadowType.class,
+				ResourceObjectShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
+		EqualsFilter objectClassFilter = EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext,
+				ResourceObjectShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
 
 		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter,
 				objectClassFilter));
@@ -119,21 +114,20 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		return query;
 	}
 
-	private List<PrismObject<AccountShadowType>> getExistingAccount(ObjectQuery query, Task task, OperationResult parentResult)
+	private List<PrismObject<ResourceObjectShadowType>> getExistingAccount(ObjectQuery query, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
 			SecurityViolationException {
-		final List<PrismObject<AccountShadowType>> foundAccount = new ArrayList<PrismObject<AccountShadowType>>();
-		ResultHandler<AccountShadowType> handler = new ResultHandler() {
+		final List<PrismObject<ResourceObjectShadowType>> foundAccount = new ArrayList<PrismObject<ResourceObjectShadowType>>();
+		ResultHandler<ResourceObjectShadowType> handler = new ResultHandler() {
 
 			@Override
 			public boolean handle(PrismObject object, OperationResult parentResult) {
-				// TODO Auto-generated method stub
 				return foundAccount.add(object);
 			}
 
 		};
 
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, parentResult);
+		provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, query, handler, parentResult);
 
 		return foundAccount;
 	}

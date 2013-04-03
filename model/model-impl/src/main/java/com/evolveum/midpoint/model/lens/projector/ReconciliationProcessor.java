@@ -21,32 +21,35 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
-import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ModificationType;
-import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -57,23 +60,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Processor that reconciles the computed account and the real account. There will be some deltas already computed from
@@ -105,10 +95,10 @@ public class ReconciliationProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processReconciliationUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+    	processReconciliationUser((LensContext<UserType,ResourceObjectShadowType>) context, (LensProjectionContext<ResourceObjectShadowType>)projectionContext, result);
     }
     
-    void processReconciliationUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    void processReconciliationUser(LensContext<UserType,ResourceObjectShadowType> context, LensProjectionContext<ResourceObjectShadowType> accContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     
     OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);    
         
@@ -130,8 +120,8 @@ public class ReconciliationProcessor {
             
             if (!accContext.isFullShadow()) {
             	// We need to load the object
-            	PrismObject<AccountShadowType> objectOld = provisioningService.getObject(
-            			AccountShadowType.class, accContext.getOid(), null, result);
+            	PrismObject<ResourceObjectShadowType> objectOld = provisioningService.getObject(
+            			ResourceObjectShadowType.class, accContext.getOid(), null, result);
             	accContext.setObjectOld(objectOld);
             	accContext.setFullShadow(true);
             	accContext.recompute();
@@ -160,12 +150,12 @@ public class ReconciliationProcessor {
         }
     }
 
-    private void reconcileAccount(LensProjectionContext<AccountShadowType> accCtx,
+    private void reconcileAccount(LensProjectionContext<ResourceObjectShadowType> accCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes, RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
-    	PrismObject<AccountShadowType> account = accCtx.getObjectNew();
+    	PrismObject<ResourceObjectShadowType> account = accCtx.getObjectNew();
 
-        PrismContainer attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
+        PrismContainer attributesContainer = account.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = MiscUtil.union(squeezedAttributes.keySet(),attributesContainer.getValue().getPropertyNames());
 
         for (QName attrName: attributeNames) {
@@ -237,7 +227,7 @@ public class ReconciliationProcessor {
         }
     }
 
-	private <T> void recordDelta(LensProjectionContext<AccountShadowType> accCtx, ResourceAttributeDefinition attrDef, 
+	private <T> void recordDelta(LensProjectionContext<ResourceObjectShadowType> accCtx, ResourceAttributeDefinition attrDef, 
 			ModificationType changeType, T value, ObjectType originObject) throws SchemaException {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		

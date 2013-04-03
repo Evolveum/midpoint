@@ -99,7 +99,7 @@ public class InboundProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	LensContext<UserType,AccountShadowType> usContext = (LensContext<UserType,AccountShadowType>) context;
+    	LensContext<UserType,ResourceObjectShadowType> usContext = (LensContext<UserType,ResourceObjectShadowType>) context;
     	LensFocusContext<UserType> userContext = (LensFocusContext<UserType>)focusContext;
     	
     	OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
@@ -112,10 +112,10 @@ public class InboundProcessor {
         }
 
         try {
-            for (LensProjectionContext<AccountShadowType> accountContext : usContext.getProjectionContexts()) {
+            for (LensProjectionContext<ResourceObjectShadowType> accountContext : usContext.getProjectionContexts()) {
             	ResourceShadowDiscriminator rat = accountContext.getResourceShadowDiscriminator();
             	
-            	ObjectDelta<AccountShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);
+            	ObjectDelta<ResourceObjectShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);
             	
             	if (!accountContext.isDoReconciliation() && aPrioriDelta == null) {
             		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no a priori delta", rat);
@@ -123,7 +123,7 @@ public class InboundProcessor {
             	}
 //                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
 
-            	ObjectDelta<AccountShadowType> accountDelta = accountContext.getDelta();
+            	ObjectDelta<ResourceObjectShadowType> accountDelta = accountContext.getDelta();
                 if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
                     //we don't need to do inbound if account was deleted
                     continue;
@@ -146,9 +146,9 @@ public class InboundProcessor {
         }
     }
 
-    private void processInboundExpressionsForAccount(LensContext<UserType,AccountShadowType> context, 
-    		LensProjectionContext<AccountShadowType> accContext,
-            RefinedObjectClassDefinition accountDefinition, ObjectDelta<AccountShadowType> aPrioriDelta, OperationResult result)
+    private void processInboundExpressionsForAccount(LensContext<UserType,ResourceObjectShadowType> context, 
+    		LensProjectionContext<ResourceObjectShadowType> accContext,
+            RefinedObjectClassDefinition accountDefinition, ObjectDelta<ResourceObjectShadowType> aPrioriDelta, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	
         if (aPrioriDelta == null && accContext.getObjectOld() == null) {
@@ -158,12 +158,12 @@ public class InboundProcessor {
 
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
         
-        PrismObject<AccountShadowType> accountOld = accContext.getObjectOld();
-        PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
+        PrismObject<ResourceObjectShadowType> accountOld = accContext.getObjectOld();
+        PrismObject<ResourceObjectShadowType> accountNew = accContext.getObjectNew();
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
             if (aPrioriDelta != null) {
-                accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.I_ATTRIBUTES), accountAttributeName);
+                accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
                 if (accountAttributeDelta == null) {
                     LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
                     		accountAttributeName, accContext.getResourceShadowDiscriminator());
@@ -188,7 +188,7 @@ public class InboundProcessor {
                 		throw new SystemException("Attempt to execute inbound expression on account shadow (not full account)");
                 	}
                     LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
-                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
+                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, accountAttributeName));
                     userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 }
@@ -212,7 +212,7 @@ public class InboundProcessor {
 	 * A priori delta is a delta that was executed in a previous "step". That means it is either delta from a previous
 	 * wave or a sync delta (in wave 0).
 	 */
-	private <F extends ObjectType, P extends ObjectType> ObjectDelta<AccountShadowType> getAPrioriDelta(LensContext<F,P> context, LensProjectionContext<AccountShadowType> accountContext) throws SchemaException {
+	private <F extends ObjectType, P extends ObjectType> ObjectDelta<ResourceObjectShadowType> getAPrioriDelta(LensContext<F,P> context, LensProjectionContext<ResourceObjectShadowType> accountContext) throws SchemaException {
 		int wave = context.getProjectionWave();
 		if (wave == 0) {
 			return accountContext.getSyncDelta();
@@ -238,10 +238,10 @@ public class InboundProcessor {
         return false;
     }
     
-    private <A,U> PropertyDelta<U> evaluateInboundMapping(final LensContext<UserType,AccountShadowType> context, 
+    private <A,U> PropertyDelta<U> evaluateInboundMapping(final LensContext<UserType,ResourceObjectShadowType> context, 
     		MappingType inboundMappingType, 
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> accountAttributeDelta,
-            PrismObject<UserType> newUser, PrismObject<AccountShadowType> account, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+            PrismObject<UserType> newUser, PrismObject<ResourceObjectShadowType> account, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
@@ -352,7 +352,7 @@ public class InboundProcessor {
         return outputUserPropertydelta.isEmpty() ? null : outputUserPropertydelta;
     }
 
-	private StringPolicyResolver createStringPolicyResolver(final LensContext<UserType, AccountShadowType> context) {
+	private StringPolicyResolver createStringPolicyResolver(final LensContext<UserType, ResourceObjectShadowType> context) {
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
@@ -401,8 +401,8 @@ public class InboundProcessor {
      * Processing for special (fixed-schema) properties such as credentials and activation. 
      */
     private void processSpecialPropertyInbound(MappingType inboundMappingType, ItemPath sourcePath,
-            PrismObject<UserType> newUser, LensProjectionContext<AccountShadowType> accContext, 
-            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,AccountShadowType> context, 
+            PrismObject<UserType> newUser, LensProjectionContext<ResourceObjectShadowType> accContext, 
+            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,ResourceObjectShadowType> context, 
             OperationResult opResult) throws SchemaException {
     	
         if (inboundMappingType == null || newUser == null || !accContext.isFullShadow()) {

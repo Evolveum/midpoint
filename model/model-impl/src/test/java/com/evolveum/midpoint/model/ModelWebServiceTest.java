@@ -436,11 +436,11 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         setSecurityContext(expectedUser);
         when(
                 repositoryService.listResourceObjectShadows(eq(resourceOid),
-                        eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
+                        eq((Class<T>) ResourceObjectShadowType.class), any(OperationResult.class))).thenThrow(
                 new ObjectNotFoundException("Resource with oid '" + resourceOid + "' not found."));
 
         try {
-            modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
+            modelService.listResourceObjectShadows(resourceOid, ObjectTypes.SHADOW.getObjectTypeUri(),
                     new Holder<ResourceObjectShadowListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {

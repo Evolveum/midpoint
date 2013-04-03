@@ -1830,7 +1830,7 @@
                     </xsd:element>
 
                     <!-- xsd:choice minOccurs="0" maxOccurs="unbounded" -->
-                    <xsd:element name="account" type="tns:AccountShadowType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="account" type="tns:ResourceObjectShadowType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Set of user's accounts. This is the set of
@@ -1868,7 +1868,7 @@
                                 OID must not be present.
                             </xsd:documentation>
                             <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:AccountShadowType</a:objectReferenceTargetType>
+                    			<a:objectReferenceTargetType>tns:ResourceObjectShadowType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4299,6 +4299,9 @@
                 Local copy of any object on the provisioning resource that is related to provisioning.
                 It may be account, group, role (on the target system), privilege, security label,
                 organizational unit or anything else that is worth managing in identity management.
+                
+                In the minimal form it contains only identifiers and meta-data, but it may also be used
+                for locally caching the account data (in local repository).
 
                 This XML object provides a representation of the resource object in the IDM system, in
                 the LOCAL REPOSITORY. It may represents a minimal data structure in IDM repository
@@ -4457,11 +4460,26 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The set of account credentials (such as
+                                passwords).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object"/>
+    <xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			DEPRECATED. Use "shadow" element instead.
+    		</xsd:documentation>
+    	</xsd:annotation>
+    </xsd:element>
+    <xsd:element name="shadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object"/>
     
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
@@ -4475,6 +4493,9 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="account">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Represents account on a target system.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ACCOUNT"/>
                     </xsd:appinfo>
@@ -4565,6 +4586,8 @@
     <xsd:complexType name="AccountShadowType">
         <xsd:annotation>
             <xsd:documentation>
+            	DEPRECATED
+            	
                 Account object type. Represents account on a target system. In the minimal form it
                 contains only identifiers and meta-data, but it may also be used for locally caching
                 the account data (in local repository).
@@ -4584,19 +4607,18 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The set of account credentials (such as
-                                passwords).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="account" type="tns:AccountShadowType" substitutionGroup="c:object"/>
+         
+     <xsd:element name="account" type="tns:ResourceObjectShadowType" substitutionGroup="c:object">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.
+     		</xsd:documentation>
+     	</xsd:annotation>
+     </xsd:element>
 
     <!-- CONVENIENCE ELEMENTS Following definitions are there to use in examples, 
 		import files, etc. These should not be used in the services -->

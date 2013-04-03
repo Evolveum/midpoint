@@ -80,10 +80,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
@@ -313,7 +313,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
 
 		OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, searchResult);
+		provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, query, handler, searchResult);
 
 		opResult.computeStatus();
 	}
@@ -327,14 +327,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		ObjectFilter filter;
 		
 		if (freshnessInterval == null) {
-			filter = RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid());
+			filter = RefFilter.createReferenceEqual(ResourceObjectShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid());
 		} else {
 			long timestamp = System.currentTimeMillis() - freshnessInterval;
 			XMLGregorianCalendar timestampCal = XmlTypeConverter.createXMLGregorianCalendar(timestamp);
-			LessFilter timestampFilter = LessFilter.createLessFilter(AccountShadowType.class, prismContext, 
-					AccountShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestampCal , true);
-			filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(AccountShadowType.class,
-					AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()));
+			LessFilter timestampFilter = LessFilter.createLessFilter(ResourceObjectShadowType.class, prismContext, 
+					ResourceObjectShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestampCal , true);
+			filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(ResourceObjectShadowType.class,
+					ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid()));
 		}
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -344,14 +344,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		final Holder<Long> countHolder = new Holder<Long>(0L);
 
-		Handler<PrismObject<AccountShadowType>> handler = new Handler<PrismObject<AccountShadowType>>() {
+		Handler<PrismObject<ResourceObjectShadowType>> handler = new Handler<PrismObject<ResourceObjectShadowType>>() {
 			@Override
-			public void handle(PrismObject<AccountShadowType> shadow) {
+			public void handle(PrismObject<ResourceObjectShadowType> shadow) {
 				reconcileShadow(shadow, resource, task);
 				countHolder.setValue(countHolder.getValue() + 1);
 			}
 		};
-		Utils.searchIterative(repositoryService, AccountShadowType.class, query, handler , BLOCK_SIZE, opResult);
+		Utils.searchIterative(repositoryService, ResourceObjectShadowType.class, query, handler , BLOCK_SIZE, opResult);
 		
 		// for each try the operation again
 		
@@ -361,10 +361,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				new Object[]{countHolder.getValue(), resource, opResult.getStatus()});
 	}
 	
-	private void reconcileShadow(PrismObject<AccountShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
+	private void reconcileShadow(PrismObject<ResourceObjectShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
-			provisioningService.getObject(AccountShadowType.class, shadow.getOid(), null, opResult);
+			provisioningService.getObject(ResourceObjectShadowType.class, shadow.getOid(), null, opResult);
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
 			reactShadowGone(shadow, resource, task, opResult);
@@ -380,14 +380,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
 
-	private void reactShadowGone(PrismObject<AccountShadowType> shadow, PrismObject<ResourceType> resource, 
+	private void reactShadowGone(PrismObject<ResourceObjectShadowType> shadow, PrismObject<ResourceType> resource, 
 			Task task, OperationResult result) {
 		try {
 			provisioningService.applyDefinition(shadow, result);
 			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 			change.setResource(resource);
-			ObjectDelta<AccountShadowType> shadowDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, shadow.getOid(),
+			ObjectDelta<ResourceObjectShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, shadow.getOid(),
 					shadow.getPrismContext()); 
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
@@ -404,7 +404,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 	}
 
-	private void processShadowReconErrror(Exception e, PrismObject<AccountShadowType> shadow, OperationResult opResult) {
+	private void processShadowReconErrror(Exception e, PrismObject<ResourceObjectShadowType> shadow, OperationResult opResult) {
 		LOGGER.error("Error reconciling shadow {}: {}", new Object[]{shadow, e.getMessage(), e});
 		opResult.recordFatalError(e);
 		// TODO: store error in the shadow?
@@ -426,16 +426,16 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 
 		NotFilter notNull = NotFilter.createNot(createFailedOpFilter(null));
-		AndFilter andFilter = AndFilter.createAnd(notNull, RefFilter.createReferenceEqual(AccountShadowType.class,
-				AccountShadowType.F_RESOURCE_REF, prismContext, resourceOid));
+		AndFilter andFilter = AndFilter.createAnd(notNull, RefFilter.createReferenceEqual(ResourceObjectShadowType.class,
+				ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resourceOid));
 		ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
 
-		List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(
-				AccountShadowType.class, query, opResult);
+		List<PrismObject<ResourceObjectShadowType>> shadows = repositoryService.searchObjects(
+				ResourceObjectShadowType.class, query, opResult);
 
 		LOGGER.trace("Found {} accounts that were not successfully proccessed.", shadows.size());
 		
-		for (PrismObject<AccountShadowType> shadow : shadows) {
+		for (PrismObject<ResourceObjectShadowType> shadow : shadows) {
 			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
 			try {
 				
@@ -445,10 +445,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			} catch (Exception ex) {
 				opResult.recordFatalError("Failed to finish operation with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()) +". Reason: " + ex.getMessage(), ex);
 				Collection<? extends ItemDelta> modifications = PropertyDelta
-						.createModificationReplacePropertyCollection(AccountShadowType.F_ATTEMPT_NUMBER,
+						.createModificationReplacePropertyCollection(ResourceObjectShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
 				try{
-				repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
+				repositoryService.modifyObject(ResourceObjectShadowType.class, shadow.getOid(), modifications,
 						provisioningResult);
 				}catch(Exception e){
 					
@@ -469,7 +469,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	// }
 
 	private ObjectFilter createFailedOpFilter(FailedOperationTypeType failedOp) throws SchemaException{
-		return EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_FAILED_OPERATION_TYPE, failedOp);
+		return EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext, ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, failedOp);
 	}
 	
 //	private void retryFailedOperation(AccountShadowType shadow, OperationResult parentResult)

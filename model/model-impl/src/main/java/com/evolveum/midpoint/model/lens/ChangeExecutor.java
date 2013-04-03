@@ -53,6 +53,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -119,12 +120,12 @@ public class ChangeExecutor {
 	private ExpressionFactory expressionFactory;
     
     private PrismObjectDefinition<UserType> userDefinition = null;
-    private PrismObjectDefinition<AccountShadowType> accountDefinition = null;
+    private PrismObjectDefinition<ResourceObjectShadowType> shadowDefinition = null;
     
     @PostConstruct
     private void locateUserDefinition() {
     	userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-    	accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+    	shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
     }
 
     public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
@@ -366,7 +367,7 @@ public class ChangeExecutor {
         
         PrismReferenceValue accountRef = new PrismReferenceValue();
         accountRef.setOid(accountOid);
-        accountRef.setTargetType(AccountShadowType.COMPLEX_TYPE);
+        accountRef.setTargetType(ResourceObjectShadowType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
         		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
@@ -424,9 +425,9 @@ public class ChangeExecutor {
     	result.addParam("situation", situation);
     	result.addParam("accountRef", accountRef);
 		
-    	PrismObject<AccountShadowType> account = null;
+    	PrismObject<ResourceObjectShadowType> account = null;
     	try{
-    		account = provisioning.getObject(AccountShadowType.class, accountRef, GetOperationOptions.createNoFetch(), result);
+    		account = provisioning.getObject(ResourceObjectShadowType.class, accountRef, GetOperationOptions.createNoFetch(), result);
     	} catch (Exception ex){
     		LOGGER.trace("Problem with getting account, skipping modifying siatuation in account.");
 			return;
@@ -438,7 +439,7 @@ public class ChangeExecutor {
 		syncSituationDeltas.add(syncSituationDelta);
 		}
 		try {
-			String changedOid = provisioning.modifyObject(AccountShadowType.class, accountRef,
+			String changedOid = provisioning.modifyObject(ResourceObjectShadowType.class, accountRef,
 					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
 					task, result);
 //			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
@@ -797,9 +798,9 @@ public class ChangeExecutor {
     private Map<QName, Object> getDefaultExpressionVariables(PrismObject<UserType> user, 
     		PrismObject<? extends ResourceObjectShadowType> account, PrismObject<ResourceType> resource) {		
 		Map<QName, Object> variables = new HashMap<QName, Object>();
-		variables.put(SchemaConstants.I_USER, user);
-		variables.put(SchemaConstants.I_ACCOUNT, account);
-		variables.put(SchemaConstants.I_RESOURCE, resource);
+		variables.put(ExpressionConstants.VAR_USER, user);
+		variables.put(ExpressionConstants.VAR_ACCOUNT, account);
+		variables.put(ExpressionConstants.VAR_RESOURCE, resource);
 		return variables;
 	}
 

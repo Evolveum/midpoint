@@ -63,7 +63,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -71,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -133,13 +133,13 @@ public class AssignmentProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processAssignmentsAccounts((LensContext<UserType,AccountShadowType>) context, result);
+    	processAssignmentsAccounts((LensContext<UserType,ResourceObjectShadowType>) context, result);
     }
     
     /**
      * Processing user-account assignments (including roles). Specific user-account method.
      */
-    public void processAssignmentsAccounts(LensContext<UserType,AccountShadowType> context, OperationResult result) throws SchemaException,
+    public void processAssignmentsAccounts(LensContext<UserType,ResourceObjectShadowType> context, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
@@ -151,7 +151,7 @@ public class AssignmentProcessor {
         	LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
 
             // We need to fake assignment processing a bit ...
-            for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
+            for (LensProjectionContext<ResourceObjectShadowType> accCtx : context.getProjectionContexts()) {
             	// mark all accounts as active, so they will be synchronized as expected
                 accCtx.setActive(true);
                 if (accCtx.getSynchronizationPolicyDecision() == null) {
@@ -371,7 +371,7 @@ public class AssignmentProcessor {
             }
 
             if (zeroAccountMap.containsKey(rat)) {
-                LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rat);
+                LensProjectionContext<ResourceObjectShadowType> accountSyncContext = context.findProjectionContext(rat);
                 if (accountSyncContext == null) {
                 	// The account should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
@@ -397,10 +397,10 @@ public class AssignmentProcessor {
             } else if (plusAccountMap.containsKey(rat)) {
                 // Account added
             	if (accountExists(context,rat)) {
-            		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
+            		LensProjectionContext<ResourceObjectShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
             	} else {
-            		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
+            		LensProjectionContext<ResourceObjectShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		markPolicyDecision(accountContext, SynchronizationPolicyDecision.ADD);
             	}
                 context.findProjectionContext(rat).setAssigned(true);
@@ -408,7 +408,7 @@ public class AssignmentProcessor {
 
             } else if (minusAccountMap.containsKey(rat)) {
             	if (accountExists(context,rat)) {
-            		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
+            		LensProjectionContext<ResourceObjectShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountContext.getAssignmentPolicyEnforcementType();
             		// TODO: check for MARK and LEGALIZE enforcement policies
             		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL) {
@@ -436,7 +436,7 @@ public class AssignmentProcessor {
             				getConstructions(zeroAccountMap.get(rat)),
             				getConstructions(plusAccountMap.get(rat)),
             				getConstructions(minusAccountMap.get(rat)));
-            LensProjectionContext<AccountShadowType> accountContext = context.findProjectionContext(rat);
+            LensProjectionContext<ResourceObjectShadowType> accountContext = context.findProjectionContext(rat);
             if (accountContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
             	accountContext.setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
@@ -482,8 +482,8 @@ public class AssignmentProcessor {
 	/**
 	 * Set policy decisions for the accounts that does not have it already
 	 */
-	private void finishProplicyDecisions(LensContext<UserType,AccountShadowType> context) throws PolicyViolationException {
-		for (LensProjectionContext<AccountShadowType> accountContext: context.getProjectionContexts()) {
+	private void finishProplicyDecisions(LensContext<UserType,ResourceObjectShadowType> context) throws PolicyViolationException {
+		for (LensProjectionContext<ResourceObjectShadowType> accountContext: context.getProjectionContexts()) {
 			if (accountContext.getSynchronizationPolicyDecision() != null) {
 				// already have decision
 				continue;
@@ -505,7 +505,7 @@ public class AssignmentProcessor {
 					continue;
 				}
 			}
-			ObjectDelta<AccountShadowType> accountSyncDelta = accountContext.getSyncDelta();
+			ObjectDelta<ResourceObjectShadowType> accountSyncDelta = accountContext.getSyncDelta();
 			if (accountSyncDelta != null) {
 				if (accountSyncDelta.isDelete()) {
 					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
@@ -579,7 +579,7 @@ public class AssignmentProcessor {
 	}
 	
 
-	public void processAssignmentsAccountValues(LensProjectionContext<AccountShadowType> accountContext, OperationResult result) throws SchemaException,
+	public void processAssignmentsAccountValues(LensProjectionContext<ResourceObjectShadowType> accountContext, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, ExpressionEvaluationException {
             
 		// TODO: reevaluate constructions
@@ -588,7 +588,7 @@ public class AssignmentProcessor {
 		
     }
 
-    private void collectToAccountMap(LensContext<UserType,AccountShadowType> context,
+    private void collectToAccountMap(LensContext<UserType,ResourceObjectShadowType> context,
             Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap, Assignment evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
@@ -626,8 +626,8 @@ public class AssignmentProcessor {
         return sb.toString();
     }
 
-    private boolean accountExists(LensContext<UserType,AccountShadowType> context, ResourceShadowDiscriminator rat) {
-    	LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rat);
+    private boolean accountExists(LensContext<UserType,ResourceObjectShadowType> context, ResourceShadowDiscriminator rat) {
+    	LensProjectionContext<ResourceObjectShadowType> accountSyncContext = context.findProjectionContext(rat);
     	if (accountSyncContext == null) {
     		return false;
     	}
@@ -637,27 +637,27 @@ public class AssignmentProcessor {
     	return true;
     }
         
-    private void markPolicyDecision(LensProjectionContext<AccountShadowType> accountSyncContext, SynchronizationPolicyDecision decision) {
+    private void markPolicyDecision(LensProjectionContext<ResourceObjectShadowType> accountSyncContext, SynchronizationPolicyDecision decision) {
         if (accountSyncContext.getSynchronizationPolicyDecision() == null) {
             accountSyncContext.setSynchronizationPolicyDecision(decision);
         }
     }
 
-	private void checkExclusions(LensContext<UserType,AccountShadowType> context, Collection<Assignment> assignmentsA,
+	private void checkExclusions(LensContext<UserType,ResourceObjectShadowType> context, Collection<Assignment> assignmentsA,
 			Collection<Assignment> assignmentsB) throws PolicyViolationException {
 		for (Assignment assignmentA: assignmentsA) {
 			checkExclusion(context, assignmentA, assignmentsB);
 		}
 	}
 
-	private void checkExclusion(LensContext<UserType,AccountShadowType> context, Assignment assignmentA,
+	private void checkExclusion(LensContext<UserType,ResourceObjectShadowType> context, Assignment assignmentA,
 			Collection<Assignment> assignmentsB) throws PolicyViolationException {
 		for (Assignment assignmentB: assignmentsB) {
 			checkExclusion(context, assignmentA, assignmentB);
 		}
 	}
 
-	private void checkExclusion(LensContext<UserType,AccountShadowType> context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
+	private void checkExclusion(LensContext<UserType,ResourceObjectShadowType> context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
 		if (assignmentA == assignmentB) {
 			// Same thing, this cannot exclude itself
 			return;

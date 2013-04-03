@@ -121,7 +121,7 @@ public class PageMyPasswords extends PageAdminHome {
             }
 
             final Collection<SelectorOptions<GetOperationOptions>> options =
-                    SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+                    SelectorOptions.createCollection(ResourceObjectShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
             List<PrismReferenceValue> values = reference.getValues();
             for (PrismReferenceValue value : values) {
@@ -130,7 +130,7 @@ public class PageMyPasswords extends PageAdminHome {
                     String accountOid = value.getOid();
                     task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
 
-                    PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
+                    PrismObject<ResourceObjectShadowType> account = getModelService().getObject(ResourceObjectShadowType.class,
                             accountOid, options, task, subResult);
 
                     dto.getAccounts().add(createPasswordAccountDto(account));
@@ -162,8 +162,8 @@ public class PageMyPasswords extends PageAdminHome {
                 getString("PageMyPasswords.resourceMidpoint"), WebMiscUtil.isActivationEnabled(user), true);
     }
 
-    private PasswordAccountDto createPasswordAccountDto(PrismObject<AccountShadowType> account) {
-        PrismReference resourceRef = account.findReference(AccountShadowType.F_RESOURCE_REF);
+    private PasswordAccountDto createPasswordAccountDto(PrismObject<ResourceObjectShadowType> account) {
+        PrismReference resourceRef = account.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
         String resourceName;
         if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
             resourceName = getString("PageMyPasswords.couldntResolve");
@@ -270,11 +270,11 @@ public class PageMyPasswords extends PageAdminHome {
             for (PasswordAccountDto accDto : dto.getAccounts()) {
                 PrismObjectDefinition objDef = accDto.isMidpoint() ?
                         registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
-                        registry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+                        registry.findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
 
                 PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
 
-                Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : AccountShadowType.class;
+                Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ResourceObjectShadowType.class;
                 deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
             }
             getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD), result);

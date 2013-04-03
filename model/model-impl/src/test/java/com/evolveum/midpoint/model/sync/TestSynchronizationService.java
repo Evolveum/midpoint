@@ -19,19 +19,12 @@
  */
 package com.evolveum.midpoint.model.sync;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.FileNotFoundException;
-import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,34 +33,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.TestProjector;
-import com.evolveum.midpoint.model.sync.SynchronizationService;
 import com.evolveum.midpoint.model.util.mock.MockLensDebugListener;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -99,7 +75,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         MockLensDebugListener mockListener = new MockLensDebugListener();
         clockwork.setDebugListener(mockListener);
         
-        PrismObject<AccountShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
+        PrismObject<ResourceObjectShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, ResourceObjectShadowType.class, result);
         provisioningService.applyDefinition(accountShadowJack, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
@@ -117,7 +93,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
-        LensContext<UserType, AccountShadowType> context = mockListener.getLastSyncContext();
+        LensContext<UserType, ResourceObjectShadowType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -126,7 +102,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
         
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
-		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContext(rat);
+		LensProjectionContext<ResourceObjectShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
 		assertNull("Unexpected account primary delta", accCtx.getPrimaryDelta());
@@ -143,19 +119,19 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 //        AccountSyncContext accContext = accountContexts.iterator().next();
 //        assertNull(accContext.getAccountPrimaryDelta());
 //
-//        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
+//        ObjectDelta<ResourceObjectShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
 //        
 //        assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
 //        
 //        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
-//        PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-//        assertEquals("user", newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
+//        PrismObject<ResourceObjectShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
+//        assertEquals("user", newAccount.findProperty(ResourceObjectShadowType.F_ACCOUNT_TYPE).getRealValue());
 //        assertEquals(new QName(resourceDummyType.getNamespace(), "AccountObjectClass"),
-//                newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
-//        PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
+//                newAccount.findProperty(ResourceObjectShadowType.F_OBJECT_CLASS).getRealValue());
+//        PrismReference resourceRef = newAccount.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
 //        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 //
-//        PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
+//        PrismContainer<?> attributes = newAccount.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 //        assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
 //        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
         

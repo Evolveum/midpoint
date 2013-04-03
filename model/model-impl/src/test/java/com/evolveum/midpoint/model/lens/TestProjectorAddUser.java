@@ -126,7 +126,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 						any(ProvisioningOperationOptions.class), any(Task.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
-				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
+				ResourceObjectShadowType account = (ResourceObjectShadowType) invocation.getArguments()[0];
 				PrismAsserts.assertEquals(new File(TEST_FOLDER, "expected-account.xml"), account);
 
 				return accountOid;
@@ -145,7 +145,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 		Task task = taskManager.createTaskInstance("Add User With Template");
 		OperationResult result = task.getResult();
 		
-		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, PrismTestUtil.getPrismContext());
+		LensContext<UserType, ResourceObjectShadowType> syncContext = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, PrismTestUtil.getPrismContext());
 		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);

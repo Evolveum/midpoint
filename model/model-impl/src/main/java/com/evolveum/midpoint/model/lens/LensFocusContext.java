@@ -167,7 +167,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
         }
-        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new ItemPath(SchemaConstants.C_ASSIGNMENT));
+        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new ItemPath(UserType.F_ASSIGNMENT));
         if (assignmentDelta == null) { 
             return createEmptyAssignmentDelta();
         }
@@ -182,7 +182,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         if (userDelta == null) {
             return null;
         }
-        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(SchemaConstants.C_ASSIGNMENT),
+        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
         									  new IdItemPathSegment(id)));
 	}
 

@@ -33,36 +33,37 @@ import javax.xml.namespace.QName;
  */
 public enum ObjectTypes {
 
-    ACCOUNT("schema.objectTypes.account", SchemaConstants.I_ACCOUNT_SHADOW_TYPE, SchemaConstants.I_ACCOUNT,
+	@Deprecated
+    ACCOUNT("schema.objectTypes.account", SchemaConstants.C_ACCOUNT_SHADOW_TYPE, SchemaConstants.C_ACCOUNT,
             AccountShadowType.class, true),
 
-    CONNECTOR("schema.objectTypes.connector", SchemaConstants.I_CONNECTOR_TYPE, SchemaConstants.I_CONNECTOR,
+    CONNECTOR("schema.objectTypes.connector", SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
             ConnectorType.class, true),
 
-    CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.I_CONNECTOR_HOST_TYPE,
-            SchemaConstants.I_CONNECTOR_HOST, ConnectorHostType.class, true),
+    CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.C_CONNECTOR_HOST_TYPE,
+            SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, true),
 
-    GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.I_GENERIC_OBJECT_TYPE,
-            SchemaConstants.I_GENERIC_OBJECT, GenericObjectType.class, false),
+    GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.C_GENERIC_OBJECT_TYPE,
+            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, false),
 
-    RESOURCE("schema.objectTypes.resource", SchemaConstants.I_RESOURCE_TYPE, SchemaConstants.I_RESOURCE,
+    RESOURCE("schema.objectTypes.resource", SchemaConstants.C_RESOURCE_TYPE, SchemaConstants.C_RESOURCE,
             ResourceType.class, true),
 
-    USER("schema.objectTypes.user", SchemaConstants.I_USER_TYPE, SchemaConstants.I_USER, UserType.class,
+    USER("schema.objectTypes.user", SchemaConstants.C_USER_TYPE, SchemaConstants.C_USER, UserType.class,
             false),
 
-    USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.I_USER_TEMPLATE_TYPE,
-            SchemaConstants.I_USER_TEMPLATE, UserTemplateType.class, false),
+    USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.C_USER_TEMPLATE_TYPE,
+            SchemaConstants.C_USER_TEMPLATE, UserTemplateType.class, false),
 
     SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration",
-            SchemaConstants.I_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.I_SYSTEM_CONFIGURATION,
+            SchemaConstants.C_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.C_SYSTEM_CONFIGURATION,
             SystemConfigurationType.class, false),
 
     TASK("schema.objectTypes.task", SchemaConstants.C_TASK_TYPE, SchemaConstants.C_TASK, TaskType.class,
             false),
 
-    RESOURCE_OBJECT_SHADOW("schema.objectTypes.resourceObject",
-            SchemaConstants.I_RESOURCE_OBJECT_SHADOW_TYPE, SchemaConstants.I_RESOURCE_OBJECT_SHADOW,
+    SHADOW("schema.objectTypes.shadow",
+            SchemaConstants.C_SHADOW_TYPE, SchemaConstants.C_SHADOW,
             ResourceObjectShadowType.class, true),
 
     OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,

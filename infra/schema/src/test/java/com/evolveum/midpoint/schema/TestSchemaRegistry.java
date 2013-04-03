@@ -5,33 +5,33 @@ package com.evolveum.midpoint.schema;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 
-import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
-import com.evolveum.midpoint.prism.*;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -122,7 +122,7 @@ public class TestSchemaRegistry {
 		PrismPropertyDefinition nameDef = userDefinition.findPropertyDefinition(ObjectType.F_NAME);
 		assertNotNull("No name definition", nameDef);
 
-		PrismContainerDefinition extensionDef = userDefinition.findContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extensionDef = userDefinition.findContainerDefinition(UserType.F_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue("Extension definition is NOT marked as runtime", extensionDef.isRuntimeSchema());
 		
@@ -137,20 +137,20 @@ public class TestSchemaRegistry {
 		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 				
-		PrismObjectDefinition<AccountShadowType> accountDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+		PrismObjectDefinition<ResourceObjectShadowType> accountDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
 		assertNotNull("No account definition", accountDef);
 
 		System.out.println("testCommonSchemaAccountType:");
 		System.out.println(accountDef.dump());
 		
-		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(SchemaConstants.C_NAME);
+		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(ResourceObjectShadowType.F_NAME);
 		assertNotNull("No name definition", nameDef);
 		
-		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(SchemaConstants.C_EXTENSION);
+		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(ResourceObjectShadowType.F_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue("'extension' definition is not marked as runtime", extensionDef.isRuntimeSchema());
 		
-		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(SchemaConstants.I_ATTRIBUTES);
+		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 		assertNotNull("No 'attributes' definition", attributesDef);
 		assertTrue("'attributes' definition is not marked as runtime", attributesDef.isRuntimeSchema());
 	}

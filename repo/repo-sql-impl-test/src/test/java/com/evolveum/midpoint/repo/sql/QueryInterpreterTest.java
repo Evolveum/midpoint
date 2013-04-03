@@ -148,7 +148,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.add(disjunction);
 
         String expected = HibernateToSqlTranslator.toSql(main);
-        String real = getInterpretedQuery(session, AccountShadowType.class,
+        String real = getInterpretedQuery(session, ResourceObjectShadowType.class,
                 new File(TEST_DIR, "query-or-composite.xml"));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
@@ -252,7 +252,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.add(conjunction);
 
         String expected = HibernateToSqlTranslator.toSql(main);
-        String real = getInterpretedQuery(session, AccountShadowType.class,
+        String real = getInterpretedQuery(session, ResourceObjectShadowType.class,
                 new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});

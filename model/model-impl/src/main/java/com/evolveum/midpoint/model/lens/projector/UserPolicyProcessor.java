@@ -19,27 +19,21 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
-import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -48,40 +42,30 @@ import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -130,7 +114,7 @@ public class UserPolicyProcessor {
     		return;
     	}
     	
-		LensContext<UserType, AccountShadowType> usContext = (LensContext<UserType, AccountShadowType>) context;
+		LensContext<UserType, ResourceObjectShadowType> usContext = (LensContext<UserType, ResourceObjectShadowType>) context;
     	//check user password if satisfies policies
 		
 //		PrismProperty<PasswordType> password = getPasswordValue((LensFocusContext<UserType>)focusContext);
@@ -144,7 +128,7 @@ public class UserPolicyProcessor {
 	}
 
 	
-	private void applyUserTemplate(LensContext<UserType, AccountShadowType> context, OperationResult result) 
+	private void applyUserTemplate(LensContext<UserType, ResourceObjectShadowType> context, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
@@ -199,7 +183,7 @@ public class UserPolicyProcessor {
 
 	}
 
-	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, AccountShadowType> context, 
+	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, ResourceObjectShadowType> context, 
 			MappingType mappingType, UserTemplateType userTemplate, ObjectDeltaObject<UserType> userOdo, 
 			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap, OperationResult result) 
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -222,7 +206,7 @@ public class UserPolicyProcessor {
 		
 	}
 	
-	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, AccountShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
+	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, ResourceObjectShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
 			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"user template mapping in " + userTemplate

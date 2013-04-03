@@ -115,12 +115,12 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             QName name = container.getDefinition().getName();
             if (ResourceObjectShadowType.F_ATTRIBUTES.equals(name)) {
                 try {
-                    PrismReference resourceRef = parent.findReference(AccountShadowType.F_RESOURCE_REF);
+                    PrismReference resourceRef = parent.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
                     PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
                     RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
                             LayerType.PRESENTATION, parent.getPrismContext());
 
-                    PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
+                    PrismProperty<QName> objectClassProp = parent.findProperty(ResourceObjectShadowType.F_OBJECT_CLASS);
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
                     
                     definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
@@ -358,7 +358,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         names.add(PasswordType.F_PREVIOUS_SUCCESSFUL_LOGIN);
         names.add(ObjectType.F_FETCH_RESULT);
 
-        if (AccountShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
+        if (ResourceObjectShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
             names.add(CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS);
         }
 

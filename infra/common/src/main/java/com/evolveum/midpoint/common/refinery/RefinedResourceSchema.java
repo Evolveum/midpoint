@@ -21,27 +21,17 @@ package com.evolveum.midpoint.common.refinery;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -50,9 +40,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -96,7 +84,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 
 	
-	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, AccountShadowType shadow) {
+	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ResourceObjectShadowType shadow) {
 		return getRefinedDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
 	}
 	
@@ -119,11 +107,11 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return getRefinedDefinition(kind, (String)null);
 	}
 	
-	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
+	public PrismObjectDefinition<ResourceObjectShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
 		return getRefinedDefinition(kind, intent).getObjectDefinition();
 	}
 	
-	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(ShadowKindType kind, AccountShadowType shadow) {
+	public PrismObjectDefinition<ResourceObjectShadowType> getObjectDefinition(ShadowKindType kind, ResourceObjectShadowType shadow) {
 		return getObjectDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
 	}
 		

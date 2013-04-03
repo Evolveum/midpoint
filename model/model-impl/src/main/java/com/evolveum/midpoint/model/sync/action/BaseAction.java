@@ -21,53 +21,58 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.CompiletimeConfig;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.sync.Action;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author lazyman
@@ -133,7 +138,7 @@ public abstract class BaseAction implements Action {
         return element;
     }
 
-    protected UserType getUser(String oid, OperationResult result) throws SynchronizationException {
+    protected UserType getUser(String oid, OperationResult result) {
         if (StringUtils.isEmpty(oid)) {
             return null;
         }
@@ -142,18 +147,14 @@ public abstract class BaseAction implements Action {
             return model.getObjectResolver().getObject(UserType.class, oid, null, result);
         } catch (ObjectNotFoundException ex) {
             // user was not found, we return null
-        } catch (Exception ex) {
-            throw new SynchronizationException("Can't get user with oid '" + oid
-                    + "'. Unknown error occurred.", ex);
+        	return null;
         }
-
-        return null;
     }
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
-    		throws SynchronizationException, SchemaException {
+    		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
         Validate.notNull(change, "Resource object change description must not be null.");
         Validate.notNull(situation, "Synchronization situation must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -184,13 +185,13 @@ public abstract class BaseAction implements Action {
     /**
      * Creates empty lens context, filling in only the very basic metadata (such as channel).
      */
-    protected LensContext<UserType, AccountShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
-    	LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+    protected LensContext<UserType, ResourceObjectShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
+    	LensContext<UserType, ResourceObjectShadowType> context = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, getPrismContext());
     	context.setChannel(change.getSourceChannel());
     	return context;
     }
 
-    protected LensProjectionContext<AccountShadowType> createAccountLensContext(LensContext<UserType, AccountShadowType> context,
+    protected LensProjectionContext<ResourceObjectShadowType> createAccountLensContext(LensContext<UserType, ResourceObjectShadowType> context,
             ResourceObjectShadowChangeDescription change, SynchronizationIntent syncIntent,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.trace("Creating account context for sync change.");
@@ -200,14 +201,14 @@ public abstract class BaseAction implements Action {
         String accountType = getAccountTypeFromChange(change);
         boolean thombstone = isThombstone(change);
 		ResourceShadowDiscriminator resourceAccountType = new ResourceShadowDiscriminator(resource.getOid(), accountType, thombstone);
-		LensProjectionContext<AccountShadowType> accountContext = context.createProjectionContext(resourceAccountType);
+		LensProjectionContext<ResourceObjectShadowType> accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
 
         //insert object delta if available in change
         ObjectDelta<? extends ResourceObjectShadowType> delta = change.getObjectDelta();
-        if (delta != null && AccountShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-            accountContext.setSyncDelta((ObjectDelta<AccountShadowType>) delta);
+        if (delta != null) {
+            accountContext.setSyncDelta((ObjectDelta<ResourceObjectShadowType>) delta);
         }
 
         //we insert account if available in change
@@ -245,8 +246,8 @@ public abstract class BaseAction implements Action {
 		return objectDelta.isDelete();
 	}
 
-	private void updateAccountActivation(LensProjectionContext<AccountShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
-        PrismObject<AccountShadowType> object = accContext.getObjectOld();
+	private void updateAccountActivation(LensProjectionContext<ResourceObjectShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
+        PrismObject<ResourceObjectShadowType> object = accContext.getObjectOld();
         if (object == null) {
             LOGGER.trace("Account object is null, skipping activation property check/update.");
             return;
@@ -255,9 +256,9 @@ public abstract class BaseAction implements Action {
         PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
         LOGGER.trace("Account activation defined, activation property found {}", enable);
 
-        ObjectDelta<AccountShadowType> accDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ResourceObjectShadowType> accDelta = accContext.getSecondaryDelta();
         if (accDelta == null) {
-            accDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY, prismContext);
+            accDelta = new ObjectDelta<ResourceObjectShadowType>(ResourceObjectShadowType.class, ChangeType.MODIFY, prismContext);
             accDelta.setOid(accContext.getOid());
             accContext.setSecondaryDelta(accDelta);
         }
@@ -292,10 +293,10 @@ public abstract class BaseAction implements Action {
         return reconcileAttributes;
     }
 
-    private PrismObject<AccountShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
+    private PrismObject<ResourceObjectShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
             throws SchemaException {
 
-    	PrismObject<AccountShadowType> account = getAccountShadowFromChange(change);
+    	PrismObject<ResourceObjectShadowType> account = getAccountShadowFromChange(change);
         if (account == null) {
             return null;
         }
@@ -304,20 +305,20 @@ public abstract class BaseAction implements Action {
         return account;
     }
 
-    protected PrismObject<AccountShadowType> getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
+    protected PrismObject<ResourceObjectShadowType> getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getCurrentShadow() != null) {
-            return (PrismObject<AccountShadowType>) change.getCurrentShadow();
+            return (PrismObject<ResourceObjectShadowType>) change.getCurrentShadow();
         }
 
         if (change.getOldShadow() != null) {
-            return (PrismObject<AccountShadowType>) change.getOldShadow();
+            return (PrismObject<ResourceObjectShadowType>) change.getOldShadow();
         }
 
         return null;
     }
 
     private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {
-    	PrismObject<AccountShadowType> account = getAccountShadowFromChange(change);
+    	PrismObject<ResourceObjectShadowType> account = getAccountShadowFromChange(change);
         if (account != null) {
             return ResourceObjectShadowUtil.getIntent(account.asObjectable());
         }
@@ -336,28 +337,89 @@ public abstract class BaseAction implements Action {
         return change.getCurrentShadow().getOid();
     }
 
-    protected void synchronizeUser(LensContext<UserType, AccountShadowType> context, Task task, OperationResult result) throws SynchronizationException {
+    protected void synchronizeUser(LensContext<UserType, ResourceObjectShadowType> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
+    	Validate.notNull(context, "Sync context must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
         try {
-            Validate.notNull(context, "Sync context must not be null.");
-            Validate.notNull(result, "Operation result must not be null.");
-
             clockwork.run(context, task, result);
-        } catch (Exception ex) {
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Synchronization error: {}\n{})", ex.getMessage(), context.dump());
-        	}
-            throw new SynchronizationException("Couldn't synchronize user, reason: " + ex.getMessage(), ex);
-        }
+        } catch (SchemaException e) {
+        	logSynchronizationError(e, context);
+            throw e;
+		} catch (PolicyViolationException e) {
+			logSynchronizationError(e, context);
+            throw e;
+		} catch (ExpressionEvaluationException e) {
+			logSynchronizationError(e, context);
+            throw e;
+		} catch (ObjectNotFoundException e) {
+			logSynchronizationError(e, context);
+            throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			logSynchronizationError(e, context);
+            throw e;
+		} catch (CommunicationException e) {
+			logSynchronizationError(e, context);
+            throw e;
+		} catch (ConfigurationException e) {
+			logSynchronizationError(e, context);
+            throw e;
+		} catch (SecurityViolationException e) {
+			logSynchronizationError(e, context);
+            throw e;
+		} catch (RewindException e) {
+			logSynchronizationError(e, context);
+            throw e;
+        } catch (RuntimeException ex) {
+        	logSynchronizationError(ex, context);
+            throw ex;
+		}
     }
 
-    protected void executeChanges(LensContext<UserType, AccountShadowType> context, Task task, OperationResult result) throws SynchronizationException {
+	private void logSynchronizationError(Throwable ex, LensContext<UserType,ResourceObjectShadowType> context) {
+		if (LOGGER.isTraceEnabled()) {
+    		LOGGER.trace("Synchronization error: {}\n{})", ex.getMessage(), context.dump());
+    	}
+	}
+
+	protected void executeChanges(LensContext<UserType, ResourceObjectShadowType> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RewindException {
+		Validate.notNull(context, "Sync context must not be null.");
         try {
-            Validate.notNull(context, "Sync context must not be null.");
             getExecutor().executeChanges(context, task, result);
-        } catch (Exception ex) {
-            throw new SynchronizationException("Couldn't execute changes from context, reason: " + ex.getMessage(), ex);
-        }
+        } catch (RuntimeException ex) {
+        	logExecutionError(ex, context);
+            throw ex;
+        } catch (ObjectAlreadyExistsException e) {
+        	logExecutionError(e, context);
+            throw e;
+		} catch (ObjectNotFoundException e) {
+			logExecutionError(e, context);
+            throw e;
+		} catch (SchemaException e) {
+			logExecutionError(e, context);
+            throw e;
+		} catch (CommunicationException e) {
+			logExecutionError(e, context);
+            throw e;
+		} catch (ConfigurationException e) {
+			logExecutionError(e, context);
+            throw e;
+		} catch (SecurityViolationException e) {
+			logExecutionError(e, context);
+            throw e;
+		} catch (ExpressionEvaluationException e) {
+			logExecutionError(e, context);
+            throw e;
+		} catch (RewindException e) {
+			logExecutionError(e, context);
+            throw e;
+		}
     }
+	
+	private void logExecutionError(Throwable ex, LensContext<UserType,ResourceObjectShadowType> context) {
+		if (LOGGER.isTraceEnabled()) {
+    		LOGGER.trace("Execution error: {}\n{})", ex.getMessage(), context.dump());
+    	}
+	}
 
     protected void createActivationPropertyDelta(ObjectDelta<?> objectDelta, ActivationDecision activationDecision,
             Boolean oldValue) {

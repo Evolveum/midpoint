@@ -132,7 +132,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -376,7 +375,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// implementing Potemkin-like security. Use a temporary
 			// "nonsense" type for now, so this will fail in tests and
 			// will be fixed later
-			propXsdType = SchemaConstants.R_PROTECTED_STRING_TYPE;
+			propXsdType = SchemaConstants.C_PROTECTED_STRING_TYPE;
 		} else if (GuardedByteArray.class.equals(type) || 
 				(Byte.class.equals(type) && isConfidential)) {
 			// GuardedString is a special case. It is a ICF-specific
@@ -384,7 +383,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// implementing Potemkin-like security. Use a temporary
 			// "nonsense" type for now, so this will fail in tests and
 			// will be fixed later
-			propXsdType = SchemaConstants.R_PROTECTED_BYTE_ARRAY_TYPE;
+			propXsdType = SchemaConstants.C_PROTECTED_BYTE_ARRAY_TYPE;
 		} else {
 			propXsdType = XsdTypeMapper.toXsdType(type);
 		}
@@ -734,7 +733,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
-			SchemaException, SecurityViolationException {
+			SchemaException, SecurityViolationException, ConfigurationException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
@@ -786,14 +785,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					result);
 
 		} catch (CommunicationException ex) {
-			result.recordFatalError("ICF invocation failed due to communication problem");
+			result.recordFatalError(ex);
 			// This is fatal. No point in continuing. Just re-throw the
 			// exception.
 			throw ex;
 		} catch (GenericFrameworkException ex) {
-			result.recordFatalError("ICF invocation failed due to a generic ICF framework problem");
+			result.recordFatalError(ex);
 			// This is fatal. No point in continuing. Just re-throw the
 			// exception.
+			throw ex;
+		} catch (ConfigurationException ex) {
+			result.recordFatalError(ex);
 			throw ex;
 		}
 
@@ -823,7 +825,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	private ConnectorObject fetchConnectorObject(ObjectClass icfObjectClass, Uid uid,
 			OperationOptions options, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException {
+			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException, ConfigurationException {
 
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
@@ -857,12 +859,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
 				throw (GenericFrameworkException) midpointEx;
-			} else if (midpointEx instanceof RuntimeException) {
-				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof ConfigurationException) {
+				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof SecurityViolationException){
 				throw (SecurityViolationException) midpointEx;
-			} else{
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException)midpointEx;
+			} else {
+				throw new SystemException(midpointEx.getClass().getName()+": "+midpointEx.getMessage(), midpointEx);
 			}
 		
 		}
@@ -922,8 +926,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object,
 			Collection<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException {
+			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		validateShadow(object, "add", false);
+		ResourceObjectShadowType objectType = object.asObjectable();
 
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(object);
@@ -948,19 +953,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			attributes = convertFromResourceObject(attributesContainer, result);
 
-			if (object.asObjectable() instanceof AccountShadowType) {
-				AccountShadowType account = (AccountShadowType) object.asObjectable();
-				if (account.getCredentials() != null && account.getCredentials().getPassword() != null) {
-					PasswordType password = account.getCredentials().getPassword();
-					ProtectedStringType protectedString = password.getValue();
-					GuardedString guardedPassword = toGuardedString(protectedString, "new password");
-					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
-							guardedPassword));
-				}
-				
-				if (account.getActivation() != null && account.getActivation().isEnabled() != null){
-					attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, account.getActivation().isEnabled().booleanValue()));
-				}
+			if (objectType.getCredentials() != null && objectType.getCredentials().getPassword() != null) {
+				PasswordType password = objectType.getCredentials().getPassword();
+				ProtectedStringType protectedString = password.getValue();
+				GuardedString guardedPassword = toGuardedString(protectedString, "new password");
+				attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
+						guardedPassword));
+			}
+			
+			if (objectType.getActivation() != null && objectType.getActivation().isEnabled() != null){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, objectType.getActivation().isEnabled().booleanValue()));
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -1022,6 +1024,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof SchemaException) {
 				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof ConfigurationException) {
+				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
 			} else {
@@ -1159,10 +1163,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						updateAttribute.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToReplace()));
 						updateValues.add(updateAttribute);
 					}
-				} else if (delta.getParentPath().equals(new ItemPath(AccountShadowType.F_ACTIVATION))) {
+				} else if (delta.getParentPath().equals(new ItemPath(ResourceObjectShadowType.F_ACTIVATION))) {
 					activationDeltas.add(delta);
 				} else if (delta.getParentPath().equals(
-						new ItemPath(new ItemPath(AccountShadowType.F_CREDENTIALS),
+						new ItemPath(new ItemPath(ResourceObjectShadowType.F_CREDENTIALS),
 								CredentialsType.F_PASSWORD))) {
 					passwordDelta = (PropertyDelta<ProtectedStringType>) delta;
 				} else {
@@ -1507,10 +1511,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
-		OperationResult subresult = parentResult.createSubresult(ConnectorInstance.class.getName()
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchChanges");
-		subresult.addContext("objectClass", objectClass);
-		subresult.addParam("lastToken", lastToken);
+		result.addContext("objectClass", objectClass);
+		result.addParam("lastToken", lastToken);
 
 		// create sync token from the property last token
 		SyncToken syncToken = null;
@@ -1518,7 +1522,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			syncToken = getSyncToken(lastToken);
 			LOGGER.trace("Sync token created from the property last token: {}", syncToken==null?null:syncToken.getValue());
 		} catch (SchemaException ex) {
-			subresult.recordFatalError(ex.getMessage(), ex);
+			result.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
@@ -1536,7 +1540,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		};
 
-		OperationResult icfResult = subresult.createSubresult(ConnectorFacade.class.getName() + ".sync");
+		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
 		icfResult.addContext("connector", icfConnectorFacade);
 		icfResult.addParam("icfObjectClass", icfObjectClass);
 		icfResult.addParam("syncToken", syncToken);
@@ -1549,7 +1553,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
-			subresult.computeStatus();
+			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
 			if (midpointEx instanceof CommunicationException) {
@@ -1567,15 +1571,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// convert changes from icf to midpoint Change
 		List<Change<T>> changeList = null;
 		try {
-			PrismSchema schema = fetchResourceSchema(subresult);
-			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, schema, subresult);
+			PrismSchema schema = fetchResourceSchema(result);
+			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, schema, result);
 		} catch (SchemaException ex) {
-			subresult.recordFatalError(ex.getMessage(), ex);
+			result.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		subresult.recordSuccess();
-		subresult.addReturn(OperationResult.RETURN_COUNT, changeList == null ? 0 : changeList.size());
+		result.recordSuccess();
+		result.addReturn(OperationResult.RETURN_COUNT, changeList == null ? 0 : changeList.size());
 		return changeList;
 	}
 
@@ -1900,29 +1904,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			if (icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
 				// password has to go to the credentials section
-				if (shadow instanceof AccountShadowType) {
-					AccountShadowType accountShadowType = (AccountShadowType) shadow;
-					ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
-					ResourceObjectShadowUtil.setPassword(accountShadowType, password);
-					LOGGER.trace("Converted password: {}", password);
-				} else {
-					throw new SchemaException("Attempt to set password for non-account object type "
-							+ objectDefinition);
-				}
+				ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
+				ResourceObjectShadowUtil.setPassword(shadow, password);
+				LOGGER.trace("Converted password: {}", password);
 				continue;
 			}
 			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
-				if (shadow instanceof AccountShadowType) {
-					AccountShadowType accountShadowType = (AccountShadowType) shadow;
-					Boolean enabled = getSingleValue(icfAttr, Boolean.class);
-					ActivationType activationType = ResourceObjectShadowUtil
-							.getOrCreateActivation(accountShadowType);
-					activationType.setEnabled(enabled);
-					LOGGER.trace("Converted enabled: {}", enabled);
-				} else {
-					throw new SchemaException("Attempt to set activation/enabled for non-account object type "
-									+ objectDefinition);
-				}
+				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
+				ActivationType activationType = ResourceObjectShadowUtil
+						.getOrCreateActivation(shadow);
+				activationType.setEnabled(enabled);
+				LOGGER.trace("Converted enabled: {}", enabled);
 				continue;
 			}
 
@@ -2015,15 +2007,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		for (ResourceAttribute<?> attribute : resourceAttributes) {
+			QName midPointAttrQName = attribute.getName();
+			if (midPointAttrQName.equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+				throw new SchemaException("ICF UID explicitly specified in attributes");
+			}
 
-			String attrName = UcfUtil.convertAttributeNameToIcf(attribute.getName(), getSchemaNamespace());
+			String icfAttrName = UcfUtil.convertAttributeNameToIcf(midPointAttrQName, getSchemaNamespace());
 
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (PrismPropertyValue<?> value : attribute.getValues()) {
 				convertedAttributeValues.add(UcfUtil.convertValueToIcf(value, protector, attribute.getName()));
 			}
 
-			Attribute connectorAttribute = AttributeBuilder.build(attrName, convertedAttributeValues);
+			Attribute connectorAttribute = AttributeBuilder.build(icfAttrName, convertedAttributeValues);
 
 			attributes.add(connectorAttribute);
 		}
@@ -2098,11 +2094,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.trace("END creating delta of type DELETE");
 
 			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDelta.getDeltaType())) {
-				PrismObjectDefinition<AccountShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
+				PrismObjectDefinition<ResourceObjectShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 				LOGGER.trace("Object definition: {}", objectDefinition);
 				
 				LOGGER.trace("START creating delta of type CREATE_OR_UPDATE");
-				PrismObject<AccountShadowType> currentShadow = convertToResourceObject(icfDelta.getObject(),
+				PrismObject<ResourceObjectShadowType> currentShadow = convertToResourceObject(icfDelta.getObject(),
 						objectDefinition, false);
 
 				if (LOGGER.isTraceEnabled()) {
@@ -2122,15 +2118,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		}
 		return changeList;
-	}
-
-	private Element getModificationPath(Document doc) {
-		List<XPathSegment> segments = new ArrayList<XPathSegment>();
-		XPathSegment attrSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
-		segments.add(attrSegment);
-		XPathHolder t = new XPathHolder(segments);
-		Element xpathElement = t.toElement(SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc);
-		return xpathElement;
 	}
 
 	private SyncToken getSyncToken(PrismProperty tokenProperty) throws SchemaException {

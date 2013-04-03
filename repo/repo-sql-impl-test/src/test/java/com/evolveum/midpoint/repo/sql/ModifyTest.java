@@ -155,7 +155,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //add account
         File accountFile = new File(TEST_DIR, "account.xml");
-        PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
+        PrismObject<ResourceObjectShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
         repositoryService.addObject(account, null, result);
 
         //add user
@@ -319,14 +319,14 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void testModifyDeleteObjectChangeFromAccount() throws Exception {
         OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
-        PrismObject<AccountShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
+        PrismObject<ResourceObjectShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
         String oid = repositoryService.addObject(accShadow, null, parentResult);
         System.out.println("\nAcc shadow");
         System.out.println(accShadow.dump());
 
         accShadow.asObjectable().setObjectChange(null);
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, oid, parentResult);
         System.out.println("\nRepo shadow");
         System.out.println(repoShadow.dump());
 
@@ -334,9 +334,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("\nDelta");
         System.out.println(d.dump());
 
-        repositoryService.modifyObject(AccountShadowType.class, oid, d.getModifications(), parentResult);
+        repositoryService.modifyObject(ResourceObjectShadowType.class, oid, d.getModifications(), parentResult);
 
-        PrismObject<AccountShadowType> afterModify = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
+        PrismObject<ResourceObjectShadowType> afterModify = repositoryService.getObject(ResourceObjectShadowType.class, oid, parentResult);
         AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
     }
 
@@ -519,7 +519,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //add account
         File accountFile = new File(TEST_DIR, "account-synchronization-situation.xml");
-        PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
+        PrismObject<ResourceObjectShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
         repositoryService.addObject(account, null, result);
 
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
@@ -528,11 +528,11 @@ public class ModifyTest extends BaseSQLRepoTest {
                 createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
         syncSituationDeltas.add(syncSituationDelta);
 
-        repositoryService.modifyObject(AccountShadowType.class, account.getOid(), syncSituationDeltas, result);
+        repositoryService.modifyObject(ResourceObjectShadowType.class, account.getOid(), syncSituationDeltas, result);
 
-        PrismObject<AccountShadowType> afterFirstModify = repositoryService.getObject(AccountShadowType.class, account.getOid(), result);
+        PrismObject<ResourceObjectShadowType> afterFirstModify = repositoryService.getObject(ResourceObjectShadowType.class, account.getOid(), result);
         AssertJUnit.assertNotNull(afterFirstModify);
-        AccountShadowType afterFirstModifyType = afterFirstModify.asObjectable();
+        ResourceObjectShadowType afterFirstModifyType = afterFirstModify.asObjectable();
         AssertJUnit.assertEquals(1, afterFirstModifyType.getSynchronizationSituationDescription().size());
         SynchronizationSituationDescriptionType description = afterFirstModifyType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
@@ -544,23 +544,23 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         PropertyDelta syncTimestap = PropertyDelta.createModificationReplaceProperty(
-                AccountShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterFirstModify.getDefinition(), timestamp);
+        		ResourceObjectShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterFirstModify.getDefinition(), timestamp);
         syncSituationDeltas.add(syncTimestap);
 
-        repositoryService.modifyObject(AccountShadowType.class, account.getOid(), syncSituationDeltas, result);
+        repositoryService.modifyObject(ResourceObjectShadowType.class, account.getOid(), syncSituationDeltas, result);
 
-        PrismObject<AccountShadowType> afterSecondModify = repositoryService.getObject(AccountShadowType.class, account.getOid(), result);
+        PrismObject<ResourceObjectShadowType> afterSecondModify = repositoryService.getObject(ResourceObjectShadowType.class, account.getOid(), result);
         AssertJUnit.assertNotNull(afterSecondModify);
-        AccountShadowType afterSecondModifyType = afterSecondModify.asObjectable();
+        ResourceObjectShadowType afterSecondModifyType = afterSecondModify.asObjectable();
         AssertJUnit.assertEquals(1, afterSecondModifyType.getSynchronizationSituationDescription().size());
         description = afterSecondModifyType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals(null, description.getSituation());
 
         LessFilter filter = LessFilter.createLessFilter(null, afterSecondModify.findItem(
-                AccountShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), timestamp, true);
+        		ResourceObjectShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), timestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(AccountShadowType.class, query, result);
+        List<PrismObject<ResourceObjectShadowType>> shadows = repositoryService.searchObjects(ResourceObjectShadowType.class, query, result);
         AssertJUnit.assertNotNull(shadows);
         AssertJUnit.assertEquals(1, shadows.size());
 

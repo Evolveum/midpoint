@@ -20,25 +20,84 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
+import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValues;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+
+import org.apache.commons.lang.StringUtils;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchScope;
+import org.opends.server.util.ChangeRecordEntry;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.w3._2001._04.xmlenc.EncryptedDataType;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -48,10 +107,13 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
@@ -59,55 +121,46 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
-
-import org.apache.commons.lang.StringUtils;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.*;
-import org.opends.server.types.ModificationType;
-import org.opends.server.util.ChangeRecordEntry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.*;
-import org.w3._2001._04.xmlenc.EncryptedDataType;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.testng.AssertJUnit.*;
 
 /**
  * Sanity test suite.
@@ -813,9 +866,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj,
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj,
                 repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -857,7 +910,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationOptionsType options = new OperationOptionsType();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
+        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -865,7 +918,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        AccountShadowType modelShadow = (AccountShadowType) objectHolder.value;
+        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -939,9 +992,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow was created in the repo
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidDerby,
                 repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("addObject has failed", repoResult);
         display("Shadow (repository)", repoShadowType);
@@ -982,7 +1035,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationOptionsType options = new OperationOptionsType();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidDerby,
+        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidDerby,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -990,7 +1043,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        AccountShadowType modelShadow = (AccountShadowType) objectHolder.value;
+        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -1041,7 +1094,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
         ObjectQuery q = ObjectQueryUtil.createResourceAndAccountQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);
-//        ObjectQuery q = QueryConvertor.createObjectQuery(AccountShadowType.class, query, prismContext);
+//        ObjectQuery q = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, query, prismContext);
 
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 
@@ -1054,8 +1107,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
                 display("Found object", objectType);
 
-                assertTrue(objectType instanceof AccountShadowType);
-                AccountShadowType shadow = (AccountShadowType) objectType;
+                assertTrue(objectType instanceof ResourceObjectShadowType);
+                ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
                 assertNotNull(shadow.getOid());
                 assertNotNull(shadow.getName());
                 assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "AccountObjectClass"), shadow.getObjectClass());
@@ -1076,7 +1129,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(AccountShadowType.class, q, handler, result);
+        provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, q, handler, result);
 
         // THEN
 
@@ -1133,12 +1186,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
 
         repoResult = new OperationResult("getObject");
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
@@ -1210,11 +1263,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
         display("repository shadow", repoShadow);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         AssertJUnit.assertNotNull(repoShadowType);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
@@ -1304,9 +1357,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
         display("repo shadow", repoShadow);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
@@ -1324,7 +1377,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
+        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -1332,7 +1385,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        AccountShadowType modelShadow = (AccountShadowType) objectHolder.value;
+        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -1416,9 +1469,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj,
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj,
         		repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
@@ -1437,7 +1490,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
+        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -1445,7 +1498,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        AccountShadowType modelShadow = (AccountShadowType) objectHolder.value;
+        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -1501,7 +1554,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
-        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(SchemaConstants.I_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
+        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
         modificationValue.getAny().add(accountRefToDeleteElement);
         modificationDeleteAccountRef.setValue(modificationValue);
         objectChange.getModification().add(modificationDeleteAccountRef);
@@ -1547,7 +1600,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        OperationResultType result = modelWeb.deleteObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidDerby);
+        OperationResultType result = modelWeb.deleteObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidDerby);
 
         // THEN
         assertNoRepoCache();
@@ -1558,7 +1611,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResult repoResult = new OperationResult("getObject");
 
         try {
-            repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
+            repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidDerby,
                     repoResult);
             AssertJUnit.fail("Shadow was not deleted");
         } catch (ObjectNotFoundException ex) {
@@ -1620,12 +1673,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
 
         repoResult = new OperationResult("getObject");
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
@@ -1683,7 +1736,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Account shadow should be gone from the repository
         repoResult = new OperationResult("getObject");
         try {
-            repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
+            repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
             AssertJUnit.fail("Shadow still exists in repo after delete");
         } catch (ObjectNotFoundException e) {
             // This is expected, but check also the result
@@ -1759,9 +1812,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadowType);
@@ -1859,9 +1912,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ResourceObjectShadowType> aObject = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        AccountShadowType repoShadow = aObject.asObjectable();
+        ResourceObjectShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -1941,9 +1994,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ResourceObjectShadowType> aObject = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        AccountShadowType repoShadow = aObject.asObjectable();
+        ResourceObjectShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -1996,7 +2049,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), objectChange);
+        OperationResultType result = modelWeb.modifyObject(ObjectTypes.SHADOW.getObjectTypeUri(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2124,9 +2177,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> aObject = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ResourceObjectShadowType> aObject = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        AccountShadowType repoShadow = aObject.asObjectable();
+        ResourceObjectShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -2209,9 +2262,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -2296,7 +2349,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         try {
-            PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+            PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                     repoResult);
             AssertJUnit.fail("Account shadow was not deleted from repo");
         } catch (ObjectNotFoundException ex) {
@@ -2576,7 +2629,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         //check account defined by account ref
         String accountOid = accountRefs.get(0).getOid();
-        AccountShadowType account = searchAccountByOid(accountOid);
+        ResourceObjectShadowType account = searchAccountByOid(accountOid);
 
         PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=e,ou=people,dc=example,dc=com", account.getName());
         
@@ -2619,7 +2672,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         //check account defined by account ref
         String accountOid = accountRefs.get(0).getOid();
-        AccountShadowType account = searchAccountByOid(accountOid);
+        ResourceObjectShadowType account = searchAccountByOid(accountOid);
 
         PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=people,dc=example,dc=com", account.getName());
 //        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
@@ -2814,13 +2867,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Listing of shadows is not supported by the provisioning. So we need
         // to look directly into repository
-        List<PrismObject<AccountShadowType>> sobjects = repositoryService.searchObjects(AccountShadowType.class, null, result);
+        List<PrismObject<ResourceObjectShadowType>> sobjects = repositoryService.searchObjects(ResourceObjectShadowType.class, null, result);
         result.computeStatus();
         assertSuccess("listObjects has failed", result);
         AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
 
-        for (PrismObject<AccountShadowType> aObject : sobjects) {
-            AccountShadowType shadow = aObject.asObjectable();
+        for (PrismObject<ResourceObjectShadowType> aObject : sobjects) {
+            ResourceObjectShadowType shadow = aObject.asObjectable();
             display("Shadow object after import (repo)", shadow);
             assertNotEmpty("No OID in shadow", shadow.getOid()); // This would be really strange ;-)
             assertNotEmpty("No name in shadow", shadow.getName());
@@ -2842,7 +2895,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // TODO: use another account, not guybrush
 //        try {
-//            AccountShadowType guybrushShadow = modelService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
+//            ResourceObjectShadowType guybrushShadow = modelService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
 //            display("Guybrush shadow (" + accountShadowOidGuybrushOpendj + ")", guybrushShadow);
 //        } catch (ObjectNotFoundException e) {
 //            System.out.println("NO GUYBRUSH SHADOW");
@@ -2881,8 +2934,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
             ObjectReferenceType accountRef = accountRefs.get(0);
 
             boolean found = false;
-            for (PrismObject<AccountShadowType> aObject : sobjects) {
-                AccountShadowType acc = aObject.asObjectable();
+            for (PrismObject<ResourceObjectShadowType> aObject : sobjects) {
+                ResourceObjectShadowType acc = aObject.asObjectable();
                 if (accountRef.getOid().equals(acc.getOid())) {
                     found = true;
                     break;
@@ -2892,8 +2945,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
             }
             
-            PrismObject<AccountShadowType> aObject = modelService.getObject(AccountShadowType.class, accountRef.getOid(), null, task, result);
-            AccountShadowType account = aObject.asObjectable();
+            PrismObject<ResourceObjectShadowType> aObject = modelService.getObject(ResourceObjectShadowType.class, accountRef.getOid(), null, task, result);
+            ResourceObjectShadowType account = aObject.asObjectable();
             
             display("Account after import ", account);
             
@@ -3013,9 +3066,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-         PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+         PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
@@ -3162,9 +3215,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
@@ -3229,7 +3282,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidElaineOpendj,
+        repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidElaineOpendj,
                 repoResult);
         repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
@@ -3317,8 +3370,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     // TODO: test for missing sample config (bad reference in expression
     // arguments)
 
-	private String checkRepoShadow(PrismObject<AccountShadowType> repoShadow) {
-		AccountShadowType repoShadowType = repoShadow.asObjectable();
+	private String checkRepoShadow(PrismObject<ResourceObjectShadowType> repoShadow) {
+		ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
 		String uid = null;
         boolean hasOthers = false;
         List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
@@ -3342,20 +3395,20 @@ public class TestSanity extends AbstractModelIntegrationTest {
         return uid;
 	}
     
-    private AccountShadowType searchAccountByOid(final String accountOid) throws Exception {
+    private ResourceObjectShadowType searchAccountByOid(final String accountOid) throws Exception {
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectType> accountHolder = new Holder<ObjectType>();
         OperationOptionsType options = new OperationOptionsType();
-        modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid, options, accountHolder, resultHolder);
+        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountOid, options, accountHolder, resultHolder);
         ObjectType object = accountHolder.value;
         assertSuccess("searchObjects has failed", resultHolder.value);
         assertNotNull("Account is null", object);
 
-        if (!(object instanceof AccountShadowType)) {
+        if (!(object instanceof ResourceObjectShadowType)) {
             fail("Object is not account.");
         }
-        AccountShadowType account = (AccountShadowType) object;
+        ResourceObjectShadowType account = (ResourceObjectShadowType) object;
         assertEquals(accountOid, account.getOid());
 
         return account;
@@ -3451,7 +3504,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
     	LOGGER.trace("Checking all shadows");
     	System.out.println("Checking all shadows");
-		ObjectChecker<AccountShadowType> checker = null;
+		ObjectChecker<ResourceObjectShadowType> checker = null;
 		IntegrationTestTools.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);		
 	}	
 

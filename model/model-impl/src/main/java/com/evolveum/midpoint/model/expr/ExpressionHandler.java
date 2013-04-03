@@ -187,15 +187,15 @@ public class ExpressionHandler {
 		
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		if (user != null) {
-			variables.put(SchemaConstants.I_USER, user.asPrismObject());
+			variables.put(ExpressionConstants.VAR_USER, user.asPrismObject());
 		}
 
 		if (shadow != null) {
-			variables.put(SchemaConstants.I_ACCOUNT, shadow.asPrismObject());
+			variables.put(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject());
 		}
 
 		if (resource != null) {
-			variables.put(SchemaConstants.I_RESOURCE, resource.asPrismObject());
+			variables.put(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject());
 		}
 
 		return variables;

@@ -475,6 +475,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
         		deltaType = SyncDeltaType.CREATE_OR_UPDATE;
         		DummyAccount account = resource.getAccountByUsername(delta.getAccountId());
+        		if (account == null) {
+        			throw new IllegalStateException("We have delta for account '"+delta.getAccountId()+"' but such account does not exist");
+        		}
         		ConnectorObject cobject = convertToConnectorObject(account, options);
 				builder.setObject(cobject);
         	} else if (delta.getType() == DummyDeltaType.DELETE) {
@@ -565,6 +568,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					log.error(e, e.getMessage());
 					throw new ConnectorIOException(e.getMessage(), e);
 				}
+				if (attrDef == null) {
+					throw new IllegalArgumentException("Unknown attribute '"+name+"'");
+				}
 				if (!attrDef.isReturnedByDefault()) {
 					continue;
 				}
@@ -593,7 +599,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
 		Boolean enabled = null;
 		for (Attribute attr : createAttributes) {
-			if (attr.is(Name.NAME)) {
+			if (attr.is(Uid.NAME)) {
+				throw new IllegalArgumentException("UID explicitly specified in the attributes");
+				
+			} else if (attr.is(Name.NAME)) {
 				// Skip, already processed
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {

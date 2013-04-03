@@ -26,7 +26,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -36,8 +35,6 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.CommonTestConstants;
 import com.evolveum.midpoint.common.crypto.AESProtector;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
@@ -51,19 +48,13 @@ import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluatorF
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
-import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -77,13 +68,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AsIsExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
@@ -194,8 +180,8 @@ public class MappingTestEvaluator {
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		
 		// Variable $account
-		PrismObject<AccountShadowType> account = getAccount();
-		ObjectDeltaObject<AccountShadowType> accountOdo = new ObjectDeltaObject<AccountShadowType>(account , null, null);
+		PrismObject<ResourceObjectShadowType> account = getAccount();
+		ObjectDeltaObject<ResourceObjectShadowType> accountOdo = new ObjectDeltaObject<ResourceObjectShadowType>(account , null, null);
 		accountOdo.recompute();
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
         
@@ -241,7 +227,7 @@ public class MappingTestEvaluator {
 		return PrismTestUtil.parseObject(USER_OLD_FILE);
 	}
 	
-	protected PrismObject<AccountShadowType> getAccount() throws SchemaException {
+	protected PrismObject<ResourceObjectShadowType> getAccount() throws SchemaException {
 		return PrismTestUtil.parseObject(ACCOUNT_FILE);
 	}
 	

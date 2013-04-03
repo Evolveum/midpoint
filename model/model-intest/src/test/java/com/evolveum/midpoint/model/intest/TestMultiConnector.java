@@ -92,7 +92,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
@@ -233,7 +233,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        Collection<PrismObject<AccountShadowType>> accounts = listAccounts(resourceDummyFake, task, result);
+        Collection<PrismObject<ResourceObjectShadowType>> accounts = listAccounts(resourceDummyFake, task, result);
 		
 		// THEN
         result.computeStatus();
@@ -292,7 +292,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        Collection<PrismObject<AccountShadowType>> accounts = listAccounts(resourceDummy, task, result);
+        Collection<PrismObject<ResourceObjectShadowType>> accounts = listAccounts(resourceDummy, task, result);
 		
 		// THEN
         result.computeStatus();
@@ -635,7 +635,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        Collection<PrismObject<AccountShadowType>> accounts = listAccounts(resource, task, result);
+        Collection<PrismObject<ResourceObjectShadowType>> accounts = listAccounts(resource, task, result);
 		
 		// THEN
         result.computeStatus();

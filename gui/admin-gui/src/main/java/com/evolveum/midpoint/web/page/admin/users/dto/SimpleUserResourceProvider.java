@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -88,8 +88,8 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
         }
 
         for (UserAccountDto account : accounts) {
-            PrismObject<AccountShadowType> prismAccount = account.getObject().getObject();
-            PrismReference resourceRef = prismAccount.findReference(AccountShadowType.F_RESOURCE_REF);
+            PrismObject<ResourceObjectShadowType> prismAccount = account.getObject().getObject();
+            PrismReference resourceRef = prismAccount.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
             if (resourceRef == null || resourceRef.getValue() == null) {
                 continue;
             }

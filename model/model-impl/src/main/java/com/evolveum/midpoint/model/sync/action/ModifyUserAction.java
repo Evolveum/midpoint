@@ -25,12 +25,13 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.CompiletimeConfig;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -43,7 +44,14 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -109,31 +117,25 @@ public class ModifyUserAction extends BaseAction {
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
-            OperationResult result) throws SynchronizationException, SchemaException {
+            OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
-
-        Class<? extends ResourceObjectShadowType> clazz = getClassFromChange(change);
-        if (!AccountShadowType.class.isAssignableFrom(clazz)) {
-            throw new SynchronizationException("Couldn't synchronize shadow of type '"
-                    + clazz + "', only '" + AccountShadowType.class.getName() + "' is supported.");
-        }
 
         OperationResult subResult = result.createSubresult(actionName);
         if (StringUtils.isEmpty(userOid)) {
             String message = "Can't modify user, user oid is empty or null.";
             subResult.recordFatalError(message);
-            throw new SynchronizationException(message);
+            throw new SchemaException(message);
         }
 
         UserType userType = getUser(userOid, subResult);
         if (userType == null) {
             String message = "Can't find user with oid '" + userOid + "'.";
             subResult.recordFatalError(message);
-            throw new SynchronizationException(message);
+            throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, AccountShadowType> context = null;
-        LensProjectionContext<AccountShadowType> accountContext = null;
+        LensContext<UserType, ResourceObjectShadowType> context = null;
+        LensProjectionContext<ResourceObjectShadowType> accountContext = null;
         try {
             context = createSyncContext(userType, change.getResource().asObjectable(), change);
             accountContext = createAccountLensContext(context, change,
@@ -142,9 +144,9 @@ public class ModifyUserAction extends BaseAction {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
         	subResult.recordFatalError("Couldn't update account sync context in modify user action: "+ex.getMessage(), ex);
-            throw new SynchronizationException("Couldn't update account sync context in modify user action.", ex);
+            throw new SystemException("Couldn't update account sync context in modify user action.", ex);
         }
         
         updateContextBeforeSync(context, accountContext);
@@ -154,14 +156,6 @@ public class ModifyUserAction extends BaseAction {
         } finally {
             subResult.recomputeStatus();
             result.recomputeStatus();
-            
-//            auditRecord.clearTimestamp();
-//            auditRecord.setEventType(AuditEventType.MODIFY_OBJECT);
-//        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-//        	auditRecord.setResult(result);
-//        	auditRecord.clearDeltas();
-//        	auditRecord.addDeltas(context.getAllChanges());
-//        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;
@@ -170,8 +164,8 @@ public class ModifyUserAction extends BaseAction {
     /**
 	 * A chance to update the context before a sync is executed. For use in subclasses.
 	 */
-	protected void updateContextBeforeSync(LensContext<UserType, AccountShadowType> context, 
-			LensProjectionContext<AccountShadowType> accountContext) {
+	protected void updateContextBeforeSync(LensContext<UserType, ResourceObjectShadowType> context, 
+			LensProjectionContext<ResourceObjectShadowType> accountContext) {
 		// Nothing to do here
 	}
 
@@ -187,13 +181,13 @@ public class ModifyUserAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, AccountShadowType> createSyncContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private LensContext<UserType, ResourceObjectShadowType> createSyncContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
-                SchemaConstants.I_USER_TYPE);
+        		UserType.COMPLEX_TYPE);
 
-        LensContext<UserType, AccountShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         PrismObject<UserType> oldUser = user.asPrismObject();
         focusContext.setObjectOld(oldUser);
@@ -227,7 +221,7 @@ public class ModifyUserAction extends BaseAction {
         return context;
     }
 
-    private void createActivationPropertyDelta(LensContext<UserType, AccountShadowType> context, ActivationDecision activationDecision,
+    private void createActivationPropertyDelta(LensContext<UserType, ResourceObjectShadowType> context, ActivationDecision activationDecision,
             Boolean oldValue) {
 
     	LensFocusContext<UserType> focusContext = context.getFocusContext();

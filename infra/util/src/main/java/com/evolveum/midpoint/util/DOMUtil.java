@@ -17,12 +17,10 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.util;
 
-//TODO: fix imports - to remove warning during build
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 

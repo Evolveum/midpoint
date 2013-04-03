@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -341,15 +340,8 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	}
 	
 	public <T extends ResourceObjectShadowType> PrismObjectDefinition<T> toShadowDefinition() {
-		PrismObjectDefinition<T> origShadowDef = null;
-		if (getKind() == ShadowKindType.ACCOUNT) {
-			// DEPRECATED ... FIXME HACK TODO
-			origShadowDef = (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
-					findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
-		} else {
-			origShadowDef = (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
+		PrismObjectDefinition<T> origShadowDef =  (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
 			findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
-		}
 		PrismObjectDefinition<T> shadowDefinition = 
 			origShadowDef.cloneWithReplacedDefinition(ResourceObjectShadowType.F_ATTRIBUTES, this);
 		return shadowDefinition;

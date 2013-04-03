@@ -34,7 +34,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 
 import org.mockito.Mockito;
@@ -103,7 +102,7 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullResult() throws Exception {
-        controller.listResourceObjectShadows("1", AccountShadowType.class, null, null);
+        controller.listResourceObjectShadows("1", ResourceObjectShadowType.class, null, null);
     }
 
     @Test
@@ -116,13 +115,13 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
         when(
                 repository.listResourceObjectShadows(eq(resourceOid),
-                        eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
+                        eq((Class<T>) ResourceObjectShadowType.class), any(OperationResult.class)))
                 .thenReturn((List)expected);
 
         Task task = taskManager.createTaskInstance("List Resource Object Shadows");
         try {
             List<PrismObject<T>> returned = controller.listResourceObjectShadows(resourceOid,
-                    (Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), task, task.getResult());
+                    (Class<T>) ResourceObjectShadowType.class, task, task.getResult());
 
             assertNotNull(expected);
             assertNotNull(returned);

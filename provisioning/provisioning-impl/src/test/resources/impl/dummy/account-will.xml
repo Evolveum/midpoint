@@ -27,6 +27,7 @@
 	<name>will</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<kind>account</kind>
 	<attributes>
 		<icfs:name>will</icfs:name>
 		<ri:fullname>Will Turner</ri:fullname>

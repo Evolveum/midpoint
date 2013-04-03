@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
@@ -80,9 +79,9 @@ public class ShadowCacheReconciler extends ShadowCache{
 		// FIXME: ugly hack, need to be fixed (problem with comparing operation
 		// result, because it was changed and in this call it is different as
 		// one in repo, therefore the following if)
-		PrismObject<AccountShadowType> repoShadow = getRepositoryService().getObject(AccountShadowType.class,
+		PrismObject<ResourceObjectShadowType> repoShadow = getRepositoryService().getObject(ResourceObjectShadowType.class,
 				shadow.getOid(), parentResult);
-		AccountShadowType repoShadowType = repoShadow.asObjectable();
+		ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
 		if (repoShadowType.getResult() != null) {
 			if (!repoShadowType.getResult().equals(oldShadow.asObjectable().getResult())) {
 				oldShadow.asObjectable().setResult(repoShadowType.getResult());
@@ -94,7 +93,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 		LOGGER.trace("Normalizing shadow: change description: {}", delta.dump());
 		// prismContext.adopt(shadow);
 		try {
-			getRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), delta.getModifications(),
+			getRepositoryService().modifyObject(ResourceObjectShadowType.class, shadow.getOid(), delta.getModifications(),
 					parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Couldn't modify shadow: schema violation: " + ex.getMessage(), ex);

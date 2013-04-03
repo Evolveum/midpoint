@@ -19,15 +19,15 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY;
+import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-
-import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,46 +38,29 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.projector.Projector;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -85,10 +68,11 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 
 /**
  * @author semancik
@@ -124,7 +108,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".test020AssignAccountToJackSync");
         OperationResult result = task.getResult();
 
-        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
         PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BARBOSSA_FILENAME));
         fillContextWithAddUserDelta(context, bill);
 
@@ -149,7 +133,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".test020AssignAccountToJackSync");
 	        OperationResult result = task.getResult();
 	        
-	        LensContext<UserType, AccountShadowType> context = createJackAssignAccountContext(result);
+	        LensContext<UserType, ResourceObjectShadowType> context = createJackAssignAccountContext(result);
 	
 	        display("Input context", context);
 	
@@ -214,7 +198,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test053ModifyUserBarbossaDisable");
         OperationResult result = task.getResult();
 
-        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context,
@@ -236,17 +220,17 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext<ResourceObjectShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext<ResourceObjectShadowType> accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
         assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ResourceObjectShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
-        		new ItemPath(AccountShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
+        		new ItemPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
         		false);
                 
     }
@@ -258,7 +242,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "."+testName);
         OperationResult result = task.getResult();
         
-        LensContext<UserType, AccountShadowType> context = createJackAssignAccountContext(result);
+        LensContext<UserType, ResourceObjectShadowType> context = createJackAssignAccountContext(result);
 
         display("Input context", context);
 
@@ -296,17 +280,17 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         assertJackAccountShadow(context);
 	}
 	
-	private void assertJackAssignAccountContext(LensContext<UserType, AccountShadowType> context) {
+	private void assertJackAssignAccountContext(LensContext<UserType, ResourceObjectShadowType> context) {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext<ResourceObjectShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext<ResourceObjectShadowType> accContext = accountContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ResourceObjectShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
         assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
         
@@ -317,27 +301,27 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         
 	}
 	
-	private void assertJackAccountShadow(LensContext<UserType, AccountShadowType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+	private void assertJackAccountShadow(LensContext<UserType, ResourceObjectShadowType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+        Collection<LensProjectionContext<ResourceObjectShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext<ResourceObjectShadowType> accContext = accountContexts.iterator().next();
         String accountOid = accContext.getOid();
         assertNotNull("No OID in account context "+accContext);
         
-        PrismObject<AccountShadowType> newAccount = getAccount(accountOid);
-        assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
+        PrismObject<ResourceObjectShadowType> newAccount = getAccount(accountOid);
+        assertEquals(DEFAULT_INTENT, newAccount.findProperty(ResourceObjectShadowType.F_INTENT).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
-                newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
-        PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
+                newAccount.findProperty(ResourceObjectShadowType.F_OBJECT_CLASS).getRealValue());
+        PrismReference resourceRef = newAccount.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
-        PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
+        PrismContainer<?> attributes = newAccount.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
         assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
         assertEquals("Jack Sparrow", attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
 	}
 
-	private LensContext<UserType, AccountShadowType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
-		LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+	private LensContext<UserType, ResourceObjectShadowType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
+		LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         return context;
@@ -345,7 +329,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 
 	private void unassignJackAccount() throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 		Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
-		LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+		LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
 		OperationResult result = task.getResult();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);

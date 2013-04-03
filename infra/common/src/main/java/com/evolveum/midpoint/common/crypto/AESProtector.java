@@ -302,7 +302,7 @@ public class AESProtector implements Protector {
         } catch (Exception ex) {
             LOGGER.error("Exception during decryption: {}", ex.getMessage(), ex);
             try {
-                LOGGER.trace("The input was {}:\n{}", protectedString, getJaxbProcessor().marshalObjectToDom(protectedString, SchemaConstants.R_PROTECTED_STRING, DOMUtil.getDocument()));
+                LOGGER.trace("The input was {}:\n{}", protectedString, getJaxbProcessor().marshalObjectToDom(protectedString, SchemaConstants.C_PROTECTED_STRING, DOMUtil.getDocument()));
             } catch (JAXBException e) {
                 LOGGER.trace("Error marshalling the input {}: {}", protectedString, e.getMessage());
             }

@@ -22,10 +22,18 @@
 package com.evolveum.midpoint.model.sync;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 
 import java.util.List;
@@ -50,7 +58,7 @@ public interface Action {
 
     String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
-    		throws SynchronizationException, SchemaException;
+    		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException;
 
     void setParameters(List<Object> parameters);
 

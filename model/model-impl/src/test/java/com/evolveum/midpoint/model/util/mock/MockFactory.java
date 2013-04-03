@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model.util.mock;

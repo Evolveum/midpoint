@@ -55,9 +55,9 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -70,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
-	private static final File TEST_FOLDER = new File("./src/test/resources");
+	private static final File TEST_FOLDER = new File("./src/test/resources/expr");
 	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	@Autowired
 	private ExpressionHandler expressionHandler;
@@ -84,7 +84,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConfirmUser() throws Exception {
-		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(
+		PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(
 				TEST_FOLDER, "account-xpath-evaluation.xml"));
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
@@ -111,8 +111,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEvaluateExpression() throws Exception {
-		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "expr/account.xml"));
-		AccountShadowType accountType = account.asObjectable();
+		PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "account.xml"));
+		ResourceObjectShadowType accountType = account.asObjectable();
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-dummy.xml"));
 		ResourceType resourceType = resource.asObjectable();
 		accountType.setResource(resourceType);

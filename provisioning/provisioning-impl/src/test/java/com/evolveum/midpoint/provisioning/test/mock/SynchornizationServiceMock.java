@@ -24,9 +24,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 @Service(value = "syncServiceMock")
 public class SynchornizationServiceMock implements ResourceObjectChangeListener, ResourceOperationListener {
@@ -107,14 +107,14 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 							": "+e.getCause()+": "+e.getMessage());
 				}
 
-				if (change.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
-					AccountShadowType account = (AccountShadowType) change.getCurrentShadow().asObjectable();
+				if (change.getCurrentShadow().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
+					ResourceObjectShadowType account = change.getCurrentShadow().asObjectable();
 					assertNotNull("Current shadow does not have activation", account.getActivation());
 					assertNotNull("Current shadow activation/enabled is null", account.getActivation()
 							.isEnabled());
 				} else {
 					// We don't support other types now
-					AssertJUnit.fail("Unexpected type of shadow " + change.getCurrentShadow().getClass());
+					AssertJUnit.fail("Unexpected kind of shadow " + change.getCurrentShadow().asObjectable().getKind());
 				}
 			}
 		}

@@ -231,7 +231,7 @@ public class TestDeltaConverter {
         ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid("54321");
-        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(SchemaConstants.I_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
+        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
         modificationValue.getAny().add(accountRefToDeleteElement);
         modificationDeleteAccountRef.setValue(modificationValue);
         objectChange.getModification().add(modificationDeleteAccountRef);

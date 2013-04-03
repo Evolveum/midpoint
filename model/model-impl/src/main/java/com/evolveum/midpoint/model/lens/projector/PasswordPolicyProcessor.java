@@ -21,10 +21,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -102,7 +102,7 @@ public class PasswordPolicyProcessor {
 
 	}
 	
-	<F extends ObjectType, P extends ObjectType> void processPasswordPolicy(LensProjectionContext<AccountShadowType> projectionContext, LensContext<F,P> context, OperationResult result) throws SchemaException, PolicyViolationException{
+	<F extends ObjectType, P extends ObjectType> void processPasswordPolicy(LensProjectionContext<ResourceObjectShadowType> projectionContext, LensContext<F,P> context, OperationResult result) throws SchemaException, PolicyViolationException{
 		
 ObjectDelta accountDelta = projectionContext.getDelta();
 		
@@ -115,7 +115,7 @@ ObjectDelta accountDelta = projectionContext.getDelta();
 			return;
 		}
 		
-		PrismObject<AccountShadowType> accountShadow = null;
+		PrismObject<ResourceObjectShadowType> accountShadow = null;
 		PrismProperty<PasswordType> password = null;
 		if (ChangeType.ADD == accountDelta.getChangeType()){
 			accountShadow = accountDelta.getObjectToAdd();

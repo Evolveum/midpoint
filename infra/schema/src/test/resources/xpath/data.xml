@@ -17,10 +17,7 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-
-
 
 <root xmlns="http://default.com/" xmlns:y="http://yy.com/">
     <x:el1 xmlns:x="http://xx.com/">

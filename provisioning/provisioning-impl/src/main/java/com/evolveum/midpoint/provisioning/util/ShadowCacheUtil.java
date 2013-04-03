@@ -47,7 +47,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
@@ -114,10 +113,8 @@ public class ShadowCacheUtil {
 			shadow.setResult(null);
 		}
 
-		if (shadow instanceof AccountShadowType) {
-			if (((AccountShadowType) shadow).getCredentials() != null) {
-				((AccountShadowType) shadow).setCredentials(null);
-			}
+		if (shadow.getCredentials() != null) {
+			shadow.setCredentials(null);
 		}
 
 		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);

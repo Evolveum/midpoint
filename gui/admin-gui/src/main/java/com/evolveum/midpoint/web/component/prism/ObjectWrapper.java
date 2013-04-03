@@ -242,12 +242,12 @@ public class ObjectWrapper implements Serializable {
 				container.setMain(true);
 				containers.add(container);
 				
-				if (hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
+				if (hasResourceCapability(((ResourceObjectShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 					containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
 				}
-				if (AccountShadowType.class.isAssignableFrom(clazz) && 
-						hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
-					containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
+				if (ResourceObjectShadowType.class.isAssignableFrom(clazz) && 
+						hasResourceCapability(((ResourceObjectShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
+					containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_CREDENTIALS));
 				}
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
                 containers =  createResourceContainers();
@@ -400,11 +400,11 @@ public class ObjectWrapper implements Serializable {
                     //todo this is bad hack because now we have not tri-state checkbox
 					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
 						
-						if (object.asObjectable() instanceof AccountShadowType
+						if (object.asObjectable() instanceof ResourceObjectShadowType
                                 && (((ResourceObjectShadowType) object.asObjectable()).getActivation() == null
                                 || ((ResourceObjectShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
 							
-							if (!hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
+							if (!hasResourceCapability(((ResourceObjectShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 								continue;
 							}
 						}

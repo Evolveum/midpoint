@@ -157,7 +157,7 @@ public abstract class AbstractScriptTest {
 		evaluateAndAssertStringScalarExpresssion(
 				"expression-system-variables.xml", 
     			"testSystemVariables", 
-    			ScriptVariables.create(SchemaConstants.I_USER, 
+    			ScriptVariables.create(SchemaConstants.C_USER, 
     	    			MiscSchemaUtil.createObjectReference("c0c010c0-d34d-b33f-f00d-111111111111", UserType.COMPLEX_TYPE)),
     	    	"Jack");
     }

@@ -26,7 +26,6 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import org.apache.bcel.generic.ACONST_NULL;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,21 +36,14 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -63,9 +55,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -84,7 +74,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
@@ -92,7 +81,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
  * Implementation of provisioning service.
@@ -278,7 +266,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		logger.error(message, ex);
 		opResult.recordFatalError(message, ex);
-		opResult.cleanupResult();
+		opResult.cleanupResult(ex);
 	}
 
 	private void logWarning(Trace logger, OperationResult opResult, String message, Exception ex) {
@@ -320,7 +308,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				} else {
 					result.recordSuccess();
 				}
-				result.cleanupResult();
+				result.cleanupResult(ex);
 				throw new ObjectAlreadyExistsException("Could't add object. Object already exists: " + ex.getMessage(),
 						ex);
 			} catch (ConfigurationException ex) {
@@ -371,8 +359,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 
 			LOGGER.trace("Calling shadow cache to fetch changes.");
-			List<Change<AccountShadowType>> changes = getShadowCache(Mode.STANDARD).fetchChanges(
-					AccountShadowType.class, resourceType, tokenProperty, result);
+			List<Change<ResourceObjectShadowType>> changes = getShadowCache(Mode.STANDARD).fetchChanges(
+					ResourceObjectShadowType.class, resourceType, tokenProperty, result);
 			LOGGER.trace("Changes returned to ProvisioningServiceImpl:\n{}", changes);
 
 			// synchronize changes
@@ -448,7 +436,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private int processSynchronization(List<Change<AccountShadowType>> changes, Task task, ResourceType resourceType,
+	private int processSynchronization(List<Change<ResourceObjectShadowType>> changes, Task task, ResourceType resourceType,
 			PrismProperty tokenProperty, OperationResult result) throws SchemaException, ObjectNotFoundException,
 			ObjectAlreadyExistsException {
 		int processedChanges = 0;
@@ -817,7 +805,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			} catch (ObjectNotFoundException ex) {
 				result.recordFatalError(ex);
-				result.cleanupResult();
+				result.cleanupResult(ex);
 				throw ex;
 			}
 
@@ -889,7 +877,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			resource = getObject(ResourceType.class, resourceOid, null, result);
 		} catch (SecurityViolationException ex){
 			recordFatalError(LOGGER, result, "Could not get resource: security violation: " + ex.getMessage(), ex);
-			result.cleanupResult();
+			result.cleanupResult(ex);
 			throw new SystemException("Could not get resource: security violation: " +ex.getMessage(), ex);
 		}
 		
@@ -911,7 +899,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			getShadowCache(Mode.STANDARD).listShadows(resource.asObjectable(), objectClass, shadowHandler, false, result);
 		} catch (ConfigurationException ex) {
 			parentResult.recordFatalError(ex.getMessage(), ex);
-			result.cleanupResult();
+			result.cleanupResult(ex);
 			throw ex;
 		}
 		result.cleanupResult();
@@ -1052,7 +1040,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							.createModificationReplacePropertyCollection(ResourceObjectShadowType.F_RESULT,
 									getResourceObjectShadowDefinition(), accountResult.createOperationResultType());
 					try {
-						cacheRepositoryService.modifyObject(AccountShadowType.class, shadowType.getOid(),
+						cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadowType.getOid(),
 								shadowModificationType, result);
 					} catch (ObjectNotFoundException ex) {
 						result.recordFatalError("Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
@@ -1076,10 +1064,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 	
-
-
-
-
 	private synchronized void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
 			Task task, OperationResult parentResult) {
 		changeNotificationDispatcher.notifyChange(change, task, parentResult);
@@ -1240,7 +1224,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				&& change.getOldShadow() != null) {
 			LOGGER.debug("Deleting detected shadow object form repository.");
 			try {
-				cacheRepositoryService.deleteObject(AccountShadowType.class, change.getOldShadow().getOid(),
+				cacheRepositoryService.deleteObject(ResourceObjectShadowType.class, change.getOldShadow().getOid(),
 						parentResult);
 			} catch (ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Can't find object " + change.getOldShadow() + " in repository.");

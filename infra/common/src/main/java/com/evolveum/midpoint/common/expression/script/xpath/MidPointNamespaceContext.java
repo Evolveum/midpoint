@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.common.expression.script.xpath;
@@ -34,8 +33,6 @@ import javax.xml.namespace.NamespaceContext;
  * @see NamespaceContext
  * 
  * @author Igor Farinic
- * @version $Revision$ $Date$
- * @since 0.1
  */
 
 public class MidPointNamespaceContext implements NamespaceContext {

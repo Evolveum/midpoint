@@ -19,13 +19,15 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT;
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.EXTENSION_LOCATIONS_TYPE;
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES;
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES_TYPE;
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.NS_ICFC;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.*;
 
 import java.io.IOException;
 
@@ -41,7 +43,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -54,16 +55,11 @@ import com.evolveum.midpoint.schema.util.SchemaTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -154,23 +150,23 @@ public class TestSchemaSanity {
 		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
 				
 		// WHEN
-		PrismObjectDefinition<AccountShadowType> accountDefinition = schemaRegistry.findObjectDefinitionByElementName(
-				new QName(SchemaConstantsGenerated.NS_COMMON,"account"));
+		PrismObjectDefinition<ResourceObjectShadowType> accountDefinition = schemaRegistry.findObjectDefinitionByElementName(
+				SchemaConstants.C_SHADOW);
 		assertNotNull("No account definition", accountDefinition);
 		System.out.println("Account definition:");
 		System.out.println(accountDefinition.dump());
 		
-		PrismObjectDefinition<AccountShadowType> accountDefinitionByClass = 
-			schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+		PrismObjectDefinition<ResourceObjectShadowType> accountDefinitionByClass = 
+			schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
 		assertTrue("Different account def", accountDefinition == accountDefinitionByClass);
 
-		assertEquals("Wrong compile-time class in account definition", AccountShadowType.class, accountDefinition.getCompileTimeClass());
-		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
-		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
+		assertEquals("Wrong compile-time class in account definition", ResourceObjectShadowType.class, accountDefinition.getCompileTimeClass());
+		PrismAsserts.assertPropertyDefinition(accountDefinition, ResourceObjectShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
+		PrismAsserts.assertPropertyDefinition(accountDefinition, ResourceObjectShadowType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
 		assertFalse("Account definition is marked as runtime", accountDefinition.isRuntimeSchema());
 		
-		PrismContainerDefinition attributesContainer = accountDefinition.findContainerDefinition(AccountShadowType.F_ATTRIBUTES);
-		PrismAsserts.assertDefinition(attributesContainer, AccountShadowType.F_ATTRIBUTES, ResourceObjectShadowAttributesType.COMPLEX_TYPE, 0, 1);
+		PrismContainerDefinition attributesContainer = accountDefinition.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismAsserts.assertDefinition(attributesContainer, ResourceObjectShadowType.F_ATTRIBUTES, ResourceObjectShadowAttributesType.COMPLEX_TYPE, 0, 1);
 		assertTrue("Attributes is NOT runtime", attributesContainer.isRuntimeSchema());
 		assertEquals("Wrong attributes compile-time class", ResourceObjectShadowAttributesType.class, attributesContainer.getCompileTimeClass());
 	}

@@ -39,6 +39,7 @@ public final class Change<T extends ResourceObjectShadowType> {
     private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ObjectDelta<T> objectDelta;
     private PrismProperty<?> token;
+    // TODO: maybe call this repoShadow?
     private PrismObject<T> oldShadow;
     private PrismObject<T> currentShadow;
 

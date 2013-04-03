@@ -38,9 +38,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotifierConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.cxf.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,7 +129,7 @@ public class SimpleAccountOperationNotifier implements Notifier {
 
         UserType requestee = request.getUser();
         ResourceOperationDescription rod = request.getAccountOperationDescription();
-        ObjectDelta<AccountShadowType> delta = (ObjectDelta<AccountShadowType>) rod.getObjectDelta();
+        ObjectDelta<ResourceObjectShadowType> delta = (ObjectDelta<ResourceObjectShadowType>) rod.getObjectDelta();
 
         body.append("Notification about account-related operation\n\n");
         body.append("User (requestee): " + requestee.getFullName() + " (" + requestee.getName() + ", oid " + requestee.getOid() + ")\n");

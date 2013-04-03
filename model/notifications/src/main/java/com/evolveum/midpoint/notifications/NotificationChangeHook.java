@@ -36,8 +36,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,10 +134,10 @@ public class NotificationChangeHook implements ChangeHook {
 
         boolean add = false, modify = false, delete = false;
 
-        List<ObjectDelta<AccountShadowType>> accountDeltas = new ArrayList<ObjectDelta<AccountShadowType>>();
-        ModelContext<UserType, AccountShadowType> userContext = (ModelContext<UserType, AccountShadowType>) context;
-        for (ModelProjectionContext<AccountShadowType> projectionContext : userContext.getProjectionContexts()) {
-            ObjectDelta<AccountShadowType> delta = projectionContext.getPrimaryDelta();
+        List<ObjectDelta<ResourceObjectShadowType>> accountDeltas = new ArrayList<ObjectDelta<ResourceObjectShadowType>>();
+        ModelContext<UserType, ResourceObjectShadowType> userContext = (ModelContext<UserType, ResourceObjectShadowType>) context;
+        for (ModelProjectionContext<ResourceObjectShadowType> projectionContext : userContext.getProjectionContexts()) {
+            ObjectDelta<ResourceObjectShadowType> delta = projectionContext.getPrimaryDelta();
             if (delta == null) {
                 delta = projectionContext.getSecondaryDelta();
             }
@@ -170,8 +170,8 @@ public class NotificationChangeHook implements ChangeHook {
 
     private NotificationRequest createRequestIfApplicable(PrismObject<UserType> user,
                                                           NotificationConfigurationEntryType entry,
-                                                          List<ObjectDelta<AccountShadowType>> accountDeltas,
-                                                          ModelContext<UserType,AccountShadowType> modelContext,
+                                                          List<ObjectDelta<ResourceObjectShadowType>> accountDeltas,
+                                                          ModelContext<UserType,ResourceObjectShadowType> modelContext,
                                                           boolean add, boolean modify, boolean delete) {
 
         if ((add && entry.getSituation().contains(NotificationConstants.ACCOUNT_CREATION_QNAME)) ||

@@ -98,19 +98,19 @@ public class TestJaxbParsing {
         System.out.println(user.dump());
 
         user.checkConsistence();
-        assertPropertyValue(user, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("jack"));
+        assertPropertyValue(user, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "fullName"), new PolyString("Jack Sparrow", "jack sparrow"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "givenName"), new PolyString("Jack", "jack"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "familyName"), new PolyString("Sparrow", "sparrow"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), new PolyString("Cpt.", "cpt"));
-        assertPropertyValue(user.findContainer(SchemaConstants.C_EXTENSION),
+        assertPropertyValue(user.findContainer(UserType.F_EXTENSION),
                 new QName(NS_FOO, "bar"), "BAR");
-        PrismProperty<ProtectedStringType> password = user.findOrCreateContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "password"));
+        PrismProperty<ProtectedStringType> password = user.findOrCreateContainer(UserType.F_EXTENSION).findProperty(new QName(NS_FOO, "password"));
         assertNotNull(password);
         // TODO: check inside
-        assertPropertyValue(user.findOrCreateContainer(SchemaConstants.C_EXTENSION),
+        assertPropertyValue(user.findOrCreateContainer(UserType.F_EXTENSION),
                 new QName(NS_FOO, "num"), 42);
-        PrismProperty<?> multi = user.findOrCreateContainer(SchemaConstants.C_EXTENSION).findProperty(new QName(NS_FOO, "multi"));
+        PrismProperty<?> multi = user.findOrCreateContainer(UserType.F_EXTENSION).findProperty(new QName(NS_FOO, "multi"));
         assertEquals(3, multi.getValues().size());
 
         // WHEN
@@ -133,19 +133,19 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        AccountShadowType accType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "account-jack.xml"), AccountShadowType.class);
+        ResourceObjectShadowType accType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "account-jack.xml"), ResourceObjectShadowType.class);
 
-        PrismObject<AccountShadowType> account = accType.asPrismObject();
+        PrismObject<ResourceObjectShadowType> account = accType.asPrismObject();
         account.revive(prismContext);
 
         System.out.println("Parsed account:");
         System.out.println(account.dump());
 
         account.checkConsistence(); 
-        assertPropertyValue(account, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("jack"));
-        assertPropertyValue(account, AccountShadowType.F_OBJECT_CLASS, 
+        assertPropertyValue(account, ResourceObjectShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
+        assertPropertyValue(account, ResourceObjectShadowType.F_OBJECT_CLASS, 
         		new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", "AccountObjectClass"));
-        assertPropertyValue(account, AccountShadowType.F_INTENT, "default");
+        assertPropertyValue(account, ResourceObjectShadowType.F_INTENT, "default");
 
         // TODO: more asserts
     }
@@ -167,7 +167,7 @@ public class TestJaxbParsing {
         System.out.println(role.dump());
 
         role.checkConsistence();
-        assertPropertyValue(role, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("r3"));
+        assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));
         PrismAsserts.assertEquals("Wrong number of approver expressions", 1, role.asObjectable().getApproverExpression().size());
         Object o = role.asObjectable().getApproverExpression().get(0).getExpressionEvaluator().get(0).getValue();
         PrismAsserts.assertEquals("Invalid evaluator type", ScriptExpressionEvaluatorType.class, o.getClass());

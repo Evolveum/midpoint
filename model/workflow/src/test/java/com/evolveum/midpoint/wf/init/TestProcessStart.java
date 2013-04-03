@@ -102,7 +102,7 @@ public class TestProcessStart extends AbstractInternalModelIntegrationTest {
 
         task.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, result));
 
-        LensContext<UserType, AccountShadowType> context = createJackAssignAccountContext(result);
+        LensContext<UserType, ResourceObjectShadowType> context = createJackAssignAccountContext(result);
 
         display("Input context", context);
 
@@ -145,8 +145,8 @@ public class TestProcessStart extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
 	}
 	
-	private LensContext<UserType, AccountShadowType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
-		LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+	private LensContext<UserType, ResourceObjectShadowType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
+		LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE_R1);
         return context;

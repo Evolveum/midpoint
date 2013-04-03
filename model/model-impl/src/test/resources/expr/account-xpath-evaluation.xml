@@ -17,9 +17,11 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<shadow 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<name>janko</name>
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="2">
@@ -281,18 +283,14 @@
 		</schemaHandling>
 	</resource>
 	<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
+	<kind>account</kind>
 	<attributes>
-		<vr0:cn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">jan prvy</vr0:cn>
-		<vr1:name xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:name>
-		<vr0:sn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">prvy</vr0:sn>
-		<vr1:password xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">janco</vr1:password>
-		<vr0:givenName xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">James Jr. unchanged</vr0:givenName>
+		<ri:cn>jan prvy</ri:cn>
+		<icfs:name>uid=janko nemenny,ou=people,dc=example,dc=com</icfs:name>
+		<ri:sn>prvy</ri:sn>
+		<icfs:password>janco</icfs:password>
+		<ri:givenName>James Jr. unchanged</ri:givenName>
 		<dj:givenName xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ">James Jr.</dj:givenName>
-		<vr0:title xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">Mr.</vr0:title>
+		<ri:title>Mr.</ri:title>
 	</attributes>
-</object>
+</shadow>

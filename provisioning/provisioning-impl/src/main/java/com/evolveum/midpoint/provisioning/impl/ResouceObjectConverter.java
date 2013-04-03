@@ -90,7 +90,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
@@ -171,15 +170,13 @@ public class ResouceObjectConverter {
 		}
 		
 		// Password
-		if (AccountShadowType.class.isAssignableFrom(type)) {
-			CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
-			if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
-				// There resource is capable of returning password but it does not do it by default
-				AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition.getPasswordFetchStrategy();
-				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-					attributesToReturn.setReturnPasswordExplicit(true);
-					apply = true;
-				}
+		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+		if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
+			// There resource is capable of returning password but it does not do it by default
+			AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition.getPasswordFetchStrategy();
+			if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				attributesToReturn.setReturnPasswordExplicit(true);
+				apply = true;
 			}
 		}
 		
@@ -251,7 +248,14 @@ public class ResouceObjectConverter {
 		} catch (ObjectAlreadyExistsException ex){
 			parentResult.recordFatalError("Could not create account on the resource. Account already exists on the resource: " + ex.getMessage(), ex);
 			throw new ObjectAlreadyExistsException("Account already exists on the resource: " + ex.getMessage(), ex);
+		} catch (ConfigurationException ex){
+			parentResult.recordFatalError(ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			parentResult.recordFatalError(ex);
+			throw ex;
 		}
+		
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow being stored:\n{}", shadowType.asPrismObject().dump());
@@ -504,7 +508,7 @@ public class ResouceObjectConverter {
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			AttributesToReturn attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, SecurityViolationException {
+			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 
 		try {
 			PrismObject<T> resourceObject = connector.fetchObject(type, objectClassDefinition, identifiers,
@@ -530,6 +534,9 @@ public class ResouceObjectConverter {
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
 			throw new SchemaException("Can't get resource object, schema error: " + ex.getMessage(), ex);
+		} catch (ConfigurationException e) {
+			parentResult.recordFatalError(e);
+			throw e;
 		}
 
 	}
@@ -580,37 +587,34 @@ public class ResouceObjectConverter {
 	private void checkActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		OperationResult result = new OperationResult("Checking activation attribute in the new shadow.");
-		if (shadow instanceof AccountShadowType) {
-			if (((AccountShadowType) shadow).getActivation() != null && shadow.getActivation().isEnabled() != null) {
-				if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-					ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(
-							shadow, resource, result);
-					if (enableDisable == null) {
-						throw new SchemaException("Attempt to change activation/enabled on "+resource+" that has neither native" +
-								" nor simulated activation capability");
-					}
-					ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
-							objectClassDefinition, result);
-					boolean enabled = shadow.getActivation().isEnabled().booleanValue();
-					PrismPropertyValue activationValue = null;
-					if (enabled) {
-						activationValue = new PrismPropertyValue(getEnableValue(enableDisable));
-					} else {
-						activationValue = new PrismPropertyValue(getDisableValue(enableDisable));
-					}
-					activationSimulateAttribute.add(activationValue);
-
-					PrismContainer attributesContainer =shadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
-					if (attributesContainer.findItem(activationSimulateAttribute.getName()) == null){
-						attributesContainer.add(activationSimulateAttribute);
-					} else{
-						attributesContainer.findItem(activationSimulateAttribute.getName()).replace(activationSimulateAttribute.getValue());
-					}
-					shadow.setActivation(null);
+		if (shadow.getActivation() != null && shadow.getActivation().isEnabled() != null) {
+			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+				ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(
+						shadow, resource, result);
+				if (enableDisable == null) {
+					throw new SchemaException("Attempt to change activation/enabled on "+resource+" that has neither native" +
+							" nor simulated activation capability");
 				}
+				ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
+						objectClassDefinition, result);
+				boolean enabled = shadow.getActivation().isEnabled().booleanValue();
+				PrismPropertyValue activationValue = null;
+				if (enabled) {
+					activationValue = new PrismPropertyValue(getEnableValue(enableDisable));
+				} else {
+					activationValue = new PrismPropertyValue(getDisableValue(enableDisable));
+				}
+				activationSimulateAttribute.add(activationValue);
+
+				PrismContainer attributesContainer =shadow.asPrismObject().findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+				if (attributesContainer.findItem(activationSimulateAttribute.getName()) == null){
+					attributesContainer.add(activationSimulateAttribute);
+				} else{
+					attributesContainer.findItem(activationSimulateAttribute.getName()).replace(activationSimulateAttribute.getValue());
+				}
+				shadow.setActivation(null);
 			}
-		}
-		
+		}		
 	}
 
 	private <T extends ResourceObjectShadowType> void getAttributeChanges(Collection<? extends ItemDelta> objectChange, 
@@ -650,16 +654,14 @@ public class ResouceObjectConverter {
 	public <T extends ResourceObjectShadowType> List<Change<T>> fetchChanges(ConnectorInstance connector, ResourceType resource, 
 			Class<T> type, ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-			CommunicationException, ConfigurationException, SecurityViolationException {
+			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("Shadow converter, START fetch changes");
 
 		// get changes from the connector
-		List<Change<T>> changes = null;
-		try {
-			changes = connector.fetchChanges(objectClass, lastToken, parentResult);
+		List<Change<T>> changes = connector.fetchChanges(objectClass, lastToken, parentResult);
 
 		Iterator<Change<T>> iterator = changes.iterator();
 		while (iterator.hasNext()) {
@@ -688,32 +690,6 @@ public class ResouceObjectConverter {
 				PrismObject<T> currentShadow = handleResourceObjectRead(resource, change.getCurrentShadow(), parentResult);
 				change.setCurrentShadow(currentShadow);
 			}
-			
-			// HACK
-			if (change.getObjectDelta() != null) {
-				if (type == AccountShadowType.class && change.getObjectDelta().getObjectTypeClass() != AccountShadowType.class) {
-					change.getObjectDelta().setObjectTypeClass((Class) AccountShadowType.class);
-				}
-			}
-			
-		}
-		
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (CommunicationException ex) {
-			parentResult.recordFatalError("Communication error: " + ex.getMessage(), ex);
-			throw ex;
-
-		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Generic error: " + ex.getMessage(), ex);
-			throw new GenericConnectorException(ex.getMessage(), ex);
-		} catch (ConfigurationException ex) {
-			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			parentResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
-			throw ex;
 		}
 
 		parentResult.recordSuccess();
@@ -809,7 +785,7 @@ public class ResouceObjectConverter {
 	}
 	
 	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource,
-			AccountShadowType shadow, OperationResult parentResult) {
+			ResourceObjectShadowType shadow, OperationResult parentResult) {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);

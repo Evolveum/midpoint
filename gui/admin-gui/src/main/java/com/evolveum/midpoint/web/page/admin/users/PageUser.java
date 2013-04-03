@@ -108,7 +108,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -652,15 +652,15 @@ public class PageUser extends PageAdminUsers {
 			OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
 			try {
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-						AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+						ResourceObjectShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
 				if (reference.getOid() == null) {
 					continue;
 				}
 
-				PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
+				PrismObject<ResourceObjectShadowType> account = getModelService().getObject(ResourceObjectShadowType.class,
 						reference.getOid(), options, task, subResult);
-				AccountShadowType accountType = account.asObjectable();
+				ResourceObjectShadowType accountType = account.asObjectable();
 
 				OperationResultType fetchResult = accountType.getFetchResult();
 				if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
@@ -1147,7 +1147,7 @@ public class PageUser extends PageAdminUsers {
 
 			ObjectWrapper accountWrapper = accDto.getObject();
 			ObjectDelta delta = accountWrapper.getObjectDelta();
-			PrismObject<AccountShadowType> account = delta.getObjectToAdd();
+			PrismObject<ResourceObjectShadowType> account = delta.getObjectToAdd();
 			WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
 
 			userType.getAccount().add(account.asObjectable());
@@ -1203,7 +1203,7 @@ public class PageUser extends PageAdminUsers {
 			ObjectDelta delta = accountWrapper.getObjectDelta();
 			PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
-			PrismObject<AccountShadowType> account;
+			PrismObject<ResourceObjectShadowType> account;
 			switch (accDto.getStatus()) {
 			case ADD:
 				account = delta.getObjectToAdd();
@@ -1221,7 +1221,7 @@ public class PageUser extends PageAdminUsers {
 				continue;
 			case UNLINK:
 				refValue.setOid(delta.getOid());
-				refValue.setTargetType(AccountShadowType.COMPLEX_TYPE);
+				refValue.setTargetType(ResourceObjectShadowType.COMPLEX_TYPE);
 				refDelta.addValueToDelete(refValue);
 				break;
 			default:
@@ -1439,8 +1439,8 @@ public class PageUser extends PageAdminUsers {
 			UserType userType = user.asObjectable();
 			for (ObjectReferenceType ref : userType.getAccountRef()) {
 				Object o = findParam("shadow", ref.getOid(), result);
-				if (o != null && o instanceof AccountShadowType) {
-					AccountShadowType accountType = (AccountShadowType) o;
+				if (o != null && o instanceof ResourceObjectShadowType) {
+					ResourceObjectShadowType accountType = (ResourceObjectShadowType) o;
 					OperationResultType fetchResult = accountType.getFetchResult();
 					if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
 						showResultInSession(OperationResult.createOperationResult(fetchResult));
@@ -1695,7 +1695,7 @@ public class PageUser extends PageAdminUsers {
 
 		for (ResourceType resource : newResources) {
 			try {
-				AccountShadowType shadow = new AccountShadowType();
+				ResourceObjectShadowType shadow = new ResourceObjectShadowType();
 				shadow.setResource(resource);
 
 				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),

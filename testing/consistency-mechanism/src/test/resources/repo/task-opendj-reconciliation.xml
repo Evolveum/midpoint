@@ -25,9 +25,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:my="http://whatever.com/my"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+	xmlns:my="http://whatever.com/my">
 								  
 	<!-- Resource printable name -->
 	<name>Reconciliation: OpenDJ</name>

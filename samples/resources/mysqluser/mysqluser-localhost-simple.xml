@@ -17,7 +17,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 
@@ -36,8 +35,7 @@ This resource definition contains only the very basic definitions for midPoint t
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
 
 	<resource oid='ef2bc95b-76e0-48e2-86d6-3d4f02d3e200'>
     

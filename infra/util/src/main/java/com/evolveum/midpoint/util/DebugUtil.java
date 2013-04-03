@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.util;
@@ -269,77 +268,5 @@ public class DebugUtil {
 		}
 		return value.getClass().getSimpleName()+":"+value.toString();
 	}
-
-//	public static String prettyPrint(ObjectType object, boolean showContent) {
-//
-//		if (object instanceof AccountShadowType) {
-//			return prettyPrint((AccountShadowType) object, showContent);
-//		}
-//
-//		if (object == null) {
-//			return "null";
-//		}
-//
-//		StringBuilder sb = new StringBuilder();
-//		sb.append(object.getClass().getSimpleName());
-//		sb.append("(");
-//		sb.append(object.getOid());
-//		sb.append(",");
-//		sb.append(object.getName());
-//
-//		if (showContent) {
-//			// This is just a fallback. Methods with more specific signature
-//			// should be used instead
-//			for (PropertyDescriptor desc : PropertyUtils.getPropertyDescriptors(object)) {
-//				if (!"oid".equals(desc.getName()) && !"name".equals(desc.getName())) {
-//					try {
-//						Object value = PropertyUtils.getProperty(object, desc.getName());
-//						sb.append(desc.getName());
-//						sb.append("=");
-//						sb.append(value);
-//						sb.append(",");
-//					} catch (IllegalAccessException ex) {
-//						sb.append(desc.getName());
-//						sb.append(":");
-//						sb.append(ex.getClass().getSimpleName());
-//						sb.append(",");
-//					} catch (InvocationTargetException ex) {
-//						sb.append(desc.getName());
-//						sb.append(":");
-//						sb.append(ex.getClass().getSimpleName());
-//						sb.append(",");
-//					} catch (NoSuchMethodException ex) {
-//						sb.append(desc.getName());
-//						sb.append(":");
-//						sb.append(ex.getClass().getSimpleName());
-//						sb.append(",");
-//					}
-//				}
-//			}
-//		}
-//		sb.append(")");
-//		return sb.toString();
-//	}
-//	
-//	public static String prettyPrint(ProtectedStringType protectedStringType) {
-//		if (protectedStringType == null) {
-//			return "null";
-//		}
-//		StringBuilder sb = new StringBuilder("ProtectedStringType(");
-//		
-//		if (protectedStringType.getEncryptedData() != null) {
-//			sb.append("[encrypted data]");
-//		}
-//
-//		if (protectedStringType.getClearValue() != null) {
-//			sb.append("\"");
-//			sb.append(protectedStringType.getClearValue());
-//			sb.append("\"");
-//		}
-//
-//		sb.append(")");
-//		return sb.toString();
-//	}
-
 
 }

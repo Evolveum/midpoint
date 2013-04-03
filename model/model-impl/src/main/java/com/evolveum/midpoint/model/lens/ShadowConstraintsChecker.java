@@ -49,7 +49,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -63,23 +62,23 @@ public class ShadowConstraintsChecker {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 	
-	private LensProjectionContext<AccountShadowType> accountContext;
-	private LensContext<UserType, AccountShadowType> context;
+	private LensProjectionContext<ResourceObjectShadowType> accountContext;
+	private LensContext<UserType, ResourceObjectShadowType> context;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject conflictingShadow;
 
-	public ShadowConstraintsChecker(LensProjectionContext<AccountShadowType> accountContext) {
+	public ShadowConstraintsChecker(LensProjectionContext<ResourceObjectShadowType> accountContext) {
 		this.accountContext = accountContext;
 	}
 	
-	public LensProjectionContext<AccountShadowType> getAccountContext() {
+	public LensProjectionContext<ResourceObjectShadowType> getAccountContext() {
 		return accountContext;
 	}
 
-	public void setAccountContext(LensProjectionContext<AccountShadowType> accountContext) {
+	public void setAccountContext(LensProjectionContext<ResourceObjectShadowType> accountContext) {
 		this.accountContext = accountContext;
 	}
 
@@ -99,11 +98,11 @@ public class ShadowConstraintsChecker {
 		this.repositoryService = repositoryService;
 	}
 
-	public LensContext<UserType, AccountShadowType> getContext() {
+	public LensContext<UserType, ResourceObjectShadowType> getContext() {
 		return context;
 	}
 	
-	public void setContext(LensContext<UserType, AccountShadowType> context) {
+	public void setContext(LensContext<UserType, ResourceObjectShadowType> context) {
 		this.context = context;
 	}
 	
@@ -121,7 +120,7 @@ public class ShadowConstraintsChecker {
 	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		
 		RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
-		PrismObject<AccountShadowType> accountNew = accountContext.getObjectNew();
+		PrismObject<ResourceObjectShadowType> accountNew = accountContext.getObjectNew();
 		if (accountNew == null) {
 			// This must be delete
 			LOGGER.trace("No new object in projection context. Current shadow satisfy constraints");
@@ -129,7 +128,7 @@ public class ShadowConstraintsChecker {
 			return;
 		}
 		
-		PrismContainer<?> attributesContainer = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attributesContainer = accountNew.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			// No attributes no constraint violations
 			LOGGER.trace("Current shadow does not contain attributes, skipping cheching uniqueness.");
@@ -166,22 +165,22 @@ public class ShadowConstraintsChecker {
 	}
 	
 	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedObjectClassDefinition accountDefinition,
-			ResourceType resourceType, String oid, LensContext<UserType, AccountShadowType> context, OperationResult result) throws SchemaException {
+			ResourceType resourceType, String oid, LensContext<UserType, ResourceObjectShadowType> context, OperationResult result) throws SchemaException {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
 		List<?> identifierValues = identifier.getValues();
 		Validate.notEmpty(identifierValues, "Empty identifiers while checking uniqueness of "+context);
 		
-		OrFilter isNotDead = OrFilter.createOr(EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_DEAD, false),
-				EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_DEAD, null));
+		OrFilter isNotDead = OrFilter.createOr(EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext, ResourceObjectShadowType.F_DEAD, false),
+				EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext, ResourceObjectShadowType.F_DEAD, null));
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
-						RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-						EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues),
+						RefFilter.createReferenceEqual(ResourceObjectShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
+						EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues),
 						isNotDead));
 		
-		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, result);
+		List<PrismObject<ResourceObjectShadowType>> foundObjects = repositoryService.searchObjects(ResourceObjectShadowType.class, query, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), query.dump()});
 		if (foundObjects.isEmpty()) {
@@ -209,7 +208,7 @@ public class ShadowConstraintsChecker {
 			message("Found conflicting existing object with attribute " + identifier.getHumanReadableDump() + ": "
 					+ foundObjects.get(0));
 
-			LensProjectionContext<AccountShadowType> foundContext = context.findProjectionContextByOid(foundObjects
+			LensProjectionContext<ResourceObjectShadowType> foundContext = context.findProjectionContextByOid(foundObjects
 					.get(0).getOid());
 			if (foundContext != null) {
 				if (foundContext.getResourceShadowDiscriminator() != null) {
@@ -223,7 +222,7 @@ public class ShadowConstraintsChecker {
 		return match;
 	}
 	
-	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<AccountShadowType> delta) {
+	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<ResourceObjectShadowType> delta) {
 		if (delta == null) {
 			return false;
 		}

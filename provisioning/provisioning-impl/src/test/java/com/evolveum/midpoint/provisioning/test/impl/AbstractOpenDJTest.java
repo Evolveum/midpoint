@@ -20,40 +20,20 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.provisioning.test.impl.AbstractOpenDJTest.ACCOUNT_BAD_FILENAME;
-import static com.evolveum.midpoint.provisioning.test.impl.AbstractOpenDJTest.LDAP_CONNECTOR_TYPE;
-import static com.evolveum.midpoint.provisioning.test.impl.AbstractOpenDJTest.RESOURCE_OPENDJ_FILENAME;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -134,7 +114,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		provisioningService.postInit(initResult);
 		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(ACCOUNT_BAD_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_BAD_FILENAME, ResourceObjectShadowType.class, initResult);
 	}
 
 }

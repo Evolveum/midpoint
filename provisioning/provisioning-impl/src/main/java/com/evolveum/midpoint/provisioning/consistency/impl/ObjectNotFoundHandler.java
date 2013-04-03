@@ -45,7 +45,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
@@ -114,7 +113,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			for (OperationResult subResult : parentResult.getSubresults()){
 				subResult.muteError();
 			}
-			cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), result);
+			cacheRepositoryService.deleteObject(ResourceObjectShadowType.class, shadow.getOid(), result);
 			parentResult.recordHandledError("Account was not found on the "
 							+ ObjectTypeUtil.toShortString(shadow.getResource())
 							+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.");
@@ -134,8 +133,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			
 			shadow.setDead(true);
 			Collection<PropertyDelta> deadDeltas = new ArrayList<PropertyDelta>();
-			deadDeltas.add(PropertyDelta.createModificationReplaceProperty(AccountShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true));
-			cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deadDeltas, result);
+			deadDeltas.add(PropertyDelta.createModificationReplaceProperty(ResourceObjectShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true));
+			cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadow.getOid(), deadDeltas, result);
 			
 			ResourceObjectShadowChangeDescription change = createResourceObjectShadowChangeDescription(shadow,
 					result);
@@ -160,7 +159,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				try {
 					ProvisioningOperationOptions options = new ProvisioningOperationOptions();
 					options.setCompletePostponed(false);
-					provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, options, task, 
+					provisioningService.modifyObject(ResourceObjectShadowType.class, oid, modifications, null, options, task, 
 							result);
 					parentResult.recordHandledError(
 							"Account was recreated and modifications were applied to newly cleated account.");
@@ -177,7 +176,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		
 //				LOGGER.trace("Shadow was probably unlinked from the user, so the discovery decided that the account should not exist. Deleting also unused shadow from the repo.");
 				try {
-					cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);
+					cacheRepositoryService.deleteObject(ResourceObjectShadowType.class, shadow.getOid(), parentResult);
 				} catch (ObjectNotFoundException e) {
 					// delete the old shadow that was probably deleted from
 					// the
@@ -214,7 +213,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			
 //			if (oid != null && !shadow.getOid().equals(oid)){
 				try {
-					cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), result);
+					cacheRepositoryService.deleteObject(ResourceObjectShadowType.class, shadow.getOid(), result);
 
 				} catch (ObjectNotFoundException e) {
 					// delete the old shadow that was probably deleted from
@@ -251,16 +250,13 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			ResourceObjectShadowType shadow, OperationResult result) {
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 
-		if (shadow instanceof AccountShadowType) {
-			ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class,
-					ChangeType.DELETE, shadow.asPrismObject().getPrismContext());
-			objectDelta.setOid(shadow.getOid());
-			change.setObjectDelta(objectDelta);
-			change.setResource(shadow.getResource().asPrismObject());
-			AccountShadowType account = (AccountShadowType) shadow;
-			change.setOldShadow(account.asPrismObject());
-		}
-
+		ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(ResourceObjectShadowType.class,
+				ChangeType.DELETE, shadow.asPrismObject().getPrismContext());
+		objectDelta.setOid(shadow.getOid());
+		change.setObjectDelta(objectDelta);
+		change.setResource(shadow.getResource().asPrismObject());
+		ResourceObjectShadowType account = (ResourceObjectShadowType) shadow;
+		change.setOldShadow(account.asPrismObject());
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 		return change;
 	}
@@ -281,7 +277,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	private QueryType createQueryByIcfName(ResourceObjectShadowType shadow) throws SchemaException {
 		// TODO: error handling
 		Document doc = DOMUtil.getDocument();
-		XPathHolder holder = ObjectTypeUtil.createXPathHolder(SchemaConstants.I_ATTRIBUTES);
+		XPathHolder holder = ObjectTypeUtil.createXPathHolder(SchemaConstants.C_ATTRIBUTES);
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
 				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
 		Element nameFilter = QueryUtil.createEqualFilter(doc, holder, nameProperty.getName(), (String) nameProperty

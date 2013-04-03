@@ -158,7 +158,8 @@ public interface ConnectorInstance {
 	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(
 			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
-		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
+		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
+		SecurityViolationException, ConfigurationException;
 	
 	/**
 	 * Schema aware-version of the fetchObject.
@@ -222,7 +223,7 @@ public interface ConnectorInstance {
 	 */
 	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object, Collection<Operation> additionalOperations, 
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, 
-			ObjectAlreadyExistsException;
+			ObjectAlreadyExistsException, ConfigurationException;
 	
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not

@@ -17,7 +17,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->        
 <c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:my="http://myself.me/schemas/whatever">
 <c:name>My Sample Config Object</c:name>

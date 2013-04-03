@@ -27,27 +27,19 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -263,7 +255,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getResourceType();
 	}
 
-	public PrismObjectDefinition<AccountShadowType> getObjectDefinition() {
+	public PrismObjectDefinition<ResourceObjectShadowType> getObjectDefinition() {
 		return refinedObjectClassDefinition.getObjectDefinition();
 	}
 
@@ -287,7 +279,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.isEmpty();
 	}
 
-	public PrismObject<AccountShadowType> createBlankShadow() {
+	public PrismObject<ResourceObjectShadowType> createBlankShadow() {
 		return refinedObjectClassDefinition.createBlankShadow();
 	}
 

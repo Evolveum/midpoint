@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -43,18 +42,14 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelObjectResolver;
-import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.hooks.ChangeHook;
-import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
@@ -63,12 +58,10 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -79,7 +72,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -90,24 +82,17 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -121,14 +106,12 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -136,7 +119,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
@@ -408,6 +390,8 @@ public class ModelController implements ModelService, ModelInteractionService {
                     result.recordInProgress();
                 }
             }
+            
+            result.cleanupResult();
 			
 		} catch (ObjectAlreadyExistsException e) {
 //			try {
@@ -421,35 +405,34 @@ public class ModelController implements ModelService, ModelInteractionService {
 //				result.recordFatalError(e);
 //				throw e;
 //			}
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (SchemaException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (CommunicationException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (ConfigurationException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (PolicyViolationException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (SecurityViolationException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (RuntimeException e) {
-			result.recordFatalError(e);
+			recordFatalError(result, e);
 			throw e;
 		} finally {
 			RepositoryCache.exit();
-			result.cleanupResult();
 		}
 	}
 
@@ -554,40 +537,31 @@ public class ModelController implements ModelService, ModelInteractionService {
 			context.distributeResource();
 			
 		} catch (ConfigurationException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (SecurityViolationException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (CommunicationException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (SchemaException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (PolicyViolationException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		} catch (RuntimeException e) {
-			result.recordFatalError(e);
-			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			recordFatalError(result, e);
 			throw e;
 		}
 
@@ -642,38 +616,31 @@ public class ModelController implements ModelService, ModelInteractionService {
 			oid = objectDelta.getOid();
 
 			result.computeStatus();
+			result.cleanupResult();
 
 		} catch (ExpressionEvaluationException ex) {
-			result.recordFatalError(ex);
-			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			recordFatalError(result, ex);
 			throw ex;
 		} catch (SchemaException ex) {
-			result.recordFatalError(ex);
-			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			recordFatalError(result, ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError(ex);
-			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			recordFatalError(result, ex);
 			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
-			result.recordFatalError(ex);
-			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			recordFatalError(result, ex);
 			throw ex;
 		} catch (ConfigurationException ex) {
-			result.recordFatalError(ex);
-			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			recordFatalError(result, ex);
 			throw ex;
 		} catch (SecurityViolationException ex) {
-			result.recordFatalError(ex);
-			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			recordFatalError(result, ex);
 			throw ex;
 		} catch (RuntimeException ex) {
-			result.recordFatalError(ex);
-			LOGGER.error("model.addObject failed: {}", ex.getMessage(), ex);
+			recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
-			result.cleanupResult();
 		}
 
 		return oid;
@@ -689,12 +656,12 @@ public class ModelController implements ModelService, ModelInteractionService {
         return config;
     }
 
-	private LensContext<UserType, AccountShadowType> userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
+	private LensContext<UserType, ResourceObjectShadowType> userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
 		UserType userType = user.asObjectable();
-		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
+		LensContext<UserType, ResourceObjectShadowType> syncContext = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, prismContext);
 
 		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);
 		userDelta.setObjectToAdd(user);
@@ -745,6 +712,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 					list = cacheRepositoryService.searchObjects(type, query, result);
 				}
 				result.recordSuccess();
+				result.cleanupResult();
 			} catch (CommunicationException e) {
 				processSearchException(e, rootOptions, searchInProvisioning, result);
 				throw e;
@@ -779,7 +747,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		} finally {
 			RepositoryCache.exit();
-			result.cleanupResult();
 		}
 		
 		if (CompiletimeConfig.CONSISTENCY_CHECKS) {
@@ -802,6 +769,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 		LoggingUtils.logException(LOGGER, message, e);
 		result.recordFatalError(message, e);
+		result.cleanupResult(e);
 	}
 
 	@Override
@@ -861,7 +829,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	private void recordFatalError(OperationResult result, String message, Throwable e) {
 		LOGGER.error(message, e);
 		result.recordFatalError(message, e);
-		result.cleanupResult();
+		result.cleanupResult(e);
 	}
 
 	
@@ -960,9 +928,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 	}
 
-	private LensContext<UserType, AccountShadowType> userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
+	private LensContext<UserType, ResourceObjectShadowType> userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
-		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
+		LensContext<UserType, ResourceObjectShadowType> syncContext = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, prismContext);
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class, prismContext);
 
@@ -1127,12 +1095,12 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	@Override
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
-			QName objectClass, ObjectPaging paging, Task task, OperationResult result) throws SchemaException,
+			QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
-		Validate.notNull(result, "Result type must not be null.");
+		Validate.notNull(parentResult, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 
 		RepositoryCache.enter();
@@ -1145,39 +1113,35 @@ public class ModelController implements ModelService, ModelInteractionService {
 					new Object[] { objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
 							paging.getOrderBy(), paging.getDirection() });
 
-			OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECTS);
-			subResult.addParams(new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
+			OperationResult result = parentResult.createSubresult(LIST_RESOURCE_OBJECTS);
+			result.addParams(new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
 					objectClass, paging);
 
 			try {
 
-				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
+				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, result);
 
 			} catch (SchemaException ex) {
-				RepositoryCache.exit();
-				subResult.recordFatalError("Schema violation");
+				recordFatalError(result, ex);
 				throw ex;
 			} catch (CommunicationException ex) {
-				RepositoryCache.exit();
-				subResult.recordFatalError("Communication error");
+				recordFatalError(result, ex);
 				throw ex;
 			} catch (ConfigurationException ex) {
-				RepositoryCache.exit();
-				subResult.recordFatalError("Configuration error");
+				recordFatalError(result, ex);
 				throw ex;
 			} catch (ObjectNotFoundException ex) {
-				RepositoryCache.exit();
-				subResult.recordFatalError("Object not found");
+				recordFatalError(result, ex);
 				throw ex;
 			}
-			subResult.recordSuccess();
+			result.recordSuccess();
+			result.cleanupResult();
 
 			if (list == null) {
 				list = new ArrayList<PrismObject<? extends ResourceObjectShadowType>>();
 			}
 		} finally {
 			RepositoryCache.exit();
-			result.cleanupResult();
 		}
 		return list;
 	}
@@ -1383,15 +1347,15 @@ public class ModelController implements ModelService, ModelInteractionService {
 	}
 	
 	private <T extends ObjectType>  void updateDefinition(PrismObject<T> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (object.canRepresent(AccountShadowType.class)) {
+		if (object.canRepresent(ResourceObjectShadowType.class)) {
 			ResourceType resourceType = null;
 			try{
-				resourceType = getResource((AccountShadowType)object.asObjectable(), result);
+				resourceType = getResource((ResourceObjectShadowType)object.asObjectable(), result);
 			} catch (ObjectNotFoundException ex){
 				result.recordFatalError("Resource defined in account was not found: " + ex.getMessage(), ex);
 				return;
 			}
-			updateAccountShadowDefinition((PrismObject<? extends AccountShadowType>)object, resourceType);
+			updateAccountShadowDefinition((PrismObject<? extends ResourceObjectShadowType>)object, resourceType);
 			
 		}
 	}
@@ -1401,11 +1365,11 @@ public class ModelController implements ModelService, ModelInteractionService {
 		return objectResolver.resolve(resourceRef, ResourceType.class, "resource reference in "+shadowType, result);
 	}
 
-	private <T extends AccountShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
+	private <T extends ResourceObjectShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, LayerType.MODEL, prismContext);
 		QName objectClass = shadow.asObjectable().getObjectClass();
 		RefinedObjectClassDefinition rAccountDef = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
-		PrismContainer<Containerable> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		attributesContainer.applyDefinition(rAccountDef.toResourceAttributeContainerDefinition(), true);
 	}
 

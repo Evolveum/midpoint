@@ -181,7 +181,7 @@ public class TestResourceSchema {
 		
 		// WHEN
 		
-		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.I_RESOURCE, ResourceType.class, resource);
+		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.C_RESOURCE, ResourceType.class, resource);
 		String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
 		
 		System.out.println("Marshalled resource");
@@ -260,7 +260,7 @@ public class TestResourceSchema {
 
 		PrismPropertyDefinition passwdDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"password"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
-		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
+		assertEquals(SchemaConstants.C_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 
 		PrismContainerDefinition credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
@@ -360,10 +360,10 @@ public class TestResourceSchema {
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
-		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.C_PROTECTED_STRING_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
-		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
+		containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
 
 		return schema;
 	}

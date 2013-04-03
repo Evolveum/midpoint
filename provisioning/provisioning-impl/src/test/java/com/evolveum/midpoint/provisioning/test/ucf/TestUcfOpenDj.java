@@ -236,7 +236,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private Collection<ResourceAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)
 			throws CommunicationException, GenericFrameworkException, SchemaException,
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ConfigurationException {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
@@ -268,7 +268,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		attribute.setValue(new PrismPropertyValue(givenName));
 		resourceObject.add(attribute);
 
-		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
+		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
 
 		Set<Operation> operation = new HashSet<Operation>();
 		Collection<ResourceAttribute<?>> resourceAttributes = cc.addObject(shadow, operation, result);
@@ -305,9 +305,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.deleteObject(accountDefinition, null, identifiers, result);
 
-		PrismObject<AccountShadowType> resObj = null;
+		PrismObject<ResourceObjectShadowType> resObj = null;
 		try {
-			resObj = cc.fetchObject(AccountShadowType.class, accountDefinition, identifiers, null,
+			resObj = cc.fetchObject(ResourceObjectShadowType.class, accountDefinition, identifiers, null,
 					result);
 			Assert.fail();
 		} catch (ObjectNotFoundException ex) {
@@ -335,7 +335,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
-		PrismObject<AccountShadowType> shadow = cc.fetchObject(AccountShadowType.class, accountDefinition,
+		PrismObject<ResourceObjectShadowType> shadow = cc.fetchObject(ResourceObjectShadowType.class, accountDefinition,
 				identifiers, null, result);
 		ResourceAttributeContainer resObj = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 
@@ -599,7 +599,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		OperationResult addResult = new OperationResult(this.getClass().getName() + ".testFetchObject");
 
-		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
+		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
 		// Add a testing object
 		cc.addObject(shadow, null, addResult);
 
@@ -611,7 +611,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
 
 		// WHEN
-		PrismObject<AccountShadowType> ro = cc.fetchObject(AccountShadowType.class, accountDefinition,
+		PrismObject<ResourceObjectShadowType> ro = cc.fetchObject(ResourceObjectShadowType.class, accountDefinition,
 				identifiers, null, result);
 
 		// THEN
@@ -631,10 +631,10 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 
-		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {
+		ResultHandler<ResourceObjectShadowType> handler = new ResultHandler<ResourceObjectShadowType>() {
 
 			@Override
-			public boolean handle(PrismObject<AccountShadowType> object) {
+			public boolean handle(PrismObject<ResourceObjectShadowType> object) {
 				System.out.println("Search: found: " + object);
 				return true;
 			}
@@ -650,8 +650,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testCreateAccountWithPassword() throws CommunicationException, GenericFrameworkException,
-			SchemaException, ObjectAlreadyExistsException, EncryptionException, DirectoryException {
+	public void testCreateAccountWithPassword() throws Exception {
 		displayTestTile("testCreateAccountWithPassword");
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
@@ -666,7 +665,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult addResult = new OperationResult(this.getClass().getName()
 				+ ".testCreateAccountWithPassword");
 
-		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
+		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
 		CredentialsType credentials = new CredentialsType();
 		PasswordType pass = new PasswordType();
 		pass.setValue(ps);
@@ -691,14 +690,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testChangePassword() throws DirectoryException, CommunicationException,
-            GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
-            ObjectNotFoundException, EncryptionException, JAXBException, SecurityViolationException {
+	public void testChangePassword() throws Exception {
 		displayTestTile("testChangePassword");
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=drake,ou=People,dc=example,dc=com", "Sir Francis Drake", "Drake");
-		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
+		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
 
 		OperationResult addResult = new OperationResult(this.getClass().getName() + ".testChangePassword");
 		
@@ -729,7 +726,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		//create modification path
 		Document doc = DOMUtil.getDocument();
 		Element path = doc.createElementNS(SchemaConstants.NS_C, "path");
-//		PropertyPath propPath = new PropertyPath(new PropertyPath(AccountShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
+//		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
 		path.setTextContent("c:credentials/c:password");
 		propMod.setPath(path);
 		

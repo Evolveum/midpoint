@@ -21,39 +21,40 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.SynchronizationIntent;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.RewindException;
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author lazyman
@@ -64,12 +65,13 @@ public class AddUserAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) throws SynchronizationException, SchemaException {
+            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
+    			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
-        LensContext<UserType, AccountShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             UserType user = getUser(userOid, subResult);
@@ -83,7 +85,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //add account sync context for inbound processing
-                LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change, 
+                LensProjectionContext<ResourceObjectShadowType> accountContext = createAccountLensContext(context, change, 
                 		SynchronizationIntent.KEEP, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
@@ -92,8 +94,8 @@ public class AddUserAction extends BaseAction {
 
                 //create empty user
                 PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().
-                				findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
-                PrismObject<UserType> oldUser = userDefinition.instantiate(SchemaConstants.I_USER_TYPE);
+                				findObjectDefinitionByType(UserType.COMPLEX_TYPE);
+                PrismObject<UserType> oldUser = userDefinition.instantiate(UserType.COMPLEX_TYPE);
 //                context.setUserOld(oldUser);
 //                context.setUserTypeOld(user);
 
@@ -107,15 +109,15 @@ public class AddUserAction extends BaseAction {
                 LOGGER.debug("User with oid {} already exists, skipping create.",
                         new Object[]{user.getOid()});
             }
-        } catch (Exception ex) {
-            PrismObject<AccountShadowType> shadowAfterChange = getAccountShadowFromChange(change);
+        } catch (RuntimeException ex) {
+            PrismObject<ResourceObjectShadowType> shadowAfterChange = getAccountShadowFromChange(change);
 
             LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.",
                     ex, shadowAfterChange.getName(), shadowAfterChange.getOid());
             subResult.recordFatalError("Couldn't perform Add User Action for shadow '" + shadowAfterChange.getName()
                     + "', oid '" + shadowAfterChange.getOid() + "'.", ex);
 
-            throw new SynchronizationException(ex.getMessage(), ex);
+            throw ex;
         } finally {
             subResult.recomputeStatus();
         }
@@ -127,15 +129,7 @@ public class AddUserAction extends BaseAction {
         
         } finally {
             subResult.recomputeStatus();
-            result.recomputeStatus();
-            
-//            auditRecord.clearTimestamp();
-//            auditRecord.setEventType(AuditEventType.ADD_OBJECT);
-//        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-//        	auditRecord.setResult(result);
-//        	auditRecord.clearDeltas();
-//        	auditRecord.addDeltas(context.getAllChanges());
-//        	getAuditService().audit(auditRecord, task);
+            result.recomputeStatus();            
         }
 
         return userOid;

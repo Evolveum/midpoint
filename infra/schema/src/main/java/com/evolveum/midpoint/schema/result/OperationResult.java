@@ -1101,12 +1101,23 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		}
 		return similar;
 	}
+
+	/**
+	 * Removes all the successful minor results. Also checks if the result is roughly consistent
+	 * and complete. (e.g. does not have unknown operation status, etc.)
+	 */
+	public void cleanupResult() {
+		cleanupResult(null);
+	}
 	
 	/**
 	 * Removes all the successful minor results. Also checks if the result is roughly consistent
-	 * and complete. (e.g. does not have unknown operation status, etc.) 
+	 * and complete. (e.g. does not have unknown operation status, etc.)
+	 * 
+	 * The argument "e" is for easier use of the cleanup in the exceptions handlers. The original exception is passed
+	 * to the IAE that this method produces for easier debugging.
 	 */
-	public void cleanupResult() {
+	public void cleanupResult(Throwable e) {
 		if (status == OperationResultStatus.UNKNOWN) {
 			throw new IllegalStateException("Attempt to cleanup result of opertation "+operation+" that is still UNKNOWN");
 		}
@@ -1117,7 +1128,12 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		while (iterator.hasNext()) {
 			OperationResult subresult = iterator.next();
 			if (subresult.getStatus() == OperationResultStatus.UNKNOWN) {
-				throw new IllegalStateException("Subresult "+subresult.getOperation()+" of operation "+operation+" is still UNKNOWN during cleanup");
+				String message = "Subresult "+subresult.getOperation()+" of operation "+operation+" is still UNKNOWN during cleanup";
+				if (e == null) {
+					throw new IllegalStateException(message);
+				} else {
+					throw new IllegalStateException(message+"; during handling of exception "+e, e);
+				}
 			}
 			if (subresult.canCleanup()) {
 				iterator.remove();

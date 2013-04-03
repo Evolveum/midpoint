@@ -188,11 +188,11 @@ public class ResourceObjectShadowUtil {
 		return values;
 	}
 
-	public static void setPassword(AccountShadowType accountShadowType, ProtectedStringType password) {
-		CredentialsType credentialsType = accountShadowType.getCredentials();
+	public static void setPassword(ResourceObjectShadowType shadowType, ProtectedStringType password) {
+		CredentialsType credentialsType = shadowType.getCredentials();
 		if (credentialsType == null) {
 			credentialsType = new CredentialsType();
-			accountShadowType.setCredentials(credentialsType);
+			shadowType.setCredentials(credentialsType);
 		}
 		PasswordType passwordType = credentialsType.getPassword();
 		if (passwordType == null) {
@@ -224,8 +224,8 @@ public class ResourceObjectShadowUtil {
 	
 	private static void applyObjectClass(PrismObject<? extends ResourceObjectShadowType> shadow, 
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-		PrismContainer<?> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
-		ResourceAttributeContainerDefinition racDef = new ResourceAttributeContainerDefinition(AccountShadowType.F_ATTRIBUTES,
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		ResourceAttributeContainerDefinition racDef = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
 				objectClassDefinition, objectClassDefinition.getPrismContext());
 		attributesContainer.applyDefinition(racDef, true);
 	}
@@ -281,7 +281,8 @@ public class ResourceObjectShadowUtil {
     		checkConsistency(attributesContainer.getDefinition(), " container definition in "+desc); 
     	}
     	
-    	PrismContainerDefinition<ResourceObjectShadowAttributesType> attributesDefinition = shadow.getDefinition().findContainerDefinition(AccountShadowType.F_ATTRIBUTES);
+    	PrismContainerDefinition<ResourceObjectShadowAttributesType> attributesDefinition = 
+    			shadow.getDefinition().findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
     	checkConsistency(attributesDefinition, " object definition in "+desc);
 	}
 	

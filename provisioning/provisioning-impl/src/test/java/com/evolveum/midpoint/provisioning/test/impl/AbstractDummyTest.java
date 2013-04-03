@@ -63,7 +63,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -140,7 +139,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
 		dummyResource.addAccount(dummyAccountDaemon);
 
-		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, ResourceObjectShadowType.class, initResult);
 	}
 
 	protected <T extends ResourceObjectShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
@@ -158,7 +157,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
 		System.out.println("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "
@@ -167,7 +166,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 				+ query.dump());
 
 		
-		List<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query,
+		List<PrismObject<ResourceObjectShadowType>> objects = repositoryService.searchObjects(ResourceObjectShadowType.class, query,
 				result);
 
 		

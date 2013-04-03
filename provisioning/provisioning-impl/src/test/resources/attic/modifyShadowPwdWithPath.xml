@@ -17,15 +17,12 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <c:objectModification xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
 xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:type="c:ObjectChangeType"
-xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a file:///home/elek/IDM/trunk/maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/common/common-2a.xsd"
->
+xsi:type="c:ObjectChangeType">
     <c:oid>dbb0c37d-9ee6-44a4-8d39-016dbce18b4c</c:oid>
 
     <c:propertyModification modificationType="replace">

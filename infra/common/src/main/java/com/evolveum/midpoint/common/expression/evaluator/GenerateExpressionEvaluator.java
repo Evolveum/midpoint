@@ -130,7 +130,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         QName outputType = outputDefinition.getTypeName();
         if (outputType.equals(DOMUtil.XSD_STRING)) {
         	value  = stringValue;
-        } else if (outputType.equals(SchemaConstants.R_PROTECTED_STRING_TYPE)) {
+        } else if (outputType.equals(SchemaConstants.C_PROTECTED_STRING_TYPE)) {
         	try {
 				value = protector.encryptString(stringValue);
 			} catch (EncryptionException e) {

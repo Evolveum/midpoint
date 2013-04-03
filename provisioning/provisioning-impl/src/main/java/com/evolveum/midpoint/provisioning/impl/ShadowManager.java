@@ -75,7 +75,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -206,9 +205,9 @@ public class ShadowManager {
 		secondaryIdentifier = secondaryIdentifiers.iterator().next();
 		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
 		
-		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(AccountShadowType.class,
-				AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-				new ItemPath(AccountShadowType.F_ATTRIBUTES), secondaryIdentifier.getDefinition(),
+		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ResourceObjectShadowType.class,
+				ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
+				new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), secondaryIdentifier.getDefinition(),
 				secondaryIdentifier.getValue()));
 //		ObjectQuery query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
 //				parentResult);
@@ -400,9 +399,9 @@ public class ShadowManager {
 			// .createEqualFilterFromElements(doc, xpath, identifierElements,
 			// resourceShadow
 			// .asPrismObject().getPrismContext()));
-			filter = AndFilter.createAnd(RefFilter.createReferenceEqual(AccountShadowType.class,
-					AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-					new ItemPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(),
+			filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ResourceObjectShadowType.class,
+					ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
+					new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), identifier.getDefinition(),
 					identifier.getValues()));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",
@@ -444,10 +443,7 @@ public class ShadowManager {
 
 		// We don't want to store credentials in the repo
 		T repoShadowType = repoShadow.asObjectable();
-		if (repoShadowType instanceof AccountShadowType) {
-			((AccountShadowType) repoShadowType).setCredentials(null);
-
-		}
+		repoShadowType.setCredentials(null);
 
 		// additional check if the shadow doesn't contain resource, if yes,
 		// convert to the resource reference.

@@ -12,9 +12,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 
 public class ObjectQueryUtil {
 
@@ -24,9 +24,9 @@ public class ObjectQueryUtil {
 		Validate.notNull(objectClass, "Object class to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
 		AndFilter and = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceOid), 
+				RefFilter.createReferenceEqual(ResourceObjectShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resourceOid), 
 				EqualsFilter.createEqual(
-				AccountShadowType.class, prismContext, AccountShadowType.F_OBJECT_CLASS, objectClass));
+						ResourceObjectShadowType.class, prismContext, ResourceObjectShadowType.F_OBJECT_CLASS, objectClass));
 		return ObjectQuery.createObjectQuery(and);
 	}
 	

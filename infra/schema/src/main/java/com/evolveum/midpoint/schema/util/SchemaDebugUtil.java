@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.schema.util;
@@ -29,6 +28,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -193,14 +193,13 @@ public class SchemaDebugUtil {
 	}
 	
 	public static String debugDump(ObjectType objectType, int indent) {
-		if (objectType instanceof AccountShadowType) {
-			return debugDump((AccountShadowType)objectType,indent);
+		if (objectType == null) {
+			StringBuilder sb = new StringBuilder();
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append("null");
+			return sb.toString();
 		}
-		StringBuilder sb = new StringBuilder();
-		indentDebugDump(sb, indent);
-		// TODO: better dumping
-		sb.append(prettyPrint(objectType));
-		return sb.toString();
+		return objectType.asPrismObject().debugDump(indent);
 	}
 
 	public static String prettyPrint(Collection<?> collection) {
@@ -346,59 +345,12 @@ public class SchemaDebugUtil {
 	}
 
 	public static String prettyPrint(ObjectType object) {
-		return prettyPrint(object, false);
-	}
-
-	public static String prettyPrint(ObjectType object, boolean showContent) {
-
-		if (object instanceof AccountShadowType) {
-			return prettyPrint((AccountShadowType) object, showContent);
-		}
-
 		if (object == null) {
 			return "null";
 		}
-
-		StringBuilder sb = new StringBuilder();
-		sb.append(object.getClass().getSimpleName());
-		sb.append("(");
-		sb.append(object.getOid());
-		sb.append(",");
-		sb.append(object.getName());
-
-		if (showContent) {
-			// This is just a fallback. Methods with more specific signature
-			// should be used instead
-			for (PropertyDescriptor desc : PropertyUtils.getPropertyDescriptors(object)) {
-				if (!"oid".equals(desc.getName()) && !"name".equals(desc.getName())) {
-					try {
-						Object value = PropertyUtils.getProperty(object, desc.getName());
-						sb.append(desc.getName());
-						sb.append("=");
-						sb.append(value);
-						sb.append(",");
-					} catch (IllegalAccessException ex) {
-						sb.append(desc.getName());
-						sb.append(":");
-						sb.append(ex.getClass().getSimpleName());
-						sb.append(",");
-					} catch (InvocationTargetException ex) {
-						sb.append(desc.getName());
-						sb.append(":");
-						sb.append(ex.getClass().getSimpleName());
-						sb.append(",");
-					} catch (NoSuchMethodException ex) {
-						sb.append(desc.getName());
-						sb.append(":");
-						sb.append(ex.getClass().getSimpleName());
-						sb.append(",");
-					}
-				}
-			}
-		}
-		sb.append(")");
-		return sb.toString();
+		return object.asPrismObject().toString();
 	}
+
 	
 	public static String prettyPrint(ProtectedStringType protectedStringType) {
 		if (protectedStringType == null) {
@@ -434,140 +386,6 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(AccountShadowType object) {
-		return prettyPrint(object,false);
-	}
-	
-	public static String prettyPrint(AccountShadowType object, boolean showContent) {
-		if (object == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(object.getClass().getSimpleName());
-		sb.append("(");
-		sb.append(object.getOid());
-		sb.append(",name=");
-		sb.append(object.getName());
-		sb.append(",");
-		if (showContent) {
-			if (object.getResource() != null) {
-				sb.append("resource=(@");
-				sb.append(object.getResource());
-				sb.append("),");
-			}
-			if (object.getResourceRef() != null) {
-				sb.append("resourceRef=(@");
-				sb.append(object.getResourceRef());
-				sb.append("),");
-			}
-			sb.append("objectClass=");
-			sb.append(object.getObjectClass());
-			sb.append(",attributes=(");
-			sb.append(prettyPrint(object.getAttributes()));
-			sb.append("),...");
-			// TODO: more
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-	public static String debugDump(AccountShadowType object, int indent) {
-		StringBuilder sb = new StringBuilder();
-		indentDebugDump(sb, indent);
-		if (object == null) {
-			sb.append("null");
-			return sb.toString();
-		}
-		sb.append(object.getClass().getSimpleName());
-		sb.append("(");
-		sb.append(object.getOid());
-		sb.append(",name=");
-		sb.append(object.getName());
-		
-		if (object.getResource() != null) {
-			sb.append("\n");
-			indentDebugDump(sb, indent + 1);
-			sb.append("resource: ");
-			sb.append(ObjectTypeUtil.toShortString(object.getResource()));
-		}
-		if (object.getResourceRef() != null) {
-			sb.append("\n");
-			indentDebugDump(sb, indent + 1);
-			sb.append("resourceRef: ");
-			sb.append(ObjectTypeUtil.toShortString(object.getResourceRef()));
-		}
-		
-		sb.append("\n");
-		indentDebugDump(sb, indent + 1);
-		sb.append("objectClass: ");
-		sb.append(prettyPrint(object.getObjectClass()));
-
-		sb.append("\n");
-		indentDebugDump(sb, indent + 1);
-		sb.append("attributes:");
-		ResourceObjectShadowAttributesType attributes = object.getAttributes();
-		if (attributes == null) {
-			sb.append("null");
-		} else {
-			sb.append("\n");
-			sb.append(debugDumpXsdAnyProperties(attributes.getAny(),indent + 2));
-		}
-		
-		
-		sb.append("\n");
-		indentDebugDump(sb, indent + 1);
-		sb.append("activation:");
-		if (object.getActivation() == null) {
-			sb.append("null");
-		} else {
-			sb.append("\n");
-			sb.append(debugDump(object.getActivation(),indent+2));
-		}
-		
-		// TODO: more
-		
-		return sb.toString();
-	}
-
-	private static String debugDump(ActivationType activation, int indent) {
-		StringBuilder sb = new StringBuilder();
-		indentDebugDump(sb, indent);
-		sb.append("enabled: ");
-		sb.append(activation.isEnabled());
-		if (activation.getValidFrom() != null) {
-			sb.append("\n");
-			indentDebugDump(sb, indent);
-			sb.append("valid from: ");
-			sb.append(activation.getValidFrom());
-		}
-		if (activation.getValidTo() != null) {
-			sb.append("\n");
-			indentDebugDump(sb, indent);
-			sb.append("valid to: ");
-			sb.append(activation.getValidTo());
-		}
-		return sb.toString();
-	}
-
-	public static String prettyPrint(ObjectModificationType objectChange) {
-		if (objectChange == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ObjectModification(");
-		sb.append(objectChange.getOid());
-		sb.append(",");
-		List<ItemDeltaType> changes = objectChange.getModification();
-		sb.append("[");
-		Iterator<ItemDeltaType> iterator = changes.iterator();
-		while (iterator.hasNext()) {
-			sb.append(prettyPrint(iterator.next()));
-			if (iterator.hasNext()) {
-				sb.append(",");
-			}
-		}
-		sb.append("])");
-		return sb.toString();
-	}
 
 	public static String prettyPrint(ItemDeltaType change) {
 		if (change == null) {

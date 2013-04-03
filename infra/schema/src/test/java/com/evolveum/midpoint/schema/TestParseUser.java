@@ -31,12 +31,12 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -267,11 +267,11 @@ public class TestParseUser {
 		assertNotNull("No object in ref1 (prism)", accountRef1Val.getObject());
 		assertNotNull("No object definition in ref1 (prism)", accountRef1Val.getObject().getDefinition());
 		assertEquals("Wrong ref1 oid (prism)", USER_ACCOUNT_REF_1_OID, accountRef1Val.getOid());
-		assertEquals("Wrong ref1 type (prism)", AccountShadowType.COMPLEX_TYPE, accountRef1Val.getTargetType());
+		assertEquals("Wrong ref1 type (prism)", ResourceObjectShadowType.COMPLEX_TYPE, accountRef1Val.getTargetType());
 		
 		PrismReferenceValue accountRef3Val = accountRef.findValueByOid(USER_ACCOUNT_REF_3_OID);
 		assertEquals("Wrong ref3 oid (prism)",  USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
-		assertEquals("Wrong ref3 type (prism)", AccountShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
+		assertEquals("Wrong ref3 type (prism)", ResourceObjectShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
 		assertEquals("Wrong ref3 description (prism)", "This is third accountRef", accountRef3Val.getDescription());
 		Element accountRef3ValFilterElement = accountRef3Val.getFilter();
 		assertFilter("ref3", accountRef3ValFilterElement);
@@ -302,15 +302,15 @@ public class TestParseUser {
 		
 		ObjectReferenceType ref1 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_1_OID, accountRefs);
 		assertEquals("Wrong ref1 oid (jaxb)", USER_ACCOUNT_REF_1_OID, ref1.getOid());
-		assertEquals("Wrong ref1 type (jaxb)", AccountShadowType.COMPLEX_TYPE, ref1.getType());
+		assertEquals("Wrong ref1 type (jaxb)", ResourceObjectShadowType.COMPLEX_TYPE, ref1.getType());
 
 		ObjectReferenceType ref2 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_2_OID, accountRefs);
 		assertEquals("Wrong ref2 oid (jaxb)", USER_ACCOUNT_REF_2_OID, ref2.getOid());
-		assertEquals("Wrong ref2 type (jaxb)", AccountShadowType.COMPLEX_TYPE, ref2.getType());
+		assertEquals("Wrong ref2 type (jaxb)", ResourceObjectShadowType.COMPLEX_TYPE, ref2.getType());
 		
 		ObjectReferenceType ref3 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_3_OID, accountRefs);
 		assertEquals("Wrong ref3 oid (jaxb)", USER_ACCOUNT_REF_3_OID, ref3.getOid());
-		assertEquals("Wrong ref3 type (jaxb)", AccountShadowType.COMPLEX_TYPE, ref3.getType());
+		assertEquals("Wrong ref3 type (jaxb)", ResourceObjectShadowType.COMPLEX_TYPE, ref3.getType());
 		Filter ref3Filter = ref3.getFilter();
 		assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
 		assertFilter("ref filter (jaxb)", ref3Filter.getFilter());

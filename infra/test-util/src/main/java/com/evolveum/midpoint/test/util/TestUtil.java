@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -99,9 +99,9 @@ public class TestUtil {
 		return oid;
 	}
     
-    public static void setAttribute(PrismObject<AccountShadowType> account, QName attrName, QName typeName, 
+    public static void setAttribute(PrismObject<ResourceObjectShadowType> account, QName attrName, QName typeName, 
 			PrismContext prismContext, String value) throws SchemaException {
-		PrismContainer<Containerable> attributesContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> attributesContainer = account.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(attrName, attrName, typeName, prismContext);
 		ResourceAttribute attribute = attrDef.instantiate();
 		attribute.setRealValue(value);

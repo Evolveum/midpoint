@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -101,11 +101,11 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             }
 
             query.setPaging(paging);
-            List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class,
+            List<PrismObject<ResourceObjectShadowType>> list = getModel().searchObjects(ResourceObjectShadowType.class,
                     query, null, task, result);
 
             AccountContentDto dto;
-            for (PrismObject<AccountShadowType> object : list) {
+            for (PrismObject<ResourceObjectShadowType> object : list) {
                 dto = createAccountContentDto(object, result);
                 getAvailableData().add(new SelectableBean<AccountContentDto>(dto));
             }
@@ -129,7 +129,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
         return Integer.MAX_VALUE;
     }
 
-    private AccountContentDto createAccountContentDto(PrismObject<AccountShadowType> object, OperationResult result)
+    private AccountContentDto createAccountContentDto(PrismObject<ResourceObjectShadowType> object, OperationResult result)
             throws SchemaException, SecurityViolationException {
 
         AccountContentDto dto = new AccountContentDto();

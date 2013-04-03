@@ -105,7 +105,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
@@ -432,7 +431,7 @@ public abstract class ShadowCache {
 
 	private <T extends ResourceObjectShadowType> PropertyDelta<?> checkShadowName(Collection<? extends ItemDelta> modifications, 
 			PrismObject<T> shadow) throws SchemaException {
-		ItemDelta<?> nameDelta = ItemDelta.findItemDelta(modifications, new ItemPath(AccountShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
+		ItemDelta<?> nameDelta = ItemDelta.findItemDelta(modifications, new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
 		String newName = null;//ShadowCacheUtil.determineShadowName(shadow);
 		
 		if (nameDelta == null){
@@ -448,7 +447,7 @@ public abstract class ShadowCache {
 			return null;
 		}
 		 
-		PropertyDelta<?> renameDelta = PropertyDelta.createModificationReplaceProperty(AccountShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
+		PropertyDelta<?> renameDelta = PropertyDelta.createModificationReplaceProperty(ResourceObjectShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
 		return renameDelta;
 	}
 
@@ -478,7 +477,7 @@ public abstract class ShadowCache {
 				// although the resource does not exists..
 				if (ProvisioningOperationOptions.isForce(options)) {
 					parentResult.muteLastSubresultError();
-					getRepositoryService().deleteObject(AccountShadowType.class, shadow.getOid(),
+					getRepositoryService().deleteObject(ResourceObjectShadowType.class, shadow.getOid(),
 							parentResult);
 					parentResult.recordHandledError("Resource defined in shadow does not exists. Shadow was deleted from the repository.");
 					return;
@@ -508,7 +507,7 @@ public abstract class ShadowCache {
 
 			LOGGER.trace("Detele object with oid {} form repository.", shadow.getOid());
 			try {
-				getRepositoryService().deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);
+				getRepositoryService().deleteObject(ResourceObjectShadowType.class, shadow.getOid(), parentResult);
 				ObjectDelta<T> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(), shadow.getOid(), prismContext);
 				ResourceOperationDescription operationDescription = createSuccessOperationDescription(shadow, resource, delta, task, parentResult);
 				operationListener.notifySuccess(operationDescription, task, parentResult);
@@ -867,21 +866,15 @@ public abstract class ShadowCache {
 						if (currentShadowType != null) {
 							currentShadowType.setOid(oldShadow.getOid());
 							currentShadowType.setResourceRef(oldShadowType.getResourceRef());
+							currentShadowType.setKind(objecClassDefinition.getKind());
 							currentShadowType.setIntent(oldShadowType.getIntent());
-							if (currentShadowType instanceof AccountShadowType && oldShadowType instanceof AccountShadowType) {
-								((AccountShadowType) currentShadowType).setAccountType(((AccountShadowType) oldShadowType)
-										.getAccountType());
-							}
 						}
 					}
 
 					// FIXME: hack. the object delta must have oid specified.
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-						if (oldShadowType instanceof AccountShadowType) {
-							ObjectDelta<T> objDelta = new ObjectDelta<T>(
-									type, ChangeType.DELETE, prismContext);
-							change.setObjectDelta(objDelta);
-						}
+						ObjectDelta<T> objDelta = new ObjectDelta<T>(type, ChangeType.DELETE, prismContext);
+						change.setObjectDelta(objDelta);
 						change.getObjectDelta().setOid(oldShadow.getOid());
 					}
 					
@@ -1134,12 +1127,10 @@ public abstract class ShadowCache {
 			resultShadowType.setIgnored(resourceShadowType.isIgnored());
 			resultShadowType.setActivation(resourceShadowType.getActivation());
 			
-			if (resultShadow.canRepresent(AccountShadowType.class)) {
-				// Credentials
-				AccountShadowType resultAccountShadow = (AccountShadowType) resultShadow.asObjectable();
-				AccountShadowType resourceAccountShadow = (AccountShadowType) resourceShadow.asObjectable();
-				resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
-			}
+			// Credentials
+			ResourceObjectShadowType resultAccountShadow = resultShadow.asObjectable();
+			ResourceObjectShadowType resourceAccountShadow = resourceShadow.asObjectable();
+			resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
 		}
 
 		return resultShadow;

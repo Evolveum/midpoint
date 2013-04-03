@@ -21,34 +21,35 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author lazyman
@@ -74,42 +75,40 @@ public class SynchronizeAction extends BaseAction {
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
-            OperationResult result) throws SynchronizationException, SchemaException {
+            OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         Class<? extends ResourceObjectShadowType> clazz = getClassFromChange(change);
-        if (!AccountShadowType.class.isAssignableFrom(clazz)) {
-            throw new SynchronizationException("Couldn't synchronize shadow of type '"
-                    + clazz + "', only '" + AccountShadowType.class.getName() + "' is supported.");
+        if (!ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
+            throw new SchemaException("Couldn't synchronize shadow of type '"
+                    + clazz + "', only '" + ResourceObjectShadowType.class.getName() + "' is supported.");
         }
 
         OperationResult subResult = result.createSubresult(actionName);
         if (StringUtils.isEmpty(userOid)) {
             String message = "Can't synchronize, user oid is empty or null.";
             subResult.computeStatus(message);
-            throw new SynchronizationException(message);
+            throw new SchemaException(message);
         }
 
         UserType userType = getUser(userOid, subResult);
         if (userType == null) {
             String message = "Can't find user with oid '" + userOid + "'.";
             subResult.computeStatus(message);
-            throw new SynchronizationException(message);
+            throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, AccountShadowType> context = null;
+        LensContext<UserType, ResourceObjectShadowType> context = null;
         try {
             context = createLensContext(userType, change.getResource().asObjectable(), change);
 
-            LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change,
+            LensProjectionContext<ResourceObjectShadowType> accountContext = createAccountLensContext(context, change,
                     SynchronizationIntent.SYNCHRONIZE, null);
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
             
-        } catch (Exception ex) {
-            throw new SynchronizationException("Couldn't update account sync context in modify user action.", ex);
         } finally {
             subResult.recomputeStatus("Couldn't update account sync context in modify user action.");
         }
@@ -119,14 +118,6 @@ public class SynchronizeAction extends BaseAction {
         } finally {
             subResult.recomputeStatus();
             result.recomputeStatus();
-            
-//            auditRecord.clearTimestamp();
-//            auditRecord.setEventType(AuditEventType.MODIFY_OBJECT);
-//        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-//        	auditRecord.setResult(result);
-//        	auditRecord.clearDeltas();
-//        	auditRecord.addDeltas(context.getAllChanges());
-//        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;
@@ -144,13 +135,13 @@ public class SynchronizeAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, AccountShadowType> createLensContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private LensContext<UserType, ResourceObjectShadowType> createLensContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
-                SchemaConstants.I_USER_TYPE);
+        		UserType.COMPLEX_TYPE);
 
-        LensContext<UserType, AccountShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         PrismObject<UserType> oldUser = user.asPrismObject();
         focusContext.setObjectOld(oldUser);

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author mserbak
@@ -65,7 +66,7 @@ public class UserChangesDto implements Serializable {
 			return;
 		}
 
-		ItemPath account = new ItemPath(SchemaConstants.I_ACCOUNT_REF);
+		ItemPath account = new ItemPath(UserType.F_ACCOUNT_REF);
 
 		if (delta.getChangeType().equals(ChangeType.DELETE)) {
 

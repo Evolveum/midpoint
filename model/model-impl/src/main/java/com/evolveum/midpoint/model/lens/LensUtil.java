@@ -23,35 +23,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.apache.commons.lang.Validate;
-
-import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -61,7 +50,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -132,14 +120,14 @@ public class LensUtil {
 		return accountDefinition.getIntent();
 	}
 	
-	public static LensProjectionContext<AccountShadowType> getAccountContext(LensContext<UserType,AccountShadowType> context,
-			PrismObject<AccountShadowType> equivalentAccount, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+	public static LensProjectionContext<ResourceObjectShadowType> getAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
+			PrismObject<ResourceObjectShadowType> equivalentAccount, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		return getAccountContext(context, ResourceObjectShadowUtil.getResourceOid(equivalentAccount.asObjectable()), 
 				equivalentAccount.asObjectable().getIntent(), provisioningService, prismContext, result);
 	}
 	
-	public static LensProjectionContext<AccountShadowType> getAccountContext(LensContext<UserType,AccountShadowType> context,
+	public static LensProjectionContext<ResourceObjectShadowType> getAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
 			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
@@ -148,7 +136,7 @@ public class LensUtil {
 		return context.findProjectionContext(rsd);
 	}
 	
-	public static LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context,
+	public static LensProjectionContext<ResourceObjectShadowType> getOrCreateAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
 			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
@@ -157,9 +145,9 @@ public class LensUtil {
 		return getOrCreateAccountContext(context, rsd);
 	}
 		
-	public static LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context,
+	public static LensProjectionContext<ResourceObjectShadowType> getOrCreateAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
 			ResourceShadowDiscriminator rsd) {
-		LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rsd);
+		LensProjectionContext<ResourceObjectShadowType> accountSyncContext = context.findProjectionContext(rsd);
 		if (accountSyncContext == null) {
 			accountSyncContext = context.createProjectionContext(rsd);
 			ResourceType resource = context.getResource(rsd.getResourceOid());

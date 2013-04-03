@@ -17,7 +17,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 <!-- Testing single task -->
@@ -28,9 +27,7 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
-	xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+	xmlns:my="http://myself.me/schemas/whatever">
 								  
 	<name>Passive task 0002</name>
 	

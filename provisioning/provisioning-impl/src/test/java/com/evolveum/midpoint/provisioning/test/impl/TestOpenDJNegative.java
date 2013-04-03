@@ -19,85 +19,52 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.Assert;
 import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.QueryConvertor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -106,10 +73,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * Test for provisioning service implementation. Using OpenDJ. But NOT STARTING IT.
@@ -133,9 +96,9 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		addObjectFromFile(ACCOUNT1_REPO_FILENAME, AccountShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_DELETE_REPO_FILENAME, AccountShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_MODIFY_REPO_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT1_REPO_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_DELETE_REPO_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_MODIFY_REPO_FILENAME, ResourceObjectShadowType.class, initResult);
 	}
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
@@ -229,7 +192,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		try {
-			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
+			ResourceObjectShadowType acct = provisioningService.getObject(ResourceObjectShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
 			
 			AssertJUnit.fail("getObject succeeded unexpectedly");
 		} catch (ObjectNotFoundException e) {
@@ -257,7 +220,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				
 		try {
 
-			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
+			ResourceObjectShadowType acct = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
 
 			AssertJUnit.fail("getObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -309,7 +272,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjects(AccountShadowType.class, query, result);
+	      provisioningService.searchObjects(ResourceObjectShadowType.class, query, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -347,7 +310,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
+	      provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, query, handler, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -367,7 +330,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 
-		AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, AccountShadowType.class);
+		ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, ResourceObjectShadowType.class);
 
 		display("Account to add", object);
 
@@ -396,7 +359,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		try {
 
-			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
+			provisioningService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
 
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -419,12 +382,12 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
-		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ResourceObjectShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 		
 		try {
 
-			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
+			provisioningService.modifyObject(ResourceObjectShadowType.class, objectChange.getOid(),
 					delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 			
 			AssertJUnit.fail("addObject succeeded unexpectedly");
@@ -501,7 +464,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		try {
-			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
+			ResourceObjectShadowType acct = provisioningService.getObject(ResourceObjectShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
 			
 			AssertJUnit.fail("getObject succeeded unexpectedly");
 		} catch (ObjectNotFoundException e) {
@@ -528,7 +491,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 				
-		PrismObject<AccountShadowType> acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, null, result);
+		PrismObject<ResourceObjectShadowType> acct = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT1_OID, null, result);
 
 		display("Account", acct);
 		
@@ -588,7 +551,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjects(AccountShadowType.class, query, result);
+	      provisioningService.searchObjects(ResourceObjectShadowType.class, query, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (CommunicationException e) {
@@ -625,7 +588,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
+	      provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, query, handler, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (CommunicationException e) {
@@ -646,7 +609,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 
-		AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, AccountShadowType.class);
+		ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, ResourceObjectShadowType.class);
 
 		display("Account to add", object);
 
@@ -660,7 +623,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
-		AccountShadowType repoAccountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+		ResourceObjectShadowType repoAccountType =  repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_NEW_OID,
 				result).asObjectable();
 		display("repo shadow", repoAccountType);
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", repoAccountType.getName());
@@ -669,7 +632,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertNotNull("No result in shadow (repo)", repoResult);
 		assertFailure("Result in shadow (repo)", repoResult);
 
-		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+		ResourceObjectShadowType provisioningAccountType = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_NEW_OID,
 				null, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
@@ -689,14 +652,14 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
+		provisioningService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
 
 		// THEN
 		result.computeStatus();
 		display("deleteObject result", result);
 		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
 		
-		AccountShadowType repoAccountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
+		ResourceObjectShadowType repoAccountType =  repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_DELETE_OID,
 				result).asObjectable();
 		display("repo shadow", repoAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, repoAccountType.getFailedOperationType());
@@ -704,7 +667,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertNotNull("No result in shadow (repo)", repoResult);
 		assertFailure("Result in shadow (repo)", repoResult);
 
-		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
+		ResourceObjectShadowType provisioningAccountType = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_DELETE_OID,
 				null, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, provisioningAccountType.getFailedOperationType());
@@ -723,10 +686,10 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
-		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ResourceObjectShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 		
-		provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
+		provisioningService.modifyObject(ResourceObjectShadowType.class, objectChange.getOid(),
 				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 		
 	
@@ -735,7 +698,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("deleteObject result", result);
 		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
 		
-		AccountShadowType repoAccountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_MODIFY_OID,
+		ResourceObjectShadowType repoAccountType =  repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_MODIFY_OID,
 				result).asObjectable();
 		display("repo shadow", repoAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, repoAccountType.getFailedOperationType());
@@ -743,7 +706,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertNotNull("No result in shadow (repo)", repoResult);
 		assertFailure("Result in shadow (repo)", repoResult);
 
-		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_MODIFY_OID,
+		ResourceObjectShadowType provisioningAccountType = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_MODIFY_OID,
 				null, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, provisioningAccountType.getFailedOperationType());

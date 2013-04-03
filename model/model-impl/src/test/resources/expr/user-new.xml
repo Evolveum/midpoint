@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -17,13 +16,11 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-
-<c:object oid="007" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+<c:object oid="007" 
+	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'	
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-   
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
    xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
    xmlns:mi6="http://mi6.gov.uk/schema/"
@@ -32,24 +29,21 @@
    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
    xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS"
    xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
+   xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xsi:type="c:UserType"
-   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../ns/public/common/common-2a.xsd
-   
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../ns/public/resource/idconnector/resource-schema-2.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>
+   xsi:type="c:UserType">
     <name>bond new</name>
     <fullName>James Bond 007</fullName>
     <givenName>James Jr.</givenName>
     <honorificSuffix>007</honorificSuffix>
-    <eMailAddress>xxx@sk.sk</eMailAddress>
+    <locality>home</locality>
     <account oid="12345">
         <c:name>bond new</c:name>
         <resource oid="333">
             <c:name>ds1</c:name>
             <namespace>http://mi6.gov.uk/schema/</namespace>
             <schema>
+              <definition>
                 <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">
 
                 <!-- We will only allow imports of well-know schemas. That
@@ -62,9 +56,9 @@
                     <xsd:complexType name="Mi6PersonObjectClass">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <r:identifier ref="ldap:dn"/>
-                                <r:displayName ref="ldap:uid"/>
-                                <r:nativeObjectClass>mi6Person</r:nativeObjectClass>
+                                <ra:identifier ref="ldap:dn"/>
+                                <ra:displayName ref="ldap:uid"/>
+                                <ra:nativeObjectClass>mi6Person</ra:nativeObjectClass>
                             </xsd:appinfo>
                         </xsd:annotation>
                         <xsd:complexContent>
@@ -82,8 +76,8 @@
                             </xsd:extension>
                         </xsd:complexContent>
                     </xsd:complexType>
-                
                 </xsd:schema>
+              </definition>
             </schema>
         </resource>
         <objectClass>mi6:Mi6PersonObjectClass</objectClass>
@@ -100,9 +94,9 @@
         <c:name>jbond</c:name>
         <resource oid="444">
             <c:name>unix4</c:name>
-            <type>http://midpoint.evolveum.com/xml/ns/resource/identityconnectors/bundles/solaris1#SolarisConnector</type>
             <namespace>http://midpoint.evolveum.com/xml/ns/default/resource/unix4</namespace>
             <schema>
+              <definition>
                 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" xmlns:tns="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" xmlns:r="http://midpoint.evolveum.com/xml/ns/resource/1#" xmlns:idc="http://midpoint.evolveum.com/xml/ns/resource/idconnector/1#" elementFormDefault="qualified">
                     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/idconnector/1#"/>
 
@@ -187,8 +181,8 @@
                             </xsd:extension>
                         </xsd:complexContent>
                     </xsd:complexType>
-
                 </xsd:schema>
+              </definition>
             </schema>
         </resource>
     </c:account>

@@ -19,94 +19,48 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.MidPointAsserts;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
  * @author semancik
@@ -190,7 +144,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<AccountShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyGreen);
+        PrismObject<ResourceObjectShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyGreen);
         display("Account mancomb", accountMancomb);
         assertNotNull("No mancomb account shadow", accountMancomb);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID, 
@@ -246,7 +200,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -290,9 +244,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -367,11 +321,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         waitForSyncTaskNextRun(resourceDummyBlue);
         waitForSyncTaskNextRun(resourceDummyGreen);
         
-        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally Feed");
         assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         
         userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -426,11 +380,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally B. Feed", null, null);
         
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally B. Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally B. Feed");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally B. Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally B. Feed");
         assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
         
         assertAccounts(userWally, 3);
@@ -469,11 +423,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
                 
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
+        PrismObject<ResourceObjectShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Bloodnose");
+        PrismObject<ResourceObjectShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Bloodnose");
         assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
         
         
@@ -521,9 +475,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
         
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ResourceObjectShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
+        PrismObject<ResourceObjectShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -588,9 +542,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		waitForTaskNextRun(getSyncTaskOid(resource), false, getWaitTimeout());
 	}
 	
-	private PrismObject<AccountShadowType> checkWallyAccount(PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc,
+	private PrismObject<ResourceObjectShadowType> checkWallyAccount(PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc,
 			String expectedFullName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		PrismObject<AccountShadowType> accountShadowWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resource);
+		PrismObject<ResourceObjectShadowType> accountShadowWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resource);
         display("Account shadow wally ("+resourceDesc+")", accountShadowWally);
         assertEquals("Wrong resourceRef in wally account ("+resourceDesc+")", resource.getOid(), 
         		accountShadowWally.asObjectable().getResourceRef().getOid());
@@ -610,8 +564,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		timeBeforeSync = System.currentTimeMillis();
 	}
 
-	protected void assertShadowOperationalData(PrismObject<AccountShadowType> shadow, SynchronizationSituationType expectedSituation) {
-		AccountShadowType shadowType = shadow.asObjectable();
+	protected void assertShadowOperationalData(PrismObject<ResourceObjectShadowType> shadow, SynchronizationSituationType expectedSituation) {
+		ResourceObjectShadowType shadowType = shadow.asObjectable();
 		SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
 		assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
 		XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();

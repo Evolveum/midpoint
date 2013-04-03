@@ -178,12 +178,12 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER);
         if (user != null) {
-            variables.put(SchemaConstants.I_USER, user);
+            variables.put(SchemaConstants.C_USER, user);
         }
 
         PrismObject<UserType> requester = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER);
         if (requester != null) {
-            variables.put(SchemaConstants.I_REQUESTER, requester);
+            variables.put(SchemaConstants.C_REQUESTER, requester);
         }
 
         return variables;

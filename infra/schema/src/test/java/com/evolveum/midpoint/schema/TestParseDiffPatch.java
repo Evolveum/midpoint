@@ -251,7 +251,7 @@ public class TestParseDiffPatch {
         assertEquals("Wrong change type", ChangeType.MODIFY, diffDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = diffDelta.getModifications();
         assertEquals("Unexpected number of modifications", 1, modifications.size());
-        PrismAsserts.assertPropertyDelete(diffDelta, SchemaConstants.PATH_EXTENSION.subPath(
+        PrismAsserts.assertPropertyDelete(diffDelta, new ItemPath(TaskType.F_EXTENSION,
         		new QName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token")), 480);
 
         // Convert to XML form. This should include xsi:type to pass the type information

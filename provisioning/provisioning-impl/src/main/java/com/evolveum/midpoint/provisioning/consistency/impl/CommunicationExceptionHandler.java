@@ -4,28 +4,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
-import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -33,21 +29,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 @Component
 public class CommunicationExceptionHandler extends ErrorHandler {
@@ -135,7 +121,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
 					Collection<? extends ItemDelta> attemptdelta = createAttemptModification(shadow, null);
-					cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), attemptdelta,
+					cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadow.getOid(), attemptdelta,
 							operationResult);
 			
 				}
@@ -163,7 +149,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				Collection<ItemDelta> modifications = createShadowModification(shadow);
 
-				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
+				getCacheRepositoryService().modifyObject(ResourceObjectShadowType.class, shadow.getOid(), modifications,
 						operationResult);
 				delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.asPrismObject().getCompileTimeClass(), prismContext);
 //				operationResult.recordSuccess();
@@ -174,7 +160,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 						Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(shadow
 								.getObjectChange().getModification(), shadow.asPrismObject().getDefinition());
 
-						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deltas,
+						cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadow.getOid(), deltas,
 								operationResult);
 						delta = ObjectDelta.createModifyDelta(shadow.getOid(), deltas, shadow.asPrismObject().getCompileTimeClass(), prismContext);
 						// return shadow;
@@ -199,7 +185,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
 			Collection<ItemDelta> modifications = createShadowModification(shadow);
 
-			getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
+			getCacheRepositoryService().modifyObject(ResourceObjectShadowType.class, shadow.getOid(), modifications,
 					operationResult);
 			for (OperationResult subRes : parentResult.getSubresults()) {
 				subRes.muteError();

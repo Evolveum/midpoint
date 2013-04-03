@@ -13,8 +13,7 @@
  * If applicable, add the following below the CDDL Header, with the fields
  * enclosed by brackets [] replaced by your own identifying information:
  * 
- * Portions Copyrighted 2011 [name of copyright owner] Portions Copyrighted 2010
- * Forgerock
+ * Portions Copyrighted 2011 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.test.ldap;

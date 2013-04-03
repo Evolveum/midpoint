@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.model;
@@ -34,8 +33,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
  * 
  * Test of spring application context initialization
  * 
+ * @author Igor Farinic
+ * 
  */
-//@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
 

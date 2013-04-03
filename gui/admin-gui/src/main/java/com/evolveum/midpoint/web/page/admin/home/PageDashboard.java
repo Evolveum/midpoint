@@ -126,19 +126,19 @@ public class PageDashboard extends PageAdminHome {
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
         callableResult.setResult(result);
         Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+                SelectorOptions.createCollection(ResourceObjectShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
         List<ObjectReferenceType> references = user.asObjectable().getAccountRef();
         for (ObjectReferenceType reference : references) {
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
 
-            PrismObject<AccountShadowType> account = WebModelUtils.loadObjectAsync(AccountShadowType.class, reference.getOid(),
+            PrismObject<ResourceObjectShadowType> account = WebModelUtils.loadObjectAsync(ResourceObjectShadowType.class, reference.getOid(),
                     options, subResult, this, user);
             if (account == null) {
                 continue;
             }
 
-            AccountShadowType accountType = account.asObjectable();
+            ResourceObjectShadowType accountType = account.asObjectable();
 
             OperationResultType fetchResult = accountType.getFetchResult();
 

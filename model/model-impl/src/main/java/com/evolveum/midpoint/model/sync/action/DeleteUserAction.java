@@ -22,12 +22,11 @@
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -37,11 +36,18 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -57,7 +63,7 @@ public class DeleteUserAction extends BaseAction {
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
-            OperationResult result) throws SynchronizationException, SchemaException {
+            OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_DELETE_USER);
@@ -65,23 +71,23 @@ public class DeleteUserAction extends BaseAction {
         if (StringUtils.isEmpty(userOid)) {
             String message = "Can't delete user, user oid is empty or null.";
             subResult.computeStatus(message);
-            throw new SynchronizationException(message);
+            throw new SchemaException(message);
         }
 
         UserType userType = getUser(userOid, subResult);
         if (userType == null) {
             String message = "Can't find user with oid '" + userOid + "'.";
             subResult.computeStatus(message);
-            throw new SynchronizationException(message);
+            throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, AccountShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             context.rememberResource(change.getResource().asObjectable());
 
             //set old user
-            PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(SchemaConstants.I_USER_TYPE);
+            PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(UserType.COMPLEX_TYPE);
             PrismObject<UserType> oldUser = userType.asPrismObject();
             focusContext.setObjectOld(oldUser);
             //set object delta with delete
@@ -90,14 +96,14 @@ public class DeleteUserAction extends BaseAction {
             focusContext.setPrimaryDelta(userDelta);
 
             //create account context for this change
-            LensProjectionContext<AccountShadowType> accContext = createAccountLensContext(context, change, null, null);
+            LensProjectionContext<ResourceObjectShadowType> accContext = createAccountLensContext(context, change, null, null);
             if (accContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userType.getName());
-            throw new SynchronizationException("Couldn't delete user '" + userType.getName()
+            throw new SystemException("Couldn't delete user '" + userType.getName()
                     + "', reason: " + ex.getMessage(), ex);
         } finally {
             subResult.recomputeStatus("Couldn't create sync context to delete user '" + userType.getName() + "'.");
@@ -109,14 +115,6 @@ public class DeleteUserAction extends BaseAction {
         } finally {
             subResult.recomputeStatus("Couldn't delete user '" + userType.getName() + "'.");
             result.recomputeStatus();
-            
-//            auditRecord.clearTimestamp();
-//            auditRecord.setEventType(AuditEventType.DELETE_OBJECT);
-//        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-//        	auditRecord.setResult(result);
-//        	auditRecord.clearDeltas();
-//        	auditRecord.addDeltas(context.getAllChanges());
-//        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;

@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 import org.apache.commons.lang.StringUtils;

@@ -53,7 +53,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -197,11 +197,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		addObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, UserTemplateType.class, initResult);
 
 		// Accounts
-		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, AccountShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, AccountShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME, AccountShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME, ResourceObjectShadowType.class, initResult);
 		
 		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
@@ -258,11 +258,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertUserJack(user, "jack", fullName, givenName, familyName, locality);
 	}
 	
-	protected void assertDummyShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username) {
+	protected void assertDummyShadowRepo(PrismObject<ResourceObjectShadowType> accountShadow, String oid, String username) {
 		assertShadowRepo(accountShadow, oid, username, resourceDummyType);
 	}
 	
-	protected void assertDummyShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname) {
+	protected void assertDummyShadowModel(PrismObject<ResourceObjectShadowType> accountShadow, String oid, String username, String fullname) {
 		assertShadowModel(accountShadow, oid, username, resourceDummyType);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
 	}

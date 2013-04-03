@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.common;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
 /**
  * 
  * @author Igor Farinic
+ * @author Radovan Semancik
  * 
  */
 public class Utils {
@@ -61,116 +61,10 @@ public class Utils {
 		return StringUtils.lowerCase(name);
 	}
 
-	public static String getPropertySilent(Object object, String property) {
-		String result = null;
-		try {
-			result = BeanUtils.getProperty(object, property);
-		} catch (IllegalAccessException ex) {
-			LOGGER.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
-					object.getClass().getName(), property, ex.getMessage() });
-		} catch (InvocationTargetException ex) {
-			LOGGER.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
-					object.getClass().getName(), property, ex.getMessage() });
-		} catch (NoSuchMethodException ex) {
-			LOGGER.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
-					object.getClass().getName(), property, ex.getMessage() });
-		}
-		return result;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void copyPropertiesSilent(Object target, Object source) {
-		try {
-			BeanUtils.copyProperties(target, source);
-
-			// copy properties of type List, if target destination does not have
-			// setter (e.g. JAXB java object)
-			final Field fields[] = target.getClass().getDeclaredFields();
-			for (int i = 0; i < fields.length; ++i) {
-				if ("List".equals(fields[i].getType().getSimpleName())) {
-					ParameterizedType type = (ParameterizedType) fields[i].getGenericType();
-					if (null != type && type.getActualTypeArguments().length > 0
-							&& "String".equals(((Class) type.getActualTypeArguments()[0]).getSimpleName())) {
-
-						boolean existsSetter = true;
-						try {
-							Method targetSetterMethod = target.getClass().getDeclaredMethod(
-									"set" + StringUtils.capitalize(fields[i].getName()), List.class);
-							if (null == targetSetterMethod) {
-								existsSetter = false;
-							}
-						} catch (NoSuchMethodException ex) {
-							// if there is setter for the property on target
-							// object, then
-							existsSetter = false;
-						}
-						if (!existsSetter) {
-							Method targetMethod = target.getClass().getDeclaredMethod(
-									"get" + StringUtils.capitalize(fields[i].getName()));
-							Method sourceMethod = source.getClass().getDeclaredMethod(
-									"get" + StringUtils.capitalize(fields[i].getName()));
-							if (null != targetMethod && null != sourceMethod) {
-								List<String> targetList = (List) targetMethod.invoke(target);
-								List<String> sourceList = (List) sourceMethod.invoke(source);
-								if (targetList != null) {
-									targetList.clear();
-									if (sourceList != null) {
-										for (Object str : sourceList) {
-											if (str instanceof String) {
-												targetList.add((String) str);
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		} catch (NoSuchMethodException ex) {
-			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
-					source, target, ex.getMessage() });
-		} catch (SecurityException ex) {
-			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
-					source, target, ex.getMessage() });
-		} catch (IllegalAccessException ex) {
-			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
-					source, target, ex.getMessage() });
-		} catch (InvocationTargetException ex) {
-			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
-					source, target, ex.getMessage() });
-		}
-	}
-
-	public static void unresolveResource(ResourceObjectShadowType shadow) {
-		if (shadow == null || shadow.getResource() == null) {
-			return;
-		}
-
-		ObjectReferenceType reference = new ObjectReferenceType();
-		reference.setOid(shadow.getResource().getOid());
-		reference.setType(SchemaConstants.I_RESOURCE_TYPE);
-		shadow.setResourceRef(reference);
-		shadow.setResource(null);
-	}
-
-	public static void unresolveResourceForAccounts(List<? extends ResourceObjectShadowType> shadows) {
-		for (ResourceObjectShadowType shadow : shadows) {
-			unresolveResource(shadow);
-		}
-	}
-
 	public static Element fillPropertyReference(String resolve) {
 		com.evolveum.midpoint.schema.holder.XPathHolder xpath = new com.evolveum.midpoint.schema.holder.XPathHolder(
 				Utils.getPropertyName(resolve));
 		return xpath.toElement(SchemaConstants.NS_C, "property");
-	}
-
-	public static PropertyReferenceListType getResolveResourceList() {
-		PropertyReferenceListType resolveListType = new PropertyReferenceListType();
-		resolveListType.getProperty().add(Utils.fillPropertyReference("Account"));
-		resolveListType.getProperty().add(Utils.fillPropertyReference("Resource"));
-		return resolveListType;
 	}
 
 	/**

@@ -90,7 +90,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -315,14 +314,14 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test040AddAccount");
 
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-		AccountShadowType shadowType = new AccountShadowType();
+		ResourceObjectShadowType shadowType = new ResourceObjectShadowType();
 		PrismTestUtil.getPrismContext().adopt(shadowType);
 		shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		shadowType.setResourceRef(resourceRef);
 		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
-		PrismObject<AccountShadowType> shadow = shadowType.asPrismObject();
+		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
 		ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 		icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
@@ -345,12 +344,12 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 		
-		final List<PrismObject<AccountShadowType>> searchResults = new ArrayList<PrismObject<AccountShadowType>>();
+		final List<PrismObject<ResourceObjectShadowType>> searchResults = new ArrayList<PrismObject<ResourceObjectShadowType>>();
 
-		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {
+		ResultHandler<ResourceObjectShadowType> handler = new ResultHandler<ResourceObjectShadowType>() {
 
 			@Override
-			public boolean handle(PrismObject<AccountShadowType> shadow) {
+			public boolean handle(PrismObject<ResourceObjectShadowType> shadow) {
 				System.out.println("Search: found: " + shadow);
 				checkUcfShadow(shadow, accountDefinition);
 				searchResults.add(shadow);
@@ -367,7 +366,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
 	}
 	
-	private void checkUcfShadow(PrismObject<AccountShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
+	private void checkUcfShadow(PrismObject<ResourceObjectShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		assertNotNull("No objectClass in shadow "+shadow, shadow.asObjectable().getObjectClass());
 		assertEquals("Wrong objectClass in shadow "+shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
 		Collection<ResourceAttribute<?>> attributes = ResourceObjectShadowUtil.getAttributes(shadow);

@@ -9,32 +9,23 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.JAXBIntrospector;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.Objects;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 
 /**
  * @author Radovan Semancik
@@ -89,9 +80,11 @@ public class XsdTypeConverterTest {
 	@Test(enabled=false)
 	public void testAccountMarshall() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("===[ testAccountMarshall ]===");
-		JAXBElement<AccountShadowType> jaxbElement = PrismTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), AccountShadowType.class);
+		JAXBElement<ResourceObjectShadowType> jaxbElement = 
+				PrismTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), 
+						ResourceObjectShadowType.class);
 		System.out.println("Object: "+jaxbElement.getValue());
-		AccountShadowType shadow = jaxbElement.getValue();
+		ResourceObjectShadowType shadow = jaxbElement.getValue();
 		
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue("foo");
@@ -101,7 +94,9 @@ public class XsdTypeConverterTest {
 		shadow.getAttributes().getAny().add(XmlTypeConverter.toXsdElement(42, BAR_QNAME, null, true));
 		
 		Document doc = DOMUtil.getDocument();
-		JAXBElement<AccountShadowType> accountElement = new JAXBElement<AccountShadowType>(ObjectTypes.ACCOUNT.getQName(),AccountShadowType.class,shadow);
+		JAXBElement<ResourceObjectShadowType> accountElement = 
+				new JAXBElement<ResourceObjectShadowType>(ObjectTypes.SHADOW.getQName(),
+						ResourceObjectShadowType.class,shadow);
 		PrismTestUtil.marshalElementToDom(accountElement, doc);
 		
 		System.out.println("marshalled shadow: "+DOMUtil.serializeDOMToString(doc));

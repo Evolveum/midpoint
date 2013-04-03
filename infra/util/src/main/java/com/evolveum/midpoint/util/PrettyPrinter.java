@@ -266,7 +266,9 @@ public class PrettyPrinter {
 			Class<?> cclass = value.getClass().getComponentType();
 			if (cclass.isPrimitive()) {
 				if (cclass == byte.class) {
-					PrettyPrinter.prettyPrint((byte[])value);
+					return PrettyPrinter.prettyPrint((byte[])value);
+				} else {
+					// TODO: something better
 				}
 			} else {
 				return PrettyPrinter.prettyPrint((Object[])value);

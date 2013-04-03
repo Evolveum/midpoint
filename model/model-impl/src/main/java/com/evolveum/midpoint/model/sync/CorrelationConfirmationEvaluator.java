@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.camel.spi.Required;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
@@ -68,12 +68,8 @@ public class CorrelationConfirmationEvaluator {
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
 
-//	@Autowired
-//	private ExpressionHandler expressionHandler;
-
 	public List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
-			QueryType query, ResourceType resourceType, OperationResult result)
-			throws SynchronizationException {
+			QueryType query, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (query == null) {
 			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
@@ -98,10 +94,18 @@ public class CorrelationConfirmationEvaluator {
 				// to null and the processing should be skipped
 				return null;
 			}
-		} catch (Exception ex) {
+		} catch (SchemaException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
 					SchemaDebugUtil.prettyPrint(query));
-			throw new SynchronizationException("Couldn't convert query.", ex);
+			throw new SchemaException("Couldn't convert query.", ex);
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+					SchemaDebugUtil.prettyPrint(query));
+			throw new ObjectNotFoundException("Couldn't convert query.", ex);
+		} catch (ExpressionEvaluationException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+					SchemaDebugUtil.prettyPrint(query));
+			throw new ExpressionEvaluationException("Couldn't convert query.", ex);
 		}
 		List<PrismObject<UserType>> users = null;
 		try {
@@ -119,10 +123,10 @@ public class CorrelationConfirmationEvaluator {
 			if (users == null) {
 				users = new ArrayList<PrismObject<UserType>>();
 			}
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
 			LoggingUtils.logException(LOGGER,
 					"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
-			throw new SynchronizationException(
+			throw new SystemException(
 					"Couldn't search users in repository, based on filter (See logs).", ex);
 		}
 
@@ -131,7 +135,7 @@ public class CorrelationConfirmationEvaluator {
 		return users;
 	}
 
-	public boolean matchUserCorrelationRule(PrismObject<AccountShadowType> currentShadow, PrismObject<UserType> userType, ResourceType resourceType, OperationResult result){
+	public boolean matchUserCorrelationRule(PrismObject<ResourceObjectShadowType> currentShadow, PrismObject<UserType> userType, ResourceType resourceType, OperationResult result){
 
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resourceType, UserType.class);
 		
@@ -198,8 +202,8 @@ public class CorrelationConfirmationEvaluator {
 
 	
 	public List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users,
-			ResourceObjectShadowType currentShadow, ResourceType resource, ExpressionType expression, OperationResult result)
-			throws SynchronizationException {
+			ResourceObjectShadowType currentShadow, ResourceType resource, ExpressionType expression, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
+			 {
 
 		List<PrismObject<UserType>> list = new ArrayList<PrismObject<UserType>>();
 		for (PrismObject<UserType> user : users) {
@@ -210,9 +214,18 @@ public class CorrelationConfirmationEvaluator {
 				if (user != null && confirmedUser) {
 					list.add(user);
 				}
-			} catch (Exception ex) {
+			} catch (RuntimeException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
-				throw new SynchronizationException("Couldn't confirm user " + user.getName(), ex);
+				throw new SystemException("Couldn't confirm user " + user.getName(), ex);
+			} catch (ExpressionEvaluationException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
+				throw new ExpressionEvaluationException("Couldn't confirm user " + user.getName(), ex);
+			} catch (ObjectNotFoundException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
+				throw new ObjectNotFoundException("Couldn't confirm user " + user.getName(), ex);
+			} catch (SchemaException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
+				throw new SchemaException("Couldn't confirm user " + user.getName(), ex);
 			}
 		}
 
@@ -222,7 +235,7 @@ public class CorrelationConfirmationEvaluator {
 	}
 
 	private ObjectQuery updateFilterWithAccountValues(ResourceObjectShadowType currentShadow, ResourceType resource,
-			ObjectQuery query, String shortDesc, OperationResult result) throws SynchronizationException {
+			ObjectQuery query, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		LOGGER.trace("updateFilterWithAccountValues::begin");
 		if (query.getFilter() == null) {
 			return null;
@@ -263,9 +276,21 @@ public class CorrelationConfirmationEvaluator {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Transforming filter to:\n{}", query.getFilter().dump());
 			}
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-			throw new SynchronizationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
+			throw new SystemException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
+		} catch (JAXBException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
+			throw new SchemaException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
+		} catch (SchemaException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
+			throw new SchemaException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
+			throw new ObjectNotFoundException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
+		} catch (ExpressionEvaluationException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
+			throw new ExpressionEvaluationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
 		}
 
 		LOGGER.trace("updateFilterWithAccountValues::end");
@@ -278,15 +303,15 @@ public class CorrelationConfirmationEvaluator {
 		
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		if (user != null) {
-			variables.put(SchemaConstants.I_USER, user.asPrismObject());
+			variables.put(ExpressionConstants.VAR_USER, user.asPrismObject());
 		}
 
 		if (shadow != null) {
-			variables.put(SchemaConstants.I_ACCOUNT, shadow.asPrismObject());
+			variables.put(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject());
 		}
 
 		if (resource != null) {
-			variables.put(SchemaConstants.I_RESOURCE, resource.asPrismObject());
+			variables.put(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject());
 		}
 
 		return variables;

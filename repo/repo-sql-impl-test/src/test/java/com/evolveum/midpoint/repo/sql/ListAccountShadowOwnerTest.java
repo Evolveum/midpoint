@@ -35,8 +35,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -107,7 +107,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         String userOid = repositoryService.addObject(user, null, result);
         assertNotNull("User oid is null", userOid);
         AssertJUnit.assertEquals("user oid is not equal to returned value", userOid, user.getOid());
-        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "account-shadow.xml"));
+        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "account-shadow.xml"));
         String accountOid = repositoryService.addObject(account, null, result);
         assertNotNull("Account oid is null, couldn't add account or what?", account);
         AssertJUnit.assertEquals("account oid is not equal to returned value", accountOid, account.getOid());

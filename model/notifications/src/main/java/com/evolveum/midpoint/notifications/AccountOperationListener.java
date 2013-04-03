@@ -129,7 +129,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         }
 
         if (operationDescription.getObjectDelta().getObjectTypeClass() == null ||
-                !AccountShadowType.class.isAssignableFrom(operationDescription.getObjectDelta().getObjectTypeClass())) {
+                !ResourceObjectShadowType.class.isAssignableFrom(operationDescription.getObjectDelta().getObjectTypeClass())) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Object that was changed was not an account, exiting the operation listener (class = " +
                         operationDescription.getObjectDelta().getObjectTypeClass() + ")");

@@ -17,7 +17,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 
@@ -41,8 +40,7 @@ object.
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
     

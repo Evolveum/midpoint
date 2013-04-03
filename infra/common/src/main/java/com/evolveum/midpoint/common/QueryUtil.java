@@ -263,9 +263,9 @@ public class QueryUtil {
                         // from the schema later, or maybe we can make it entirely
                         // generic (use ResourceObjectShadowType instead).
                         QueryUtil.createEqualRefFilter(doc, null,
-                                com.evolveum.midpoint.schema.constants.SchemaConstants.I_RESOURCE_REF, resourceOid),
+                        		ResourceObjectShadowType.F_RESOURCE_REF, resourceOid),
                         QueryUtil.createEqualFilter(doc, null,
-                                com.evolveum.midpoint.schema.constants.SchemaConstants.I_OBJECT_CLASS, objectClass)
+                                ResourceObjectShadowType.F_OBJECT_CLASS, objectClass)
                 );
 
         QueryType query = new QueryType();
@@ -282,7 +282,7 @@ public class QueryUtil {
 		XPathHolder xpath = new XPathHolder(ResourceObjectShadowType.F_ATTRIBUTES);
 		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(attribute, doc);
 		Element filter = createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
-                com.evolveum.midpoint.schema.constants.SchemaConstants.I_RESOURCE_REF, resourceType.getOid()), QueryUtil
+                ResourceObjectShadowType.F_RESOURCE_REF, resourceType.getOid()), QueryUtil
 					.createEqualFilterFromElements(doc, xpath, identifierElements, prismContext));
 		QueryType query = new QueryType();
 		query.setFilter(filter);

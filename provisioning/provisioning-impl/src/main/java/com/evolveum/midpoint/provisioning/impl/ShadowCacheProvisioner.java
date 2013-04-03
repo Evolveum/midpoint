@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
@@ -77,7 +76,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
 					DebugUtil.debugDump(shadowChanges));
 			try {
-				getRepositoryService().modifyObject(AccountShadowType.class, shadowType.getOid(), shadowChanges, parentResult);
+				getRepositoryService().modifyObject(ResourceObjectShadowType.class, shadowType.getOid(), shadowChanges, parentResult);
 				LOGGER.trace("Shadow changes processed successfully.");
 			} catch (ObjectAlreadyExistsException ex) {
 				throw new SystemException(ex);

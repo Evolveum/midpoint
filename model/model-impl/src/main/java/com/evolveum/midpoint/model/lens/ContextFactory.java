@@ -41,7 +41,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -139,7 +138,7 @@ public class ContextFactory {
 	}
 	
 	public static <F extends ObjectType, P extends ObjectType> Class<F> determineFocusClass(Class<P> projectionClass) {
-		if (projectionClass == AccountShadowType.class) {
+		if (projectionClass == ResourceObjectShadowType.class) {
 			return (Class<F>) UserType.class;
 		}
 		return null;
@@ -170,7 +169,7 @@ public class ContextFactory {
 	public static <F extends ObjectType, P extends ObjectType> Class<P> getProjectionClass(Class<F> focusClass) {
 		// TODO!!!!!!!!!!!!
 		if (UserType.class.isAssignableFrom(focusClass)) {
-			return (Class<P>) AccountShadowType.class;
+			return (Class<P>) ResourceObjectShadowType.class;
 		}
 		if (ResourceType.class.isAssignableFrom(focusClass)) {
 			// This has no projection class. But returning null will cause error. Returning the same class is harmless.

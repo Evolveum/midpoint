@@ -37,9 +37,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotifierConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.cxf.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +116,7 @@ public class SimpleModelAccountOperationNotifier implements Notifier {
 //        mailSender.send(mailMessage);
     }
 
-    private StringBuilder prepareMessageText(NotificationRequest request, List<ObjectDelta<AccountShadowType>> accountDeltas, ModelContext<UserType, AccountShadowType> modelContext, List<QName> situations) {
+    private StringBuilder prepareMessageText(NotificationRequest request, List<ObjectDelta<ResourceObjectShadowType>> accountDeltas, ModelContext<UserType, ResourceObjectShadowType> modelContext, List<QName> situations) {
         StringBuilder messageText = new StringBuilder();
 
         List<String> created = new ArrayList<String>();
@@ -134,9 +134,9 @@ public class SimpleModelAccountOperationNotifier implements Notifier {
 //            }
 //        }
 
-        for (ModelProjectionContext<AccountShadowType> projectionContext : modelContext.getProjectionContexts()) {
+        for (ModelProjectionContext<ResourceObjectShadowType> projectionContext : modelContext.getProjectionContexts()) {
             // todo fixme this is copied from NotifierChangeHook, as distinguishing between add/modify account is not working reliably
-            ObjectDelta<AccountShadowType> delta = projectionContext.getPrimaryDelta();
+            ObjectDelta<ResourceObjectShadowType> delta = projectionContext.getPrimaryDelta();
             if (delta == null) {
                 delta = projectionContext.getSecondaryDelta();
             }
@@ -146,11 +146,11 @@ public class SimpleModelAccountOperationNotifier implements Notifier {
             }
 
             if (delta.isAdd() || SynchronizationPolicyDecision.ADD.equals(projectionContext.getSynchronizationPolicyDecision())) {
-                AccountShadowType newAccount = projectionContext.getObjectNew().asObjectable();
+            	ResourceObjectShadowType newAccount = projectionContext.getObjectNew().asObjectable();
                 String name = newAccount.getName() != null ? newAccount.getName().getOrig() : "an account";
                 created.add(" - " + name + " on " + getResourceName(newAccount));
             } else if (delta.isModify()) {
-                AccountShadowType newAccount = projectionContext.getObjectNew().asObjectable();
+            	ResourceObjectShadowType newAccount = projectionContext.getObjectNew().asObjectable();
                 StringBuilder sb = new StringBuilder();
                 sb.append(" - " + newAccount.getName() + " on " + getResourceName(newAccount));
                 sb.append(", changing attributes: ");
@@ -169,7 +169,7 @@ public class SimpleModelAccountOperationNotifier implements Notifier {
                 }
                 modified.add(sb.toString());
             } else if (delta.isDelete()) {
-                AccountShadowType oldAccount = projectionContext.getObjectOld().asObjectable();
+            	ResourceObjectShadowType oldAccount = projectionContext.getObjectOld().asObjectable();
                 deleted.add(" - " + oldAccount.getName() + " on " + getResourceName(oldAccount));
             }
         }
@@ -215,7 +215,7 @@ public class SimpleModelAccountOperationNotifier implements Notifier {
         }
     }
 
-    private String getResourceName(AccountShadowType account) {
+    private String getResourceName(ResourceObjectShadowType account) {
         String oid = null;
         if (account.getResource() != null) {
             if (account.getResource().getName() != null) {

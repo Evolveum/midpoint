@@ -16,7 +16,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <c:user oid="12345678-d34d-b33f-f00d-987987987987" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'

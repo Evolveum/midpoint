@@ -17,7 +17,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 xmlns:prov="http://midpoint.evolveum.com/xml/ns/public/provisioning/provisioning-1.wsdl"
@@ -28,18 +27,12 @@ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
    xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xsi:schemaLocation='http://schemas.xmlsoap.org/soap/envelope/ http://schemas.xmlsoap.org/soap/envelope/
-   http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema
-   http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd   
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/resource/idconnector/resource-schema-2.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/resource/idconnector/configuration-1.xsd'>
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <soapenv:Header/>
     <soapenv:Body>
         <prov:modifyObject>
             <objectChange>
                 <com:oid>ef2bc95b-13e0-48e2-86d6-3d4f02d3e13d</com:oid>
-                <!--1 or more repetitions:-->
                 <com:change path="/givenName" changeType="add">
                     <dj:givenName xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">John</dj:givenName>
                 </com:change>
@@ -54,12 +47,9 @@ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
             </objectChange>
             <result oid="?" type="?">
                 <com:extension>
-               <!--You may enter ANY elements at this point-->
                 </com:extension>
-                <!--Zero or more repetitions:-->
                 <result oid="?" type="?">
                     <com:extension>
-                    <!--You may enter ANY elements at this point-->
                     </com:extension>
                 </result>
             </result>

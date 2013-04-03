@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,7 +39,7 @@ public class ModifyPasswordAction extends BaseAction {
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task,
-            OperationResult result) throws SynchronizationException {
+            OperationResult result) {
 
         //todo implement
 

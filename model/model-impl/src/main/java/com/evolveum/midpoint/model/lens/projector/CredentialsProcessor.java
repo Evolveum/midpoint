@@ -86,7 +86,7 @@ public class CredentialsProcessor {
     		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null && focusContext.getObjectTypeClass() == UserType.class) {
-    		processCredentialsUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
+    		processCredentialsUser((LensContext<UserType,ResourceObjectShadowType>) context, (LensProjectionContext<ResourceObjectShadowType>)projectionContext, result);
 //    		return;
     	}
 //    	if (focusContext.getObjectTypeClass() != UserType.class) {
@@ -94,11 +94,11 @@ public class CredentialsProcessor {
 //    		return;
 //    	} 	
     	
-    	passwordPolicyProcessor.processPasswordPolicy((LensProjectionContext<AccountShadowType>)projectionContext, context, result);
+    	passwordPolicyProcessor.processPasswordPolicy((LensProjectionContext<ResourceObjectShadowType>)projectionContext, context, result);
     }
     
     
-    public void processCredentialsUser(LensContext<UserType,AccountShadowType> context, final LensProjectionContext<AccountShadowType> accCtx, OperationResult result) 
+    public void processCredentialsUser(LensContext<UserType,ResourceObjectShadowType> context, final LensProjectionContext<ResourceObjectShadowType> accCtx, OperationResult result) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> userDelta = focusContext.getDelta();
@@ -121,12 +121,12 @@ public class CredentialsProcessor {
             return;
         }
         
-        PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+        PrismObjectDefinition<ResourceObjectShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
 
-        ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
+        ObjectDelta<ResourceObjectShadowType> accountDelta = accCtx.getDelta();
         PropertyDelta<ProtectedStringType> accountPasswordValueDelta = null;
         if (accountDelta != null) {
         	accountPasswordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);

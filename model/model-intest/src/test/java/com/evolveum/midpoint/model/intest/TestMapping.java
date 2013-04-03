@@ -19,85 +19,39 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -146,11 +100,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlueType);
         
         // Check account
-        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlueType);
         
         // Check account in dummy resource
@@ -163,7 +117,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -232,7 +186,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -250,7 +204,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Flying Dutchman");
         deltas.add(accountDelta);
@@ -274,7 +228,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -292,7 +246,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
         deltas.add(accountDelta);
@@ -316,7 +270,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -334,7 +288,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "HMS Dauntless");
         deltas.add(accountDelta);
@@ -358,7 +312,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 		
@@ -376,7 +330,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "HMS Dauntless");
         deltas.add(accountDelta);
@@ -400,7 +354,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -442,7 +396,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -478,11 +432,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyRedType);
         
         // Check account
-        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "jack", resourceDummyRedType);
         
         // Check account in dummy resource
@@ -495,7 +449,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -530,7 +484,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
       dummyAuditService.assertAnyRequestDeltas();
       dummyAuditService.assertExecutionDeltas(2);
       dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-      dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+      dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
       dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -565,7 +519,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -583,7 +537,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtlRed.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Flying Dutchman");
         deltas.add(accountDelta);
@@ -636,7 +590,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtlRed.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
         deltas.add(accountDelta);
@@ -660,7 +614,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
          dummyAuditService.assertRecords(2);
          dummyAuditService.assertAnyRequestDeltas();
          dummyAuditService.assertExecutionDeltas(1);
-         dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
          dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -678,7 +632,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtlRed.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Black Pearl");
         deltas.add(accountDelta);
@@ -749,7 +703,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -787,11 +741,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyType);
         
         // Check account
-        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "jack", resourceDummyType);
         
         // Check account in dummy resource
@@ -804,7 +758,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -842,7 +796,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
       dummyAuditService.assertAnyRequestDeltas();
       dummyAuditService.assertExecutionDeltas(2);
       dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-      dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+      dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
       dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -880,7 +834,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -898,7 +852,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
         		prismContext, "Davie Jones Locker");
         deltas.add(accountDelta);
@@ -951,7 +905,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
         		prismContext);
         deltas.add(accountDelta);
@@ -975,7 +929,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
          dummyAuditService.assertRecords(2);
          dummyAuditService.assertAnyRequestDeltas();
          dummyAuditService.assertExecutionDeltas(1);
-         dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
          dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -993,7 +947,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(AccountShadowType.class,
+        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ResourceObjectShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
         		prismContext, "Fountain of Youth");
         deltas.add(accountDelta);
@@ -1058,7 +1012,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1099,7 +1053,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1125,12 +1079,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, task.getResult());
+        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, task.getResult());
         assertShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
         
         // Check account
         // All the changes should be reflected to the account
-        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, task.getResult());
+        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, task.getResult());
         assertShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
         PrismAsserts.assertPropertyValue(accountModel, 
         		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),

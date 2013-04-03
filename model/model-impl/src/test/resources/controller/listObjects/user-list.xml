@@ -17,16 +17,13 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xsi:type="apit:ObjectListType"
-   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../ns/public/common/common-2a.xsd'>
+   xsi:type="apit:ObjectListType">
     <c:object xsi:type="c:UserType">
         <name>bond</name>
         <fullName>James Bond 007</fullName>

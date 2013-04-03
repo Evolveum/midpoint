@@ -41,12 +41,12 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -95,7 +95,7 @@ public class SchemaTestUtil {
 		
 		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(UserType.F_ACCOUNT_REF, PrismReferenceDefinition.class);
 		PrismAsserts.assertDefinition(accountRefDef, UserType.F_ACCOUNT_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
-		assertEquals("Wrong target type in accountRef", AccountShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
+		assertEquals("Wrong target type in accountRef", ResourceObjectShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
 		assertEquals("Wrong composite object element name in accountRef", UserType.F_ACCOUNT, accountRefDef.getCompositeObjectElementName());
 	}
 }

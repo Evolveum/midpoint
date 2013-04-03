@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.util.logging;
@@ -29,26 +28,20 @@ import org.slf4j.LoggerFactory;
 import com.evolveum.midpoint.util.logging.impl.TraceImpl;
 
 /**
- * Sample Class Doc
- *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * Factory for trace instances.
  */
 public class TraceManager {
 
-    public static final String code_id = "$Id$";
     private static Logger LOGGER = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
 
-    public static Trace getTrace(@SuppressWarnings("rawtypes") Class clazz) {
-        Logger LOGGER = org.slf4j.LoggerFactory.getLogger(clazz);
-
-        return new TraceImpl(LOGGER);
+    public static Trace getTrace(Class clazz) {
+        Logger logger = org.slf4j.LoggerFactory.getLogger(clazz);
+        return new TraceImpl(logger);
     }
     
     public static Trace getTrace(String loggerName) {
-        Logger LOGGER = org.slf4j.LoggerFactory.getLogger(loggerName);
-        return new TraceImpl(LOGGER);
+        Logger logger = org.slf4j.LoggerFactory.getLogger(loggerName);
+        return new TraceImpl(logger);
     }
     
     public static ILoggerFactory getILoggerFactory() {
