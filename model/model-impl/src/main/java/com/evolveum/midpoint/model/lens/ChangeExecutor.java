@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.sync.SynchronizationSituation;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -86,6 +88,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 /**
@@ -486,7 +489,7 @@ public class ChangeExecutor {
     	}
 
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
-    	
+    		
     	try {
     		
     		ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(context.getOptions());
@@ -585,6 +588,9 @@ public class ChangeExecutor {
 
         T objectTypeToAdd = objectToAdd.asObjectable();
 
+        //TODO vilkoooooooo uncomment
+//    	applyMetadata(context.getChannel(), task, objectTypeToAdd);
+    	
         String oid = null;
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
@@ -603,6 +609,7 @@ public class ChangeExecutor {
         change.setOid(oid);
     }
 
+    
     private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeDeletion(ObjectDelta<T> change, 
     		LensContext<F,P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result) throws
             ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -627,7 +634,10 @@ public class ChangeExecutor {
             return;
         }
         Class<T> objectTypeClass = change.getObjectTypeClass();
-
+        	
+        // TODO: vilkoooooooo uncoment
+//    	applyMetadata(change, objectTypeClass, task, context.getChannel());
+        
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
@@ -638,6 +648,49 @@ public class ChangeExecutor {
         } else {
             cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
         }
+    }
+    
+	private <T extends ObjectType> void applyMetadata(String contextChannel, Task task, T objectTypeToAdd) {
+		MetadataType metaData = new MetadataType();
+		String channel = getChannel(contextChannel, task);
+		metaData.setCreateChannel(channel);
+		metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		if (task.getOwner() != null) {
+			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
+
+		}
+
+		objectTypeToAdd.setMetadata(metaData);
+
+	}
+    
+    private String getChannel(String contextChannel, Task task){
+    	if (contextChannel != null){
+    		return contextChannel;
+    	} else if (task.getChannel() != null){
+    		return task.getChannel();
+    	}
+    	return null;
+    }
+    
+    private <T extends ObjectType> void applyMetadata(ObjectDelta<T> change, Class objectTypeClass, Task task, String contextChannel){
+        String channel = getChannel(contextChannel, task);
+    	
+    
+    	PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass);
+    	
+    	if (channel != null){	
+        	PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), def, channel);
+        	((Collection)change.getModifications()).add(delta);
+        	}
+        	PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)), def, XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+        	((Collection)change.getModifications()).add(delta);
+    		if (task.getOwner() != null) {
+    			ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
+    					MetadataType.F_MODIFIER_REF)), def, task.getOwner().getOid());
+    			((Collection)change.getModifications()).add(refDelta);
+    		}
+
     }
 
     private String addTask(TaskType task, OperationResult result) throws ObjectAlreadyExistsException,
@@ -652,8 +705,7 @@ public class ChangeExecutor {
         }
     }
 
-    private <F extends ObjectType, P extends ObjectType> String addProvisioningObject(PrismObject<? extends ObjectType> object, 
-    		LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
+    private <F extends ObjectType, P extends ObjectType> String addProvisioningObject(PrismObject<? extends ObjectType> object, LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
 
