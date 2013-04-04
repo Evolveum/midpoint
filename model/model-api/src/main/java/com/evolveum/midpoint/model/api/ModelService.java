@@ -235,41 +235,6 @@ public interface ModelService {
 
 	/**
 	 * <p>
-	 * Search for resource object shadows of a specified type that belong to the
-	 * specified resource.
-	 * </p>
-	 * <p>
-	 * Returns a list of such object shadows or empty list if nothing was found.
-	 * </p>
-	 * <p>
-	 * Returned shadows are "attached", that means they have OID and at they are
-	 * stored in the repository.
-	 * </p>
-	 * <p>
-	 * Implements the backward "has" association between resource and resource
-	 * object shadows. Forward association is implemented by property "resource"
-	 * of resource object shadow.
-	 * </p>
-	 * 
-	 * TODO: add objectClass to be really usable ?
-	 * 
-	 * @param <T>
-	 *            specific shadow type (class) to return
-	 * @param resourceOid
-	 *            OID of the resource that the shadows reside
-	 * @param resourceObjectShadowType
-	 *            specific shadow type (class) to return
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return list of found shadows
-	 * @throws ObjectNotFoundException
-	 */
-	<T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException;
-
-	/**
-	 * <p>
 	 * Returns all resource objects of specified type that are currently
 	 * available to the system.
 	 * </p>

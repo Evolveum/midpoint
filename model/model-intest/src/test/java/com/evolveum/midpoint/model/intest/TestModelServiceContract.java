@@ -193,8 +193,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
-        
-        userJack.checkConsistence(true, true);
 	}
 	
 	@Test
@@ -316,6 +314,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// WHEN
 		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, null , task, result);
 		
+		// THEN
 		display("Account", account);
 		display("Account def", account.getDefinition());
 		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
@@ -358,8 +357,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
-        
-        account.checkConsistence(true, true);
 	}
 	
 	@Test
@@ -384,8 +381,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
-        
-        account.checkConsistence(true, true);
 	}
 
 	@Test
@@ -513,8 +508,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
-        
-        userJack.checkConsistence(true, true);
 	}
 
 

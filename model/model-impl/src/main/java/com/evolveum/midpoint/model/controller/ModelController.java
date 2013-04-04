@@ -214,12 +214,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 		OperationResult result = parentResult.createMinorSubresult(GET_OBJECT);
 		result.addParams(new String[] { "oid", "options", "class" }, oid, options, clazz);
 		
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		
 		try {	
 
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
-			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 			object = objectResolver.getObject(clazz, oid, rootOptions, result).asPrismObject();
 
 			resolve(object, options, task, result);
@@ -228,7 +229,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			RepositoryCache.exit();
 			result.cleanupResult();
 		}
-		if (InternalsConfig.consistencyChecks) object.checkConsistence(true, false);
+		validateObject(object, rootOptions, result);
 		return object;
 	}
 
@@ -638,11 +639,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			RepositoryCache.exit();
 		}
 		
-		if (InternalsConfig.consistencyChecks) {
-			for (PrismObject<T> object: list) {
-				object.checkConsistence(true, false);
-			}
-		}
+		validateObjects(list, rootOptions, result);
 
 		return list;
 	}
@@ -727,83 +724,28 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		try {
 			
-			try {
-				user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
-				result.recordSuccess();
-			} catch (ObjectNotFoundException ex) {
-				LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
-				result.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
-				throw ex;
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-						+ " for account with oid {}", ex, accountOid);
-				result.recordFatalError("Couldn't list account shadow owner for account with oid '"
-						+ accountOid + "'.", ex);
-			} finally {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(result.dump(false));
-				}
-			}
-
+			user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
+			result.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
+			result.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
+			throw ex;
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+					+ " for account with oid {}", ex, accountOid);
+			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+					+ accountOid + "'.", ex);
 		} finally {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(result.dump(false));
+			}
 			RepositoryCache.exit();
 			result.cleanupResult();
 		}
 
-		return user;
-	}
-
-	@Override
-	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(
-			String resourceOid, Class<T> resourceObjectShadowType, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
-		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notNull(parentResult, "Result type must not be null.");
-
-		RepositoryCache.enter();
-
-		List<PrismObject<T>> list = null;
-
-		LOGGER.trace("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
-				resourceObjectShadowType, resourceOid });
-
-		OperationResult result = parentResult.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
-		result.addParams(new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
-				resourceObjectShadowType);
+		validateObject(user, null, result);
 		
-		try {
-
-			try {
-				list = cacheRepositoryService.listResourceObjectShadows(resourceOid,
-						resourceObjectShadowType, result);
-				result.recordSuccess();
-			} catch (ObjectNotFoundException ex) {
-				result.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
-				RepositoryCache.exit();
-				throw ex;
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
-						+ "{} from repository for resource, oid {}", ex, resourceObjectShadowType,
-						resourceOid);
-				result.recordFatalError("Couldn't list resource object shadows type '"
-						+ resourceObjectShadowType + "' from repository for resource, oid '" + resourceOid
-						+ "'.", ex);
-			} finally {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(result.dump(false));
-				}
-			}
-
-			if (list == null) {
-				list = new ArrayList<PrismObject<T>>();
-			}
-
-		} finally {
-			RepositoryCache.exit();
-			result.cleanupResult();
-		}
-
-		return list;
+		return user;
 	}
 
 	@Override
@@ -1004,10 +946,40 @@ public class ModelController implements ModelService, ModelInteractionService {
 			RepositoryCache.exit();
 			throw e;
 		}
+		validateObjectTypes(discoverConnectors, null, result);
 		result.computeStatus("Connector discovery failed");
 		RepositoryCache.exit();
 		result.cleanupResult();
 		return discoverConnectors;
+	}
+	
+	private <T extends ObjectType> void validateObjectTypes(Collection<T> objectTypes, GetOperationOptions options, OperationResult result) {
+		for (T objectType: objectTypes) {
+			validateObject(objectType.asPrismObject(), options, result);
+		}
+	}
+	
+	private <T extends ObjectType> void validateObjects(Collection<PrismObject<T>> objects, GetOperationOptions options, OperationResult result) {
+		for (PrismObject<T> object: objects) {
+			validateObject(object, options, result);
+		}
+	}
+	
+	private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {
+		try {
+			if (InternalsConfig.encryptionChecks) {
+				CryptoUtil.checkEncrypted(object);
+			}
+			if (!InternalsConfig.consistencyChecks) {
+				return;
+			}
+			Class<T> type = object.getCompileTimeClass();
+			boolean tolerateRaw = options.isRaw(options) && (type == ResourceType.class || ShadowType.class.isAssignableFrom(type));
+			object.checkConsistence(true, !tolerateRaw);
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
 	}
 
 	/*

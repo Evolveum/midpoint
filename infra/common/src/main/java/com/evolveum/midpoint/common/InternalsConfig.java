@@ -37,4 +37,9 @@ public class InternalsConfig {
 		consistencyChecks = false;
 		encryptionChecks = false;
 	}
+
+	public static void turnOnChecks() {
+		consistencyChecks = true;
+		encryptionChecks = true;
+	}
 }

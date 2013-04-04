@@ -41,6 +41,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -182,6 +183,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		dummyAuditService = DummyAuditService.getInstance();
+		// Make sure the checks are turned on
+		InternalsConfig.turnOnChecks();
 	}
 
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {
@@ -231,8 +234,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
 	}
 	
-	protected void assertObject(PrismObject<UserType> object) {
+	protected void assertShadow(PrismObject<? extends ShadowType> shadow) {
+		assertObject(shadow);
+	}
+	
+	protected void assertObject(PrismObject<? extends ObjectType> object) {
+		object.checkConsistence(true, true);
 		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
+		assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
+		assertNotNull("Null name in "+object, object.asObjectable().getName());
 	}
 
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {
@@ -1020,6 +1030,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	private void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+		assertShadow(accountShadow);
 		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
 		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
 		assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
