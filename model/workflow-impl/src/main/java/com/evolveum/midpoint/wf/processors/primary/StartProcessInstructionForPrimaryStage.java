@@ -1,9 +1,11 @@
-package com.evolveum.midpoint.wf.processes;
+package com.evolveum.midpoint.wf.processors.primary;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.wf.StartProcessInstruction;
+import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 
 import java.util.ArrayList;
 import java.util.List;

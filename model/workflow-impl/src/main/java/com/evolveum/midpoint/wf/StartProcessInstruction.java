@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes;
+package com.evolveum.midpoint.wf;
 
 import java.util.HashMap;
 import java.util.Map;
