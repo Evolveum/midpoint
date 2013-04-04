@@ -729,6 +729,15 @@ public abstract class ShadowCache {
 									SchemaDebugUtil.prettyPrint(resourceShadow));
 
 							
+							PrismObject<T> conflictingShadow = shadowManager.lookupShadowByName(type, resourceShadow, resourceType, parentResult);
+							if (conflictingShadow != null){
+								applyAttributesDefinition(conflictingShadow, resourceType);
+								conflictingShadow = completeShadow(resourceShadow, conflictingShadow, resourceType, parentResult);
+								Task task = taskManager.createTaskInstance();
+								ResourceOperationDescription failureDescription = shadowManager.createResourceFailureDescription(conflictingShadow, resourceType, parentResult);
+								changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
+								shadowManager.deleteConflictedShadowFromRepo(conflictingShadow, parentResult);
+							}
 							// TODO: make sure that the resource object has appropriate definition (use objectClass and schema)
 							// The resource object obviously exists on the resource, but appropriate shadow does not exist in the
 							// repository we need to create the shadow to align repo state to the reality (resource)
@@ -756,15 +765,6 @@ public abstract class ShadowCache {
 						resultShadow = completeShadow(resourceShadow, repoShadow,
 								resourceType, parentResult);
 
-						PrismObject<T> conflictingShadow = shadowManager.lookupShadowByName(type, resourceShadow, resourceType, parentResult);
-						if (conflictingShadow != null){
-							applyAttributesDefinition(conflictingShadow, resourceType);
-							conflictingShadow = completeShadow(resourceShadow, conflictingShadow, resourceType, parentResult);
-							Task task = taskManager.createTaskInstance();
-							ResourceOperationDescription failureDescription = shadowManager.createResourceFailureDescription(conflictingShadow, resourceType, parentResult);
-							changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
-							shadowManager.deleteConflictedShadowFromRepo(conflictingShadow, parentResult);
-						}
 					} else {
 						resultShadow = resourceShadow;
 					}

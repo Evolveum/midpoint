@@ -200,6 +200,7 @@ public class ShadowManager {
 		ResourceAttribute<?> secondaryIdentifier = null;
 		if (secondaryIdentifiers.size() < 1){
 			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
+			return null;
 		}
 		
 		secondaryIdentifier = secondaryIdentifiers.iterator().next();
