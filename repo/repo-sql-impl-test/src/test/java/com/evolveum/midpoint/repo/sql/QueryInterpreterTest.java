@@ -117,28 +117,28 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     @Test
     public void queryOrComposite() throws Exception {
         Session session = open();
-        Criteria main = session.createCriteria(RAccountShadow.class, "a");
+        Criteria main = session.createCriteria(RResourceObjectShadow.class, "r");
 
-        Criteria attributes = main.createCriteria("attributes", "a1");
-        Criteria stringAttr = attributes.createCriteria("strings", "s");
+        Criteria attributes = main.createCriteria("attributes", "a");
+        Criteria stringAttr = attributes.createCriteria("strings", "s1x");
 
         Criteria extension = main.createCriteria("extension", "e");
-        Criteria stringExt = extension.createCriteria("strings", "s1");
+        Criteria stringExt = extension.createCriteria("strings", "s2x");
 
         //or
-        Criterion c1 = Restrictions.eq("accountType", "some account type");
+        Criterion c1 = Restrictions.eq("intent", "some account type");
         //or
         Conjunction c2 = Restrictions.conjunction();
-        c2.add(Restrictions.eq("s.value", "foo value"));
-        c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s1x.value", "foo value"));
+        c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         //or
         Conjunction c3 = Restrictions.conjunction();
-        c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
-        c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
-        c3.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c3.add(Restrictions.eq("s2x.value", "uid=test,dc=example,dc=com"));
+        c3.add(Restrictions.eq("s2x.name", new QName("http://example.com/p", "stringType")));
+        c3.add(Restrictions.eq("s2x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         //or
-        Criterion c4 = Restrictions.eq("a.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
+        Criterion c4 = Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
         Disjunction disjunction = Restrictions.disjunction();
         disjunction.add(c1);
@@ -233,18 +233,18 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryAccountByAttributesAndResourceRef() throws Exception {
         LOGGER.info("===[{}]===", new Object[]{"queryAccountByAttributesAndResourceRef"});
         Session session = open();
-        Criteria main = session.createCriteria(RAccountShadow.class, "a");
+        Criteria main = session.createCriteria(RResourceObjectShadow.class, "r");
 
-        Criteria attributes = main.createCriteria("attributes", "a1");
-        Criteria stringAttr = attributes.createCriteria("strings", "s");
+        Criteria attributes = main.createCriteria("attributes", "a");
+        Criteria stringAttr = attributes.createCriteria("strings", "s1x");
 
         //and
-        Criterion c1 = Restrictions.eq("a.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b");
+        Criterion c1 = Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b");
         //and
         Conjunction c2 = Restrictions.conjunction();
-        c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
-        c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
+        c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);

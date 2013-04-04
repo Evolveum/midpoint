@@ -26,7 +26,7 @@
 
 	<or>
 		<equal>
-			<path>c:accountType</path>
+			<path>c:intent</path>
 			<value>some account type</value>
 		</equal>
 		<equal>

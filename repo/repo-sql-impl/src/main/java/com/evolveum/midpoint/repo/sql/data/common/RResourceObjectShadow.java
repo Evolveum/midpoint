@@ -76,6 +76,7 @@ public class RResourceObjectShadow extends RObject {
     private Boolean dead;
     @QueryAttribute(enumerated = true)
     private RFailedOperationTypeType failedOperationType;
+    @QueryAttribute
     private String intent;
     @QueryAttribute(enumerated = true)
     private RSynchronizationSituation synchronizationSituation;
