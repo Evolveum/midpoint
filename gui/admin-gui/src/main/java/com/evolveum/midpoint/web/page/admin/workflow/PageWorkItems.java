@@ -31,7 +31,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.WfDataAccessor;
+import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -251,12 +251,12 @@ public class PageWorkItems extends PageAdminWorkItems {
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
-        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
+        WorkflowService workflowServiceImpl = getWorkflowService();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
                 //wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), WorkItemDtoProvider.currentUser(), approve, result);
-                wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), approve, result);
+                workflowServiceImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), approve, result);
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
             }
@@ -284,7 +284,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 //        }
 //
 //        OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
-//        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
+//        WfDataAccessor wfDataAccessor = getWorkflowService();
 //        for (WorkItemDto workItemDto : workItemDtoList) {
 //            OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
 //            try {
@@ -316,7 +316,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 //        }
 //
 //        OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
-//        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
+//        WfDataAccessor wfDataAccessor = getWorkflowService();
 //        for (WorkItemDto workItemDto : workItemDtoList) {
 //            OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
 //            try {

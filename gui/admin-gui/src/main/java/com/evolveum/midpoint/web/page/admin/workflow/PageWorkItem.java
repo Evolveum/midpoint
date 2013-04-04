@@ -40,12 +40,10 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.wf.ProcessInstance;
-import com.evolveum.midpoint.wf.WfDataAccessor;
-import com.evolveum.midpoint.wf.WorkItem;
-import com.evolveum.midpoint.wf.WorkItemDetailed;
+import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkItemDetailed;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -212,7 +210,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     private PrismObject<? extends ObjectType> createEmptyUserObject() {
         PrismObject<? extends ObjectType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
         try {
-            getWorkflowManager().getPrismContext().adopt(p);
+            getWorkflowService().getPrismContext().adopt(p);
         } catch (SchemaException e) {   // safe to convert; this should not occur
             throw new SystemException("Got schema exception when creating empty user object.", e);
         }
@@ -275,7 +273,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEM);
         WorkItemDetailed workItem = null;
         try {
-            WfDataAccessor wfm = getWorkflowDataAccessor();
+            WorkflowService wfm = getWorkflowService();
             workItem = wfm.getWorkItemByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
@@ -295,7 +293,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_PROCESS_INSTANCE);
         ProcessInstance processInstance;
         try {
-            WfDataAccessor wfm = getWorkflowDataAccessor();
+            WorkflowService wfm = getWorkflowService();
             processInstance = wfm.getProcessInstanceByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
             result.recordSuccess();
         } catch (Exception ex) {
@@ -527,7 +525,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowDataAccessor().saveWorkItemPrism(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
+            getWorkflowService().saveWorkItemPrism(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);

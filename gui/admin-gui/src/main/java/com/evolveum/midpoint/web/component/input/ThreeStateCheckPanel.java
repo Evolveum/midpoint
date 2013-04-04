@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import org.activiti.engine.impl.util.xml.Attribute;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;

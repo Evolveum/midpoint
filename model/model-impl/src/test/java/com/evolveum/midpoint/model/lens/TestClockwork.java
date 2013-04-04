@@ -99,7 +99,8 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
 
-    @Test(enabled = false)
+    // tests specific bug dealing with preservation of null values in focus secondary deltas
+    @Test(enabled = true)
     public void test010SerializeAddUserBarbossa() throws Exception {
 
         displayTestTile(this, "test010SerializeAddUserBarbossa");
@@ -117,10 +118,22 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         clockwork.click(context, task, result);     // one round - compute projections
 
         System.out.println("Context before serialization = " + context.debugDump());
-        System.out.println("Serialized form = " + context.toJaxb());
+        LensContextType lensContextType = context.toJaxb();
+
+        String xml = prismContext.getPrismJaxbProcessor().marshalElementToString(lensContextType, new QName("lensContext"));
+        System.out.println("Serialized form = " + xml);
+
+        lensContextType = prismContext.getPrismJaxbProcessor().unmarshalElement(xml, LensContextType.class).getValue();
+
+        LensContext context2 = LensContext.fromJaxb(lensContextType, context.getPrismContext());
+        System.out.println("Context after deserialization = " + context.debugDump());
 
         // THEN
-        // (nothing here -- we want to test whether context could be serialized)
+
+        assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
+        for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
+            assertEquals("Secondary delta #" + i + " is not preserved correctly", context.getFocusContext().getSecondaryDelta(i), context2.getFocusContext().getSecondaryDelta(i));
+        }
     }
 
 	@Test

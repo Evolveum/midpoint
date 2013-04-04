@@ -180,6 +180,9 @@ public class DeltaConvertor {
 		objectDeltaType.setChangeType(convertChangeType(objectDelta.getChangeType()));
 		Class<? extends Objectable> type = objectDelta.getObjectTypeClass();
 		PrismObjectDefinition<? extends Objectable> objDef = objectDelta.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+        if (objDef == null) {
+            throw new SchemaException("Unknown compile time class: " + type);
+        }
 		objectDeltaType.setObjectType(objDef.getTypeName());
 		objectDeltaType.setOid(objectDelta.getOid());
 		

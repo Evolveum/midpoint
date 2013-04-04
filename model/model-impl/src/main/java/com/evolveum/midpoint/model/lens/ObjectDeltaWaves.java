@@ -392,7 +392,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
     public ObjectDeltaWavesType toJaxb() throws SchemaException {
         ObjectDeltaWavesType objectDeltaWavesType = new ObjectDeltaWavesType();
         for (ObjectDelta wave : waves) {
-            objectDeltaWavesType.getWave().add(DeltaConvertor.toObjectDeltaType(wave));
+            objectDeltaWavesType.getWave().add(wave != null ? DeltaConvertor.toObjectDeltaType(wave) : null);
         }
         return objectDeltaWavesType;
     }
@@ -404,7 +404,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 
         ObjectDeltaWaves retval = new ObjectDeltaWaves();
         for (ObjectDeltaType odt : secondaryDeltas.getWave()) {
-            retval.waves.add(DeltaConvertor.createObjectDelta(odt, prismContext));
+            retval.waves.add(odt != null ? DeltaConvertor.createObjectDelta(odt, prismContext) : null);
         }
         return retval;
     }

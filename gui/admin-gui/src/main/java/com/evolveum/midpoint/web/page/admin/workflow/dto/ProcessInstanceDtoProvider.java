@@ -27,11 +27,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.ProcessInstance;
-import com.evolveum.midpoint.wf.WfDataAccessor;
+import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.wicket.Component;
 
 import java.util.Iterator;
@@ -90,7 +89,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //                order = OrderDirectionType.DESCENDING;
 //            }
 
-            WfDataAccessor wfm = getWorkflowDataAccessor();
+            WorkflowService wfm = getWorkflowService();
             List<ProcessInstance> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy,
                     requestedFor, finished, WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
                     result);
@@ -125,8 +124,8 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
-            WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-            count = wfDataAccessor.countProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, result);
+            WorkflowService workflowService = getWorkflowService();
+            count = workflowService.countProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, result);
         } catch (Exception ex) {
             String msg = "Couldn't list process instances";
             LoggingUtils.logException(LOGGER, msg, ex);

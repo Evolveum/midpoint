@@ -23,11 +23,8 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.ProcessInstance;
-import com.evolveum.midpoint.wf.WorkItem;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.api.WorkItem;
 
 /**
  * @author mederly

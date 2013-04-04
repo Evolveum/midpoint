@@ -58,7 +58,8 @@
 		<module>model-impl</module>
 		<module>model-intest</module>
 		<module>model-client</module>
-        <module>workflow</module>
+        <module>workflow-api</module>
+        <module>workflow-impl</module>
         <module>notifications</module>
-	</modules>
+    </modules>
 </project>

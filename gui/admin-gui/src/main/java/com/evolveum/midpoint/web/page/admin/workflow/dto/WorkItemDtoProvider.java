@@ -27,12 +27,11 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.WfDataAccessor;
-import com.evolveum.midpoint.wf.WorkItem;
-import com.evolveum.midpoint.wf.WorkflowException;
+import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkItem;
+import com.evolveum.midpoint.wf.api.WorkflowException;
 import org.apache.wicket.Component;
 
 import java.util.Iterator;
@@ -79,7 +78,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 //                order = OrderDirectionType.DESCENDING;
 //            }
 
-            WfDataAccessor wfm = getWorkflowDataAccessor();
+            WorkflowService wfm = getWorkflowService();
             List<WorkItem> items = wfm.listWorkItemsRelatedToUser(currentUser(), assigned,
                     WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count), result);
 
@@ -109,8 +108,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
-            WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-            count = wfDataAccessor.countWorkItemsRelatedToUser(currentUser(), assigned, result);
+            WorkflowService workflowService = getWorkflowService();
+            count = workflowService.countWorkItemsRelatedToUser(currentUser(), assigned, result);
         } catch (WorkflowException ex) {
             result.recordFatalError("Couldn't count work items assigned/assignable to user.", ex);
         }

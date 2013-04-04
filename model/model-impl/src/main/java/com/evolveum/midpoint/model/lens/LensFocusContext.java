@@ -85,6 +85,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public ObjectDelta<O> getSecondaryDelta(int wave) {
     	return secondaryDeltas.get(wave);
     }
+
+    public ObjectDeltaWaves<O> getSecondaryDeltas() {
+        return secondaryDeltas;
+    }
     
     public ObjectDelta<O> getProjectionWaveSecondaryDelta() throws SchemaException {
         return getWaveSecondaryDelta(getProjectionWave());

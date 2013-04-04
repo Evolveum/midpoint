@@ -22,8 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.wf.WorkItem;
-import com.evolveum.midpoint.wf.WorkItemDetailed;
+import com.evolveum.midpoint.wf.api.WorkItemDetailed;
 
 /**
  * @author lazyman

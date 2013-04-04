@@ -44,12 +44,10 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.wf.WfDataAccessor;
-import com.evolveum.midpoint.wf.WorkflowManager;
+import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.bootstrap.Bootstrap;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
@@ -64,7 +62,6 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -92,8 +89,8 @@ public abstract class PageBase extends WebPage {
     private ModelDiagnosticService modelDiagnosticService;
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
-    @SpringBean(name = "workflowManager")
-    private WorkflowManager workflowManager;
+    @SpringBean(name = "workflowService")
+    private WorkflowService workflowService;
 
     public PageBase() {
         Injector.get().inject(this);
@@ -192,12 +189,8 @@ public abstract class PageBase extends WebPage {
         return taskManager;
     }
 
-    protected WorkflowManager getWorkflowManager() {
-        return workflowManager;
-    }
-
-    protected WfDataAccessor getWorkflowDataAccessor() {
-        return workflowManager.getDataAccessor();
+    protected WorkflowService getWorkflowService() {
+        return workflowService;
     }
 
     protected IModel<String> createPageTitleModel() {

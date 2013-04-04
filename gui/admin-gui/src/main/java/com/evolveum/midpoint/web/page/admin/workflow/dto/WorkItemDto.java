@@ -21,15 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.wf.WorkItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-
-import org.apache.commons.lang.Validate;
+import com.evolveum.midpoint.wf.api.WorkItem;
 
 /**
  * @author lazyman

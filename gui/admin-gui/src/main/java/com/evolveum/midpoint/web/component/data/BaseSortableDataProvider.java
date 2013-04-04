@@ -32,8 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.WfDataAccessor;
-import com.evolveum.midpoint.wf.WorkflowManager;
+import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -86,14 +85,9 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getTaskManager();
     }
 
-    protected WorkflowManager getWorkflowManager() {
+    protected WorkflowService getWorkflowService() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getWorkflowManager();
-    }
-
-    protected WfDataAccessor getWorkflowDataAccessor() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getWorkflowManager().getDataAccessor();
+        return application.getWorkflowService();
     }
 
     public List<T> getAvailableData() {

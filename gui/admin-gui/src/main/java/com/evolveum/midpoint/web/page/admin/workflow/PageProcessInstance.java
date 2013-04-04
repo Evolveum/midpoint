@@ -28,14 +28,13 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.wf.ProcessInstance;
+import com.evolveum.midpoint.wf.api.ProcessInstance;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -92,7 +91,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
 		try {
             StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
-            ProcessInstance processInstance = getWorkflowDataAccessor().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
+            ProcessInstance processInstance = getWorkflowService().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
             return new ProcessInstanceDto(processInstance);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get process instance information.", ex);

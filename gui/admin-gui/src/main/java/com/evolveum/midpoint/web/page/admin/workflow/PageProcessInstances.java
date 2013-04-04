@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -35,8 +34,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.WfDataAccessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -276,10 +274,10 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
         OperationResult result = new OperationResult(OPERATION_STOP_PROCESS_INSTANCES);
 
-        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
+        WorkflowService workflowServiceImpl = getWorkflowService();
         for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
             try {
-                wfDataAccessor.stopProcessInstance(processInstanceDto.getInstanceId(),
+                workflowServiceImpl.stopProcessInstance(processInstanceDto.getInstanceId(),
                         WebMiscUtil.getOrigStringFromPoly(user.getName()), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("stopProcessInstance").recordPartialError("Couldn't stop process instance " + processInstanceDto.getName(), ex);
@@ -287,7 +285,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
         for (ProcessInstanceDto processInstanceDto : finishedProcessInstanceDtoList) {
             try {
-                wfDataAccessor.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
+                workflowServiceImpl.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("deleteProcessInstance").recordPartialError("Couldn't delete process instance " + processInstanceDto.getName(), ex);
             }

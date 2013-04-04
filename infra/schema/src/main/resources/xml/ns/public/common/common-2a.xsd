@@ -6495,6 +6495,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="executeImmediatelyAfterApproval" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to execute changes as soon as they are approved. (For the primary stage approvals, the default behavior
+                        is to wait until all changes are approved/rejected and then execute the operation as a whole.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

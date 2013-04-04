@@ -55,7 +55,13 @@ public class ModelExecuteOptions implements Serializable {
 	 */
 	Boolean reconcile;
 
-	public Boolean getForce() {
+    /**
+     * Option to execute changes as soon as they are approved. (For the primary stage approvals, the default behavior
+     * is to wait until all changes are approved/rejected and then execute the operation as a whole.)
+     */
+    Boolean executeImmediatelyAfterApproval;
+
+    public Boolean getForce() {
 		return force;
 	}
 
@@ -152,12 +158,33 @@ public class ModelExecuteOptions implements Serializable {
 		return opts;
 	}
 
+    public void setExecuteImmediatelyAfterApproval(Boolean executeImmediatelyAfterApproval) {
+        this.executeImmediatelyAfterApproval = executeImmediatelyAfterApproval;
+    }
+
+    public static boolean isExecuteImmediatelyAfterApproval(ModelExecuteOptions options){
+        if (options == null){
+            return false;
+        }
+        if (options.executeImmediatelyAfterApproval == null) {
+            return false;
+        }
+        return options.executeImmediatelyAfterApproval;
+    }
+
+    public static ModelExecuteOptions createExecuteImmediatelyAfterApproval(){
+        ModelExecuteOptions opts = new ModelExecuteOptions();
+        opts.setExecuteImmediatelyAfterApproval(true);
+        return opts;
+    }
+
     public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
         retval.setRaw(raw);
         retval.setCrypt(crypt);
         retval.setReconcile(reconcile);
+        retval.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
         return retval;
     }
 
@@ -170,6 +197,7 @@ public class ModelExecuteOptions implements Serializable {
         retval.setRaw(type.isRaw());
         retval.setCrypt(type.isCrypt());
         retval.setReconcile(type.isReconcile());
+        retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
         return retval;
     }
 

@@ -59,7 +59,7 @@ public class PageAdmin extends PageBase {
         items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
                 PageResources.class, PageAdminResources.class));
         //todo fix with visible behaviour [lazyman]
-        if (getWorkflowManager().isEnabled()) {
+        if (getWorkflowService().isEnabled()) {
             items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
                     PageWorkItems.class, PageAdminWorkItems.class));
         }
