@@ -743,7 +743,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 			result.cleanupResult();
 		}
 
-		validateObject(user, null, result);
+		if (user != null) {
+			validateObject(user, null, result);
+		}
 		
 		return user;
 	}
