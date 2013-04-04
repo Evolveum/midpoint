@@ -31,6 +31,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.Containerable;
@@ -447,5 +448,20 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
         // note: objectTypeClass is already converted (used in the constructor)
     }
+
+	public void checkEncrypted() {
+		if (objectNew != null) {
+			CryptoUtil.checkEncrypted(objectNew);
+		}
+		if (objectOld != null) {
+			CryptoUtil.checkEncrypted(objectOld);
+		}
+		if (primaryDelta != null) {
+			CryptoUtil.checkEncrypted(primaryDelta);
+		}
+		if (secondaryDelta != null) {
+			CryptoUtil.checkEncrypted(secondaryDelta);
+		}
+	}
 
 }

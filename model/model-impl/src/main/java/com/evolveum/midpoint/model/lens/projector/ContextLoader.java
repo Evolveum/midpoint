@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -108,7 +108,7 @@ public class ContextLoader {
 			preprocessProjectionContext(context, projectionContext, result);
 		}
 		
-		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		if (consistencyChecks) context.checkConsistence();
 		
 		determineFocusContext(context, result);
 				
@@ -148,15 +148,15 @@ public class ContextLoader {
     	
     	context.removeRottenContexts();
     	    	
-    	if (CONSISTENCY_CHECKS) context.checkConsistence();
+    	if (consistencyChecks) context.checkConsistence();
 		
         checkProjectionContexts(context, result);
         
-        if (CONSISTENCY_CHECKS) context.checkConsistence();
+        if (consistencyChecks) context.checkConsistence();
         
         context.recompute();
         
-        if (CONSISTENCY_CHECKS) context.checkConsistence();
+        if (consistencyChecks) context.checkConsistence();
         
         LensUtil.traceContext(LOGGER, activityDescription, "load", false, context, false);
 
@@ -343,15 +343,15 @@ public class ContextLoader {
 			loadAccountRefsFromUser(context, userOld, policyDecision, result);
 		}
 
-		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		if (consistencyChecks) context.checkConsistence();
 		
 		loadAccountRefsFromDelta(context, userOld, focusContext.getPrimaryDelta(), result);
 		
-		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		if (consistencyChecks) context.checkConsistence();
 
 		loadAccountContextsSync(context, result);
 		
-		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		if (consistencyChecks) context.checkConsistence();
 	}
 
 	/**
@@ -462,7 +462,7 @@ public class ContextLoader {
 								+ user);
 					}
 					provisioningService.applyDefinition(account, result);
-					if (CONSISTENCY_CHECKS) ResourceObjectShadowUtil.checkConsistence(account, "account from "+accountRefDelta);
+					if (consistencyChecks) ResourceObjectShadowUtil.checkConsistence(account, "account from "+accountRefDelta);
 					// Check for conflicting change
 					accountContext = LensUtil.getAccountContext(context, account, provisioningService, prismContext, result);
 					if (accountContext != null) {

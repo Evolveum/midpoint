@@ -48,7 +48,7 @@ public class ModelExecuteOptions implements Serializable {
 	 * Encrypt any cleartext data on write, decrypt any encrypted data on read. Applies only to the encrypted
 	 * data formats (ProtectedString, ProtectedByteArray).
 	 */
-	Boolean crypt;
+	Boolean noCrypt;
 	
 	/**
 	 * Option to reconcile user while executing changes. 
@@ -110,27 +110,27 @@ public class ModelExecuteOptions implements Serializable {
 		return opts;
 	}
 
-	public Boolean getCrypt() {
-		return crypt;
+	public Boolean getNoCrypt() {
+		return noCrypt;
 	}
 
-	public void setCrypt(Boolean crypt) {
-		this.crypt = crypt;
+	public void setNoCrypt(Boolean noCrypt) {
+		this.noCrypt = noCrypt;
 	}
 	
-	public static boolean isCrypt(ModelExecuteOptions options) {
+	public static boolean isNoCrypt(ModelExecuteOptions options) {
 		if (options == null) {
 			return false;
 		}
-		if (options.crypt == null) {
+		if (options.noCrypt == null) {
 			return false;
 		}
-		return options.crypt;
+		return options.noCrypt;
 	}
 
-	public static ModelExecuteOptions createCrypt() {
+	public static ModelExecuteOptions createNoCrypt() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
-		opts.setCrypt(true);
+		opts.setNoCrypt(true);
 		return opts;
 	}
 
@@ -182,7 +182,7 @@ public class ModelExecuteOptions implements Serializable {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
         retval.setRaw(raw);
-        retval.setCrypt(crypt);
+        retval.setNoCrypt(noCrypt);
         retval.setReconcile(reconcile);
         retval.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
         return retval;
@@ -195,7 +195,7 @@ public class ModelExecuteOptions implements Serializable {
         ModelExecuteOptions retval = new ModelExecuteOptions();
         retval.setForce(type.isForce());
         retval.setRaw(type.isRaw());
-        retval.setCrypt(type.isCrypt());
+        retval.setNoCrypt(type.isNoCrypt());
         retval.setReconcile(type.isReconcile());
         retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
         return retval;

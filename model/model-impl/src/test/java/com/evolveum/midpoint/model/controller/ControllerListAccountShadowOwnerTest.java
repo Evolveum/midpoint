@@ -84,17 +84,17 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullAccountOid() throws Exception {
-		controller.listAccountShadowOwner(null, null, null);
+		controller.findShadowOwner(null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyAccountOid() throws Exception {
-		controller.listAccountShadowOwner("", null, null);
+		controller.findShadowOwner("", null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.listAccountShadowOwner("1", null, null);
+		controller.findShadowOwner("1", null, null);
 	}
 
 	@Test
@@ -104,7 +104,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 
 		Task task = taskManager.createTaskInstance("accountWithoutOwner");
 		try {
-			final PrismObject<UserType> returned = controller.listAccountShadowOwner("1", task, task.getResult());
+			final PrismObject<UserType> returned = controller.findShadowOwner("1", task, task.getResult());
 			assertNull(returned);
 		} finally {
 			LOGGER.debug(task.getResult().dump());
@@ -122,7 +122,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 				expected.asPrismObject());
 		Task task = taskManager.createTaskInstance("correctListAccountShadowOwner");
 		try {
-			final UserType returned = controller.listAccountShadowOwner(accountOid, task, task.getResult()).asObjectable();
+			final UserType returned = controller.findShadowOwner(accountOid, task, task.getResult()).asObjectable();
 			assertNotNull(returned);
 			assertEquals(expected, returned);
 		} finally {

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -78,6 +79,9 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	 */
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
+		// not have a definition here
+		InternalsConfig.encryptionChecks = false;
 		assertNotNull(manager);
 		// let provisioning discover the connectors
 		provisioningService.postInit(initResult);

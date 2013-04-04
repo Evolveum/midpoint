@@ -221,6 +221,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 		
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
+		assertObject(user);
 		assertEquals("Wrong "+user+" OID (prism)", oid, user.getOid());
 		UserType userType = user.asObjectable();
 		assertEquals("Wrong "+user+" OID (jaxb)", oid, userType.getOid());
@@ -230,6 +231,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
 	}
 	
+	protected void assertObject(PrismObject<UserType> object) {
+		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
+	}
+
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("getObject");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);

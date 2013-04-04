@@ -30,6 +30,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -138,4 +139,15 @@ public class ModelUtils {
 
 		return true;
 	}
+	
+	public static void recordFatalError(OperationResult result, Throwable e) {
+		recordFatalError(result, e.getMessage(), e);
+	}
+
+	public static void recordFatalError(OperationResult result, String message, Throwable e) {
+		LOGGER.error(message, e);
+		result.recordFatalError(message, e);
+		result.cleanupResult(e);
+	}
+
 }

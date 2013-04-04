@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -151,7 +153,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 //	}
 
 	protected <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, Class<T> type,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
 		result.addParam("file", filePath);
@@ -163,12 +165,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected <T extends ObjectType> void addObject(Class<T> type, PrismObject<T> object,
-			OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		addObject(type, object, null, result);
 	}
 		
 	protected <T extends ObjectType> void addObject(Class<T> type, PrismObject<T> object, String contextDesc,
-			OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		if (object.canRepresent(TaskType.class)) {
 			Assert.assertNotNull(taskManager, "Task manager is not initialized");
 			try {
@@ -183,12 +185,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		} else {
 			Assert.assertNotNull(repositoryService, "Repository service is not initialized");
 			try{
+				CryptoUtil.encryptValues(protector, object);
 				String oid = repositoryService.addObject(object, null, result);
 				object.setOid(oid);
 			} catch(ObjectAlreadyExistsException ex){
 				result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
 				throw ex;
 			} catch(SchemaException ex){
+				result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
+				throw ex;
+			} catch (EncryptionException ex) {
 				result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
 				throw ex;
 			}
@@ -209,6 +215,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
 			} catch (SchemaException e) {
 				new SchemaException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
+			} catch (EncryptionException e) {
+				new EncryptionException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
 			}
 		}
 		result.recordSuccess();
@@ -240,10 +248,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)
-			throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException {
+			throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		LOGGER.trace("addObjectFromFile: {}, connector type {}", filePath, connectorType);
 		PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(new File(filePath), ResourceType.class);
 		fillInConnectorRef(resource, connectorType, result);
+		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);
 		String oid = repositoryService.addObject(resource, null, result);
 		resource.setOid(oid);

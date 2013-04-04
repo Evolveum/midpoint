@@ -23,9 +23,18 @@ package com.evolveum.midpoint.common;
  * @author semancik
  *
  */
-public class CompiletimeConfig {
+public class InternalsConfig {
 	
-	public static final boolean DEVELOPMENT_MODE = true;
-	public static final boolean CONSISTENCY_CHECKS = DEVELOPMENT_MODE;
+	public static boolean consistencyChecks = true;
+	public static boolean encryptionChecks = true;
 
+	public static void setDevelopmentMode() {
+		consistencyChecks = true;
+		encryptionChecks = true;
+	}
+	
+	public static void turnOffChecks() {
+		consistencyChecks = false;
+		encryptionChecks = false;
+	}
 }

@@ -69,7 +69,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.List;
 
-import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 /**
  * Processor that determines values of account attributes. It does so by taking the pre-processed information left
@@ -135,7 +135,7 @@ public class AccountValuesProcessor {
 			return;
 		}
 		
-		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		if (consistencyChecks) context.checkConsistence();
 		
 		int maxIterations = determineMaxIterations(accountContext);
 		int iteration = 0;
@@ -144,26 +144,26 @@ public class AccountValuesProcessor {
 			accountContext.setIteration(iteration);
 			String iterationToken = formatIterationToken(iteration);
 			accountContext.setIterationToken(iterationToken);			
-			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			if (consistencyChecks) context.checkConsistence();
 			
 			// Re-evaluates the values in the account constructions (including roles)
 			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
 			
 			context.recompute();
-			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			if (consistencyChecks) context.checkConsistence();
 			
 			// Evaluates the values in outbound mappings
 			outboundProcessor.processOutbound(context, accountContext, result);
 			
 			context.recompute();
-			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			if (consistencyChecks) context.checkConsistence();
 			
 			// Merges the values together, processing exclusions and strong/weak mappings are needed
 			consolidationProcessor.consolidateValues(context, accountContext, result);
 			
-			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			if (consistencyChecks) context.checkConsistence();
 	        context.recompute();
-	        if (CONSISTENCY_CHECKS) context.checkConsistence();
+	        if (consistencyChecks) context.checkConsistence();
 	
 	        // Too noisy for now
 //	        LensUtil.traceContext(LOGGER, activityDescription, "values", context, true);
@@ -261,10 +261,10 @@ public class AccountValuesProcessor {
 	        }
 	        
 	        cleanupContext(accountContext);
-	        if (CONSISTENCY_CHECKS) context.checkConsistence();
+	        if (consistencyChecks) context.checkConsistence();
 		} 
 		
-		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		if (consistencyChecks) context.checkConsistence();
 					
 	}
 	

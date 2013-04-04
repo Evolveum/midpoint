@@ -20,7 +20,7 @@ import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -107,7 +107,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	
 	// Used to make sure that the connector is cached
 	@Autowired(required=true)
-	private ConnectorTypeManager connectorTypeManager;
+	private ConnectorManager connectorManager;
 	
 	@Autowired(required=true)
 	private SynchornizationServiceMock syncServiceMock; 

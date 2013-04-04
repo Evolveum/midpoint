@@ -267,6 +267,7 @@ public class Validator {
 						errors++;
 					}
 					
+					objectResult.cleanupResult();
 					validatorResult.summarize();
 
 					if (cont.isStop()) {
@@ -332,7 +333,6 @@ public class Validator {
 		DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
 
 		return validateObjectInternal(objectElement, objectResult, validatorResult);
-			
 	}
 	
 	public EventResult validateObject(String stringXml, OperationResult objectResult) {

@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.lens;
 
-import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
@@ -477,7 +477,7 @@ public class ChangeExecutor {
         	return;
         }
         
-        if (CONSISTENCY_CHECKS) objectDelta.checkConsistence();
+        if (consistencyChecks) objectDelta.checkConsistence();
         
         // Other types than user type may not be definition-complete (e.g. accounts and resources are completed in provisioning)
         if (UserType.class.isAssignableFrom(objectDelta.getObjectTypeClass())) {

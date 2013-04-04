@@ -159,7 +159,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
         OperationResult ownerResult = result.createSubresult(OPERATION_LOAD_OWNER);
         Task task = getPage().createSimpleTask(OPERATION_LOAD_OWNER);
         try {
-            return getModel().listAccountShadowOwner(accountOid, task, ownerResult);
+            return getModel().findShadowOwner(accountOid, task, ownerResult);
         } catch (ObjectNotFoundException ex) {
             //owner was not found, it's possible and it's ok on unlinked accounts
         }

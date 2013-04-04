@@ -50,6 +50,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.ModelCrudService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.util.ModelTUtil;
 import com.evolveum.midpoint.model.util.ObjectTypeNameMatcher;
@@ -92,7 +93,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerAddObjectTest.class);
 	@Autowired(required = true)
-	private ModelController controller;
+	private ModelCrudService controller;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;

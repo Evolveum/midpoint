@@ -94,7 +94,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         displayWhen(TEST_NAME);
-        modelService.importAccountsFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
 		
         // THEN
         displayThen(TEST_NAME);

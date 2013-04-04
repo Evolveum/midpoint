@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
-import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -115,15 +115,15 @@ public class ConsolidationProcessor {
 
         SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
 
-        if (CONSISTENCY_CHECKS) context.checkConsistence();
+        if (consistencyChecks) context.checkConsistence();
         if (policyDecision == SynchronizationPolicyDecision.DELETE) {
             // Nothing to do
         } else {
             // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
             consolidateValuesModifyAccount(context, accCtx, result);
-            if (CONSISTENCY_CHECKS) context.checkConsistence();
+            if (consistencyChecks) context.checkConsistence();
         }
-        if (CONSISTENCY_CHECKS) context.checkConsistence();
+        if (consistencyChecks) context.checkConsistence();
     }
 
     private void dropAllAccountDelta(LensProjectionContext<ShadowType> accContext) {

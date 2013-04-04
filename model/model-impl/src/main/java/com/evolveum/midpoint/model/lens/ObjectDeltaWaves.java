@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -408,4 +409,20 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
         }
         return retval;
     }
+
+	public void checkEncrypted(String shortDesc) {
+		for (int wave = 0; wave < waves.size(); wave++) {
+			ObjectDelta<O> delta = waves.get(wave);
+			if (delta == null) {
+				continue;
+			}
+			try {
+				CryptoUtil.checkEncrypted(delta);
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
+			}
+		}		
+	}
 }

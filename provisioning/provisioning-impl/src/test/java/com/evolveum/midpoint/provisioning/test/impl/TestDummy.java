@@ -222,7 +222,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test002ConnectorRediscovery");
 
 		// WHEN
-		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
+		Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
 
 		// THEN
 		result.computeStatus();
@@ -536,7 +536,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test010ResourceAndConnectorCaching");
-		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
+		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resourceType, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -587,7 +587,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Now we stick our nose deep inside the provisioning impl. But we need
 		// to make sure that the
 		// configured connector is properly cached
-		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(
+		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
 				resourceTypeAgain, false, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
@@ -601,7 +601,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Test connection should also refresh the connector by itself. So check if it has been refreshed
 		
-		ConnectorInstance configuredConnectorInstanceAfterTest = connectorTypeManager.getConfiguredConnectorInstance(
+		ConnectorInstance configuredConnectorInstanceAfterTest = connectorManager.getConfiguredConnectorInstance(
 				resourceTypeAgain, false, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
 		assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
@@ -614,7 +614,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test011ResourceAndConnectorCachingForceFresh");
-		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
+		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resourceType, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -645,7 +645,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Now we stick our nose deep inside the provisioning impl. But we need
 		// to make sure that the configured connector is properly refreshed
 		// forceFresh = true
-		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(
+		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
 				resourceTypeAgain, true, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
 		assertFalse("Connector instance was not refreshed", configuredConnectorInstance == configuredConnectorInstanceAgain);

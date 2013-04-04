@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -920,4 +921,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 
         return projectionContext;
     }
+
+    @Override
+	public void checkEncrypted() {
+		super.checkEncrypted();
+		if (syncDelta != null) {
+			CryptoUtil.checkEncrypted(syncDelta);
+		}
+	}
 }

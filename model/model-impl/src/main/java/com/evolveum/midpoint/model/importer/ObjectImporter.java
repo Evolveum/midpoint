@@ -21,12 +21,12 @@
 package com.evolveum.midpoint.model.importer;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
-import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -147,7 +147,13 @@ public class ObjectImporter {
                 }
                 
                 if (BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
-                    Utils.encryptValues(protector, object, objectResult);
+                	OperationResult opResult = objectResult.createMinorSubresult(ObjectImporter.class.getName()+".encryptValues");
+                    try {
+						CryptoUtil.encryptValues(protector, object);
+						opResult.recordSuccess();
+					} catch (EncryptionException e) {
+						opResult.recordFatalError(e);
+					}
                 }
 
                 objectResult.computeStatus();

@@ -330,4 +330,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromJaxb(focusContextType.getSecondaryDeltas(), lensContext.getPrismContext());
         return lensFocusContext;
     }
+
+    @Override
+	public void checkEncrypted() {
+		super.checkEncrypted();
+		secondaryDeltas.checkEncrypted("secondary delta");
+	}
 }

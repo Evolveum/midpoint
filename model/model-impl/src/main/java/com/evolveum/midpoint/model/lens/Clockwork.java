@@ -25,7 +25,8 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.CompiletimeConfig;
+import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -96,7 +97,7 @@ public class Clockwork {
 	}
 
 	public <F extends ObjectType, P extends ObjectType> HookOperationMode run(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
-		if (CompiletimeConfig.CONSISTENCY_CHECKS) {
+		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
 		while (context.getState() != ModelState.FINAL) {
@@ -141,12 +142,15 @@ public class Clockwork {
 			}
 			
 			LensUtil.traceContext(LOGGER, "clockwork", state.toString() + " projection (before processing)", true, context, false);
-			if (CompiletimeConfig.CONSISTENCY_CHECKS) {
+			if (InternalsConfig.consistencyChecks) {
 				try {
 					context.checkConsistence();
 				} catch (IllegalStateException e) {
 					throw new IllegalStateException(e.getMessage()+" in clockwork, state="+state, e);
 				}
+			}
+			if (InternalsConfig.encryptionChecks) {
+				context.checkEncrypted();
 			}
 			
 	//		LOGGER.info("CLOCKWORK: {}: {}", state, context);

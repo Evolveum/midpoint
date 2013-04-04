@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.model.ModelCrudService;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -45,7 +46,7 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectTest.class);
 	@Autowired(required = true)
-	private ModelController controller;
+	private ModelCrudService controller;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;

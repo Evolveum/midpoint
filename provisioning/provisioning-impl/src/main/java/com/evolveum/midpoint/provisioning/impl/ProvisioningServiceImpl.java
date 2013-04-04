@@ -31,7 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.common.CompiletimeConfig;
+import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -98,14 +99,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired(required = true)
 	private ShadowCacheFactory shadowCacheFactory;
 	@Autowired(required = true)
-	private ResourceManager resourceTypeManager;
+	private ResourceManager resourceManager;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired(required = true)
-	private ConnectorTypeManager connectorTypeManager;
+	private ConnectorManager connectorManager;
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
@@ -119,11 +120,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	public ResourceManager getResourceTypeManager() {
-		return resourceTypeManager;
+		return resourceManager;
 	}
 
 	public void setResourceTypeManager(ResourceManager resourceTypeManager) {
-		this.resourceTypeManager = resourceTypeManager;
+		this.resourceManager = resourceTypeManager;
 	}
 
 	/**
@@ -256,6 +257,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		repositoryObject.asObjectable().setFetchResult(result.createOperationResultType());
 		result.cleanupResult();
+		
+		validateObject(repositoryObject);
+		
 		return resultingObject;
 
 	}
@@ -281,6 +285,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 		Validate.notNull(object, "Object to add must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
+		
+		if (InternalsConfig.encryptionChecks) {
+			CryptoUtil.checkEncrypted(object);
+		}
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".addObject");
 		result.addParam("object", object);
@@ -521,6 +529,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
 				result.cleanupResult();
+				validateObjects(objects);
 				return objects;
 			}
 	
@@ -555,6 +564,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		result.computeStatus();
 		result.cleanupResult();
+		validateObjects(objListType);
 		return objListType;
 	}
 
@@ -691,7 +701,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(modifications, "Modifications must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		
-		if (CompiletimeConfig.CONSISTENCY_CHECKS) {
+		if (InternalsConfig.encryptionChecks) {
+			CryptoUtil.checkEncrypted(modifications);
+		}
+		
+		if (InternalsConfig.consistencyChecks) {
 			ItemDelta.checkConsistence(modifications);
 		}
 
@@ -837,7 +851,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			PrismObject<ResourceType> resource = getRepoObject(ResourceType.class, resourceOid, testResult);
 
 			resourceType = resource.asObjectable();
-			resourceTypeManager.testConnection(resourceType, testResult);
+			resourceManager.testConnection(resourceType, testResult);
 
 //		} catch (ObjectNotFoundException ex) {
 //			throw new ObjectNotFoundException("Object with OID " + resourceOid + " not found");
@@ -1032,7 +1046,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
 
-				boolean doContinue = handler.handle(shadowType.asPrismObject(), accountResult);
+				PrismObject shadow = shadowType.asPrismObject();
+				validateObject(shadow);
+				boolean doContinue = handler.handle(shadow, accountResult);
 				accountResult.computeStatus();
 
 				if (!accountResult.isSuccess()) {
@@ -1043,13 +1059,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						cacheRepositoryService.modifyObject(ShadowType.class, shadowType.getOid(),
 								shadowModificationType, result);
 					} catch (ObjectNotFoundException ex) {
-						result.recordFatalError("Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
+						result.recordFatalError("Saving of result to " + shadow
 								+ " shadow failed: Not found: " + ex.getMessage(), ex);
 					} catch (ObjectAlreadyExistsException ex) {
-						result.recordFatalError("Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
+						result.recordFatalError("Saving of result to " + shadow
 								+ " shadow failed: Already exists: " + ex.getMessage(), ex);
 					} catch (SchemaException ex) {
-						result.recordFatalError("Saving of result to " + ObjectTypeUtil.toShortString(shadowType)
+						result.recordFatalError("Saving of result to " + shadow
 								+ " shadow failed: Schema error: " + ex.getMessage(), ex);
 					}
 				}
@@ -1101,7 +1117,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		Set<ConnectorType> discoverConnectors;
 		try {
-			discoverConnectors = connectorTypeManager.discoverConnectors(hostType, result);
+			discoverConnectors = connectorManager.discoverConnectors(hostType, result);
 		} catch (CommunicationException ex) {
 			recordFatalError(LOGGER, result, "Discovery failed: "+ex.getMessage(), ex);
 			throw ex;
@@ -1119,7 +1135,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){	
 			getShadowCache(Mode.STANDARD).applyDefinition((ObjectDelta<ShadowType>) delta, parentResult);
 		} else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())){
-			resourceTypeManager.applyDefinition((ObjectDelta<ResourceType>) delta, parentResult);
+			resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, parentResult);
 		} else {
 			throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
 		}
@@ -1133,7 +1149,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())){	
 			getShadowCache(Mode.STANDARD).applyDefinition((PrismObject<ShadowType>) object, parentResult);
 		} else if (ResourceType.class.isAssignableFrom(object.getCompileTimeClass())){
-			resourceTypeManager.applyDefinition((PrismObject<ResourceType>) object, parentResult);
+			resourceManager.applyDefinition((PrismObject<ResourceType>) object, parentResult);
 		} else {
 			throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + object.getCompileTimeClass());
 		}
@@ -1153,7 +1169,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		// Discover local connectors
-		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
+		Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
 		for (ConnectorType connector : discoverLocalConnectors) {
 			LOGGER.info("Discovered local connector {}" + ObjectTypeUtil.toShortString(connector));
 		}
@@ -1254,6 +1270,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);
 			throw ex;
 		} 
+	}
+	
+	private <T extends ObjectType> void validateObjects(Collection<PrismObject<T>> objects) {
+		for(PrismObject<T> object: objects) {
+			validateObject(object);
+		}
+	}
+	
+	private <T extends ObjectType> void validateObject(PrismObject<T> object) {
+		if (InternalsConfig.encryptionChecks) {
+			CryptoUtil.checkEncrypted(object);
+		}
 	}
 
 }

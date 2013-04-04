@@ -153,7 +153,7 @@ public abstract class ShadowCache {
 	@Autowired(required = true)
 	protected ShadowManager shadowManager;
 	@Autowired(required = true)
-	private ConnectorTypeManager connectorTypeManager;
+	private ConnectorManager connectorManager;
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher operationListener;
 	@Autowired(required = true)
@@ -818,7 +818,7 @@ public abstract class ShadowCache {
 	
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		return connectorTypeManager.getConfiguredConnectorInstance(resource, false, parentResult);
+		return connectorManager.getConfiguredConnectorInstance(resource, false, parentResult);
 	}
 	
 	///////////////////////////////////////////////////////////////////////////

@@ -35,6 +35,8 @@ import javax.xml.namespace.QName;
 import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -243,7 +245,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		focusContext.setPrimaryDelta(userDelta);
 	}
 	
-	protected void fillContextWithAddUserDelta(LensContext<UserType, ShadowType> context, PrismObject<UserType> user) throws SchemaException {
+	protected void fillContextWithAddUserDelta(LensContext<UserType, ShadowType> context, PrismObject<UserType> user) throws SchemaException, EncryptionException {
+		CryptoUtil.encryptValues(protector, user);
 		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		focusContext.setPrimaryDelta(userDelta);

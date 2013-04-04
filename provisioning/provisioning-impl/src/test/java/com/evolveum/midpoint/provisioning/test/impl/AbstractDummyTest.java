@@ -39,6 +39,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -47,7 +48,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -114,7 +115,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 	// Used to make sure that the connector is cached
 	@Autowired(required = true)
-	protected ConnectorTypeManager connectorTypeManager;
+	protected ConnectorManager connectorManager;
 
 	@Autowired(required = true)
 	protected SynchornizationServiceMock syncServiceMock;
@@ -125,6 +126,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
+		// not have a definition here
+		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
 		resource = addResourceFromFile(RESOURCE_DUMMY_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();

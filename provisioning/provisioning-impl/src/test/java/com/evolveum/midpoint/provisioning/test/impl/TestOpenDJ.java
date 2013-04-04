@@ -67,7 +67,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -225,7 +225,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test004ResourceAndConnectorCaching");
 		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		ResourceType resourceType = resource.asObjectable();
-		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
+		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resource.asObjectable(), false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -252,7 +252,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
 		// configured connector is properly cached
-		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(
+		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
 				resourceTypeAgain, false, result);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 	}

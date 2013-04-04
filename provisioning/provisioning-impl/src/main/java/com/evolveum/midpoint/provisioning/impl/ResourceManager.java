@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
@@ -75,7 +76,7 @@ public class ResourceManager {
 	@Autowired(required = true)
 	private ResourceCache resourceCache;
 	@Autowired(required = true)
-	private ConnectorTypeManager connectorTypeManager;
+	private ConnectorManager connectorTypeManager;
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
@@ -232,6 +233,7 @@ public class ResourceManager {
 			try {
 				// Fetch schema from connector, UCF will convert it to
 				// Schema Processor format and add all necessary annotations
+				InternalMonitor.recordConnectorSchemaFetch();
 				resourceSchema = connector.fetchResourceSchema(result);
 
 			} catch (Exception ex) {
@@ -487,6 +489,7 @@ public class ResourceManager {
 			// Try to fetch schema from the connector. The UCF will convert it
 			// to Schema Processor
 			// format, so it is already structured
+			InternalMonitor.recordConnectorSchemaFetch();
 			schema = connector.fetchResourceSchema(schemaResult);
 		} catch (CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);

@@ -84,15 +84,11 @@ public interface ModelService {
 
 	// Constants for OperationResult
 	String CLASS_NAME_WITH_DOT = ModelService.class.getName() + ".";
-	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
-	String ADD_USER = CLASS_NAME_WITH_DOT + "addUser";
 	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
 	String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
 	String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
 	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
 	String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
-	String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
-	String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 	String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
 	String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
 	String LIST_RESOURCE_OBJECTS = CLASS_NAME_WITH_DOT + "listResourceObjects";
@@ -209,140 +205,6 @@ public interface ModelService {
 	
 	/**
 	 * <p>
-	 * Add new object.
-	 * </p>
-	 * <p>
-	 * The OID provided in the input message may be empty. In that case the OID
-	 * will be assigned by the implementation of this method and it will be
-	 * provided as return value.
-	 * </p>
-	 * <p>
-	 * This operation should fail if such object already exists (if object with
-	 * the provided OID already exists).
-	 * </p>
-	 * <p>
-	 * The operation may fail if provided OID is in an unusable format for the
-	 * storage. Generating own OIDs and providing them to this method is not
-	 * recommended for normal operation.
-	 * </p>
-	 * <p>
-	 * Should be atomic. Should not allow creation of two objects with the same
-	 * OID (even if created in parallel).
-	 * </p>
-	 * <p>
-	 * The operation may fail if the object to be created does not conform to
-	 * the underlying schema of the storage system or the schema enforced by the
-	 * implementation.
-	 * </p>
-	 * 
-	 * @param object
-	 *            object to create
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return OID assigned to the created object
-	 * @throws ObjectAlreadyExistsException
-	 *             object with specified identifiers already exists, cannot add
-	 * @throws ObjectNotFoundException
-	 *             object required to complete the operation was not found (e.g.
-	 *             appropriate connector or resource definition)
-	 * @throws SchemaException
-	 *             error dealing with resource schema, e.g. created object does
-	 *             not conform to schema
-	 * @throws ExpressionEvaluationException 
-	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException 
-	 * @throws ConfigurationException 
-	 * @throws PolicyViolationException
-	 * 				Policy violation was detected during processing of the object
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, etc.
-	 * @throws SystemException
-	 *             unknown error from underlying layers or other unexpected
-	 *             state
-	 */
-	@Deprecated
-	<T extends ObjectType> String addObject(PrismObject<T> object, Task task, OperationResult parentResult) 
-			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
-			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
-
-	/**
-	 * <p>
-	 * Modifies object using relative change description.
-	 * </p>
-	 * <p>
-	 * Must fail if user with provided OID does not exists. Must fail if any of
-	 * the described changes cannot be applied. Should be atomic.
-	 * </p>
-	 * <p>
-	 * If two or more modify operations are executed in parallel, the operations
-	 * should be merged. In case that the operations are in conflict (e.g. one
-	 * operation adding a value and the other removing the same value), the
-	 * result is not deterministic.
-	 * </p>
-	 * <p>
-	 * The operation may fail if the modified object does not conform to the
-	 * underlying schema of the storage system or the schema enforced by the
-	 * implementation.
-	 * </p>
-	 * 
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-	 * @throws SchemaException
-	 *             resulting object would violate the schema
-	 * @throws ExpressionEvaluationException
-	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException 
-	 * @throws ObjectAlreadyExistsException
-	 * 				If the account or another "secondary" object already exists and cannot be created
-	 * @throws PolicyViolationException 
-	 * 				Policy violation was detected during processing of the object
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, described change is not applicable
-	 * @throws SystemException
-	 *             unknown error from underlying layers or other unexpected
-	 *             state
-	 */
-	@Deprecated
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
-			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
-
-	/**
-	 * <p>
-	 * Deletes object with specified OID.
-	 * </p>
-	 * <p>
-	 * Must fail if object with specified OID does not exists. Should be atomic.
-	 * </p>
-	 * 
-	 * @param oid
-	 *            OID of object to delete
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, described change is not applicable
-	 * @throws ConsistencyViolationException
-	 *             sub-operation failed, cannot delete objects as its deletion
-	 *             would lead to inconsistent state
-	 * @throws CommunicationException 
-	 * @throws ConfigurationException 
-	 * @throws PolicyViolationException 
-	 * 				Policy violation was detected during processing of the object
-	 * @throws SystemException
-	 *             unknown error from underlying layers or other unexpected
-	 *             state
-	 */
-	@Deprecated
-	<T extends ObjectType> void deleteObject(Class<T> type, String oid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, ConsistencyViolationException, CommunicationException, SchemaException, 
-			ConfigurationException, PolicyViolationException, SecurityViolationException;
-
-	/**
-	 * <p>
 	 * Returns the User object representing owner of specified account (account
 	 * shadow).
 	 * </p>
@@ -368,7 +230,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	PrismObject<UserType> listAccountShadowOwner(String accountOid, Task task, OperationResult parentResult)
+	PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -571,7 +433,7 @@ public interface ModelService {
 	 * TODO: OperationResult
 	 * @throws SchemaException 
 	 */
-	void importAccountsFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
+	void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
 	/**

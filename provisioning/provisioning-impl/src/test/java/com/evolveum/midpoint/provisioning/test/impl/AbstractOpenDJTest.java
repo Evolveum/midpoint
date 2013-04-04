@@ -24,10 +24,11 @@ import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -103,7 +104,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 
 	// Used to make sure that the connector is cached
 	@Autowired(required = true)
-	protected ConnectorTypeManager connectorTypeManager;
+	protected ConnectorManager connectorManager;
 
 	@Autowired(required = true)
 	protected SynchornizationServiceMock syncServiceMock;
@@ -111,6 +112,9 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
+		// not have a definition here
+		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
 		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);

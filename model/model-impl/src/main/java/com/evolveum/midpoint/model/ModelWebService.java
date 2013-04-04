@@ -81,7 +81,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
 	@Autowired(required = true)
-	private ModelController model;
+	private ModelCrudService model;
 	@Autowired(required = true)
 	private TaskManager taskManager;
 	@Autowired(required = true)
@@ -228,7 +228,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		try {
 			Task task = createTaskInstance(LIST_ACCOUNT_SHADOW_OWNER);
 			operationResult = task.getResult();
-			PrismObject<UserType> user = model.listAccountShadowOwner(accountOid, task, operationResult);
+			PrismObject<UserType> user = model.findShadowOwner(accountOid, task, operationResult);
 			handleOperationResult(operationResult, result);
 			if (user != null) {
 				userHolder.value = user.asObjectable();
@@ -240,33 +240,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void listResourceObjectShadows(String resourceOid, String resourceObjectShadowType,
 			Holder<ResourceObjectShadowListType> resourceObjectShadowListHolder,
 			Holder<OperationResultType> result) throws FaultMessage {
-		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
-		notEmptyArgument(resourceObjectShadowType, "Resource object shadow type must not be null or empty.");
-
-		OperationResult operationResult = null;
-		try {
-			Task task = createTaskInstance(LIST_RESOURCE_OBJECT_SHADOWS);
-			operationResult = task.getResult();
-			List<PrismObject<ShadowType>> list = model.listResourceObjectShadows(
-					resourceOid, (Class<ShadowType>) ObjectTypes.getObjectTypeFromUri(
-							resourceObjectShadowType).getClassDefinition(), task, operationResult);
-			handleOperationResult(operationResult, result);
-
-			ResourceObjectShadowListType resultList = new ResourceObjectShadowListType();
-			for (PrismObject<ShadowType> shadow: list) {
-				resultList.getObject().add(shadow.asObjectable());
-			}
-			resourceObjectShadowListHolder.value = resultList;
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjectShadows() failed", ex);
-			throw createSystemFault(ex, operationResult);
-		}
+		throw new UnsupportedOperationException("Not supported. DEPRECATED. Use searchObjects instead.");
 	}
 
 	@Override
@@ -383,7 +361,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = task.getResult();
 
 		try {
-			model.importAccountsFromResource(resourceOid, objectClass, task, operationResult);
+			model.importFromResource(resourceOid, objectClass, task, operationResult);
 			operationResult.computeStatus();
 			return handleTaskResult(task);
 		} catch (Exception ex) {

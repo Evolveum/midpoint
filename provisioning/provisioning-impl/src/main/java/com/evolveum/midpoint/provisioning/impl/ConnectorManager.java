@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -75,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  * 
  */
 @Component
-public class ConnectorTypeManager {
+public class ConnectorManager {
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -84,9 +85,9 @@ public class ConnectorTypeManager {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConnectorTypeManager.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
 
-	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorTypeManager.ConfiguredConnectorInstanceEntry>();
+	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorManager.ConfiguredConnectorInstanceEntry>();
 
 	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -137,9 +138,9 @@ public class ConnectorTypeManager {
 
 	private ConnectorInstance createConfiguredConnectorInstance(ResourceType resource, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		// This log message should be INFO level. It happens only occasionally.
-		// If it happens often, it may be an
-		// indication of a problem. Therefore it is good for admin to see it.
+		
+		InternalMonitor.recordConnectorInitialization();
+		
 		ConnectorType connectorType = getConnectorType(resource, result);
 		ConnectorInstance connector = null;
 		try {
@@ -171,6 +172,9 @@ public class ConnectorTypeManager {
 			throw e;
 		}
 		
+		// This log message should be INFO level. It happens only occasionally.
+		// If it happens often, it may be an
+		// indication of a problem. Therefore it is good for admin to see it.
 		LOGGER.info("Creted new connector instance for {}: {} v{}", 
 				new Object[]{resource, connectorType.getConnectorType(), connectorType.getConnectorVersion()});
 
@@ -227,7 +231,7 @@ public class ConnectorTypeManager {
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
 			throws CommunicationException {
 
-		OperationResult result = parentResult.createSubresult(ConnectorTypeManager.class.getName()
+		OperationResult result = parentResult.createSubresult(ConnectorManager.class.getName()
 				+ ".discoverConnectors");
 		result.addParam("host", hostType);
 

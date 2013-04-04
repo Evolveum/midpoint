@@ -3,6 +3,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -82,6 +83,9 @@ public class TestDBTable extends AbstractIntegrationTest {
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
+		// not have a definition here
+		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
 		addResourceFromFile(FILENAME_RESOURCE_DERBY, DB_TABLE_CONNECTOR_TYPE, initResult);
 	}

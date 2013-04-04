@@ -39,7 +39,8 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.CompiletimeConfig;
+import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -57,10 +58,8 @@ import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.projector.Projector;
-import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -69,14 +68,11 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismValidate;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -85,17 +81,14 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -113,9 +106,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -229,19 +222,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 			object = objectResolver.getObject(clazz, oid, rootOptions, result).asPrismObject();
 
-            if (!GetOperationOptions.isRaw(rootOptions)) {
-			    updateDefinition(object, parentResult);
-            }
-
-			// todo will be fixed after another interface cleanup
-			// fix for resolving object properties.
 			resolve(object, options, task, result);
 			
 		} finally {
 			RepositoryCache.exit();
 			result.cleanupResult();
 		}
-		if (CompiletimeConfig.CONSISTENCY_CHECKS) object.checkConsistence(true, false);
+		if (InternalsConfig.consistencyChecks) object.checkConsistence(true, false);
 		return object;
 	}
 
@@ -288,7 +275,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 			PrismObject<?> refObject = refVal.getObject();
 			if (refObject == null) {
 				refObject = objectResolver.resolve(refVal, object.toString(), option.getOptions(), result);
-				updateDefinition((PrismObject)refObject, result);
 				refVal.setObject(refObject);
 			}
 			if (!rest.isEmpty()) {
@@ -307,6 +293,12 @@ public class ModelController implements ModelService, ModelInteractionService {
 			PolicyViolationException, SecurityViolationException {
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
+		
+		// Make sure everything is encrypted as needed before logging anything.
+		// But before that we need to make sure that we have proper definition, otherwise we
+		// might miss some encryptable data in dynamic schemas
+		applyDefinitions(deltas, options, result);
+		encrypt(deltas, options, result);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
@@ -332,9 +324,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditService.audit(auditRecord, task);
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
-					if (ModelExecuteOptions.isCrypt(options)) {
-						encryptValues(delta, result);
-					}
 					if (delta.isAdd()) {
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), null, result);
 						delta.setOid(oid);
@@ -394,49 +383,77 @@ public class ModelController implements ModelService, ModelInteractionService {
             result.cleanupResult();
 			
 		} catch (ObjectAlreadyExistsException e) {
-//			try {
-//				//TODO: log reset operation, maybe add new result informing about the situation
-//				result.muteLastSubresultError();
-//				LOGGER.trace("Reseting add operation, recomputing user and his accounts.");
-//				LensContext<?, ?> context = LensUtil.objectDeltasToContext(clonedDeltas, provisioning, prismContext, task, result);
-//				clockwork.run(context, task, result);
-//				result.computeStatus();
-//			} catch (SystemException ex){
-//				result.recordFatalError(e);
-//				throw e;
-//			}
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (SchemaException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (CommunicationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ConfigurationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (PolicyViolationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (SecurityViolationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (RuntimeException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
 			RepositoryCache.exit();
 		}
 	}
 
-    private void setRequesteeIfNecessary(Task task, Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	private void applyDefinitions(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		for(ObjectDelta<? extends ObjectType> delta: deltas) {
+			Class<? extends ObjectType> type = delta.getObjectTypeClass();
+			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type) && !delta.hasCompleteDefinition()) {
+				try {
+					provisioning.applyDefinition(delta, result);
+				} catch (SchemaException e) {
+					ModelUtils.recordFatalError(result, e);
+					throw e;
+				} catch (ObjectNotFoundException e) {
+					ModelUtils.recordFatalError(result, e);
+					throw e;
+				} catch (CommunicationException e) {
+					ModelUtils.recordFatalError(result, e);
+					throw e;
+				} catch (ConfigurationException e) {
+					ModelUtils.recordFatalError(result, e);
+					throw e;
+				}
+			}
+		}
+	}
+
+	private void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+			OperationResult result) {
+		// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
+		if (!ModelExecuteOptions.isNoCrypt(options)) {
+			for(ObjectDelta<? extends ObjectType> delta: deltas) {				
+				try {
+					CryptoUtil.encryptValues(protector, delta);
+				} catch (EncryptionException e) {
+					result.recordFatalError(e);
+					throw new SystemException(e.getMessage(), e);
+				}
+			}
+		}
+	}
+
+	private void setRequesteeIfNecessary(Task task, Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) throws ObjectNotFoundException, SchemaException {
 
         if (task.getRequesteeOid() != null) {
             return;     // nothing to do
@@ -469,40 +486,6 @@ public class ModelController implements ModelService, ModelInteractionService {
         }
     }
 
-    private void encryptValues(ObjectDelta delta, OperationResult objectResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
-
-		if (!delta.hasCompleteDefinition()) {
-			provisioning.applyDefinition(delta, objectResult);
-		}
-
-		Utils.encryptValues(protector, delta, objectResult);
-		return;
-	}
-	
-	private void encryptValue(PrismProperty password){
-		PrismPropertyDefinition def = password.getDefinition();
-		if (def == null || def.getTypeName() == null){
-			LOGGER.trace("No definition for property " + password.getName());
-			return;
-		}
-		if (!def.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)){
-			return;
-		}
-		
-		ProtectedStringType passValue = (ProtectedStringType) password.getValue().getValue();
-		
-		if (passValue.getClearValue() != null) {
-			try {
-				LOGGER.info("Encrypting cleartext value for field " + password.getName() + ".");
-				protector.encrypt(passValue);
-			} catch (EncryptionException e) {
-				LOGGER.info("Faild to encrypt cleartext value for field " + password.getName() + ".");
-				return;
-			}
-		}
-	}
-	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -537,31 +520,31 @@ public class ModelController implements ModelService, ModelInteractionService {
 			context.distributeResource();
 			
 		} catch (ConfigurationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (SecurityViolationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (CommunicationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (SchemaException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (PolicyViolationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (RuntimeException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		}
 
@@ -569,81 +552,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 			LOGGER.debug("Preview changes output:\n{}", context.dump());
 		}
 		
-		// TODO: ERROR HANDLING
 		result.computeStatus();
 		result.cleanupResult();
 
 		return context;
-	}
-
-	@Deprecated
-	@Override
-	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task,
-			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-			PolicyViolationException, SecurityViolationException {
-		Validate.notNull(object, "Object must not be null.");
-		Validate.notNull(parentResult, "Result type must not be null.");
-
-		object.checkConsistence();
-		
-		T objectType = object.asObjectable();
-		// FIXME??
-		prismContext.adopt(objectType);
-		if (!(objectType instanceof ShadowType)) {
-			PrismValidate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
-		}
-
-		OperationResult result = parentResult.createSubresult(ADD_OBJECT);
-		result.addParams(new String[] { "object" }, object);
-		String oid = null;
-
-		// Task task = taskManager.createTaskInstance(); // in the future, this
-		// task instance will come from GUI
-
-		RepositoryCache.enter();
-		try {
-
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Entering addObject with {}", object);
-				LOGGER.trace(object.dump());
-			}
-			
-			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			executeChanges(deltas, null, task, result);
-			
-			oid = objectDelta.getOid();
-
-			result.computeStatus();
-			result.cleanupResult();
-
-		} catch (ExpressionEvaluationException ex) {
-			recordFatalError(result, ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			recordFatalError(result, ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			recordFatalError(result, ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			recordFatalError(result, ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			recordFatalError(result, ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			recordFatalError(result, ex);
-			throw ex;
-		} finally {
-			RepositoryCache.exit();
-		}
-
-		return oid;
 	}
 
     private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -656,25 +568,6 @@ public class ModelController implements ModelService, ModelInteractionService {
         return config;
     }
 
-	private LensContext<UserType, ShadowType> userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
-
-		UserType userType = user.asObjectable();
-		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
-
-		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);
-		userDelta.setObjectToAdd(user);
-
-		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
-		focusContext.setObjectOld(null);
-		focusContext.setObjectNew(user);
-		focusContext.setPrimaryDelta(userDelta);
-
-		return syncContext;
-	}
-
-	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -741,15 +634,11 @@ public class ModelController implements ModelService, ModelInteractionService {
 				list = new ArrayList<PrismObject<T>>();
 			}
 
-            if (!GetOperationOptions.isRaw(rootOptions)) {
-			    updateDefinitions(list, parentResult);
-            }
-
 		} finally {
 			RepositoryCache.exit();
 		}
 		
-		if (CompiletimeConfig.CONSISTENCY_CHECKS) {
+		if (InternalsConfig.consistencyChecks) {
 			for (PrismObject<T> object: list) {
 				object.checkConsistence(true, false);
 			}
@@ -794,22 +683,22 @@ public class ModelController implements ModelService, ModelInteractionService {
 				count = cacheRepositoryService.countObjects(type, query, parentResult);
 			}
 		} catch (ConfigurationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (SecurityViolationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (SchemaException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (CommunicationException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (RuntimeException e) {
-			recordFatalError(result, e);
+			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
 			RepositoryCache.exit();
@@ -820,185 +709,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 		return count;
         
 	}
-
 	
-	private void recordFatalError(OperationResult result, Throwable e) {
-		recordFatalError(result, e.getMessage(), e);
-	}
-
-	private void recordFatalError(OperationResult result, String message, Throwable e) {
-		LOGGER.error(message, e);
-		result.recordFatalError(message, e);
-		result.cleanupResult(e);
-	}
-
-	
-	@Deprecated
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-			PolicyViolationException, SecurityViolationException {
-
-		Validate.notNull(modifications, "Object modification must not be null.");
-		Validate.notEmpty(oid, "Change oid must not be null or empty.");
-		Validate.notNull(parentResult, "Result type must not be null.");
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifying object with oid {}", oid);
-			LOGGER.trace(DebugUtil.debugDump(modifications));
-		}
-
-		if (modifications.isEmpty()) {
-			LOGGER.warn("Calling modifyObject with empty modificaiton set");
-			return;
-		}
-
-		ItemDelta.checkConsistence(modifications);
-		// TODO: check definitions, but tolerate missing definitions in <attributes>
-
-		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
-		result.addParams(new String[] { "modifications" }, modifications);
-
-		RepositoryCache.enter();
-
-		try {
-
-			ObjectDelta<T> objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			executeChanges(deltas, null, task, result);
-
-            result.computeStatus();
-			
-        } catch (ExpressionEvaluationException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-			// } catch (ObjectAlreadyExistsException ex) {
-			// LOGGER.error("model.modifyObject failed: {}", ex.getMessage(),
-			// ex);
-			// result.recordFatalError(ex);
-			// throw ex;
-		} catch (SchemaException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			logDebugChange(type, oid, modifications);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			logDebugChange(type, oid, modifications);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			logDebugChange(type, oid, modifications);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			logDebugChange(type, oid, modifications);
-			result.recordFatalError(ex);
-			throw ex;
-		} finally {
-			RepositoryCache.exit();
-		}
-	}
-
-	private void applyAttributeDefinition(ItemDelta<?> itemDelta,
-			Collection<? extends ResourceAttributeDefinition> attributeDefinitions) throws SchemaException {
-		QName attributeName = ItemPath.getName(itemDelta.getPath().last());
-		for (ResourceAttributeDefinition attrDef: attributeDefinitions) {
-			if (attrDef.getName().equals(attributeName)) {
-				itemDelta.applyDefinition(attrDef);
-				return;
-			}
-		}
-		throw new SchemaException("No definition for attribute "+attributeName);
-	}
-
-	private void logDebugChange(Class<?> type, String oid, Collection<? extends ItemDelta> modifications) {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("model.modifyObject class={}, oid={}, change:\n{}",
-					new Object[] { oid, type.getName(), DebugUtil.debugDump(modifications) });
-		}
-	}
-
-	private LensContext<UserType, ShadowType> userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
-			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
-		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
-
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class, prismContext);
-
-		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
-		focusContext.setObjectOld(null);
-		focusContext.setObjectNew(null);
-		focusContext.setPrimaryDelta(userDelta);
-
-		return syncContext;
-	}
-
-	@Deprecated
-	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
-			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
-			SecurityViolationException {
-		Validate.notNull(clazz, "Class must not be null.");
-		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(parentResult, "Result type must not be null.");
-
-		OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
-		result.addParams(new String[] { "oid" }, oid);
-
-		RepositoryCache.enter();
-
-		try {
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE, prismContext);
-			objectDelta.setOid(oid);
-
-			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
-			
-			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			executeChanges(deltas, null, task, result);
-
-			result.recordSuccess();
-
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (CommunicationException ex) {
-			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw new SystemException(ex.getMessage(), ex);
-		} catch (ExpressionEvaluationException ex) {
-			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw new SystemException(ex.getMessage(), ex);
-		} finally {
-			RepositoryCache.exit();
-		}
-	}
-
-	@Override
-	public PrismObject<UserType> listAccountShadowOwner(String accountOid, Task task, OperationResult parentResult)
+	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -1122,16 +835,16 @@ public class ModelController implements ModelService, ModelInteractionService {
 				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, result);
 
 			} catch (SchemaException ex) {
-				recordFatalError(result, ex);
+				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			} catch (CommunicationException ex) {
-				recordFatalError(result, ex);
+				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			} catch (ConfigurationException ex) {
-				recordFatalError(result, ex);
+				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			} catch (ObjectNotFoundException ex) {
-				recordFatalError(result, ex);
+				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			}
 			result.recordSuccess();
@@ -1193,7 +906,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	// Note: The result is in the task. No need to pass it explicitly
 	@Override
-	public void importAccountsFromResource(String resourceOid, QName objectClass, Task task,
+	public void importFromResource(String resourceOid, QName objectClass, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
@@ -1338,39 +1051,4 @@ public class ModelController implements ModelService, ModelInteractionService {
 		RepositoryCache.exit();
 		result.cleanupResult();
 	}
-	
-	private <T extends ObjectType> void updateDefinitions(Collection<PrismObject<T>> objects, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		// TODO: optimize resource resolution
-		for (PrismObject<T> object: objects) {
-			updateDefinition(object, result);
-		}
-	}
-	
-	private <T extends ObjectType>  void updateDefinition(PrismObject<T> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (object.canRepresent(ShadowType.class)) {
-			ResourceType resourceType = null;
-			try{
-				resourceType = getResource((ShadowType)object.asObjectable(), result);
-			} catch (ObjectNotFoundException ex){
-				result.recordFatalError("Resource defined in account was not found: " + ex.getMessage(), ex);
-				return;
-			}
-			updateAccountShadowDefinition((PrismObject<? extends ShadowType>)object, resourceType);
-			
-		}
-	}
-	
-	private ResourceType getResource(ShadowType shadowType, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		ObjectReferenceType resourceRef = shadowType.getResourceRef();
-		return objectResolver.resolve(resourceRef, ResourceType.class, "resource reference in "+shadowType, result);
-	}
-
-	private <T extends ShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, LayerType.MODEL, prismContext);
-		QName objectClass = shadow.asObjectable().getObjectClass();
-		RefinedObjectClassDefinition rAccountDef = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
-		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		attributesContainer.applyDefinition(rAccountDef.toResourceAttributeContainerDefinition(), true);
-	}
-
 }

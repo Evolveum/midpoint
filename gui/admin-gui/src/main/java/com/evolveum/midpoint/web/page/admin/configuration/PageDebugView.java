@@ -239,8 +239,8 @@ public class PageDebugView extends PageAdminConfiguration {
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
                 ModelExecuteOptions options = ModelExecuteOptions.createRaw();
                 
-                if(encrypt.getObject()) {
-                	options.setCrypt(true);
+                if(!encrypt.getObject()) {
+                	options.setNoCrypt(true);
                 }  
 
                 getModelService().executeChanges(deltas, options, task, result);

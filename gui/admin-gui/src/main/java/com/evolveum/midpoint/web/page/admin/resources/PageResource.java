@@ -345,7 +345,7 @@ public class PageResource extends PageAdminResources {
         OperationResult result = new OperationResult(OPERATION_IMPORT_FROM_RESOURCE);
         try {
             Task task = createSimpleTask(OPERATION_IMPORT_FROM_RESOURCE);
-            getModelService().importAccountsFromResource(dto.getOid(), dto.getDefaultAccountObjectClass(), task, result);
+            getModelService().importFromResource(dto.getOid(), dto.getDefaultAccountObjectClass(), task, result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during accounts import from resource {} ({}), class {}",
                     ex, dto.getName(), dto.getOid(), dto.getDefaultAccountObjectClass());

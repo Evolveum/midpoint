@@ -23,19 +23,11 @@ package com.evolveum.midpoint.model.util;
 
 import java.util.List;
 
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -49,7 +41,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -92,73 +83,6 @@ public final class Utils {
         return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, result).asObjectable();
     }
     
-    public static <T extends ObjectType> void encryptValues(final Protector protector, final PrismObject<T> object, OperationResult objectResult){
-        final OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
-        Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable){
-				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue pval = (PrismPropertyValue)visitable;
-				encryptValue(protector, pval, result);
-			}
-		};
-		object.accept(visitor);
-        result.recordSuccessIfUnknown();
-    }
-    
-    public static <T extends ObjectType> void encryptValues(final Protector protector, final ObjectDelta<T> delta, OperationResult objectResult){
-        final OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
-        Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable){
-				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue pval = (PrismPropertyValue)visitable;
-				encryptValue(protector, pval, result);
-			}
-		};
-		delta.accept(visitor);
-        result.recordSuccessIfUnknown();
-    }
-    
-    public static <T extends ObjectType> void encryptValue(Protector protector, PrismPropertyValue pval, OperationResult result){
-    	Itemable item = pval.getParent();
-    	if (item == null) {
-    		return;
-    	}
-    	ItemDefinition itemDef = item.getDefinition();
-    	if (itemDef == null || itemDef.getTypeName() == null) {
-    		return;
-    	}
-    	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-    		return;
-    	}
-    	QName propName = item.getName();
-    	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
-    	ProtectedStringType ps = psPval.getValue();
-    	if (ps.getClearValue() != null) {
-            try {
-//                LOGGER.info("Encrypting cleartext value for field " + propName + " while importing " + object);
-                protector.encrypt(ps);
-            } catch (EncryptionException e) {
-//                LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + object);
-                result.recordFatalError("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
-                return;
-            }
-        }
-    	
-    	checkItemAferEncrypt(psPval, item);
-    }
-
-	private static void checkItemAferEncrypt(PrismPropertyValue pval, Itemable item) {
-		if (pval.getParent() == null){
-			pval.setParent(item);
-		}
-	}
-	
 	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
 			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {
 		ObjectQuery myQuery = query.clone();

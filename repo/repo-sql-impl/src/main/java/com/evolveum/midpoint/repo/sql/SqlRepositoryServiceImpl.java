@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -298,6 +300,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		validateName(object);
 		Validate.notNull(result, "Operation result must not be null.");
 
+		if (InternalsConfig.encryptionChecks) {
+			CryptoUtil.checkEncrypted(object);
+		}
+		
         if (options == null) {
             options = new RepoAddOptions();
         }
@@ -748,6 +754,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Validate.notNull(type, "Object class in delta must not be null.");
 		Validate.notEmpty(oid, "Oid must not null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
+		
+		if (InternalsConfig.encryptionChecks) {
+			CryptoUtil.checkEncrypted(modifications);
+		}
 
 		OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
 		subResult.addParam("type", type.getName());
@@ -1090,6 +1100,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throw new SchemaException("Expected to find '" + type.getSimpleName() + "' but found '"
                     + prismObject.getCompileTimeClass().getSimpleName() + "' (" + prismObject.toDebugName()
                     + "). Bad OID in a reference?");
+		}
+		if (InternalsConfig.consistencyChecks) {
+			prismObject.checkConsistence();
+		}
+		if (InternalsConfig.encryptionChecks) {
+			CryptoUtil.checkEncrypted(prismObject);
 		}
 	}
 

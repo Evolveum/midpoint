@@ -45,6 +45,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.ModelCrudService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -94,7 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestModelServiceContractDeprecated extends AbstractInitializedModelIntegrationTest {
+public class TestModelCrudService extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
@@ -103,7 +104,10 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
 	
 	private static String accountOid;
 	
-	public TestModelServiceContractDeprecated() throws JAXBException {
+	@Autowired(required = true)
+	protected ModelCrudService modelCrudService;
+	
+	public TestModelCrudService() throws JAXBException {
 		super();
 	}
 			
@@ -114,7 +118,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test100ModifyUserAddAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test100ModifyUserAddAccount");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test100ModifyUserAddAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -127,7 +131,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
 		
 		// THEN
 		// Check accountRef
@@ -161,7 +165,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test119ModifyUserDeleteAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test119ModifyUserDeleteAccount");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test119ModifyUserDeleteAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -175,7 +179,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
 		
 		// THEN
 		// Check accountRef
@@ -203,14 +207,14 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test120AddAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test120AddAccount");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test120AddAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
 		// WHEN
-        accountOid = modelService.addObject(account, task, result);
+        accountOid = modelCrudService.addObject(account, task, result);
 		
 		// THEN
 		// Check accountRef (should be none)
@@ -238,7 +242,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test121ModifyUserAddAccountRef");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test121ModifyUserAddAccountRef");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test121ModifyUserAddAccountRef");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -247,7 +251,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
 		
 		// THEN
 		// Check accountRef
@@ -276,7 +280,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test128ModifyUserDeleteAccountRef");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test128ModifyUserDeleteAccountRef");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -289,7 +293,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
 		
 		// THEN
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -316,12 +320,12 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test129DeleteAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test129DeleteAccount");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test129DeleteAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
-        modelService.deleteObject(ShadowType.class, accountOid, task, result);
+        modelCrudService.deleteObject(ShadowType.class, accountOid, task, result);
 		
 		// THEN
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -341,14 +345,14 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test150AddUserBlackbeardWithAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test150AddUserBlackbeardWithAccount");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test150AddUserBlackbeardWithAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
                 
 		// WHEN
-		modelService.addObject(user , task, result);
+        modelCrudService.addObject(user , task, result);
 		
 		// THEN
 		// Check accountRef
@@ -377,14 +381,14 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         displayTestTile(this, "test210AddUserMorganWithAssignment");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test210AddUserMorganWithAssignment");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test210AddUserMorganWithAssignment");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
                 
 		// WHEN
-		modelService.addObject(user , task, result);
+        modelCrudService.addObject(user , task, result);
 		
 		// THEN
 		// Check accountRef

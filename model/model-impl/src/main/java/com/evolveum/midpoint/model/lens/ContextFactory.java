@@ -27,11 +27,12 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.CompiletimeConfig;
+import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -83,7 +85,7 @@ public class ContextFactory {
 					// Connector schema needs to be applied to resource def to make it complete
 					provisioningService.applyDefinition(delta, result);
 				}
-				if (CompiletimeConfig.CONSISTENCY_CHECKS) {
+				if (InternalsConfig.consistencyChecks) {
 					// Focus delta has to be complete now with all the definition already in place
 					delta.checkConsistence(false, true, true);
 				}
@@ -93,7 +95,6 @@ public class ContextFactory {
 				projectionClass = checkProjectionClass(projectionClass, (Class<P>) typeClass);
 				projectionDeltas.add((ObjectDelta<P>) delta);
 			}
-			Utils.encryptValues(protector, delta, result);
 		}
 		
 		if (focusClass == null) {
@@ -132,7 +133,7 @@ public class ContextFactory {
 		// This forces context reload before the next projection
 		context.rot();
 		
-		if (CompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
+		if (InternalsConfig.consistencyChecks) context.checkConsistence();
 		
 		return context;
 	}

@@ -475,6 +475,15 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		}
 	}
 	
+	public void checkEncrypted() {
+		if (focusContext != null) {
+			focusContext.checkEncrypted();
+		}
+		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+			projectionContext.checkEncrypted();
+		}
+	}
+	
 	public LensProjectionContext<P> createProjectionContext() {
 		return createProjectionContext(null);
 	}

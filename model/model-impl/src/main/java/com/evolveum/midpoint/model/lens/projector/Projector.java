@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
-import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 /**
  * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies 
@@ -99,7 +99,7 @@ public class Projector {
 		
 		LensUtil.traceContext(LOGGER, activityDescription, "projector start", false, context, false);
 		
-		if (CONSISTENCY_CHECKS) context.checkConsistence();
+		if (consistencyChecks) context.checkConsistence();
 		
 		context.normalize();
 		context.resetProjectionWave();
@@ -115,7 +115,7 @@ public class Projector {
 			contextLoader.load(context, activityDescription, result);
 			// Set the "fresh" mark now so following consistency check will be stricter
 			context.setFresh(true);
-			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			if (consistencyChecks) context.checkConsistence();
 			
 			sortAccountsToWaves(context);
 	        // Let's do one extra wave with no accounts in it. This time we expect to get the results of the execution to the user
@@ -131,18 +131,18 @@ public class Projector {
 	        	// Process the user-related aspects of the context. That means inbound, user policy
 	        	// and assignments.
 	        	
-	        	if (CONSISTENCY_CHECKS) context.checkConsistence();
+	        	if (consistencyChecks) context.checkConsistence();
 		        // Loop through the account changes, apply inbound expressions
 		        inboundProcessor.processInbound(context, result);
-		        if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        if (consistencyChecks) context.checkConsistence();
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
-		        if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        if (consistencyChecks) context.checkConsistence();
 		
 		        userPolicyProcessor.processUserPolicy(context, result);
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", false, context, false);
-		        if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        if (consistencyChecks) context.checkConsistence();
 		        
 		        checkContextSanity(context, "inbound and user policy", result);
 		
@@ -152,7 +152,7 @@ public class Projector {
 		        sortAccountsToWaves(context);
 		        maxWaves = context.getMaxWave() + 2;
 		        LensUtil.traceContext(LOGGER, activityDescription,"assignments", false, context, true);
-		        if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        if (consistencyChecks) context.checkConsistence();
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
@@ -170,41 +170,41 @@ public class Projector {
 		        		continue;
 		        	}
 		        	
-		        	if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        	if (consistencyChecks) context.checkConsistence();
 		        	
 		        	// This is a "composite" processor. it contains several more processor invocations inside
 		        	accountValuesProcessor.process(context, projectionContext, activityDescription, result);
 		        	
-		        	if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        	if (consistencyChecks) context.checkConsistence();
 		        	
 		        	projectionContext.recompute();
 		        	//SynchronizerUtil.traceContext("values", context, false);
-		        	if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        	if (consistencyChecks) context.checkConsistence();
 		        	
 		        	credentialsProcessor.processCredentials(context, projectionContext, result);
 		        	
 		        	projectionContext.recompute();
 		        	//SynchronizerUtil.traceContext("credentials", context, false);
-		        	if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        	if (consistencyChecks) context.checkConsistence();
 		        	
 		        	activationProcessor.processActivation(context, projectionContext, result);
 			        
 		        	context.recompute();
 		        	LensUtil.traceContext(LOGGER, activityDescription, "values, credentials and activation", false, context, true);
-			        if (CONSISTENCY_CHECKS) context.checkConsistence();
+			        if (consistencyChecks) context.checkConsistence();
 			
 			        reconciliationProcessor.processReconciliation(context, projectionContext, result);
 			        context.recompute();
 			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation", false, context, false);
-			        if (CONSISTENCY_CHECKS) context.checkConsistence();
+			        if (consistencyChecks) context.checkConsistence();
 		        }
 		        
-		        if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        if (consistencyChecks) context.checkConsistence();
 		        
 		        context.incrementProjectionWave();
 	        }
 	        
-	        if (CONSISTENCY_CHECKS) context.checkConsistence();
+	        if (consistencyChecks) context.checkConsistence();
 	        
 	        result.recordSuccess();
 	        

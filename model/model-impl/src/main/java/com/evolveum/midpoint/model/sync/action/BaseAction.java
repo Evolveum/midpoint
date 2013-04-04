@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.CompiletimeConfig;
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -301,7 +301,7 @@ public abstract class BaseAction implements Action {
             return null;
         }
         
-        if (CompiletimeConfig.CONSISTENCY_CHECKS) account.checkConsistence();
+        if (InternalsConfig.consistencyChecks) account.checkConsistence();
         return account;
     }
 

@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.InternalMonitor;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -206,6 +207,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 						USER_DATA_KEY_PARSED_RESOURCE_SCHEMA+ "in "+resource+", but got "+userDataEntry.getClass());
 			}
 		} else {
+			InternalMonitor.recordResourceSchemaParse();
 			ResourceSchema parsedSchema = ResourceSchema.parse(resourceXsdSchema, "resource schema of "+resource, prismContext);
 			if (parsedSchema == null) {
 				throw new IllegalStateException("Parsed schema is null: most likely an internall error");

@@ -6537,10 +6537,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="crypt" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="noCrypt" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Encrypt any cleartext data on write, decrypt any encrypted data on read. Applies only to the encrypted
+                        Avoid encryption of any cleartext data on write. Applies only to the encrypted
                         data formats (ProtectedString, ProtectedByteArray).
                     </xsd:documentation>
                 </xsd:annotation>
