@@ -269,6 +269,7 @@ public class RResourceObjectShadow extends RObject {
             return false;
         if (synchronizationSituationDescription != null ? !synchronizationSituationDescription.equals(that.synchronizationSituationDescription) : that.synchronizationSituationDescription != null)
             return false;
+        if (kind != null ? !kind.equals(that.kind) : that.kind != null) return false;
 
         return true;
     }
@@ -285,6 +286,7 @@ public class RResourceObjectShadow extends RObject {
         result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
         result1 = 31 * result1 + (synchronizationSituation != null ? synchronizationSituation.hashCode() : 0);
         result1 = 31 * result1 + (synchronizationSituationDescription != null ? synchronizationSituationDescription.hashCode() : 0);
+        result1 = 31 * result1 + (kind != null ? kind.hashCode() : 0);
         return result1;
     }
 

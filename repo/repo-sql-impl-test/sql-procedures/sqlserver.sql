@@ -35,6 +35,7 @@ AS
     DELETE FROM m_account_shadow;
     DELETE FROM m_sync_situation_description;
     DELETE FROM m_resource_shadow;
+    DELETE FROM m_task_dependent;
     DELETE FROM m_task;
     DELETE FROM m_user_template;
     DELETE FROM m_password_policy;

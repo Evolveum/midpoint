@@ -40,6 +40,9 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -77,6 +80,24 @@ public class RTask extends RObject {
     private ROperationResultStatusType resultStatus;
     private String canRunOnNode;
     private RThreadStopActionType threadStopAction;
+    private Set<String> dependent;
+    private RTaskWaitingReason waitingReason;
+
+    @ElementCollection
+    @ForeignKey(name = "fk_task_dependent")
+    @CollectionTable(name = "m_task_dependent", joinColumns = {
+            @JoinColumn(name = "task_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "task_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getDependent() {
+        return dependent;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public RTaskWaitingReason getWaitingReason() {
+        return waitingReason;
+    }
 
     @Column(nullable = true)
     public String getCanRunOnNode() {
@@ -262,6 +283,14 @@ public class RTask extends RObject {
         this.schedule = schedule;
     }
 
+    public void setDependent(Set<String> dependent) {
+        this.dependent = dependent;
+    }
+
+    public void setWaitingReason(RTaskWaitingReason waitingReason) {
+        this.waitingReason = waitingReason;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -295,6 +324,8 @@ public class RTask extends RObject {
                 rTask.threadStopAction != null) return false;
         if (category != null ? !category.equals(rTask.category) : rTask.category != null) return false;
         if (parent != null ? !parent.equals(rTask.parent) : rTask.parent != null) return false;
+        if (dependent != null ? !dependent.equals(rTask.dependent) : rTask.dependent != null) return false;
+        if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null) return false;
 
         return true;
     }
@@ -319,6 +350,7 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
         result1 = 31 * result1 + (category != null ? category.hashCode() : 0);
         result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
+        result1 = 31 * result1 + (waitingReason != null ? waitingReason.hashCode() : 0);
 
         return result1;
     }
@@ -364,6 +396,14 @@ public class RTask extends RObject {
             jaxb.setResult(repo.getResult().toJAXB(prismContext));
         }
 
+        if (repo.getWaitingReason() != null) {
+            jaxb.setWaitingReason(repo.getWaitingReason().getReason());
+        }
+        List types = RUtil.safeSetToList(repo.getDependent());
+        if (!types.isEmpty()) {
+            jaxb.getDependent().addAll(types);
+        }
+
         try {
             jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_OTHER_HANDLERS_URI_STACK),
                     repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
@@ -396,6 +436,8 @@ public class RTask extends RObject {
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), prismContext));
         repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
+        repo.setWaitingReason(RTaskWaitingReason.toRepoType(jaxb.getWaitingReason()));
+        repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
         if (jaxb.getResult() != null) {
             ROperationResult result = new ROperationResult();

@@ -609,9 +609,19 @@ CREATE TABLE m_task (
   schedule                    LONGTEXT,
   taskIdentifier              VARCHAR(255),
   threadStopAction            INTEGER,
+  waitingReason               INTEGER,
   id                          BIGINT      NOT NULL,
   oid                         VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
+CREATE TABLE m_task_dependent (
+  task_id   BIGINT      NOT NULL,
+  task_oid  VARCHAR(36) NOT NULL,
+  dependent VARCHAR(255)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_general_ci
@@ -937,6 +947,12 @@ ADD INDEX fk_task (id, oid),
 ADD CONSTRAINT fk_task
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
+
+ALTER TABLE m_task_dependent
+ADD INDEX fk_task_dependent (task_id, task_oid),
+ADD CONSTRAINT fk_task_dependent
+FOREIGN KEY (task_id, task_oid)
+REFERENCES m_task (id, oid);
 
 CREATE INDEX iFullName ON m_user (fullName_norm);
 

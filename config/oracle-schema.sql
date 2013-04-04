@@ -501,9 +501,16 @@ CREATE TABLE m_task (
   schedule                    CLOB,
   taskIdentifier              VARCHAR2(255 CHAR),
   threadStopAction            NUMBER(10, 0),
+  waitingReason               NUMBER(10, 0),
   id                          NUMBER(19, 0)     NOT NULL,
   oid                         VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (id, oid)
+) INITRANS 30;
+
+CREATE TABLE m_task_dependent (
+  task_id   NUMBER(19, 0)     NOT NULL,
+  task_oid  VARCHAR2(36 CHAR) NOT NULL,
+  dependent VARCHAR2(255 CHAR)
 ) INITRANS 30;
 
 CREATE TABLE m_user (
@@ -776,6 +783,11 @@ ALTER TABLE m_task
 ADD CONSTRAINT fk_task
 FOREIGN KEY (id, oid)
 REFERENCES m_object;
+
+ALTER TABLE m_task_dependent
+ADD CONSTRAINT fk_task_dependent
+FOREIGN KEY (task_id, task_oid)
+REFERENCES m_task;
 
 CREATE INDEX iFullName ON m_user (fullName_norm) INITRANS 30;
 
