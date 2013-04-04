@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes.addroles;
+package com.evolveum.midpoint.wf.processes.general;
 
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
@@ -37,19 +37,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 7.8.2012
- * Time: 17:56
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
@@ -59,7 +59,12 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRoleAssignmentWrapper.LEVEL);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Executing the delegate; execution = " + execution);
+        }
+
+        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(ProcessVariableNames.LEVEL);
+        Validate.notNull(level, "Variable " + ProcessVariableNames.LEVEL + " is undefined");
 
         DecisionList decisionList = new DecisionList();
         if (level.getAutomaticallyApproved() != null) {
@@ -74,7 +79,6 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             }
             decisionList.setPreApproved(preApproved);
         }
-        execution.setVariableLocal(WfConstants.VARIABLE_DECISION_LIST, decisionList);
 
         Set<ObjectReferenceType> approverRefs = new HashSet<ObjectReferenceType>();
 
@@ -96,9 +100,13 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         } else {
             stop = Boolean.FALSE;
         }
-        execution.setVariableLocal(AddRoleAssignmentWrapper.APPROVERS_IN_LEVEL, new ArrayList<ObjectReferenceType>(approverRefs));
-        execution.setVariableLocal(AddRoleAssignmentWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
+
+        execution.setVariableLocal(ProcessVariableNames.DECISION_LIST, decisionList);
+        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<ObjectReferenceType>(approverRefs));
+        execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
+
+
 
     private Collection<? extends ObjectReferenceType> evaluateExpressions(List<ExpressionType> approverExpressionList, DelegateExecution execution) {
         List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();

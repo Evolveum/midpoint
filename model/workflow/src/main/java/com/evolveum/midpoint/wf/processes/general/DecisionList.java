@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes.addroles;
+package com.evolveum.midpoint.wf.processes.general;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:activiti="http://activiti.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://evolveum.com/midpoint" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <process id="ItemApproval" name="General multi-level item approval process" isExecutable="true">
+
+        <!-- This process takes care of approving "something" - an item to approve.
+
+           Input variables:
+             - approvalRequest (ApprovalRequest): data structure describing the item to be approved and (possibly multi-level) schema of the approval process
+             - approvalTaskName (String): name of the approval task (e.g. "Approve adding role R to user U")
+
+           Output variables:
+             - wfAnswer (Boolean: true / false-or-null): whether the item was approved or not
+             (in the future we may accept a set of deltas to be directly applied)
+        -->
+
+        <startEvent id="start" name="Start" />
+        <sequenceFlow sourceRef="start" targetRef="start.1" />
+
+        <serviceTask id="start.1" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+        <sequenceFlow sourceRef="start.1" targetRef="initializeLoopThroughLevels" />
+
+        <serviceTask id="initializeLoopThroughLevels" activiti:class="com.evolveum.midpoint.wf.processes.general.InitializeLoopThroughLevels" />
+        <sequenceFlow sourceRef="initializeLoopThroughLevels" targetRef="loopLevels" />
+
+        <!-- New variable:
+              - loopLevels_stop: whether to stop looping through levels (i.e. when the request is rejected at a particular level)
+              - allDecisions (List<Decision>): here all the decisions are recorded
+        -->
+
+        <subProcess id="loopLevels">
+            <multiInstanceLoopCharacteristics isSequential="true"
+                    activiti:collection="${approvalRequest.approvalSchema.level}" activiti:elementVariable="level">
+                <completionCondition>${loopLevels_stop}</completionCondition>
+            </multiInstanceLoopCharacteristics>
+
+            <!-- variables:
+                  - level: information about particular level of approval (e.g. list of approvers)
+            -->
+
+            <startEvent id="loopLevels.start" />
+            <sequenceFlow sourceRef="loopLevels.start" targetRef="loopLevels.start.1" />
+
+            <serviceTask id="loopLevels.start.1" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+            <sequenceFlow sourceRef="loopLevels.start.1" targetRef="loopLevels.initializeLoopThroughApprovers" />
+
+            <!-- here we (besides other things) evaluate expressions describing approvers at this level and fill-in approversInLevel - list of references -->
+            <serviceTask id="loopLevels.initializeLoopThroughApprovers" activiti:class="com.evolveum.midpoint.wf.processes.general.InitializeLoopThroughApproversInLevel" />
+            <sequenceFlow sourceRef="loopLevels.initializeLoopThroughApprovers" targetRef="loopLevels.shouldBeLevelExecutedQ" />
+
+            <!-- variables:
+                  - approversInLevel: list of ObjectReferenceTypes for individual approvers
+                  - loopApproversInLevel_stop: whether to stop looping through approvers at this level
+                  - decisionList: list of decisions done at this level
+            -->
+
+            <exclusiveGateway id="loopLevels.shouldBeLevelExecutedQ"/>
+
+            <sequenceFlow sourceRef='loopLevels.shouldBeLevelExecutedQ' targetRef='loopLevels.loopApprovers' >
+                <conditionExpression xsi:type="tFormalExpression">
+                    ${!loopApproversInLevel_stop}</conditionExpression>
+            </sequenceFlow>
+            <sequenceFlow sourceRef='loopLevels.shouldBeLevelExecutedQ' targetRef='loopLevels.before.summarizeDecisions' >
+                <conditionExpression xsi:type="tFormalExpression">
+                    ${loopApproversInLevel_stop}</conditionExpression>
+            </sequenceFlow>
+
+            <subProcess id="loopLevels.loopApprovers">
+                <multiInstanceLoopCharacteristics isSequential="false"
+                                                  activiti:collection="${approversInLevel}" activiti:elementVariable="approverRef">
+                    <completionCondition>${loopApproversInLevel_stop}</completionCondition>
+                </multiInstanceLoopCharacteristics>
+
+                <!-- variables:
+                      - approverRef: reference to an approver
+                -->
+
+                <startEvent id="loopLevels.loopApprovers.start" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.start" targetRef="loopLevels.loopApprovers.start.1" />
+
+                <serviceTask id="loopLevels.loopApprovers.start.1" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.start.1" targetRef="loopLevels.loopApprovers.approve" />
+
+                <userTask id="loopLevels.loopApprovers.approve" name="${approvalTaskName}" activiti:assignee="${approverRef.oid}">
+                    <extensionElements>
+                        <!--
+                        <activiti:formProperty id="userName" expression="#{userName}" name="01: User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
+                        <activiti:formProperty id="role" expression="#{approvalRequest.role.name.orig}" name="02: Role" required="false" readable="true" writable="false"></activiti:formProperty>
+                        <activiti:formProperty id="timeInterval" expression="#{approvalRequest.timeInterval}" name="03: Time interval" readable="true" writable="false"/>
+                        <activiti:formProperty id="comment" expression="#{approvalRequest.assignment.description}" name="04: Requester's comment" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
+                        -->
+                        <activiti:formProperty id="[C]comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
+                        <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
+                    </extensionElements>
+                </userTask>
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve" targetRef="loopLevels.loopApprovers.recordDecision" />
+
+                <!-- modifies decisionList, allDecisions, and loopApproversInLevel_stop (if necessary) -->
+                <serviceTask id="loopLevels.loopApprovers.recordDecision" activiti:class="com.evolveum.midpoint.wf.processes.general.RecordIndividualDecision" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.recordDecision" targetRef="loopLevels.loopApprovers.before.end" />
+
+                <serviceTask id="loopLevels.loopApprovers.before.end" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.before.end" targetRef="loopLevels.loopApprovers.end" />
+
+                <endEvent id="loopLevels.loopApprovers.end" />
+            </subProcess>
+            <sequenceFlow sourceRef="loopLevels.loopApprovers" targetRef="loopLevels.before.summarizeDecisions" />
+
+            <serviceTask id="loopLevels.before.summarizeDecisions" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+            <sequenceFlow sourceRef="loopLevels.before.summarizeDecisions" targetRef="loopLevels.summarizeDecisions" />
+
+            <!-- modifies loopLevels_stop, if necessary -->
+            <serviceTask id="loopLevels.summarizeDecisions" activiti:class="com.evolveum.midpoint.wf.processes.general.SummarizeDecisionsInLevel" />
+            <sequenceFlow sourceRef="loopLevels.summarizeDecisions" targetRef="loopLevels.end" />
+
+            <endEvent id="loopLevels.end" />
+        </subProcess>
+        <sequenceFlow sourceRef="loopLevels" targetRef="before.prepareResult"></sequenceFlow>
+
+        <serviceTask id="before.prepareResult" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+        <sequenceFlow sourceRef="before.prepareResult" targetRef="prepareResult"></sequenceFlow>
+
+        <!-- prepares wfAnswer -->
+        <serviceTask id="prepareResult" activiti:class="com.evolveum.midpoint.wf.processes.general.PrepareResult" />
+        <sequenceFlow sourceRef="prepareResult" targetRef="end"></sequenceFlow>
+
+        <endEvent id="end" />
+    </process>
+
+</definitions>

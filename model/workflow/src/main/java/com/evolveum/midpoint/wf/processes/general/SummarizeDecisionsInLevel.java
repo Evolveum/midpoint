@@ -19,24 +19,19 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes.addroles;
+package com.evolveum.midpoint.wf.processes.general;
 
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
-
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
+import org.apache.commons.lang.Validate;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 7.8.2012
- * Time: 17:56
- * To change this template use File | Settings | File Templates.
+ * @author  mederly
  */
 public class SummarizeDecisionsInLevel implements JavaDelegate {
 
@@ -45,7 +40,9 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
     public void execute(DelegateExecution execution) {
 
         DecisionList decisionList = (DecisionList) execution.getVariable(WfConstants.VARIABLE_DECISION_LIST);
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRoleAssignmentWrapper.LEVEL);
+        Validate.notNull(decisionList, "decisionList is null");
+        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(ProcessVariableNames.LEVEL);
+        Validate.notNull(level, "level is null");
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("****************************************** Summarizing decisions in level " + level.getName() + " (level evaluation strategy = " + level.getEvaluationStrategy() + "): ");
@@ -65,11 +62,12 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
         } else if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
             approved = decisionList.getDecisionList().get(0).isApproved();
         } else {
-            throw new SystemException("Unknown level evaluation strategy: " + level.getEvaluationStrategy());
+            throw new IllegalStateException("Unknown level evaluation strategy: " + level.getEvaluationStrategy());
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("approved at this level = " + approved);
         }
-        execution.setVariable(AddRoleAssignmentWrapper.LOOP_LEVELS_STOP, !approved);
+
+        execution.setVariable(ProcessVariableNames.LOOP_LEVELS_STOP, !approved);
     }
 }

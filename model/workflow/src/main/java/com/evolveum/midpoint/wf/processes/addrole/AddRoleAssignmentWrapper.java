@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,19 +16,25 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2013 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes.addroles;
+package com.evolveum.midpoint.wf.processes.addrole;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -38,18 +44,22 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
-import com.evolveum.midpoint.wf.WorkflowManager;
+import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processes.ProcessWrapper;
-import com.evolveum.midpoint.wf.processes.UserChangeStartProcessInstruction;
+import com.evolveum.midpoint.wf.processes.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processes.StartProcessInstructionForPrimaryStage;
+import com.evolveum.midpoint.wf.processes.general.Decision;
+import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -71,30 +81,31 @@ import java.util.*;
  *
  * @author mederly
  */
-public class AddRoleAssignmentWrapper implements ProcessWrapper {
+@Component
+public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddRoleAssignmentWrapper.class);
 
-    private WorkflowManager workflowManager;
+    @Autowired
+    private RepositoryService repositoryService;
 
-    public AddRoleAssignmentWrapper(WorkflowManager workflowManager) {
-        this.workflowManager = workflowManager;
-    }
+    @Autowired
+    private WfTaskUtil wfTaskUtil;
 
     @Override
-    public List<UserChangeStartProcessInstruction> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<UserType> change, Task task, OperationResult result) {
+    public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<Objectable> change, Task task, OperationResult result) {
 
-        List<AssignmentToApprove> assignmentToApproveList = getAssignmentToApproveList(change, result);
-        if (assignmentToApproveList == null) {
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = getAssignmentToApproveList(change, result);
+        if (approvalRequestList == null) {
             return null;
         }
 
-        return prepareStartProcessInstructions(modelContext, task, result, assignmentToApproveList);
+        return prepareStartProcessInstructions(modelContext, task, result, approvalRequestList);
     }
 
-    private List<AssignmentToApprove> getAssignmentToApproveList(ObjectDelta<UserType> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getAssignmentToApproveList(ObjectDelta<Objectable> change, OperationResult result) {
 
-        List<AssignmentToApprove> assignmentToApproveList = new ArrayList<AssignmentToApprove>();
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<ApprovalRequest<AssignmentType>>();
 
         /*
          * We either add a user; then the list of roles to be added is given by the assignment property,
@@ -121,7 +132,9 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
                         LOGGER.trace(" - role: " + role + " (approval required = " + approvalRequired + ")");
                     }
                     if (approvalRequired) {
-                        assignmentToApproveList.add(new AssignmentToApprove(a, role));
+                        AssignmentType aCopy = a.clone();
+                        aCopy.setTarget(role);
+                        approvalRequestList.add(createApprovalRequest(aCopy, role));
                         assignmentTypeIterator.remove();
                     }
                 }
@@ -150,7 +163,9 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
                                 LOGGER.trace(" - role: " + role + " (approval required = " + approvalRequired + ")");
                             }
                             if (approvalRequired) {
-                                assignmentToApproveList.add(new AssignmentToApprove(at.asContainerable(), role));
+                                AssignmentType aCopy = at.asContainerable().clone();
+                                aCopy.setTarget(role);
+                                approvalRequestList.add(createApprovalRequest(aCopy, role));
                                 valueIterator.remove();
                             }
                         }
@@ -166,12 +181,17 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
         } else {
             return null;
         }
-        return assignmentToApproveList;
+        return approvalRequestList;
+    }
+
+    private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, RoleType role) {
+        return new ApprovalRequest(a, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved());
     }
 
 
-    private List<UserChangeStartProcessInstruction> prepareStartProcessInstructions(ModelContext<?, ?> modelContext, Task task, OperationResult result, List<AssignmentToApprove> assignmentToApproveList) {
-        List<UserChangeStartProcessInstruction> instructions = new ArrayList<UserChangeStartProcessInstruction>();
+    // approvalRequestList should contain de-referenced roles
+    private List<StartProcessInstructionForPrimaryStage> prepareStartProcessInstructions(ModelContext<?, ?> modelContext, Task task, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) {
+        List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
 
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
         UserType newUser = fc.getObjectNew() != null ? fc.getObjectNew().asObjectable() : null;
@@ -180,25 +200,28 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
         Validate.notNull(newUser.getName());
         String userName = newUser.getName().getOrig();
 
-        for (AssignmentToApprove assignmentToApprove : assignmentToApproveList) {
-            UserChangeStartProcessInstruction instruction = new UserChangeStartProcessInstruction();
+        for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
+
+            StartProcessInstructionForPrimaryStage instruction = new StartProcessInstructionForPrimaryStage();
             instruction.setProcessName(ADD_ROLE_PROCESS);
             instruction.setSimple(true);
 
-            Validate.notNull(assignmentToApprove.getRole());
-            Validate.notNull(assignmentToApprove.getRole().getName());
-            String roleName = assignmentToApprove.getRole().getName().getOrig();
+            AssignmentType assignmentType = approvalRequest.getItemToApprove();
+            RoleType roleType = (RoleType) assignmentType.getTarget();
+
+            Validate.notNull(roleType);
+            Validate.notNull(roleType.getName());
+            String roleName = roleType.getName().getOrig();
 
             instruction.setTaskName(new PolyStringType("Workflow for approving adding " + roleName + " to " + userName));
             instruction.addProcessVariable(WfConstants.VARIABLE_PROCESS_NAME, "Adding " + roleName + " to " + userName);
             instruction.addProcessVariable(WfConstants.VARIABLE_START_TIME, new Date());
 
-            instruction.addProcessVariable(USER_NAME, userName);
-            instruction.addProcessVariable(ASSIGNMENT_TO_APPROVE, assignmentToApprove);
-            instruction.addProcessVariable(ALL_DECISIONS, new ArrayList<Decision>());
+            instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
+            instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("assignment to approve = " + assignmentToApprove);
+                LOGGER.trace("assignment to approve = " + approvalRequest);
             }
 
             String objectOid = null;
@@ -211,7 +234,7 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
             // let's get fresh data (not the ones read on user login)
             PrismObject<UserType> requester = null;
             try {
-                requester = ((PrismObject<UserType>) workflowManager.getRepositoryService().getObject(UserType.class, task.getOwner().getOid(), result));
+                requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), result));
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
                 requester = task.getOwner().clone();
@@ -241,30 +264,36 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
             instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER, requester);
             instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
             instruction.addProcessVariable(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA, assignmentToApprove.getRole());
+            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA, roleType);
+            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
+
+            instruction.setWrapper(this);
+
+            instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+            instruction.setNoProcess(false);
+
+            ObjectDelta<Objectable> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
+            instruction.setDelta(delta);
+
             instructions.add(instruction);
         }
         return instructions;
     }
 
+    private ObjectDelta<Objectable> assignmentToDelta(ModelContext<?, ?> modelContext, ApprovalRequest<AssignmentType> approvalRequest, String objectOid) {
+        PrismObject<UserType> user = (PrismObject<UserType>) modelContext.getFocusContext().getObjectNew();
+        PrismContainerDefinition<AssignmentType> prismContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
-    // global level
-    public static final String ASSIGNMENTS_TO_APPROVE = "assignmentsToApprove";
-    public static final String ASSIGNMENTS_APPROVALS = "assignmentsApprovals";
-    public static final String ALL_DECISIONS = "allDecisions";
+        ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<AssignmentType>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition);
+        addRoleDelta.addValueToAdd(approvalRequest.getItemToApprove().asPrismContainerValue().clone());
 
-    public static final String ASSIGNMENT_TO_APPROVE = "assignmentToApprove";
+        // casting to ObjectDelta is an ugly hack, but...
+        return (ObjectDelta) ObjectDelta.createModifyDelta(objectOid != null ? objectOid : "?", addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
+    }
 
-    public static final String USER_NAME = "userName";      // used?
-    public static final String DECISION_LIST = "decisionList";
-    public static final String ADD_ROLE_PROCESS = "AddRoles";
-    public static final String LOOP_LEVELS_STOP = "loopLevels_stop";
-    public static final String LOOP_APPROVERS_IN_LEVEL_STOP = "loopApproversInLevel_stop";
-    public static final String ROLE = "role";
+
+    public static final String ADD_ROLE_PROCESS = "ItemApproval";
     public static final String APPROVER_MAIL_ADDRESS = "approverMailAddress";
-    public static final String FORM_FIELD_COMMENT = "comment#C";
-    public static final String LEVEL = "level";
-    public static final String APPROVERS_IN_LEVEL = "approversInLevel";
 
     //private static final QName ADDITIONAL_INFO = new QName(SchemaConstants.NS_C, "AdditionalInfo");       // todo: change namespace
 
@@ -272,7 +301,7 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
         return !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
     }
 
-//    private String formatAsAssignmentList(List<AssignmentToApprove> assignmentsToApprove) {
+//    private String formatAsAssignmentList(List<ApprovalRequest> assignmentsToApprove) {
 //        StringBuffer sb = new StringBuffer();
 //        if (assignmentsToApprove.size() > 1) {
 //            sb.append("roles ");
@@ -282,7 +311,7 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
 //            throw new IllegalStateException("No roles to approve.");
 //        }
 //        boolean first = true;
-//        for (AssignmentToApprove at : assignmentsToApprove) {
+//        for (ApprovalRequest at : assignmentsToApprove) {
 //            if (first) {
 //                first = false;
 //            } else {
@@ -297,7 +326,7 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
         RoleType role = (RoleType) a.getTarget();
         if (role == null) {
             try {
-                role = workflowManager.getRepositoryService().getObject(RoleType.class, a.getTargetRef().getOid(), result).asObjectable();
+                role = repositoryService.getObject(RoleType.class, a.getTargetRef().getOid(), result).asObjectable();
             } catch (ObjectNotFoundException e) {
                 throw new SystemException(e);
             } catch (SchemaException e) {
@@ -308,10 +337,24 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
         return role;
     }
 
+    /*
+     * In this case, mapping deltaIn -> deltaOut is extremely simple.
+     * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
+     * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
+     */
     @Override
-    public void finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result) {
-
+    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException {
+        List<ObjectDelta<Objectable>> deltaIn = wfTaskUtil.retrieveDeltasToProcess(task);
+        if (event.getAnswer() == Boolean.TRUE) {
+            return new ArrayList<ObjectDelta<Objectable>>(deltaIn);
+        } else if (event.getAnswer() == Boolean.FALSE) {
+            return new ArrayList<ObjectDelta<Objectable>>();
+        } else {
+            throw new IllegalStateException("No wfAnswer variable in process event " + event);      // todo more meaningful message
+        }
     }
+
+
 //
 //        AssignmentsApprovals assignmentsApprovals = (AssignmentsApprovals) event.getVariables().get(ASSIGNMENTS_APPROVALS);
 //        if (assignmentsApprovals == null) {
@@ -335,7 +378,7 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
 //            }
 //        }
 //
-//        ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
+//        ObjectDelta<Objectable> change = context.getFocusContext().getPrimaryDelta();
 //        if (change.getChangeType() == ChangeType.ADD) {
 //
 //            PrismObject<?> prismToAdd = change.getObjectToAdd();
@@ -409,16 +452,16 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
 
     private void addRolesRequested(StringBuffer sb, Map<String, Object> vars) {
         sb.append("The following assignments were requested to be added:\n");
-        List<AssignmentToApprove> assignmentToApproveList = (List<AssignmentToApprove>) vars.get(ASSIGNMENTS_TO_APPROVE);
-        if (assignmentToApproveList == null) {
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = null; //(List<ApprovalRequest>) vars.get(ASSIGNMENTS_TO_APPROVE);
+        if (approvalRequestList == null) {
             sb.append("(the list cannot be obtained)\n\n");
         } else {
             int counter = 1;
-            for (AssignmentToApprove ata : assignmentToApproveList) {
+            for (ApprovalRequest<AssignmentType> ata : approvalRequestList) {
                 sb.append(" ");
                 sb.append(counter++);
                 sb.append(". ");
-                sb.append(formatAssignmentFull(ata.getAssignment(), true));
+                sb.append(formatAssignmentFull(ata.getItemToApprove(), true));
                 sb.append("\n");
             }
             sb.append("\n");
@@ -474,7 +517,7 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
 
     private void addDecisionsDone(StringBuffer sb, Map<String, Object> vars, boolean detailed) {
         sb.append("Individual decisions done: ");
-        List<Decision> allDecisions = (List<Decision>) vars.get(ALL_DECISIONS);
+        List<Decision<AssignmentType>> allDecisions = (List<Decision<AssignmentType>>) vars.get(ProcessVariableNames.ALL_DECISIONS);
         if (allDecisions == null) {
             sb.append("(error - list of decisions is null)\n");        // todo
         } else if (allDecisions.isEmpty()) {
@@ -482,20 +525,20 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
         } else {
             if (detailed) {
                 sb.append("\n");
-                for (Decision decision : allDecisions) {
+                for (Decision<AssignmentType> decision : allDecisions) {
                     sb.append(" - " + (decision.isApproved() ? "APPROVED" : "NOT APPROVED") + " role " +
-                            formatAssignmentFull(decision.getAssignmentToApprove().getAssignment(), false) + " by " +
+                            formatAssignmentFull(decision.getApprovalRequest().getItemToApprove(), false) + " by " +
                             decision.getUser() + " on " + decision.getDate() + ", with comment: " + decision.getComment() + "\n");
                 }
             } else {
                 boolean first = true;
-                for (Decision decision : allDecisions) {
+                for (Decision<AssignmentType> decision : allDecisions) {
                     if (first) {
                         first = false;
                     } else {
                         sb.append("; ");
                     }
-                    sb.append("role " + formatAssignmentBrief(decision.getAssignmentToApprove().getAssignment()) + " " +
+                    sb.append("role " + formatAssignmentBrief(decision.getApprovalRequest().getItemToApprove()) + " " +
                             (decision.isApproved() ? "approved" : "NOT approved") +
                             " by " + decision.getUser() +
                             (!StringUtils.isEmpty(decision.getComment()) ? ", commenting: " + decision.getComment() : ""));
@@ -507,40 +550,40 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
 
     private void addAssignmentsApprovals(StringBuffer sb, Map<String, Object> vars) {
 
-        AssignmentsApprovals assignmentsApprovals = (AssignmentsApprovals) vars.get(ASSIGNMENTS_APPROVALS);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("assignmentsApprovals = " + assignmentsApprovals);
-        }
-        if (assignmentsApprovals == null) {
-            sb.append("(no information on definitive assignments approvals/rejections)\n");
-            return;
-        }
-
-        List<AssignmentsApprovals.AssignmentApproval> approved = new ArrayList<AssignmentsApprovals.AssignmentApproval>();
-        List<AssignmentsApprovals.AssignmentApproval> rejected = new ArrayList<AssignmentsApprovals.AssignmentApproval>();
-
-        for (AssignmentsApprovals.AssignmentApproval assignmentApproval : assignmentsApprovals.getAssignmentsApproval()) {
-            (assignmentApproval.isApproved() ? approved : rejected).add(assignmentApproval);
-        }
-
-        sb.append("Assignments definitively approved: ");
-        listAssignmentsApprovals(sb, approved);
-        sb.append("\n");
-        sb.append("Assignments definitively rejected: ");
-        listAssignmentsApprovals(sb, rejected);
-        sb.append("\n");
+//        AssignmentsApprovals assignmentsApprovals = null; //(AssignmentsApprovals) vars.get(ASSIGNMENTS_APPROVALS);
+//        if (LOGGER.isTraceEnabled()) {
+//            LOGGER.trace("assignmentsApprovals = " + assignmentsApprovals);
+//        }
+//        if (assignmentsApprovals == null) {
+//            sb.append("(no information on definitive assignments approvals/rejections)\n");
+//            return;
+//        }
+//
+//        List<AssignmentsApprovals.AssignmentApproval> approved = new ArrayList<AssignmentsApprovals.AssignmentApproval>();
+//        List<AssignmentsApprovals.AssignmentApproval> rejected = new ArrayList<AssignmentsApprovals.AssignmentApproval>();
+//
+//        for (AssignmentsApprovals.AssignmentApproval assignmentApproval : assignmentsApprovals.getAssignmentsApproval()) {
+//            (assignmentApproval.isApproved() ? approved : rejected).add(assignmentApproval);
+//        }
+//
+//        sb.append("Assignments definitively approved: ");
+//        listAssignmentsApprovals(sb, approved);
+//        sb.append("\n");
+//        sb.append("Assignments definitively rejected: ");
+//        listAssignmentsApprovals(sb, rejected);
+//        sb.append("\n");
     }
 
-    private void listAssignmentsApprovals(StringBuffer sb, List<AssignmentsApprovals.AssignmentApproval> assignmentApprovals) {
-        if (assignmentApprovals.isEmpty()) {
-            sb.append("none\n");
-        } else {
-            sb.append("\n");
-            for (AssignmentsApprovals.AssignmentApproval approval : assignmentApprovals) {
-                sb.append(" - role " + formatAssignmentFull(approval.getAssignmentType(), false) + "\n");
-            }
-        }
-    }
+//    private void listAssignmentsApprovals(StringBuffer sb, List<AssignmentsApprovals.AssignmentApproval> assignmentApprovals) {
+//        if (assignmentApprovals.isEmpty()) {
+//            sb.append("none\n");
+//        } else {
+//            sb.append("\n");
+//            for (AssignmentsApprovals.AssignmentApproval approval : assignmentApprovals) {
+//                sb.append(" - role " + formatAssignmentFull(approval.getAssignmentType(), false) + "\n");
+//            }
+//        }
+//    }
 
     @Override
     public String getProcessSpecificDetailsForTask(String instanceId, Map<String, Object> vars) {
@@ -583,7 +626,7 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
                 if (RoleType.COMPLEX_TYPE.equals(type) || OrgType.COMPLEX_TYPE.equals(type)) {
                     String oid = assignmentType.getTargetRef().getOid();
                     try {
-                        PrismObject<ObjectType> o = workflowManager.getRepositoryService().getObject(ObjectType.class, oid, result);
+                        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, oid, result);
                         assignmentType.setTarget(o.asObjectable());
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("Resolved {} to {} in {}", new Object[]{oid, o, user});
@@ -621,6 +664,8 @@ public class AddRoleAssignmentWrapper implements ProcessWrapper {
         DateFormat formatter = DateFormat.getDateInstance();
         return formatter.format(time.toGregorianCalendar().getTime());
     }
+
+
 
 
 }

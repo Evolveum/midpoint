@@ -19,13 +19,14 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes.addroles;
+package com.evolveum.midpoint.wf.processes.general;
 
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
+
+import java.util.ArrayList;
 
 public class InitializeLoopThroughLevels implements JavaDelegate {
 
@@ -33,19 +34,14 @@ public class InitializeLoopThroughLevels implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Initialized loopLevels_stop; execution = " + execution);
+            LOGGER.trace("Executing the delegate; execution = " + execution);
         }
-        execution.setVariableLocal(AddRoleAssignmentWrapper.LOOP_LEVELS_STOP, Boolean.FALSE);
 
-        AssignmentToApprove assignmentToApprove =
-                (AssignmentToApprove) execution.getVariable(AddRoleAssignmentWrapper.ASSIGNMENT_TO_APPROVE);
-        if (assignmentToApprove == null) {
-            throw new SystemException("assignmentToApprove process variable is null");
-        }
-        execution.setVariableLocal(AddRoleAssignmentWrapper.ROLE, assignmentToApprove.getRole());
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Initialized role to " + assignmentToApprove.getRole() + "; execution = " + execution);
-        }
+//        ApprovalRequest itemToApprove = (ApprovalRequest) execution.getVariable(ProcessVariableNames.APPROVAL_REQUEST);
+//        Validate.notNull(itemToApprove, "itemToApprove is null");
+
+        execution.setVariableLocal(ProcessVariableNames.LOOP_LEVELS_STOP, Boolean.FALSE);
+        execution.setVariableLocal(ProcessVariableNames.ALL_DECISIONS, new ArrayList<Decision>());
     }
 
 }

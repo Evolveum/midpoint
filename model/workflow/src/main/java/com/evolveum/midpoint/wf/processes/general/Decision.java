@@ -19,9 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes.addroles;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+package com.evolveum.midpoint.wf.processes.general;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -33,12 +31,12 @@ import java.util.Date;
  * Time: 17:42
  * To change this template use File | Settings | File Templates.
  */
-public class Decision implements Serializable {
+public class Decision<I extends Serializable> implements Serializable {
 
     private static final long serialVersionUID = -542549699933865819L;
 
     private String user;
-    private AssignmentToApprove assignmentToApprove;
+    private ApprovalRequest<I> approvalRequest;
     private boolean approved;
     private String comment;
     private Date date;
@@ -75,16 +73,16 @@ public class Decision implements Serializable {
         this.date = date;
     }
 
-    public AssignmentToApprove getAssignmentToApprove() {
-        return assignmentToApprove;
+    public ApprovalRequest<I> getApprovalRequest() {
+        return approvalRequest;
     }
 
-    public void setAssignmentToApprove(AssignmentToApprove assignmentToApprove) {
-        this.assignmentToApprove = assignmentToApprove;
+    public void setApprovalRequest(ApprovalRequest<I> approvalRequest) {
+        this.approvalRequest = approvalRequest;
     }
 
     @Override
     public String toString() {
-        return "Decision: assignmentToApprove=" + assignmentToApprove + ", approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
+        return "Decision: approvalRequest=" + approvalRequest + ", approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
     }
 }
