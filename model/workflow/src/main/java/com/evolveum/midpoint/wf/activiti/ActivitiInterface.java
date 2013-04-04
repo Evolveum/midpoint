@@ -24,20 +24,22 @@ package com.evolveum.midpoint.wf.activiti;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.ProcessInstanceController;
 import com.evolveum.midpoint.wf.WfConstants;
-import com.evolveum.midpoint.wf.WfCore;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.messages.*;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
-import org.activiti.engine.history.*;
+import org.activiti.engine.history.HistoricDetail;
+import org.activiti.engine.history.HistoricDetailQuery;
+import org.activiti.engine.history.HistoricFormProperty;
+import org.activiti.engine.history.HistoricVariableUpdate;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -47,26 +49,31 @@ import java.util.Map;
  *  Transports messages between midPoint and Activiti. (Originally via Camel, currently using direct java calls.)
  */
 
+@Component
 public class ActivitiInterface {
 
-    ActivitiEngine activitiEngine;
-    TaskManager taskManager;
-    WfCore wfCore;
-
-    public ActivitiInterface(WorkflowManager workflowManager, WfCore wfCore) {
-        activitiEngine = workflowManager.getActivitiEngine();
-        taskManager = workflowManager.getTaskManager();
-        this.wfCore = wfCore;
-    }
-
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiInterface.class);
+    private static final String DOT_CLASS = ActivitiInterface.class.getName() + ".";
+
+    @Autowired
+    private ActivitiEngine activitiEngine;
+
+    @Autowired
+    private TaskManager taskManager;
+
+    @Autowired
+    private ProcessInstanceController processInstanceController;
 
     /**
      * Processes a message coming from midPoint to activiti. Although currently activiti is co-located with midPoint,
      * the interface between them is designed to be more universal - based on message passing.
+     *
+     * We pass task and operation result objects here. It is just because it is convenient for us and we CAN do this
+     * (because of co-location of activiti and midPoint). In remote versions we will eliminate this. The code
+     * is written in such a way that this should not pose a problem.
      */
 
-    public void midpoint2activiti(MidPointToActivitiMessage cmd) {
+    public void midpoint2activiti(MidPointToActivitiMessage cmd, Task task, OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(" *** A command from midPoint has arrived; class = " + cmd.getClass().getName() + " ***");
@@ -127,7 +134,7 @@ public class ActivitiInterface {
                 LOGGER.trace("Response to be sent to midPoint: " + qpr);
             }
 
-            activiti2midpoint(qpr);
+            activiti2midpoint(qpr, task, result);
         }
         else if (cmd instanceof StartProcessCommand)
         {
@@ -168,7 +175,7 @@ public class ActivitiInterface {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Event to be sent to IDM: " + event);
                 }
-                activiti2midpoint(event);
+                activiti2midpoint(event, task, result);
             }
         }
         else
@@ -178,9 +185,15 @@ public class ActivitiInterface {
         }
     }
 
-    public void activiti2midpoint(ActivitiToMidPointMessage msg) {
+    // task and parentResult may be null e.g. if this method is called from activiti process (for "smart" processes)
+    public void activiti2midpoint(ActivitiToMidPointMessage msg, Task task, OperationResult parentResult) {
 
-        OperationResult result = new OperationResult("activiti2midpoint");
+        OperationResult result;
+        if (parentResult == null) {
+            result = new OperationResult(DOT_CLASS + "activiti2midpoint");
+        } else {
+            result = parentResult.createSubresult(DOT_CLASS + "activiti2midpoint");
+        }
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("activiti2midpoint starting.");
@@ -194,14 +207,21 @@ public class ActivitiInterface {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Received ProcessEvent: " + event);
                 }
-                String taskOid = event.getTaskOid();
 
-                if (taskOid != null) {
-                    Task task = taskManager.getTask(taskOid, result);
-                    wfCore.processWorkflowMessage(event, task, result);
-                } else {
+                String taskOid = event.getTaskOid();
+                if (taskOid == null) {
                     throw new IllegalStateException("Got a workflow message without taskOid: " + event.toString());
                 }
+
+                if (task != null) {
+                    if (!taskOid.equals(task.getOid())) {
+                        throw new IllegalStateException("TaskOid received from the workflow (" + taskOid + ") is different from current task OID (" + task + "): " + event.toString());
+                    }
+                } else {
+                    task = taskManager.getTask(taskOid, result);
+                }
+                processInstanceController.processWorkflowMessage(event, task, result);
+
             } else {
                 throw new IllegalStateException("Unknown message type coming from the workflow: " + msg);
             }
@@ -211,7 +231,10 @@ public class ActivitiInterface {
             LoggingUtils.logException(LOGGER, message, e);
             result.recordFatalError(message, e);
         }
-        result.computeStatus();
+
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("activiti2midpoint ending; operation result status = " + result.getStatus());
         }

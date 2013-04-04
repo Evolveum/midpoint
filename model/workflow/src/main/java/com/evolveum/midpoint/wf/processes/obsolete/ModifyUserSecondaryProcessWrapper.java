@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.wf.processes.obsolete;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,7 +43,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 //@Component
-public class ModifyUserSecondaryProcessWrapper //implements ProcessWrapper {
+public class ModifyUserSecondaryProcessWrapper //implements PrimaryApprovalProcessWrapper {
 {
 
     @Autowired(required = true)
@@ -57,13 +58,13 @@ public class ModifyUserSecondaryProcessWrapper //implements ProcessWrapper {
     }
 
     //@Override
-//    public StartProcessInstruction prepareStartCommandIfApplicable(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
+//    public StartProcessInstruction prepareStartCommandIfApplicable(ModelOperationStageType stage, Collection<ObjectDelta<Objectable>> changes, Task task) {
 //
 //        if (true)
 //            return null;
 //
 //        if (stage == ModelOperationStageType.SECONDARY) {
-//            ObjectDelta<? extends ObjectType> change = changes.iterator().next();
+//            ObjectDelta<Objectable> change = changes.iterator().next();
 //            if (change.getObjectTypeClass() == UserType.class) {
 //                for (ItemDelta delta : change.getModifications()) {
 //                    if (delta.getValuesToReplace() != null) {
@@ -87,18 +88,18 @@ public class ModifyUserSecondaryProcessWrapper //implements ProcessWrapper {
 //    }
 
     //@Override
-    public void finishProcess(WfProcessInstanceEventType event, Task task, OperationResult result) throws Exception {
+//    public void finishProcess(WfProcessInstanceEventType event, Task task, OperationResult result) throws Exception {
+//
+//        Map<String,String> variables = wfTaskUtil.unwrapWfVariables(event);
+//        if ("true".equals(variables.get("approved"))) {
+//            wfTaskUtil.markAcceptation(task, result);
+//        } else {
+//            wfTaskUtil.markRejection(task, result);
+//        }
+//
+//    }
 
-        Map<String,String> variables = wfTaskUtil.unwrapWfVariables(event);
-        if ("true".equals(variables.get("approved"))) {
-            wfTaskUtil.markAcceptation(task, result);
-        } else {
-            wfTaskUtil.markRejection(task, result);
-        }
-
-    }
-
-    private String dump(Collection<ObjectDelta<? extends ObjectType>> changes) {
+    private String dump(Collection<ObjectDelta<Objectable>> changes) {
         StringBuffer sb = new StringBuffer();
         for (ObjectDelta<?> change : changes) {
             sb.append(change.debugDump());

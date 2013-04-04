@@ -22,10 +22,15 @@
 package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,6 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,37 +52,91 @@ import java.util.List;
  *
  * @author mederly
  */
+@Component
 public class WfRootTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/wf-root-task-uri";
 
     private static final Trace LOGGER = TraceManager.getTrace(WfRootTaskHandler.class);
 
-    WfRootTaskHandler(WorkflowManager workflowManager) {
+    @Autowired
+    private TaskManager taskManager;
+
+    @Autowired
+    private WfTaskUtil wfTaskUtil;
+
+    @Autowired
+    private WfConfiguration wfConfiguration;
+
+    @PostConstruct
+    public void init() {
         LOGGER.trace("Registering with taskManager as a handler for " + HANDLER_URI);
-        workflowManager.getTaskManager().registerHandler(HANDLER_URI, this);
+        taskManager.registerHandler(HANDLER_URI, this);
     }
 
 	@Override
 	public TaskRunResult run(Task task) {
 
-        OperationResult result = task.getResult();
+        TaskRunResultStatus status = TaskRunResultStatus.FINISHED;
 
-//        ModelContext rootContext = wfTaskUtil.retrieveModelContext(task, result);
-//        ObjectDelta<?>
-//
-//        List<Task> children = task.listSubtasks(result);
-//
-//        for (Task child : children) {
-//            if (child.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
-//                throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getExecutionStatus());
-//            }
-//            ModelContext childContext = wfTaskUtil.retrieveModelContext(child, result);
-//
-//        }
+        if (wfConfiguration.isEnabled()) {
+
+            try {
+
+                OperationResult result = task.getResult();
+
+                List<Task> children = task.listSubtasks(result);
+
+                LensContext rootContext = (LensContext) wfTaskUtil.retrieveModelContext(task, result);
+
+                boolean changed = false;
+                for (Task child : children) {
+
+                    if (child.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+                        throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getExecutionStatus());
+                    }
+
+                    if (wfTaskUtil.hasModelContext(child)) {
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Child task {} has model context present - skipping fetching deltas from it.");
+                        }
+                    } else {
+                        List<ObjectDelta<Objectable>> deltas = wfTaskUtil.retrieveResultingDeltas(child);
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Task {} returned {} deltas", child, deltas.size());
+                        }
+                        for (ObjectDelta delta : deltas) {
+                            if (LOGGER.isTraceEnabled()) {
+                                LOGGER.trace("Adding delta from task {} to root model context; delta = ", child, delta.debugDump(0));
+                            }
+                            rootContext.getFocusContext().addPrimaryDelta(delta);
+                            changed = true;
+                        }
+                    }
+                }
+
+                if (changed) {
+                    wfTaskUtil.storeModelContext(task, rootContext);
+                    task.savePendingModifications(result);
+                }
+
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks due to schema exception", e);
+                status = TaskRunResultStatus.PERMANENT_ERROR;
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+                status = TaskRunResultStatus.PERMANENT_ERROR;
+            } catch (ObjectAlreadyExistsException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+                status = TaskRunResultStatus.PERMANENT_ERROR;
+            }
+
+        } else {
+            LOGGER.info("Workflows are disabled, skipping " + WfRootTaskHandler.class + " run.");
+        }
 
 		TaskRunResult runResult = new TaskRunResult();
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+		runResult.setRunResultStatus(status);
 		return runResult;
 	}
 	

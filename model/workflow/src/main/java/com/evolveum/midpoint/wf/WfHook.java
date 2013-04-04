@@ -30,6 +30,8 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -40,24 +42,23 @@ import org.springframework.stereotype.Component;
 
 /**
  * Provides an interface between the model and the workflow engine:
- * catches hook calls and determines which ones require workflow invocation
- * (actually, more-or-less just delegates to wfCore)
+ * catches hook calls and delegates them to change processors.
  *
  * @author mederly
  */
 public class WfHook implements ChangeHook {
 
-    public static final String WORKFLOW_HOOK_URI = "http://midpoint.evolveum.com/model/workflow-hook-1";
-
     private static final Trace LOGGER = TraceManager.getTrace(WfHook.class);
 
-    public WfCore wfCore;
+    public static final String WORKFLOW_HOOK_URI = "http://midpoint.evolveum.com/model/workflow-hook-1";        // todo
+
+    private WorkflowManager workflowManager;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
 
-    public WfHook(WorkflowManager workflowManager, WfCore wfCore) {
-        this.wfCore = wfCore;
+    public WfHook(WorkflowManager workflowManager) {
+        this.workflowManager = workflowManager;
     }
 
     public void register(HookRegistry hookRegistry) {
@@ -72,16 +73,12 @@ public class WfHook implements ChangeHook {
         Validate.notNull(task);
         Validate.notNull(parentResult);
 
-        if (context.getFocusContext() == null) {        // probably not a user-related event
-            return HookOperationMode.FOREGROUND;
-        }
-
         OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
         result.addParam("task", task.toString());
 
         logOperationInformation(context);
 
-        HookOperationMode retval = wfCore.startProcessesIfNeeded(context, task, result);
+        HookOperationMode retval = startProcessesIfNeeded(context, task, result);
         result.recordSuccessIfUnknown();
         return retval;
     }
@@ -112,5 +109,33 @@ public class WfHook implements ChangeHook {
             }
         }
     }
+
+    HookOperationMode startProcessesIfNeeded(ModelContext context, Task task, OperationResult result) {
+
+        for (ChangeProcessor changeProcessor : workflowManager.getChangeProcessors()) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
+            }
+            try {
+                HookOperationMode hookOperationMode = changeProcessor.startProcessesIfNeeded(context, task, result);
+                if (hookOperationMode != null) {
+                    return hookOperationMode;
+                }
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Schema exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                result.recordFatalError("Schema exception while running change processor " + changeProcessor.getClass(), e);
+                return HookOperationMode.ERROR;
+            } catch (RuntimeException e) {
+                LoggingUtils.logException(LOGGER, "Runtime exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                result.recordFatalError("Runtime exception while running change processor " + changeProcessor.getClass(), e);
+                return HookOperationMode.ERROR;
+            }
+        }
+
+        LOGGER.trace("No change processor caught this request, returning the FOREGROUND flag.");
+        result.recordSuccess();
+        return HookOperationMode.FOREGROUND;
+    }
+
 
 }

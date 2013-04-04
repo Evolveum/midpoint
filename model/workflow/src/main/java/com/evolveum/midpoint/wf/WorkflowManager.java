@@ -21,24 +21,19 @@
 
 package com.evolveum.midpoint.wf;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * Some notes about the workflow package and its classes/subpackages:
@@ -46,12 +41,12 @@ import javax.annotation.PostConstruct;
  * External interfaces:
  * - WorkflowManager + WfDataAccessor: externally-visible functionality (initialization, methods needed by GUI).
  * - WfHook: interface to the model ChangeHook mechanism
- * - WfTaskHandler: interface to the midPoint task scheduling mechanism (for active tasks)
+ * - WfProcessShadowTaskHandler: interface to the midPoint task scheduling mechanism (for active tasks)
  * - ActivitiInterface: communication with Activiti (currently only local instance, in the future probably remote as well)
  *
  * Core:
  * - WfCore: core functionality of the workflow subsystem
- * - processes.ProcessWrapper and its implementations, processes.*:
+ * - processes.PrimaryApprovalProcessWrapper and its implementations, processes.*:
  *     functionality specific to particular workflow processes
  *
  * Data containers:
@@ -70,9 +65,13 @@ import javax.annotation.PostConstruct;
  * @author mederly
  */
 @Component("workflowManager")
-//@DependsOn("repositoryService")
-@DependsOn({ "sqlRepositoryFactory", "taskManager" })
-public class WorkflowManager implements BeanFactoryAware {
+@DependsOn({ "sqlRepositoryFactory",
+             "repositoryService",
+             "taskManager",
+             "wfConfiguration"
+              })        // todo hookRegistry
+
+public class WorkflowManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManager.class);
 
@@ -80,59 +79,43 @@ public class WorkflowManager implements BeanFactoryAware {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private MidpointConfiguration midpointConfiguration;
-
-    @Autowired(required = true)
     private HookRegistry hookRegistry;
-
-    @Autowired(required = true)
-    private RepositoryService repositoryService;
 
     @Autowired(required = true)
     private TaskManager taskManager;
 
-    private WfConfiguration wfConfiguration;
-    private WfTaskUtil wfTaskUtil;
-    private WfCore wfCore;
-    private WfDataAccessor wfDataAccessor;
-    private WfHook wfHook;
-    private WfRootTaskHandler wfRootTaskHandler;
-    private ActivitiInterface activitiInterface;
-    private WfTaskHandler wfTaskHandler;
-    private ActivitiEngine activitiEngine;
+    @Autowired
+    private WorkflowServiceImpl workflowServiceImpl;
 
-    private BeanFactory beanFactory;
+    @Autowired
+    private WfConfiguration wfConfiguration;
+
+//    @Autowired
+//    private ChangeProcessor[] allChangeProcessors;
+
+    // ordinary classes (not spring beans)
+    private WfHook wfHook;
+    private List<ChangeProcessor> changeProcessors;
 
     @PostConstruct
     public void initialize() {
 
         LOGGER.info("Initializing WorkflowManager...");
-        wfConfiguration = new WfConfiguration();
-        wfConfiguration.initialize(midpointConfiguration, beanFactory);
+
+        // todo remove when sure that everything related to spring DI works
+        Validate.notNull(wfConfiguration, "WorkflowManager is not initialized properly, wfConfiguration is null");
+//        Validate.notNull(allChangeProcessors, "WorkflowManager is not initialized properly, allChangeProcessors is null");
 
         if (!wfConfiguration.isEnabled()) {
             LOGGER.info("Workflow management is not enabled.");
         } else {
 
-            wfTaskUtil = new WfTaskUtil(this, repositoryService, prismContext);
-            wfCore = new WfCore(this, wfTaskUtil, taskManager, activitiInterface);
-            wfDataAccessor = new WfDataAccessor(this, wfCore);
-            wfHook = new WfHook(this, wfCore);
-            activitiEngine = new ActivitiEngine(this, wfConfiguration);
-            wfRootTaskHandler = new WfRootTaskHandler(this);
-            activitiInterface = new ActivitiInterface(this, wfCore);
-            wfTaskHandler = new WfTaskHandler(this, wfTaskUtil, activitiInterface);
-            activitiEngine = new ActivitiEngine(this, wfConfiguration);
-
+            changeProcessors = wfConfiguration.getChangeProcessorsBeans();
+            wfHook = new WfHook(this);
             wfHook.register(hookRegistry);
 
             LOGGER.info("WorkflowManager is initialized.");
         }
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
     }
 
     public WfConfiguration getWfConfiguration() {
@@ -147,31 +130,15 @@ public class WorkflowManager implements BeanFactoryAware {
         return prismContext;
     }
 
-    public ActivitiEngine getActivitiEngine() {
-        return activitiEngine;
-    }
-
-    public WfDataAccessor getDataAccessor() {
-        return wfDataAccessor;
-    }
-
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
-
-    public WfCore getWfCore() {
-        return wfCore;
-    }
-
-    public WfTaskUtil getWfTaskUtil() {
-        return wfTaskUtil;
-    }
-
     public TaskManager getTaskManager() {
         return taskManager;
     }
 
-    public ActivitiInterface getActivitiInterface() {
-        return activitiInterface;
+    public WorkflowServiceImpl getDataAccessor() {
+        return workflowServiceImpl;
+    }
+
+    public List<ChangeProcessor> getChangeProcessors() {
+        return changeProcessors;
     }
 }

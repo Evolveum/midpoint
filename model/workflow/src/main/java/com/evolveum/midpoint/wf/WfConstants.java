@@ -49,7 +49,10 @@ public class WfConstants {
 
     public static final String VARIABLE_MIDPOINT_LISTENER = "midPointListener";
 
-    public static final String FORM_FIELD_DECISION = "decision";
+    public static final String FORM_FIELD_DECISION = "[H]decision";
+    public static final String FORM_FIELD_COMMENT = "[C]comment";
 
     public static final String VARIABLE_DECISION_LIST = "decisionList";
+
+    public static final String VARIABLE_WF_ANSWER = "wfAnswer";
 }

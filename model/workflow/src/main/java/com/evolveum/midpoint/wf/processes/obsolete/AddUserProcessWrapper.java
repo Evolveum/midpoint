@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.wf.processes.obsolete;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,7 +52,7 @@ import java.util.Collection;
  */
 //@Component
 //@DependsOn("workflowManager")
-public class AddUserProcessWrapper { //implements ProcessWrapper {
+public class AddUserProcessWrapper { //implements PrimaryApprovalProcessWrapper {
 
 //    @Autowired(required = true)
     private WfHook wfHook;
@@ -65,11 +66,11 @@ public class AddUserProcessWrapper { //implements ProcessWrapper {
     }
 
     //@Override
-    public StartProcessInstruction startProcessIfNeeded(ModelState state, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
+    public StartProcessInstruction startProcessIfNeeded(ModelState state, Collection<ObjectDelta<Objectable>> changes, Task task) {
 
         if (state == ModelState.PRIMARY) {
             if (changes.size() == 1) {
-                ObjectDelta<? extends ObjectType> change = changes.iterator().next();
+                ObjectDelta<Objectable> change = changes.iterator().next();
 
                 if (change.getChangeType() == ChangeType.ADD) {
 

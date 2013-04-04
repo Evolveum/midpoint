@@ -22,7 +22,6 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.RepositoryFactory;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
@@ -30,23 +29,49 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.processes.PrimaryApprovalProcessWrapper;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
  * @author Pavol Mederly
  */
-public class WfConfiguration {
+@Component
+@DependsOn({ "midpointConfiguration" })
+
+public class WfConfiguration implements BeanFactoryAware {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
+    private static final String DEFAULT_CHANGE_PROCESSOR_PACKAGE = PrimaryUserChangeProcessor.class.getPackage().getName();
+
+    @Autowired(required = true)
+    private MidpointConfiguration midpointConfiguration;
+
+    private BeanFactory beanFactory;
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
 
     private static final String WF_CONFIG_SECTION = "midpoint.workflow";
     private static final String AUTO_DEPLOYMENT_FROM_DEFAULT = "classpath*:processes/*.bpmn20.xml";
 
-    private boolean enabled;
+    private Boolean enabled = null;
 
     private boolean activitiSchemaUpdate;
 
@@ -55,12 +80,15 @@ public class WfConfiguration {
     private String jdbcUser;
     private String jdbcPassword;
 
+    private String[] changeProcessors;
+
     private int processCheckInterval;
     private String autoDeploymentFrom;
 
-    void initialize(MidpointConfiguration masterConfig, BeanFactory beanFactory) {
+    @PostConstruct
+    void initialize() {
 
-        Configuration c = masterConfig.getConfiguration(WF_CONFIG_SECTION);
+        Configuration c = midpointConfiguration.getConfiguration(WF_CONFIG_SECTION);
 
         enabled = c.getBoolean("enabled", true);
         if (!enabled) {
@@ -109,6 +137,8 @@ public class WfConfiguration {
         processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
 
+        changeProcessors = c.getStringArray("changeProcessor");
+
 //        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
         validate();
@@ -138,7 +168,7 @@ public class WfConfiguration {
         return activitiSchemaUpdate;
     }
 
-    public boolean isEnabled() {
+    public Boolean isEnabled() {
         return enabled;
     }
 
@@ -164,5 +194,59 @@ public class WfConfiguration {
 
     public String getAutoDeploymentFrom() {
         return autoDeploymentFrom;
+    }
+
+    public List<ChangeProcessor> getChangeProcessorsBeans() {
+        List<ChangeProcessor> retval = new ArrayList<ChangeProcessor>();
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resolving change processors: configured list = " + StringUtils.join(changeProcessors, ","));
+        }
+        if (changeProcessors != null) {
+            for (String processorName : changeProcessors) {
+                LOGGER.trace("Searching for change processor " + processorName);
+                try {
+                    ChangeProcessor processor = (ChangeProcessor) beanFactory.getBean(processorName);
+                    retval.add(processor);
+                } catch(BeansException e) {
+                    throw new SystemException("Change processor " + processorName + " could not be found.", e);
+                }
+            }
+        }
+        LOGGER.debug("Resolved " + retval.size() + " change processors.");
+        return retval;
+    }
+
+    public List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers(String beanName) {
+
+        List<PrimaryApprovalProcessWrapper> retval = new ArrayList<PrimaryApprovalProcessWrapper>();
+
+        Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
+
+        if (changeProcessors == null || !Arrays.asList(changeProcessors).contains(beanName)) {
+            LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors.");
+            return retval;
+        }
+
+        Configuration c = midpointConfiguration.getConfiguration(WF_CONFIG_SECTION).subset(beanName);
+        if (c.isEmpty()) {
+            throw new SystemException("There is no configuration for primary change processor " + beanName);    // todo should be ConfigurationException perhaps
+        }
+
+        String[] wrappers = c.getStringArray("wrapper");
+        if (wrappers == null || wrappers.length == 0) {
+            LOGGER.warn("No wrappers defined for primary change processor " + beanName);
+        } else {
+            for (String wrapperName : wrappers) {
+                LOGGER.trace("Searching for wrapper " + wrapperName);
+                try {
+                    PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) beanFactory.getBean(wrapperName);
+                    retval.add(wrapper);
+                } catch(BeansException e) {
+                    throw new SystemException("Process wrapper " + wrapperName + " could not be found.", e);
+                }
+            }
+            LOGGER.debug("Resolved " + retval.size() + " process wrappers for primary change processor " + beanName);
+        }
+        return retval;
     }
 }

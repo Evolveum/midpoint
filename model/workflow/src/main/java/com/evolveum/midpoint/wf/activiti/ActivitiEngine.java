@@ -21,9 +21,6 @@
 
 package com.evolveum.midpoint.wf.activiti;
 
-import com.evolveum.midpoint.common.expression.script.xpath.MidPointNamespaceContext;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,37 +28,29 @@ import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.activiti.users.MidPointUserManagerFactory;
 import org.activiti.engine.*;
-import org.activiti.engine.identity.Group;
-import org.activiti.engine.identity.GroupQuery;
-import org.activiti.engine.identity.User;
-import org.activiti.engine.identity.UserQuery;
 import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.interceptor.SessionFactory;
 import org.activiti.engine.repository.Deployment;
-import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.xpath.*;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 11.5.2012
- * Time: 22:30
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
+@Component
+//@DependsOn({ "wfConfiguration" })
 public class ActivitiEngine {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiEngine.class);
@@ -69,16 +58,27 @@ public class ActivitiEngine {
     private static final String ADMINISTRATOR = "administrator";
 
     private ProcessEngine processEngine = null;
-    private WfConfiguration wfConfiguration;
     private static final String BPMN_URI = "http://www.omg.org/spec/BPMN/20100524/MODEL";
 
-    public ActivitiEngine(WorkflowManager workflowManager, WfConfiguration wfConfiguration) {
+    @Autowired
+    private WfConfiguration wfConfiguration;
 
-        this.wfConfiguration = wfConfiguration;
+    @PostConstruct
+    public void init() {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Attempting to create Activiti engine.");
         }
+
+        if (wfConfiguration == null || wfConfiguration.isEnabled() == null) {
+            throw new IllegalStateException("WfConfiguration is not initialized, despite of ActivitiEngine depending on it - check Spring dependencies.");
+        }
+
+        if (!wfConfiguration.isEnabled()) {
+            LOGGER.trace("Workflows are disabled, exiting.");
+            return;
+        }
+
 
         List<SessionFactory> sessionFactories = new ArrayList<SessionFactory>();
         sessionFactories.add(new MidPointUserManagerFactory());

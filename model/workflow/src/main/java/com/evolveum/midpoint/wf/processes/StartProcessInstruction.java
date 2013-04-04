@@ -88,6 +88,10 @@ public class StartProcessInstruction implements DebugDumpable {
         return noProcess;
     }
 
+    public boolean startsWorkflowProcess() {
+        return !noProcess;
+    }
+
     public void setNoProcess(boolean noProcess) {
         this.noProcess = noProcess;
     }
