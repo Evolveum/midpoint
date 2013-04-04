@@ -22,19 +22,26 @@
 
 <!-- Testing cycle task -->
 
-<task oid="91919191-76e0-59e2-86d6-556655660016"
+<task oid="00000003-76e0-59e2-86d6-556655660016"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns:noop="http://midpoint.evolveum.com/repo/noop-handler-1"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         >
 								  
-	<name>Testing waiting for subtasks (test 016)</name>
-	
-    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30016</taskIdentifier>
-    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>waiting</executionStatus>
-    <waitingReason>other</waitingReason>        <!-- we change this to 'otherTasks' programatically after children and prerequisites are created -->
+	<name>Testing waiting for subtasks (test 016) - prerequisite 1</name>
 
-	<handlerUri>http://midpoint.evolveum.com/test/wait-for-subtasks-task-handler</handlerUri>
+    <extension>
+        <noop:delay xsi:type="xsd:int">3000</noop:delay>
+        <noop:steps xsi:type="xsd:int">1</noop:steps>
+    </extension>
+	
+    <taskIdentifier>00000003-76e0-59e2-86d6-3d4f02d30016</taskIdentifier>
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
+    <dependent>91919191-76e0-59e2-86d6-3d4f02d30016</dependent>
+    <executionStatus>runnable</executionStatus>
+
+	<handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
 	<recurrence>single</recurrence>
 
 </task>

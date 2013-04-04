@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2012 Evolveum
+  ~ Copyright (c) 2013 Evolveum
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -17,24 +17,32 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~
-  ~ Portions Copyrighted 2012 [name of copyright owner]
+  ~ Portions Copyrighted 2013 [name of copyright owner]
   -->
 
-<!-- Testing cycle task -->
-
-<task oid="91919191-76e0-59e2-86d6-556655660016"
+<task oid="91919191-76e0-59e2-86d6-556655660019"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         >
 								  
-	<name>Testing waiting for subtasks (test 016)</name>
+	<name>Testing FINISHED_HANDLER return result (test 019)</name>
 	
-    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30016</taskIdentifier>
+    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30019</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>waiting</executionStatus>
-    <waitingReason>other</waitingReason>        <!-- we change this to 'otherTasks' programatically after children and prerequisites are created -->
+    <executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/test/wait-for-subtasks-task-handler</handlerUri>
-	<recurrence>single</recurrence>
+    <handlerUri>http://midpoint.evolveum.com/test/cycle-finishing-task-handler</handlerUri>
+    <otherHandlersUriStack>
+        <uriStackEntry>
+            <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+            <schedule></schedule>
+        </uriStackEntry>
+    </otherHandlersUriStack>
+
+    <recurrence>recurring</recurrence>
+    <binding>tight</binding>
+    <schedule>
+        <interval>2</interval>
+    </schedule>
 
 </task>

@@ -37,6 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 
 /**
+ *
+ * BIG TODO: clean-up this interface!!!
+ *
  * <p>Task Manager Interface.</p>
  * <p>
  * Status: public
@@ -515,4 +518,7 @@ public interface TaskManager {
     ParseException validateCronExpression(String cron);
 
     void unpauseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    // currently finds only persistent tasks
+    Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 }

@@ -47,7 +47,7 @@ import java.util.List;
 public class NoOpTaskHandler implements TaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
-	private static final String HANDLER_URI = "http://midpoint.evolveum.com/repo/noop-handler-1";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/repo/noop-handler-1";
 	public static final String EXT_SCHEMA_URI = "http://midpoint.evolveum.com/repo/noop-handler-1";
 	public static final QName DELAY_QNAME = new QName(EXT_SCHEMA_URI, "delay"); 
 	public static final QName STEPS_QNAME = new QName(EXT_SCHEMA_URI, "steps");
@@ -77,8 +77,8 @@ public class NoOpTaskHandler implements TaskHandler {
         PrismProperty<Integer> delayProp = taskExtension != null ? taskExtension.findProperty(DELAY_QNAME) : null;
         PrismProperty<Integer> stepsProp = taskExtension != null ? taskExtension.findProperty(STEPS_QNAME) : null;
 
-		PrismPropertyDefinition delayPropDef = new PrismPropertyDefinition(DELAY_QNAME, DELAY_QNAME, DOMUtil.XSD_INT, taskManagerImpl.getPrismContext());
-		PrismPropertyDefinition stepsPropDef = new PrismPropertyDefinition(STEPS_QNAME, STEPS_QNAME, DOMUtil.XSD_INT, taskManagerImpl.getPrismContext());
+		PrismPropertyDefinition delayPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(DELAY_QNAME);
+		PrismPropertyDefinition stepsPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(STEPS_QNAME);
 		try {
 			if (delayProp != null)
 				delayProp.applyDefinition(delayPropDef);

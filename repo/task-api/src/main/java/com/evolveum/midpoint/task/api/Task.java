@@ -346,6 +346,7 @@ public interface Task extends Dumpable {
 	 * @param value new human-readable name of the task.
 	 */
 	public void setName(PolyStringType value);
+    public void setName(String value);
 	
 	public void setNameImmediate(PolyStringType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
@@ -518,6 +519,8 @@ public interface Task extends Dumpable {
 
     void addExtensionProperty(PrismProperty<?> property) throws SchemaException;
 
+    <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException;
+
     void modifyExtension(ItemDelta itemDelta) throws SchemaException;
 
     /**
@@ -574,4 +577,27 @@ public interface Task extends Dumpable {
     List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException;
 
     List<Task> listSubtasks(OperationResult parentResult) throws SchemaException;
+
+    List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException;
+
+    List<Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException;
+
+    void addDependent(String taskIdentifier);
+
+    void startWaitingForTasksImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+
+    List<String> getDependents();
+
+    void deleteDependent(String value);
+
+    List<Task> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    Task getParentTask(OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    TaskWaitingReason getWaitingReason();
+
+    boolean isClosed();
+
+    void makeWaiting(TaskWaitingReason reason);
 }

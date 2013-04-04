@@ -53,6 +53,7 @@ public class ClusterManager {
 
     private static final String CLASS_DOT = ClusterManager.class.getName() + ".";
     private static final String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_DOT + "checkSystemConfigurationChanged";
+    private static final String CHECK_WAITING_TASKS = CLASS_DOT + "checkWaitingTasks";
 
     private TaskManagerQuartzImpl taskManager;
 
@@ -132,10 +133,22 @@ public class ClusterManager {
             while (canRun) {
 
                 try {
+
                     checkSystemConfigurationChanged(result);
 
-                    checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
-                    nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
+                    // these checks are separate in order to prevent a failure in one method blocking execution of others
+                    try {
+                        checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
+                        nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
+                    } catch (Throwable t) {
+                        LoggingUtils.logException(LOGGER, "Unexpected exception while checking cluster configuration; continuing execution.", t);
+                    }
+
+                    try {
+                        checkWaitingTasks(result);
+                    } catch (Throwable t) {
+                        LoggingUtils.logException(LOGGER, "Unexpected exception while checking waiting tasks; continuing execution.", t);
+                    }
 
                 } catch(Throwable t) {
                     LoggingUtils.logException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
@@ -273,8 +286,22 @@ public class ClusterManager {
             String message = "Schema error in system configuration, skipping application of system settings";
             LOGGER.error(message + ": " + e.getMessage(), e);
             result.recordWarning(message, e);
+        } catch (RuntimeException e) {
+            String message = "Runtime exception in system configuration processing, skipping application of system settings";
+            LOGGER.error(message + ": " + e.getMessage(), e);
+            result.recordWarning(message, e);
         }
 
+    }
+
+
+    private long lastCheckedWaitingTasks = 0L;
+
+    public void checkWaitingTasks(OperationResult result) throws SchemaException {
+        if (System.currentTimeMillis() > lastCheckedWaitingTasks + taskManager.getConfiguration().getCheckWaitingTasksInterval()) {
+            lastCheckedWaitingTasks = System.currentTimeMillis();
+            taskManager.checkWaitingTasks(result);
+        }
     }
 
 

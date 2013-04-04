@@ -32,6 +32,12 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskWaitingReasonType;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -51,19 +57,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.ClusterStatusInformation;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.Node;
-import com.evolveum.midpoint.task.api.NodeErrorStatus;
-import com.evolveum.midpoint.task.api.NodeExecutionStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -685,8 +678,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
    
-
-
     @Override
     public List<Task> searchTasks(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
 
@@ -993,6 +984,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
+    // do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
         ((TaskQuartzImpl) task).setExecutionStatus(TaskExecutionStatus.CLOSED);
         executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
@@ -1001,6 +993,85 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public ParseException validateCronExpression(String cron) {
         return TaskQuartzImplUtil.validateCronExpression(cron);
+    }
+
+    // currently finds only persistent tasks
+    @Override
+    public Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskByIdentifier");
+        result.addParam("identifier", identifier);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+
+        ObjectFilter filter = null;
+        try {
+            filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_TASK_IDENTIFIER, identifier);
+        } catch (SchemaException e) {
+            throw new SystemException("Cannot create filter for identifier value due to schema exception", e);
+        }
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, result);
+        if (list.isEmpty()) {
+            throw new ObjectNotFoundException("Task with identifier " + identifier + " could not be found");
+        } else if (list.size() > 1) {
+            throw new IllegalStateException("Found more than one task with identifier " + identifier + " (" + list.size() + " of them)");
+        }
+
+        Task task = createTaskInstance(list.get(0), result);
+        result.recordSuccessIfUnknown();
+        return task;
+
+    }
+
+    public void checkWaitingTasks(OperationResult result) throws SchemaException {
+        int count = 0;
+        List<Task> tasks = listWaitingTasks(TaskWaitingReason.OTHER_TASKS, result);
+        for (Task task : tasks) {
+            try {
+                ((TaskQuartzImpl) task).checkDependencies(result);
+                count++;
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't check dependencies for task {}", e, task);
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't check dependencies for task {}", e, task);
+            }
+        }
+        LOGGER.trace("Check waiting tasks completed; {} tasks checked.", count);
+    }
+
+    private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
+
+        ObjectFilter filter, filter1 = null, filter2 = null;
+        try {
+            filter1 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.WAITING);
+            if (reason != null) {
+                filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, reason.toTaskType());
+            }
+        } catch (SchemaException e) {
+            throw new SystemException("Cannot create filter for listing waiting tasks due to schema exception", e);
+        }
+        filter = filter2 != null ? AndFilter.createAnd(filter1, filter2) : filter1;
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        query = new ObjectQuery();  // todo remove this hack when searching will work
+
+        List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, result);
+        List<Task> tasks = resolveTasksFromTaskTypes(prisms, result);
+
+        result.recordSuccessIfUnknown();
+        return tasks;
+
+    }
+
+    List<Task> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result) throws SchemaException {
+        List<Task> tasks = new ArrayList<Task>(taskPrisms.size());
+        for (PrismObject<TaskType> taskPrism : taskPrisms) {
+            tasks.add(createTaskInstance(taskPrism, result));
+        }
+
+        result.recordSuccessIfUnknown();
+        return tasks;
     }
 
 }

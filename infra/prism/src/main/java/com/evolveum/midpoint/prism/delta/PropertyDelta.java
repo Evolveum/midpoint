@@ -164,7 +164,33 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		return delta;
 	}
 
-	/**
+    public static <O extends Objectable> PropertyDelta createAddDelta(PrismContainerDefinition<O> containerDefinition,
+                                                                          QName propertyName, Object... realValues) {
+        PrismPropertyDefinition propertyDefinition = containerDefinition.findPropertyDefinition(propertyName);
+        if (propertyDefinition == null) {
+            throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
+        }
+        PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+        for (Object realVal: realValues) {
+            delta.addValueToAdd(new PrismPropertyValue(realVal));
+        }
+        return delta;
+    }
+
+    public static <O extends Objectable> PropertyDelta createDeleteDelta(PrismContainerDefinition<O> containerDefinition,
+                                                                      QName propertyName, Object... realValues) {
+        PrismPropertyDefinition propertyDefinition = containerDefinition.findPropertyDefinition(propertyName);
+        if (propertyDefinition == null) {
+            throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
+        }
+        PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+        for (Object realVal: realValues) {
+            delta.addValueToDelete(new PrismPropertyValue(realVal));
+        }
+        return delta;
+    }
+
+    /**
 	 * Create delta that deletes all values of the specified property.
 	 */
 	public static <O extends Objectable> PropertyDelta createReplaceEmptyDelta(PrismObjectDefinition<O> objectDefinition,

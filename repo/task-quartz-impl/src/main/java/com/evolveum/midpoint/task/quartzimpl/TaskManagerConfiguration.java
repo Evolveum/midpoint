@@ -60,12 +60,13 @@ public class TaskManagerConfiguration {
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
     private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
-    private static final String QUARTZ_NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY = "quartzNodeRegistrationCycleTime";
-    private static final String NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY = "nodeRegistrationCycleTime";
+    private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
+    private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
     private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
     private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
     private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
+    private static final String CHECK_WAITING_TASKS_INTERVAL_CONFIG_ENTRY = "checkWaitingTasksInterval";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
@@ -84,6 +85,7 @@ public class TaskManagerConfiguration {
     private static final int NODE_TIMEOUT_DEFAULT = 30;
     private static final String JMX_USERNAME_DEFAULT = "midpoint";
     private static final String JMX_PASSWORD_DEFAULT = "secret";
+    private static final int CHECK_WAITING_TASKS_INTERVAL_DEFAULT = 600;
 
     private boolean stopOnInitializationFailure;
     private int threads;
@@ -96,6 +98,7 @@ public class TaskManagerConfiguration {
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
     private int nodeRegistrationCycleTime, nodeTimeout;
     private UseThreadInterrupt useThreadInterrupt;
+    private int checkWaitingTasksInterval;
 
     // JMX credentials for connecting to remote nodes
     private String jmxUsername;
@@ -139,8 +142,9 @@ public class TaskManagerConfiguration {
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
         nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
-        if (StringUtils.isEmpty(nodeId) && !clustered)
+        if (StringUtils.isEmpty(nodeId) && !clustered) {
             nodeId = NODE_ID_DEFAULT;
+        }
 
         jmxHostName = System.getProperty(MIDPOINT_JMX_HOST_NAME_PROPERTY);
 
@@ -179,8 +183,8 @@ public class TaskManagerConfiguration {
             throw new TaskManagerConfigurationException("Illegal value for " + USE_THREAD_INTERRUPT_CONFIG_ENTRY + ": " + useTI, e);
         }
 
-        quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
-        nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_CYCLE_TIME_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
+        quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
+        nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
 
         jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
@@ -387,5 +391,9 @@ public class TaskManagerConfiguration {
 
     public String getJmxHostName() {
         return jmxHostName;
+    }
+
+    public int getCheckWaitingTasksInterval() {
+        return checkWaitingTasksInterval;
     }
 }

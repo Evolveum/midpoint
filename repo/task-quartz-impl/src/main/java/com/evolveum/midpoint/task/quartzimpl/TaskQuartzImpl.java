@@ -692,6 +692,7 @@ public class TaskQuartzImpl implements Task {
 		}
         try {
 		    savePendingModifications(parentResult);
+            checkDependentTasksOnClose(parentResult);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
@@ -699,8 +700,53 @@ public class TaskQuartzImpl implements Task {
 		LOGGER.trace("finishHandler: new current handler uri = {}, new number of handlers = {}", getHandlerUri(), getHandlersCount());
 	}
 
+    private void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-	public int getHandlersCount() {
+        if (getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+            return;
+        }
+
+        for (Task dependent : listDependents(result)) {
+            ((TaskQuartzImpl) dependent).checkDependencies(result);
+        }
+        Task parentTask = getParentTask(result);
+        if (parentTask != null) {
+            ((TaskQuartzImpl) parentTask).checkDependencies(result);
+        }
+    }
+
+    void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        if (getExecutionStatus() != TaskExecutionStatus.WAITING || getWaitingReason() != TaskWaitingReason.OTHER_TASKS) {
+            return;
+        }
+
+        List<Task> dependencies = listSubtasks(result);
+        dependencies.addAll(listPrerequisiteTasks(result));
+
+        LOGGER.trace("Checking {} dependencies for waiting task {}", dependencies.size(), this);
+
+        for (Task dependency : dependencies) {
+            if (!dependency.isClosed()) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Dependency {} of {} is not closed (status = {})", new Object[] { dependency, this, dependency.getExecutionStatus() });
+                }
+                return;
+            }
+        }
+
+        if (getHandlerUri() != null) {
+            LOGGER.trace("All dependencies of {} are closed, unpausing the task (it has a handler defined)", this);
+            taskManager.unpauseTask(this, result);
+        } else {
+            LOGGER.trace("All dependencies of {} are closed, closing the task (it has no handler defined).", this);
+            taskManager.closeTask(this, result);
+        }
+
+    }
+
+
+    public int getHandlersCount() {
 		checkHandlerUriConsistency();
 		int main = getHandlerUri() != null ? 1 : 0;
 		int others = getOtherHandlersUriStack() != null ? getOtherHandlersUriStack().getUriStackEntry().size() : 0;
@@ -840,6 +886,67 @@ public class TaskQuartzImpl implements Task {
             throw new IllegalStateException("makeWaiting can be invoked only on transient tasks; task = " + this);
         }
         setExecutionStatus(TaskExecutionStatus.WAITING);
+    }
+
+
+    @Override
+    public void makeWaiting(TaskWaitingReason reason) {
+        makeWaiting();
+        setWaitingReason(reason);
+    }
+
+    public boolean isClosed() {
+        return getExecutionStatus() == TaskExecutionStatus.CLOSED;
+    }
+
+  	/*
+	 * Waiting reason
+	 */
+
+    @Override
+    public TaskWaitingReason getWaitingReason() {
+        TaskWaitingReasonType xmlValue = taskPrism.asObjectable().getWaitingReason();
+        if (xmlValue == null) {
+            return null;
+        }
+        return TaskWaitingReason.fromTaskType(xmlValue);
+    }
+
+    public void setWaitingReasonTransient(TaskWaitingReason value) {
+        try {
+            taskPrism.setPropertyRealValue(TaskType.F_WAITING_REASON, value.toTaskType());
+        } catch (SchemaException e) {
+            // This should not happen
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+    }
+
+    public void setWaitingReason(TaskWaitingReason value) {
+        processModificationBatched(setWaitingReasonAndPrepareDelta(value));
+    }
+
+    public void setWaitingReasonImmediate(TaskWaitingReason value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setWaitingReasonAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+    }
+
+    private PropertyDelta<?> setWaitingReasonAndPrepareDelta(TaskWaitingReason value) {
+        setWaitingReasonTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_WAITING_REASON, value.toTaskType()) : null;
+    }
+
+    @Override
+    public void startWaitingForTasksImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (getExecutionStatus() != TaskExecutionStatus.WAITING) {
+            throw new IllegalStateException("Task that has to start waiting for tasks should be in WAITING state (it is in " + getExecutionStatus() + " now)");
+        }
+        setWaitingReasonImmediate(TaskWaitingReason.OTHER_TASKS, result);
+        checkDependencies(result);
     }
 
     /*
@@ -1255,8 +1362,14 @@ public class TaskQuartzImpl implements Task {
 	public void setName(PolyStringType value) {
 		processModificationBatched(setNameAndPrepareDelta(value));
 	}
-	
-	@Override
+
+    @Override
+    public void setName(String value) {
+        processModificationBatched(setNameAndPrepareDelta(new PolyStringType(value)));
+    }
+
+
+    @Override
 	public void setNameImmediate(PolyStringType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         processModificationNow(setNameAndPrepareDelta(value), parentResult);
@@ -1315,6 +1428,16 @@ public class TaskQuartzImpl implements Task {
         return taskPrism.asObjectable().getParent();
     }
 
+    @Override
+    public Task getParentTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (getParent() == null) {
+            return null;
+        } else {
+            return taskManager.getTaskByIdentifier(getParent(), result);
+        }
+    }
+
+
     public void setParent(String value) {
         processModificationBatched(setParentAndPrepareDelta(value));
     }
@@ -1336,6 +1459,61 @@ public class TaskQuartzImpl implements Task {
         setParentTransient(value);
         return isPersistent() ? PropertyDelta.createReplaceDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_PARENT, value) : null;
+    }
+
+   /*
+    * Dependents
+    */
+
+    @Override
+    public List<String> getDependents() {
+        return taskPrism.asObjectable().getDependent();
+    }
+
+    @Override
+    public List<Task> listDependents(OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listDependents");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+
+        List<Task> dependents = new ArrayList<Task>(getDependents().size());
+        for (String dependentId : getDependents()) {
+            dependents.add(taskManager.getTaskByIdentifier(dependentId, result));
+        }
+
+        result.recordSuccessIfUnknown();
+        return dependents;
+    }
+
+    @Override
+    public void addDependent(String value) {
+        processModificationBatched(addDependentAndPrepareDelta(value));
+    }
+
+    public void addDependentTransient(String name) {
+        taskPrism.asObjectable().getDependent().add(name);
+    }
+
+    private PropertyDelta<?> addDependentAndPrepareDelta(String value) {
+        addDependentTransient(value);
+        return isPersistent() ? PropertyDelta.createAddDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_DEPENDENT, value) : null;
+    }
+
+    @Override
+    public void deleteDependent(String value) {
+        processModificationBatched(deleteDependentAndPrepareDelta(value));
+    }
+
+    public void deleteDependentTransient(String name) {
+        taskPrism.asObjectable().getDependent().remove(name);
+    }
+
+    private PropertyDelta<?> deleteDependentAndPrepareDelta(String value) {
+        deleteDependentTransient(value);
+        return isPersistent() ? PropertyDelta.createDeleteDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_DEPENDENT, value) : null;
     }
 
     /*
@@ -1369,6 +1547,20 @@ public class TaskQuartzImpl implements Task {
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(property));
 	}
+
+    @Override
+    public <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException {
+        PrismPropertyDefinition propertyDef = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(propertyName);
+        if (propertyDef == null) {
+            throw new SchemaException("Unknown property " + propertyName);
+        }
+
+        PrismProperty<T> property = propertyDef.instantiate();
+        property.setRealValue(value);
+
+        setExtensionProperty(property);
+    }
+
 
     @Override
     public <C extends Containerable> void setExtensionContainer(PrismContainer<C> item) throws SchemaException {
@@ -1891,7 +2083,26 @@ public class TaskQuartzImpl implements Task {
         try {
             filter = EqualsFilter.createEqual(TaskType.class, taskManager.getPrismContext(), TaskType.F_PARENT, getTaskIdentifier());
         } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for task identifier attribute due to schema exception", e);
+            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
+        }
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, result);
+        result.recordSuccessIfUnknown();
+        return list;
+    }
+
+    @Override
+    public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listPrerequisiteTasksRaw");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+
+        ObjectFilter filter = null;
+        try {
+            filter = EqualsFilter.createEqual(TaskType.class, taskManager.getPrismContext(), TaskType.F_DEPENDENT, getTaskIdentifier());
+        } catch (SchemaException e) {
+            throw new SystemException("Cannot create filter for 'dependent contains task identifier' due to schema exception", e);
         }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
@@ -1907,15 +2118,28 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
-        List<PrismObject<TaskType>> taskPrisms = listSubtasksRaw(result);
-
-        List<Task> tasks = new ArrayList<Task>(taskPrisms.size());
-        for (PrismObject<TaskType> taskPrism : taskPrisms) {
-            tasks.add(taskManager.createTaskInstance(taskPrism, result));
-        }
-
-        result.recordSuccessIfUnknown();
-        return tasks;
+        return taskManager.resolveTasksFromTaskTypes(listSubtasksRaw(result), result);
     }
+
+    @Override
+    public List<Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listPrerequisiteTasks");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+
+        return taskManager.resolveTasksFromTaskTypes(listPrerequisiteTasksRaw(result), result);
+    }
+
+//    private List<Task> resolveTasksFromIdentifiers(OperationResult result, List<String> identifiers) throws SchemaException {
+//        List<Task> tasks = new ArrayList<Task>(identifiers.size());
+//        for (String identifier : identifiers) {
+//            tasks.add(taskManager.getTaskByIdentifier(result));
+//        }
+//
+//        result.recordSuccessIfUnknown();
+//        return tasks;
+//    }
+
 
 }
