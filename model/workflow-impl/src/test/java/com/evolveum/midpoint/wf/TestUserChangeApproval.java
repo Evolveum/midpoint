@@ -21,6 +21,7 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -41,13 +44,15 @@ import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
+import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
+import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.test.annotation.DirtiesContext;
@@ -57,6 +62,8 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -78,6 +85,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role2-change-gn.xml";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role3-change-gn2.xml";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-roles2-3-4.xml";
+    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-disable.xml";
+    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-enable.xml";
 
     protected static final String USER_BILL_FILENAME = COMMON_DIR_NAME + "/user-bill.xml";
     protected static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
@@ -120,7 +129,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	@Test(enabled = true)
     public void test010UserModifyAddRole() throws Exception {
         displayTestTile(this, "test010UserModifyAddRole");
-       	executeTest("test010UserModifyAddRole", 1, false, new ContextCreator() {
+       	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, new ContextCreator() {
                @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
                    LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -143,6 +152,15 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
            });
 	}
 
+    private void removeAllRoles(String oid, OperationResult result) throws Exception {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
+        for (AssignmentType at : user.asObjectable().getAssignment()) {
+            ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT, prismContext, at.asPrismContainerValue().clone());
+            repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
+            LOGGER.info("Removed assignment " + at + " from " + user);
+        }
+    }
+
     /**
      * User modification with one security-sensitive role and other (unrelated) change - e.g. change of the given name.
      * Aggregated execution.
@@ -151,7 +169,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test011UserModifyAddRoleChangeGivenName() throws Exception {
         displayTestTile(this, "test011UserModifyAddRoleChangeGivenName");
-        executeTest("test011UserModifyAddRoleChangeGivenName", 1, false, new ContextCreator() {
+        executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, 1, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -186,7 +204,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test012UserModifyAddRoleChangeGivenNameImmediate() throws Exception {
         displayTestTile(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
-        executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", 2, true, new ContextCreator() {
+        executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, 2, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -217,15 +235,16 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     }
 
 
-    @Test(enabled = false)
-    public void test011UserModifyAddRoles() throws Exception {
-        displayTestTile(this, "test011UserModifyAddRoles");
-        executeTest("test011UserModifyAddRoles", 2, false, new ContextCreator() {
+    @Test(enabled = true)
+    public void test020UserModifyAddThreeRoles() throws Exception {
+        displayTestTile(this, "test020UserModifyAddThreeRoles");
+        executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, 2, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE);
                 return context;
             }
 
@@ -247,13 +266,66 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("role add delta contains wrong number of values", 1, addRoleDelta.getValuesToAdd().size());
                 assertNotNull("activation change delta was not found", activationChange);
             }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
+                assertNotAssignedRole(jack, ROLE_R1_OID);
+                assertNotAssignedRole(jack, ROLE_R2_OID);
+                assertAssignedRole(jack, ROLE_R3_OID);
+                assertAssignedRole(jack, ROLE_R4_OID);
+                assertFalse("activation has not been changed to false", jack.asObjectable().getActivation().isEnabled());
+            }
+
         });
     }
 
-    @Test(enabled = false)
-    public void test020UserAdd() throws Exception {
-        displayTestTile(this, "test020UserAdd");
-        executeTest("test020UserAdd", 2, false, new ContextCreator() {
+    @Test(enabled = true)
+    public void test021UserModifyAddThreeRolesImmediate() throws Exception {
+        displayTestTile(this, "test021UserModifyAddThreeRolesImmediate");
+        executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, 3, true, new ContextCreator() {
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE);
+                context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(task));
+            }
+
+            @Override
+            void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+                assertNotAssignedRole(jack, ROLE_R1_OID);
+                assertNotAssignedRole(jack, ROLE_R2_OID);
+                assertNotAssignedRole(jack, ROLE_R3_OID);
+                assertAssignedRole(jack, ROLE_R4_OID);
+                assertTrue("activation has not been changed to true", jack.asObjectable().getActivation().isEnabled());
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
+                assertNotAssignedRole(jack, ROLE_R1_OID);
+                assertNotAssignedRole(jack, ROLE_R2_OID);
+                assertAssignedRole(jack, ROLE_R3_OID);
+                assertAssignedRole(jack, ROLE_R4_OID);
+                assertTrue("activation has not been changed to true", jack.asObjectable().getActivation().isEnabled());
+            }
+
+        });
+    }
+
+    @Test(enabled = true)
+    public void test030UserAdd() throws Exception {
+        displayTestTile(this, "test030UserAdd");
+        executeTest("test030UserAdd", null, 2, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -265,11 +337,68 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             @Override
             public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
-                assertNotNull("There is no object to add left in primary focus delta", taskModelContext.getFocusContext().getPrimaryDelta().getObjectToAdd());
+                PrismObject<UserType> objectToAdd = taskModelContext.getFocusContext().getPrimaryDelta().getObjectToAdd();
+                assertNotNull("There is no object to add left in primary focus delta", objectToAdd);
+                assertFalse("There is assignment of R1 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R1_OID));
+                assertFalse("There is assignment of R2 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R2_OID));
+                assertFalse("There is assignment of R3 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R3_OID));
+                assertTrue("There is no assignment of R4 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R4_OID));
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> bill = findUserInRepo("bill", result);
+                assertAssignedRole(bill, ROLE_R1_OID);
+                assertNotAssignedRole(bill, ROLE_R2_OID);
+                assertNotAssignedRole(bill, ROLE_R3_OID);
+                assertAssignedRole(bill, ROLE_R4_OID);
+                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
             }
         });
     }
 
+    @Test(enabled = true)
+    public void test031UserAddImmediate() throws Exception {
+        displayTestTile(this, "test031UserAddImmediate");
+
+        deleteUserFromModel("bill");
+
+        executeTest("test031UserAddImmediate", null, 3, true, new ContextCreator() {
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BILL_FILENAME));
+                fillContextWithAddUserDelta(context, bill);
+                context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(task));
+            }
+
+            @Override
+            void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> bill = findUserInRepo("bill", result);
+                assertNotAssignedRole(bill, ROLE_R1_OID);
+                assertNotAssignedRole(bill, ROLE_R2_OID);
+                assertNotAssignedRole(bill, ROLE_R3_OID);
+                assertAssignedRole(bill, ROLE_R4_OID);
+                //assertEquals("Wrong number of assignments for bill", 3, bill.asObjectable().getAssignment().size());
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> bill = findUserInRepo("bill", result);
+                assertAssignedRole(bill, ROLE_R1_OID);
+                assertNotAssignedRole(bill, ROLE_R2_OID);
+                assertNotAssignedRole(bill, ROLE_R3_OID);
+                assertAssignedRole(bill, ROLE_R4_OID);
+                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
+            }
+        });
+    }
 
     private abstract class ContextCreator {
         LensContext createModelContext(OperationResult result) throws Exception { return null; }
@@ -278,7 +407,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
     }
 	
-	private void executeTest(String testName, int sensitiveRolesAdded, boolean immediate, ContextCreator contextCreator) throws Exception {
+	private void executeTest(String testName, String oid, int sensitiveRolesAdded, boolean immediate, ContextCreator contextCreator) throws Exception {
 
 		// GIVEN
         Task rootTask = taskManager.createTaskInstance(TestUserChangeApproval.class.getName() + "."+testName);
@@ -286,6 +415,10 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         OperationResult result = new OperationResult("execution");
 
         rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, result));
+
+        if (oid != null) {
+            removeAllRoles(oid, result);
+        }
 
         LensContext<UserType, ShadowType> context = (LensContext<UserType, ShadowType>) contextCreator.createModelContext(result);
 
@@ -308,7 +441,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         UriStack uriStack = rootTask.getOtherHandlersUriStack();
         if (!immediate) {
             assertEquals("Invalid handler at stack position 0", ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, uriStack.getUriStackEntry().get(0).getHandlerUri());
-            assertEquals("Invalid handler at stack position 1", WfRootTaskHandler.HANDLER_URI, uriStack.getUriStackEntry().get(1).getHandlerUri());
+            assertEquals("Invalid current handler", WfPrepareRootOperationTaskHandler.HANDLER_URI, rootTask.getHandlerUri());
         } else {
             assertTrue("There should be no handlers for root tasks with immediate execution mode", uriStack == null || uriStack.getUriStackEntry().isEmpty());
         }
@@ -317,7 +450,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         if (!immediate) {
             assertNotNull("Model context is not present in root task", taskModelContext);
         } else {
-            assertFalse("Model context is present in root task (ex.mode = immediate)", wfTaskUtil.hasModelContext(rootTask));
+            assertFalse("Model context is present in root task (execution mode = immediate)", wfTaskUtil.hasModelContext(rootTask));
         }
 
         //assertEquals("Invalid current task handler", Wait, uriStack.getUriStackEntry().get(1).getHandlerUri());
@@ -426,5 +559,46 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker, timeout, 1000);
     }
 
+    private PrismObject<UserType> getUserFromRepo(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return repositoryService.getObject(UserType.class, oid, result);
+    }
+
+    private boolean assignmentExists(List<AssignmentType> assignmentList, String targetOid) {
+        for (AssignmentType assignmentType : assignmentList) {
+            if (assignmentType.getTargetRef() != null && targetOid.equals(assignmentType.getTargetRef().getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private PrismObject<UserType> findUserInRepo(String name, OperationResult result) throws SchemaException {
+        List<PrismObject<UserType>> users = findUserInRepoUnchecked(name, result);
+        assertEquals("Didn't find exactly 1 user object with name " + name, 1, users.size());
+        return users.get(0);
+    }
+
+    private List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
+        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, name));
+        return repositoryService.searchObjects(UserType.class, q, result);
+    }
+
+    private void deleteUserFromModel(String name) throws SchemaException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
+        OperationResult result = new OperationResult("dummy");
+        Task t = taskManager.createTaskInstance();
+        t.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, result));
+
+        if (!findUserInRepoUnchecked(name, result).isEmpty()) {
+
+            PrismObject<UserType> user = findUserInRepo(name, result);
+
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            deltas.add(ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), prismContext));
+            modelService.executeChanges(deltas, new ModelExecuteOptions(), t, result);
+
+            LOGGER.info("User " + name + " was deleted");
+        }
+    }
 
 }

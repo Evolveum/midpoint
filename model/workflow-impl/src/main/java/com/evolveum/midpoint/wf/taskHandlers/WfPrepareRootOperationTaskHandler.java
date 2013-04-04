@@ -19,9 +19,8 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf;
+package com.evolveum.midpoint.wf.taskHandlers;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -34,17 +33,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
-import com.evolveum.midpoint.wf.messages.QueryProcessCommand;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.InitializingBean;
+import com.evolveum.midpoint.wf.WfConfiguration;
+import com.evolveum.midpoint.wf.WfTaskUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -53,11 +47,11 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class WfRootTaskHandler implements TaskHandler {
+public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/wf-root-task-uri";
 
-    private static final Trace LOGGER = TraceManager.getTrace(WfRootTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WfPrepareRootOperationTaskHandler.class);
 
     @Autowired
     private TaskManager taskManager;
@@ -132,7 +126,7 @@ public class WfRootTaskHandler implements TaskHandler {
             }
 
         } else {
-            LOGGER.info("Workflows are disabled, skipping " + WfRootTaskHandler.class + " run.");
+            LOGGER.info("Workflows are disabled, skipping " + WfPrepareRootOperationTaskHandler.class + " run.");
         }
 
 		TaskRunResult runResult = new TaskRunResult();

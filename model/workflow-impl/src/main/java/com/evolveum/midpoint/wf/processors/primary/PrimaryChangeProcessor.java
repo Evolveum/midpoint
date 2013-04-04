@@ -34,13 +34,12 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.WfRootTaskHandler;
+import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
@@ -60,6 +59,8 @@ import java.util.List;
 public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNameAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
+
+    public static final String UNKNOWN_OID = "?";
 
     @Autowired
     WfTaskUtil wfTaskUtil;
@@ -121,25 +122,6 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         return startProcesses(startProcessInstructions, context, changeBeingDecomposed, task, result);
     }
 
-    private boolean shouldAllExecuteImmediately(List<StartProcessInstructionForPrimaryStage> startProcessInstructions) {
-        for (StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
-            if (!instruction.isExecuteImmediately()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean shouldAllExecuteAfterwards(List<StartProcessInstructionForPrimaryStage> startProcessInstructions) {
-        for (StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
-            if (instruction.isExecuteImmediately()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
     private List<StartProcessInstructionForPrimaryStage> gatherStartProcessInstructions(ModelContext context, ObjectDelta<Objectable> changeBeingDecomposed, Task task, OperationResult result) {
         List<StartProcessInstructionForPrimaryStage> startProcessInstructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
 
@@ -149,9 +131,11 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
             }
             List<StartProcessInstructionForPrimaryStage> processes = wrapper.prepareProcessesToStart(context, changeBeingDecomposed, task, result);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Wrapper " + wrapper.getClass() + " returned the following process start instructions (count: " + processes.size() + "):");
-                for (StartProcessInstructionForPrimaryStage startProcessInstruction : processes) {
-                    LOGGER.trace(startProcessInstruction.debugDump(0));
+                LOGGER.trace("Wrapper " + wrapper.getClass() + " returned the following process start instructions (count: " + (processes == null ? "(null)" : processes.size()) + "):");
+                if (processes != null) {
+                    for (StartProcessInstructionForPrimaryStage startProcessInstruction : processes) {
+                        LOGGER.trace(startProcessInstruction.debugDump(0));
+                    }
                 }
             }
             if (processes != null) {
@@ -185,14 +169,21 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                 ((LensContext) context).replacePrimaryFocusDelta(changeWithoutApproval);
             } else {
                 ((LensContext) context).replacePrimaryFocusDelta(ObjectDelta.createEmptyDelta(
-                        changeWithoutApproval.getObjectTypeClass(), changeWithoutApproval.getOid(), changeWithoutApproval.getPrismContext(), ChangeType.MODIFY));
+                        changeWithoutApproval.getObjectTypeClass(),
+                        changeWithoutApproval.getOid() == null ? UNKNOWN_OID : changeWithoutApproval.getOid(),
+                        changeWithoutApproval.getPrismContext(),
+                        ChangeType.MODIFY));
             }
 
             prepareAndSaveRootTask(executionMode, context, rootTask, result);
 
+            StartProcessInstructionForPrimaryStage instruction0 = null;
+            Task task0 = null;
+
             // in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
+            // we establish dependency links from this child to all other children, so the
             if (executionMode == ExecutionMode.ALL_IMMEDIATELY || executionMode == ExecutionMode.MIXED) {
-                StartProcessInstructionForPrimaryStage instruction0 = new StartProcessInstructionForPrimaryStage();
+                instruction0 = new StartProcessInstructionForPrimaryStage();
                 instruction0.setNoProcess(true);
                 instruction0.setExecuteImmediately(true);
                 instruction0.setTaskName(new PolyStringType("Executing changes that do not require approval"));
@@ -207,6 +198,21 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                 }
 
                 Task childTask = rootTask.createSubtask();
+
+                // remember task for instruction0
+                if (instruction == instruction0) {
+                    task0 = childTask;
+                }
+
+                // establish the dependency on delta0 for immediately-executed parts
+                if (instruction.isExecuteImmediately() && instruction0 != null && instruction != instruction0) {
+                    LOGGER.trace("Setting dependency of {} on 'task0' {}", childTask, task0);
+                    if (task0 == null) {
+                        throw new IllegalStateException("Task corresponding to instruction0 is null; instruction0 = " + instruction0);
+                    }
+                    task0.addDependent(childTask.getTaskIdentifier());
+                    task0.savePendingModifications(result);
+                }
 
                 if (instruction.startsWorkflowProcess()) {
                     wfTaskUtil.setProcessWrapper(childTask, instruction.getWrapper());
@@ -232,11 +238,32 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                 processInstanceController.startProcessInstance(instruction, childTask, result);
             }
 
+            if (LOGGER.isTraceEnabled()) {
+
+                LOGGER.trace("============ Situation just before root task starts waiting for subtasks ============");
+                LOGGER.trace("Root task = " + rootTask.dump());
+                if (wfTaskUtil.hasModelContext(rootTask)) {
+                    LOGGER.trace("Context in root task = " + wfTaskUtil.retrieveModelContext(rootTask, result).debugDump());
+                }
+                for (Task child : rootTask.listSubtasks(result)) {
+                    LOGGER.trace("Child task = " + child.dump());
+                    if (wfTaskUtil.hasModelContext(child)) {
+                        LOGGER.trace("Context in child task = " + wfTaskUtil.retrieveModelContext(child, result).debugDump());
+                    }
+                }
+                LOGGER.trace("Now the root task starts waiting for child tasks");
+            }
+
+            // now all children are created, we can start waiting
+            rootTask.startWaitingForTasksImmediate(result);
+
             return HookOperationMode.BACKGROUND;
 
         } catch (SchemaException e) {
             failReason = e;
         } catch (ObjectNotFoundException e) {
+            failReason = e;
+        } catch (ObjectAlreadyExistsException e) {
             failReason = e;
         } catch (RuntimeException e) {
             failReason = e;
@@ -249,8 +276,25 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
 
-    // if rootContext == null, we do not put ModelOperationTaskHandler & WfRootTaskHandler onto the stack
-    void prepareAndSaveRootTask(ExecutionMode mode, ModelContext rootContext, Task task, OperationResult result) throws SchemaException {
+    private boolean shouldAllExecuteImmediately(List<StartProcessInstructionForPrimaryStage> startProcessInstructions) {
+        for (StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
+            if (!instruction.isExecuteImmediately()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean shouldAllExecuteAfterwards(List<StartProcessInstructionForPrimaryStage> startProcessInstructions) {
+        for (StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
+            if (instruction.isExecuteImmediately()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void prepareAndSaveRootTask(ExecutionMode mode, ModelContext rootContext, Task task, OperationResult result) throws SchemaException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("prepareAndSaveRootTask starting; mode = " + mode + ", task = " + task + ", model context to be stored = " + (rootContext != null ? rootContext.debugDump() : "none"));
@@ -270,26 +314,24 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         if (mode != ExecutionMode.ALL_IMMEDIATELY) {
 
             task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, new ScheduleType(), null);
-            task.pushHandlerUri(WfRootTaskHandler.HANDLER_URI, new ScheduleType(), null);
+            task.pushHandlerUri(WfPrepareRootOperationTaskHandler.HANDLER_URI, new ScheduleType(), null);
             try {
                 wfTaskUtil.storeModelContext(task, rootContext);
             } catch (SchemaException e) {
                 throw new SchemaException("Couldn't put model context into root workflow task " + task, e);
             }
         }
-        // otherwise, we put no handler here, as the sole purpose of the task is to wait for its children
-
-        try {
-            task.waitForSubtasks(5, result);     // todo change subtasking mechanism
-        } catch (ObjectNotFoundException e) {
-            throw new SystemException("Couldn't mark the task as waiting for subtasks: " + e, e);
-        } catch (ObjectAlreadyExistsException e) {
-            throw new SystemException("Couldn't mark the task as waiting for subtasks: " + e, e);
-        }
+        // otherwise, we put no handler here, as the sole purpose of the task is to wait for its children (if ALL_IMMEDIATELY)
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Saving root task: " + task.dump());
         }
+
+        // At this moment, we HAVE NOT entered wait-for-tasks state, because we have no prerequisite tasks (in this case,
+        // children) defined yet. Entering that state would result in immediate execution of this task. We have to
+        // enter this state after all children tasks are created.
+
+        task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
 
         taskManager.switchToBackground(task, result);
     }

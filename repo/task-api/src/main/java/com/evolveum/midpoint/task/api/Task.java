@@ -600,4 +600,6 @@ public interface Task extends Dumpable {
     boolean isClosed();
 
     void makeWaiting(TaskWaitingReason reason);
+
+    void pushWaitForTasksHandlerUri();
 }

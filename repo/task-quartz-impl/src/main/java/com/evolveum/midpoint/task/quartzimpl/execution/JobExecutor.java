@@ -393,10 +393,10 @@ mainCycle:
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.
 			if (task.canRun()) {
-				LOGGER.error("CycleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
+				LOGGER.error("CycleRunner got unexpected exception: {}: {}; task = {}",new Object[] { t.getClass().getName(),t.getMessage(),task,t});
 			} else {
-				LOGGER.info("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage()});
-				LOGGER.trace("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
+				LOGGER.info("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}",new Object[] { t.getClass().getName(),t.getMessage(), task});
+				LOGGER.trace("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}",new Object[] { t.getClass().getName(),t.getMessage(),task,t});
 			}
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
@@ -420,7 +420,7 @@ mainCycle:
     		    return runResult;
             }
     	} catch (Throwable t) {
-			LOGGER.error("Task handler threw unexpected exception: {}: {}", new Object[] { t.getClass().getName(), t.getMessage(), t});
+			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", new Object[] { t.getClass().getName(), t.getMessage(), task, t});
             return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
     	}
 	}

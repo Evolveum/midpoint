@@ -61,6 +61,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
     public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-2";
     public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-2";
     public static final QName MODEL_CONTEXT_PROPERTY = new QName(MODEL_CONTEXT_NS, "modelContext");
+    public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");;
 
     @Autowired(required = true)
 	private TaskManager taskManager;
@@ -77,31 +78,48 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<LensContextType> contextTypeProperty = task.getExtension(MODEL_CONTEXT_PROPERTY);
-        if (contextTypeProperty == null) {
-            throw new SystemException("There's no model context property in task " + task + " (" + MODEL_CONTEXT_PROPERTY + ")");
-        }
+        PrismProperty<Boolean> skipProperty = task.getExtension(SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
 
-        LensContext context = null;
-        try {
-            context = LensContext.fromJaxb(contextTypeProperty.getRealValue(), prismContext);
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
-        }
+        if (skipProperty != null && skipProperty.getRealValue() == Boolean.TRUE) {
 
-        try {
-            clockwork.run(context, task, result);
+            LOGGER.trace("Found " + skipProperty + ", skipping the model operation execution.");
             if (result.isUnknown()) {
                 result.computeStatus();
             }
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-        } catch (Exception e) { // too many various exceptions; will be fixed with java7 :)
-            String message = "An exception occurred within model operation, in task " + task;
-            LoggingUtils.logException(LOGGER, message, e);
-            result.recordPartialError(message, e);
-            // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
-            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR);
-		}
+
+        } else {
+
+            PrismProperty<LensContextType> contextTypeProperty = task.getExtension(MODEL_CONTEXT_PROPERTY);
+            if (contextTypeProperty == null) {
+                throw new SystemException("There's no model context property in task " + task + " (" + MODEL_CONTEXT_PROPERTY + ")");
+            }
+
+            LensContext context = null;
+            try {
+                context = LensContext.fromJaxb(contextTypeProperty.getRealValue(), prismContext);
+            } catch (SchemaException e) {
+                throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
+            }
+
+            try {
+                clockwork.run(context, task, result);
+
+                contextTypeProperty.setRealValue(context.toJaxb());
+                task.setExtensionPropertyImmediate(contextTypeProperty, result);
+
+                if (result.isUnknown()) {
+                    result.computeStatus();
+                }
+                runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
+            } catch (Exception e) { // too many various exceptions; will be fixed with java7 :)
+                String message = "An exception occurred within model operation, in task " + task;
+                LoggingUtils.logException(LOGGER, message, e);
+                result.recordPartialError(message, e);
+                // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
+                runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR);
+            }
+        }
 
         task.getResult().recomputeStatus();
 		runResult.setOperationResult(task.getResult());

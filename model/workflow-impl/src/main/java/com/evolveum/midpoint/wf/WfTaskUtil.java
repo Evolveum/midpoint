@@ -83,6 +83,7 @@ public class WfTaskUtil {
     // wfModelContext - records current model context (i.e. context of current model operation)
 
     private PrismPropertyDefinition wfModelContextPropertyDefinition;
+    private PrismPropertyDefinition wfSkipModelContextProcessingPropertyDefinition;
 
     // wfStatus - records information about process execution at WfMS
     // for "smart" processes it is a user-defined message; for dump ones it is usually simple "process instance has proceeded further"
@@ -135,6 +136,7 @@ public class WfTaskUtil {
     public void init() {
 
         wfModelContextPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY);
+        wfSkipModelContextProcessingPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ModelOperationTaskHandler.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
         wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFSTATUS_PROPERTY_NAME);
         wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLAST_DETAILS_PROPERTY_NAME);
         wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
@@ -146,6 +148,7 @@ public class WfTaskUtil {
         wfProcessInstanceFinishedPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
 
         Validate.notNull(wfModelContextPropertyDefinition, ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY + " definition was not found");
+        Validate.notNull(wfSkipModelContextProcessingPropertyDefinition, ModelOperationTaskHandler.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY + " definition was not found");
         Validate.notNull(wfStatusPropertyDefinition, WFSTATUS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastDetailsPropertyDefinition, WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastVariablesPropertyDefinition, WFLASTVARIABLES_PROPERTY_NAME + " definition was not found");
@@ -216,6 +219,27 @@ public class WfTaskUtil {
 		}
 		
 	}
+
+    private<T> void setExtensionProperty(Task task, PrismPropertyDefinition propertyDef, T propertyValue, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        if (parentResult == null)
+            parentResult = new OperationResult("setExtensionProperty");
+
+        PrismProperty prop = propertyDef.instantiate();
+        prop.setValue(new PrismPropertyValue<T>(propertyValue));
+
+        try {
+            task.setExtensionProperty(prop);
+        } catch (SchemaException ex) {
+            parentResult.recordFatalError("Schema error", ex);
+            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
+            throw ex;
+        } catch (RuntimeException ex) {
+            parentResult.recordFatalError("Internal error", ex);
+            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
+            throw ex;
+        }
+
+    }
 
     // todo: fix this brutal hack (task closing should not go through repo)
 	void markTaskAsClosed(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -526,4 +550,9 @@ public class WfTaskUtil {
         Boolean value = getExtensionValue(Boolean.class, task, WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
         return value != null ? value : false;
     }
+
+    public void setSkipModelContextProcessingProperty(Task task, boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        setExtensionProperty(task, wfSkipModelContextProcessingPropertyDefinition, value, result);
+    }
+
 }

@@ -18,7 +18,7 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<user oid="c0c010c0-d34d-b33f-f00d-11111111111a"
+<user
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
@@ -40,45 +40,45 @@
         </password>
     </credentials>
     
-    <assignment id="1001">
-		<accountConstruction>
-			<description>Brethren account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:ship</ref>
-				<outbound>
-					<expression>
-						<value>Pirate Brethren, Inc.</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<outbound>
-					<source>
-						<path>$c:user/c:locality</path>
-					</source>
-					<expression>
-						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>
-								$c:locality/t:orig
-							</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<outbound>
-					<expression>
-						<value>Sword</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</accountConstruction>
-	</assignment>
+    <!--<assignment id="1001">-->
+		<!--<accountConstruction>-->
+			<!--<description>Brethren account construction</description>-->
+			<!--<resourceRef oid="10000000-0000-0000-0000-000000000004"/>-->
+			<!--&lt;!&ndash; This is inconsistent with the actual resource value (by purpose, so we can test reconcile) &ndash;&gt;-->
+			<!--<attribute>-->
+				<!--<ref>ri:ship</ref>-->
+				<!--<outbound>-->
+					<!--<expression>-->
+						<!--<value>Pirate Brethren, Inc.</value>-->
+					<!--</expression>-->
+				<!--</outbound>-->
+			<!--</attribute>-->
+			<!--<attribute>-->
+				<!--<ref>ri:location</ref>-->
+				<!--<outbound>-->
+					<!--<source>-->
+						<!--<path>$c:user/c:locality</path>-->
+					<!--</source>-->
+					<!--<expression>-->
+						<!--<script>-->
+							<!--<language>http://www.w3.org/TR/xpath/</language>-->
+							<!--<code>-->
+								<!--$c:locality/t:orig-->
+							<!--</code>-->
+						<!--</script>-->
+					<!--</expression>-->
+				<!--</outbound>-->
+			<!--</attribute>-->
+			<!--<attribute>-->
+				<!--<ref>ri:weapon</ref>-->
+				<!--<outbound>-->
+					<!--<expression>-->
+						<!--<value>Sword</value>-->
+					<!--</expression>-->
+				<!--</outbound>-->
+			<!--</attribute>-->
+		<!--</accountConstruction>-->
+	<!--</assignment>-->
 
     <assignment>
         <c:targetRef oid="00000001-d34d-b33f-f00d-000000000001" type="c:RoleType" />
@@ -90,22 +90,22 @@
         <c:targetRef oid="00000001-d34d-b33f-f00d-000000000004" type="c:RoleType" />
     </c:assignment>
 
-    <assignment>
-		<accountConstruction>
-			<description>Undead monkey account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:weapon</ref>
-				<outbound>
-					<expression>
-						<value>Undead Monkey</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</accountConstruction>
-	</assignment>
+    <!--<assignment>-->
+		<!--<accountConstruction>-->
+			<!--<description>Undead monkey account construction</description>-->
+			<!--<resourceRef oid="10000000-0000-0000-0000-000000000004"/>-->
+			<!--&lt;!&ndash; This is inconsistent with the actual resource value (by purpose, so we can test reconcile) &ndash;&gt;-->
+			<!--<attribute>-->
+				<!--<ref>ri:weapon</ref>-->
+				<!--<outbound>-->
+					<!--<expression>-->
+						<!--<value>Undead Monkey</value>-->
+					<!--</expression>-->
+				<!--</outbound>-->
+			<!--</attribute>-->
+		<!--</accountConstruction>-->
+	<!--</assignment>-->
     
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+    <!--<accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>-->
     
 </user>

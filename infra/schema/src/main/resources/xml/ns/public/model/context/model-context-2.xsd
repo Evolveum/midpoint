@@ -394,6 +394,18 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="skipModelContextProcessing" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

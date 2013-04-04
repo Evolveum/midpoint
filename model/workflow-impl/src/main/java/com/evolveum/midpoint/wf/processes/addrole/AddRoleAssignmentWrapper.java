@@ -48,6 +48,7 @@ import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
 import com.evolveum.midpoint.wf.processes.general.Decision;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
@@ -288,7 +289,7 @@ public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
         addRoleDelta.addValueToAdd(approvalRequest.getItemToApprove().asPrismContainerValue().clone());
 
         // casting to ObjectDelta is an ugly hack, but...
-        return (ObjectDelta) ObjectDelta.createModifyDelta(objectOid != null ? objectOid : "?", addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
+        return (ObjectDelta) ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
     }
 
 

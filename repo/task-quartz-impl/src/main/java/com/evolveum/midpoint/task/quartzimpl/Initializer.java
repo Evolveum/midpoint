@@ -32,6 +32,7 @@ import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.task.quartzimpl.execution.TaskSynchronizer;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksTaskHandler;
+import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -98,6 +99,7 @@ public class Initializer {
 
         NoOpTaskHandler.instantiateAndRegister(taskManager);
         WaitForSubtasksTaskHandler.instantiateAndRegister(taskManager);
+        WaitForTasksTaskHandler.instantiateAndRegister(taskManager);
         JobExecutor.setTaskManagerQuartzImpl(taskManager);       // unfortunately, there seems to be no clean way of letting jobs know the taskManager
 
         taskManager.getExecutionManager().initializeLocalScheduler();

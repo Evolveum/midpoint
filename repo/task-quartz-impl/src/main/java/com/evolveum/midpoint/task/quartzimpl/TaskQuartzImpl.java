@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksTaskHandler;
+import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
@@ -715,7 +716,7 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (getExecutionStatus() != TaskExecutionStatus.WAITING || getWaitingReason() != TaskWaitingReason.OTHER_TASKS) {
             return;
@@ -940,6 +941,7 @@ public class TaskQuartzImpl implements Task {
                 taskManager.getTaskObjectDefinition(), TaskType.F_WAITING_REASON, value.toTaskType()) : null;
     }
 
+    // "safe" method
     @Override
     public void startWaitingForTasksImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (getExecutionStatus() != TaskExecutionStatus.WAITING) {
@@ -2142,4 +2144,8 @@ public class TaskQuartzImpl implements Task {
 //    }
 
 
+    @Override
+    public void pushWaitForTasksHandlerUri() {
+        pushHandlerUri(WaitForTasksTaskHandler.HANDLER_URI, new ScheduleType(), null);
+    }
 }

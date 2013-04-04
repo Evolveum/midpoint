@@ -39,6 +39,8 @@ import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
 import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.taskHandlers.WfPrepareChildOperationTaskHandler;
+import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
@@ -112,8 +114,10 @@ public class ProcessInstanceController {
 
         if (instruction.isExecuteImmediately()) {
             task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, null, null);
+            task.pushHandlerUri(WfPrepareChildOperationTaskHandler.HANDLER_URI, null, null);
+            task.pushWaitForTasksHandlerUri();
         }
-        if (!instruction.isNoProcess()) {
+        if (instruction.startsWorkflowProcess()) {
             if (instruction.isSimple()) {
                 prepareActiveWfShadowTask(task, result);
             } else {

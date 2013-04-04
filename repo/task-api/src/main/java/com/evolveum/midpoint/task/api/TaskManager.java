@@ -521,4 +521,6 @@ public interface TaskManager {
 
     // currently finds only persistent tasks
     Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+
+    void pauseTask(Task task, TaskWaitingReason reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

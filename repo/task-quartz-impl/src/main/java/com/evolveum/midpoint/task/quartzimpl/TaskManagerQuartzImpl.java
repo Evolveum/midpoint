@@ -360,6 +360,41 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // todo: better name for this method
 
     @Override
+    public void pauseTask(Task task, TaskWaitingReason reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "pauseTask");
+        result.addParam("task", task);
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
+            String message = "Attempted to pause a task that is not in the RUNNABLE state (task = " + task + ", state = " + task.getExecutionStatus();
+            LOGGER.error(message);
+            result.recordFatalError(message);
+            return;
+        }
+        try {
+            ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.WAITING, result);
+            ((TaskQuartzImpl) task).setWaitingReasonImmediate(reason, result);
+        } catch (ObjectNotFoundException e) {
+            String message = "A task cannot be paused, because it does not exist; task = " + task;
+            LoggingUtils.logException(LOGGER, message, e);
+            throw e;
+        } catch (SchemaException e) {
+            String message = "A task cannot be paused due to schema exception; task = " + task;
+            LoggingUtils.logException(LOGGER, message, e);
+            throw e;
+        }
+
+        // make the trigger as it should be
+        executionManager.synchronizeTask((TaskQuartzImpl) task, result);
+
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
+    }
+
+    // todo: better name for this method
+
+    @Override
     public void unpauseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "unpauseTask");
@@ -1054,7 +1089,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         filter = filter2 != null ? AndFilter.createAnd(filter1, filter2) : filter1;
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        query = new ObjectQuery();  // todo remove this hack when searching will work
+//        query = new ObjectQuery();  // todo remove this hack when searching will work
 
         List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, result);
         List<Task> tasks = resolveTasksFromTaskTypes(prisms, result);
