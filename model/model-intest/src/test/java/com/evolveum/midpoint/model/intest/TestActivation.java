@@ -87,7 +87,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -206,11 +206,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -336,7 +336,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, true);
-        ObjectDelta<ResourceObjectShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
         		ACTIVATION_ENABLED_PATH, false);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
@@ -409,7 +409,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, false);
         
-        ObjectDelta<ResourceObjectShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy, 
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy, 
         		ACTIVATION_ENABLED_PATH, true);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
@@ -439,9 +439,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        ObjectDelta<ResourceObjectShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(accountOid, 
+        ObjectDelta<ShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(accountOid, 
         		resourceDummy, ACTIVATION_ENABLED_PATH, true);
-        ObjectDelta<ResourceObjectShadowType> accountDeltaRed = createModifyAccountShadowReplaceDelta(accountRedOid, 
+        ObjectDelta<ShadowType> accountDeltaRed = createModifyAccountShadowReplaceDelta(accountRedOid, 
         		resourceDummyRed, ACTIVATION_ENABLED_PATH, true);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaRed);
 		

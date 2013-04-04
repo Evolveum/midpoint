@@ -43,7 +43,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -75,7 +75,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         MockLensDebugListener mockListener = new MockLensDebugListener();
         clockwork.setDebugListener(mockListener);
         
-        PrismObject<ResourceObjectShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, ResourceObjectShadowType.class, result);
+        PrismObject<ShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, ShadowType.class, result);
         provisioningService.applyDefinition(accountShadowJack, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
@@ -93,7 +93,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
-        LensContext<UserType, ResourceObjectShadowType> context = mockListener.getLastSyncContext();
+        LensContext<UserType, ShadowType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -102,7 +102,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
         
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
-		LensProjectionContext<ResourceObjectShadowType> accCtx = context.findProjectionContext(rat);
+		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
 		assertNull("Unexpected account primary delta", accCtx.getPrimaryDelta());

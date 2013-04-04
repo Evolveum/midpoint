@@ -47,7 +47,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
@@ -126,7 +126,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 
 	public ItemPath getAttributeFullnamePath() {
-		return new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, getAttributeFullnameQName());
+		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeFullnameQName());
 	}
 	
 	public QName getAttributeWeaponQName() {
@@ -136,7 +136,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public ItemPath getAttributeWeaponPath() {
 		assertExtendedSchema();
-		return new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, getAttributeWeaponQName());
+		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeWeaponQName());
 	}
 	
 	private void assertExtendedSchema() {

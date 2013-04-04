@@ -40,8 +40,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.Validate;
@@ -101,11 +101,11 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             }
 
             query.setPaging(paging);
-            List<PrismObject<ResourceObjectShadowType>> list = getModel().searchObjects(ResourceObjectShadowType.class,
+            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class,
                     query, null, task, result);
 
             AccountContentDto dto;
-            for (PrismObject<ResourceObjectShadowType> object : list) {
+            for (PrismObject<ShadowType> object : list) {
                 dto = createAccountContentDto(object, result);
                 getAvailableData().add(new SelectableBean<AccountContentDto>(dto));
             }
@@ -129,7 +129,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
         return Integer.MAX_VALUE;
     }
 
-    private AccountContentDto createAccountContentDto(PrismObject<ResourceObjectShadowType> object, OperationResult result)
+    private AccountContentDto createAccountContentDto(PrismObject<ShadowType> object, OperationResult result)
             throws SchemaException, SecurityViolationException {
 
         AccountContentDto dto = new AccountContentDto();
@@ -149,7 +149,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             dto.setOwnerOid(owner.getOid());
         }
 
-        dto.setSituation(WebMiscUtil.getValue(object, ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION,
+        dto.setSituation(WebMiscUtil.getValue(object, ShadowType.F_SYNCHRONIZATION_SITUATION,
                 SynchronizationSituationType.class));
 
         return dto;

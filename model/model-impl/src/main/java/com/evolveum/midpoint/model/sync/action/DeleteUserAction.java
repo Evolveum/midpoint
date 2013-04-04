@@ -47,7 +47,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -81,7 +81,7 @@ public class DeleteUserAction extends BaseAction {
             throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             context.rememberResource(change.getResource().asObjectable());
@@ -96,7 +96,7 @@ public class DeleteUserAction extends BaseAction {
             focusContext.setPrimaryDelta(userDelta);
 
             //create account context for this change
-            LensProjectionContext<ResourceObjectShadowType> accContext = createAccountLensContext(context, change, null, null);
+            LensProjectionContext<ShadowType> accContext = createAccountLensContext(context, change, null, null);
             if (accContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;

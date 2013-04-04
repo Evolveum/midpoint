@@ -103,7 +103,7 @@ public class ObjectWrapper implements Serializable {
 	
 	public Boolean getEnableStatus() {
 		ContainerWrapper activation = null;
-		ItemPath resourceActivationPath = new ItemPath(ResourceObjectShadowType.F_ACTIVATION);
+		ItemPath resourceActivationPath = new ItemPath(ShadowType.F_ACTIVATION);
 		for (ContainerWrapper container : getContainers()) {
 			Class clazz = container.getItem().getCompileTimeClass();
 			if(clazz != null) {
@@ -227,27 +227,27 @@ public class ObjectWrapper implements Serializable {
 
 		try {
 			Class clazz = object.getCompileTimeClass();
-			if (ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
-				PrismContainer attributes = object.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+			if (ShadowType.class.isAssignableFrom(clazz)) {
+				PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
 				ContainerStatus status = attributes != null ? getStatus() : ContainerStatus.ADDING;
 				if (attributes == null) {
 					PrismContainerDefinition definition = object.getDefinition().findContainerDefinition(
-							ResourceObjectShadowType.F_ATTRIBUTES);
+							ShadowType.F_ATTRIBUTES);
 					attributes = definition.instantiate();
 				}
 
 				ContainerWrapper container = new ContainerWrapper(this, attributes, status, new ItemPath(
-						ResourceObjectShadowType.F_ATTRIBUTES));
+						ShadowType.F_ATTRIBUTES));
 				
 				container.setMain(true);
 				containers.add(container);
 				
-				if (hasResourceCapability(((ResourceObjectShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
-					containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
+				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
+					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ACTIVATION));
 				}
-				if (ResourceObjectShadowType.class.isAssignableFrom(clazz) && 
-						hasResourceCapability(((ResourceObjectShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
-					containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_CREDENTIALS));
+				if (ShadowType.class.isAssignableFrom(clazz) && 
+						hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
+					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_CREDENTIALS));
 				}
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
                 containers =  createResourceContainers();
@@ -400,11 +400,11 @@ public class ObjectWrapper implements Serializable {
                     //todo this is bad hack because now we have not tri-state checkbox
 					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
 						
-						if (object.asObjectable() instanceof ResourceObjectShadowType
-                                && (((ResourceObjectShadowType) object.asObjectable()).getActivation() == null
-                                || ((ResourceObjectShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
+						if (object.asObjectable() instanceof ShadowType
+                                && (((ShadowType) object.asObjectable()).getActivation() == null
+                                || ((ShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
 							
-							if (!hasResourceCapability(((ResourceObjectShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
+							if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 								continue;
 							}
 						}

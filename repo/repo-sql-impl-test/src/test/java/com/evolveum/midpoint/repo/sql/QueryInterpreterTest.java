@@ -148,7 +148,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.add(disjunction);
 
         String expected = HibernateToSqlTranslator.toSql(main);
-        String real = getInterpretedQuery(session, ResourceObjectShadowType.class,
+        String real = getInterpretedQuery(session, ShadowType.class,
                 new File(TEST_DIR, "query-or-composite.xml"));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
@@ -252,7 +252,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.add(conjunction);
 
         String expected = HibernateToSqlTranslator.toSql(main);
-        String real = getInterpretedQuery(session, ResourceObjectShadowType.class,
+        String real = getInterpretedQuery(session, ShadowType.class,
                 new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
@@ -302,12 +302,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         LOGGER.info("QUERY TYPE TO CONVERT : {}", QueryUtil.dump(queryType));
 
-        ObjectQuery query = null;
-        try {
-            query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
-        } catch (Exception ex) {
-            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
-        }
+        ObjectQuery  query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
+
         Criteria criteria = interpreter.interpret(query.getFilter());
         return HibernateToSqlTranslator.toSql(criteria);
     }

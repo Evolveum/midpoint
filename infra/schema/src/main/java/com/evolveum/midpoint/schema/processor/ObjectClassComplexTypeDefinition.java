@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
@@ -310,7 +310,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	}
 	
 	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-		return toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+		return toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
 	}
 	
 	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {

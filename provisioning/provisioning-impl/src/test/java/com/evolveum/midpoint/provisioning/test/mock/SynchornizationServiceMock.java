@@ -24,7 +24,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
@@ -81,7 +81,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		assertTrue("Either current shadow or delta must be present", change.getCurrentShadow() != null
 				|| change.getObjectDelta() != null);
 		if (change.getCurrentShadow() != null) {
-			ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
+			ShadowType currentShadowType = change.getCurrentShadow().asObjectable();
 			if (currentShadowType != null) {
 				// not a useful check..the current shadow could be null
 				assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
@@ -108,7 +108,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 				}
 
 				if (change.getCurrentShadow().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
-					ResourceObjectShadowType account = change.getCurrentShadow().asObjectable();
+					ShadowType account = change.getCurrentShadow().asObjectable();
 					assertNotNull("Current shadow does not have activation", account.getActivation());
 					assertNotNull("Current shadow activation/enabled is null", account.getActivation()
 							.isEnabled());
@@ -181,7 +181,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		assertNotNull("Current shadow not present", opDescription.getCurrentShadow());
 		assertNotNull("Delta not present", opDescription.getObjectDelta());
 		if (opDescription.getCurrentShadow() != null) {
-			ResourceObjectShadowType currentShadowType = opDescription.getCurrentShadow().asObjectable();
+			ShadowType currentShadowType = opDescription.getCurrentShadow().asObjectable();
 			if (currentShadowType != null) {
 				// not a useful check..the current shadow could be null
 				if (!failure){

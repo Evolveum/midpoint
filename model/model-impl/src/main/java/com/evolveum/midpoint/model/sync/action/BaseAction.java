@@ -69,7 +69,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -185,13 +185,13 @@ public abstract class BaseAction implements Action {
     /**
      * Creates empty lens context, filling in only the very basic metadata (such as channel).
      */
-    protected LensContext<UserType, ResourceObjectShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
-    	LensContext<UserType, ResourceObjectShadowType> context = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, getPrismContext());
+    protected LensContext<UserType, ShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
+    	LensContext<UserType, ShadowType> context = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, getPrismContext());
     	context.setChannel(change.getSourceChannel());
     	return context;
     }
 
-    protected LensProjectionContext<ResourceObjectShadowType> createAccountLensContext(LensContext<UserType, ResourceObjectShadowType> context,
+    protected LensProjectionContext<ShadowType> createAccountLensContext(LensContext<UserType, ShadowType> context,
             ResourceObjectShadowChangeDescription change, SynchronizationIntent syncIntent,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.trace("Creating account context for sync change.");
@@ -201,14 +201,14 @@ public abstract class BaseAction implements Action {
         String accountType = getAccountTypeFromChange(change);
         boolean thombstone = isThombstone(change);
 		ResourceShadowDiscriminator resourceAccountType = new ResourceShadowDiscriminator(resource.getOid(), accountType, thombstone);
-		LensProjectionContext<ResourceObjectShadowType> accountContext = context.createProjectionContext(resourceAccountType);
+		LensProjectionContext<ShadowType> accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
 
         //insert object delta if available in change
-        ObjectDelta<? extends ResourceObjectShadowType> delta = change.getObjectDelta();
+        ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
         if (delta != null) {
-            accountContext.setSyncDelta((ObjectDelta<ResourceObjectShadowType>) delta);
+            accountContext.setSyncDelta((ObjectDelta<ShadowType>) delta);
         }
 
         //we insert account if available in change
@@ -228,7 +228,7 @@ public abstract class BaseAction implements Action {
     }
 
 	private boolean isThombstone(ResourceObjectShadowChangeDescription change) {
-		PrismObject<? extends ResourceObjectShadowType> shadow = null;
+		PrismObject<? extends ShadowType> shadow = null;
 		if (change.getOldShadow() != null){
 			shadow = change.getOldShadow();
 		} else if (change.getCurrentShadow() != null){
@@ -239,15 +239,15 @@ public abstract class BaseAction implements Action {
 				return shadow.asObjectable().isDead().booleanValue();
 			}
 		}
-		ObjectDelta<? extends ResourceObjectShadowType> objectDelta = change.getObjectDelta();
+		ObjectDelta<? extends ShadowType> objectDelta = change.getObjectDelta();
 		if (objectDelta == null) {
 			return false;
 		}
 		return objectDelta.isDelete();
 	}
 
-	private void updateAccountActivation(LensProjectionContext<ResourceObjectShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
-        PrismObject<ResourceObjectShadowType> object = accContext.getObjectOld();
+	private void updateAccountActivation(LensProjectionContext<ShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
+        PrismObject<ShadowType> object = accContext.getObjectOld();
         if (object == null) {
             LOGGER.trace("Account object is null, skipping activation property check/update.");
             return;
@@ -256,9 +256,9 @@ public abstract class BaseAction implements Action {
         PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
         LOGGER.trace("Account activation defined, activation property found {}", enable);
 
-        ObjectDelta<ResourceObjectShadowType> accDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accDelta = accContext.getSecondaryDelta();
         if (accDelta == null) {
-            accDelta = new ObjectDelta<ResourceObjectShadowType>(ResourceObjectShadowType.class, ChangeType.MODIFY, prismContext);
+            accDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
             accDelta.setOid(accContext.getOid());
             accContext.setSecondaryDelta(accDelta);
         }
@@ -293,10 +293,10 @@ public abstract class BaseAction implements Action {
         return reconcileAttributes;
     }
 
-    private PrismObject<ResourceObjectShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
+    private PrismObject<ShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
             throws SchemaException {
 
-    	PrismObject<ResourceObjectShadowType> account = getAccountShadowFromChange(change);
+    	PrismObject<ShadowType> account = getAccountShadowFromChange(change);
         if (account == null) {
             return null;
         }
@@ -305,20 +305,20 @@ public abstract class BaseAction implements Action {
         return account;
     }
 
-    protected PrismObject<ResourceObjectShadowType> getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
+    protected PrismObject<ShadowType> getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getCurrentShadow() != null) {
-            return (PrismObject<ResourceObjectShadowType>) change.getCurrentShadow();
+            return (PrismObject<ShadowType>) change.getCurrentShadow();
         }
 
         if (change.getOldShadow() != null) {
-            return (PrismObject<ResourceObjectShadowType>) change.getOldShadow();
+            return (PrismObject<ShadowType>) change.getOldShadow();
         }
 
         return null;
     }
 
     private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {
-    	PrismObject<ResourceObjectShadowType> account = getAccountShadowFromChange(change);
+    	PrismObject<ShadowType> account = getAccountShadowFromChange(change);
         if (account != null) {
             return ResourceObjectShadowUtil.getIntent(account.asObjectable());
         }
@@ -337,7 +337,7 @@ public abstract class BaseAction implements Action {
         return change.getCurrentShadow().getOid();
     }
 
-    protected void synchronizeUser(LensContext<UserType, ResourceObjectShadowType> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
+    protected void synchronizeUser(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
     	Validate.notNull(context, "Sync context must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
         try {
@@ -375,13 +375,13 @@ public abstract class BaseAction implements Action {
 		}
     }
 
-	private void logSynchronizationError(Throwable ex, LensContext<UserType,ResourceObjectShadowType> context) {
+	private void logSynchronizationError(Throwable ex, LensContext<UserType,ShadowType> context) {
 		if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Synchronization error: {}\n{})", ex.getMessage(), context.dump());
     	}
 	}
 
-	protected void executeChanges(LensContext<UserType, ResourceObjectShadowType> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RewindException {
+	protected void executeChanges(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RewindException {
 		Validate.notNull(context, "Sync context must not be null.");
         try {
             getExecutor().executeChanges(context, task, result);
@@ -415,7 +415,7 @@ public abstract class BaseAction implements Action {
 		}
     }
 	
-	private void logExecutionError(Throwable ex, LensContext<UserType,ResourceObjectShadowType> context) {
+	private void logExecutionError(Throwable ex, LensContext<UserType,ShadowType> context) {
 		if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Execution error: {}\n{})", ex.getMessage(), context.dump());
     	}
@@ -428,7 +428,7 @@ public abstract class BaseAction implements Action {
 
         PropertyDelta delta = objectDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
         if (delta == null) {
-            delta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, ResourceObjectShadowType.class,
+            delta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, ShadowType.class,
             		getPrismContext());
             objectDelta.addModification(delta);
         }

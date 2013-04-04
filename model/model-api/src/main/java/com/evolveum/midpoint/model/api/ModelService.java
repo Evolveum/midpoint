@@ -51,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -402,7 +402,7 @@ public interface ModelService {
 	 * @return list of found shadows
 	 * @throws ObjectNotFoundException
 	 */
-	<T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	<T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
 
@@ -456,7 +456,7 @@ public interface ModelService {
 	 * @throws CommunicationException
 	 *             error communicating with the resource
 	 */
-	List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
+	List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, 
 			ConfigurationException, SecurityViolationException;
 

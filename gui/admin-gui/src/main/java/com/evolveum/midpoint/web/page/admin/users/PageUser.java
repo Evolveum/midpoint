@@ -108,7 +108,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -117,7 +117,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -325,7 +325,7 @@ public class PageUser extends PageAdminUsers {
 					}
 
 				} else if (delta.isModify()
-						&& ResourceObjectShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+						&& ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
 					try {
 						accountWrapper.setOldDelta(delta);
 						accountWrapper.setMinimalized(false);
@@ -341,8 +341,8 @@ public class PageUser extends PageAdminUsers {
 
 		for (ObjectDelta delta : deltas) {
 			if (delta.getObjectToAdd() != null
-					&& ResourceObjectShadowType.class.isAssignableFrom(delta.getObjectToAdd().getCompileTimeClass())) {
-				ResourceObjectShadowType shadow = (ResourceObjectShadowType) delta.getObjectToAdd().asObjectable();
+					&& ShadowType.class.isAssignableFrom(delta.getObjectToAdd().getCompileTimeClass())) {
+				ShadowType shadow = (ShadowType) delta.getObjectToAdd().asObjectable();
 				String resourceName = null;
 				if (shadow.getResource() != null) {
 					resourceName = shadow.getResource().getName().getOrig();
@@ -652,15 +652,15 @@ public class PageUser extends PageAdminUsers {
 			OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
 			try {
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-						ResourceObjectShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+						ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
 				if (reference.getOid() == null) {
 					continue;
 				}
 
-				PrismObject<ResourceObjectShadowType> account = getModelService().getObject(ResourceObjectShadowType.class,
+				PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
 						reference.getOid(), options, task, subResult);
-				ResourceObjectShadowType accountType = account.asObjectable();
+				ShadowType accountType = account.asObjectable();
 
 				OperationResultType fetchResult = accountType.getFetchResult();
 				if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
@@ -1147,7 +1147,7 @@ public class PageUser extends PageAdminUsers {
 
 			ObjectWrapper accountWrapper = accDto.getObject();
 			ObjectDelta delta = accountWrapper.getObjectDelta();
-			PrismObject<ResourceObjectShadowType> account = delta.getObjectToAdd();
+			PrismObject<ShadowType> account = delta.getObjectToAdd();
 			WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
 
 			userType.getAccount().add(account.asObjectable());
@@ -1203,7 +1203,7 @@ public class PageUser extends PageAdminUsers {
 			ObjectDelta delta = accountWrapper.getObjectDelta();
 			PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
-			PrismObject<ResourceObjectShadowType> account;
+			PrismObject<ShadowType> account;
 			switch (accDto.getStatus()) {
 			case ADD:
 				account = delta.getObjectToAdd();
@@ -1221,7 +1221,7 @@ public class PageUser extends PageAdminUsers {
 				continue;
 			case UNLINK:
 				refValue.setOid(delta.getOid());
-				refValue.setTargetType(ResourceObjectShadowType.COMPLEX_TYPE);
+				refValue.setTargetType(ShadowType.COMPLEX_TYPE);
 				refDelta.addValueToDelete(refValue);
 				break;
 			default:
@@ -1439,8 +1439,8 @@ public class PageUser extends PageAdminUsers {
 			UserType userType = user.asObjectable();
 			for (ObjectReferenceType ref : userType.getAccountRef()) {
 				Object o = findParam("shadow", ref.getOid(), result);
-				if (o != null && o instanceof ResourceObjectShadowType) {
-					ResourceObjectShadowType accountType = (ResourceObjectShadowType) o;
+				if (o != null && o instanceof ShadowType) {
+					ShadowType accountType = (ShadowType) o;
 					OperationResultType fetchResult = accountType.getFetchResult();
 					if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
 						showResultInSession(OperationResult.createOperationResult(fetchResult));
@@ -1695,7 +1695,7 @@ public class PageUser extends PageAdminUsers {
 
 		for (ResourceType resource : newResources) {
 			try {
-				ResourceObjectShadowType shadow = new ResourceObjectShadowType();
+				ShadowType shadow = new ShadowType();
 				shadow.setResource(resource);
 
 				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),
@@ -1790,7 +1790,7 @@ public class PageUser extends PageAdminUsers {
 		for (UserAccountDto account : accounts) {
 			ObjectWrapper wrapper = account.getObject();
 			ContainerWrapper activation = wrapper.findContainerWrapper(new ItemPath(
-					ResourceObjectShadowType.F_ACTIVATION));
+					ShadowType.F_ACTIVATION));
 			if (activation == null) {
 				warn(getString("pageUser.message.noActivationFound", wrapper.getDisplayName()));
 				continue;

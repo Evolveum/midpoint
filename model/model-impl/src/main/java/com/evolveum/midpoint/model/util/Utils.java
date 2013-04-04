@@ -50,7 +50,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 import org.apache.commons.lang.Validate;
@@ -63,7 +63,7 @@ public final class Utils {
     private Utils() {
     }
 
-    public static void resolveResource(ResourceObjectShadowType shadow, ProvisioningService provisioning,
+    public static void resolveResource(ShadowType shadow, ProvisioningService provisioning,
             OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException, 
             SecurityViolationException {
 
@@ -75,7 +75,7 @@ public final class Utils {
         shadow.setResource(resource);
     }
 
-    public static ResourceType getResource(ResourceObjectShadowType shadow, ProvisioningService provisioning,
+    public static ResourceType getResource(ShadowType shadow, ProvisioningService provisioning,
             OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException, 
             SecurityViolationException {
 

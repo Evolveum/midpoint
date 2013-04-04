@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -78,10 +78,10 @@ public class SynchronizeAction extends BaseAction {
             OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
         super.executeChanges(userOid, change, situation, auditRecord, task, result);
 
-        Class<? extends ResourceObjectShadowType> clazz = getClassFromChange(change);
-        if (!ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
+        Class<? extends ShadowType> clazz = getClassFromChange(change);
+        if (!ShadowType.class.isAssignableFrom(clazz)) {
             throw new SchemaException("Couldn't synchronize shadow of type '"
-                    + clazz + "', only '" + ResourceObjectShadowType.class.getName() + "' is supported.");
+                    + clazz + "', only '" + ShadowType.class.getName() + "' is supported.");
         }
 
         OperationResult subResult = result.createSubresult(actionName);
@@ -98,11 +98,11 @@ public class SynchronizeAction extends BaseAction {
             throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, ResourceObjectShadowType> context = null;
+        LensContext<UserType, ShadowType> context = null;
         try {
             context = createLensContext(userType, change.getResource().asObjectable(), change);
 
-            LensProjectionContext<ResourceObjectShadowType> accountContext = createAccountLensContext(context, change,
+            LensProjectionContext<ShadowType> accountContext = createAccountLensContext(context, change,
                     SynchronizationIntent.SYNCHRONIZE, null);
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
@@ -123,7 +123,7 @@ public class SynchronizeAction extends BaseAction {
         return userOid;
     }
 
-    private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
+    private Class<? extends ShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getObjectDelta() != null) {
             return change.getObjectDelta().getObjectTypeClass();
         }
@@ -135,13 +135,13 @@ public class SynchronizeAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, ResourceObjectShadowType> createLensContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private LensContext<UserType, ShadowType> createLensContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
         		UserType.COMPLEX_TYPE);
 
-        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         PrismObject<UserType> oldUser = user.asPrismObject();
         focusContext.setObjectOld(oldUser);

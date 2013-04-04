@@ -48,7 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
@@ -68,7 +68,7 @@ public class CorrelationConfirmationEvaluator {
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
 
-	public List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
+	public List<PrismObject<UserType>> findUsersByCorrelationRule(ShadowType currentShadow,
 			QueryType query, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (query == null) {
@@ -135,7 +135,7 @@ public class CorrelationConfirmationEvaluator {
 		return users;
 	}
 
-	public boolean matchUserCorrelationRule(PrismObject<ResourceObjectShadowType> currentShadow, PrismObject<UserType> userType, ResourceType resourceType, OperationResult result){
+	public boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, PrismObject<UserType> userType, ResourceType resourceType, OperationResult result){
 
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resourceType, UserType.class);
 		
@@ -202,7 +202,7 @@ public class CorrelationConfirmationEvaluator {
 
 	
 	public List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users,
-			ResourceObjectShadowType currentShadow, ResourceType resource, ExpressionType expression, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
+			ShadowType currentShadow, ResourceType resource, ExpressionType expression, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
 			 {
 
 		List<PrismObject<UserType>> list = new ArrayList<PrismObject<UserType>>();
@@ -234,7 +234,7 @@ public class CorrelationConfirmationEvaluator {
 		return list;
 	}
 
-	private ObjectQuery updateFilterWithAccountValues(ResourceObjectShadowType currentShadow, ResourceType resource,
+	private ObjectQuery updateFilterWithAccountValues(ShadowType currentShadow, ResourceType resource,
 			ObjectQuery query, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		LOGGER.trace("updateFilterWithAccountValues::begin");
 		if (query.getFilter() == null) {
@@ -299,7 +299,7 @@ public class CorrelationConfirmationEvaluator {
 
 	
 	public static Map<QName, Object> getDefaultXPathVariables(UserType user,
-			ResourceObjectShadowType shadow, ResourceType resource) {
+			ShadowType shadow, ResourceType resource) {
 		
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		if (user != null) {
@@ -317,7 +317,7 @@ public class CorrelationConfirmationEvaluator {
 		return variables;
 	}
 	
-	private PrismPropertyValue evaluateExpression(ResourceObjectShadowType currentShadow,
+	private PrismPropertyValue evaluateExpression(ShadowType currentShadow,
 			ResourceType resource, ExpressionType valueExpression, ObjectQuery query, String shortDesc,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 	Map<QName, Object> variables = getDefaultXPathVariables(null, currentShadow, resource);
@@ -354,7 +354,7 @@ public class CorrelationConfirmationEvaluator {
 //				shortDesc, result);
    	}
 	
-	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow, ResourceType resource,
+	public boolean evaluateConfirmationExpression(UserType user, ShadowType shadow, ResourceType resource,
 			ExpressionType expressionType, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");

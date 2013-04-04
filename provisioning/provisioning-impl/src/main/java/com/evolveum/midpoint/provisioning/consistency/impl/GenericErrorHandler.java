@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 @Component
@@ -51,7 +51,7 @@ public class GenericErrorHandler extends ErrorHandler{
 	
 	
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		
@@ -146,7 +146,7 @@ public class GenericErrorHandler extends ErrorHandler{
 						// time by processing this shadow, we can try again
 						// TODO: probably there is a need to union current
 						// changes with previous
-						cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadow.getOid(), modifications,
+						cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
 								result);
 						result.recordHandledError("Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
 					}

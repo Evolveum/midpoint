@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -114,11 +114,11 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test200AddAccountNullAttributes");
 		syncServiceMock.reset();
 
-		ResourceObjectShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ResourceObjectShadowType.class);
-		PrismObject<ResourceObjectShadowType> account = accountType.asPrismObject();
+		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
-		account.removeContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		account.removeContainer(ShadowType.F_ATTRIBUTES);
 
 		display("Adding shadow", account);
 
@@ -145,11 +145,11 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test201AddAccountEmptyAttributes");
 		syncServiceMock.reset();
 
-		ResourceObjectShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ResourceObjectShadowType.class);
-		PrismObject<ResourceObjectShadowType> account = accountType.asPrismObject();
+		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
-		account.findContainer(ResourceObjectShadowType.F_ATTRIBUTES).getValue().clear();
+		account.findContainer(ShadowType.F_ATTRIBUTES).getValue().clear();
 
 		display("Adding shadow", account);
 
@@ -176,8 +176,8 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test210AddAccountNoObjectclass");
 		syncServiceMock.reset();
 
-		ResourceObjectShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ResourceObjectShadowType.class);
-		PrismObject<ResourceObjectShadowType> account = accountType.asPrismObject();
+		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
 		// IMPORTANT: deliberately violating the schema
@@ -209,8 +209,8 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test220AddAccountNoResourceRef");
 		syncServiceMock.reset();
 
-		ResourceObjectShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ResourceObjectShadowType.class);
-		PrismObject<ResourceObjectShadowType> account = accountType.asPrismObject();
+		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
 		accountType.setResourceRef(null);
@@ -241,8 +241,8 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test221DeleteAccountResourceNotFound");
 		syncServiceMock.reset();
 
-		ResourceObjectShadowType accountType = parseObjectTypeFromFile(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME, ResourceObjectShadowType.class);
-		PrismObject<ResourceObjectShadowType> account = accountType.asPrismObject();
+		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME, ShadowType.class);
+		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
 //		accountType.setResourceRef(null);
@@ -253,7 +253,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			// WHEN
 			String oid = repositoryService.addObject(account, null, result);
 			ProvisioningOperationOptions options = ProvisioningOperationOptions.createForce(true);
-			provisioningService.deleteObject(ResourceObjectShadowType.class, oid, options, null, task, result);
+			provisioningService.deleteObject(ShadowType.class, oid, options, null, task, result);
 //			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected

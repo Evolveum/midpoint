@@ -111,16 +111,16 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         PrismContainerDefinition definition = null;
         PrismObject parent = getObject().getObject();
         Class clazz = parent.getCompileTimeClass();
-        if (ResourceObjectShadowType.class.isAssignableFrom(clazz)) {
+        if (ShadowType.class.isAssignableFrom(clazz)) {
             QName name = container.getDefinition().getName();
-            if (ResourceObjectShadowType.F_ATTRIBUTES.equals(name)) {
+            if (ShadowType.F_ATTRIBUTES.equals(name)) {
                 try {
-                    PrismReference resourceRef = parent.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+                    PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
                     PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
                     RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
                             LayerType.PRESENTATION, parent.getPrismContext());
 
-                    PrismProperty<QName> objectClassProp = parent.findProperty(ResourceObjectShadowType.F_OBJECT_CLASS);
+                    PrismProperty<QName> objectClassProp = parent.findProperty(ShadowType.F_OBJECT_CLASS);
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
                     
                     definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
@@ -358,7 +358,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         names.add(PasswordType.F_PREVIOUS_SUCCESSFUL_LOGIN);
         names.add(ObjectType.F_FETCH_RESULT);
 
-        if (ResourceObjectShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
+        if (ShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
             names.add(CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS);
         }
 

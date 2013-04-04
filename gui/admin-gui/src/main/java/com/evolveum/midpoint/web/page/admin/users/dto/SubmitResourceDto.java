@@ -33,7 +33,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -65,7 +65,7 @@ public class SubmitResourceDto extends PageAdmin implements Serializable {
 		if (account == null) {
 			return "unknown";
 		}
-		PrismReference reference = account.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+		PrismReference reference = account.findReference(ShadowType.F_RESOURCE_REF);
 		if (reference == null || reference.isEmpty()) {
             return "unknown";
         }

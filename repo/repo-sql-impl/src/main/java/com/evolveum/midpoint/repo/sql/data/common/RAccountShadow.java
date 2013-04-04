@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 import org.hibernate.annotations.ForeignKey;
 
@@ -112,7 +112,7 @@ public class RAccountShadow extends RResourceObjectShadow {
         }
     }
 
-    public ResourceObjectShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public ShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         AccountShadowType shadow = new AccountShadowType();
         RUtil.revive(shadow, prismContext);
         RAccountShadow.copyToJAXB(this, shadow, prismContext);

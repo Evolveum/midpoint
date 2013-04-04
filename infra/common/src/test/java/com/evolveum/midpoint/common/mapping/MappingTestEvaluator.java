@@ -69,7 +69,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
@@ -180,8 +180,8 @@ public class MappingTestEvaluator {
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		
 		// Variable $account
-		PrismObject<ResourceObjectShadowType> account = getAccount();
-		ObjectDeltaObject<ResourceObjectShadowType> accountOdo = new ObjectDeltaObject<ResourceObjectShadowType>(account , null, null);
+		PrismObject<ShadowType> account = getAccount();
+		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<ShadowType>(account , null, null);
 		accountOdo.recompute();
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
         
@@ -227,7 +227,7 @@ public class MappingTestEvaluator {
 		return PrismTestUtil.parseObject(USER_OLD_FILE);
 	}
 	
-	protected PrismObject<ResourceObjectShadowType> getAccount() throws SchemaException {
+	protected PrismObject<ShadowType> getAccount() throws SchemaException {
 		return PrismTestUtil.parseObject(ACCOUNT_FILE);
 	}
 	

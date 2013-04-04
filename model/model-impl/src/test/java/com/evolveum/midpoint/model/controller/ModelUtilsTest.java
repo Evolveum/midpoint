@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 
 /**
@@ -107,7 +107,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getPasswordExistingAccount() throws Exception {
-		ResourceObjectShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"), ResourceObjectShadowType.class);
+		ShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"), ShadowType.class);
 		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
@@ -115,7 +115,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getPasswordNonExistingAccount() throws Exception {
-		ResourceObjectShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-without-pwd.xml"), ResourceObjectShadowType.class);
+		ShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-without-pwd.xml"), ShadowType.class);
 		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
 	}
@@ -128,7 +128,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void generatePasswordBadLength() throws Exception {
-		ResourceObjectShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"), ResourceObjectShadowType.class);
+		ShadowType account = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "account-with-pwd.xml"), ShadowType.class);
 		int length = 5;
 		ModelUtils.generatePassword(account, length, protector);
 

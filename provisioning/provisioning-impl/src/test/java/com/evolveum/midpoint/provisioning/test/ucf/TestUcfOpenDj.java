@@ -242,7 +242,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition "+objectClassQname, accountDefinition);
-		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ResourceObjectShadowType.F_ATTRIBUTES);
+		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
 		ResourceAttributeDefinition attributeDefinition = accountDefinition
 				.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
@@ -268,7 +268,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		attribute.setValue(new PrismPropertyValue(givenName));
 		resourceObject.add(attribute);
 
-		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
+		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
 		Set<Operation> operation = new HashSet<Operation>();
 		Collection<ResourceAttribute<?>> resourceAttributes = cc.addObject(shadow, operation, result);
@@ -305,9 +305,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.deleteObject(accountDefinition, null, identifiers, result);
 
-		PrismObject<ResourceObjectShadowType> resObj = null;
+		PrismObject<ShadowType> resObj = null;
 		try {
-			resObj = cc.fetchObject(ResourceObjectShadowType.class, accountDefinition, identifiers, null,
+			resObj = cc.fetchObject(ShadowType.class, accountDefinition, identifiers, null,
 					result);
 			Assert.fail();
 		} catch (ObjectNotFoundException ex) {
@@ -335,7 +335,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
-		PrismObject<ResourceObjectShadowType> shadow = cc.fetchObject(ResourceObjectShadowType.class, accountDefinition,
+		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, accountDefinition,
 				identifiers, null, result);
 		ResourceAttributeContainer resObj = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 
@@ -371,7 +371,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
 
 		System.out.println("token " + lastToken.toString());
-		List<Change<ResourceObjectShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		AssertJUnit.assertEquals(0, changes.size());
 	}
 
@@ -418,7 +418,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
@@ -428,7 +428,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
@@ -438,7 +438,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
@@ -447,9 +447,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	private PropertyModificationOperation createActivationChange(boolean b) {
-		PrismObjectDefinition<ResourceObjectShadowType> shadowDefinition = getShadowDefinition(ResourceObjectShadowType.class);
+		PrismObjectDefinition<ShadowType> shadowDefinition = getShadowDefinition(ShadowType.class);
 		PropertyDelta delta = PropertyDelta.createDelta(
-				new ItemPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
+				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
 				shadowDefinition);
 		delta.setValueToReplace(new PrismPropertyValue(b));
 		return new PropertyModificationOperation(delta);
@@ -599,7 +599,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		OperationResult addResult = new OperationResult(this.getClass().getName() + ".testFetchObject");
 
-		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
+		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 		// Add a testing object
 		cc.addObject(shadow, null, addResult);
 
@@ -611,7 +611,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
 
 		// WHEN
-		PrismObject<ResourceObjectShadowType> ro = cc.fetchObject(ResourceObjectShadowType.class, accountDefinition,
+		PrismObject<ShadowType> ro = cc.fetchObject(ShadowType.class, accountDefinition,
 				identifiers, null, result);
 
 		// THEN
@@ -631,10 +631,10 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 
-		ResultHandler<ResourceObjectShadowType> handler = new ResultHandler<ResourceObjectShadowType>() {
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
 			@Override
-			public boolean handle(PrismObject<ResourceObjectShadowType> object) {
+			public boolean handle(PrismObject<ShadowType> object) {
 				System.out.println("Search: found: " + object);
 				return true;
 			}
@@ -665,7 +665,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult addResult = new OperationResult(this.getClass().getName()
 				+ ".testCreateAccountWithPassword");
 
-		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
+		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 		CredentialsType credentials = new CredentialsType();
 		PasswordType pass = new PasswordType();
 		pass.setValue(ps);
@@ -695,7 +695,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=drake,ou=People,dc=example,dc=com", "Sir Francis Drake", "Drake");
-		PrismObject<ResourceObjectShadowType> shadow = wrapInShadow(ResourceObjectShadowType.class, resourceObject);
+		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
 		OperationResult addResult = new OperationResult(this.getClass().getName() + ".testChangePassword");
 		
@@ -763,7 +763,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
 				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
 		// Determine identifier from the schema
-		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ResourceObjectShadowType.F_ATTRIBUTES);
+		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
 		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
@@ -784,15 +784,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		return resourceObject;
 	}
 	
-	private <T extends ResourceObjectShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
+	private <T extends ShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
 		PrismObjectDefinition<T> shadowDefinition = getShadowDefinition(type);
 		PrismObject<T> shadow = shadowDefinition.instantiate();
-		resourceObject.setName(ResourceObjectShadowType.F_ATTRIBUTES);
+		resourceObject.setName(ShadowType.F_ATTRIBUTES);
 		shadow.getValue().add(resourceObject);
 		return shadow;
 	}
 	
-	private <T extends ResourceObjectShadowType> PrismObjectDefinition<T> getShadowDefinition(Class<T> type) { 
+	private <T extends ShadowType> PrismObjectDefinition<T> getShadowDefinition(Class<T> type) { 
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	}
 }

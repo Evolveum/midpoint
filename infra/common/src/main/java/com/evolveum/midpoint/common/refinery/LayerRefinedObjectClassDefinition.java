@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
@@ -255,7 +255,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getResourceType();
 	}
 
-	public PrismObjectDefinition<ResourceObjectShadowType> getObjectDefinition() {
+	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
 		return refinedObjectClassDefinition.getObjectDefinition();
 	}
 
@@ -279,7 +279,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.isEmpty();
 	}
 
-	public PrismObject<ResourceObjectShadowType> createBlankShadow() {
+	public PrismObject<ShadowType> createBlankShadow() {
 		return refinedObjectClassDefinition.createBlankShadow();
 	}
 

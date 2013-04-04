@@ -93,7 +93,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -314,14 +314,14 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test040AddAccount");
 
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-		ResourceObjectShadowType shadowType = new ResourceObjectShadowType();
+		ShadowType shadowType = new ShadowType();
 		PrismTestUtil.getPrismContext().adopt(shadowType);
 		shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		shadowType.setResourceRef(resourceRef);
 		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
-		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
+		PrismObject<ShadowType> shadow = shadowType.asPrismObject();
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
 		ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 		icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
@@ -344,12 +344,12 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 		
-		final List<PrismObject<ResourceObjectShadowType>> searchResults = new ArrayList<PrismObject<ResourceObjectShadowType>>();
+		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
 
-		ResultHandler<ResourceObjectShadowType> handler = new ResultHandler<ResourceObjectShadowType>() {
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
 			@Override
-			public boolean handle(PrismObject<ResourceObjectShadowType> shadow) {
+			public boolean handle(PrismObject<ShadowType> shadow) {
 				System.out.println("Search: found: " + shadow);
 				checkUcfShadow(shadow, accountDefinition);
 				searchResults.add(shadow);
@@ -366,7 +366,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
 	}
 	
-	private void checkUcfShadow(PrismObject<ResourceObjectShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
+	private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		assertNotNull("No objectClass in shadow "+shadow, shadow.asObjectable().getObjectClass());
 		assertEquals("Wrong objectClass in shadow "+shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
 		Collection<ResourceAttribute<?>> attributes = ResourceObjectShadowUtil.getAttributes(shadow);
@@ -395,7 +395,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 		
 		// WHEN
-		List<Change<ResourceObjectShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -419,12 +419,12 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		dummyResource.addAccount(newAccount);
 		
 		// WHEN
-		List<Change<ResourceObjectShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);
 		assertNotNull("null change", change);
-		PrismObject<? extends ResourceObjectShadowType> currentShadow = change.getCurrentShadow();
+		PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
 		assertNotNull("null current shadow", currentShadow);
 		PrismAsserts.assertParentConsistency(currentShadow);
 		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();

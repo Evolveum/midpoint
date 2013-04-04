@@ -51,7 +51,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -71,7 +71,7 @@ public class AddUserAction extends BaseAction {
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
-        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             UserType user = getUser(userOid, subResult);
@@ -85,7 +85,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //add account sync context for inbound processing
-                LensProjectionContext<ResourceObjectShadowType> accountContext = createAccountLensContext(context, change, 
+                LensProjectionContext<ShadowType> accountContext = createAccountLensContext(context, change, 
                 		SynchronizationIntent.KEEP, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
@@ -110,7 +110,7 @@ public class AddUserAction extends BaseAction {
                         new Object[]{user.getOid()});
             }
         } catch (RuntimeException ex) {
-            PrismObject<ResourceObjectShadowType> shadowAfterChange = getAccountShadowFromChange(change);
+            PrismObject<ShadowType> shadowAfterChange = getAccountShadowFromChange(change);
 
             LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.",
                     ex, shadowAfterChange.getName(), shadowAfterChange.getOid());

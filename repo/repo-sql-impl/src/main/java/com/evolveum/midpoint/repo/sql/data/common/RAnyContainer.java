@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyContainerId;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -207,7 +207,7 @@ public class RAnyContainer implements Serializable {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyToJAXB(RAnyContainer repo, ResourceObjectShadowAttributesType jaxb,
+    public static void copyToJAXB(RAnyContainer repo, ShadowAttributesType jaxb,
                                   PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
@@ -247,7 +247,7 @@ public class RAnyContainer implements Serializable {
         }
     }
 
-    public static void copyFromJAXB(ResourceObjectShadowAttributesType jaxb, RAnyContainer repo,
+    public static void copyFromJAXB(ShadowAttributesType jaxb, RAnyContainer repo,
                                     PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");

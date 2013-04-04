@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 @Component
 public class ObjectAlreadyExistHandler extends ErrorHandler {
@@ -47,7 +47,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private PrismContext prismContext;
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
@@ -67,9 +67,9 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
 		ObjectQuery query = createQueryByIcfName(shadow);
-		final List<PrismObject<ResourceObjectShadowType>> foundAccount = getExistingAccount(query, task, operationResult);
+		final List<PrismObject<ShadowType>> foundAccount = getExistingAccount(query, task, operationResult);
 
-		PrismObject<ResourceObjectShadowType> resourceAccount = null;
+		PrismObject<ShadowType> resourceAccount = null;
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
 			resourceAccount = foundAccount.get(0);
 		}
@@ -97,16 +97,16 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		return shadow;
 	}
 
-	private ObjectQuery createQueryByIcfName(ResourceObjectShadowType shadow) throws SchemaException {
+	private ObjectQuery createQueryByIcfName(ShadowType shadow) throws SchemaException {
 		// TODO: error handling
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
 				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES),
+		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES),
 				nameProperty.getDefinition(), nameProperty.getValues());
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ResourceObjectShadowType.class,
-				ResourceObjectShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
-		EqualsFilter objectClassFilter = EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext,
-				ResourceObjectShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
+		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class,
+				ShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
+		EqualsFilter objectClassFilter = EqualsFilter.createEqual(ShadowType.class, prismContext,
+				ShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
 
 		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter,
 				objectClassFilter));
@@ -114,11 +114,11 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		return query;
 	}
 
-	private List<PrismObject<ResourceObjectShadowType>> getExistingAccount(ObjectQuery query, Task task, OperationResult parentResult)
+	private List<PrismObject<ShadowType>> getExistingAccount(ObjectQuery query, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
 			SecurityViolationException {
-		final List<PrismObject<ResourceObjectShadowType>> foundAccount = new ArrayList<PrismObject<ResourceObjectShadowType>>();
-		ResultHandler<ResourceObjectShadowType> handler = new ResultHandler() {
+		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<PrismObject<ShadowType>>();
+		ResultHandler<ShadowType> handler = new ResultHandler() {
 
 			@Override
 			public boolean handle(PrismObject object, OperationResult parentResult) {
@@ -127,7 +127,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 		};
 
-		provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, query, handler, parentResult);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, parentResult);
 
 		return foundAccount;
 	}

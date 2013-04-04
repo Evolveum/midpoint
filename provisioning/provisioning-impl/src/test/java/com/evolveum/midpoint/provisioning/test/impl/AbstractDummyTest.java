@@ -63,7 +63,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
@@ -139,16 +139,16 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
 		dummyResource.addAccount(dummyAccountDaemon);
 
-		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, ShadowType.class, initResult);
 	}
 
-	protected <T extends ResourceObjectShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
+	protected <T extends ShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
 		for (PrismObject<T> shadow: shadows) {
 			checkConsistency(shadow);
 		}
 	}
 	
-	protected void checkConsistency(PrismObject<? extends ResourceObjectShadowType> object) throws SchemaException {
+	protected void checkConsistency(PrismObject<? extends ShadowType> object) throws SchemaException {
 
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".checkConsistency");
@@ -157,7 +157,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
 		System.out.println("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "
@@ -166,7 +166,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 				+ query.dump());
 
 		
-		List<PrismObject<ResourceObjectShadowType>> objects = repositoryService.searchObjects(ResourceObjectShadowType.class, query,
+		List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query,
 				result);
 
 		
@@ -174,7 +174,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 	}
 	
-	protected <T> void assertAttribute(ResourceObjectShadowType shadow, String attrName, T... expectedValues) {
+	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
 		List<T> actualValues = ResourceObjectShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);

@@ -42,7 +42,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -84,7 +84,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 
 	
-	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ResourceObjectShadowType shadow) {
+	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ShadowType shadow) {
 		return getRefinedDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
 	}
 	
@@ -107,11 +107,11 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return getRefinedDefinition(kind, (String)null);
 	}
 	
-	public PrismObjectDefinition<ResourceObjectShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
+	public PrismObjectDefinition<ShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
 		return getRefinedDefinition(kind, intent).getObjectDefinition();
 	}
 	
-	public PrismObjectDefinition<ResourceObjectShadowType> getObjectDefinition(ShadowKindType kind, ResourceObjectShadowType shadow) {
+	public PrismObjectDefinition<ShadowType> getObjectDefinition(ShadowKindType kind, ShadowType shadow) {
 		return getObjectDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
 	}
 		

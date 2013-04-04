@@ -53,7 +53,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
@@ -389,7 +389,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test110AddAccount");
 
-		ResourceObjectShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ResourceObjectShadowType.class);
+		ShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
 		account.asPrismObject().checkConsistence();
 
 		display("Adding shadow", account.asPrismObject());
@@ -405,12 +405,12 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		account.asPrismObject().checkConsistence();
 
-		ResourceObjectShadowType accountType = repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_WILL_OID, result)
+		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result)
 				.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "will", accountType.getName());
 //		assertEquals("will", accountType.getName());
 
-		ResourceObjectShadowType provisioningAccountType = provisioningService.getObject(ResourceObjectShadowType.class,
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
 		display("account from provisioning", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
@@ -428,7 +428,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
 
 		// Check if the shadow is in the repo
-		PrismObject<ResourceObjectShadowType> shadowFromRepo = repositoryService.getObject(ResourceObjectShadowType.class,
+		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
 				addedObjectOid, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());

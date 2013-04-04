@@ -88,7 +88,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -232,7 +232,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -265,11 +265,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -284,7 +284,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -314,11 +314,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         jackDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, "cold");
         
 		// WHEN
-		PrismObject<ResourceObjectShadowType> account = modelService.getObject(ResourceObjectShadowType.class, accountOid, null , task, result);
+		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, null , task, result);
 		
 		display("Account", account);
 		display("Account def", account.getDefinition());
-		PrismContainer<Containerable> accountContainer = account.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyShadowModel(account, accountOid, "jack", "Jack Sparrow");
@@ -347,11 +347,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		
 		// WHEN
-		PrismObject<ResourceObjectShadowType> account = modelService.getObject(ResourceObjectShadowType.class, accountOid, options , task, result);
+		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, options , task, result);
 		
 		display("Account", account);
 		display("Account def", account.getDefinition());
-		PrismContainer<Containerable> accountContainer = account.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyShadowRepo(account, accountOid, "jack");
@@ -373,11 +373,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 		
 		// WHEN
-		PrismObject<ResourceObjectShadowType> account = modelService.getObject(ResourceObjectShadowType.class, accountOid, options , task, result);
+		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, options , task, result);
 		
 		display("Account", account);
 		display("Account def", account.getDefinition());
-		PrismContainer<Containerable> accountContainer = account.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyShadowRepo(account, accountOid, "jack");
@@ -397,7 +397,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -442,7 +442,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         account.setOid(null);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
@@ -508,7 +508,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
         assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
-        ResourceObjectShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
+        ShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
         assertDummyShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         result.computeStatus();
@@ -530,7 +530,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<SelectorOptions<GetOperationOptions>> options = 
             	SelectorOptions.createCollection(GetOperationOptions.createResolve(),
         			new ItemPath(UserType.F_ACCOUNT),
-    				new ItemPath(UserType.F_ACCOUNT, ResourceObjectShadowType.F_RESOURCE)
+    				new ItemPath(UserType.F_ACCOUNT, ShadowType.F_RESOURCE)
         	);
         
 		// WHEN
@@ -548,7 +548,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
         assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
-        ResourceObjectShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
+        ShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
         assertDummyShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         assertNotNull("Resource in account was not resolved", ResourceObjectShadowType.getResource());
@@ -589,7 +589,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
         assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
-        ResourceObjectShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
+        ShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
         assertDummyShadowRepo(ResourceObjectShadowType.asPrismObject(), accountOid, "jack");
         
         result.computeStatus();
@@ -609,7 +609,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.clear();
         purgeScriptHistory();
 
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         account.setOid(accountOid);
         		
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
@@ -632,7 +632,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
 		// Check is shadow is gone
         try {
-        	PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         	AssertJUnit.fail("Shadow "+accountOid+" still exists");
         } catch (ObjectNotFoundException e) {
         	// This is OK
@@ -650,7 +650,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -665,8 +665,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.clear();
         purgeScriptHistory();
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createAddDelta(account);
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createAddDelta(account);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         
 		// WHEN
@@ -685,11 +685,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -704,7 +704,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -735,11 +735,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -767,7 +767,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
 
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -789,11 +789,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
 		        
 		// Check shadow (if it is unchanged)
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account (if it is unchanged)
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource (if it is unchanged)
@@ -820,7 +820,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.clear();
         purgeScriptHistory();
         
-        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, accountOid, prismContext);
+        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         
 		// WHEN
@@ -849,7 +849,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -869,7 +869,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         deltas.add(accountAssignmentUserDelta);
                 
 		// WHEN
-        ModelContext<UserType,ResourceObjectShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType,ShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -921,11 +921,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -940,7 +940,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -959,7 +959,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
         accountDelta.addModificationReplaceProperty(
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -985,12 +985,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
         // All the changes should be reflected to the account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Cpt. Jack Sparrow");
         PrismAsserts.assertPropertyValue(accountModel, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -1009,7 +1009,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0, 1);
-        dummyAuditService.asserHasDelta(0, ChangeType.MODIFY, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(0, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
@@ -1057,7 +1057,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1096,11 +1096,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -1115,7 +1115,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1157,11 +1157,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		assertLinked(userJack, accountOid);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -1203,7 +1203,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
 		userDelta.addModification(accountRefDelta);
         
-		ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, accountOid, prismContext);
+		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
 		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                 
@@ -1234,7 +1234,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1248,7 +1248,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -1307,7 +1307,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -1336,11 +1336,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -1358,7 +1358,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1384,7 +1384,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 //		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
 //		userDelta.addModification(accountRefDelta);
         
-		ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, accountOid, prismContext);
+		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
 		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                 
@@ -1415,7 +1415,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1437,7 +1437,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
-        ShadowDiscriminatorObjectDelta<ResourceObjectShadowType> accountDelta = ShadowDiscriminatorObjectDelta.createModificationReplaceProperty(ResourceObjectShadowType.class,
+        ShadowDiscriminatorObjectDelta<ShadowType> accountDelta = ShadowDiscriminatorObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		RESOURCE_DUMMY_OID, null, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
         accountDelta.addModificationAddProperty(
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME), 
@@ -1458,11 +1458,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_JACK_USERNAME);
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
         
         // Check account in dummy resource
@@ -1480,7 +1480,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1555,11 +1555,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
 
         // Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_JACK_USERNAME);
 
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
 
         // Check account in dummy resource
@@ -1608,11 +1608,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
         
         // Check account in dummy resource
@@ -1627,7 +1627,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
     
@@ -1656,11 +1656,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
         IntegrationTestTools.assertNoAttribute(accountModel, dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         
@@ -1676,7 +1676,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1740,11 +1740,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account - the original fullName should not be changed
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
         
         // Check account in dummy resource - the original fullName should not be changed
@@ -1805,7 +1805,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.DELETE, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1841,11 +1841,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "blackbeard");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
         
         // Check account in dummy resource
@@ -1863,7 +1863,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(0, 3);
         dummyAuditService.asserHasDelta(0, ChangeType.ADD, UserType.class);
         dummyAuditService.asserHasDelta(0, ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0, ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(0, ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
@@ -1900,11 +1900,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "morgan");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
         
         // Check account in dummy resource
@@ -1920,7 +1920,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceObjectShadowType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -2021,7 +2021,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		}
 	}
 
-	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ResourceObjectShadowType> account, ResourceType resource) {
+	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
 				"   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n			");
 		

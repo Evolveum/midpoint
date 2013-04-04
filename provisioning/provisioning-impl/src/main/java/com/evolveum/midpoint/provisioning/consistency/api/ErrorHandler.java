@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 public abstract class ErrorHandler {
@@ -67,27 +67,27 @@ public abstract class ErrorHandler {
 		return resource.getConsistency().isDiscovery();
 	}
 	
-	public abstract <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
+	public abstract <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
 
 	
-	protected <T extends ResourceObjectShadowType> Collection<ItemDelta> createAttemptModification(T shadow,
+	protected <T extends ShadowType> Collection<ItemDelta> createAttemptModification(T shadow,
 			Collection<ItemDelta> modifications) {
 
 		if (modifications == null) {
 			modifications = new ArrayList<ItemDelta>();
 		}
 		PropertyDelta attemptDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-				ResourceObjectShadowType.F_ATTEMPT_NUMBER, getAttemptNumber(shadow));
+				ShadowType.F_ATTEMPT_NUMBER, getAttemptNumber(shadow));
 		modifications.add(attemptDelta);
 		return modifications;
 	}
 
-	protected Integer getAttemptNumber(ResourceObjectShadowType shadow) {
+	protected Integer getAttemptNumber(ShadowType shadow) {
 		Integer attemptNumber = (shadow.getAttemptNumber() == null ? 0 : shadow.getAttemptNumber()+1);
 		return attemptNumber;
 	}
 	
-	protected ResourceOperationDescription createOperationDescription(ResourceObjectShadowType shadowType, ResourceType resource, ObjectDelta delta, Task task, OperationResult result) {
+	protected ResourceOperationDescription createOperationDescription(ShadowType shadowType, ResourceType resource, ObjectDelta delta, Task task, OperationResult result) {
 		ResourceOperationDescription operationDescription = new ResourceOperationDescription();
 		operationDescription.setCurrentShadow(shadowType.asPrismObject());
 		if (resource != null){

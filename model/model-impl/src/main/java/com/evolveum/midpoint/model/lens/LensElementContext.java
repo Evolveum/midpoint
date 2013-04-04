@@ -319,8 +319,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 			throw new IllegalStateException("No "+getElementDesc()+" definition "+desc);
 		}
     	O objectType = object.asObjectable();
-    	if (objectType instanceof ResourceObjectShadowType) {
-    		ResourceObjectShadowUtil.checkConsistence((PrismObject<? extends ResourceObjectShadowType>) object, desc);
+    	if (objectType instanceof ShadowType) {
+    		ResourceObjectShadowUtil.checkConsistence((PrismObject<? extends ShadowType>) object, desc);
     	}
     }
 	

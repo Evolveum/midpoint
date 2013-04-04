@@ -113,7 +113,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -590,7 +590,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		T objectType = object.asObjectable();
 		// FIXME??
 		prismContext.adopt(objectType);
-		if (!(objectType instanceof ResourceObjectShadowType)) {
+		if (!(objectType instanceof ShadowType)) {
 			PrismValidate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
 		}
 
@@ -656,12 +656,12 @@ public class ModelController implements ModelService, ModelInteractionService {
         return config;
     }
 
-	private LensContext<UserType, ResourceObjectShadowType> userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
+	private LensContext<UserType, ShadowType> userTypeAddToContext(PrismObject<UserType> user, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
 		UserType userType = user.asObjectable();
-		LensContext<UserType, ResourceObjectShadowType> syncContext = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, prismContext);
+		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
 
 		ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);
 		userDelta.setObjectToAdd(user);
@@ -928,9 +928,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 	}
 
-	private LensContext<UserType, ResourceObjectShadowType> userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
+	private LensContext<UserType, ShadowType> userTypeModifyToContext(String oid, Collection<? extends ItemDelta> modifications,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
-		LensContext<UserType, ResourceObjectShadowType> syncContext = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, prismContext);
+		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(oid, modifications, UserType.class, prismContext);
 
@@ -1041,7 +1041,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(
+	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(
 			String resourceOid, Class<T> resourceObjectShadowType, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
@@ -1094,7 +1094,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	}
 
 	@Override
-	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
+	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
@@ -1105,7 +1105,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		RepositoryCache.enter();
 
-		List<PrismObject<? extends ResourceObjectShadowType>> list = null;
+		List<PrismObject<? extends ShadowType>> list = null;
 
 		try {
 			LOGGER.trace(
@@ -1138,7 +1138,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			result.cleanupResult();
 
 			if (list == null) {
-				list = new ArrayList<PrismObject<? extends ResourceObjectShadowType>>();
+				list = new ArrayList<PrismObject<? extends ShadowType>>();
 			}
 		} finally {
 			RepositoryCache.exit();
@@ -1347,29 +1347,29 @@ public class ModelController implements ModelService, ModelInteractionService {
 	}
 	
 	private <T extends ObjectType>  void updateDefinition(PrismObject<T> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (object.canRepresent(ResourceObjectShadowType.class)) {
+		if (object.canRepresent(ShadowType.class)) {
 			ResourceType resourceType = null;
 			try{
-				resourceType = getResource((ResourceObjectShadowType)object.asObjectable(), result);
+				resourceType = getResource((ShadowType)object.asObjectable(), result);
 			} catch (ObjectNotFoundException ex){
 				result.recordFatalError("Resource defined in account was not found: " + ex.getMessage(), ex);
 				return;
 			}
-			updateAccountShadowDefinition((PrismObject<? extends ResourceObjectShadowType>)object, resourceType);
+			updateAccountShadowDefinition((PrismObject<? extends ShadowType>)object, resourceType);
 			
 		}
 	}
 	
-	private ResourceType getResource(ResourceObjectShadowType shadowType, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	private ResourceType getResource(ShadowType shadowType, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		ObjectReferenceType resourceRef = shadowType.getResourceRef();
 		return objectResolver.resolve(resourceRef, ResourceType.class, "resource reference in "+shadowType, result);
 	}
 
-	private <T extends ResourceObjectShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
+	private <T extends ShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, LayerType.MODEL, prismContext);
 		QName objectClass = shadow.asObjectable().getObjectClass();
 		RefinedObjectClassDefinition rAccountDef = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
-		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		attributesContainer.applyDefinition(rAccountDef.toResourceAttributeContainerDefinition(), true);
 	}
 

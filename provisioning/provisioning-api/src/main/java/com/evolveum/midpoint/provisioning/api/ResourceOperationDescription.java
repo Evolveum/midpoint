@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -39,8 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  */
 public class ResourceOperationDescription implements Dumpable, DebugDumpable {
 
-    private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
-    private PrismObject<? extends ResourceObjectShadowType> currentShadow;
+    private ObjectDelta<? extends ShadowType> objectDelta;
+    private PrismObject<? extends ShadowType> currentShadow;
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
     private OperationResult result;
@@ -50,11 +50,11 @@ public class ResourceOperationDescription implements Dumpable, DebugDumpable {
     /**
      * The operation that was about to execute and that has failed.
      */
-    public ObjectDelta<? extends ResourceObjectShadowType> getObjectDelta() {
+    public ObjectDelta<? extends ShadowType> getObjectDelta() {
         return objectDelta;
     }
 
-    public void setObjectDelta(ObjectDelta<? extends ResourceObjectShadowType> objectDelta) {
+    public void setObjectDelta(ObjectDelta<? extends ShadowType> objectDelta) {
         this.objectDelta = objectDelta;
     }
 
@@ -62,11 +62,11 @@ public class ResourceOperationDescription implements Dumpable, DebugDumpable {
      * Shadow describing the object that was the target of the operation. It may a "temporary" shadow that
      * is not yet bound to a specific resource object (e.g. in case of add operation).
      */
-    public PrismObject<? extends ResourceObjectShadowType> getCurrentShadow() {
+    public PrismObject<? extends ShadowType> getCurrentShadow() {
         return currentShadow;
     }
 
-    public void setCurrentShadow(PrismObject<? extends ResourceObjectShadowType> currentShadow) {
+    public void setCurrentShadow(PrismObject<? extends ShadowType> currentShadow) {
         this.currentShadow = currentShadow;
     }
 

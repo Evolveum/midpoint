@@ -86,7 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
@@ -291,12 +291,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			return new SynchronizationSituation(null, SynchronizationSituationType.DELETED);
 		}
 
-		PrismObject<? extends ResourceObjectShadowType> resourceShadow = change.getCurrentShadow();
+		PrismObject<? extends ShadowType> resourceShadow = change.getCurrentShadow();
 
 		ObjectDelta syncDelta = change.getObjectDelta();
 		if (resourceShadow == null && syncDelta != null && ChangeType.ADD.equals(syncDelta.getChangeType())) {
 			LOGGER.trace("Trying to compute current shadow from change delta add.");
-			PrismObject<? extends ResourceObjectShadowType> shadow = syncDelta.computeChangedObject(syncDelta
+			PrismObject<? extends ShadowType> shadow = syncDelta.computeChangedObject(syncDelta
 					.getObjectToAdd());
 			resourceShadow = shadow;
 			change.setCurrentShadow(shadow);
@@ -351,7 +351,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return new SynchronizationSituation(user, state);
 	}
 
-	private void validateResourceInShadow(ResourceObjectShadowType shadow, ResourceType resource) {
+	private void validateResourceInShadow(ShadowType shadow, ResourceType resource) {
 		if (shadow.getResource() != null || shadow.getResourceRef() != null) {
 			return;
 		}

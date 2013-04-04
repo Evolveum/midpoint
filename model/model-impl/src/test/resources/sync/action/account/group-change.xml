@@ -32,7 +32,7 @@
    '>
 
 	<i:objectChange xsi:type="c:ObjectChangeAdditionType">
-		<i:object xsi:type="i:ResourceObjectShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
+		<i:object xsi:type="i:ShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
 			<c:name>will</c:name>
 			<i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333222111111"
 				type="ResourceType" />
@@ -50,7 +50,7 @@
 	<i:sourceChannel>
 		http://midpoint.evolveum.com/xml/ns/public/common/concepts-1#Synchronization
 	</i:sourceChannel>
-	<i:shadow xsi:type="i:ResourceObjectShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
+	<i:shadow xsi:type="i:ShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
 		<c:name>will</c:name>
 		<i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333222111111"
 			type="ResourceType" />

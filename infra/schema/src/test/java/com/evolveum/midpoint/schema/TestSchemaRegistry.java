@@ -31,7 +31,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -137,20 +137,20 @@ public class TestSchemaRegistry {
 		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 				
-		PrismObjectDefinition<ResourceObjectShadowType> accountDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+		PrismObjectDefinition<ShadowType> accountDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 		assertNotNull("No account definition", accountDef);
 
 		System.out.println("testCommonSchemaAccountType:");
 		System.out.println(accountDef.dump());
 		
-		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(ResourceObjectShadowType.F_NAME);
+		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(ShadowType.F_NAME);
 		assertNotNull("No name definition", nameDef);
 		
-		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(ResourceObjectShadowType.F_EXTENSION);
+		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(ShadowType.F_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue("'extension' definition is not marked as runtime", extensionDef.isRuntimeSchema());
 		
-		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
 		assertNotNull("No 'attributes' definition", attributesDef);
 		assertTrue("'attributes' definition is not marked as runtime", attributesDef.isRuntimeSchema());
 	}

@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionE
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
@@ -86,11 +86,11 @@ public class OutboundProcessor {
     @Autowired(required = true)
     private MappingFactory mappingFactory;
 
-    void processOutbound(LensContext<UserType,ResourceObjectShadowType> context, LensProjectionContext<ResourceObjectShadowType> accCtx, OperationResult result) throws SchemaException,
+    void processOutbound(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
-        ObjectDelta<ResourceObjectShadowType> accountDelta = accCtx.getDelta();
+        ObjectDelta<ShadowType> accountDelta = accCtx.getDelta();
 
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.DELETE) {
             LOGGER.trace("Processing outbound expressions for account {} skipped, DELETE account delta", rat);
@@ -107,7 +107,7 @@ public class OutboundProcessor {
         }
         
         ObjectDeltaObject<UserType> userOdo = context.getFocusContext().getObjectDeltaObject();
-        ObjectDeltaObject<ResourceObjectShadowType> accountOdo = accCtx.getObjectDeltaObject();
+        ObjectDeltaObject<ShadowType> accountOdo = accCtx.getObjectDeltaObject();
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
         

@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * Library of standard midPoint functions. These functions are made available to all
@@ -118,27 +118,27 @@ public class BasicExpressionFunctions {
 		return polyString.getNorm();
 	}
 	
-	public Collection<Object> getAttributeValues(ResourceObjectShadowType shadow, String attributeNamespace, String attributeLocalPart) {
+	public Collection<Object> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
 		return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}
 	
-	public Collection<Object> getAttributeValues(ResourceObjectShadowType shadow, groovy.xml.QName attributeQname) {
+	public Collection<Object> getAttributeValues(ShadowType shadow, groovy.xml.QName attributeQname) {
 		return getAttributeValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
 	
-	public Collection<Object> getAttributeValues(ResourceObjectShadowType shadow, javax.xml.namespace.QName attributeQname) {
+	public Collection<Object> getAttributeValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
 		return ResourceObjectShadowUtil.getAttributeValues(shadow, attributeQname, Object.class);
 	}
 
-	public Collection<String> getAttributeStringValues(ResourceObjectShadowType shadow, String attributeNamespace, String attributeLocalPart) {
+	public Collection<String> getAttributeStringValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
 		return getAttributeStringValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}
 	
-	public Collection<String> getAttributeStringValues(ResourceObjectShadowType shadow, groovy.xml.QName attributeQname) {
+	public Collection<String> getAttributeStringValues(ShadowType shadow, groovy.xml.QName attributeQname) {
 		return getAttributeStringValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
 	
-	public Collection<String> getAttributeStringValues(ResourceObjectShadowType shadow, javax.xml.namespace.QName attributeQname) {
+	public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
 		return ResourceObjectShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
 	}
 			

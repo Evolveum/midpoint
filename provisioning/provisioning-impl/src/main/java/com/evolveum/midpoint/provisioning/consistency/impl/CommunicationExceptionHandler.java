@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 @Component
@@ -69,7 +69,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
@@ -121,7 +121,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
 					Collection<? extends ItemDelta> attemptdelta = createAttemptModification(shadow, null);
-					cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadow.getOid(), attemptdelta,
+					cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), attemptdelta,
 							operationResult);
 			
 				}
@@ -149,7 +149,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				Collection<ItemDelta> modifications = createShadowModification(shadow);
 
-				getCacheRepositoryService().modifyObject(ResourceObjectShadowType.class, shadow.getOid(), modifications,
+				getCacheRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), modifications,
 						operationResult);
 				delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.asPrismObject().getCompileTimeClass(), prismContext);
 //				operationResult.recordSuccess();
@@ -160,7 +160,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 						Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(shadow
 								.getObjectChange().getModification(), shadow.asPrismObject().getDefinition());
 
-						cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, shadow.getOid(), deltas,
+						cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deltas,
 								operationResult);
 						delta = ObjectDelta.createModifyDelta(shadow.getOid(), deltas, shadow.asPrismObject().getCompileTimeClass(), prismContext);
 						// return shadow;
@@ -185,7 +185,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
 			Collection<ItemDelta> modifications = createShadowModification(shadow);
 
-			getCacheRepositoryService().modifyObject(ResourceObjectShadowType.class, shadow.getOid(), modifications,
+			getCacheRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), modifications,
 					operationResult);
 			for (OperationResult subRes : parentResult.getSubresults()) {
 				subRes.muteError();
@@ -239,19 +239,19 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		}
 	}
 	
-	private <T extends ResourceObjectShadowType> Collection<ItemDelta> createShadowModification(T shadow) throws ObjectNotFoundException, SchemaException {
+	private <T extends ShadowType> Collection<ItemDelta> createShadowModification(T shadow) throws ObjectNotFoundException, SchemaException {
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
 
 		PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
-				.getDefinition(), ResourceObjectShadowType.F_RESULT, shadow.getResult());
+				.getDefinition(), ShadowType.F_RESULT, shadow.getResult());
 		modifications.add(propertyDelta);
 
 		propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-				ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, shadow.getFailedOperationType());
+				ShadowType.F_FAILED_OPERATION_TYPE, shadow.getFailedOperationType());
 		modifications.add(propertyDelta);
 		if (shadow.getObjectChange() != null) {
 			propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-					ResourceObjectShadowType.F_OBJECT_CHANGE, shadow.getObjectChange());
+					ShadowType.F_OBJECT_CHANGE, shadow.getObjectChange());
 			modifications.add(propertyDelta);
 		}
 	

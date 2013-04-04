@@ -123,7 +123,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
        	executeTest("test010UserModifyAddRole", 1, false, new ContextCreator() {
                @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
-                   LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
+                   LensContext<UserType, ShadowType> context = createUserAccountContext();
                    fillContextWithUser(context, USER_JACK_OID, result);
                    addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                    return context;
@@ -154,7 +154,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test011UserModifyAddRoleChangeGivenName", 1, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
                 return context;
@@ -189,7 +189,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", 2, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
@@ -223,7 +223,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test011UserModifyAddRoles", 2, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
                 return context;
@@ -256,7 +256,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test020UserAdd", 2, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ResourceObjectShadowType> context = createUserAccountContext();
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
                 PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BILL_FILENAME));
                 fillContextWithAddUserDelta(context, bill);
                 return context;
@@ -287,7 +287,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, result));
 
-        LensContext<UserType, ResourceObjectShadowType> context = (LensContext<UserType, ResourceObjectShadowType>) contextCreator.createModelContext(result);
+        LensContext<UserType, ShadowType> context = (LensContext<UserType, ShadowType>) contextCreator.createModelContext(result);
 
         display("Input context", context);
 

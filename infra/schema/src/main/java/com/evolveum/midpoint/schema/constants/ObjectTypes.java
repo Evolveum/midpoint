@@ -64,7 +64,7 @@ public enum ObjectTypes {
 
     SHADOW("schema.objectTypes.shadow",
             SchemaConstants.C_SHADOW_TYPE, SchemaConstants.C_SHADOW,
-            ResourceObjectShadowType.class, true),
+            ShadowType.class, true),
 
     OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
             ObjectType.class, false),

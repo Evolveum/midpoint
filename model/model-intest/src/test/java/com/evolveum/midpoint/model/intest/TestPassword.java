@@ -50,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -180,11 +180,11 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -283,7 +283,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
         ProtectedStringType userPasswordPs5 = new ProtectedStringType();
         userPasswordPs5.setClearValue(USER_PASSWORD_5_CLEAR);
-        ObjectDelta<ResourceObjectShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
         		PASSWORD_VALUE_PATH, userPasswordPs5);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
@@ -363,7 +363,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
         ProtectedStringType userPasswordPs2 = new ProtectedStringType();
         userPasswordPs2.setClearValue(USER_PASSWORD_2_CLEAR);
-        ObjectDelta<ResourceObjectShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy,
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy,
         		PASSWORD_VALUE_PATH, userPasswordPs2);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);

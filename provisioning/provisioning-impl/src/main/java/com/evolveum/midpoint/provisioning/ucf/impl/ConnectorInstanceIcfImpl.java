@@ -139,7 +139,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptOrderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
@@ -729,7 +729,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(Class<T> type,
+	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type,
 			ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
@@ -813,10 +813,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private <T extends ResourceObjectShadowType> PrismObjectDefinition<T> toShadowDefinition(
+	private <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition(
 			ObjectClassComplexTypeDefinition objectClassDefinition) {
 		ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = objectClassDefinition
-				.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+				.toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
 		return resourceAttributeContainerDefinition.toShadowDefinition();
 	}
 
@@ -924,11 +924,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 
 	@Override
-	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object,
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object,
 			Collection<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		validateShadow(object, "add", false);
-		ResourceObjectShadowType objectType = object.asObjectable();
+		ShadowType objectType = object.asObjectable();
 
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(object);
@@ -1052,12 +1052,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attributesContainer.getAttributes();
 	}
 
-	private void validateShadow(PrismObject<? extends ResourceObjectShadowType> shadow, String operation,
+	private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation,
 			boolean requireUid) {
 		if (shadow == null) {
 			throw new IllegalArgumentException("Cannot " + operation + " null " + shadow);
 		}
-		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			throw new IllegalArgumentException("Cannot " + operation + " shadow without attributes container");
 		}
@@ -1113,7 +1113,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				PropertyDelta<?> delta = change.getPropertyDelta();
 
-				if (delta.getParentPath().equals(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
+				if (delta.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
 						ResourceAttributeDefinition def = objectClass
 								.findAttributeDefinition(delta.getName());
@@ -1163,10 +1163,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						updateAttribute.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToReplace()));
 						updateValues.add(updateAttribute);
 					}
-				} else if (delta.getParentPath().equals(new ItemPath(ResourceObjectShadowType.F_ACTIVATION))) {
+				} else if (delta.getParentPath().equals(new ItemPath(ShadowType.F_ACTIVATION))) {
 					activationDeltas.add(delta);
 				} else if (delta.getParentPath().equals(
-						new ItemPath(new ItemPath(ResourceObjectShadowType.F_CREDENTIALS),
+						new ItemPath(new ItemPath(ShadowType.F_CREDENTIALS),
 								CredentialsType.F_PASSWORD))) {
 					passwordDelta = (PropertyDelta<ProtectedStringType>) delta;
 				} else {
@@ -1381,7 +1381,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
 		QName attributeName = convertAttributeNameToQName(uid.getName());
-		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attributeName),
+		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName),
 				uidDefinition);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
 		return uidDelta;
@@ -1507,7 +1507,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<Change<T>>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+	public <T extends ShadowType> List<Change<T>>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
@@ -1607,7 +1607,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 
 	@Override
-	public <T extends ResourceObjectShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
+	public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
 			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException {
 
@@ -1756,9 +1756,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private ObjectClass objectClassToIcf(PrismObject<? extends ResourceObjectShadowType> object) {
+	private ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> object) {
 
-		ResourceObjectShadowType shadowType = object.asObjectable();
+		ShadowType shadowType = object.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();
 		if (qnameObjectClass == null) {
 			ResourceAttributeContainer attrContainer = ResourceObjectShadowUtil
@@ -1868,7 +1868,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @return new mapped ResourceObject instance.
 	 * @throws SchemaException
 	 */
-	private <T extends ResourceObjectShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
+	private <T extends ShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
 			PrismObjectDefinition<T> objectDefinition, boolean full) throws SchemaException {
 
 		PrismObject<T> shadowPrism = null;
@@ -1883,7 +1883,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		T shadow = shadowPrism.asObjectable();
 		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
-				.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+				.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
@@ -2064,7 +2064,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private <T extends ResourceObjectShadowType> List<Change<T>> getChangesFromSyncDeltas(ObjectClass objClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
+	private <T extends ShadowType> List<Change<T>> getChangesFromSyncDeltas(ObjectClass objClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
 		List<Change<T>> changeList = new ArrayList<Change<T>>();
 
@@ -2080,12 +2080,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			if (SyncDeltaType.DELETE.equals(icfDelta.getDeltaType())) {
 				LOGGER.trace("START creating delta of type DELETE");
-				ObjectDelta<ResourceObjectShadowType> objectDelta = new ObjectDelta<ResourceObjectShadowType>(
-						ResourceObjectShadowType.class, ChangeType.DELETE, prismContext);
+				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(
+						ShadowType.class, ChangeType.DELETE, prismContext);
 				ResourceAttribute<String> uidAttribute = createUidAttribute(
 						icfDelta.getUid(),
 						getUidDefinition(objClassDefinition
-								.toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES)));
+								.toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES)));
 				Collection<ResourceAttribute<?>> identifiers = new ArrayList<ResourceAttribute<?>>(1);
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -2094,11 +2094,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.trace("END creating delta of type DELETE");
 
 			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDelta.getDeltaType())) {
-				PrismObjectDefinition<ResourceObjectShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
+				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 				LOGGER.trace("Object definition: {}", objectDefinition);
 				
 				LOGGER.trace("START creating delta of type CREATE_OR_UPDATE");
-				PrismObject<ResourceObjectShadowType> currentShadow = convertToResourceObject(icfDelta.getObject(),
+				PrismObject<ShadowType> currentShadow = convertToResourceObject(icfDelta.getObject(),
 						objectDefinition, false);
 
 				if (LOGGER.isTraceEnabled()) {

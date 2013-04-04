@@ -103,7 +103,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
@@ -303,7 +303,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test006ListResourceObjects");
 		// WHEN
-		List<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
+		List<PrismObject<? extends ShadowType>> objectList = provisioningService.listResourceObjects(
 				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
 		// THEN
 		assertNotNull(objectList);
@@ -319,7 +319,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ ".test007GetObject");
 		try {
 
-			ResourceObjectShadowType objectToAdd = parseObjectTypeFromFile(ACCOUNT1_FILENAME, ResourceObjectShadowType.class);
+			ShadowType objectToAdd = parseObjectTypeFromFile(ACCOUNT1_FILENAME, ShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
 			System.out.println(objectToAdd.asPrismObject().dump());
@@ -328,7 +328,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			assertEquals(ACCOUNT1_OID, addedObjectOid);
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-			ResourceObjectShadowType acct = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
+			ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
 
 			assertNotNull(acct);
 
@@ -340,11 +340,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -381,11 +381,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -423,11 +423,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -442,7 +442,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ ".test010AddObject");
 
 		try {
-			ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, ResourceObjectShadowType.class);
+			ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, ShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -450,26 +450,26 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
-			ResourceObjectShadowType accountType =  repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_NEW_OID,
+			ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 					result).asObjectable();
 			PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
 //			assertEquals("will", accountType.getName());
 
-			ResourceObjectShadowType provisioningAccountType = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_NEW_OID,
+			ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 					null, result).asObjectable();
 //			assertEquals("will", provisioningAccountType.getName());
 			PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_NEW_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_NEW_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -494,11 +494,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			assertNull(addedObjectOid);
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -513,7 +513,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ ".test012DeleteObject");
 
 		try {
-			ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_DELETE_FILENAME, ResourceObjectShadowType.class);
+			ShadowType object = parseObjectTypeFromFile(ACCOUNT_DELETE_FILENAME, ShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -521,12 +521,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 			assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
 
-			provisioningService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
+			provisioningService.deleteObject(ShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
 
-			ResourceObjectShadowType objType = null;
+			ShadowType objType = null;
 
 			try {
-				objType = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_DELETE_OID,
+				objType = provisioningService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
 						null, result).asObjectable();
 				Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
 			} catch (ObjectNotFoundException ex) {
@@ -535,7 +535,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 
 			try {
-				objType = repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_DELETE_OID,
+				objType = repositoryService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
 						result).asObjectable();
 				// objType = container.getObject();
 				Assert.fail("Expected exception, but haven't got one.");
@@ -546,11 +546,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -566,7 +566,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		try {
 			
-			ResourceObjectShadowType object = unmarshallJaxbFromFile(ACCOUNT_MODIFY_FILENAME, ResourceObjectShadowType.class);
+			ShadowType object = unmarshallJaxbFromFile(ACCOUNT_MODIFY_FILENAME, ShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -576,10 +576,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 					new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
-			ObjectDelta<ResourceObjectShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class, PrismTestUtil.getPrismContext());
+			ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 			
 			ItemPath icfNamePath = new ItemPath(
-					ResourceObjectShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME);
+					ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME);
 			PrismPropertyDefinition icfNameDef = object
 					.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
 			ItemDelta renameDelta = PropertyDelta.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
@@ -591,10 +591,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 			
 			display("Object change",delta);
-			provisioningService.modifyObject(ResourceObjectShadowType.class, objectChange.getOid(),
+			provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
 					delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 			
-			ResourceObjectShadowType accountType = provisioningService.getObject(ResourceObjectShadowType.class,
+			ShadowType accountType = provisioningService.getObject(ShadowType.class,
 					ACCOUNT_MODIFY_OID, null, result).asObjectable();
 			
 			display("Object after change",accountType);
@@ -637,15 +637,15 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_MODIFY_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_MODIFY_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -661,13 +661,13 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		try {
 
-			ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_PASSWORD_FILENAME, ResourceObjectShadowType.class);
+			ShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_PASSWORD_FILENAME, ShadowType.class);
 
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 
 			assertEquals(ACCOUNT_MODIFY_PASSWORD_OID, addedObjectOid);
 			
-			ResourceObjectShadowType accountType = provisioningService.getObject(ResourceObjectShadowType.class,
+			ShadowType accountType = provisioningService.getObject(ShadowType.class,
 					ACCOUNT_MODIFY_PASSWORD_OID, null, result).asObjectable();
 			
 			display("Object before password change",accountType);
@@ -684,11 +684,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 					new File("src/test/resources/impl/account-change-password.xml"), ObjectModificationType.class);
-			ObjectDelta<ResourceObjectShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class, PrismTestUtil.getPrismContext());
+			ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 			display("Object change",delta);
 
 			// WHEN
-			provisioningService.modifyObject(ResourceObjectShadowType.class, delta.getOid(), delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
+			provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 
 			// THEN
 			
@@ -704,15 +704,15 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_MODIFY_PASSWORD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_MODIFY_PASSWORD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -726,7 +726,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ ".test015AddObjectWithPassword");
 
 		try {
-			ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_WITH_PASSWORD_FILENAME, ResourceObjectShadowType.class);
+			ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_WITH_PASSWORD_FILENAME, ShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -734,12 +734,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 			assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
 
-			ResourceObjectShadowType accountType =  repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
+			ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
 					result).asObjectable();
 //			assertEquals("lechuck", accountType.getName());
 			PrismAsserts.assertEqualsPolyString("Name not equal.", "lechuck", accountType.getName());
 
-			ResourceObjectShadowType provisioningAccountType = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
+			ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
 					null, result).asObjectable();
 			PrismAsserts.assertEqualsPolyString("Name not equal.", "lechuck", provisioningAccountType.getName());
 //			assertEquals("lechuck", provisioningAccountType.getName());
@@ -764,15 +764,15 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -807,8 +807,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
                 display("Found object", objectType);
 
-                assertTrue(objectType instanceof ResourceObjectShadowType);
-                ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
+                assertTrue(objectType instanceof ShadowType);
+                ShadowType shadow = (ShadowType) objectType;
                 assertNotNull(shadow.getOid());
                 assertNotNull(shadow.getName());
                 assertEquals(new QName(resourceNamespace, "AccountObjectClass"), shadow.getObjectClass());
@@ -832,7 +832,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         // WHEN
 
       
-        provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, query, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
         
         display("Count", objects.size());
         } catch(Exception ex){
@@ -850,7 +850,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"test017DisableAccount");
 		try {
 
-			ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, ResourceObjectShadowType.class);
+			ShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, ShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -861,13 +861,13 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 					new File("src/test/resources/impl/disable-account-simulated.xml"), ObjectModificationType.class);
-			ObjectDelta<ResourceObjectShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class, PrismTestUtil.getPrismContext());
+			ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 			display("Object change",delta);
 
-			provisioningService.modifyObject(ResourceObjectShadowType.class, objectChange.getOid(),
+			provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
 					delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 			
-			ResourceObjectShadowType accountType = provisioningService.getObject(ResourceObjectShadowType.class,
+			ShadowType accountType = provisioningService.getObject(ShadowType.class,
 					ACCOUNT_DISABLE_SIMULATED_OID, null, result).asObjectable();
 			
 			display("Object after change",accountType);
@@ -893,15 +893,15 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -916,7 +916,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".searchObjectsIterativeTest");
 		try {
-			ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, ResourceObjectShadowType.class);
+			ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, ShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -924,16 +924,16 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 			assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
 
-			final List<ResourceObjectShadowType> objectTypeList = new ArrayList<ResourceObjectShadowType>();
+			final List<ShadowType> objectTypeList = new ArrayList<ShadowType>();
 
 			QueryType queryType = PrismTestUtil.unmarshalObject(new File(
 					"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
-			ObjectQuery query = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, queryType, prismContext);
+			ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 			
-			provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, query, new ResultHandler<ResourceObjectShadowType>() {
+			provisioningService.searchObjectsIterative(ShadowType.class, query, new ResultHandler<ShadowType>() {
 
 				@Override
-				public boolean handle(PrismObject<ResourceObjectShadowType> object, OperationResult parentResult) {
+				public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
 
 					return objectTypeList.add(object.asObjectable());
 				}
@@ -951,15 +951,15 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_SEARCH_ITERATIVE_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_SEARCH_ITERATIVE_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -973,7 +973,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ ".test201SearchObjects");
 
 		try {
-			ResourceObjectShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, ResourceObjectShadowType.class); 
+			ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, ShadowType.class); 
 				//unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
@@ -984,12 +984,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
 					QueryType.class);
-			ObjectQuery query = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, queryType, prismContext);
+			ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
-			List<PrismObject<ResourceObjectShadowType>> objListType = 
-				provisioningService.searchObjects(ResourceObjectShadowType.class, query, result);
+			List<PrismObject<ShadowType>> objListType = 
+				provisioningService.searchObjects(ShadowType.class, query, result);
 			
-			for (PrismObject<ResourceObjectShadowType> objType : objListType) {
+			for (PrismObject<ShadowType> objType : objListType) {
 				if (objType == null) {
 					System.out.println("Object not found in repository.");
 				} else {
@@ -998,11 +998,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			//do not delete the account to search, it will be used in the next test
@@ -1024,12 +1024,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-complex-filter.xml"), 
 					QueryType.class);
-			ObjectQuery query = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, queryType, prismContext);
+			ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
-			List<PrismObject<ResourceObjectShadowType>> objListType = 
-				provisioningService.searchObjects(ResourceObjectShadowType.class, query, result);
+			List<PrismObject<ShadowType>> objListType = 
+				provisioningService.searchObjects(ShadowType.class, query, result);
 			
-			for (PrismObject<ResourceObjectShadowType> objType : objListType) {
+			for (PrismObject<ShadowType> objType : objListType) {
 				if (objType == null) {
 					System.out.println("Object not found in repository.");
 				} else {
@@ -1038,15 +1038,15 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_SEARCH_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_SEARCH_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -1062,7 +1062,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test300AddObjectObjectAlreadyExist");
 		
-		PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NEW_FILENAME));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NEW_FILENAME));
 		display("Account to add", account);
 		
 		try {
@@ -1090,7 +1090,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test300AddObjectObjectAlreadyExist");
 
-		PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NO_SN_FILENAME));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NO_SN_FILENAME));
 		display("Account to add", account);
 		
 		try {

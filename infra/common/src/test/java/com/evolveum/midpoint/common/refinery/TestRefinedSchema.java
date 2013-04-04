@@ -65,8 +65,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
@@ -221,11 +221,11 @@ public class TestRefinedSchema {
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
 
-        PrismObject<ResourceObjectShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
+        PrismObject<ShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 
         // WHEN
 
-        PrismObjectDefinition<ResourceObjectShadowType> objectDefinition = defaultAccountDefinition.getObjectDefinition();
+        PrismObjectDefinition<ShadowType> objectDefinition = defaultAccountDefinition.getObjectDefinition();
 
         System.out.println("Refined account definition:");
         System.out.println(objectDefinition.dump());
@@ -255,8 +255,8 @@ public class TestRefinedSchema {
         System.out.println("Refined account definition:");
         System.out.println(defaultAccountDefinition.dump());
 
-        PrismObject<ResourceObjectShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
-        PrismContainer<Containerable> attributesContainer = accObject.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+        PrismObject<ShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
+        PrismContainer<Containerable> attributesContainer = accObject.findContainer(ShadowType.F_ATTRIBUTES);
         System.out.println("Attributes container:");
         System.out.println(attributesContainer.dump());
         
@@ -270,12 +270,12 @@ public class TestRefinedSchema {
         assertAccountShadow(accObject, resource, prismContext);
     }
     
-    private void assertAccountShadow(PrismObject<ResourceObjectShadowType> accObject, PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException, JAXBException {
+    private void assertAccountShadow(PrismObject<ShadowType> accObject, PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException, JAXBException {
     	ResourceType resourceType = resource.asObjectable();
         QName objectClassQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
-        PrismAsserts.assertPropertyValue(accObject, ResourceObjectShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
-        PrismAsserts.assertPropertyValue(accObject, ResourceObjectShadowType.F_OBJECT_CLASS, objectClassQName);
-        PrismAsserts.assertPropertyValue(accObject, ResourceObjectShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
+        PrismAsserts.assertPropertyValue(accObject, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
+        PrismAsserts.assertPropertyValue(accObject, ShadowType.F_OBJECT_CLASS, objectClassQName);
+        PrismAsserts.assertPropertyValue(accObject, ShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.C_ATTRIBUTES);
         assertEquals("Wrong type of <attributes> definition in account", ResourceAttributeContainerDefinition.class, attributes.getDefinition().getClass());
@@ -288,14 +288,14 @@ public class TestRefinedSchema {
         PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "sn"), "Sparrow");
         PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "uid"), "jack");
 
-        assertEquals("JAXB class name doesn't match (1)", ResourceObjectShadowType.class, accObject.getCompileTimeClass());
+        assertEquals("JAXB class name doesn't match (1)", ShadowType.class, accObject.getCompileTimeClass());
         
         accObject.checkConsistence();
 
-        ResourceObjectShadowType accObjectType = accObject.asObjectable();
+        ShadowType accObjectType = accObject.asObjectable();
         assertEquals("Wrong JAXB name", PrismTestUtil.createPolyStringType("jack"), accObjectType.getName());
         assertEquals("Wrong JAXB objectClass", objectClassQName, accObjectType.getObjectClass());
-        ResourceObjectShadowAttributesType attributesType = accObjectType.getAttributes();
+        ShadowAttributesType attributesType = accObjectType.getAttributes();
         assertNotNull("null ResourceObjectShadowAttributesType (JAXB)", attributesType);
         List<Object> attributeElements = attributesType.getAny();
         TestUtil.assertElement(attributeElements, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
@@ -331,14 +331,14 @@ public class TestRefinedSchema {
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         
         // WHEN
-        PrismObject<ResourceObjectShadowType> blankShadow = rAccount.createBlankShadow();
+        PrismObject<ShadowType> blankShadow = rAccount.createBlankShadow();
         
         // THEN
         assertNotNull("No blank shadow", blankShadow);
         assertNotNull("No prism context in blank shadow", blankShadow.getPrismContext());
-        PrismObjectDefinition<ResourceObjectShadowType> objectDef = blankShadow.getDefinition();
+        PrismObjectDefinition<ShadowType> objectDef = blankShadow.getDefinition();
         assertNotNull("Blank shadow has no definition", objectDef);
-        PrismContainerDefinition<?> attrDef = objectDef.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+        PrismContainerDefinition<?> attrDef = objectDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
         assertNotNull("Blank shadow has no definition for attributes", attrDef);
         assertTrue("Wrong class for attributes definition: "+attrDef.getClass(), attrDef instanceof ResourceAttributeContainerDefinition);
         

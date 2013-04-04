@@ -30,7 +30,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 import java.util.Collection;
 import java.util.List;
@@ -155,7 +155,7 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
-	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(
+	public <T extends ShadowType> PrismObject<T> fetchObject(
 			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
@@ -193,7 +193,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public <T extends ResourceObjectShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+	public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
 			ResultHandler<T> handler, OperationResult parentResult) 
 			throws CommunicationException, GenericFrameworkException, SchemaException;
 
@@ -221,7 +221,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object, Collection<Operation> additionalOperations, 
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, 
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, 
 			ObjectAlreadyExistsException, ConfigurationException;
 	
@@ -279,7 +279,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public <T extends ResourceObjectShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	public <T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

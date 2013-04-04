@@ -42,7 +42,7 @@
     <xsd:complexType name="AccountShadowExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:extension ref="c:ResourceObjectShadowType"/>
+                <a:extension ref="c:ShadowType"/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

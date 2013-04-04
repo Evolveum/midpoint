@@ -129,7 +129,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         }
 
         if (operationDescription.getObjectDelta().getObjectTypeClass() == null ||
-                !ResourceObjectShadowType.class.isAssignableFrom(operationDescription.getObjectDelta().getObjectTypeClass())) {
+                !ShadowType.class.isAssignableFrom(operationDescription.getObjectDelta().getObjectTypeClass())) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Object that was changed was not an account, exiting the operation listener (class = " +
                         operationDescription.getObjectDelta().getObjectTypeClass() + ")");
@@ -248,8 +248,8 @@ public class AccountOperationListener implements ResourceOperationListener {
             return true;        // dubious, but let's have it this way
         } else {
             for (ItemDelta id : operationDescription.getObjectDelta().getModifications()) {
-                if (!ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION.equals(id.getName()) &&
-                        !ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION.equals(id.getName())) {
+                if (!ShadowType.F_SYNCHRONIZATION_SITUATION.equals(id.getName()) &&
+                        !ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION.equals(id.getName())) {
                     return true;
                 }
             }

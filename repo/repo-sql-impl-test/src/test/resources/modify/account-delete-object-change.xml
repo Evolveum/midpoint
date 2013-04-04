@@ -19,7 +19,7 @@
   ~
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
-<object xsi:type="ResourceObjectShadowType" oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e2a1"
+<object xsi:type="ShadowType" oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e2a1"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
         

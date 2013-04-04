@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 public class ValueOperation extends Operation {
 
@@ -34,7 +34,7 @@ public class ValueOperation extends Operation {
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
 		if (valueFilter.getParentPath() != null && !valueFilter.getParentPath().isEmpty()
-				&& valueFilter.getParentPath().equals(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
+				&& valueFilter.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = UcfUtil.convertAttributeNameToIcf(propName, getInterpreter()

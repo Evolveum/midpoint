@@ -43,7 +43,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
@@ -255,7 +255,7 @@ public class Projector {
 			return;
 		}
 		int wave = 0;
-		for (ResourceShadowDiscriminatorType dependency :accountContext.getDependencies()) {
+		for (ShadowDiscriminatorType dependency :accountContext.getDependencies()) {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
 			if (dependencyAccountContext == null) {

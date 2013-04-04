@@ -124,7 +124,7 @@
     </account>
     
     <!-- Account as reference -->
-    <accountRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="ResourceObjectShadowType">
+    <accountRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="ShadowType">
     	<description>This is third accountRef</description>
     	<filter>
     		<!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->

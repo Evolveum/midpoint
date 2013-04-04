@@ -61,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -98,7 +98,7 @@ public class ExpressionHandler {
 		return model;
 	}
 
-	public String evaluateExpression(ResourceObjectShadowType shadow, ExpressionType expressionType,
+	public String evaluateExpression(ShadowType shadow, ExpressionType expressionType,
 			String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");
@@ -128,7 +128,7 @@ public class ExpressionHandler {
         return nonNegativeValues.iterator().next().getValue();
 	}
 
-	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
+	public boolean evaluateConfirmationExpression(UserType user, ShadowType shadow,
 			ExpressionType expressionType, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
@@ -165,7 +165,7 @@ public class ExpressionHandler {
 	}
 
 	// TODO: refactor - this method is also in SchemaHandlerImpl
-	private ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
+	private ResourceType resolveResource(ShadowType shadow, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
 			 {
 		if (shadow.getResource() != null) {
 			return shadow.getResource();
@@ -183,7 +183,7 @@ public class ExpressionHandler {
 	}
 
 	public static Map<QName, Object> getDefaultXPathVariables(UserType user,
-			ResourceObjectShadowType shadow, ResourceType resource) {
+			ShadowType shadow, ResourceType resource) {
 		
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		if (user != null) {

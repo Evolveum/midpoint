@@ -34,8 +34,8 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.hibernate.annotations.*;
 
@@ -290,7 +290,7 @@ public class RResourceObjectShadow extends RObject {
         return result1;
     }
 
-    public static void copyToJAXB(RResourceObjectShadow repo, ResourceObjectShadowType jaxb,
+    public static void copyToJAXB(RResourceObjectShadow repo, ShadowType jaxb,
                                   PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
@@ -337,13 +337,13 @@ public class RResourceObjectShadow extends RObject {
         }
 
         if (repo.getAttributes() != null) {
-            ResourceObjectShadowAttributesType attributes = new ResourceObjectShadowAttributesType();
+            ShadowAttributesType attributes = new ShadowAttributesType();
             jaxb.setAttributes(attributes);
             RAnyContainer.copyToJAXB(repo.getAttributes(), attributes, prismContext);
         }
     }
 
-    public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadow repo,
+    public static void copyFromJAXB(ShadowType jaxb, RResourceObjectShadow repo,
                                     PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -398,8 +398,8 @@ public class RResourceObjectShadow extends RObject {
     }
 
     @Override
-    public ResourceObjectShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
-        ResourceObjectShadowType object = new ResourceObjectShadowType();
+    public ShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        ShadowType object = new ShadowType();
         RUtil.revive(object, prismContext);
         RResourceObjectShadow.copyToJAXB(this, object, prismContext);
 

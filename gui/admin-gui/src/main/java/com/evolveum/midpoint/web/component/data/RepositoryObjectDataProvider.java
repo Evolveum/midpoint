@@ -106,8 +106,8 @@ public class RepositoryObjectDataProvider
 
     private DebugObjectItem createItem(PrismObject object, OperationResult result) {
         DebugObjectItem item = DebugObjectItem.createDebugObjectItem(object);
-        if (ResourceObjectShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            PrismReference ref = object.findReference(new ItemPath(ResourceObjectShadowType.F_RESOURCE_REF));
+        if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            PrismReference ref = object.findReference(new ItemPath(ShadowType.F_RESOURCE_REF));
             if (ref == null || ref.getValue() == null) {
                 return item;
             }

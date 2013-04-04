@@ -58,7 +58,7 @@ import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -249,7 +249,7 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         columns.add(column);
 
-        if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
+        if (ShadowType.class.isAssignableFrom(type)) {
             columns.add(new PropertyColumn(createStringResource("pageDebugList.resourceName"),
                     DebugObjectItem.F_RESOURCE_NAME));
             columns.add(new PropertyColumn(createStringResource("pageDebugList.resourceType"),

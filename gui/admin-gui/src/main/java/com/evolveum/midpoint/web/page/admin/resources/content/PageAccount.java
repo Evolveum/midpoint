@@ -42,7 +42,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -86,14 +86,14 @@ public class PageAccount extends PageAdminResources {
 
     private ObjectWrapper loadAccount() {
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNT);
-        PrismObject<ResourceObjectShadowType> account = null;
+        PrismObject<ShadowType> account = null;
         try {
             Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                    ResourceObjectShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+                    ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
             StringValue userOid = getPageParameters().get(PARAM_ACCOUNT_ID);
-            account = getModelService().getObject(ResourceObjectShadowType.class, userOid.toString(), options, task, result);
+            account = getModelService().getObject(ShadowType.class, userOid.toString(), options, task, result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get user.", ex);
@@ -166,7 +166,7 @@ public class PageAccount extends PageAdminResources {
 
             @Override
             protected String load() {
-                PrismObject<ResourceObjectShadowType> account = accountModel.getObject().getObject();
+                PrismObject<ShadowType> account = accountModel.getObject().getObject();
 
                 ResourceType resource = account.asObjectable().getResource();
                 String resourceName = WebMiscUtil.getName(resource);
@@ -182,7 +182,7 @@ public class PageAccount extends PageAdminResources {
         OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
         ObjectWrapper wrapper = accountModel.getObject();
         try {
-            ObjectDelta<ResourceObjectShadowType> delta = wrapper.getObjectDelta();
+            ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
@@ -218,7 +218,7 @@ public class PageAccount extends PageAdminResources {
     }
 
     private void returnToAccountList() {
-        PrismObject<ResourceObjectShadowType> account = accountModel.getObject().getObject();
+        PrismObject<ShadowType> account = accountModel.getObject().getObject();
         ResourceType resource = account.asObjectable().getResource();
 
         PageParameters parameters = new PageParameters();

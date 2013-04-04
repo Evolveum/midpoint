@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -63,7 +63,7 @@ public class TestQueryConvertor {
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
 			try {
-				query = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, queryType, prismContext);
+				query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 				LOGGER.info("query converted: ");
 
 				LOGGER.info("QUERY DUMP: {}", query.dump());

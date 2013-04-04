@@ -161,7 +161,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     if (delta.getModifications().size() == 1) {
                         ItemDelta d = (ItemDelta) delta.getModifications().iterator().next();
 
-                        if (ResourceObjectShadowType.F_DEAD.equals(d.getName())) {
+                        if (ShadowType.F_DEAD.equals(d.getName())) {
                             count -= delta.getModifications().size();
                             continue;
                         }
@@ -266,7 +266,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void addGetFullAccount() throws Exception {
         LOGGER.info("===[ addGetFullAccount ]===");
         File file = new File(FOLDER_BASIC, "account-full.xml");
-        PrismObject<ResourceObjectShadowType> fileAccount = prismContext.parseObject(new File(FOLDER_BASIC, "account-full.xml"));
+        PrismObject<ShadowType> fileAccount = prismContext.parseObject(new File(FOLDER_BASIC, "account-full.xml"));
 
         // apply appropriate schema
         PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
@@ -276,13 +276,13 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("ADD");
         String oid = repositoryService.addObject(fileAccount, null, result);
 
-        PrismObject<ResourceObjectShadowType> repoAccount = repositoryService.getObject(ResourceObjectShadowType.class, oid, result);
+        PrismObject<ShadowType> repoAccount = repositoryService.getObject(ShadowType.class, oid, result);
 
-        ObjectDelta<ResourceObjectShadowType> delta = fileAccount.diff(repoAccount);
+        ObjectDelta<ShadowType> delta = fileAccount.diff(repoAccount);
         AssertJUnit.assertNotNull(delta);
         LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
         AssertJUnit.assertTrue(delta.isEmpty());
-        ResourceObjectShadowType repoShadow = repoAccount.asObjectable();
+        ShadowType repoShadow = repoAccount.asObjectable();
         AssertJUnit.assertNotNull(repoShadow.getSynchronizationSituation());
         AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, repoShadow.getSynchronizationSituation());
         AssertJUnit.assertNotNull(repoShadow.getSynchronizationSituationDescription());
@@ -350,10 +350,10 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void addGetSyncDescription() throws Exception {
         PrismObjectDefinition accDef = prismContext.getSchemaRegistry()
-                .findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
-        PrismObject<ResourceObjectShadowType> shadow = accDef.instantiate();
+                .findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        PrismObject<ShadowType> shadow = accDef.instantiate();
         final Date TIME = new Date();
-        ResourceObjectShadowType shadowType = shadow.asObjectable();
+        ShadowType shadowType = shadow.asObjectable();
         shadowType.setName(new PolyStringType("sync desc test"));
         SynchronizationSituationDescriptionType desc = new SynchronizationSituationDescriptionType();
         desc.setChannel("channel");
@@ -364,7 +364,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("sync desc test");
         String oid = repositoryService.addObject(shadowType.asPrismObject(), null, result);
 
-        shadow = repositoryService.getObject(ResourceObjectShadowType.class, oid, result);
+        shadow = repositoryService.getObject(ShadowType.class, oid, result);
         shadowType = shadow.asObjectable();
         desc = shadowType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));

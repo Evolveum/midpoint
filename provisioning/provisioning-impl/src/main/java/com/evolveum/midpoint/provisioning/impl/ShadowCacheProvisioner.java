@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -31,7 +31,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheProvisioner.class);
 	
 	@Override
-	public <T extends ResourceObjectShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
 	shadow = shadowManager.createRepositoryShadow(shadow, resource);
 
@@ -69,14 +69,14 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> void afterModifyOnResource(PrismObject<T> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public <T extends ShadowType> void afterModifyOnResource(PrismObject<T> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		Collection<? extends ItemDelta> shadowChanges = getShadowChanges(modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
 					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
 					DebugUtil.debugDump(shadowChanges));
 			try {
-				getRepositoryService().modifyObject(ResourceObjectShadowType.class, shadowType.getOid(), shadowChanges, parentResult);
+				getRepositoryService().modifyObject(ShadowType.class, shadowType.getOid(), shadowChanges, parentResult);
 				LOGGER.trace("Shadow changes processed successfully.");
 			} catch (ObjectAlreadyExistsException ex) {
 				throw new SystemException(ex);
@@ -92,7 +92,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 
 		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath())
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath())
 					|| SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())
 					|| SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())) {
 				continue;
@@ -104,7 +104,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
+	public <T extends ShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
 		
 		// TODO: error handling
 		//do not merge deltas when complete postponed operation is set to false, because it can cause some unexpected behavior..
@@ -125,7 +125,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T extends ResourceObjectShadowType> ObjectDelta mergeDeltas(PrismObject<T> shadow, Collection<? extends ItemDelta> modifications)
+	private <T extends ShadowType> ObjectDelta mergeDeltas(PrismObject<T> shadow, Collection<? extends ItemDelta> modifications)
 			throws SchemaException {
 		T shadowType = shadow.asObjectable();
 		if (shadowType.getObjectChange() != null) {
@@ -135,8 +135,8 @@ public class ShadowCacheProvisioner extends ShadowCache{
 					deltaType.getModification(), shadow.getDefinition());
 
 			return ObjectDelta.summarize(ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
-					ResourceObjectShadowType.class, getPrismContext()), ObjectDelta.createModifyDelta(shadow.getOid(),
-					pendingModifications, ResourceObjectShadowType.class, getPrismContext()));
+					ShadowType.class, getPrismContext()), ObjectDelta.createModifyDelta(shadow.getOid(),
+					pendingModifications, ShadowType.class, getPrismContext()));
 		}
 		return null;
 	}

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
@@ -146,7 +146,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDBTable.class.getName()
 				+ "." + TEST_NAME);
 
-		ResourceObjectShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ResourceObjectShadowType.class);
+		ShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(account.asPrismObject().dump());
@@ -161,11 +161,11 @@ public class TestDBTable extends AbstractIntegrationTest {
 		assertSuccess("addObject has failed (result)",result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		ResourceObjectShadowType accountType =  repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_WILL_OID, result).asObjectable();
+		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, accountType.getName());
 //		assertEquals("will", accountType.getName());
 
-		ResourceObjectShadowType provisioningAccountType = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_WILL_OID, null, result).asObjectable();
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, provisioningAccountType.getName());
 //		assertEquals("will", provisioningAccountType.getName());
 		
@@ -198,7 +198,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
 		Task task = taskManager.createTaskInstance();
 		// WHEN
-		PrismObject<ResourceObjectShadowType> account = provisioningService.getObject(ResourceObjectShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
 		
 		// THEN
 		result.computeStatus();

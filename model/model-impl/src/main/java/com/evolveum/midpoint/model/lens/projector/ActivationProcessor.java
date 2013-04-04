@@ -78,10 +78,10 @@ public class ActivationProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processActivationUser((LensContext<UserType,ResourceObjectShadowType>) context, (LensProjectionContext<ResourceObjectShadowType>)projectionContext, result);
+    	processActivationUser((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, result);
     }
 
-    public void processActivationUser(LensContext<UserType,ResourceObjectShadowType> context, LensProjectionContext<ResourceObjectShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public void processActivationUser(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         ObjectDelta<UserType> userDelta = context.getFocusContext().getDelta();
         PropertyDelta<Boolean> userEnabledValueDelta = null;
         if (userDelta != null) {
@@ -95,8 +95,8 @@ public class ActivationProcessor {
             return;
         }
 
-        PrismObjectDefinition<ResourceObjectShadowType> accountDefinition = 
-        	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+        PrismObjectDefinition<ShadowType> accountDefinition = 
+        	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismPropertyDefinition accountEnabledPropertyDefinition = 
         	accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
@@ -108,7 +108,7 @@ public class ActivationProcessor {
             return;
         }
 
-        ObjectDelta<ResourceObjectShadowType> accountDelta = accCtx.getDelta();
+        ObjectDelta<ShadowType> accountDelta = accCtx.getDelta();
         PropertyDelta<Boolean> accountEnabledValueDelta = null;
         if (accountDelta != null) {
         	accountEnabledValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
@@ -170,7 +170,7 @@ public class ActivationProcessor {
             LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
             return;
         }
-        PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, ResourceObjectShadowType.class, prismContext);
+        PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, ShadowType.class, prismContext);
         accountEnabledDelta.setValuesToReplace(PrismValue.cloneCollection(accountEnabledNew.getValues()));
         LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
         accCtx.addToSecondaryDelta(accountEnabledDelta);

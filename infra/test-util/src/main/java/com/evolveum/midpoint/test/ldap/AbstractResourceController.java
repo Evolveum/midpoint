@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -54,7 +54,7 @@ public abstract class AbstractResourceController {
 	
 	public ItemPath getAttributePath(String attributeName) {
 		return new ItemPath(
-				ResourceObjectShadowType.F_ATTRIBUTES,
+				ShadowType.F_ATTRIBUTES,
 				getAttributeQName(attributeName));
 	}
 

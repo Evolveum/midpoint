@@ -57,7 +57,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -84,7 +84,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConfirmUser() throws Exception {
-		PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(
 				TEST_FOLDER, "account-xpath-evaluation.xml"));
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
@@ -111,8 +111,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEvaluateExpression() throws Exception {
-		PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "account.xml"));
-		ResourceObjectShadowType accountType = account.asObjectable();
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "account.xml"));
+		ShadowType accountType = account.asObjectable();
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-dummy.xml"));
 		ResourceType resourceType = resource.asObjectable();
 		accountType.setResource(resourceType);

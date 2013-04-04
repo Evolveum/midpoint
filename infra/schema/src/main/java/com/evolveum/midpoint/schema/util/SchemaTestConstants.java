@@ -22,7 +22,7 @@ package com.evolveum.midpoint.schema.util;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for conveniece, so the
@@ -41,9 +41,9 @@ public class SchemaTestConstants {
 	public static final String ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 
 	public static final QName ICFS_UID = new QName(NS_ICFS, "uid");
-	public static final ItemPath ICFS_UID_PATH = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, ICFS_UID);
+	public static final ItemPath ICFS_UID_PATH = new ItemPath(ShadowType.F_ATTRIBUTES, ICFS_UID);
 	public static final QName ICFS_NAME = new QName(NS_ICFS, "name");
-	public static final ItemPath ICFS_NAME_PATH = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, ICFS_NAME);
+	public static final ItemPath ICFS_NAME_PATH = new ItemPath(ShadowType.F_ATTRIBUTES, ICFS_NAME);
 	
 	// Extension schema loaded at runtime from the schema/src/test/resource/schema dir
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";

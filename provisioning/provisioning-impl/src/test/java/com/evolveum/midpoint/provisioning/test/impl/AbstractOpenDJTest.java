@@ -35,7 +35,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -114,7 +114,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		provisioningService.postInit(initResult);
 		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(ACCOUNT_BAD_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_BAD_FILENAME, ShadowType.class, initResult);
 	}
 
 }

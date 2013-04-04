@@ -53,7 +53,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -120,14 +120,14 @@ public class LensUtil {
 		return accountDefinition.getIntent();
 	}
 	
-	public static LensProjectionContext<ResourceObjectShadowType> getAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
-			PrismObject<ResourceObjectShadowType> equivalentAccount, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+	public static LensProjectionContext<ShadowType> getAccountContext(LensContext<UserType,ShadowType> context,
+			PrismObject<ShadowType> equivalentAccount, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		return getAccountContext(context, ResourceObjectShadowUtil.getResourceOid(equivalentAccount.asObjectable()), 
 				equivalentAccount.asObjectable().getIntent(), provisioningService, prismContext, result);
 	}
 	
-	public static LensProjectionContext<ResourceObjectShadowType> getAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
+	public static LensProjectionContext<ShadowType> getAccountContext(LensContext<UserType,ShadowType> context,
 			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
@@ -136,7 +136,7 @@ public class LensUtil {
 		return context.findProjectionContext(rsd);
 	}
 	
-	public static LensProjectionContext<ResourceObjectShadowType> getOrCreateAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
+	public static LensProjectionContext<ShadowType> getOrCreateAccountContext(LensContext<UserType,ShadowType> context,
 			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
@@ -145,9 +145,9 @@ public class LensUtil {
 		return getOrCreateAccountContext(context, rsd);
 	}
 		
-	public static LensProjectionContext<ResourceObjectShadowType> getOrCreateAccountContext(LensContext<UserType,ResourceObjectShadowType> context,
+	public static LensProjectionContext<ShadowType> getOrCreateAccountContext(LensContext<UserType,ShadowType> context,
 			ResourceShadowDiscriminator rsd) {
-		LensProjectionContext<ResourceObjectShadowType> accountSyncContext = context.findProjectionContext(rsd);
+		LensProjectionContext<ShadowType> accountSyncContext = context.findProjectionContext(rsd);
 		if (accountSyncContext == null) {
 			accountSyncContext = context.createProjectionContext(rsd);
 			ResourceType resource = context.getResource(rsd.getResourceOid());

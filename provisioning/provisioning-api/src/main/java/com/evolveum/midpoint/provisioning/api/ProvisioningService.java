@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * <p>Provisioning Service Interface.</p>
@@ -396,11 +396,11 @@ public interface ProvisioningService {
 	 * @throws SchemaException error handling resource schema
 	 * @throws CommunicationException error communicating with the resource
 	 */
-	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
+	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	
-	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+	public <T extends ShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException;
 

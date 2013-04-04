@@ -23,7 +23,7 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:type="c:ResourceObjectShadowListType">
-    <c:object xsi:type="c:ResourceObjectShadowType">
+    <c:object xsi:type="c:ShadowType">
         <name>account1</name>
     </c:object>
 </c:object>

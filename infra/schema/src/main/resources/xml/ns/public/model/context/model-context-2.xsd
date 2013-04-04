@@ -282,7 +282,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="resourceShadowDiscriminator" type="c:ResourceShadowDiscriminatorType" minOccurs="0">
+                    <xsd:element name="resourceShadowDiscriminator" type="c:ShadowDiscriminatorType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of account type.

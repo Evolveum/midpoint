@@ -56,7 +56,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -140,7 +140,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		importObjectFromFile(RESOURCE_DUMMY_NOJARS_FILENAME, initResult);
 		
 		// Accounts
-		addObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, ResourceObjectShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, ShadowType.class, initResult);
 		
 		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
@@ -200,7 +200,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         try {
 
         	// WHEN
-	        PrismObject<ResourceObjectShadowType> account = modelService.getObject(ResourceObjectShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
+	        PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
 	        		null, task, result);
 
 	        AssertJUnit.fail("Expected SystemException but the operation was successful");
@@ -225,7 +225,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
         
 		// WHEN
-        PrismObject<ResourceObjectShadowType> account = modelService.getObject(ResourceObjectShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
+        PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
         		options, task, result);
 
         display("getObject account", account);
@@ -247,7 +247,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         
 		// WHEN
-        PrismObject<ResourceObjectShadowType> account = modelService.getObject(ResourceObjectShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
+        PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
         		options, task, result);
 
         display("getObject account", account);
@@ -272,7 +272,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         try {
 
         	// WHEN
-	        PrismObject<ResourceObjectShadowType> account = findAccountByUsername("jack", resource, task, result);
+	        PrismObject<ShadowType> account = findAccountByUsername("jack", resource, task, result);
 
 	        AssertJUnit.fail("Expected SystemException but the operation was successful");
         } catch (SystemException e) {

@@ -66,8 +66,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnf
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
@@ -138,7 +138,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
     private transient AccountConstruction outboundAccountConstruction;
     
-    private transient Collection<ResourceShadowDiscriminatorType> dependencies = null;
+    private transient Collection<ShadowDiscriminatorType> dependencies = null;
     
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes;
     
@@ -300,7 +300,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 	
 	public boolean isShadow() {
-		return ResourceObjectShadowType.class.isAssignableFrom(getObjectTypeClass());
+		return ShadowType.class.isAssignableFrom(getObjectTypeClass());
 	}
 
 	public ShadowKindType getKind() {
@@ -308,10 +308,10 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			return null;
 		}
 		if (getObjectOld()!=null) {
-			return ((PrismObject<ResourceObjectShadowType>)getObjectOld()).asObjectable().getKind();
+			return ((PrismObject<ShadowType>)getObjectOld()).asObjectable().getKind();
 		}
 		if (getObjectNew()!=null) {
-			return ((PrismObject<ResourceObjectShadowType>)getObjectNew()).asObjectable().getKind();
+			return ((PrismObject<ShadowType>)getObjectNew()).asObjectable().getKind();
 		}
 		return null;
 	}
@@ -373,12 +373,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		return refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, getResourceShadowDiscriminator().getIntent());
 	}
 	
-	public Collection<ResourceShadowDiscriminatorType> getDependencies() {
+	public Collection<ShadowDiscriminatorType> getDependencies() {
 		if (dependencies == null) {
 			ResourceAccountTypeDefinitionType resourceAccountTypeDefinitionType = getResourceAccountTypeDefinitionType();
 			if (resourceAccountTypeDefinitionType == null) {
 				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
-				dependencies = new ArrayList<ResourceShadowDiscriminatorType>();
+				dependencies = new ArrayList<ShadowDiscriminatorType>();
 			} else {
 				dependencies = resourceAccountTypeDefinitionType.getDependency();
 			}
@@ -479,7 +479,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		if (object == null) {
 			return;
 		}
-		PrismReference resourceRef = object.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+		PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
 		if (resourceRef != null) {
 			distributeResourceValues(resourceRef.getValues(), resource);
 		}
@@ -498,7 +498,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		if (delta.isAdd()) {
 			distributeResourceObject(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
-			ReferenceDelta referenceDelta = delta.findReferenceModification(ResourceObjectShadowType.F_RESOURCE_REF);
+			ReferenceDelta referenceDelta = delta.findReferenceModification(ShadowType.F_RESOURCE_REF);
 			if (referenceDelta != null) {
 				distributeResourceValues(referenceDelta.getValuesToAdd(), resource);
 				distributeResourceValues(referenceDelta.getValuesToDelete(), resource);
@@ -698,7 +698,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	 * Returns true if the projection has any value for specified attribute.
 	 */
 	public boolean hasValueForAttribute(QName attributeName) throws SchemaException {
-		ItemPath attrPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attributeName);
+		ItemPath attrPath = new ItemPath(ShadowType.F_ATTRIBUTES, attributeName);
 		if (getObjectNew() != null) {
 			PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
 			if (attrNew != null && !attrNew.isEmpty()) {
@@ -747,8 +747,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		if (object == null) {
 			return null;
 		}
-		if (object.canRepresent(ResourceObjectShadowType.class)) {
-			PrismObject<ResourceObjectShadowType> shadow = (PrismObject<ResourceObjectShadowType>)object;
+		if (object.canRepresent(ShadowType.class)) {
+			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
 			Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow);
 			if (identifiers == null) {
 				return null;

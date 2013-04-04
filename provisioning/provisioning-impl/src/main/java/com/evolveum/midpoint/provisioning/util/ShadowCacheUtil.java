@@ -48,8 +48,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -69,7 +69,7 @@ public class ShadowCacheUtil {
 
 	
 
-	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute, ResourceObjectShadowType shadow,
+	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute, ShadowType shadow,
 			ResourceType resource) {
 		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 
@@ -94,7 +94,7 @@ public class ShadowCacheUtil {
 
 	}
 
-	public static <T extends ResourceObjectShadowType> void normalizeShadow(T shadow, OperationResult result)
+	public static <T extends ShadowType> void normalizeShadow(T shadow, OperationResult result)
 			throws SchemaException {
 
 		if (shadow.getAttemptNumber() != null) {
@@ -133,7 +133,7 @@ public class ShadowCacheUtil {
 
 	}
 	
-	public static <T extends ResourceObjectShadowType> PolyStringType determineShadowName(PrismObject<T> shadow) throws SchemaException {
+	public static <T extends ShadowType> PolyStringType determineShadowName(PrismObject<T> shadow) throws SchemaException {
 		String stringName = determineShadowStringName(shadow);
 		if (stringName == null) {
 			return null;
@@ -141,7 +141,7 @@ public class ShadowCacheUtil {
 		return new PolyStringType(stringName);
 	}
 
-	public static <T extends ResourceObjectShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
+	public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 		if (attributesContainer.getNamingAttribute() == null) {
 			// No naming attribute defined. Try to fall back to identifiers.
@@ -172,16 +172,16 @@ public class ShadowCacheUtil {
 
 	
 
-	public static PrismObjectDefinition<ResourceObjectShadowType> getResourceObjectShadowDefinition(
+	public static PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition(
 			PrismContext prismContext) {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public static String getResourceOidFromFilter(List<? extends ObjectFilter> conditions) throws SchemaException{
 			
 			for (ObjectFilter f : conditions){
-				if (f instanceof RefFilter && ResourceObjectShadowType.F_RESOURCE_REF.equals(((RefFilter) f).getDefinition().getName())){
+				if (f instanceof RefFilter && ShadowType.F_RESOURCE_REF.equals(((RefFilter) f).getDefinition().getName())){
 					List<PrismReferenceValue> values = (List<PrismReferenceValue>)((RefFilter) f).getValues();
 					if (values.size() > 1){
 						throw new SchemaException("More than one resource references defined in the search query.");

@@ -39,8 +39,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
@@ -61,13 +61,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
  * @author Radovan Semancik
  * 
  */
-public class ResourceAttributeContainerDefinition extends PrismContainerDefinition<ResourceObjectShadowAttributesType> {
+public class ResourceAttributeContainerDefinition extends PrismContainerDefinition<ShadowAttributesType> {
 
 	private static final long serialVersionUID = 3943909626639924429L;
 	
 	public ResourceAttributeContainerDefinition(QName name, ObjectClassComplexTypeDefinition complexTypeDefinition,  PrismContext prismContext) {
 		super(name, complexTypeDefinition, prismContext);
-		super.setCompileTimeClass(ResourceObjectShadowAttributesType.class);
+		super.setCompileTimeClass(ShadowAttributesType.class);
 	}
 	
 	@Override
@@ -339,11 +339,11 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		return attrs;
 	}
 	
-	public <T extends ResourceObjectShadowType> PrismObjectDefinition<T> toShadowDefinition() {
+	public <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition() {
 		PrismObjectDefinition<T> origShadowDef =  (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
-			findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+			findObjectDefinitionByCompileTimeClass(ShadowType.class);
 		PrismObjectDefinition<T> shadowDefinition = 
-			origShadowDef.cloneWithReplacedDefinition(ResourceObjectShadowType.F_ATTRIBUTES, this);
+			origShadowDef.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, this);
 		return shadowDefinition;
 	}
 	

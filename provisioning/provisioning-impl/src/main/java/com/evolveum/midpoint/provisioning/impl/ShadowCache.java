@@ -114,8 +114,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptA
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
@@ -192,7 +192,7 @@ public abstract class ShadowCache {
 		return prismContext;
 	}
 	
-	public <T extends ResourceObjectShadowType> PrismObject<T> getShadow(Class<T> type, String oid, PrismObject<T> repositoryShadow,
+	public <T extends ShadowType> PrismObject<T> getShadow(Class<T> type, String oid, PrismObject<T> repositoryShadow,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 
@@ -289,9 +289,9 @@ public abstract class ShadowCache {
 
 	}
 
-	public abstract <T extends ResourceObjectShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+	public abstract <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 	
-	public <T extends ResourceObjectShadowType> String addShadow(PrismObject<T> shadow, ProvisioningScriptsType scripts,
+	public <T extends ShadowType> String addShadow(PrismObject<T> shadow, ProvisioningScriptsType scripts,
 			ResourceType resource, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
@@ -307,7 +307,7 @@ public abstract class ShadowCache {
 			resource = getResource(shadow, parentResult);
 		}
 		PrismContainer<?> attributesContainer = shadow.findContainer(
-				ResourceObjectShadowType.F_ATTRIBUTES);
+				ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 	//		throw new SchemaException("Attempt to add shadow without any attributes: " + shadowType);
 				handleError(new SchemaException("Attempt to add shadow without any attributes: " + shadow), shadow,
@@ -334,7 +334,7 @@ public abstract class ShadowCache {
 		return oid;
 	}
 
-	private <T extends ResourceObjectShadowType> ResourceOperationDescription createSuccessOperationDescription(PrismObject<T> shadowType, ResourceType resource, ObjectDelta delta, Task task, OperationResult parentResult) {
+	private <T extends ShadowType> ResourceOperationDescription createSuccessOperationDescription(PrismObject<T> shadowType, ResourceType resource, ObjectDelta delta, Task task, OperationResult parentResult) {
 		ResourceOperationDescription operationDescription = new ResourceOperationDescription();
 		operationDescription.setCurrentShadow(shadowType);
 		operationDescription.setResource(resource.asPrismObject());
@@ -346,11 +346,11 @@ public abstract class ShadowCache {
 		return operationDescription;
 	}
 
-	public abstract <T extends ResourceObjectShadowType> void afterModifyOnResource(PrismObject<T> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+	public abstract <T extends ShadowType> void afterModifyOnResource(PrismObject<T> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 	
-	public abstract <T extends ResourceObjectShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException;
+	public abstract <T extends ShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException;
 	
-	public <T extends ResourceObjectShadowType> String modifyShadow(PrismObject<T> shadow, ResourceType resource, String oid,
+	public <T extends ShadowType> String modifyShadow(PrismObject<T> shadow, ResourceType resource, String oid,
 				Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 				throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
 				ConfigurationException, SecurityViolationException {
@@ -429,9 +429,9 @@ public abstract class ShadowCache {
 		return oid;
 	}
 
-	private <T extends ResourceObjectShadowType> PropertyDelta<?> checkShadowName(Collection<? extends ItemDelta> modifications, 
+	private <T extends ShadowType> PropertyDelta<?> checkShadowName(Collection<? extends ItemDelta> modifications, 
 			PrismObject<T> shadow) throws SchemaException {
-		ItemDelta<?> nameDelta = ItemDelta.findItemDelta(modifications, new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
+		ItemDelta<?> nameDelta = ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
 		String newName = null;//ShadowCacheUtil.determineShadowName(shadow);
 		
 		if (nameDelta == null){
@@ -447,7 +447,7 @@ public abstract class ShadowCache {
 			return null;
 		}
 		 
-		PropertyDelta<?> renameDelta = PropertyDelta.createModificationReplaceProperty(ResourceObjectShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
+		PropertyDelta<?> renameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
 		return renameDelta;
 	}
 
@@ -461,7 +461,7 @@ public abstract class ShadowCache {
 		return sideEffectDelta;
 	}
 
-	public <T extends ResourceObjectShadowType> void deleteShadow(PrismObject<T> shadow, ProvisioningOperationOptions options, ProvisioningScriptsType scripts,
+	public <T extends ShadowType> void deleteShadow(PrismObject<T> shadow, ProvisioningOperationOptions options, ProvisioningScriptsType scripts,
 			ResourceType resource, Task task, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectNotFoundException, SchemaException, ConfigurationException,
 			SecurityViolationException {
@@ -477,7 +477,7 @@ public abstract class ShadowCache {
 				// although the resource does not exists..
 				if (ProvisioningOperationOptions.isForce(options)) {
 					parentResult.muteLastSubresultError();
-					getRepositoryService().deleteObject(ResourceObjectShadowType.class, shadow.getOid(),
+					getRepositoryService().deleteObject(ShadowType.class, shadow.getOid(),
 							parentResult);
 					parentResult.recordHandledError("Resource defined in shadow does not exists. Shadow was deleted from the repository.");
 					return;
@@ -507,7 +507,7 @@ public abstract class ShadowCache {
 
 			LOGGER.trace("Detele object with oid {} form repository.", shadow.getOid());
 			try {
-				getRepositoryService().deleteObject(ResourceObjectShadowType.class, shadow.getOid(), parentResult);
+				getRepositoryService().deleteObject(ShadowType.class, shadow.getOid(), parentResult);
 				ObjectDelta<T> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(), shadow.getOid(), prismContext);
 				ResourceOperationDescription operationDescription = createSuccessOperationDescription(shadow, resource, delta, task, parentResult);
 				operationListener.notifySuccess(operationDescription, task, parentResult);
@@ -524,7 +524,7 @@ public abstract class ShadowCache {
 	}
 
 
-	public <T extends ResourceObjectShadowType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
+	public <T extends ShadowType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		PrismObject<T> shadow = null;
 		ResourceShadowDiscriminator discriminator = null;
@@ -554,14 +554,14 @@ public abstract class ShadowCache {
 		}
 	}
 
-	public <T extends ResourceObjectShadowType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult)
+	public <T extends ShadowType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ResourceType resource = getResource(shadow, parentResult);
 		applyAttributesDefinition(shadow, resource);
 	}
 
 	
-	protected <T extends ResourceObjectShadowType> ResourceType getResource(PrismObject<T> shadow, OperationResult parentResult)
+	protected <T extends ShadowType> ResourceType getResource(PrismObject<T> shadow, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow.asObjectable());
 		if (resourceOid == null) {
@@ -571,7 +571,7 @@ public abstract class ShadowCache {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected <T extends ResourceObjectShadowType> PrismObject<T> handleError(Exception ex, PrismObject<T> shadow, FailedOperation op,
+	protected <T extends ShadowType> PrismObject<T> handleError(Exception ex, PrismObject<T> shadow, FailedOperation op,
 			ResourceType resource, Collection<? extends ItemDelta> modifications, boolean compensate, Task task, 
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
@@ -599,7 +599,7 @@ public abstract class ShadowCache {
 
 	}
 
-	private <T extends ResourceObjectShadowType> PrismObject<T> extendShadow(PrismObject<T> shadow, OperationResult shadowResult,
+	private <T extends ShadowType> PrismObject<T> extendShadow(PrismObject<T> shadow, OperationResult shadowResult,
 			ResourceType resource, Collection<? extends ItemDelta> modifications) throws SchemaException {
 
 		T shadowType = shadow.asObjectable();
@@ -623,7 +623,7 @@ public abstract class ShadowCache {
 	// SEARCH
 	////////////////////////////////////////////////////////////////////////////
 	
-	public <T extends ResourceObjectShadowType> void listShadows(final ResourceType resource, final QName objectClass,
+	public <T extends ShadowType> void listShadows(final ResourceType resource, final QName objectClass,
 			final ShadowHandler<T> handler, final boolean readFromRepository, final OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException {
 
@@ -633,12 +633,12 @@ public abstract class ShadowCache {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
 
-		searchObjectsIterativeInternal((Class<T>) ResourceObjectShadowType.class , objectClass, resource, null, handler,
+		searchObjectsIterativeInternal((Class<T>) ShadowType.class , objectClass, resource, null, handler,
 				readFromRepository, parentResult);
 
 	}
 
-	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
+	public <T extends ShadowType> void searchObjectsIterative(final Class<T> type,
 			final QName objectClass, final ResourceType resourceType,
 			ObjectQuery query, final ShadowHandler<T> handler, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
@@ -655,7 +655,7 @@ public abstract class ShadowCache {
 
 	}
 
-	private <T extends ResourceObjectShadowType> void searchObjectsIterativeInternal(final Class<T> type, QName objectClass,
+	private <T extends ShadowType> void searchObjectsIterativeInternal(final Class<T> type, QName objectClass,
 			final ResourceType resourceType, ObjectQuery query,
 			final ShadowHandler<T> handler,
 			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
@@ -794,10 +794,10 @@ public abstract class ShadowCache {
 		
 		for (ObjectFilter f : conditions){
 			if (f instanceof EqualsFilter){
-				if (ResourceObjectShadowType.F_OBJECT_CLASS.equals(((EqualsFilter) f).getDefinition().getName())){
+				if (ShadowType.F_OBJECT_CLASS.equals(((EqualsFilter) f).getDefinition().getName())){
 					continue;
 				}
-				if (ResourceObjectShadowType.F_RESOURCE_REF.equals(((EqualsFilter) f).getDefinition().getName())){
+				if (ShadowType.F_RESOURCE_REF.equals(((EqualsFilter) f).getDefinition().getName())){
 					continue;
 				}
 				
@@ -825,7 +825,7 @@ public abstract class ShadowCache {
 	// TODO: maybe split this to a separate class
 	///////////////////////////////////////////////////////////////////////////
 	
-	public <T extends ResourceObjectShadowType> List<Change<T>> fetchChanges(Class<T> type, ResourceType resourceType, 
+	public <T extends ShadowType> List<Change<T>> fetchChanges(Class<T> type, ResourceType resourceType, 
 			PrismProperty<?> lastToken,  OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
 			ConfigurationException, SecurityViolationException {
@@ -935,24 +935,24 @@ public abstract class ShadowCache {
 	//////////////////////////////////////////////////////////////////////////////////////
 	
 
-	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
+	public <T extends ShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
 			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException, ConfigurationException {
 		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(discriminator, resource);
 		return applyAttributesDefinition(delta, objectClassDefinition, resource);
 	}
 	
-	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
+	public <T extends ShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
 			PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 		return applyAttributesDefinition(delta, objectClassDefinition, resource);
 	}
 
-	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
+	private <T extends ShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
 			ObjectClassComplexTypeDefinition objectClassDefinition, ResourceType resource) throws SchemaException, ConfigurationException {
 		if (delta.isAdd()) {
 			applyAttributesDefinition(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
-			ItemPath attributesPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES);
+			ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 			for(ItemDelta<?> modification: delta.getModifications()) {
 				if (modification.getDefinition() == null && attributesPath.equals(modification.getParentPath())) {
 					QName attributeName = modification.getName();
@@ -968,11 +968,11 @@ public abstract class ShadowCache {
 		return objectClassDefinition;
 	}
 
-	public <T extends ResourceObjectShadowType> RefinedObjectClassDefinition applyAttributesDefinition(
+	public <T extends ShadowType> RefinedObjectClassDefinition applyAttributesDefinition(
 			PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		RefinedObjectClassDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 
-		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer != null) {
 			if (attributesContainer instanceof ResourceAttributeContainer) {
 				if (attributesContainer.getDefinition() == null) {
@@ -991,9 +991,9 @@ public abstract class ShadowCache {
 		// create the attribute container if needed.
 
 		PrismObjectDefinition<T> objectDefinition = shadow.getDefinition();
-		PrismContainerDefinition<ResourceObjectShadowAttributesType> origAttrContainerDef = objectDefinition.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainerDefinition<ShadowAttributesType> origAttrContainerDef = objectDefinition.findContainerDefinition(ShadowType.F_ATTRIBUTES);
 		if (origAttrContainerDef == null || !(origAttrContainerDef instanceof ResourceAttributeContainerDefinition)) {
-			PrismObjectDefinition<T> clonedDefinition = objectDefinition.cloneWithReplacedDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
+			PrismObjectDefinition<T> clonedDefinition = objectDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
 					objectClassDefinition.toResourceAttributeContainerDefinition());
 			shadow.setDefinition(clonedDefinition);
 		}
@@ -1001,7 +1001,7 @@ public abstract class ShadowCache {
 		return objectClassDefinition;
 	}
 
-	private <T extends ResourceObjectShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
+	private <T extends ShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		T shadowType = shadow.asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		if (refinedSchema == null) {
@@ -1031,7 +1031,7 @@ public abstract class ShadowCache {
 		return objectClassDefinition;
 	}
 	
-	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(
+	private <T extends ShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(
 			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		// HACK FIXME
@@ -1046,14 +1046,14 @@ public abstract class ShadowCache {
 		return objectClassDefinition;
 	}
 	
-	private <T extends ResourceObjectShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(Class<T> type, 
+	private <T extends ShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(Class<T> type, 
 			ResourceType resourceType, ObjectQuery query) throws SchemaException, ConfigurationException {
 		ShadowKindType kind = null;
 		String intent = null;
 		if (query != null && query.getFilter() != null) {
 			List<? extends ObjectFilter> conditions = ((AndFilter) query.getFilter()).getCondition();
-			kind = ShadowCacheUtil.getValueFromFilter(conditions, ResourceObjectShadowType.F_KIND);
-			intent = ShadowCacheUtil.getValueFromFilter(conditions, ResourceObjectShadowType.F_INTENT);	
+			kind = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_KIND);
+			intent = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_INTENT);	
 		}
 		// TODO: mix in object class somehow
 		if (kind == null) {
@@ -1081,7 +1081,7 @@ public abstract class ShadowCache {
 	 * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
 	 * respect to simulated capabilities.
 	 */
-	private <T extends ResourceObjectShadowType> PrismObject<T> completeShadow(PrismObject<T> resourceShadow,
+	private <T extends ShadowType> PrismObject<T> completeShadow(PrismObject<T> resourceShadow,
 			PrismObject<T> repoShadow, ResourceType resource, OperationResult parentResult) throws SchemaException {
 
 		// repoShadow is a result, we need to copy there everything that needs
@@ -1128,8 +1128,8 @@ public abstract class ShadowCache {
 			resultShadowType.setActivation(resourceShadowType.getActivation());
 			
 			// Credentials
-			ResourceObjectShadowType resultAccountShadow = resultShadow.asObjectable();
-			ResourceObjectShadowType resourceAccountShadow = resourceShadow.asObjectable();
+			ShadowType resultAccountShadow = resultShadow.asObjectable();
+			ShadowType resourceAccountShadow = resourceShadow.asObjectable();
 			resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
 		}
 

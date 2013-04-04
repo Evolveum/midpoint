@@ -39,7 +39,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  * @author Radovan Semancik
  * 
  */
-public class SynchronizeAccountResultHandler implements ResultHandler<ResourceObjectShadowType> {
+public class SynchronizeAccountResultHandler implements ResultHandler<ShadowType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
 	
@@ -122,7 +122,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<ResourceOb
 	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
 	 */
 	@Override
-	public boolean handle(PrismObject<ResourceObjectShadowType> accountShadow, OperationResult parentResult) {
+	public boolean handle(PrismObject<ShadowType> accountShadow, OperationResult parentResult) {
 		if (accountShadow.getOid() == null) {
 			throw new IllegalArgumentException("Object has null OID");
 		}
@@ -135,7 +135,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<ResourceOb
 		result.addParam("object", accountShadow);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
-		ResourceObjectShadowType newShadowType = accountShadow.asObjectable();
+		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
 			LOGGER.trace("{} skipping {} because it is protected",new Object[] {
 					getProcessShortNameCapitalized(), accountShadow});
@@ -167,10 +167,10 @@ public class SynchronizeAccountResultHandler implements ResultHandler<ResourceOb
 				// We should provide shadow in the state before the change. But we are
 				// pretending that it has
 				// not existed before, so we will not provide it.
-				ObjectDelta<ResourceObjectShadowType> shadowDelta = new ObjectDelta<ResourceObjectShadowType>(
-						ResourceObjectShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
+				ObjectDelta<ShadowType> shadowDelta = new ObjectDelta<ShadowType>(
+						ShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
 				//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
-				PrismObject<ResourceObjectShadowType> shadowToAdd = newShadowType.asPrismObject();
+				PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();
 				shadowDelta.setObjectToAdd(shadowToAdd);
 				shadowDelta.setOid(newShadowType.getOid());
 				change.setObjectDelta(shadowDelta);

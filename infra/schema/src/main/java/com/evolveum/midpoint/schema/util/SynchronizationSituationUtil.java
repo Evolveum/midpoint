@@ -15,15 +15,15 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 
 public class SynchronizationSituationUtil {
 
 	public static boolean contains(ObjectType target, String sourceChannel, SynchronizationSituationType situation){
-		if (target instanceof ResourceObjectShadowType){
-			List<SynchronizationSituationDescriptionType> syncSituationDescriptions = ((ResourceObjectShadowType) target).getSynchronizationSituationDescription();
+		if (target instanceof ShadowType){
+			List<SynchronizationSituationDescriptionType> syncSituationDescriptions = ((ShadowType) target).getSynchronizationSituationDescription();
 			if (syncSituationDescriptions == null || syncSituationDescriptions.isEmpty()){
 				return false;
 			}
@@ -52,16 +52,16 @@ public class SynchronizationSituationUtil {
 	public static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(PrismObject object, SynchronizationSituationType situation){
 		
 		if (situation == null){
-			SynchronizationSituationType oldValue = ((ResourceObjectShadowType) object.asObjectable()).getSynchronizationSituation();
+			SynchronizationSituationType oldValue = ((ShadowType) object.asObjectable()).getSynchronizationSituation();
 			if (oldValue != null){
-				ItemPath syncSituationPath = new ItemPath(ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION);
+				ItemPath syncSituationPath = new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION);
 				return PropertyDelta.createModificationDeleteProperty(syncSituationPath,
 						object.findProperty(syncSituationPath).getDefinition(),oldValue);
 			}
 	
 		} else{
 			return PropertyDelta.createReplaceDelta(object.getDefinition(),
-					ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation);
+					ShadowType.F_SYNCHRONIZATION_SITUATION, situation);
 		} 
 		return null;
 	}
@@ -69,7 +69,7 @@ public class SynchronizationSituationUtil {
 	public static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject object){
 		XMLGregorianCalendar gcal = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		PropertyDelta<XMLGregorianCalendar> syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
-				ResourceObjectShadowType.F_SYNCHRONIZATION_TIMESTAMP, gcal);
+				ShadowType.F_SYNCHRONIZATION_TIMESTAMP, gcal);
 		return syncSituationDelta;
 	}
 	
@@ -82,14 +82,14 @@ public class SynchronizationSituationUtil {
 		List<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
 
 		PropertyDelta syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
-				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
+				ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
 		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
 		deltas.add(syncSituationDelta);
 		
 		SynchronizationSituationDescriptionType oldSituationDescription = getSituationFromSameChannel(object, sourceChannel);
 		if (oldSituationDescription != null) {
 			syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
-					ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
+					ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
 			syncSituationDelta.addValueToDelete(new PrismPropertyValue(oldSituationDescription));
 			deltas.add(syncSituationDelta);
 		}
@@ -100,8 +100,8 @@ public class SynchronizationSituationUtil {
 	}
 	
 	private static SynchronizationSituationDescriptionType getSituationFromSameChannel(PrismObject prismObject, String channel){
-		ResourceObjectShadowType target = (ResourceObjectShadowType) prismObject.asObjectable();
-		List<SynchronizationSituationDescriptionType> syncSituationDescriptions = ((ResourceObjectShadowType) target).getSynchronizationSituationDescription();
+		ShadowType target = (ShadowType) prismObject.asObjectable();
+		List<SynchronizationSituationDescriptionType> syncSituationDescriptions = ((ShadowType) target).getSynchronizationSituationDescription();
 		if (syncSituationDescriptions == null || syncSituationDescriptions.isEmpty()){
 			return null;
 		}

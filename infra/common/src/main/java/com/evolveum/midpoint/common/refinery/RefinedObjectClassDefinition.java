@@ -71,7 +71,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
      */
-    PrismObjectDefinition<ResourceObjectShadowType> objectDefinition = null;
+    PrismObjectDefinition<ShadowType> objectDefinition = null;
     
     /**
      * This is needed by the LayerRefinedObjectClassDefinition class
@@ -268,7 +268,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return resourceType;
     }
 
-    public PrismObjectDefinition<ResourceObjectShadowType> getObjectDefinition() {
+    public PrismObjectDefinition<ShadowType> getObjectDefinition() {
         if (objectDefinition == null) {
             constructObjectDefinition();
         }
@@ -277,10 +277,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     private void constructObjectDefinition() {
         // Almost-shallow clone of object definition and complex type
-        PrismObjectDefinition<ResourceObjectShadowType> originalObjectDefinition = 
-        	getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
-        PrismObjectDefinition<ResourceObjectShadowType> refinedObjectDef = 
-        	originalObjectDefinition.cloneWithReplacedDefinition(ResourceObjectShadowType.F_ATTRIBUTES, 
+        PrismObjectDefinition<ShadowType> originalObjectDefinition = 
+        	getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        PrismObjectDefinition<ShadowType> refinedObjectDef = 
+        	originalObjectDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, 
         			this.toResourceAttributeContainerDefinition());
         this.objectDefinition = refinedObjectDef;
     }
@@ -487,23 +487,23 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     
 
-    public PrismObject<ResourceObjectShadowType> createBlankShadow() {
-    	PrismObject<ResourceObjectShadowType> accountShadow;
+    public PrismObject<ShadowType> createBlankShadow() {
+    	PrismObject<ShadowType> accountShadow;
 		try {
-			accountShadow = prismContext.getSchemaRegistry().instantiate(ResourceObjectShadowType.class);
+			accountShadow = prismContext.getSchemaRegistry().instantiate(ShadowType.class);
 		} catch (SchemaException e) {
 			// This should not happen
 			throw new SystemException("Internal error instantiating account shadow: "+e.getMessage(), e);
 		}
-		ResourceObjectShadowType accountShadowType = accountShadow.asObjectable();
+		ShadowType accountShadowType = accountShadow.asObjectable();
         
     	accountShadowType.setIntent(getIntent());
         accountShadowType.setObjectClass(objectClassDefinition.getTypeName());
         accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
         
         // Setup definition
-        PrismObjectDefinition<ResourceObjectShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
-        		ResourceObjectShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition());
+        PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
+        		ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition());
         accountShadow.setDefinition(newDefinition);
         
         return accountShadow;

@@ -133,19 +133,19 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        ResourceObjectShadowType accType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "account-jack.xml"), ResourceObjectShadowType.class);
+        ShadowType accType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "account-jack.xml"), ShadowType.class);
 
-        PrismObject<ResourceObjectShadowType> account = accType.asPrismObject();
+        PrismObject<ShadowType> account = accType.asPrismObject();
         account.revive(prismContext);
 
         System.out.println("Parsed account:");
         System.out.println(account.dump());
 
         account.checkConsistence(); 
-        assertPropertyValue(account, ResourceObjectShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
-        assertPropertyValue(account, ResourceObjectShadowType.F_OBJECT_CLASS, 
+        assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
+        assertPropertyValue(account, ShadowType.F_OBJECT_CLASS, 
         		new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", "AccountObjectClass"));
-        assertPropertyValue(account, ResourceObjectShadowType.F_INTENT, "default");
+        assertPropertyValue(account, ShadowType.F_INTENT, "default");
 
         // TODO: more asserts
     }

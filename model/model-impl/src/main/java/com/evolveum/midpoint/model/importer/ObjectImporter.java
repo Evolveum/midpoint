@@ -380,7 +380,7 @@ public class ObjectImporter {
             result.computeStatus("Dynamic schema error");
             
 
-        } else if (object.canRepresent(ResourceObjectShadowType.class)) {
+        } else if (object.canRepresent(ShadowType.class)) {
             // TODO
 
             //objectResult.computeStatus("Dynamic schema error");

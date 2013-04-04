@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -337,11 +337,11 @@ public interface RepositoryService {
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
      * @throws SchemaException
-     *             found object is not type of {@link ResourceObjectShadowType}
+     *             found object is not type of {@link ShadowType}
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
 	

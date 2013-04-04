@@ -42,7 +42,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -111,10 +111,10 @@ public class ContextFactory {
 			LensProjectionContext<P> projectionContext = context.createProjectionContext();
 			projectionContext.setPrimaryDelta(projectionDelta);
 			// We are little bit more liberal regarding projection deltas. 
-			if (ResourceObjectShadowType.class.isAssignableFrom(projectionClass)) {
+			if (ShadowType.class.isAssignableFrom(projectionClass)) {
 				// If the deltas represent shadows we tolerate missing attribute definitions.
 				// We try to add the definitions by calling provisioning
-				provisioningService.applyDefinition((ObjectDelta<? extends ResourceObjectShadowType>)projectionDelta, result);
+				provisioningService.applyDefinition((ObjectDelta<? extends ShadowType>)projectionDelta, result);
 			} else {
 				// This check will fail giving a better information what's wrong then just throwing an exception here.
 				projectionDelta.checkConsistence(false, true, true);
@@ -138,7 +138,7 @@ public class ContextFactory {
 	}
 	
 	public static <F extends ObjectType, P extends ObjectType> Class<F> determineFocusClass(Class<P> projectionClass) {
-		if (projectionClass == ResourceObjectShadowType.class) {
+		if (projectionClass == ShadowType.class) {
 			return (Class<F>) UserType.class;
 		}
 		return null;
@@ -169,7 +169,7 @@ public class ContextFactory {
 	public static <F extends ObjectType, P extends ObjectType> Class<P> getProjectionClass(Class<F> focusClass) {
 		// TODO!!!!!!!!!!!!
 		if (UserType.class.isAssignableFrom(focusClass)) {
-			return (Class<P>) ResourceObjectShadowType.class;
+			return (Class<P>) ShadowType.class;
 		}
 		if (ResourceType.class.isAssignableFrom(focusClass)) {
 			// This has no projection class. But returning null will cause error. Returning the same class is harmless.

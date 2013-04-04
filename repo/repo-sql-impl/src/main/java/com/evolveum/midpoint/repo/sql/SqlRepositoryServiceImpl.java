@@ -1014,7 +1014,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	// }
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
@@ -1046,7 +1046,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 	}
 
-	private <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(
+	private <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(
 			String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 
@@ -1064,7 +1064,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			if (shadows != null) {
 				for (RResourceObjectShadow shadow : shadows) {
-					ResourceObjectShadowType jaxb = shadow.toJAXB(getPrismContext());
+					ShadowType jaxb = shadow.toJAXB(getPrismContext());
 					PrismObject<T> prismObject = jaxb.asPrismObject();
 					validateObjectType(prismObject, resourceObjectShadowType);
 

@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * Classes implementing this interface are used to handle iterative results.
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
  * 
  * @author Radovan Semancik
  */
-public interface ResultHandler<T extends ResourceObjectShadowType> {
+public interface ResultHandler<T extends ShadowType> {
 
     /**
      * Handle a single result.

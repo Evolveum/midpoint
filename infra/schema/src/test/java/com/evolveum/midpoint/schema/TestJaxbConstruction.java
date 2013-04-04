@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
@@ -158,13 +158,13 @@ public class TestJaxbConstruction {
         assertNotNull("Filter have not passed", prismFilterElement);
         assertEquals("Difference filter", filterElement, prismFilterElement);
 
-        ResourceObjectShadowType accountShadowType = new ResourceObjectShadowType();
+        ShadowType accountShadowType = new ShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
         userType.getAccount().add(accountShadowType);
         //value still should be only one... (reference was only resolved)
         assertEquals("2/ Wrong accountRef values", 1, user.findReference(UserType.F_ACCOUNT_REF).getValues().size());
 
-		accountShadowType = new ResourceObjectShadowType();
+		accountShadowType = new ShadowType();
 		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
 		userType.getAccount().add(accountShadowType);
 
@@ -212,11 +212,11 @@ public class TestJaxbConstruction {
 		userType.getAccountRef().add(accountRefType);
 		
 
-		ResourceObjectShadowType accountShadowType = new ResourceObjectShadowType();
+		ShadowType accountShadowType = new ShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
         userType.getAccount().add(accountShadowType);
 
-		accountShadowType = new ResourceObjectShadowType();
+		accountShadowType = new ShadowType();
 		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
 		userType.getAccount().add(accountShadowType);
 
@@ -369,10 +369,10 @@ public class TestJaxbConstruction {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		ResourceObjectShadowType accountType = new ResourceObjectShadowType();
+		ShadowType accountType = new ShadowType();
 		prismContext.adopt(accountType);
 		
-		PrismObject<ResourceObjectShadowType> account = accountType.asPrismObject();
+		PrismObject<ShadowType> account = accountType.asPrismObject();
 		assertNotNull("No object definition after adopt", account.getDefinition());
 		
 		// WHEN
@@ -384,8 +384,8 @@ public class TestJaxbConstruction {
 		
 		// THEN (prism)
 		account.checkConsistence();
-		PrismAsserts.assertPropertyValue(account, ResourceObjectShadowType.F_NAME, PrismTestUtil.createPolyString(ACCOUNT_NAME));
-		PrismReference resourceRef = account.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+		PrismAsserts.assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString(ACCOUNT_NAME));
+		PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);
 		assertNotNull("No resourceRef", resourceRef);
     	PrismReferenceValue resourceRefVal = resourceRef.getValue();
     	assertNotNull("No resourceRef value", resourceRefVal);

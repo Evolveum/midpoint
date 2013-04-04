@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author Radovan Semancik
@@ -80,11 +80,11 @@ public class XsdTypeConverterTest {
 	@Test(enabled=false)
 	public void testAccountMarshall() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("===[ testAccountMarshall ]===");
-		JAXBElement<ResourceObjectShadowType> jaxbElement = 
+		JAXBElement<ShadowType> jaxbElement = 
 				PrismTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), 
-						ResourceObjectShadowType.class);
+						ShadowType.class);
 		System.out.println("Object: "+jaxbElement.getValue());
-		ResourceObjectShadowType shadow = jaxbElement.getValue();
+		ShadowType shadow = jaxbElement.getValue();
 		
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue("foo");
@@ -94,9 +94,9 @@ public class XsdTypeConverterTest {
 		shadow.getAttributes().getAny().add(XmlTypeConverter.toXsdElement(42, BAR_QNAME, null, true));
 		
 		Document doc = DOMUtil.getDocument();
-		JAXBElement<ResourceObjectShadowType> accountElement = 
-				new JAXBElement<ResourceObjectShadowType>(ObjectTypes.SHADOW.getQName(),
-						ResourceObjectShadowType.class,shadow);
+		JAXBElement<ShadowType> accountElement = 
+				new JAXBElement<ShadowType>(ObjectTypes.SHADOW.getQName(),
+						ShadowType.class,shadow);
 		PrismTestUtil.marshalElementToDom(accountElement, doc);
 		
 		System.out.println("marshalled shadow: "+DOMUtil.serializeDOMToString(doc));

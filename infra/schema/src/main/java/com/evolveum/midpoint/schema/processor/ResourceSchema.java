@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
@@ -87,7 +87,7 @@ public class ResourceSchema extends PrismSchema {
 		return cTypeDef;
 	}
 	
-	public ObjectClassComplexTypeDefinition findObjectClassDefinition(ResourceObjectShadowType shadow) {
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(ShadowType shadow) {
 		return findObjectClassDefinition(shadow.getObjectClass());
 	}
 	

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -263,9 +263,9 @@ public class QueryUtil {
                         // from the schema later, or maybe we can make it entirely
                         // generic (use ResourceObjectShadowType instead).
                         QueryUtil.createEqualRefFilter(doc, null,
-                        		ResourceObjectShadowType.F_RESOURCE_REF, resourceOid),
+                        		ShadowType.F_RESOURCE_REF, resourceOid),
                         QueryUtil.createEqualFilter(doc, null,
-                                ResourceObjectShadowType.F_OBJECT_CLASS, objectClass)
+                                ShadowType.F_OBJECT_CLASS, objectClass)
                 );
 
         QueryType query = new QueryType();
@@ -279,10 +279,10 @@ public class QueryUtil {
 		// We have all the data, we can construct the filter now
 		// TODO: add objectClass to the criteria FIXME
 		Document doc = DOMUtil.getDocument();
-		XPathHolder xpath = new XPathHolder(ResourceObjectShadowType.F_ATTRIBUTES);
+		XPathHolder xpath = new XPathHolder(ShadowType.F_ATTRIBUTES);
 		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(attribute, doc);
 		Element filter = createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
-                ResourceObjectShadowType.F_RESOURCE_REF, resourceType.getOid()), QueryUtil
+                ShadowType.F_RESOURCE_REF, resourceType.getOid()), QueryUtil
 					.createEqualFilterFromElements(doc, xpath, identifierElements, prismContext));
 		QueryType query = new QueryType();
 		query.setFilter(filter);

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 import java.util.Collection;
 import java.util.Set;
@@ -33,7 +33,7 @@ import java.util.Set;
  * @author Radovan Semancik
  *
  */
-public final class Change<T extends ResourceObjectShadowType> {
+public final class Change<T extends ShadowType> {
 	
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
@@ -62,7 +62,7 @@ public final class Change<T extends ResourceObjectShadowType> {
         this.token = token;
     }
 
-    public ObjectDelta<? extends ResourceObjectShadowType> getObjectDelta() {
+    public ObjectDelta<? extends ShadowType> getObjectDelta() {
         return objectDelta;
     }
 

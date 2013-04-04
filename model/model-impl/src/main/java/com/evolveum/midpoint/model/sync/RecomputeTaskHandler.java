@@ -58,7 +58,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -231,7 +231,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		while (true) {
 			RewindException rewindException = null;
 			
-			LensContext<UserType, ResourceObjectShadowType> syncContext = new LensContext<UserType, ResourceObjectShadowType>(UserType.class, ResourceObjectShadowType.class, prismContext);
+			LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
 			LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 			focusContext.setObjectOld(user);
 			focusContext.setOid(user.getOid());

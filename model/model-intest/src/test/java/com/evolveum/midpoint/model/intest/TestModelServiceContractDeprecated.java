@@ -78,7 +78,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -118,7 +118,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -143,11 +143,11 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -165,7 +165,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         account.setOid(accountOid);
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
@@ -186,7 +186,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         
 		// Check is shadow is gone
         try {
-        	PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         	AssertJUnit.fail("Shadow "+accountOid+" still exists");
         } catch (ObjectNotFoundException e) {
         	// This is OK
@@ -207,7 +207,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
 		// WHEN
         accountOid = modelService.addObject(account, task, result);
@@ -220,11 +220,11 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -256,11 +256,11 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
@@ -280,7 +280,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -298,11 +298,11 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         assertUserNoAccountRefs(userJack);
 		        
 		// Check shadow (if it is unchanged)
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account (if it is unchanged)
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource (if it is unchanged)
@@ -321,7 +321,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
-        modelService.deleteObject(ResourceObjectShadowType.class, accountOid, task, result);
+        modelService.deleteObject(ShadowType.class, accountOid, task, result);
 		
 		// THEN
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -360,11 +360,11 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "blackbeard");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
         
         // Check account in dummy resource
@@ -396,11 +396,11 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "morgan");
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
         
         // Check account in dummy resource

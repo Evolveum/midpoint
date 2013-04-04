@@ -134,8 +134,8 @@ public class ModifyUserAction extends BaseAction {
             throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, ResourceObjectShadowType> context = null;
-        LensProjectionContext<ResourceObjectShadowType> accountContext = null;
+        LensContext<UserType, ShadowType> context = null;
+        LensProjectionContext<ShadowType> accountContext = null;
         try {
             context = createSyncContext(userType, change.getResource().asObjectable(), change);
             accountContext = createAccountLensContext(context, change,
@@ -164,12 +164,12 @@ public class ModifyUserAction extends BaseAction {
     /**
 	 * A chance to update the context before a sync is executed. For use in subclasses.
 	 */
-	protected void updateContextBeforeSync(LensContext<UserType, ResourceObjectShadowType> context, 
-			LensProjectionContext<ResourceObjectShadowType> accountContext) {
+	protected void updateContextBeforeSync(LensContext<UserType, ShadowType> context, 
+			LensProjectionContext<ShadowType> accountContext) {
 		// Nothing to do here
 	}
 
-	private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
+	private Class<? extends ShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getObjectDelta() != null) {
             return change.getObjectDelta().getObjectTypeClass();
         }
@@ -181,13 +181,13 @@ public class ModifyUserAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, ResourceObjectShadowType> createSyncContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private LensContext<UserType, ShadowType> createSyncContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
         		UserType.COMPLEX_TYPE);
 
-        LensContext<UserType, ResourceObjectShadowType> context = createEmptyLensContext(change);
+        LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         PrismObject<UserType> oldUser = user.asPrismObject();
         focusContext.setObjectOld(oldUser);
@@ -221,7 +221,7 @@ public class ModifyUserAction extends BaseAction {
         return context;
     }
 
-    private void createActivationPropertyDelta(LensContext<UserType, ResourceObjectShadowType> context, ActivationDecision activationDecision,
+    private void createActivationPropertyDelta(LensContext<UserType, ShadowType> context, ActivationDecision activationDecision,
             Boolean oldValue) {
 
     	LensFocusContext<UserType> focusContext = context.getFocusContext();

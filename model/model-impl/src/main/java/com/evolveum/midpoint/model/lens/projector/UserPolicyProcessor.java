@@ -65,7 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -114,7 +114,7 @@ public class UserPolicyProcessor {
     		return;
     	}
     	
-		LensContext<UserType, ResourceObjectShadowType> usContext = (LensContext<UserType, ResourceObjectShadowType>) context;
+		LensContext<UserType, ShadowType> usContext = (LensContext<UserType, ShadowType>) context;
     	//check user password if satisfies policies
 		
 //		PrismProperty<PasswordType> password = getPasswordValue((LensFocusContext<UserType>)focusContext);
@@ -128,7 +128,7 @@ public class UserPolicyProcessor {
 	}
 
 	
-	private void applyUserTemplate(LensContext<UserType, ResourceObjectShadowType> context, OperationResult result) 
+	private void applyUserTemplate(LensContext<UserType, ShadowType> context, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
@@ -183,7 +183,7 @@ public class UserPolicyProcessor {
 
 	}
 
-	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, ResourceObjectShadowType> context, 
+	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, ShadowType> context, 
 			MappingType mappingType, UserTemplateType userTemplate, ObjectDeltaObject<UserType> userOdo, 
 			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap, OperationResult result) 
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -206,7 +206,7 @@ public class UserPolicyProcessor {
 		
 	}
 	
-	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, ResourceObjectShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
+	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, ShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
 			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"user template mapping in " + userTemplate

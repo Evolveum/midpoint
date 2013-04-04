@@ -75,7 +75,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerCh
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -357,7 +357,7 @@ public class PageContentAccounts extends PageAdminResources {
         AccountOwnerChangeDto changeDto = ownerChangeModel.getObject();
 
         changeDto.setAccountOid(accountOid);
-        changeDto.setAccountType(ResourceObjectShadowType.COMPLEX_TYPE);
+        changeDto.setAccountType(ShadowType.COMPLEX_TYPE);
 
         changeDto.setOldOwnerOid(ownerOid);
     }
@@ -412,7 +412,7 @@ public class PageContentAccounts extends PageAdminResources {
 //                }
 //                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
+                    conditions.add(EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
                 }
             }
 
@@ -422,7 +422,7 @@ public class PageContentAccounts extends PageAdminResources {
 					secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
 				}
 				for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
-					conditions.add(SubstringFilter.createSubstring(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES),
+					conditions.add(SubstringFilter.createSubstring(new ItemPath(ShadowType.F_ATTRIBUTES),
 							attrDef, dto.getSearchText()));
 				}
 			}

@@ -54,7 +54,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -178,7 +178,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
         // Make sure that the account has explicit intent
         account.asObjectable().setIntent(SchemaConstants.INTENT_DEFAULT);
@@ -452,7 +452,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = userJack.asObjectable().getAccountRef().iterator().next().getOid();
         
-        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, accountOid, prismContext);
+        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // Use modification of user to delete account. Deleting account directly is tested later.
         ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_ACCOUNT_REF, prismContext, accountOid);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
@@ -510,7 +510,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = userJack.asObjectable().getAccountRef().iterator().next().getOid();        
-        ObjectDelta<ResourceObjectShadowType> accountDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, accountOid, prismContext);
+        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // This all goes in the same context with user, explicit unlink should not be necessary
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         

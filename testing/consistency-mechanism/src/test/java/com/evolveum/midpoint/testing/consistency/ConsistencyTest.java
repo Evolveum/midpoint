@@ -131,7 +131,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
@@ -759,12 +759,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		displayTestTile("test013prepareOpenDjWithAccounts");
 		OperationResult parentResult = new OperationResult("test013prepareOpenDjWithAccounts");
 
-		ResourceObjectShadowType jackeAccount = unmarshallJaxbFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
-				ResourceObjectShadowType.class);
+		ShadowType jackeAccount = unmarshallJaxbFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
+				ShadowType.class);
 
 		Task task = taskManager.createTaskInstance();
 		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, task, parentResult);
-		PrismObject<ResourceObjectShadowType> jackFromRepo = repositoryService.getObject(ResourceObjectShadowType.class,
+		PrismObject<ShadowType> jackFromRepo = repositoryService.getObject(ShadowType.class,
 				oid, parentResult);
 		LOGGER.debug("account jack after provisioning: {}", jackFromRepo.dump());
 
@@ -810,9 +810,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		repoResult = new OperationResult("getObject");
 
-		PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class,
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class,
 				accountShadowOidOpendj, repoResult);
-		ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+		ShadowType repoShadowType = repoShadow.asObjectable();
 		repoResult.computeStatus();
 		assertSuccess("getObject has failed", repoResult);
 		display("Shadow (repository)", repoShadow);
@@ -867,7 +867,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("getObject has failed", resultHolder.value);
 
-		ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
+		ShadowType modelShadow = (ShadowType) objectHolder.value;
 		display("Shadow (model)", modelShadow);
 
 		AssertJUnit.assertNotNull(modelShadow);
@@ -892,7 +892,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult secondResult = new OperationResult(
 				"test013prepareOpenDjWithAccounts - add second account");
 
-		ResourceObjectShadowType shadow = unmarshallJaxbFromFile(ACCOUNT_DENIELS_FILENAME, ResourceObjectShadowType.class);
+		ShadowType shadow = unmarshallJaxbFromFile(ACCOUNT_DENIELS_FILENAME, ShadowType.class);
 
 		provisioningService.addObject(shadow.asPrismObject(), null, null, task, secondResult);
 
@@ -932,7 +932,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		UserType jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID, parentResult).asObjectable();
 		assertNotNull(jackUser);
 		assertEquals(1, jackUser.getAccountRef().size());
-		PrismObject<ResourceObjectShadowType> jackUserAccount = repositoryService.getObject(ResourceObjectShadowType.class, jackUser.getAccountRef().get(0).getOid(), parentResult);
+		PrismObject<ShadowType> jackUserAccount = repositoryService.getObject(ShadowType.class, jackUser.getAccountRef().get(0).getOid(), parentResult);
 		display("Jack's account: ", jackUserAccount.dump());
 		
 		Task task = taskManager.createTaskInstance();
@@ -947,9 +947,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertEquals(1, user.asObjectable().getAccountRef().size());
 		MidPointAsserts.assertAssignments(user, 1);
 
-		PrismObject<ResourceObjectShadowType> newAccount = modelService.getObject(ResourceObjectShadowType.class, user
+		PrismObject<ShadowType> newAccount = modelService.getObject(ShadowType.class, user
 				.asObjectable().getAccountRef().get(0).getOid(), null, task, parentResult);
-		ResourceObjectShadowType createdShadow = newAccount.asObjectable();
+		ShadowType createdShadow = newAccount.asObjectable();
 		display("Created account: ", createdShadow);
 
 		AssertJUnit.assertNotNull(createdShadow);
@@ -1012,7 +1012,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertEquals(1, accountRefs.size());
 		MidPointAsserts.assertAssignments(user, 1);
 
-		PrismObject<ResourceObjectShadowType> account = provisioningService.getObject(ResourceObjectShadowType.class,
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class,
 				accountRefs.get(0).getOid(),null,  parentResult);
 
 		ResourceAttributeContainer attributes = ResourceObjectShadowUtil.getAttributesContainer(account);
@@ -1035,7 +1035,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		displayTestTile("test017deleteObjectNotFound");
 		OperationResult parentResult = new OperationResult("Delete object not found");
 
-		addObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, ResourceObjectShadowType.class, parentResult);
+		addObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, ShadowType.class, parentResult);
 		addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_USER_MODIFY_DELETE_ACCOUNT,
@@ -1050,12 +1050,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, parentResult);
 
 		// WHEN
-		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, ACCOUNT_GUYBRUSH_OID, prismContext);
+		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class, ACCOUNT_GUYBRUSH_OID, prismContext);
 		deltas = createDeltaCollection(deleteDelta);
 		modelService.executeChanges(deltas, null, task, parentResult);
 
 		try {
-			repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
+			repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
 		} catch (Exception ex) {
 			if (!(ex instanceof ObjectNotFoundException)) {
 				fail("Expected ObjectNotFoundException but got " + ex);
@@ -1079,7 +1079,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Delete account");
 
-		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ResourceObjectShadowType.class, parentResult);
+		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
 		addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
 
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
@@ -1092,18 +1092,18 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ObjectModificationType.class);
 
-		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class,
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class,
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
-		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), ResourceObjectShadowType.class, prismContext);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), ShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(ResourceObjectShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
 //				task, parentResult);
 
 		try {
-			repositoryService.getObject(ResourceObjectShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
+			repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
 			fail("Expected ObjectNotFound but did not get one.");
 		} catch (Exception ex) {
 			if (!(ex instanceof ObjectNotFoundException)) {
@@ -1130,7 +1130,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Re-create account, apply changes.");
 
-		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ResourceObjectShadowType.class, parentResult);
+		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
 		addObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
@@ -1143,12 +1143,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ObjectModificationType.class);
 
-		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class,
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class,
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
 		
-		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), ResourceObjectShadowType.class, prismContext);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), ShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		
 		// WHEN
@@ -1166,8 +1166,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		assertFalse("Old shadow oid and new shadow oid should not be the same.", ACCOUNT_GUYBRUSH_OID.equals(referenceList.get(0).getOid()));
 		
-		PrismObject<ResourceObjectShadowType> modifiedAccount = provisioningService.getObject(
-				ResourceObjectShadowType.class, referenceList.get(0).getOid(), null, parentResult);
+		PrismObject<ShadowType> modifiedAccount = provisioningService.getObject(
+				ShadowType.class, referenceList.get(0).getOid(), null, parentResult);
 		assertNotNull(modifiedAccount);
 		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
@@ -1193,7 +1193,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Get account not found => reaction: Re-create account, return re-created.");
 
-		addObjectFromFile(ACCOUNT_HECTOR_FILENAME, ResourceObjectShadowType.class, parentResult);
+		addObjectFromFile(ACCOUNT_HECTOR_FILENAME, ShadowType.class, parentResult);
 		addObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_HECTOR_NOT_FOUND_OID,
@@ -1216,8 +1216,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		assertFalse("Old shadow oid and new shadow oid should not be the same.", ACCOUNT_GUYBRUSH_OID.equals(referenceList.get(0).getOid()));
 		
-		PrismObject<ResourceObjectShadowType> modifiedAccount = modelService.getObject(
-				ResourceObjectShadowType.class, referenceList.get(0).getOid(), null, task, parentResult);
+		PrismObject<ShadowType> modifiedAccount = modelService.getObject(
+				ShadowType.class, referenceList.get(0).getOid(), null, task, parentResult);
 		assertNotNull(modifiedAccount);
 		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=hector,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 
@@ -1269,9 +1269,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				accountRefs.size());
 
 		String accountOid = accountRefs.get(0).getOid();
-		ResourceObjectShadowType faieldAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result).asObjectable();
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, result).asObjectable();
 		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				FailedOperationTypeType.ADD, faieldAccount.getFailedOperationType());
 		assertNotNull(faieldAccount.getResult());
@@ -1303,22 +1303,22 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
 
-		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class,
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class,
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
 		
-		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefs.get(0).getOid(), delta.getModifications(), ResourceObjectShadowType.class, prismContext);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefs.get(0).getOid(), delta.getModifications(), ShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		modelService.executeChanges(deltas, null, task, result);
 //		modelService.modifyObject(ResourceObjectShadowType.class, accountRefs.get(0).getOid(),
 //				delta.getModifications(), task, result);
 
 		String accountOid = accountRefs.get(0).getOid();
-		ResourceObjectShadowType faieldAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountOid,
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid,
 				result).asObjectable();
 		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				FailedOperationTypeType.ADD, faieldAccount.getFailedOperationType());
 		assertNotNull(faieldAccount.getResult());
@@ -1348,21 +1348,21 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
 
-		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class,
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class,
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
 		
-		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefOid, delta.getModifications(), ResourceObjectShadowType.class, prismContext);
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefOid, delta.getModifications(), ShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(ResourceObjectShadowType.class, accountRefOid, delta.getModifications(), task,
 //				parentResult);
 
-		ResourceObjectShadowType faieldAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountRefOid,
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountRefOid,
 				parentResult).asObjectable();
 		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				FailedOperationTypeType.MODIFY, faieldAccount.getFailedOperationType());
 		assertNotNull(faieldAccount.getResult());
@@ -1402,15 +1402,15 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(userJack);
 //		 assertEquals(0, userJack.getAccountRef().size());
 
-		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(ResourceObjectShadowType.class, ACCOUNT_DENIELS_OID, prismContext);
+		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class, ACCOUNT_DENIELS_OID, prismContext);
 		deltas = createDeltaCollection(deleteDelta);
 		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.deleteObject(ResourceObjectShadowType.class, ACCOUNT_DENIELS_OID, task, parentResult);
 
-		ResourceObjectShadowType faieldAccount = repositoryService.getObject(ResourceObjectShadowType.class,
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class,
 				ACCOUNT_DENIELS_OID, parentResult).asObjectable();
 		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				FailedOperationTypeType.DELETE, faieldAccount.getFailedOperationType());
 		assertNotNull(faieldAccount.getResult());
@@ -1424,7 +1424,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	public void test024getAccountCommunicationProblem() throws Exception {
 		displayTestTile("test024getAccountCommunicationProblem");
 		OperationResult result = new OperationResult("test024 get account communication problem");
-		ResourceObjectShadowType account = modelService.getObject(ResourceObjectShadowType.class, ACCOUNT_DENIELS_OID,
+		ShadowType account = modelService.getObject(ShadowType.class, ACCOUNT_DENIELS_OID,
 				null, null, result).asObjectable();
 		assertNotNull("Get method returned null account.", account);
 		assertNotNull("Fetch result was not set in the shadow.", account.getFetchResult());
@@ -1480,9 +1480,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(repoUser);
 		assertEquals("user does not contain reference to shadow", 1, repoUser.asObjectable().getAccountRef().size());
 		String shadowOid = repoUser.asObjectable().getAccountRef().get(0).getOid();
-		PrismObject<ResourceObjectShadowType> shadow = modelService.getObject(ResourceObjectShadowType.class, shadowOid, null, task, parentResult);
+		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
 		assertNotNull("Shadow must not be null", shadow);
-		ResourceObjectShadowType shadowType = shadow.asObjectable();
+		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Failed operation type must not be null.", FailedOperationTypeType.ADD, shadowType.getFailedOperationType());
 		assertNotNull("Result in the shadow must not be null", shadowType.getResult());
 		assertNotNull("Resource ref in the shadow must not be null", shadowType.getResourceRef());
@@ -1534,9 +1534,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		parentResult.computeStatus();
 		assertEquals("Expected that user has one account reference, but got " + userType.getAccountRef().size(), 1, userType.getAccountRef().size());	
 		String shadowOid = userType.getAccountRef().get(0).getOid();
-		PrismObject<ResourceObjectShadowType> account = modelService.getObject(ResourceObjectShadowType.class, shadowOid, null, task, parentResult);
+		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
 		assertNotNull(account);
-		ResourceObjectShadowType shadow = account.asObjectable();
+		ShadowType shadow = account.asObjectable();
 		assertNotNull(shadow.getObjectChange());
 		display("shadow after communication problem", shadow);
 		
@@ -1611,9 +1611,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				accountRefs.size());
 
 		String accountOid = accountRefs.get(0).getOid();
-		ResourceObjectShadowType faieldAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result).asObjectable();
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, result).asObjectable();
 		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				FailedOperationTypeType.ADD, faieldAccount.getFailedOperationType());
 		assertNotNull("Failed angelica's account must have result.", faieldAccount.getResult());
@@ -1636,10 +1636,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, result);
 		//and then try to get account -> result is that the account will be created while getting it
 		
-		PrismObject<ResourceObjectShadowType> angelicaAcc = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+		PrismObject<ShadowType> angelicaAcc = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		assertNotNull(angelicaAcc);
-		ResourceObjectShadowType angelicaAccount = angelicaAcc.asObjectable();
-		displayJaxb("Shadow after discovery: ", angelicaAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		ShadowType angelicaAccount = angelicaAcc.asObjectable();
+		displayJaxb("Shadow after discovery: ", angelicaAccount, ShadowType.COMPLEX_TYPE);
 		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
 		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
 		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
@@ -1691,19 +1691,19 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		objectChange = unmarshallJaxbFromFile(
 				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
 
-		delta = DeltaConvertor.createObjectDelta(objectChange, ResourceObjectShadowType.class, PrismTestUtil.getPrismContext());
+		delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 
-		modifyDelta = ObjectDelta.createModifyDelta(accountRefOid, delta.getModifications(), ResourceObjectShadowType.class, prismContext);
+		modifyDelta = ObjectDelta.createModifyDelta(accountRefOid, delta.getModifications(), ShadowType.class, prismContext);
 		deltas = createDeltaCollection(modifyDelta);
 		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(ResourceObjectShadowType.class, accountRefOid, delta.getModifications(), task,
 //				parentResult);
 
 		//check the state after execution
-		ResourceObjectShadowType faieldAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountRefOid,
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountRefOid,
 				parentResult).asObjectable();
 		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				FailedOperationTypeType.MODIFY, faieldAccount.getFailedOperationType());
 		assertNotNull(faieldAccount.getResult());
@@ -1723,10 +1723,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
 		
 		//and then try to get account -> result is that the modifications will be applied to the account
-		PrismObject<ResourceObjectShadowType> aliceAcc = modelService.getObject(ResourceObjectShadowType.class, accountRefOid, null, task, parentResult);
+		PrismObject<ShadowType> aliceAcc = modelService.getObject(ShadowType.class, accountRefOid, null, task, parentResult);
 		assertNotNull(aliceAcc);
-		ResourceObjectShadowType aliceAccount = aliceAcc.asObjectable();
-		displayJaxb("Shadow after discovery: ", aliceAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		ShadowType aliceAccount = aliceAcc.asObjectable();
+		displayJaxb("Shadow after discovery: ", aliceAccount, ShadowType.COMPLEX_TYPE);
 		assertNull("Alice's account after discovery must not have failed opertion.", aliceAccount.getFailedOperationType());
 		assertNull("Alice's account after discovery must not have result.", aliceAccount.getResult());
 		assertNull("Object changes in alices's account after discovery must be null", aliceAccount.getObjectChange());
@@ -1785,9 +1785,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				accountRefs.size());
 
 		String accountOid = accountRefs.get(0).getOid();
-		ResourceObjectShadowType faieldAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result).asObjectable();
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, result).asObjectable();
 		assertNotNull(faieldAccount);
-		displayJaxb("shadow from the repository: ", faieldAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				FailedOperationTypeType.ADD, faieldAccount.getFailedOperationType());
 		assertNotNull("Failed bob's account must have result.", faieldAccount.getResult());
@@ -1811,7 +1811,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		//and then try to get account -> result is that the account will be created while getting it
 		
 		try{
-		modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+		modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		fail("expected schema exception was not thrown");
 //		} catch (SchemaException ex){
 //			LOGGER.info("schema exeption while trying to re-add account after communication problem without family name..this is expected.");
@@ -1837,17 +1837,17 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("add object communication problem result: ", modifyFamilyNameResult);
 		assertEquals("Expected handled error but got: " + modifyFamilyNameResult.getStatus(), OperationResultStatus.SUCCESS, modifyFamilyNameResult.getStatus());
 		
-		PrismObject<ResourceObjectShadowType> bobRepoAcc = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, modifyFamilyNameResult);
+		PrismObject<ShadowType> bobRepoAcc = repositoryService.getObject(ShadowType.class, accountOid, modifyFamilyNameResult);
 		assertNotNull(bobRepoAcc);
-		ResourceObjectShadowType bobRepoAccount = bobRepoAcc.asObjectable();
-		displayJaxb("Shadow after discovery: ", bobRepoAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		ShadowType bobRepoAccount = bobRepoAcc.asObjectable();
+		displayJaxb("Shadow after discovery: ", bobRepoAccount, ShadowType.COMPLEX_TYPE);
 		assertNull("Bob's account after discovery must not have failed opertion.", bobRepoAccount.getFailedOperationType());
 		assertNull("Bob's account after discovery must not have result.", bobRepoAccount.getResult());
 		assertNotNull("Bob's account must contain reference on the resource", bobRepoAccount.getResourceRef());
 		
-		PrismObject<ResourceObjectShadowType> bobResourceAcc = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, modifyFamilyNameResult);
+		PrismObject<ShadowType> bobResourceAcc = modelService.getObject(ShadowType.class, accountOid, null, task, modifyFamilyNameResult);
 		assertNotNull(bobResourceAcc);
-		ResourceObjectShadowType bobResourceAccount = bobResourceAcc.asObjectable();
+		ShadowType bobResourceAccount = bobResourceAcc.asObjectable();
 //		displayJaxb("Shadow after discovery: ", angelicaAccount, ResourceObjectShadowType.COMPLEX_TYPE);
 //		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
 //		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
@@ -1900,9 +1900,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		String accountOid = accountRefs.get(0).getOid();
 		
-		PrismObject<ResourceObjectShadowType> johnAccount = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		assertNotNull(johnAccount);
-		ResourceObjectShadowType johnAccountType = johnAccount.asObjectable();
+		ShadowType johnAccountType = johnAccount.asObjectable();
 //		displayJaxb("Shadow after discovery: ", angelicaAccount, ResourceObjectShadowType.COMPLEX_TYPE);
 //		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
 //		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
@@ -1932,11 +1932,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		deltas = createDeltaCollection(modifyDelta);
 		modelService.executeChanges(deltas, null, task, result);
 
-		johnAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+		johnAccount = repositoryService.getObject(ShadowType.class, accountOid, result);
 		//assert shadow..we expected no additional information in shadow because we modify attribute with weak mapping.
 		assertNotNull(johnAccount);
 		johnAccountType = johnAccount.asObjectable();
-		displayJaxb("Shadow after discovery: ", johnAccountType, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("Shadow after discovery: ", johnAccountType, ShadowType.COMPLEX_TYPE);
 		assertNull("John's account must not have failed opertion.", johnAccountType.getFailedOperationType());
 		assertNull("John's account must not have result.", johnAccountType.getResult());
 		assertNull("John's account must not have object change", johnAccountType.getObjectChange());
@@ -1983,9 +1983,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		String accountOid = accountRefs.get(0).getOid();
 		
-		PrismObject<ResourceObjectShadowType> johnAccount = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		assertNotNull(johnAccount);
-		ResourceObjectShadowType johnAccountType = johnAccount.asObjectable();
+		ShadowType johnAccountType = johnAccount.asObjectable();
 //		displayJaxb("Shadow after discovery: ", angelicaAccount, ResourceObjectShadowType.COMPLEX_TYPE);
 //		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
 //		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
@@ -2015,18 +2015,18 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		deltas = createDeltaCollection(modifyDelta);
 		modelService.executeChanges(deltas, null, task, result);
 
-		johnAccount = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+		johnAccount = repositoryService.getObject(ShadowType.class, accountOid, result);
 		//assert shadow..we expected no additional information in shadow because we modify attribute with weak mapping.
 		assertNotNull(johnAccount);
 		johnAccountType = johnAccount.asObjectable();
-		displayJaxb("Shadow after discovery: ", johnAccountType, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("Shadow after discovery: ", johnAccountType, ShadowType.COMPLEX_TYPE);
 		assertNotNull("Donald's account must have failed opertion.", johnAccountType.getFailedOperationType());
 		assertEquals("Donald's account failed operation must be modify, but was: " + johnAccountType.getFailedOperationType(), FailedOperationTypeType.MODIFY, johnAccountType.getFailedOperationType());
 		assertNotNull("Donald's account must have result.", johnAccountType.getResult());
 		assertNotNull("Donald's account must have object change", johnAccountType.getObjectChange());
 		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
-		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
-		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
+		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
+		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
 		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
 	
 		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
@@ -2076,11 +2076,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertShadowRepo(accountShadow, accountOid, "morgan", resourceTypeOpenDjrepo);
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "morgan", resourceTypeOpenDjrepo);
         
         // TODO: check OpenDJ Account        
@@ -2103,7 +2103,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
 //        display("Entry from LDIF", entry);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_CHUCK_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_CHUCK_FILENAME));
         String accOid = provisioningService.addObject(account, null, null, task, result);
 //        
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_CHUCK_FILENAME));
@@ -2130,13 +2130,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         assertEquals("old oid not used..", accOid, accountOid);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertShadowRepo(accountShadow, accountOid, "chuck", resourceTypeOpenDjrepo);
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "chuck", resourceTypeOpenDjrepo);
-        ResourceObjectShadowType accountTypeModel = accountModel.asObjectable();
+        ShadowType accountTypeModel = accountModel.asObjectable();
         
         assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "chuck");
 		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "givenName", "Chuck");
@@ -2163,7 +2163,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
 //        display("Entry from LDIF", entry);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_HERMAN_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_HERMAN_FILENAME));
         String accOid = provisioningService.addObject(account, null, null, task, result);
 //        
         addObjectFromFile(USER_HERMAN_FILENAME, UserType.class, result);
@@ -2206,13 +2206,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         assertEquals("old oid not used..", accOid, accountOid);
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertShadowRepo(accountShadow, accountOid, "chuck", resourceTypeOpenDjrepo);
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "chuck", resourceTypeOpenDjrepo);
-        ResourceObjectShadowType accountTypeModel = accountModel.asObjectable();
+        ShadowType accountTypeModel = accountModel.asObjectable();
         
         assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "ht");
 		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "givenName", "Herman");
@@ -2256,10 +2256,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertFalse(accountRefs.isEmpty());
 		assertEquals(1, accountRefs.size());
 
-		ResourceObjectShadowType addedAccount = modelService.getObject(ResourceObjectShadowType.class,
+		ShadowType addedAccount = modelService.getObject(ShadowType.class,
 				accountRefs.get(0).getOid(), null, null, result).asObjectable();
 		assertNotNull(addedAccount);
-		displayJaxb("shadow from the repository: ", addedAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", addedAccount, ShadowType.COMPLEX_TYPE);
 		assertNull("Expected that FailedOperationType in e's account is null, but it has value "+ addedAccount.getFailedOperationType(),
 				addedAccount.getFailedOperationType());
 		assertNull(addedAccount.getResult());
@@ -2284,10 +2284,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(userJack);
 		assertEquals("Wrong number of jack's accounts", 1, userJack.getAccountRef().size());
 		String accountRefOid = userJack.getAccountRef().get(0).getOid();
-		ResourceObjectShadowType modifiedAccount = modelService.getObject(ResourceObjectShadowType.class, accountRefOid,
+		ShadowType modifiedAccount = modelService.getObject(ShadowType.class, accountRefOid,
 				null, null, result).asObjectable();
 		assertNotNull(modifiedAccount);
-		displayJaxb("shadow from the repository: ", modifiedAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", modifiedAccount, ShadowType.COMPLEX_TYPE);
 		assertNull("Expected that FailedOperationType is null, but isn't",
 				modifiedAccount.getFailedOperationType());
 		assertNull("result in the modified account after reconciliation must be null.", modifiedAccount.getResult());
@@ -2299,7 +2299,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		// check if the account was deleted during the reconciliation process
 		try {
-			modelService.getObject(ResourceObjectShadowType.class, ACCOUNT_DENIELS_OID, null, null, result);
+			modelService.getObject(ShadowType.class, ACCOUNT_DENIELS_OID, null, null, result);
 			fail("Expected ObjectNotFoundException but haven't got one.");
 		} catch (Exception ex) {
 			if (!(ex instanceof ObjectNotFoundException)) {
@@ -2312,10 +2312,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(userElaine);
 		assertEquals("elaine must have only one reference ont he account", 1, userElaine.getAccountRef().size());
 		String accountElaineRefOid = userElaine.getAccountRef().get(0).getOid();
-		ResourceObjectShadowType elaineAccount = modelService.getObject(ResourceObjectShadowType.class, accountElaineRefOid,
+		ShadowType elaineAccount = modelService.getObject(ShadowType.class, accountElaineRefOid,
 				null, null, result).asObjectable();
 		assertNotNull(elaineAccount);
-		displayJaxb("shadow from the repository: ", elaineAccount, ResourceObjectShadowType.COMPLEX_TYPE);
+		displayJaxb("shadow from the repository: ", elaineAccount, ShadowType.COMPLEX_TYPE);
 		assertNull("Expected that FailedOperationType in elaine's account is null, but isn't",
 				elaineAccount.getFailedOperationType());
 		assertNull("result in the modified account after reconciliation must be null.", elaineAccount.getResult());
@@ -2327,7 +2327,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(userJack2);
 		assertEquals(1, userJack2.getAccountRef().size());
 		String jack2Oid = userJack2.getAccountRef().get(0).getOid();
-		ResourceObjectShadowType jack2Shadow = provisioningService.getObject(ResourceObjectShadowType.class, jack2Oid, null, result).asObjectable();
+		ShadowType jack2Shadow = provisioningService.getObject(ShadowType.class, jack2Oid, null, result).asObjectable();
 		assertNotNull(jack2Shadow);
 		assertNull("ObjectChnage in jack2 account must be null", jack2Shadow.getObjectChange());
 		assertNull("result in the jack2 shadow must be null", jack2Shadow.getResult());
@@ -2359,8 +2359,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	// TODO: test for missing sample config (bad reference in expression
 	// arguments)
 
-	private String checkRepoShadow(PrismObject<ResourceObjectShadowType> repoShadow) {
-		ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
+		ShadowType repoShadowType = repoShadow.asObjectable();
 		String uid = null;
 		boolean hasOthers = false;
 		List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();

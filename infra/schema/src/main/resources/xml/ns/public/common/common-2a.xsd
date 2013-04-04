@@ -1887,7 +1887,7 @@
                     </xsd:element>
 
                     <!-- xsd:choice minOccurs="0" maxOccurs="unbounded" -->
-                    <xsd:element name="account" type="tns:ResourceObjectShadowType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="account" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Set of user's accounts. This is the set of
@@ -1925,7 +1925,7 @@
                                 OID must not be present.
                             </xsd:documentation>
                             <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ResourceObjectShadowType</a:objectReferenceTargetType>
+                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2518,7 +2518,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="dependency" type="tns:ResourceShadowDiscriminatorType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="dependency" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="entitlementAssociation" type="tns:ResourceEntitlementAssociationType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
         </xsd:sequence>
@@ -2597,7 +2597,7 @@
              </xsd:restriction>
     </xsd:simpleType>
     
-    <xsd:complexType name="ResourceShadowDiscriminatorType">
+    <xsd:complexType name="ShadowDiscriminatorType">
     	<xsd:annotation>
     		<xsd:documentation>
     			TODO
@@ -4350,7 +4350,7 @@
     <xsd:element name="connectorHost" type="tns:ConnectorHostType" substitutionGroup="c:object"/>
 
 
-    <xsd:complexType name="ResourceObjectShadowType">
+    <xsd:complexType name="ShadowType">
         <xsd:annotation>
             <xsd:documentation>
                 Local copy of any object on the provisioning resource that is related to provisioning.
@@ -4505,7 +4505,7 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="attributes" type="tns:ResourceObjectShadowAttributesType" minOccurs="0">
+                    <xsd:element name="attributes" type="tns:ShadowAttributesType" minOccurs="0">
                     </xsd:element>
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
                         <xsd:annotation>
@@ -4529,14 +4529,14 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object">
+    <xsd:element name="resourceObjectShadow" type="tns:ShadowType" substitutionGroup="c:object">
     	<xsd:annotation>
     		<xsd:documentation>
     			DEPRECATED. Use "shadow" element instead.
     		</xsd:documentation>
     	</xsd:annotation>
     </xsd:element>
-    <xsd:element name="shadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object"/>
+    <xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
     
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
@@ -4575,7 +4575,7 @@
              </xsd:restriction>
     </xsd:simpleType>
     
-    <xsd:complexType name="ResourceObjectShadowAttributesType">
+    <xsd:complexType name="ShadowAttributesType">
     	<xsd:annotation>
             <xsd:documentation>
                 Attribute values from the resource. The values may be freshly fetched from
@@ -4655,12 +4655,12 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ResourceObjectShadowType">
+            <xsd:extension base="tns:ShadowType">
                 <xsd:sequence>
                     <xsd:element name="accountType" type="xsd:string" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
-                    			DEPRECATED. Replaced by "intent" in tns:ResourceObjectShadowType.
+                    			DEPRECATED. Replaced by "intent" in tns:ShadowType.
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
@@ -4669,7 +4669,7 @@
         </xsd:complexContent>
     </xsd:complexType>
          
-     <xsd:element name="account" type="tns:ResourceObjectShadowType" substitutionGroup="c:object">
+     <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
      	<xsd:annotation>
      		<xsd:documentation>
      			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.

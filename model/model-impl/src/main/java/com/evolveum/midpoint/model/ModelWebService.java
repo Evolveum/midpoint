@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsT
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
@@ -252,13 +252,13 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		try {
 			Task task = createTaskInstance(LIST_RESOURCE_OBJECT_SHADOWS);
 			operationResult = task.getResult();
-			List<PrismObject<ResourceObjectShadowType>> list = model.listResourceObjectShadows(
-					resourceOid, (Class<ResourceObjectShadowType>) ObjectTypes.getObjectTypeFromUri(
+			List<PrismObject<ShadowType>> list = model.listResourceObjectShadows(
+					resourceOid, (Class<ShadowType>) ObjectTypes.getObjectTypeFromUri(
 							resourceObjectShadowType).getClassDefinition(), task, operationResult);
 			handleOperationResult(operationResult, result);
 
 			ResourceObjectShadowListType resultList = new ResourceObjectShadowListType();
-			for (PrismObject<ResourceObjectShadowType> shadow: list) {
+			for (PrismObject<ShadowType> shadow: list) {
 				resultList.getObject().add(shadow.asObjectable());
 			}
 			resourceObjectShadowListHolder.value = resultList;
@@ -281,11 +281,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		try {
 			Task task = createTaskInstance(LIST_RESOURCE_OBJECTS);
 			operationResult = task.getResult();
-			List<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(
+			List<PrismObject<? extends ShadowType>> list = model.listResourceObjects(
 					resourceOid, objectType, PagingConvertor.createObjectPaging(paging), task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
-			for (PrismObject<? extends ResourceObjectShadowType> o : list) {
+			for (PrismObject<? extends ShadowType> o : list) {
 				listType.getObject().add(o.asObjectable());
 			}
 			objectListTypeHolder.value = listType;

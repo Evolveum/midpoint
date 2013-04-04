@@ -80,7 +80,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnf
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -118,7 +118,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		dummyResourceCtlRed.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
 		
-		PrismObject<ResourceObjectShadowType> accountGuybrushDummyRed = addObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, ResourceObjectShadowType.class, initResult);
+		PrismObject<ShadowType> accountGuybrushDummyRed = addObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, ShadowType.class, initResult);
 		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
 		
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE));
@@ -134,9 +134,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ResourceObjectShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME));
         // Remove the attributes. This will allow outbound mapping to take place instead.
-        account.removeContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+        account.removeContainer(ShadowType.F_ATTRIBUTES);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -170,11 +170,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         
 		// Check shadow
-        PrismObject<ResourceObjectShadowType> accountShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
         // Check account
-        PrismObject<ResourceObjectShadowType> accountModel = modelService.getObject(ResourceObjectShadowType.class, accountOid, null, task, result);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood");
         
         // Check account in dummy resource

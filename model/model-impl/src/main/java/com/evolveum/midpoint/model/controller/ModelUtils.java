@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * 
@@ -62,7 +62,7 @@ public class ModelUtils {
 		}
 	}
 
-	public static void generatePassword(ResourceObjectShadowType account, int length, Protector protector)
+	public static void generatePassword(ShadowType account, int length, Protector protector)
 			throws EncryptionException {
 		Validate.notNull(account, "Account shadow must not be null.");
 		Validate.isTrue(length > 0, "Password length must be more than zero.");
@@ -77,7 +77,7 @@ public class ModelUtils {
 		password.setValue(protector.encryptString(pwd));
 	}
 
-	public static PasswordType getPassword(ResourceObjectShadowType account) {
+	public static PasswordType getPassword(ShadowType account) {
 		Validate.notNull(account, "Account shadow must not be null.");
 
 		CredentialsType credentials = account.getCredentials();

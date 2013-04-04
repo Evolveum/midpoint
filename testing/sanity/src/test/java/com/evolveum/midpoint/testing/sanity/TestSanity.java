@@ -144,7 +144,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
@@ -866,9 +866,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj,
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -918,7 +918,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
+        ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -992,9 +992,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow was created in the repo
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidDerby,
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidDerby,
                 repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("addObject has failed", repoResult);
         display("Shadow (repository)", repoShadowType);
@@ -1043,7 +1043,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
+        ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -1107,8 +1107,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
                 display("Found object", objectType);
 
-                assertTrue(objectType instanceof ResourceObjectShadowType);
-                ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
+                assertTrue(objectType instanceof ShadowType);
+                ShadowType shadow = (ShadowType) objectType;
                 assertNotNull(shadow.getOid());
                 assertNotNull(shadow.getName());
                 assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "AccountObjectClass"), shadow.getObjectClass());
@@ -1129,7 +1129,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(ResourceObjectShadowType.class, q, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, q, handler, result);
 
         // THEN
 
@@ -1186,12 +1186,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
 
         repoResult = new OperationResult("getObject");
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
@@ -1263,11 +1263,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         display("repository shadow", repoShadow);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         AssertJUnit.assertNotNull(repoShadowType);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
@@ -1357,9 +1357,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         display("repo shadow", repoShadow);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
@@ -1385,7 +1385,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
+        ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -1469,9 +1469,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj,
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj,
         		repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
@@ -1498,7 +1498,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
-        ResourceObjectShadowType modelShadow = (ResourceObjectShadowType) objectHolder.value;
+        ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
 
         AssertJUnit.assertNotNull(modelShadow);
@@ -1611,7 +1611,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResult repoResult = new OperationResult("getObject");
 
         try {
-            repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidDerby,
+            repositoryService.getObject(ShadowType.class, accountShadowOidDerby,
                     repoResult);
             AssertJUnit.fail("Shadow was not deleted");
         } catch (ObjectNotFoundException ex) {
@@ -1673,12 +1673,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if shadow is still in the repo and that it is untouched
 
         repoResult = new OperationResult("getObject");
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
         assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
@@ -1736,7 +1736,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Account shadow should be gone from the repository
         repoResult = new OperationResult("getObject");
         try {
-            repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidOpendj, repoResult);
+            repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
             AssertJUnit.fail("Shadow still exists in repo after delete");
         } catch (ObjectNotFoundException e) {
             // This is expected, but check also the result
@@ -1812,9 +1812,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadowType);
@@ -1912,9 +1912,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> aObject = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ShadowType> aObject = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadow = aObject.asObjectable();
+        ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -1994,9 +1994,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> aObject = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ShadowType> aObject = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadow = aObject.asObjectable();
+        ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -2177,9 +2177,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> aObject = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ShadowType> aObject = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadow = aObject.asObjectable();
+        ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -2262,9 +2262,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
@@ -2349,7 +2349,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         try {
-            PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+            PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                     repoResult);
             AssertJUnit.fail("Account shadow was not deleted from repo");
         } catch (ObjectNotFoundException ex) {
@@ -2629,7 +2629,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         //check account defined by account ref
         String accountOid = accountRefs.get(0).getOid();
-        ResourceObjectShadowType account = searchAccountByOid(accountOid);
+        ShadowType account = searchAccountByOid(accountOid);
 
         PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=e,ou=people,dc=example,dc=com", account.getName());
         
@@ -2672,7 +2672,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         //check account defined by account ref
         String accountOid = accountRefs.get(0).getOid();
-        ResourceObjectShadowType account = searchAccountByOid(accountOid);
+        ShadowType account = searchAccountByOid(accountOid);
 
         PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=people,dc=example,dc=com", account.getName());
 //        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
@@ -2867,13 +2867,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Listing of shadows is not supported by the provisioning. So we need
         // to look directly into repository
-        List<PrismObject<ResourceObjectShadowType>> sobjects = repositoryService.searchObjects(ResourceObjectShadowType.class, null, result);
+        List<PrismObject<ShadowType>> sobjects = repositoryService.searchObjects(ShadowType.class, null, result);
         result.computeStatus();
         assertSuccess("listObjects has failed", result);
         AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
 
-        for (PrismObject<ResourceObjectShadowType> aObject : sobjects) {
-            ResourceObjectShadowType shadow = aObject.asObjectable();
+        for (PrismObject<ShadowType> aObject : sobjects) {
+            ShadowType shadow = aObject.asObjectable();
             display("Shadow object after import (repo)", shadow);
             assertNotEmpty("No OID in shadow", shadow.getOid()); // This would be really strange ;-)
             assertNotEmpty("No name in shadow", shadow.getName());
@@ -2934,8 +2934,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
             ObjectReferenceType accountRef = accountRefs.get(0);
 
             boolean found = false;
-            for (PrismObject<ResourceObjectShadowType> aObject : sobjects) {
-                ResourceObjectShadowType acc = aObject.asObjectable();
+            for (PrismObject<ShadowType> aObject : sobjects) {
+                ShadowType acc = aObject.asObjectable();
                 if (accountRef.getOid().equals(acc.getOid())) {
                     found = true;
                     break;
@@ -2945,8 +2945,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
             }
             
-            PrismObject<ResourceObjectShadowType> aObject = modelService.getObject(ResourceObjectShadowType.class, accountRef.getOid(), null, task, result);
-            ResourceObjectShadowType account = aObject.asObjectable();
+            PrismObject<ShadowType> aObject = modelService.getObject(ShadowType.class, accountRef.getOid(), null, task, result);
+            ShadowType account = aObject.asObjectable();
             
             display("Account after import ", account);
             
@@ -3066,9 +3066,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-         PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
@@ -3215,9 +3215,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        PrismObject<ResourceObjectShadowType> repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj,
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
                 repoResult);
-        ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
@@ -3282,7 +3282,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-        repoShadow = repositoryService.getObject(ResourceObjectShadowType.class, accountShadowOidElaineOpendj,
+        repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidElaineOpendj,
                 repoResult);
         repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
@@ -3370,8 +3370,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     // TODO: test for missing sample config (bad reference in expression
     // arguments)
 
-	private String checkRepoShadow(PrismObject<ResourceObjectShadowType> repoShadow) {
-		ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
+		ShadowType repoShadowType = repoShadow.asObjectable();
 		String uid = null;
         boolean hasOthers = false;
         List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
@@ -3395,7 +3395,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         return uid;
 	}
     
-    private ResourceObjectShadowType searchAccountByOid(final String accountOid) throws Exception {
+    private ShadowType searchAccountByOid(final String accountOid) throws Exception {
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectType> accountHolder = new Holder<ObjectType>();
@@ -3405,10 +3405,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertSuccess("searchObjects has failed", resultHolder.value);
         assertNotNull("Account is null", object);
 
-        if (!(object instanceof ResourceObjectShadowType)) {
+        if (!(object instanceof ShadowType)) {
             fail("Object is not account.");
         }
-        ResourceObjectShadowType account = (ResourceObjectShadowType) object;
+        ShadowType account = (ShadowType) object;
         assertEquals(accountOid, account.getOid());
 
         return account;
@@ -3504,7 +3504,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
     	LOGGER.trace("Checking all shadows");
     	System.out.println("Checking all shadows");
-		ObjectChecker<ResourceObjectShadowType> checker = null;
+		ObjectChecker<ShadowType> checker = null;
 		IntegrationTestTools.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);		
 	}	
 

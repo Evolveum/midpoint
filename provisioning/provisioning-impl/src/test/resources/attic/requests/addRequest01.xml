@@ -32,7 +32,7 @@
     <soapenv:Body>
         <prov:addObject>
             <objectContainer>
-                <com:ResourceObjectShadowType>
+                <com:ShadowType>
                     <com:name>jbond</com:name>
                     <com:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
                     <com:objectClass xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ns1:__ACCOUNT__</com:objectClass>
@@ -44,7 +44,7 @@
                         <ics:__PASSWORD__>Passw0rd</ics:__PASSWORD__>
                         <dj:ou xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">People</dj:ou>
                     </com:attributes>
-                </com:ResourceObjectShadowType>
+                </com:ShadowType>
             </objectContainer>
             <result oid="?" type="?">
                 <com:extension>

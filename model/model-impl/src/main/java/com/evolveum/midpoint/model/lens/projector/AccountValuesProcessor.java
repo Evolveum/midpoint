@@ -58,7 +58,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -117,12 +117,12 @@ public class AccountValuesProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processAccounts((LensContext<UserType,ResourceObjectShadowType>) context, (LensProjectionContext<ResourceObjectShadowType>)projectionContext, 
+    	processAccounts((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, 
     			activityDescription, result);
 	}
 	
-	public void processAccounts(LensContext<UserType,ResourceObjectShadowType> context, 
-			LensProjectionContext<ResourceObjectShadowType> accountContext, String activityDescription, OperationResult result) 
+	public void processAccounts(LensContext<UserType,ShadowType> context, 
+			LensProjectionContext<ShadowType> accountContext, String activityDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		
@@ -184,9 +184,9 @@ public class AccountValuesProcessor {
 	        	break;
 	        } else{
 	        	if (checker.getConflictingShadow() != null){
-	        		PrismObject<ResourceObjectShadowType> fullConflictingShadow = null;
+	        		PrismObject<ShadowType> fullConflictingShadow = null;
 	        		try{
-	        			fullConflictingShadow = provisioningService.getObject(ResourceObjectShadowType.class, checker.getConflictingShadow().getOid(), null, result);
+	        			fullConflictingShadow = provisioningService.getObject(ShadowType.class, checker.getConflictingShadow().getOid(), null, result);
 	        		} catch (ObjectNotFoundException ex){
 	        			//if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
 	        			LOGGER.trace("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
@@ -268,7 +268,7 @@ public class AccountValuesProcessor {
 					
 	}
 	
-	private int determineMaxIterations(LensProjectionContext<ResourceObjectShadowType> accountContext) {
+	private int determineMaxIterations(LensProjectionContext<ShadowType> accountContext) {
 		ResourceAccountTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef != null) {
 			IterationSpecificationType iteration = accDef.getIteration();
@@ -288,20 +288,20 @@ public class AccountValuesProcessor {
 	}
 
 
-	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<ResourceObjectShadowType> delta) {
+	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<ShadowType> delta) {
 		if (delta == null) {
 			return false;
 		}
-		return delta.hasItemDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
+		return delta.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attr.getName()));
 	}
 
 	/**
 	 * Check that the primary deltas do not violate schema and policies
 	 * TODO: implement schema check 
 	 */
-	public void checkSchemaAndPolicies(LensContext<UserType,ResourceObjectShadowType> context, 
-			LensProjectionContext<ResourceObjectShadowType> accountContext, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException {
-		ObjectDelta<ResourceObjectShadowType> primaryDelta = accountContext.getPrimaryDelta();
+	public void checkSchemaAndPolicies(LensContext<UserType,ShadowType> context, 
+			LensProjectionContext<ShadowType> accountContext, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException {
+		ObjectDelta<ShadowType> primaryDelta = accountContext.getPrimaryDelta();
 		if (primaryDelta == null || primaryDelta.isDelete()) {
 			return;
 		}
@@ -313,7 +313,7 @@ public class AccountValuesProcessor {
 		}
 		
 		if (primaryDelta.isAdd()) {
-			PrismObject<ResourceObjectShadowType> accountToAdd = primaryDelta.getObjectToAdd();
+			PrismObject<ShadowType> accountToAdd = primaryDelta.getObjectToAdd();
 			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(accountToAdd);
 			if (attributesContainer != null) {
 				for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
@@ -343,7 +343,7 @@ public class AccountValuesProcessor {
 	/**
 	 * Remove the intermediate results of values processing such as secondary deltas.
 	 */
-	private void cleanupContext(LensProjectionContext<ResourceObjectShadowType> accountContext) throws SchemaException {
+	private void cleanupContext(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
 		accountContext.setSecondaryDelta(null);
 		accountContext.clearIntermediateResults();
 		accountContext.recompute();

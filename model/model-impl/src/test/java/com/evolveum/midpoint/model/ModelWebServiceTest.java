@@ -70,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsT
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
@@ -428,7 +428,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
     @SuppressWarnings("unchecked")
     @Test(expectedExceptions = FaultMessage.class)
-    public <T extends ResourceObjectShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage,
+    public <T extends ShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage,
             ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException {
         final String resourceOid = "abababab-abab-abab-abab-000000000001";
         final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
@@ -436,7 +436,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         setSecurityContext(expectedUser);
         when(
                 repositoryService.listResourceObjectShadows(eq(resourceOid),
-                        eq((Class<T>) ResourceObjectShadowType.class), any(OperationResult.class))).thenThrow(
+                        eq((Class<T>) ShadowType.class), any(OperationResult.class))).thenThrow(
                 new ObjectNotFoundException("Resource with oid '" + resourceOid + "' not found."));
 
         try {

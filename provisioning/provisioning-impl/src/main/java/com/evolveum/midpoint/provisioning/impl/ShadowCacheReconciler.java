@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -51,7 +51,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
 	@Override
-	public <T extends ResourceObjectShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
 		cleanShadowInRepository(shadow, parentResult);
 
@@ -59,7 +59,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> void afterModifyOnResource(PrismObject<T> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public <T extends ShadowType> void afterModifyOnResource(PrismObject<T> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successfull reconciliation.");
 		try{
 		cleanShadowInRepository(shadow, parentResult);
@@ -71,7 +71,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 		
 	}
 	
-	private <T extends ResourceObjectShadowType> void cleanShadowInRepository(PrismObject<T> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
+	private <T extends ShadowType> void cleanShadowInRepository(PrismObject<T> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
 		PrismObject<T> oldShadow = shadow.clone();
 		ResourceObjectShadowUtil.getAttributesContainer(oldShadow).clear();
 		ShadowCacheUtil.normalizeShadow(shadow.asObjectable(), parentResult);
@@ -79,9 +79,9 @@ public class ShadowCacheReconciler extends ShadowCache{
 		// FIXME: ugly hack, need to be fixed (problem with comparing operation
 		// result, because it was changed and in this call it is different as
 		// one in repo, therefore the following if)
-		PrismObject<ResourceObjectShadowType> repoShadow = getRepositoryService().getObject(ResourceObjectShadowType.class,
+		PrismObject<ShadowType> repoShadow = getRepositoryService().getObject(ShadowType.class,
 				shadow.getOid(), parentResult);
-		ResourceObjectShadowType repoShadowType = repoShadow.asObjectable();
+		ShadowType repoShadowType = repoShadow.asObjectable();
 		if (repoShadowType.getResult() != null) {
 			if (!repoShadowType.getResult().equals(oldShadow.asObjectable().getResult())) {
 				oldShadow.asObjectable().setResult(repoShadowType.getResult());
@@ -93,7 +93,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 		LOGGER.trace("Normalizing shadow: change description: {}", delta.dump());
 		// prismContext.adopt(shadow);
 		try {
-			getRepositoryService().modifyObject(ResourceObjectShadowType.class, shadow.getOid(), delta.getModifications(),
+			getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), delta.getModifications(),
 					parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Couldn't modify shadow: schema violation: " + ex.getMessage(), ex);
@@ -109,7 +109,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
+	public <T extends ShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
 		ObjectDeltaType shadowDelta = shadow.asObjectable().getObjectChange();
 		
 		//TODO: error handling

@@ -62,7 +62,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -95,10 +95,10 @@ public class ReconciliationProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processReconciliationUser((LensContext<UserType,ResourceObjectShadowType>) context, (LensProjectionContext<ResourceObjectShadowType>)projectionContext, result);
+    	processReconciliationUser((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, result);
     }
     
-    void processReconciliationUser(LensContext<UserType,ResourceObjectShadowType> context, LensProjectionContext<ResourceObjectShadowType> accContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    void processReconciliationUser(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     
     OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);    
         
@@ -120,8 +120,8 @@ public class ReconciliationProcessor {
             
             if (!accContext.isFullShadow()) {
             	// We need to load the object
-            	PrismObject<ResourceObjectShadowType> objectOld = provisioningService.getObject(
-            			ResourceObjectShadowType.class, accContext.getOid(), null, result);
+            	PrismObject<ShadowType> objectOld = provisioningService.getObject(
+            			ShadowType.class, accContext.getOid(), null, result);
             	accContext.setObjectOld(objectOld);
             	accContext.setFullShadow(true);
             	accContext.recompute();
@@ -150,12 +150,12 @@ public class ReconciliationProcessor {
         }
     }
 
-    private void reconcileAccount(LensProjectionContext<ResourceObjectShadowType> accCtx,
+    private void reconcileAccount(LensProjectionContext<ShadowType> accCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes, RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
-    	PrismObject<ResourceObjectShadowType> account = accCtx.getObjectNew();
+    	PrismObject<ShadowType> account = accCtx.getObjectNew();
 
-        PrismContainer attributesContainer = account.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+        PrismContainer attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = MiscUtil.union(squeezedAttributes.keySet(),attributesContainer.getValue().getPropertyNames());
 
         for (QName attrName: attributeNames) {
@@ -227,7 +227,7 @@ public class ReconciliationProcessor {
         }
     }
 
-	private <T> void recordDelta(LensProjectionContext<ResourceObjectShadowType> accCtx, ResourceAttributeDefinition attrDef, 
+	private <T> void recordDelta(LensProjectionContext<ShadowType> accCtx, ResourceAttributeDefinition attrDef, 
 			ModificationType changeType, T value, ObjectType originObject) throws SchemaException {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		

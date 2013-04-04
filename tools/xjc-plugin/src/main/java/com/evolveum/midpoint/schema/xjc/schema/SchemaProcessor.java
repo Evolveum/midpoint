@@ -1106,6 +1106,9 @@ public class SchemaProcessor implements Processor {
     private JFieldVar getReferencedField(JFieldVar field, ClassOutline classOutline) {
         QName qname = getFieldReferenceUseAnnotationQName(field, classOutline);
         CPropertyInfo propertyInfo = classOutline.target.getProperty(qname.getLocalPart());
+        if (propertyInfo == null) {
+        	throw new IllegalArgumentException("No property "+qname.getLocalPart()+" in "+classOutline.target);
+        }
         return classOutline.implClass.fields().get(propertyInfo.getName(false));
     }
 

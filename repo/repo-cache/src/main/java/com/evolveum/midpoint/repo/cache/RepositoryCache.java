@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -185,7 +185,7 @@ public class RepositoryCache implements RepositoryService {
 		if (type.equals(TaskType.class)) {
 			return false;
 		}
-		if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
+		if (ShadowType.class.isAssignableFrom(type)) {
 			return false;
 		}
 		return true;
@@ -265,7 +265,7 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
 		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);

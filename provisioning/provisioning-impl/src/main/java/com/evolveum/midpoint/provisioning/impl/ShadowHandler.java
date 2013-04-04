@@ -20,13 +20,13 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author Radovan Semancik
  *
  */
-public interface ShadowHandler<T extends ResourceObjectShadowType> {
+public interface ShadowHandler<T extends ShadowType> {
 
 	/**
      * Handle a single shadow. Used e.g. to return results

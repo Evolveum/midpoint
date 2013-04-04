@@ -99,8 +99,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptA
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
@@ -135,7 +135,7 @@ public class ResouceObjectConverter {
 	private static final Trace LOGGER = TraceManager.getTrace(ResouceObjectConverter.class);
 
 	
-	public <T extends ResourceObjectShadowType> PrismObject<T> getResourceObject(ConnectorInstance connector, ResourceType resource, 
+	public <T extends ShadowType> PrismObject<T> getResourceObject(ConnectorInstance connector, ResourceType resource, 
 			Class<T> type, Collection<? extends ResourceAttribute<?>> identifiers,
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException {
@@ -198,7 +198,7 @@ public class ResouceObjectConverter {
 		}
 	}
 
-	public <T extends ResourceObjectShadowType> PrismObject<T> addResourceObject(ConnectorInstance connector, ResourceType resource, 
+	public <T extends ShadowType> PrismObject<T> addResourceObject(ConnectorInstance connector, ResourceType resource, 
 			PrismObject<T> shadow, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
@@ -265,7 +265,7 @@ public class ResouceObjectConverter {
 		return shadow;
 	}
 
-	public <T extends ResourceObjectShadowType> void deleteResourceObject(ConnectorInstance connector, ResourceType resource, 
+	public <T extends ShadowType> void deleteResourceObject(ConnectorInstance connector, ResourceType resource, 
 			PrismObject<T> shadow,
 			ObjectClassComplexTypeDefinition objectClassDefinition,
 			ProvisioningScriptsType scripts, OperationResult parentResult)
@@ -326,7 +326,7 @@ public class ResouceObjectConverter {
 		}
 	}
 	
-	public <T extends ResourceObjectShadowType> Collection<PropertyModificationOperation> modifyResourceObject(
+	public <T extends ShadowType> Collection<PropertyModificationOperation> modifyResourceObject(
 			ConnectorInstance connector, ResourceType resource,
 			ObjectClassComplexTypeDefinition objectClassDefinition, PrismObject<T> shadow, ProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectChanges, OperationResult parentResult)
@@ -367,8 +367,8 @@ public class ResouceObjectConverter {
 		if (avoidDuplicateValues(resource)) {
 			// We need to filter out the deltas that add duplicate values or remove values that are not there
 			
-			PrismObject<ResourceObjectShadowType> currentShadow = fetchResourceObject(connector, resource, 
-					ResourceObjectShadowType.class, objectClassDefinition, identifiers, null, parentResult);
+			PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, 
+					ShadowType.class, objectClassDefinition, identifiers, null, parentResult);
 			Collection<Operation> filteredOperations = new ArrayList(operations.size());
 			for (Operation origOperation: operations) {
 				if (origOperation instanceof PropertyModificationOperation) {
@@ -431,7 +431,7 @@ public class ResouceObjectConverter {
 	}
 
 	
-	public <T extends ResourceObjectShadowType> void searchResourceObjects(ConnectorInstance connector, 
+	public <T extends ShadowType> void searchResourceObjects(ConnectorInstance connector, 
 			final ResourceType resourceType, RefinedObjectClassDefinition objectClassDef,
 			final ResultHandler<T> resultHandler, ObjectQuery query, final OperationResult parentResult) throws SchemaException,
 			CommunicationException, ObjectNotFoundException, ConfigurationException {
@@ -503,7 +503,7 @@ public class ResouceObjectConverter {
 	}
 
 
-	private <T extends ResourceObjectShadowType> PrismObject<T> fetchResourceObject(ConnectorInstance connector, ResourceType resource,
+	private <T extends ShadowType> PrismObject<T> fetchResourceObject(ConnectorInstance connector, ResourceType resource,
 			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			AttributesToReturn attributesToReturn,
@@ -542,7 +542,7 @@ public class ResouceObjectConverter {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void applyAfterOperationAttributes(ResourceObjectShadowType shadow,
+	private void applyAfterOperationAttributes(ShadowType shadow,
 			Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
@@ -555,12 +555,12 @@ public class ResouceObjectConverter {
 		}
 	}
 
-	private Operation determineActivationChange(ResourceObjectShadowType shadow, Collection<? extends ItemDelta> objectChange,
+	private Operation determineActivationChange(ShadowType shadow, Collection<? extends ItemDelta> objectChange,
 			ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 
 		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				new ItemPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
 		if (enabledPropertyDelta == null) {
 			return null;
 		}
@@ -584,7 +584,7 @@ public class ResouceObjectConverter {
 		return null;
 	}
 	
-	private void checkActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
+	private void checkActivationAttribute(ShadowType shadow, ResourceType resource,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		OperationResult result = new OperationResult("Checking activation attribute in the new shadow.");
 		if (shadow.getActivation() != null && shadow.getActivation().isEnabled() != null) {
@@ -606,7 +606,7 @@ public class ResouceObjectConverter {
 				}
 				activationSimulateAttribute.add(activationValue);
 
-				PrismContainer attributesContainer =shadow.asPrismObject().findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+				PrismContainer attributesContainer =shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 				if (attributesContainer.findItem(activationSimulateAttribute.getName()) == null){
 					attributesContainer.add(activationSimulateAttribute);
 				} else{
@@ -617,14 +617,14 @@ public class ResouceObjectConverter {
 		}		
 	}
 
-	private <T extends ResourceObjectShadowType> void getAttributeChanges(Collection<? extends ItemDelta> objectChange, 
+	private <T extends ShadowType> void getAttributeChanges(Collection<? extends ItemDelta> objectChange, 
 			Collection<Operation> changes, ResourceType resource, PrismObject<T> shadow, 
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 	if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
@@ -651,7 +651,7 @@ public class ResouceObjectConverter {
 		// return changes;
 	}
 	
-	public <T extends ResourceObjectShadowType> List<Change<T>> fetchChanges(ConnectorInstance connector, ResourceType resource, 
+	public <T extends ShadowType> List<Change<T>> fetchChanges(ConnectorInstance connector, ResourceType resource, 
 			Class<T> type, ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException {
@@ -698,7 +698,7 @@ public class ResouceObjectConverter {
 	}
 	
 	
-	private <T extends ResourceObjectShadowType> PrismObject<T> handleResourceObjectRead(ResourceType resourceType,
+	private <T extends ShadowType> PrismObject<T> handleResourceObjectRead(ResourceType resourceType,
 			PrismObject<T> resourceObject, OperationResult parentResult) throws SchemaException {
 		
 		T resourceObjectType = resourceObject.asObjectable();
@@ -733,7 +733,7 @@ public class ResouceObjectConverter {
 	 * TODO: The placement of this method is not correct. It should go back to
 	 * ShadowConverter
 	 */
-	private <T extends ResourceObjectShadowType> ActivationType completeActivation(PrismObject<T> shadow, ResourceType resource,
+	private <T extends ShadowType> ActivationType completeActivation(PrismObject<T> shadow, ResourceType resource,
 			OperationResult parentResult) {
 
 		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
@@ -746,7 +746,7 @@ public class ResouceObjectConverter {
 		}
 	}
 	
-	private <T extends ResourceObjectShadowType> ActivationType convertFromSimulatedActivationAttributes(
+	private <T extends ShadowType> ActivationType convertFromSimulatedActivationAttributes(
 			PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
@@ -785,7 +785,7 @@ public class ResouceObjectConverter {
 	}
 	
 	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource,
-			ResourceObjectShadowType shadow, OperationResult parentResult) {
+			ShadowType shadow, OperationResult parentResult) {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
@@ -865,7 +865,7 @@ public class ResouceObjectConverter {
 		return null;
 	}
 	
-	private ActivationEnableDisableCapabilityType getEnableDisableFromSimulatedActivation(ResourceObjectShadowType shadow, ResourceType resource, OperationResult result){
+	private ActivationEnableDisableCapabilityType getEnableDisableFromSimulatedActivation(ShadowType shadow, ResourceType resource, OperationResult result){
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
@@ -886,7 +886,7 @@ public class ResouceObjectConverter {
 
 	}
 	
-	private ResourceAttribute<?> getSimulatedActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result){
+	private ResourceAttribute<?> getSimulatedActivationAttribute(ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result){
 		
 		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
 		if (enableDisable == null){
@@ -916,7 +916,7 @@ public class ResouceObjectConverter {
 
 	}
 
-	private PropertyModificationOperation convertToActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
+	private PropertyModificationOperation convertToActivationAttribute(ShadowType shadow, ResourceType resource,
 			Boolean enabled, ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 		OperationResult result = new OperationResult("Modify activation attribute.");
@@ -937,13 +937,13 @@ public class ResouceObjectConverter {
 			String enableValue = getEnableValue(enableDisable);
 			LOGGER.trace("enable attribute delta: {}", enableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-					ResourceObjectShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), enableValue);
+					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), enableValue);
 //			enableAttributeDelta.setValueToReplace(enableValue);
 		} else {
 			String disableValue = getDisableValue(enableDisable);
 			LOGGER.trace("enable attribute delta: {}", disableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-					ResourceObjectShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), disableValue);
+					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), disableValue);
 //			enableAttributeDelta.setValueToReplace(disableValue);
 		}
 
@@ -975,7 +975,7 @@ public class ResouceObjectConverter {
 //		return new PrismPropertyValue(enableValue);
 	}
 
-	private <T extends ResourceObjectShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
+	private <T extends ShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		T shadowType = shadow.asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		if (refinedSchema == null) {
@@ -1005,7 +1005,7 @@ public class ResouceObjectConverter {
 		return objectClassDefinition;
 	}
 	
-	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(
+	private <T extends ShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(
 			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		// HACK FIXME
@@ -1063,7 +1063,7 @@ public class ResouceObjectConverter {
 		}
 	}
 	
-	public <T extends ResourceObjectShadowType> boolean isProtectedShadow(ResourceType resource,
+	public <T extends ShadowType> boolean isProtectedShadow(ResourceType resource,
 			PrismObject<T> shadow) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(shadow);
@@ -1082,7 +1082,7 @@ public class ResouceObjectConverter {
 	}
 
 	private boolean isProtectedShadowChange(ResourceType resource, Change change) throws SchemaException {
-		PrismObject<? extends ResourceObjectShadowType> currentShadow = change.getCurrentShadow();
+		PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
 		if (currentShadow != null) {
 			return isProtectedShadow(resource, currentShadow);
 		}

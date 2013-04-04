@@ -123,12 +123,12 @@ public class ChangeExecutor {
 	private ExpressionFactory expressionFactory;
     
     private PrismObjectDefinition<UserType> userDefinition = null;
-    private PrismObjectDefinition<ResourceObjectShadowType> shadowDefinition = null;
+    private PrismObjectDefinition<ShadowType> shadowDefinition = null;
     
     @PostConstruct
     private void locateUserDefinition() {
     	userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-    	shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
+    	shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
     }
 
     public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
@@ -370,7 +370,7 @@ public class ChangeExecutor {
         
         PrismReferenceValue accountRef = new PrismReferenceValue();
         accountRef.setOid(accountOid);
-        accountRef.setTargetType(ResourceObjectShadowType.COMPLEX_TYPE);
+        accountRef.setTargetType(ShadowType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
         		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
@@ -428,9 +428,9 @@ public class ChangeExecutor {
     	result.addParam("situation", situation);
     	result.addParam("accountRef", accountRef);
 		
-    	PrismObject<ResourceObjectShadowType> account = null;
+    	PrismObject<ShadowType> account = null;
     	try{
-    		account = provisioning.getObject(ResourceObjectShadowType.class, accountRef, GetOperationOptions.createNoFetch(), result);
+    		account = provisioning.getObject(ShadowType.class, accountRef, GetOperationOptions.createNoFetch(), result);
     	} catch (Exception ex){
     		LOGGER.trace("Problem with getting account, skipping modifying siatuation in account.");
 			return;
@@ -442,7 +442,7 @@ public class ChangeExecutor {
 		syncSituationDeltas.add(syncSituationDelta);
 		}
 		try {
-			String changedOid = provisioning.modifyObject(ResourceObjectShadowType.class, accountRef,
+			String changedOid = provisioning.modifyObject(ShadowType.class, accountRef,
 					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
 					task, result);
 //			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
@@ -709,8 +709,8 @@ public class ChangeExecutor {
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
 
-        if (object.canRepresent(ResourceObjectShadowType.class)) {
-            ResourceObjectShadowType shadow = (ResourceObjectShadowType) object.asObjectable();
+        if (object.canRepresent(ShadowType.class)) {
+            ShadowType shadow = (ShadowType) object.asObjectable();
             String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
             if (resourceOid == null) {
                 throw new IllegalArgumentException("Resource OID is null in shadow");
@@ -747,12 +747,12 @@ public class ChangeExecutor {
     		ProvisioningOperationTypeType operation, ResourceType resource, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
-    	if (!changedObject.canRepresent(ResourceObjectShadowType.class)) {
+    	if (!changedObject.canRepresent(ShadowType.class)) {
     		return null;
     	}
     	
     	ProvisioningScriptsType resourceScripts = resource.getScripts();
-    	PrismObject<? extends ResourceObjectShadowType> resourceObject = (PrismObject<? extends ResourceObjectShadowType>) changedObject;
+    	PrismObject<? extends ShadowType> resourceObject = (PrismObject<? extends ShadowType>) changedObject;
         
         PrismObject<F> user = null;
 		if (context.getFocusContext() != null){
@@ -848,7 +848,7 @@ public class ChangeExecutor {
     }
     
     private Map<QName, Object> getDefaultExpressionVariables(PrismObject<UserType> user, 
-    		PrismObject<? extends ResourceObjectShadowType> account, PrismObject<ResourceType> resource) {		
+    		PrismObject<? extends ShadowType> account, PrismObject<ResourceType> resource) {		
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		variables.put(ExpressionConstants.VAR_USER, user);
 		variables.put(ExpressionConstants.VAR_ACCOUNT, account);

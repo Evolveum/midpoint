@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,12 +102,12 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullResult() throws Exception {
-        controller.listResourceObjectShadows("1", ResourceObjectShadowType.class, null, null);
+        controller.listResourceObjectShadows("1", ShadowType.class, null, null);
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public <T extends ResourceObjectShadowType> void correctList() throws Exception {
+    public <T extends ShadowType> void correctList() throws Exception {
 
         final String resourceOid = "abababab-abab-abab-abab-000000000001";
         final List<PrismObject<? extends Objectable>> expected = PrismTestUtil.parseObjects(new File(TEST_FOLDER, "resource-object-shadow-list.xml"));
@@ -115,13 +115,13 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 
         when(
                 repository.listResourceObjectShadows(eq(resourceOid),
-                        eq((Class<T>) ResourceObjectShadowType.class), any(OperationResult.class)))
+                        eq((Class<T>) ShadowType.class), any(OperationResult.class)))
                 .thenReturn((List)expected);
 
         Task task = taskManager.createTaskInstance("List Resource Object Shadows");
         try {
             List<PrismObject<T>> returned = controller.listResourceObjectShadows(resourceOid,
-                    (Class<T>) ResourceObjectShadowType.class, task, task.getResult());
+                    (Class<T>) ShadowType.class, task, task.getResult());
 
             assertNotNull(expected);
             assertNotNull(returned);
@@ -131,7 +131,7 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
         }
     }
 
-    private <T extends ResourceObjectShadowType> void assertShadowListType(List<PrismObject<? extends Objectable>> expectedList,
+    private <T extends ShadowType> void assertShadowListType(List<PrismObject<? extends Objectable>> expectedList,
             List<PrismObject<T>> returnedList) {
 
         assertTrue(expectedList == null ? returnedList == null : returnedList != null);

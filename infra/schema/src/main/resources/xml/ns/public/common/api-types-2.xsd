@@ -220,7 +220,7 @@
     
     <xsd:complexType name="ResourceObjectShadowListType">
         <xsd:sequence>
-            <xsd:element name="object" type="c:ResourceObjectShadowType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="object" type="c:ShadowType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 

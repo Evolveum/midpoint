@@ -86,7 +86,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SubmitStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -619,15 +619,15 @@ public class PageUserPreview extends PageAdmin {
 		return "";
 	}
 
-	private PrismObject<ResourceObjectShadowType> getAccountFromDelta(ObjectDelta delta) {
+	private PrismObject<ShadowType> getAccountFromDelta(ObjectDelta delta) {
 		if (delta.getChangeType().equals(ChangeType.ADD)) {
 			return delta.getObjectToAdd();
 		} else {
 			Task task = createSimpleTask("loadResourceList: Load account");
 			OperationResult result = new OperationResult("loadResourceList: Load account");
-			PrismObject<ResourceObjectShadowType> accountObject = null;
+			PrismObject<ShadowType> accountObject = null;
 			try {
-				accountObject = getModelService().getObject(ResourceObjectShadowType.class, delta.getOid(), null,
+				accountObject = getModelService().getObject(ShadowType.class, delta.getOid(), null,
 						task, result);
 			} catch (Exception ex) {
 				result.recordFatalError("Unable to get account object", ex);
