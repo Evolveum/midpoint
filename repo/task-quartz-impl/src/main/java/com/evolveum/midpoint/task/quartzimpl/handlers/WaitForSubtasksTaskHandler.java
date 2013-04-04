@@ -87,18 +87,12 @@ public class WaitForSubtasksTaskHandler implements TaskHandler {
             }
         }
 
-        TaskRunResultStatus status = TaskRunResultStatus.FINISHED;
+        TaskRunResultStatus status;
         if (allClosed) {
             LOGGER.info("All subtasks are closed, finishing waiting for them; task = {}", task);
-            try {
-                ((TaskQuartzImpl) task).finishHandler(opResult);
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Task handler cannot be finished because the task does not exist anymore", e);
-                status = TaskRunResultStatus.PERMANENT_ERROR;
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Task handler cannot be finished due to schema exception", e);
-                status = TaskRunResultStatus.PERMANENT_ERROR;
-            }
+            status = TaskRunResultStatus.FINISHED_HANDLER;
+        } else {
+            status = TaskRunResultStatus.FINISHED;
         }
 
         runResult.setOperationResult(null);                             // not to overwrite task's result

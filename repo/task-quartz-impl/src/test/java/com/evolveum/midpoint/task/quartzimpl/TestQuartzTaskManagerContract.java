@@ -104,7 +104,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/repo/owner2.xml";
     private static final String TASK_OWNER2_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
     private static final String NS_WHATEVER = "http://myself.me/schemas/whatever";
-    
+
     private static String taskFilename(String test) {
     	return "src/test/resources/repo/task-" + test + ".xml";
     }
@@ -120,6 +120,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     }
 
     private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
+    private static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
     public static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
     public static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
     public static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
@@ -161,11 +162,15 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     MockSingleTaskHandler singleHandler1, singleHandler2, singleHandler3;
     MockSingleTaskHandler l1Handler, l2Handler, l3Handler;
     MockSingleTaskHandler waitForSubtasksTaskHandler;
+    MockCycleTaskHandler cycleFinishingHandler;
 
     @PostConstruct
     public void initHandlers() throws Exception {
-        MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler();
+        MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler(false);    // ordinary recurring task
         taskManager.registerHandler(CYCLE_TASK_HANDLER_URI, cycleHandler);
+        cycleFinishingHandler = new MockCycleTaskHandler(true);                 // finishes the handler
+        taskManager.registerHandler(CYCLE_FINISHING_TASK_HANDLER_URI, cycleFinishingHandler);
+
         singleHandler1 = new MockSingleTaskHandler("1", taskManager);
         taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler1);
         singleHandler2 = new MockSingleTaskHandler("2", taskManager);
@@ -1213,6 +1218,73 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Refresh does not update task's result", OperationResultStatus.IN_PROGRESS, task.getResult().getStatus());
     }
 
+    /*
+     * Recurring task returning FINISHED_HANDLER code.
+     */
+
+    @Test(enabled = true)
+    public void test018FinishedHandler() throws Exception {
+
+        final String test = "018FinishedHandler";
+        final OperationResult result = createResult(test);
+
+        // reset 'has run' flag on handlers
+        singleHandler1.resetHasRun();
+
+        addObjectFromFile(taskFilename(test));
+
+        waitFor("Waiting for task manager to execute the task", new Checker() {
+            public boolean check() throws ObjectNotFoundException, SchemaException {
+                Task task = taskManager.getTask(taskOid(test), result);
+                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+            }
+
+            @Override
+            public void timeout() {
+            }
+        }, 15000, 2000);
+
+        // Check task status
+
+        Task task = taskManager.getTask(taskOid(test), result);
+
+        AssertJUnit.assertNotNull(task);
+        System.out.println(task.dump());
+
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), result);
+        System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
+
+        // .. it should be closed
+        AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+
+        // .. and last run should not be zero
+        AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+        AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull("Last run finish timestamp not set", task.getLastRunFinishTimestamp());
+        AssertJUnit.assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
+
+        // The progress should be at least 2 as the task has run at least twice (once in each handler)
+        AssertJUnit.assertTrue("Task reported progress lower than 2", task.getProgress() >= 2);
+
+        // Test for presence of a result. It should be there and it should
+        // indicate success
+        OperationResult taskResult = task.getResult();
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+
+        // Test for no presence of handlers
+
+        AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
+        AssertJUnit.assertTrue("Other handlers are still present",
+                task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
+
+        // Test if "outer" handler has run as well
+
+        AssertJUnit.assertTrue("Handler1 has not run", singleHandler1.hasRun());
+    }
+
+
     @Test(enabled = true)
     public void test999CheckingLeftovers() throws Exception {
 
@@ -1231,6 +1303,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         checkLeftover(leftovers, "014", result);
         checkLeftover(leftovers, "015", result);
         checkLeftover(leftovers, "016", result);
+        checkLeftover(leftovers, "018", result);
 
         String message = "Leftover task(s) found:";
         for (String leftover : leftovers) {

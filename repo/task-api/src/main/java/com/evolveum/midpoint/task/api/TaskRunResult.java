@@ -41,14 +41,23 @@ public final class TaskRunResult {
          * the task is finished, but it is different for recurrent tasks. Such a task will run again after
          * it sleeps for a while (or after the scheduler will start it again).
 		 */
-		FINISHED, 
-		
-		/**
-		 * The run has failed.
-		 * 
-		 * The error is permanent. Unless the administrator does something to recover from the situation, there is no point in
-		 * re-trying the run. Usual case of this error is task misconfiguration.
-		 */
+		FINISHED,
+
+        /**
+         * The task run has finished, and this was the last run of the current handler.
+         *
+         * For single-run tasks, the effect is the same as of FINISHED value.
+         * However, for recurring tasks, this return value causes current handler to be removed from the handler stack.
+         */
+
+        FINISHED_HANDLER,
+
+        /**
+         * The run has failed.
+         *
+         * The error is permanent. Unless the administrator does something to recover from the situation, there is no point in
+         * re-trying the run. Usual case of this error is task misconfiguration.
+         */
 		PERMANENT_ERROR,
 		
 		/**

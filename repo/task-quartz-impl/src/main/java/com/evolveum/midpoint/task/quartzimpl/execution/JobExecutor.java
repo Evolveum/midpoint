@@ -249,8 +249,8 @@ public class JobExecutor implements InterruptableJob {
             } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
                 // PERMANENT ERROR means we do not continue executing other handlers, we just close this task
                 taskManagerImpl.closeTask(task, executionResult);
-            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
-                // FINISHED means we continue with other handlers, if there are any
+            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED || runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
+                // FINISHED/FINISHED_HANDLER means we continue with other handlers, if there are any
                 task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers
                 // if there are remaining handlers, task will be re-executed by Quartz
             } else {
@@ -317,6 +317,11 @@ mainCycle:
                     break;
                 } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
                     LOGGER.trace("Task handler finished, continuing with the execution cycle. Task = {}", task);
+                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
+                    LOGGER.trace("Task handler finished with FINISHED_HANDLER, calling task.finishHandler() and exiting the execution cycle. Task = {}", task);
+                    task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers
+                                                                    // if there are remaining handlers, task will be re-executed by Quartz
+                    break;
                 } else {
                     throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
                 }
@@ -403,6 +408,9 @@ mainCycle:
     	try {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Executing handler " + handler.getClass().getName());
+            }
+            if (task.getResult() == null) {
+                task.setResult(new OperationResult("run"));
             }
     		runResult = handler.run(task);
     		if (runResult == null) {				// Obviously an error in task handler

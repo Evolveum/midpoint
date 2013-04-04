@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+
+<task oid="91919191-76e0-59e2-86d6-556655660018"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        >
+								  
+	<name>Testing FINISHED_HANDLER return result (test 018)</name>
+	
+    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30018</taskIdentifier>
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/test/cycle-finishing-task-handler</handlerUri>
+    <otherHandlersUriStack>
+        <uriStackEntry>
+            <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+            <schedule></schedule>
+        </uriStackEntry>
+    </otherHandlersUriStack>
+
+    <recurrence>recurring</recurrence>
+    <binding>tight</binding>
+    <schedule>
+        <interval>2</interval>
+    </schedule>
+
+</task>
