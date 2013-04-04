@@ -260,6 +260,9 @@ public class ItemPath implements Serializable {
 	 * @throw IllegalArgumentException
 	 */
 	public static QName getName(ItemPathSegment segment) {
+		if (segment == null) {
+			return null;
+		}
 		if (!(segment instanceof NameItemPathSegment)) {
 			throw new IllegalArgumentException("Unable to get name from non-name path segment "+segment);
 		}
