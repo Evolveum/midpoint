@@ -80,7 +80,9 @@ public class RTask extends RObject {
     private ROperationResultStatusType resultStatus;
     private String canRunOnNode;
     private RThreadStopActionType threadStopAction;
+    @QueryAttribute(multiValue = true)
     private Set<String> dependent;
+    @QueryAttribute(enumerated = true)
     private RTaskWaitingReason waitingReason;
 
     @ElementCollection
