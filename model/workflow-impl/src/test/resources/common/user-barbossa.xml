@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<user oid="c0c010c0-d34d-b33f-f00d-111111111112" 
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>barbossa</name>
+    <fullName>Hector Barbossa</fullName>
+    <givenName>Hector</givenName>
+    <familyName>Barbossa</familyName>
+    <locality>Caribbean</locality>
+    
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>deadjacktellnotales</clearValue>
+            </value>
+        </password>
+    </credentials>
+    
+    <assignment id="1001">
+		<accountConstruction>
+			<description>Brethren account construction</description>
+			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
+			<attribute>
+				<ref>ri:ship</ref>
+				<outbound>
+					<expression>
+						<value>Pirate Brethren, Inc.</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<outbound>
+					<source>
+						<path>$c:user/c:locality</path>
+					</source>
+					<expression>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								$c:locality/t:orig
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<outbound>
+					<expression>
+						<value>Sword</value>
+					</expression>
+				</outbound>
+			</attribute>
+		</accountConstruction>
+	</assignment>
+
+    <assignment>
+		<accountConstruction>
+			<description>Undead monkey account construction</description>
+			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
+			<attribute>
+				<ref>ri:weapon</ref>
+				<outbound>
+					<expression>
+						<value>Undead Monkey</value>
+					</expression>
+				</outbound>
+			</attribute>
+		</accountConstruction>
+	</assignment>
+    
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+    
+</user>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 Peter Prochazka               -->
+<!--                                                         -->
+
+<configuration>
+	<appender name="X" class="ch.qos.logback.core.FileAppender">
+		<file>./target/test.log</file>
+		<encoder>
+			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+		</encoder>
+	</appender>
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
+	<logger name="com.evolveum.midpoint.common.expression" level="INFO" />
+	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
+	<!-- Projector "TRACE" is just too much info ... -->
+	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
+	<!-- ... and expression trace as well -->
+	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.wf" level="TRACE" />
+	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
+	<logger name="com.evolveum.midpoint.test" level="TRACE" />
+    <logger name="com.evolveum.midpoint.task" level="TRACE" />
+
+    <!--<logger name="org.springframework" level="DEBUG" />-->
+
+	<logger name="PROFILING" level="TRACE" />
+	<root level="INFO">
+		<appender-ref ref="X" />
+	</root>
+</configuration>
+

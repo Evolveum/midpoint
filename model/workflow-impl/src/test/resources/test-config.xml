@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 Peter Prochazka               -->
+<!--                                                         -->
+<configuration>
+    <midpoint>
+        <global>
+            <extensionDir>./src/test/resources/schema</extensionDir>
+        </global>
+        <repository>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
+            <port>5438</port>
+            <asServer>true</asServer>
+            <!--<baseDir>target</baseDir>-->
+            <dropIfExists>true</dropIfExists>
+        </repository>
+        <workflow>
+            <enabled>true</enabled>
+            <jdbcUrl>jdbc:h2:mem:activiti;DB_CLOSE_DELAY=1000</jdbcUrl>
+            <jdbcDriver>org.h2.Driver</jdbcDriver>
+            <jdbcUsername>sa</jdbcUsername>
+            <jdbcPassword/>
+            <changeProcessor>primaryUserChangeProcessor</changeProcessor>
+            <primaryUserChangeProcessor>
+                <wrapper>addRoleAssignmentWrapper</wrapper>
+            </primaryUserChangeProcessor>
+        </workflow>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <taskManager>
+            <jdbcJobStore>false</jdbcJobStore>
+            <testMode>true</testMode>
+        </taskManager>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>/C:/tmp</scanDirectory>
+            <scanDirectory>/var/tmp</scanDirectory>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+    </midpoint>
+</configuration>
