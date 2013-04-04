@@ -949,6 +949,15 @@
                                 can contain a complex model operation, and its subtasks contain individual
                                 approvals and/or elementary model operations. If null, this task is a "root-level"
                                 task that has no parent.
+                                Task identifier (not OID) is used here.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="dependent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Dependent tasks, i.e. tasks that wait for the completion of this task.
+                                Task identifiers (not OIDs) are used here.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -957,6 +966,13 @@
                             <xsd:documentation>
                                 Execution status provides information about the task overall high-level execution state.
                                 It tells whether the task is running/runnable, waits for something or is done.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="waitingReason" type="tns:TaskWaitingReasonType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What is this task waiting for?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1253,6 +1269,47 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="TIGHT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TaskWaitingReasonType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="otherTasks">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is waiting for other (dependent) tasks - either its subtasks, or tasks explicitly marked
+                        as "prerequisites" for this task (via dependentTask property)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OTHER_TASKS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workflow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is waiting for a workflow process (that it monitors/shadows) to be finished.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORKFLOW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="other">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task is waiting because of other reason.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OTHER"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
