@@ -1385,7 +1385,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Handler1 has not run", singleHandler1.hasRun());
     }
 
-    @Test(enabled = false)
+    @Test
     public void test020QueryByExecutionStatus() throws Exception {
         final String test = "020QueryByExecutionStatus";
         final OperationResult result = createResult(test);
@@ -1400,8 +1400,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         ObjectFilter filter3 = AndFilter.createAnd(filter1, filter2);
 
         List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), result);
-        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), result);
-        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), result);
+        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter2), result);
+        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter3), result);
 
         assertFalse("There were no tasks with executionStatus == WAITING found", prisms1.isEmpty());
         assertFalse("There were no tasks with waitingReason == OTHER_TASKS found", prisms2.isEmpty());

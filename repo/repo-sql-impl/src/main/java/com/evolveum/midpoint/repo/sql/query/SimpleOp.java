@@ -169,9 +169,10 @@ public class SimpleOp extends Op {
 				if (type == null || !type.isEnum()) {
 					throw new IllegalStateException("Type '" + type + "' was marked as enum but it is not enum.");
 				}
+                String filterValueName = ((Enum)filterValue).name();
 				for (Object obj : type.getEnumConstants()) {
 					Enum e = (Enum) obj;
-					if (e.name().equals(filterValue)) {
+					if (e.name().equals(filterValueName)) {
 						testedValue = e;
 						break;
 					}
