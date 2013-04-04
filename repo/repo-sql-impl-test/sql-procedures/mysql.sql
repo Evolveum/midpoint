@@ -41,10 +41,10 @@ DETERMINISTIC
     DELETE FROM m_user_organizational_unit;
     DELETE FROM m_user;
     DELETE FROM m_org_org_type;
-    DELETE FROM m_org;
-    DELETE FROM m_role;
     DELETE FROM m_authorization_action;
     DELETE FROM m_authorization;
+    DELETE FROM m_org;
+    DELETE FROM m_role;
     DELETE FROM m_abstract_role;
     DELETE FROM m_system_configuration;
     DELETE FROM m_generic_object;
