@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.id.RMetadataId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -45,7 +46,7 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table
+@IdClass(RMetadataId.class)
 public class RMetadata implements Serializable {
 
     public static final String F_OWNER = "owner";

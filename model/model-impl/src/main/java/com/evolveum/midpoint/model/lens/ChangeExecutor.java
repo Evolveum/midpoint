@@ -588,8 +588,7 @@ public class ChangeExecutor {
 
         T objectTypeToAdd = objectToAdd.asObjectable();
 
-        //TODO vilkoooooooo uncomment
-//    	applyMetadata(context.getChannel(), task, objectTypeToAdd);
+    	applyMetadata(context.getChannel(), task, objectTypeToAdd);
     	
         String oid = null;
         if (objectTypeToAdd instanceof TaskType) {
@@ -635,8 +634,7 @@ public class ChangeExecutor {
         }
         Class<T> objectTypeClass = change.getObjectTypeClass();
         	
-        // TODO: vilkoooooooo uncoment
-//    	applyMetadata(change, objectTypeClass, task, context.getChannel());
+    	applyMetadata(change, objectTypeClass, task, context.getChannel());
         
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
