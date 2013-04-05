@@ -86,6 +86,7 @@ public class DummyResource {
 	
 	DummyResource() {
 		accounts = new ConcurrentHashMap<String, DummyAccount>();
+		groups = new ConcurrentHashMap<String, DummyGroup>();
 		scriptHistory = new ArrayList<ScriptHistoryEntry>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
@@ -99,6 +100,7 @@ public class DummyResource {
 	 */
 	public void reset() {
 		accounts.clear();
+		groups.clear();
 		scriptHistory.clear();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
