@@ -79,7 +79,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         provisioningService.applyDefinition(accountShadowJack, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
-        dummyAccount.setUsername("jack");
+        dummyAccount.setName("jack");
         dummyAccount.setPassword("deadMenTellNoTales");
         dummyAccount.setEnabled(true);
         dummyAccount.addAttributeValues("fullname", "Jack Sparrow");

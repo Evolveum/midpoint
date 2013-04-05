@@ -26,12 +26,14 @@ package com.evolveum.icf.dummy.resource;
 public class DummyDelta {
 	
 	private int syncToken;
-	private String accountId;
+	private Class<? extends DummyObject> objectClass;
+	private String objectId;
 	private DummyDeltaType type;
 	
-	DummyDelta(int syncToken, String accountId, DummyDeltaType type) {
+	DummyDelta(int syncToken, Class<? extends DummyObject> objectClass, String objectId, DummyDeltaType type) {
 		this.syncToken = syncToken;
-		this.accountId = accountId;
+		this.objectClass = objectClass;
+		this.objectId = objectId;
 		this.type = type;
 	}
 
@@ -43,12 +45,20 @@ public class DummyDelta {
 		this.syncToken = syncToken;
 	}
 	
-	public String getAccountId() {
-		return accountId;
+	public Class<? extends DummyObject> getObjectClass() {
+		return objectClass;
+	}
+
+	public void setObjectClass(Class<? extends DummyObject> objectClass) {
+		this.objectClass = objectClass;
+	}
+
+	public String getObjectId() {
+		return objectId;
 	}
 	
-	public void setAccountId(String accountId) {
-		this.accountId = accountId;
+	public void setObjectId(String accountId) {
+		this.objectId = accountId;
 	}
 
 	public DummyDeltaType getType() {
@@ -61,6 +71,6 @@ public class DummyDelta {
 
 	@Override
 	public String toString() {
-		return "DummyDelta(T=" + syncToken + ", id=" + accountId + ", t=" + type + ")";
+		return "DummyDelta(T=" + syncToken + ", c="+objectClass.getSimpleName()+", id=" + objectId + ", t=" + type + ")";
 	}
 }

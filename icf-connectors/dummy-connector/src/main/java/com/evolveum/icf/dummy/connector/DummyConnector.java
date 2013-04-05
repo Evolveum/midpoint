@@ -213,7 +213,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	if (attr.is(Name.NAME)) {
         		String newName = (String)attr.getValue().get(0);
         		try {
-					resource.renameAccount(account.getUsername(), newName);
+					resource.renameAccount(account.getName(), newName);
 				} catch (ObjectDoesNotExistException e) {
 					throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
 				} catch (ObjectAlreadyExistsException e) {
@@ -474,9 +474,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	SyncDeltaType deltaType;
         	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
         		deltaType = SyncDeltaType.CREATE_OR_UPDATE;
-        		DummyAccount account = resource.getAccountByUsername(delta.getAccountId());
+        		DummyAccount account = resource.getAccountByUsername(delta.getObjectId());
         		if (account == null) {
-        			throw new IllegalStateException("We have delta for account '"+delta.getAccountId()+"' but such account does not exist");
+        			throw new IllegalStateException("We have delta for account '"+delta.getObjectId()+"' but such account does not exist");
         		}
         		ConnectorObject cobject = convertToConnectorObject(account, options);
 				builder.setObject(cobject);
@@ -488,7 +488,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	builder.setDeltaType(deltaType);
         	
         	builder.setToken(new SyncToken(delta.getSyncToken()));
-        	builder.setUid(new Uid(delta.getAccountId()));
+        	builder.setUid(new Uid(delta.getObjectId()));
         	
         	SyncDelta syncDelta = builder.build();
         	log.info("sync::handle {0}",syncDelta);
@@ -549,8 +549,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			}
 		}
 		
-		builder.setUid(account.getUsername());
-		builder.addAttribute(Name.NAME, account.getUsername());
+		builder.setUid(account.getName());
+		builder.addAttribute(Name.NAME, account.getName());
 		
 		for (String name : account.getAttributeNames()) {
 			if (attributesToGet != null) {

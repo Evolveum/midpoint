@@ -332,7 +332,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		// THEN
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
 		assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" was not created", dummyAccount);
-		assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" has no username", dummyAccount.getUsername());
+		assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" has no username", dummyAccount.getName());
 		
 	}
 	

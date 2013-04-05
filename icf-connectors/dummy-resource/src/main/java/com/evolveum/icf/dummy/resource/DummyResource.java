@@ -64,8 +64,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DummyResource {
 
 	private Map<String,DummyAccount> accounts;
+	private Map<String,DummyGroup> groups;
 	private List<ScriptHistoryEntry> scriptHistory;
 	private DummyObjectClass accountObjectClass;
+	private DummyObjectClass groupObjectClass;
 	private DummySyncStyle syncStyle;
 	private List<DummyDelta> deltas;
 	private int latestSyncToken;
@@ -86,6 +88,7 @@ public class DummyResource {
 		accounts = new ConcurrentHashMap<String, DummyAccount>();
 		scriptHistory = new ArrayList<ScriptHistoryEntry>();
 		accountObjectClass = new DummyObjectClass();
+		groupObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas = new ArrayList<DummyDelta>();
 		latestSyncToken = 0;
@@ -98,6 +101,7 @@ public class DummyResource {
 		accounts.clear();
 		scriptHistory.clear();
 		accountObjectClass = new DummyObjectClass();
+		groupObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas.clear();
 		latestSyncToken = 0;
@@ -178,6 +182,10 @@ public class DummyResource {
 		
 	}
 
+	public DummyObjectClass getGroupObjectClass() {
+		return groupObjectClass;
+	}
+
 	public Collection<DummyAccount> listAccounts() {
 		return accounts.values();
 	}
@@ -186,58 +194,82 @@ public class DummyResource {
 		return accounts.get(username);
 	}
 	
-	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException {
-		String id = newAccount.getUsername();
-		if (accounts.containsKey(id)) {
-			throw new ObjectAlreadyExistsException("Account with identifier "+id+" already exists");
+	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException {
+		String id = newObject.getName();
+		Class<? extends DummyObject> type = newObject.getClass();
+		if (map.containsKey(id)) {
+			throw new ObjectAlreadyExistsException(type.getSimpleName()+" with identifier "+id+" already exists");
 		}
 		
-		newAccount.setResource(this);
-		accounts.put(id, newAccount);
+		newObject.setResource(this);
+		map.put(id, newObject);
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, id, DummyDeltaType.ADD);
+			DummyDelta delta = new DummyDelta(syncToken, type, id, DummyDeltaType.ADD);
 			deltas.add(delta);
 		}
 		
 		return id;
 	}
 	
-	public void deleteAccount(String id) throws ObjectDoesNotExistException {
-		if (accounts.containsKey(id)) {
-			accounts.remove(id);
+	private <T extends DummyObject> void deleteObject(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException {
+		if (map.containsKey(id)) {
+			map.remove(id);
 		} else {
-			throw new ObjectDoesNotExistException("Account with identifier "+id+" does not exist");
+			throw new ObjectDoesNotExistException(type.getSimpleName()+" with identifier "+id+" does not exist");
 		}
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, id, DummyDeltaType.DELETE);
-			deltas.add(delta);
-		}
-	}
-	
-	void recordModify(DummyAccount account) {
-		if (syncStyle != DummySyncStyle.NONE) {
-			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, account.getUsername(), DummyDeltaType.MODIFY);
+			DummyDelta delta = new DummyDelta(syncToken, type, id, DummyDeltaType.DELETE);
 			deltas.add(delta);
 		}
 	}
 
+	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+		T existingObject = map.get(oldName);
+		if (existingObject == null) {
+			throw new ObjectDoesNotExistException("Cannot rename, "+type.getSimpleName()+" with username '"+oldName+"' does not exist");
+		}
+		if (map.containsKey(newName)) {
+			throw new ObjectAlreadyExistsException("Cannot rename, "+type.getSimpleName()+" with username '"+newName+"' already exists");
+		}
+		map.put(newName, existingObject);
+		map.remove(oldName);
+		existingObject.setName(newName);
+	}
 	
+	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException {
+		return addObject(accounts, newAccount);
+	}
+	
+	public void deleteAccount(String id) throws ObjectDoesNotExistException {
+		deleteObject(DummyAccount.class, accounts, id);
+	}
+
 	public void renameAccount(String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
-		DummyAccount account = accounts.get(oldUsername);
-		if (account == null) {
-			throw new ObjectDoesNotExistException("Cannot rename, account with username '"+oldUsername+"' does not exist");
+		renameObject(DummyAccount.class, accounts, oldUsername, newUsername);
+	}
+	
+	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException {
+		return addObject(groups, newGroup);
+	}
+	
+	public void deleteGroup(String id) throws ObjectDoesNotExistException {
+		deleteObject(DummyGroup.class, groups, id);
+	}
+
+	public void renameGroup(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+		renameObject(DummyGroup.class, groups, oldName, newName);
+	}
+	
+	void recordModify(DummyObject dObject) {
+		if (syncStyle != DummySyncStyle.NONE) {
+			int syncToken = nextSyncToken();
+			DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getName(), DummyDeltaType.MODIFY);
+			deltas.add(delta);
 		}
-		if (accounts.containsKey(newUsername)) {
-			throw new ObjectAlreadyExistsException("Cannot rename, account with username '"+newUsername+"' already exists");
-		}
-		accounts.put(newUsername, account);
-		accounts.remove(oldUsername);
-		account.setUsername(newUsername);
 	}
 
 	/**
@@ -275,6 +307,7 @@ public class DummyResource {
 		accountObjectClass.addAttributeDefinition("fullname", String.class, true, false);
 		accountObjectClass.addAttributeDefinition("description", String.class, false, false);
 		accountObjectClass.addAttributeDefinition("interests", String.class, false, true);
+		groupObjectClass.clear();
 	}
 
 	public DummySyncStyle getSyncStyle() {
@@ -312,6 +345,13 @@ public class DummyResource {
 			sb.append(": ");
 			sb.append(entry.getValue());
 		}
+		sb.append("\nGroups:");
+		for (Entry<String, DummyGroup> entry: groups.entrySet()) {
+			sb.append("\n  ");
+			sb.append(entry.getKey());
+			sb.append(": ");
+			sb.append(entry.getValue());
+		}
 		sb.append("\nDeltas:");
 		for (DummyDelta delta: deltas) {
 			sb.append("\n  ");
@@ -323,7 +363,7 @@ public class DummyResource {
 
 	@Override
 	public String toString() {
-		return "DummyResource("+accounts.size()+" accounts)";
+		return "DummyResource("+accounts.size()+" accounts, "+groups.size()+" groups)";
 	}
 	
 }

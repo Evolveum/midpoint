@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2013 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -15,7 +15,7 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
 package com.evolveum.icf.dummy.resource;
 
@@ -36,29 +36,33 @@ import com.evolveum.midpoint.util.Dumpable;
  * @author Radovan Semancik
  *
  */
-public class DummyAccount extends DummyObject {
+public class DummyGroup extends DummyObject {
 	
-	private String password = null;
+	private Collection<String> members = new ArrayList<String>();
 
-	public DummyAccount() {
+	public DummyGroup() {
 		super();
 	}
 
-	public DummyAccount(String username) {
+	public DummyGroup(String username) {
 		super(username);
 	}
-		
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
+	
+	public Collection<String> getMembers() {
+		return members;
 	}
 	
+	public void addMember(String newMember) {
+		members.add(newMember);
+	}
+
+	public void removeMember(String newMember) {
+		members.remove(newMember);
+	}
+
 	@Override
 	public String toStringContent() {
-		return super.toStringContent() + ", password=" + password; 
+		return super.toStringContent() + ", members=" + members; 
 	}
 
 	@Override
@@ -68,7 +72,7 @@ public class DummyAccount extends DummyObject {
 
 	@Override
 	protected void extendDebugDump(StringBuilder sb, int indent) {
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "Password", password, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Members", members, indent + 1);
 	}
 	
 }
