@@ -455,6 +455,7 @@ public class WfTaskUtil {
     }
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {
+        Validate.notNull(context, "model context cannot be null");
         PrismProperty modelContextProperty = wfModelContextPropertyDefinition.instantiate();
         modelContextProperty.setRealValue(((LensContext) context).toJaxb());
         task.setExtensionProperty(modelContextProperty);

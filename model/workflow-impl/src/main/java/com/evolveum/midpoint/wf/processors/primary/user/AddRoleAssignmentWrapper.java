@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes.addrole;
+package com.evolveum.midpoint.wf.processors.primary.user;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -40,20 +40,20 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfTaskUtil;
-import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.general.Decision;
+import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
-import com.evolveum.midpoint.wf.processes.general.Decision;
-import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
-import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
@@ -63,9 +63,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.text.DateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Process wrapper that manages role addition approval. It starts one process instance for each role
@@ -83,15 +85,9 @@ import java.util.*;
  * @author mederly
  */
 @Component
-public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
+public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddRoleAssignmentWrapper.class);
-
-    @Autowired
-    private RepositoryService repositoryService;
-
-    @Autowired
-    private WfTaskUtil wfTaskUtil;
 
     @Override
     public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<Objectable> change, Task task, OperationResult result) {
@@ -195,17 +191,13 @@ public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
         List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
 
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
-        UserType newUser = fc.getObjectNew() != null ? fc.getObjectNew().asObjectable() : null;
-
-        Validate.notNull(newUser);
-        Validate.notNull(newUser.getName());
-        String userName = newUser.getName().getOrig();
+        String userName = getUserName(modelContext);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
 
-            StartProcessInstructionForPrimaryStage instruction = new StartProcessInstructionForPrimaryStage();
-            instruction.setProcessName(ADD_ROLE_PROCESS);
-            instruction.setSimple(true);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Approval request = " + approvalRequest);
+            }
 
             AssignmentType assignmentType = approvalRequest.getItemToApprove();
             RoleType roleType = (RoleType) assignmentType.getTarget();
@@ -214,37 +206,22 @@ public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
             Validate.notNull(roleType.getName());
             String roleName = roleType.getName().getOrig();
 
+            String objectOid = getObjectOid(modelContext);
+            PrismObject<UserType> requester = getRequester(task, result);
+
+
+            StartProcessInstructionForPrimaryStage instruction = new StartProcessInstructionForPrimaryStage();
+
+            prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
+
+            instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
+            instruction.setSimple(true);
+
             instruction.setTaskName(new PolyStringType("Workflow for approving adding " + roleName + " to " + userName));
             instruction.addProcessVariable(WfConstants.VARIABLE_PROCESS_NAME, "Adding " + roleName + " to " + userName);
-            instruction.addProcessVariable(WfConstants.VARIABLE_START_TIME, new Date());
 
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("assignment to approve = " + approvalRequest);
-            }
-
-            String objectOid = null;
-            if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
-                objectOid = fc.getObjectNew().getOid();
-            } else if (fc.getObjectOld() != null && fc.getObjectOld().getOid() != null) {
-                objectOid = fc.getObjectOld().getOid();
-            }
-
-            // let's get fresh data (not the ones read on user login)
-            PrismObject<UserType> requester = null;
-            try {
-                requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), result));
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
-                requester = task.getOwner().clone();
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), due to schema exception. Using cached data.", e);
-                requester = task.getOwner().clone();
-            }
-//            LOGGER.info("+++ requester = " + task.getOwner().dump());
-//            LOGGER.info("+++ object old = " + fc.getObjectOld().dump());
 
 //            if (fc.getObjectOld() != null) {
 //                resolveRolesAndOrgUnits(fc.getObjectOld(), result);
@@ -254,24 +231,8 @@ public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
 //                resolveRolesAndOrgUnits(fc.getObjectNew(), result);
 //            }
 
-            if (requester != null) {
-                resolveRolesAndOrgUnits(requester, result);
-            }
-
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_BEFORE, fc.getObjectOld());
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER, fc.getObjectNew());
-            //spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_DELTA, change);
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER, requester);
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
-            instruction.addProcessVariable(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
             instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA, roleType);
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
-
-            instruction.setWrapper(this);
-
             instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
-            instruction.setNoProcess(false);
 
             ObjectDelta<Objectable> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
             instruction.setDelta(delta);
@@ -293,7 +254,6 @@ public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
     }
 
 
-    public static final String ADD_ROLE_PROCESS = "ItemApproval";
     public static final String APPROVER_MAIL_ADDRESS = "approverMailAddress";
 
     //private static final QName ADDITIONAL_INFO = new QName(SchemaConstants.NS_C, "AdditionalInfo");       // todo: change namespace
@@ -337,24 +297,6 @@ public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
         }
         return role;
     }
-
-    /*
-     * In this case, mapping deltaIn -> deltaOut is extremely simple.
-     * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
-     * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
-     */
-    @Override
-    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException {
-        List<ObjectDelta<Objectable>> deltaIn = wfTaskUtil.retrieveDeltasToProcess(task);
-        if (event.getAnswer() == Boolean.TRUE) {
-            return new ArrayList<ObjectDelta<Objectable>>(deltaIn);
-        } else if (event.getAnswer() == Boolean.FALSE) {
-            return new ArrayList<ObjectDelta<Objectable>>();
-        } else {
-            throw new IllegalStateException("No wfAnswer variable in process event " + event);      // todo more meaningful message
-        }
-    }
-
 
 //
 //        AssignmentsApprovals assignmentsApprovals = (AssignmentsApprovals) event.getVariables().get(ASSIGNMENTS_APPROVALS);
@@ -618,28 +560,6 @@ public class AddRoleAssignmentWrapper implements PrimaryApprovalProcessWrapper {
         sb.append("----------------------------------------------\n\n");
         addAssignmentsApprovals(sb, vars);
         return sb.toString();
-    }
-
-    private void resolveRolesAndOrgUnits(PrismObject<UserType> user, OperationResult result) {
-        for (AssignmentType assignmentType : user.asObjectable().getAssignment()) {
-            if (assignmentType.getTargetRef() != null && assignmentType.getTarget() == null) {
-                QName type = assignmentType.getTargetRef().getType();
-                if (RoleType.COMPLEX_TYPE.equals(type) || OrgType.COMPLEX_TYPE.equals(type)) {
-                    String oid = assignmentType.getTargetRef().getOid();
-                    try {
-                        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, oid, result);
-                        assignmentType.setTarget(o.asObjectable());
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Resolved {} to {} in {}", new Object[]{oid, o, user});
-                        }
-                    } catch (ObjectNotFoundException e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't resolve reference to {} in {}", e, oid, user);
-                    } catch (SchemaException e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't resolve reference to {} in {}", e, oid, user);
-                    }
-                }
-            }
-        }
     }
 
     public static String formatTimeIntervalBrief(AssignmentType assignment) {

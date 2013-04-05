@@ -21,8 +21,6 @@
 
 package com.evolveum.midpoint.wf.processes.general;
 
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.wf.processes.addrole.AddRoleAssignmentWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import java.io.Serializable;

@@ -40,6 +40,7 @@
             <changeProcessor>primaryUserChangeProcessor</changeProcessor>
             <primaryUserChangeProcessor>
                 <wrapper>addRoleAssignmentWrapper</wrapper>
+                <wrapper>changePasswordWrapper</wrapper>
             </primaryUserChangeProcessor>
         </workflow>
         <audit>

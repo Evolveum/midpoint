@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -45,6 +46,8 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
@@ -80,6 +83,8 @@ import static org.testng.AssertJUnit.*;
 @DependsOn("workflowManager")
 public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest {
 
+    protected static final Trace LOGGER = TraceManager.getTrace(TestUserChangeApproval.class);
+
     private static final String TEST_RESOURCE_DIR_NAME = "src/test/resources";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role1.xml";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role2-change-gn.xml";
@@ -87,6 +92,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-roles2-3-4.xml";
     private static final String REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-disable.xml";
     private static final String REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-enable.xml";
+    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password.xml";
+    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password-2.xml";
 
     protected static final String USER_BILL_FILENAME = COMMON_DIR_NAME + "/user-bill.xml";
     protected static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
@@ -149,6 +156,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                    assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
                }
+
+               @Override
+               boolean decideOnApproval(String executionId) throws Exception {
+                   return decideOnRoleApproval(executionId);
+               }
            });
 	}
 
@@ -198,6 +210,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertNotAssignedRole(jack, ROLE_R2_OID);
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
             }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return decideOnRoleApproval(executionId);
+            }
+
         });
     }
 
@@ -231,6 +249,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
                 assertAssignedRole(jack, ROLE_R3_OID);
             }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return decideOnRoleApproval(executionId);
+            }
+
         });
     }
 
@@ -277,6 +301,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertFalse("activation has not been changed to false", jack.asObjectable().getActivation().isEnabled());
             }
 
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return decideOnRoleApproval(executionId);
+            }
+
         });
     }
 
@@ -319,6 +348,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertTrue("activation has not been changed to true", jack.asObjectable().getActivation().isEnabled());
             }
 
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return decideOnRoleApproval(executionId);
+            }
+
         });
     }
 
@@ -354,6 +388,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertAssignedRole(bill, ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
             }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return decideOnRoleApproval(executionId);
+            }
+
         });
     }
 
@@ -397,14 +437,155 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertAssignedRole(bill, ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
             }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return decideOnRoleApproval(executionId);
+            }
+
         });
     }
+
+    @Test(enabled = true)
+    public void test040UserModifyPasswordChangeBlocked() throws Exception {
+        displayTestTile(this, "test040UserModifyPasswordChangeBlocked");
+
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
+        LOGGER.trace("password before test = " + originalPasswordValue);
+
+        executeTest("test040UserModifyPasswordChangeBlocked", USER_JACK_OID, 1, false, new ContextCreator() {
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                context.setOptions(ModelExecuteOptions.createNoCrypt());
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = getUser(USER_JACK_OID);
+                ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
+                LOGGER.trace("password after test = " + afterTestPasswordValue);
+
+                //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
+                assertTrue("password was changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
+            }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return false;
+            }
+        });
+    }
+
+    @Test(enabled = true)
+    public void test041UserModifyPasswordChange() throws Exception {
+        displayTestTile(this, "test041UserModifyPasswordChange");
+
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
+        LOGGER.trace("password before test = " + originalPasswordValue);
+
+        executeTest("test041UserModifyPasswordChange", USER_JACK_OID, 1, false, new ContextCreator() {
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                context.setOptions(ModelExecuteOptions.createNoCrypt());
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = getUser(USER_JACK_OID);
+                ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
+                LOGGER.trace("password after test = " + afterTestPasswordValue);
+
+                //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
+                assertFalse("password was not changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
+            }
+        });
+    }
+
+    @Test(enabled = true)
+    public void test050UserModifyAddRoleAndPasswordChange() throws Exception {
+        displayTestTile(this, "test050UserModifyAddRoleAndPasswordChange");
+
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
+        LOGGER.trace("password before test = " + originalPasswordValue);
+
+        executeTest("test050UserModifyAddRoleAndPasswordChange", USER_JACK_OID, 2, false, new ContextCreator() {
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                context.setOptions(ModelExecuteOptions.createNoCrypt());
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = getUser(USER_JACK_OID);
+                ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
+                LOGGER.trace("password after test = " + afterTestPasswordValue);
+
+                // todo why is password value not set?
+                //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
+                //assertFalse("password was not changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
+                assertAssignedRole(jack, ROLE_R1_OID);
+            }
+        });
+    }
+
 
     private abstract class ContextCreator {
         LensContext createModelContext(OperationResult result) throws Exception { return null; }
         void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
         void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
+        boolean decideOnApproval(String executionId) throws Exception { return true; }
+    }
+
+    private boolean decideOnRoleApproval(String executionId) {
+        ApprovalRequest<AssignmentType> approvalRequest = (ApprovalRequest<AssignmentType>)
+                activitiEngine.getRuntimeService().getVariable(executionId, ProcessVariableNames.APPROVAL_REQUEST);
+        assertNotNull("approval request not found", approvalRequest);
+
+        String roleOid = approvalRequest.getItemToApprove().getTargetRef().getOid();
+        assertNotNull("requested role OID not found", roleOid);
+
+        if (ROLE_R1_OID.equals(roleOid) || ROLE_R3_OID.equals(roleOid)) {
+            return true;
+        } else if (ROLE_R2_OID.equals(roleOid)) {
+            return false;
+        } else {
+            throw new AssertionError("Unknown role OID in assignment to be approved: " + roleOid);
+        }
     }
 	
 	private void executeTest(String testName, String oid, int sensitiveRolesAdded, boolean immediate, ContextCreator contextCreator) throws Exception {
@@ -507,21 +688,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             String executionId = t.getExecutionId();
             LOGGER.trace("Task id = " + taskId + ", execution id = " + executionId);
 
-            ApprovalRequest<AssignmentType> approvalRequest = (ApprovalRequest<AssignmentType>)
-                    activitiEngine.getRuntimeService().getVariable(executionId, ProcessVariableNames.APPROVAL_REQUEST);
-            assertNotNull("approval request not found", approvalRequest);
-
-            String roleOid = approvalRequest.getItemToApprove().getTargetRef().getOid();
-            assertNotNull("requested role OID not found", roleOid);
-
-            Boolean approve = null;
-            if (ROLE_R1_OID.equals(roleOid) || ROLE_R3_OID.equals(roleOid)) {
-                approve = true;
-            } else if (ROLE_R2_OID.equals(roleOid)) {
-                approve = false;
-            } else {
-                assertTrue("Unknown role OID in assignment to be approved: " + roleOid, false);
-            }
+            boolean approve = contextCreator.decideOnApproval(executionId);
 
             workflowServiceImpl.approveOrRejectWorkItem(taskId, approve, result);
         }

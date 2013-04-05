@@ -29,9 +29,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryUserChangeProcessor;
+import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -58,7 +57,7 @@ import java.util.List;
 public class WfConfiguration implements BeanFactoryAware {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
-    private static final String DEFAULT_CHANGE_PROCESSOR_PACKAGE = PrimaryUserChangeProcessor.class.getPackage().getName();
+//    private static final String DEFAULT_CHANGE_PROCESSOR_PACKAGE = PrimaryUserChangeProcessor.class.getPackage().getName();
 
     @Autowired(required = true)
     private MidpointConfiguration midpointConfiguration;

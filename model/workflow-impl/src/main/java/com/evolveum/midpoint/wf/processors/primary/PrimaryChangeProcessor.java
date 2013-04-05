@@ -108,7 +108,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
 
         // examine the request using process wrappers
 
-        ObjectDelta<Objectable> changeBeingDecomposed = (ObjectDelta<Objectable>) change.clone();
+        ObjectDelta<Objectable> changeBeingDecomposed = change.clone();
         List<StartProcessInstructionForPrimaryStage> startProcessInstructions =
                 gatherStartProcessInstructions(context, changeBeingDecomposed, task, result);
 
@@ -165,17 +165,17 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
             ExecutionMode executionMode = allExecuteImmediately ? ExecutionMode.ALL_IMMEDIATELY :
                                 (allExecuteAfterwards ? ExecutionMode.ALL_AFTERWARDS : ExecutionMode.MIXED);
 
+            LensContext contextForRootTask;
             if (executionMode == ExecutionMode.ALL_AFTERWARDS) {
-                ((LensContext) context).replacePrimaryFocusDelta(changeWithoutApproval);
+                contextForRootTask = ((LensContext) context).clone();
+                contextForRootTask.replacePrimaryFocusDelta(changeWithoutApproval);
+            } else if (executionMode == ExecutionMode.MIXED) {
+                contextForRootTask = prepareContextWithNoDelta((LensContext) context, changeWithoutApproval);
             } else {
-                ((LensContext) context).replacePrimaryFocusDelta(ObjectDelta.createEmptyDelta(
-                        changeWithoutApproval.getObjectTypeClass(),
-                        changeWithoutApproval.getOid() == null ? UNKNOWN_OID : changeWithoutApproval.getOid(),
-                        changeWithoutApproval.getPrismContext(),
-                        ChangeType.MODIFY));
+                contextForRootTask = null;
             }
 
-            prepareAndSaveRootTask(executionMode, context, rootTask, result);
+            prepareAndSaveRootTask(executionMode, contextForRootTask, rootTask, result);
 
             StartProcessInstructionForPrimaryStage instruction0 = null;
             Task task0 = null;
@@ -222,9 +222,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                     // if this has to be executed directly, we have to provide a model context for the execution
                     if (instruction.isExecuteImmediately()) {
                         // actually, context should be emptied anyway; but to be sure, let's do it here as well
-                        LensContext contextCopy = ((LensContext) context).clone();
-                        contextCopy.replacePrimaryFocusDelta(ObjectDelta.createEmptyDelta(
-                                changeWithoutApproval.getObjectTypeClass(), changeWithoutApproval.getOid(), changeWithoutApproval.getPrismContext(), ChangeType.MODIFY));
+                        LensContext contextCopy = prepareContextWithNoDelta((LensContext) context, changeWithoutApproval);
                         wfTaskUtil.storeModelContext(childTask, contextCopy);
                     }
 
@@ -276,6 +274,17 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
 
+    private LensContext prepareContextWithNoDelta(LensContext context, ObjectDelta<Objectable> changeAsPrototype) {
+        LensContext contextCopy = ((LensContext) context).clone();
+        contextCopy.replacePrimaryFocusDelta(
+                ObjectDelta.createEmptyDelta(
+                        changeAsPrototype.getObjectTypeClass(),
+                        changeAsPrototype.getOid() == null ? UNKNOWN_OID : changeAsPrototype.getOid(),
+                        changeAsPrototype.getPrismContext(),
+                        ChangeType.MODIFY));
+        return contextCopy;
+    }
+
     private boolean shouldAllExecuteImmediately(List<StartProcessInstructionForPrimaryStage> startProcessInstructions) {
         for (StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
             if (!instruction.isExecuteImmediately()) {
@@ -312,7 +321,6 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         task.setCategory(TaskCategory.WORKFLOW);
 
         if (mode != ExecutionMode.ALL_IMMEDIATELY) {
-
             task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, new ScheduleType(), null);
             task.pushHandlerUri(WfPrepareRootOperationTaskHandler.HANDLER_URI, new ScheduleType(), null);
             try {
@@ -321,6 +329,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                 throw new SchemaException("Couldn't put model context into root workflow task " + task, e);
             }
         }
+
         // otherwise, we put no handler here, as the sole purpose of the task is to wait for its children (if ALL_IMMEDIATELY)
 
         if (LOGGER.isTraceEnabled()) {

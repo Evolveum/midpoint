@@ -336,7 +336,6 @@ public interface TaskManager {
      * to return a list of TaskTypes instead of Tasks.
      *
      * @param query Search query
-     * @param paging Paging specification
      * @param clusterStatusInformation If null, the method will query cluster nodes to get up-to-date runtime information.
      *                                 If non-null, the method will use the provided information. Used to optimize
      *                                 network traffic in case of repeating calls to searchTasks/searchNodes (e.g. when
@@ -354,7 +353,6 @@ public interface TaskManager {
      * Similar to searchTasks, this method adds some information to the one returned from repository. (Mainly concerned with Node status and error status.)
      *
      * @param query
-     * @param paging
      * @param clusterStatusInformation The same as in searchTasks.
      * @param result
      * @return
