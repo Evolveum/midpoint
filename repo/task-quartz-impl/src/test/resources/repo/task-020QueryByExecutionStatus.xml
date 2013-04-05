@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2012 Evolveum
+  ~ Copyright (c) 2013 Evolveum
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -17,7 +17,7 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~
-  ~ Portions Copyrighted 2012 [name of copyright owner]
+  ~ Portions Copyrighted 2013 [name of copyright owner]
   -->
 
 <!-- Testing cycle task -->
@@ -32,7 +32,7 @@
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30017</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>waiting</executionStatus>
-    <waitingReason>otherTasks</waitingReason>
+    <waitingReason>workflow</waitingReason>
 
 	<recurrence>single</recurrence>
 

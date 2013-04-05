@@ -1396,7 +1396,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         String oid = rootTask.getOid();
 
         ObjectFilter filter1 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.WAITING);
-        ObjectFilter filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, TaskWaitingReasonType.OTHER_TASKS);
+        ObjectFilter filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, TaskWaitingReasonType.WORKFLOW);
         ObjectFilter filter3 = AndFilter.createAnd(filter1, filter2);
 
         List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), result);
@@ -1404,8 +1404,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter3), result);
 
         assertFalse("There were no tasks with executionStatus == WAITING found", prisms1.isEmpty());
-        assertFalse("There were no tasks with waitingReason == OTHER_TASKS found", prisms2.isEmpty());
-        assertFalse("There were no tasks with executionStatus == WAITING and waitingReason == OTHER_TASKS found", prisms3.isEmpty());
+        assertFalse("There were no tasks with waitingReason == WORKFLOW found", prisms2.isEmpty());
+        assertFalse("There were no tasks with executionStatus == WAITING and waitingReason == WORKFLOW found", prisms3.isEmpty());
     }
 
 
