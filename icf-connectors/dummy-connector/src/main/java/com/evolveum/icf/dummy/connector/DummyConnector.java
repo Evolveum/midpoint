@@ -42,6 +42,8 @@ import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
@@ -102,6 +104,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     
     // Marker used in logging tests
     public static final String LOG_MARKER = "_M_A_R_K_E_R_";
+    
+	private static final String GROUP_MEMBERS_ATTR_NAME = "members";
     
     /**
      * Place holder for the {@link Configuration} passed into the init() method
@@ -354,7 +358,15 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
         
-        // __ACCOUNT__ objectclass
+        builder.defineObjectClass(createAccountObjectClass());
+        builder.defineObjectClass(createGroupObjectClass());
+
+        log.info("schema::end");
+        return builder.build();
+    }
+
+	private ObjectClassInfo createAccountObjectClass() {
+		// __ACCOUNT__ objectclass
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         
         DummyObjectClass dummyAccountObjectClass;
@@ -368,13 +380,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			throw new ConnectorException(e.getMessage(), e);
 		} // DO NOT catch IllegalStateException, let it pass
 		
-        for (DummyAttributeDefinition dummyAttrDef : dummyAccountObjectClass.getAttributeDefinitions()) {
-        	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
-        	attrBuilder.setMultiValued(dummyAttrDef.isMulti());
-        	attrBuilder.setRequired(dummyAttrDef.isRequired());
-        	attrBuilder.setReturnedByDefault(dummyAttrDef.isReturnedByDefault());
-        	objClassBuilder.addAttributeInfo(attrBuilder.build());
-        }
+		buildAttributes(objClassBuilder, dummyAccountObjectClass);
         
         // __PASSWORD__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
@@ -383,18 +389,47 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
         
         // __NAME__ will be added by default
-        builder.defineObjectClass(objClassBuilder.build());
+        return objClassBuilder.build();
+	}
+	
+	private ObjectClassInfo createGroupObjectClass() {
+		// __GROUP__ objectclass
+        ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
+        objClassBuilder.setType(ObjectClass.GROUP_NAME);
+        
+        DummyObjectClass dummyAccountObjectClass = resource.getGroupObjectClass();
+        buildAttributes(objClassBuilder, dummyAccountObjectClass);
+        
+        // members
+        AttributeInfoBuilder membersAttrBuilder = new AttributeInfoBuilder(GROUP_MEMBERS_ATTR_NAME, String.class);
+        membersAttrBuilder.setMultiValued(true);
+        membersAttrBuilder.setRequired(false);
+        membersAttrBuilder.setReturnedByDefault(true);
+        objClassBuilder.addAttributeInfo(membersAttrBuilder.build());
+        
+        // __ENABLE__ attribute
+        objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+        
+        // __NAME__ will be added by default
+        return objClassBuilder.build();
+	}
 
-        log.info("schema::end");
-        return builder.build();
-    }
+	private void buildAttributes(ObjectClassInfoBuilder icfObjClassBuilder, DummyObjectClass dummyObjectClass) {
+		for (DummyAttributeDefinition dummyAttrDef : dummyObjectClass.getAttributeDefinitions()) {
+        	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
+        	attrBuilder.setMultiValued(dummyAttrDef.isMulti());
+        	attrBuilder.setRequired(dummyAttrDef.isRequired());
+        	attrBuilder.setReturnedByDefault(dummyAttrDef.isReturnedByDefault());
+        	icfObjClassBuilder.addAttributeInfo(attrBuilder.build());
+        }
+	}
 
-    /**
+	/**
      * {@inheritDoc}
      */
     public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
         log.info("authenticate::begin");
-        Uid uid = null; //TODO: implement
+        Uid uid = null; 
         log.info("authenticate::end");
         return uid;
     }
@@ -404,7 +439,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Uid resolveUsername(final ObjectClass objectClass, final String userName, final OperationOptions options) {
         log.info("resolveUsername::begin");
-        Uid uid = null; //TODO: implement
+        Uid uid = null;
         log.info("resolveUsername::end");
         return uid;
     }
@@ -516,8 +551,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("test::begin");
         log.info("Validating configuration.");
         configuration.validate();
-        //TODO: implement
-
+        
         // Produce log messages on all levels. The tests may check if they are really logged.
         log.error(LOG_MARKER + " DummyConnectorIcfError");
         log.info(LOG_MARKER + " DummyConnectorIcfInfo");

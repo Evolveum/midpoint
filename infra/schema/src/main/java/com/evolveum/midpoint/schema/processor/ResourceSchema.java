@@ -91,6 +91,9 @@ public class ResourceSchema extends PrismSchema {
 		return findObjectClassDefinition(shadow.getObjectClass());
 	}
 	
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(String localName) {
+		return findObjectClassDefinition(new QName(getNamespace(), localName));
+	}
 	
 	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
 		ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(qName);

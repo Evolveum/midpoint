@@ -185,7 +185,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
-		ProvisioningTestUtil.assertDummyResourceSchemaSanityExteded(resourceSchema, resourceType);
+		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}
 
 

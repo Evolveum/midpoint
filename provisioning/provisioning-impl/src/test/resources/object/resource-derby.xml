@@ -53,11 +53,23 @@
             <name>default</name>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
+            <entitlementAssociation>
+            	<name>ri:group</name>
+            	<entitlementType>group</entitlementType>
+            	<direction>entitlementToSubject</direction>
+            	<associationAttribute>ri:members</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </entitlementAssociation>
             <credentials>
             	<password>
             		<fetchStrategy>explicit</fetchStrategy>
             	</password>
             </credentials>
         </accountType>
+        <entitlementType>
+        	<name>group</name>
+        	<default>true</default>
+        	<objectClass>ri:GroupObjectClass</objectClass>
+        </entitlementType>
 	</schemaHandling>
 </resource>

@@ -89,6 +89,8 @@ public class ProvisioningTestUtil {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME = "loot";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME = "treasure";
+	
+	public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();
@@ -214,7 +216,9 @@ public class ProvisioningTestUtil {
 	public static void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
 		ProvisioningTestUtil.assertIcfResourceSchemaSanity(resourceSchema, resourceType);
 		
+		// ACCOUNT
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		assertNotNull("No ACCOUNT kind definition", accountDef);
 		
 		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
 		assertNotNull("No definition for fullname", fullnameDef);
@@ -223,6 +227,18 @@ public class ProvisioningTestUtil {
 		assertTrue("No fullname create", fullnameDef.canCreate());
 		assertTrue("No fullname update", fullnameDef.canUpdate());
 		assertTrue("No fullname read", fullnameDef.canRead());
+		
+		// GROUP
+		ObjectClassComplexTypeDefinition groupObjectClass = resourceSchema.findObjectClassDefinition(ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME);
+		assertNotNull("No group objectClass", groupObjectClass);
+		
+		ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
+		assertNotNull("No definition for members", membersDef);
+		assertEquals(-1, membersDef.getMaxOccurs());
+		assertEquals(0, membersDef.getMinOccurs());
+		assertTrue("No members create", membersDef.canCreate());
+		assertTrue("No members update", membersDef.canUpdate());
+		assertTrue("No members read", membersDef.canRead());
 	}
 	
 	public static void extendSchema(DummyResource dummyResource) throws ConnectException, FileNotFoundException {
@@ -242,7 +258,7 @@ public class ProvisioningTestUtil {
 		return attrDef;
 	}
 	
-	public static void assertDummyResourceSchemaSanityExteded(ResourceSchema resourceSchema, ResourceType resourceType) {
+	public static void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType) {
 		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
 		
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);		

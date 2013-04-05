@@ -85,6 +85,36 @@
 	                  </xsd:element>
 	               </xsd:sequence>
 	            </xsd:complexType>
+	            <xsd:complexType name="GroupObjectClass">
+	               <xsd:annotation>
+	                  <xsd:appinfo>
+	                     <ra:resourceObject/>
+	                     <ra:identifier>icfs:uid</ra:identifier>
+	                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+	                     <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
+	                  </xsd:appinfo>
+	               </xsd:annotation>
+	               <xsd:sequence>
+	                  <xsd:element minOccurs="0" ref="icfs:uid">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayName>ICF UID</a:displayName>
+	                           <a:access>read</a:access>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	                  <xsd:element ref="icfs:name">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayName>ICF NAME</a:displayName>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	                  <xsd:element name="members" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+	               </xsd:sequence>
+	            </xsd:complexType>
          	</xsd:schema>
       	</definition>
 	</schema>
