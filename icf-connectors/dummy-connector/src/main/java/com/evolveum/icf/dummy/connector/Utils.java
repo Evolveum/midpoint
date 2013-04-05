@@ -63,12 +63,9 @@ public class Utils {
 		return null;
 	}
 
-    public static void isAccount(ObjectClass oc) {
+    public static void validate(ObjectClass oc) {
         if (oc == null) {
             throw new IllegalArgumentException("Object class must not be null.");
-        }
-        if (!ObjectClass.ACCOUNT.is(oc.getObjectClassValue())) {
-            throw new ConnectorException("Can't work with resource object different than account.");
         }
     }
 

@@ -72,6 +72,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyDelta;
 import com.evolveum.icf.dummy.resource.DummyDeltaType;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
@@ -178,22 +179,39 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
         log.info("create::begin");
-        isAccount(objectClass);
-        
-        // Convert attributes to account
-        DummyAccount newAccount = convertToAccount(createAttributes);
+        validate(objectClass);
         
         String id = null;
-		try {
-			
-			id = resource.addAccount(newAccount);
-			
-		} catch (ObjectAlreadyExistsException e) {
-			// we cannot throw checked exceptions. But this one looks suitable.
-			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-			// The framework should deal with it ... somehow
-			throw new AlreadyExistsException(e.getMessage(),e);
-		}
+        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+            // Convert attributes to account
+            DummyAccount newAccount = convertToAccount(createAttributes);
+
+            try {
+    			
+    			id = resource.addAccount(newAccount);
+    			
+    		} catch (ObjectAlreadyExistsException e) {
+    			// we cannot throw checked exceptions. But this one looks suitable.
+    			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+    			// The framework should deal with it ... somehow
+    			throw new AlreadyExistsException(e.getMessage(),e);
+    		}
+        	
+        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
+            // Convert attributes to account
+            DummyGroup newGroup = convertToGroup(createAttributes);
+
+            try {
+    			
+    			id = resource.addGroup(newGroup);
+    			
+    		} catch (ObjectAlreadyExistsException e) {
+    			throw new AlreadyExistsException(e.getMessage(),e);
+    		}
+        	
+        } else {
+        	throw new ConnectorException("Unknown object class "+objectClass);
+        }
         
         Uid uid = new Uid(id);
         
@@ -206,42 +224,83 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         log.info("update::begin");
-        isAccount(objectClass);
+        validate(objectClass);
         
-        final DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
-        if (account == null) {
-        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
-        }
-        
-        for (Attribute attr : replaceAttributes) {
-        	if (attr.is(Name.NAME)) {
-        		String newName = (String)attr.getValue().get(0);
-        		try {
-					resource.renameAccount(account.getName(), newName);
-				} catch (ObjectDoesNotExistException e) {
-					throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-				} catch (ObjectAlreadyExistsException e) {
-					throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-				}
-        		// We need to change the returned uid here
-        		uid = new Uid(newName);
-        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-        		changePassword(account,attr);
+        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+
+	        final DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+	        if (account == null) {
+	        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : replaceAttributes) {
+	        	if (attr.is(Name.NAME)) {
+	        		String newName = (String)attr.getValue().get(0);
+	        		try {
+						resource.renameAccount(account.getName(), newName);
+					} catch (ObjectDoesNotExistException e) {
+						throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+					} catch (ObjectAlreadyExistsException e) {
+						throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+					}
+	        		// We need to change the returned uid here
+	        		uid = new Uid(newName);
+	        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+	        		changePassword(account,attr);
+	        	
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		account.setEnabled(getEnable(attr));
+	        		
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						account.replaceAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						// we cannot throw checked exceptions. But this one looks suitable.
+						// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+						// The framework should deal with it ... somehow
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
+	        
+        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
         	
-        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-        		account.setEnabled(getEnable(attr));
-        		
-        	} else {
-	        	String name = attr.getName();
-	        	try {
-					account.replaceAttributeValues(name, attr.getValue());
-				} catch (SchemaViolationException e) {
-					// we cannot throw checked exceptions. But this one looks suitable.
-					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-					// The framework should deal with it ... somehow
-					throw new IllegalArgumentException(e.getMessage(),e);
-				}
-        	}
+        	final DummyGroup group = resource.getGroupByName(uid.getUidValue());
+	        if (group == null) {
+	        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : replaceAttributes) {
+	        	if (attr.is(Name.NAME)) {
+	        		String newName = (String)attr.getValue().get(0);
+	        		try {
+						resource.renameGroup(group.getName(), newName);
+					} catch (ObjectDoesNotExistException e) {
+						throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+					} catch (ObjectAlreadyExistsException e) {
+						throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+					}
+	        		// We need to change the returned uid here
+	        		uid = new Uid(newName);
+	        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to change password on group");
+	        	
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		group.setEnabled(getEnable(attr));
+	        		
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						group.replaceAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
+	        
+        } else {
+        	throw new ConnectorException("Unknown object class "+objectClass);
         }
         
         log.info("update::end");
@@ -253,35 +312,69 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
         log.info("addAttributeValues::begin");
-        isAccount(objectClass);
+        validate(objectClass);
         
-        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
-        if (account == null) {
-        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
-        }
+        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
         
-        for (Attribute attr : valuesToAdd) {
+	        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+	        if (account == null) {
+	        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : valuesToAdd) {
+	        	
+	        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+	        		if (account.getPassword() != null) {
+	        			throw new IllegalArgumentException("Attempt to add value for password while password is already set");
+	        		}
+	        		changePassword(account,attr);
+	        		
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
+	        		
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						account.addAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						// we cannot throw checked exceptions. But this one looks suitable.
+						// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+						// The framework should deal with it ... somehow
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
+	        
+        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
         	
-        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-        		if (account.getPassword() != null) {
-        			throw new IllegalArgumentException("Attempt to add value for password while password is already set");
-        		}
-        		changePassword(account,attr);
-        		
-        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
-        		
-        	} else {
-	        	String name = attr.getName();
-	        	try {
-					account.addAttributeValues(name, attr.getValue());
-				} catch (SchemaViolationException e) {
-					// we cannot throw checked exceptions. But this one looks suitable.
-					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-					// The framework should deal with it ... somehow
-					throw new IllegalArgumentException(e.getMessage(),e);
-				}
-        	}
+        	DummyGroup group = resource.getGroupByName(uid.getUidValue());
+	        if (group == null) {
+	        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : valuesToAdd) {
+	        	
+	        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+	        		throw new IllegalArgumentException("Attempt to change password on group");
+	        		
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
+	        		
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						group.addAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						// we cannot throw checked exceptions. But this one looks suitable.
+						// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+						// The framework should deal with it ... somehow
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
+        	
+        } else {
+        	throw new ConnectorException("Unknown object class "+objectClass);
         }
         
         log.info("addAttributeValues::end");
@@ -293,29 +386,60 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
         log.info("removeAttributeValues::begin");
-        isAccount(objectClass);
+        validate(objectClass);
         
-        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
-        if (account == null) {
-        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
-        }
+        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+        	
+	        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+	        if (account == null) {
+	        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : valuesToRemove) {
+	        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+	        		throw new UnsupportedOperationException("Removing password value is not supported");
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						account.removeAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						// we cannot throw checked exceptions. But this one looks suitable.
+						// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+						// The framework should deal with it ... somehow
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
         
-        for (Attribute attr : valuesToRemove) {
-        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-        		throw new UnsupportedOperationException("Removing password value is not supported");
-        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
-        	} else {
-	        	String name = attr.getName();
-	        	try {
-					account.removeAttributeValues(name, attr.getValue());
-				} catch (SchemaViolationException e) {
-					// we cannot throw checked exceptions. But this one looks suitable.
-					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-					// The framework should deal with it ... somehow
-					throw new IllegalArgumentException(e.getMessage(),e);
-				}
-        	}
+        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
+        	
+        	DummyGroup group = resource.getGroupByName(uid.getUidValue());
+	        if (group == null) {
+	        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : valuesToRemove) {
+	        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+	        		throw new IllegalArgumentException("Attempt to change password on group");
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						group.removeAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						// we cannot throw checked exceptions. But this one looks suitable.
+						// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+						// The framework should deal with it ... somehow
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
+        	
+        } else {
+        	throw new ConnectorException("Unknown object class "+objectClass);
         }
 
         log.info("removeAttributeValues::end");
@@ -327,13 +451,18 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         log.info("delete::begin");
-        isAccount(objectClass);
+        validate(objectClass);
         
         String id = uid.getUidValue();
         
         try {
-        	
-			resource.deleteAccount(id);
+        	if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+        		resource.deleteAccount(id);
+        	} else if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+        		resource.deleteGroup(id);
+        	} else {
+        		throw new ConnectorException("Unknown object class "+objectClass);
+        	}
 			
 		} catch (ObjectDoesNotExistException e) {
 			// we cannot throw checked exceptions. But this one looks suitable.
@@ -467,7 +596,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public FilterTranslator<String> createFilterTranslator(ObjectClass objectClass, OperationOptions options) {
         log.info("createFilterTranslator::begin");
-        isAccount(objectClass);
+        validate(objectClass);
 
         log.info("createFilterTranslator::end");
         return new DummyFilterTranslator() {
@@ -479,15 +608,29 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public void executeQuery(ObjectClass objectClass, String query, ResultsHandler handler, OperationOptions options) {
         log.info("executeQuery::begin");
-        isAccount(objectClass);
+        validate(objectClass);
         notNull(handler, "Results handled object can't be null.");
 
         // Lets be stupid now and just return everything. ICF will filter it.
         
-        Collection<DummyAccount> accounts = resource.listAccounts();
-        for (DummyAccount account : accounts) {
-        	ConnectorObject co = convertToConnectorObject(account, options);
-        	handler.handle(co);
+        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+        	
+	        Collection<DummyAccount> accounts = resource.listAccounts();
+	        for (DummyAccount account : accounts) {
+	        	ConnectorObject co = convertToConnectorObject(account, options);
+	        	handler.handle(co);
+	        }
+	        
+        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
+        	
+        	Collection<DummyGroup> groups = resource.listGroups();
+	        for (DummyGroup account : groups) {
+	        	ConnectorObject co = convertToConnectorObject(account, options);
+	        	handler.handle(co);
+	        }
+        	
+        } else {
+        	throw new ConnectorException("Unknown object class "+objectClass);
         }
         
         log.info("executeQuery::end");
@@ -498,7 +641,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
         log.info("sync::begin");
-        isAccount(objectClass);
+        validate(objectClass);
         
         int syncToken = (Integer)token.getValue();
         List<DummyDelta> deltas = resource.getDeltasSince(syncToken);
@@ -538,7 +681,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
         log.info("getLatestSyncToken::begin");
-        isAccount(objectClass);
+        validate(objectClass);
         int latestSyncToken = resource.getLatestSyncToken();
         log.info("getLatestSyncToken::end, returning token {0}.", latestSyncToken);
         return new SyncToken(latestSyncToken);
@@ -626,6 +769,58 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
         return builder.build();
 	}
+	
+	private ConnectorObject convertToConnectorObject(DummyGroup group, OperationOptions options) {
+		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
+
+		Collection<String> attributesToGet = null;
+		if (options != null) {
+			String[] attributesToGetArray = options.getAttributesToGet();
+			if (attributesToGetArray != null && attributesToGetArray.length != 0) {
+				attributesToGet = Arrays.asList(attributesToGetArray);
+			}
+		}
+		
+		builder.setUid(group.getName());
+		builder.addAttribute(Name.NAME, group.getName());
+		
+		for (String name : group.getAttributeNames()) {
+			if (attributesToGet != null) {
+				if (!attributesToGet.contains(name)) {
+					continue;
+				}
+			} else {
+				DummyAttributeDefinition attrDef;
+				try {
+					attrDef = resource.getAccountObjectClass().getAttributeDefinition(name);
+				} catch (ConnectException e) {
+					log.error(e, e.getMessage());
+					throw new ConnectionFailedException(e.getMessage(), e);
+				} catch (FileNotFoundException e) {
+					log.error(e, e.getMessage());
+					throw new ConnectorIOException(e.getMessage(), e);
+				}
+				if (attrDef == null) {
+					throw new IllegalArgumentException("Unknown attribute '"+name+"'");
+				}
+				if (!attrDef.isReturnedByDefault()) {
+					continue;
+				}
+			}
+			Set<Object> values = group.getAttributeValues(name, Object.class);
+			builder.addAttribute(name, values);
+		}
+		
+		if (attributesToGet == null || attributesToGet.contains(GROUP_MEMBERS_ATTR_NAME)) {
+			builder.addAttribute(GROUP_MEMBERS_ATTR_NAME, group.getMembers().toArray(new String[0]));
+		}
+		
+		if (attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_NAME)) {
+			builder.addAttribute(OperationalAttributes.ENABLE_NAME, group.isEnabled());
+		}
+
+        return builder.build();
+	}
 
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) {
 		String userName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
@@ -634,7 +829,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		Boolean enabled = null;
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
-				throw new IllegalArgumentException("UID explicitly specified in the attributes");
+				throw new IllegalArgumentException("UID explicitly specified in the account attributes");
 				
 			} else if (attr.is(Name.NAME)) {
 				// Skip, already processed
@@ -664,6 +859,38 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		}
 		
 		return newAccount;
+	}
+	
+	private DummyGroup convertToGroup(Set<Attribute> createAttributes) {
+		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		final DummyGroup newGroup = new DummyGroup(icfName);
+
+		Boolean enabled = null;
+		for (Attribute attr : createAttributes) {
+			if (attr.is(Uid.NAME)) {
+				throw new IllegalArgumentException("UID explicitly specified in the group attributes");
+				
+			} else if (attr.is(Name.NAME)) {
+				// Skip, already processed
+
+			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+				throw new IllegalArgumentException("Password specified for a group");
+				
+			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
+				enabled = getEnable(attr);
+				newGroup.setEnabled(enabled);
+				
+			} else {
+				String name = attr.getName();
+				try {
+					newGroup.replaceAttributeValues(name,attr.getValue());
+				} catch (SchemaViolationException e) {
+					throw new IllegalArgumentException(e.getMessage(),e);
+				}
+			}
+		}
+
+		return newGroup;
 	}
 
 	private boolean getEnable(Attribute attr) {

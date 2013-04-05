@@ -196,6 +196,14 @@ public class DummyResource {
 		return accounts.get(username);
 	}
 	
+	public DummyGroup getGroupByName(String name) {
+		return groups.get(name);
+	}
+
+	public Collection<DummyGroup> listGroups() {
+		return groups.values();
+	}
+	
 	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException {
 		String id = newObject.getName();
 		Class<? extends DummyObject> type = newObject.getClass();
