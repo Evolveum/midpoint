@@ -112,17 +112,17 @@ public class ProcessInstanceController {
         setDefaultTaskOwnerIfEmpty(task, result);
         task.setCategory(TaskCategory.WORKFLOW);
 
+        // push the handlers
         if (instruction.isExecuteImmediately()) {
             task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, null, null);
-            task.pushHandlerUri(WfPrepareChildOperationTaskHandler.HANDLER_URI, null, null);
-            task.pushWaitForTasksHandlerUri();
+
+            if (instruction.startsWorkflowProcess()) {
+                task.pushHandlerUri(WfPrepareChildOperationTaskHandler.HANDLER_URI, null, null);
+                task.pushWaitForTasksHandlerUri();
+            }
         }
         if (instruction.startsWorkflowProcess()) {
-            if (instruction.isSimple()) {
-                prepareActiveWfShadowTask(task, result);
-            } else {
-                preparePassiveWfShadowTask(task, result);
-            }
+            pushProcessShadowHandler(instruction.isSimple(), task, result);
         }
     }
 
@@ -139,27 +139,29 @@ public class ProcessInstanceController {
 
     /**
      * Makes a task active, i.e. a task that actively queries wf process instance about its status.
-     * We expect task to be transient at this moment!
-     */
-    private void prepareActiveWfShadowTask(Task t, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        ScheduleType schedule = new ScheduleType();
-        schedule.setInterval(workflowManager.getWfConfiguration().getProcessCheckInterval());
-        schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + TASK_START_DELAY)));
-        t.pushHandlerUri(WfProcessShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
-    }
-
-    /**
+     *
+     *          OR
+     *
      * Creates a passive task, i.e. a task that stores information received from WfMS about a process instance.
+     *
      * We expect task to be transient at this moment!
      */
+    private void pushProcessShadowHandler(boolean active, Task t, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-    private void preparePassiveWfShadowTask(Task t, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+        if (active) {
 
-        t.pushHandlerUri(WfProcessShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be used (at least for now)
-        t.makeWaiting();
+            ScheduleType schedule = new ScheduleType();
+            schedule.setInterval(workflowManager.getWfConfiguration().getProcessCheckInterval());
+            schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + TASK_START_DELAY)));
+            t.pushHandlerUri(WfProcessShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
+
+        } else {
+
+            t.pushHandlerUri(WfProcessShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
+            t.makeWaiting();
+        }
     }
+
 
     private void setDefaultTaskOwnerIfEmpty(Task t, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (t.getOwner() == null) {

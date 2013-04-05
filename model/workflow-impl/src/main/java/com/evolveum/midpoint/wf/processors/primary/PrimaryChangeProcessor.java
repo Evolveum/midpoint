@@ -351,18 +351,6 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         PrimaryApprovalProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, processWrappers);
         List<ObjectDelta<Objectable>> deltas = wrapper.prepareDeltaOut(event, task, result);
         wfTaskUtil.storeResultingDeltas(deltas, task);
-
-        if (wfTaskUtil.hasModelContext(task)) {
-            ModelContext modelContext = wfTaskUtil.retrieveModelContext(task, result);
-            ObjectDelta primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
-            if (primaryDelta == null || (primaryDelta.isModify() && primaryDelta.getModifications().size() == 0)) {
-                modelContext.getFocusContext().setPrimaryDelta(ObjectDelta.summarize(deltas));
-                wfTaskUtil.storeModelContext(task, modelContext);
-            } else {
-                throw new IllegalStateException("Object delta in model context in task " + task + " should have been empty, but it isn't");
-            }
-        }
-
         task.savePendingModifications(result);
     }
 
