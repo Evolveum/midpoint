@@ -105,6 +105,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -976,12 +978,35 @@ public class ModelController implements ModelService, ModelInteractionService {
 				return;
 			}
 			Class<T> type = object.getCompileTimeClass();
-			boolean tolerateRaw = options.isRaw(options) && (type == ResourceType.class || ShadowType.class.isAssignableFrom(type));
+			boolean tolerateRaw = false;
+			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type)) {
+				// We tolarate raw values for resource and shadows in case the user has requested so
+				tolerateRaw = options.isRaw(options);
+				if (hasError(object, result)) {
+					// If there is an error then the object might not be complete.
+					// E.g. we do not have a complete dynamic schema to apply to the object
+					// Tolerate some raw meat in that case.
+					tolerateRaw = true;
+				}
+			}
 			object.checkConsistence(true, !tolerateRaw);
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
+	}
+	
+	private <T extends ObjectType> boolean hasError(PrismObject<T> object, OperationResult result) {
+		if (result != null && result.isError()) {
+			return true;
+		}
+		OperationResultType fetchResult = object.asObjectable().getFetchResult();
+		if (fetchResult != null && 
+				(fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR ||
+				fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR)) {
+			return true;
+		}
+		return false;
 	}
 
 	/*
