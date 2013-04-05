@@ -151,33 +151,25 @@ public class SimpleOp extends Op {
 			}
 
 			Object testedValue = null;
-			if (!conditionItem.isEnum) {
-				// if it's not an enum, we're just convert condition element
-				// from query type to real value
-				// for example <c:name>foo<c:name> to String "foo"
-				//
-				// QName condQName = DOMUtil.getQNameWithoutPrefix(condition);
-				// testedValue =
-				// RAnyConverter.getRealRepoValue(getInterpreter().findDefinition(path,
-				// condQName),
-				// condition);
-				testedValue = filterValue;
-			} else {
-				// if it's enum, we convert text content from condition to enum
-				// object
-				Class<?> type = conditionItem.enumType;
-				if (type == null || !type.isEnum()) {
-					throw new IllegalStateException("Type '" + type + "' was marked as enum but it is not enum.");
-				}
-                String filterValueName = ((Enum)filterValue).name();
-				for (Object obj : type.getEnumConstants()) {
-					Enum e = (Enum) obj;
-					if (e.name().equals(filterValueName)) {
-						testedValue = e;
-						break;
-					}
-				}
-			}
+            if (conditionItem.isEnum) {
+                if (filterValue != null) {
+                    // if it's enum, we convert text content from condition to enum object
+                    Class<?> type = conditionItem.enumType;
+                    if (type == null || !type.isEnum()) {
+                        throw new IllegalStateException("Type '" + type + "' was marked as enum but it is not enum.");
+                    }
+                    String filterValueName = ((Enum)filterValue).name();
+                    for (Object obj : type.getEnumConstants()) {
+                        Enum e = (Enum) obj;
+                        if (e.name().equals(filterValueName)) {
+                            testedValue = e;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                testedValue = filterValue;
+            }
 			
 			LOGGER.trace("Value updated to type '{}'", new Object[] { (testedValue == null ? null : testedValue
 					.getClass().getName()) });
