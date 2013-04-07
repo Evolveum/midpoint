@@ -30,6 +30,7 @@
 	<name>daemon</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<kind>account</kind>
 	<attributes>
 		<icfs:uid>daemon</icfs:uid>
 		<icfs:name>daemon</icfs:name>

@@ -53,7 +53,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -182,10 +182,10 @@ public class ContextLoader {
 			intent = rsd.getIntent();
 		}
 		if (resourceOid == null && projectionContext.getObjectOld() != null) {
-			resourceOid = ResourceObjectShadowUtil.getResourceOid((ShadowType) projectionContext.getObjectOld().asObjectable());
+			resourceOid = ShadowUtil.getResourceOid((ShadowType) projectionContext.getObjectOld().asObjectable());
 		}
 		if (resourceOid == null && projectionContext.getObjectNew() != null) {
-			resourceOid = ResourceObjectShadowUtil.getResourceOid((ShadowType) projectionContext.getObjectNew().asObjectable());
+			resourceOid = ShadowUtil.getResourceOid((ShadowType) projectionContext.getObjectNew().asObjectable());
 		}
 		// We still may not have resource OID here. E.g. in case of the delete when the account is not loaded yet. It is
 		// perhaps safe to skip this. It will be sorted out later.
@@ -462,7 +462,7 @@ public class ContextLoader {
 								+ user);
 					}
 					provisioningService.applyDefinition(account, result);
-					if (consistencyChecks) ResourceObjectShadowUtil.checkConsistence(account, "account from "+accountRefDelta);
+					if (consistencyChecks) ShadowUtil.checkConsistence(account, "account from "+accountRefDelta);
 					// Check for conflicting change
 					accountContext = LensUtil.getAccountContext(context, account, provisioningService, prismContext, result);
 					if (accountContext != null) {
@@ -635,7 +635,7 @@ public class ContextLoader {
 				accountCtx.setOid(oid);
 				// Make sure that resource is also resolved
 				if (accountCtx.getResource() == null) {
-					String resourceOid = ResourceObjectShadowUtil.getResourceOid(account.asObjectable());
+					String resourceOid = ShadowUtil.getResourceOid(account.asObjectable());
 					if (resourceOid == null) {
 						throw new IllegalArgumentException("No resource OID in " + account);
 					}
@@ -666,11 +666,11 @@ public class ContextLoader {
 			PrismObject<ShadowType> account, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ShadowType accountType = account.asObjectable();
-		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
+		String resourceOid = ShadowUtil.getResourceOid(accountType);
 		if (resourceOid == null) {
 			throw new SchemaException("The " + account + " has null resource reference OID");
 		}
-		String intent = ResourceObjectShadowUtil.getIntent(accountType);
+		String intent = ShadowUtil.getIntent(accountType);
 		LensProjectionContext<ShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, resourceOid,
 				intent, provisioningService, prismContext, result);
 		accountSyncContext.setOid(account.getOid());
@@ -681,11 +681,11 @@ public class ContextLoader {
 			PrismObject<ShadowType> account, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ShadowType accountType = account.asObjectable();
-		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
+		String resourceOid = ShadowUtil.getResourceOid(accountType);
 		if (resourceOid == null) {
 			throw new SchemaException("The " + account + " has null resource reference OID");
 		}
-		String intent = ResourceObjectShadowUtil.getIntent(accountType);
+		String intent = ShadowUtil.getIntent(accountType);
 		ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
 		String accountIntent = LensUtil.refineAccountType(intent, resource, prismContext);
 		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, accountIntent);
@@ -787,7 +787,7 @@ public class ContextLoader {
 				if (resourceType == null) {
 					if (projectionObject != null) {
 						ShadowType shadowType = ((PrismObject<ShadowType>)projectionObject).asObjectable();
-						resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+						resourceOid = ShadowUtil.getResourceOid(shadowType);
 					} else if (projContext.getResourceShadowDiscriminator() != null) {
 						resourceOid = projContext.getResourceShadowDiscriminator().getResourceOid();
 					} else {
@@ -802,7 +802,7 @@ public class ContextLoader {
 				if (discr == null) {
 					if (ShadowType.class.isAssignableFrom(projClass)) {
 						ShadowType accountShadowType = ((PrismObject<ShadowType>)projectionObject).asObjectable();
-						String intent = ResourceObjectShadowUtil.getIntent(accountShadowType);
+						String intent = ShadowUtil.getIntent(accountShadowType);
 						discr = new ResourceShadowDiscriminator(resourceOid, intent);
 						projContext.setResourceShadowDiscriminator(discr);
 						

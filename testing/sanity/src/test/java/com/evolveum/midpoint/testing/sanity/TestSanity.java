@@ -109,7 +109,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -2950,7 +2950,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             
             display("Account after import ", account);
             
-            String attributeValueL = ResourceObjectShadowUtil.getMultiStringAttributeValueAsSingle(account, 
+            String attributeValueL = ShadowUtil.getMultiStringAttributeValueAsSingle(account, 
             		new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "l"));
             assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
         }

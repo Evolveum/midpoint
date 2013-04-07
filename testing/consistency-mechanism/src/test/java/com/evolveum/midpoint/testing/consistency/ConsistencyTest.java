@@ -99,7 +99,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -1015,7 +1015,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class,
 				accountRefs.get(0).getOid(),null,  parentResult);
 
-		ResourceAttributeContainer attributes = ResourceObjectShadowUtil.getAttributesContainer(account);
+		ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(account);
 
 		assertEquals("shadow secondary identifier not equal with the account dn. ", dn, attributes
 				.getSecondaryIdentifier().getRealValue(String.class));
@@ -1170,7 +1170,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				ShadowType.class, referenceList.get(0).getOid(), null, parentResult);
 		assertNotNull(modifiedAccount);
 		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
-		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(modifiedAccount);
 		assertAttribute(modifiedAccount.asObjectable(),
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "roomNumber"),
@@ -2266,7 +2266,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(addedAccount.getResourceRef());
 		assertEquals(resourceTypeOpenDjrepo.getOid(), addedAccount.getResourceRef().getOid());
 		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
-		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(addedAccount);
 		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getIdentifiers();
 		assertNotNull(identifiers);

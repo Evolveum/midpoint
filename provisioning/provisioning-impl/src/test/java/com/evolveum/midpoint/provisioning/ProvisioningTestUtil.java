@@ -59,7 +59,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -91,6 +91,7 @@ public class ProvisioningTestUtil {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME = "treasure";
 	
 	public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
+	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();
@@ -196,8 +197,12 @@ public class ProvisioningTestUtil {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 	}
 
-	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow) {
+	public static void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
 		checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT);
+	}
+	
+	public static void checkRepoGroupShadow(PrismObject<ShadowType> repoShadow) {
+		checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT);
 	}
 	
 	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind) {
@@ -250,6 +255,9 @@ public class ProvisioningTestUtil {
 		lootAttrDef.setReturnedByDefault(false);
 		DummyAttributeDefinition treasureAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME, String.class, false, false);
 		treasureAttrDef.setReturnedByDefault(false);
+		
+		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();		
+		addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, String.class, false, false);
 	}
 	
 	private static DummyAttributeDefinition addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {

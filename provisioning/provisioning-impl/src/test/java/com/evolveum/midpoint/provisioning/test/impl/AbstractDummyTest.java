@@ -55,7 +55,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -94,6 +94,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_MORGAN_FILENAME = TEST_DIR + "account-morgan.xml";
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
+	
+	protected static final String GROUP_PIRATES_FILENAME = TEST_DIR + "group-pirates.xml";
+	protected static final String GROUP_PIRATES_OID = "c0c010c0-d34d-b44f-f11d-3332eeee0000";
+	protected static final String GROUP_PIRATES_NAME = "pirates";
 
 	protected static final String FILENAME_ACCOUNT_SCRIPT = TEST_DIR + "account-script.xml";
 	protected static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
@@ -157,7 +161,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".checkConsistency");
 		
-		ItemDefinition itemDef = ResourceObjectShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		ItemDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		
@@ -180,7 +184,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		List<T> actualValues = ResourceObjectShadowUtil.getAttributeValues(shadow, attrQname);
+		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
 	}
 	

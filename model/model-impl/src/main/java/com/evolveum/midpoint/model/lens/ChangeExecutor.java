@@ -60,7 +60,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -709,7 +709,7 @@ public class ChangeExecutor {
 
         if (object.canRepresent(ShadowType.class)) {
             ShadowType shadow = (ShadowType) object.asObjectable();
-            String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
+            String resourceOid = ShadowUtil.getResourceOid(shadow);
             if (resourceOid == null) {
                 throw new IllegalArgumentException("Resource OID is null in shadow");
             }

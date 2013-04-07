@@ -56,7 +56,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -747,23 +747,12 @@ public class IntegrationTestTools {
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-//		QueryType query = new QueryType();
-//		Document doc = DOMUtil.getDocument();
-//		query.setFilter(QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resourceType.getOid())
-//				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
-//				));
 		RefFilter equal = RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		return query;
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, QName objectClass, PrismContext prismContext) throws SchemaException {
-//		QueryType query = new QueryType();
-//		Document doc = DOMUtil.getDocument();
-//		query.setFilter(QueryUtil.createAndFilter(doc,
-//				QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resourceType.getOid()),
-//				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, objectClass)
-//				));
 		AndFilter and = AndFilter.createAnd(
 				RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, objectClass));
@@ -775,22 +764,34 @@ public class IntegrationTestTools {
 		return createAllShadowsQuery(resourceType, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), objectClassLocalName), prismContext);
 	}
 
+	public static void checkAccountShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
+			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
+		checkShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
+		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
+				shadowType.getObjectClass());
+	}
+	
+	public static void checkGroupShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
+			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
+		checkShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
+		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME),
+				shadowType.getObjectClass());
+	}
 	
 	public static void checkShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
 			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
 		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().dump());
+		shadowType.asPrismObject().checkConsistence(true, true);
 		assertNotNull("no OID",shadowType.getOid());
 		assertNotNull("no name",shadowType.getName());
-		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
-				shadowType.getObjectClass());
         assertEquals(resourceType.getOid(), shadowType.getResourceRef().getOid());
         PrismContainer<?> attrs = shadowType.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("no attributes",attrs);
 		assertFalse("empty attributes",attrs.isEmpty());
-		String icfUid = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadowType, SchemaTestConstants.ICFS_UID);
+		String icfUid = ShadowUtil.getSingleStringAttributeValue(shadowType, SchemaTestConstants.ICFS_UID);
         assertNotNull("No ICF UID", icfUid);
 		
-		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadowType);
+		String resourceOid = ShadowUtil.getResourceOid(shadowType);
         assertNotNull("No resource OID in "+shadowType, resourceOid);
         
         assertNotNull("Null OID in "+shadowType, shadowType.getOid());
@@ -804,7 +805,7 @@ public class IntegrationTestTools {
 		
 		checkShadowUniqueness(shadowType, repositoryService, prismContext, parentResult);
 		
-		String repoResourceOid = ResourceObjectShadowUtil.getResourceOid(repoShadow.asObjectable());
+		String repoResourceOid = ShadowUtil.getResourceOid(repoShadow.asObjectable());
 		assertNotNull("No resource OID in the repository shadow "+repoShadow);
 		assertEquals("Resource OID mismatch", resourceOid, repoResourceOid);
 		
@@ -888,7 +889,7 @@ public class IntegrationTestTools {
 	
     public static void applyResourceSchema(ShadowType accountType, ResourceType resourceType, PrismContext prismContext) throws SchemaException {
     	ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
-    	ResourceObjectShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
+    	ShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
     }
     
     public static void assertInMessageRecursive(Throwable e, String substring) {

@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -74,7 +75,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -679,7 +680,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 
 		account.checkConsistence(true, true);
-		ResourceObjectShadowUtil.checkConsistence(account, TEST_NAME);
+		ShadowUtil.checkConsistence(account, TEST_NAME);
 		assertSuccess("applyDefinition(account) result", result);
 	}
 
@@ -808,7 +809,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, provisioningAccountType.getKind());
 
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ResourceObjectShadowUtil.getAttributeValues(
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
@@ -825,7 +826,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
-		ProvisioningTestUtil.checkRepoShadow(shadowFromRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
 		checkConsistency(account);
 	}
@@ -865,7 +866,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME,
 				provisioningAccountType.getName());
 
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ResourceObjectShadowUtil.getAttributeValues(
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
@@ -881,7 +882,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
-		ProvisioningTestUtil.checkRepoShadow(shadowFromRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
 		checkConsistency(account.asPrismObject());
 	}
@@ -913,8 +914,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	private void checkAccountWill(ShadowType shadow, OperationResult result) {
-		checkShadow(shadow, result);
-		Collection<ResourceAttribute<?>> attributes = ResourceObjectShadowUtil.getAttributes(shadow);
+		checkAccountShadow(shadow, result);
+		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertEquals("Unexpected number of attributes", 5, attributes.size());
 		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
 		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
@@ -944,7 +945,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertNotNull("No dummy account", shadow);
 
-		checkShadow(shadow, result, false);
+		checkAccountShadow(shadow, result, false);
 
 		checkConsistency(shadow.asPrismObject());
 	}
@@ -956,10 +957,6 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test105ApplyDefinitionModifyDelta");
-
-		// TODO
-		// ObjectDelta<ResourceObjectShadowType> accountDelta =
-		// PrismTestUtil.parseDelta(new File(FILENAME_MODIFY_ACCOUNT));
 
 		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.unmarshalObject(new File(FILENAME_MODIFY_ACCOUNT),
 				ObjectModificationType.class);
@@ -1007,7 +1004,7 @@ public class TestDummy extends AbstractDummyTest {
 				ObjectType objectType = object.asObjectable();
 				assertTrue(objectType instanceof ShadowType);
 				ShadowType shadow = (ShadowType) objectType;
-				checkShadow(shadow, parentResult);
+				checkAccountShadow(shadow, parentResult);
 				return true;
 			}
 		};
@@ -1449,7 +1446,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("getObject result", result);
 		assertSuccess(result);
 		
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(accountWill);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
 		ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
 		assertNull("Title attribute sneaked in", titleAttribute);
 		
@@ -1631,15 +1628,129 @@ public class TestDummy extends AbstractDummyTest {
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
 	}
 
-//	@Test
-//	public void test132ModifyScript() {
-//		// TODO
-//	}
-//
-//	@Test
-//	public void test133DeleteScript() {
-//		// TODO
-//	}
+	@Test
+	public void test200AddGroup() throws Exception {
+		final String TEST_NAME = "test200AddGroup";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		syncServiceMock.reset();
+
+		PrismObject<ShadowType> group = prismContext.parseObject(new File(GROUP_PIRATES_FILENAME));
+		group.checkConsistence();
+
+		display("Adding group", group);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(group, null, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("add object result", result);
+		assertSuccess("addObject has failed (result)", result);
+		assertEquals(GROUP_PIRATES_OID, addedObjectOid);
+
+		group.checkConsistence();
+
+		ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, GROUP_PIRATES_OID, result)
+				.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal.", GROUP_PIRATES_NAME, groupRepoType.getName());
+		assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+
+		ShadowType groupProvisioningType = provisioningService.getObject(ShadowType.class,
+				GROUP_PIRATES_OID, null, result).asObjectable();
+		display("group from provisioning", groupProvisioningType);
+		checkGroupPirates(groupProvisioningType, result);
+
+		// Check if the group was created in the dummy resource
+
+		DummyGroup dummyAccount = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertNotNull("No dummy group "+GROUP_PIRATES_NAME, dummyAccount);
+		assertEquals("Description is wrong", "Scurvy pirates", dummyAccount.getAttributeValue("description"));
+		assertTrue("The group is not enabled", dummyAccount.isEnabled());
+
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
+				addedObjectOid, result);
+		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
+		display("Repository shadow", shadowFromRepo.dump());
+
+		ProvisioningTestUtil.checkRepoGroupShadow(shadowFromRepo);
+
+		checkConsistency(group);
+	}
+
+	@Test
+	public void test202GetGroup() throws Exception {
+		final String TEST_NAME = "test200AddGroup";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		// WHEN
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null,
+				result).asObjectable();
+
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+
+		display("Retrieved account shadow", shadow);
+
+		assertNotNull("No dummy account", shadow);
+
+		checkGroupPirates(shadow, result);
+
+		checkConsistency(shadow.asPrismObject());
+	}
+
+	private void checkGroupPirates(ShadowType shadow, OperationResult result) {
+		checkGroupShadow(shadow, result);
+		PrismAsserts.assertEqualsPolyString("Name not equal.", GROUP_PIRATES_NAME, shadow.getName());
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
+		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Scurvy pirates");
+		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+	}
+
+	@Test
+	public void test203GetGroupNoFetch() throws Exception {
+		final String TEST_NAME="test203GetGroupNoFetch";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "."+TEST_NAME);
+
+		GetOperationOptions options = new GetOperationOptions();
+		options.setNoFetch(true);
+
+		// WHEN
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options,
+				result).asObjectable();
+
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+
+		display("Retrieved group shadow", shadow);
+
+		assertNotNull("No dummy group", shadow);
+
+		checkGroupShadow(shadow, result, false);
+
+		checkConsistency(shadow.asPrismObject());
+	}
 
 	@Test
 	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,
@@ -1841,7 +1952,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Wrong type of current shadow: " + currentShadowType.getClass().getName(),
 				currentShadowType instanceof ShadowType);
 
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
@@ -1888,7 +1999,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
 		PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
 		ShadowType oldShadowType = oldShadow.asObjectable();
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(oldShadowType);
 		assertNotNull("No attributes container in old shadow", attributesContainer);
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
@@ -1905,7 +2016,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Wrong type of current shadow: " + currentShadowType.getClass().getName(),
 				currentShadowType instanceof ShadowType);
 
-		attributesContainer = ResourceObjectShadowUtil
+		attributesContainer = ShadowUtil
 				.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
 		attributes = attributesContainer.getAttributes();
@@ -1966,7 +2077,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
 		PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowType);
 
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
@@ -2017,7 +2128,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
 		PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
 		ShadowType oldShadowType = oldShadow.asObjectable();
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(oldShadowType);
 		assertNotNull("No attributes container in old shadow", attributesContainer);
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
@@ -2102,15 +2213,24 @@ public class TestDummy extends AbstractDummyTest {
 		assertFailure(result);
 	}
 	
-	private void checkShadow(ShadowType shadow, OperationResult parentResult) {
-		checkShadow(shadow, parentResult, true);
+	private void checkAccountShadow(ShadowType shadow, OperationResult parentResult) {
+		checkAccountShadow(shadow, parentResult, true);
 	}
 
-	private void checkShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
-		shadowType.asPrismObject().checkConsistence(true, true);
-		ResourceObjectShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
+	private void checkAccountShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
-		IntegrationTestTools.checkShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
+		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
+		IntegrationTestTools.checkAccountShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
+	}
+
+	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult) {
+		checkGroupShadow(shadow, parentResult, true);
+	}
+
+	private void checkGroupShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
+		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
+		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
+		IntegrationTestTools.checkGroupShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
 	}
 
 	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -2123,22 +2243,25 @@ public class TestDummy extends AbstractDummyTest {
 		return new ObjectChecker<ShadowType>() {
 			@Override
 			public void check(ShadowType shadow) {
-				String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
+				String icfName = ShadowUtil.getSingleStringAttributeValue(shadow,
 						SchemaTestConstants.ICFS_NAME);
 				assertNotNull("No ICF NAME", icfName);
 				PrismAsserts.assertEqualsPolyString("Wrong shadow name", icfName, shadow.getName());
-//				assertEquals("Wrong shadow name", shadow.getName(), icfName);
-				if (fullShadow) {
-					assertNotNull(
-							"Missing fullname attribute",
-							ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
-									new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
-					assertNotNull("no activation", shadow.getActivation());
-					assertNotNull("no activation/enabled", shadow.getActivation().isEnabled());
-					assertTrue("not enabled", shadow.getActivation().isEnabled());
-				}
+				assertNotNull("No kind in "+shadow, shadow.getKind());
 
-				assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, RefinedAttributeDefinition.class);
+				if (shadow.getKind() == ShadowKindType.ACCOUNT) {
+					if (fullShadow) {
+						assertNotNull(
+								"Missing fullname attribute",
+								ShadowUtil.getSingleStringAttributeValue(shadow,
+										new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
+						assertNotNull("no activation", shadow.getActivation());
+						assertNotNull("no activation/enabled", shadow.getActivation().isEnabled());
+						assertTrue("not enabled", shadow.getActivation().isEnabled());
+					}
+	
+					assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, RefinedAttributeDefinition.class);
+				}
 			}
 
 		};

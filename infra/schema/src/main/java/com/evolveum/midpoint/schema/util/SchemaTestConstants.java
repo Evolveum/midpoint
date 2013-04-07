@@ -39,6 +39,7 @@ public class SchemaTestConstants {
 	public static final QName ICFC_CONFIGURATION_PROPERTIES = new QName(NS_ICFC, "configurationProperties");
 	public static final QName ICFC_CONFIGURATION_PROPERTIES_TYPE = new QName(NS_ICFC, "ConfigurationPropertiesType");
 	public static final String ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
+	public static final String ICF_GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
 
 	public static final QName ICFS_UID = new QName(NS_ICFS, "uid");
 	public static final ItemPath ICFS_UID_PATH = new ItemPath(ShadowType.F_ATTRIBUTES, ICFS_UID);

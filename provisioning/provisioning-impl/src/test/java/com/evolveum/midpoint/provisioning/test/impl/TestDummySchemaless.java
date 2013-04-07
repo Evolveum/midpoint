@@ -39,7 +39,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
@@ -416,7 +416,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
 //		assertEquals("will", provisioningAccountType.getName());
 
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ResourceObjectShadowUtil.getAttributeValues(
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
@@ -433,7 +433,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
-		ProvisioningTestUtil.checkRepoShadow(shadowFromRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
 	}
 

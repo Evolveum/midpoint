@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -136,7 +136,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
         dto.setAccountName(WebMiscUtil.getName(object));
         dto.setAccountOid(object.getOid());
 
-        Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(object);
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(object);
         if (identifiers != null) {
             List<ResourceAttribute<?>> idList = new ArrayList<ResourceAttribute<?>>();
             idList.addAll(identifiers);

@@ -68,7 +68,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
@@ -173,7 +173,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (consistencyChecks) {
 			if (change.getCurrentShadow() != null) {
 				change.getCurrentShadow().checkConsistence();
-				ResourceObjectShadowUtil.checkConsistence(change.getCurrentShadow(), "current shadow in change description");
+				ShadowUtil.checkConsistence(change.getCurrentShadow(), "current shadow in change description");
 			}
 			if (change.getObjectDelta() != null) {
 				change.getObjectDelta().checkConsistence();

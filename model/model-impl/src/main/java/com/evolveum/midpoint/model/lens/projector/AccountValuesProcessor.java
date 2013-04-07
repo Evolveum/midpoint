@@ -45,7 +45,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -314,7 +314,7 @@ public class AccountValuesProcessor {
 		
 		if (primaryDelta.isAdd()) {
 			PrismObject<ShadowType> accountToAdd = primaryDelta.getObjectToAdd();
-			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(accountToAdd);
+			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
 			if (attributesContainer != null) {
 				for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
 					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attribute.getName());

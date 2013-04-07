@@ -37,7 +37,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -127,7 +127,7 @@ public class BasicExpressionFunctions {
 	}
 	
 	public Collection<Object> getAttributeValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
-		return ResourceObjectShadowUtil.getAttributeValues(shadow, attributeQname, Object.class);
+		return ShadowUtil.getAttributeValues(shadow, attributeQname, Object.class);
 	}
 
 	public Collection<String> getAttributeStringValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
@@ -139,7 +139,7 @@ public class BasicExpressionFunctions {
 	}
 	
 	public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
-		return ResourceObjectShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
+		return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
 	}
 			
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {

@@ -61,7 +61,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -196,7 +196,7 @@ public class ShadowManager {
 			PrismObject<T> resourceShadow, ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
 
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = ResourceObjectShadowUtil.getSecondaryIdentifiers(resourceShadow);
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
 		ResourceAttribute<?> secondaryIdentifier = null;
 		if (secondaryIdentifiers.size() < 1){
 			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
@@ -308,7 +308,7 @@ public class ShadowManager {
 
 		PrismObject<T> shadow = change.getCurrentShadow();
 		try {
-			shadow = createRepositoryShadow(shadow, resource);
+			shadow = createRepositoryShadow(shadow, resource, objectClassDefinition);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Can't create account shadow from identifiers: "
 					+ change.getIdentifiers());
@@ -369,7 +369,7 @@ public class ShadowManager {
 	private <T extends ShadowType> ObjectQuery createSearchShadowQuery(PrismObject<T> resourceShadow, ResourceType resource,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		// XPathHolder xpath = createXpathHolder();
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getIdentifier();
 
@@ -420,13 +420,14 @@ public class ShadowManager {
 	/**
 	 * Create a copy of a shadow that is suitable for repository storage.
 	 */
-	public <T extends ShadowType> PrismObject<T> createRepositoryShadow(PrismObject<T> shadow, ResourceType resource)
+	public <T extends ShadowType> PrismObject<T> createRepositoryShadow(PrismObject<T> shadow, ResourceType resource,
+			ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 
 		PrismObject<T> repoShadow = shadow.clone();
-		ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
 				.getAttributesContainer(repoShadow);
 
 		// Clean all repoShadow attributes and add only those that should be
@@ -442,8 +443,13 @@ public class ShadowManager {
 			repoAttributesContainer.add(p.clone());
 		}
 
-		// We don't want to store credentials in the repo
 		T repoShadowType = repoShadow.asObjectable();
+
+		if (repoShadowType.getKind() == null) {
+			repoShadowType.setKind(objectClassDefinition.getKind());
+		}
+
+		// We don't want to store credentials in the repo
 		repoShadowType.setCredentials(null);
 
 		// additional check if the shadow doesn't contain resource, if yes,

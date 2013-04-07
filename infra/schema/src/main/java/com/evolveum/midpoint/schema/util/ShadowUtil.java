@@ -43,7 +43,7 @@ import java.util.List;
  * 
  * @author Radovan Semancik
  */
-public class ResourceObjectShadowUtil {
+public class ShadowUtil {
 	
 	public static Collection<ResourceAttribute<?>> getIdentifiers(ShadowType shadowType) {
 		return getIdentifiers(shadowType.asPrismObject());
@@ -109,6 +109,12 @@ public class ResourceObjectShadowUtil {
 	}
 	
 	public static ObjectClassComplexTypeDefinition getObjectClassDefinition(ShadowType shadow) {
+		// TODO: maybe we can do something more intelligent here
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		return attributesContainer.getDefinition().getComplexTypeDefinition();
+	}
+	
+	public static ObjectClassComplexTypeDefinition getObjectClassDefinition(PrismObject<? extends ShadowType> shadow) {
 		// TODO: maybe we can do something more intelligent here
 		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
 		return attributesContainer.getDefinition().getComplexTypeDefinition();

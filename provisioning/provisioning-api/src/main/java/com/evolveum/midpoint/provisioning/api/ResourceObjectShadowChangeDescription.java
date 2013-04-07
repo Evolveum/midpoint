@@ -23,7 +23,7 @@ package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -111,10 +111,10 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
     		throw new IllegalArgumentException("Current shadow OID not set in "+this.getClass().getSimpleName());
     	}
     	if (currentShadow != null) {
-    		ResourceObjectShadowUtil.checkConsistence(currentShadow,"current shadow in change notification");
+    		ShadowUtil.checkConsistence(currentShadow,"current shadow in change notification");
     	}
     	if (oldShadow != null) {
-    		ResourceObjectShadowUtil.checkConsistence(oldShadow,"old shadow in change notification");
+    		ShadowUtil.checkConsistence(oldShadow,"old shadow in change notification");
     	}
     }
 

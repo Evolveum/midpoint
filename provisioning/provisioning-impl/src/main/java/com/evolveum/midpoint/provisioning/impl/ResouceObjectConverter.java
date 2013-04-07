@@ -75,7 +75,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -223,7 +223,7 @@ public class ResouceObjectConverter {
 						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations,2) });
 			}
-			ObjectClassComplexTypeDefinition objectClassDefinition = ResourceObjectShadowUtil
+			ObjectClassComplexTypeDefinition objectClassDefinition = ShadowUtil
 					.getObjectClassDefinition(shadowType);
 			checkActivationAttribute(shadowType, resource, objectClassDefinition);
 			
@@ -273,9 +273,9 @@ public class ResouceObjectConverter {
 			SecurityViolationException {
 
 		LOGGER.trace("Getting object identifiers");
-		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil
+		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 				.getIdentifiers(shadow);
-		Collection<? extends ResourceAttribute<?>> attributes = ResourceObjectShadowUtil
+		Collection<? extends ResourceAttribute<?>> attributes = ShadowUtil
 				.getAttributes(shadow);
 
 		if (isProtectedShadow(resource, objectClassDefinition, attributes)) {
@@ -335,9 +335,9 @@ public class ResouceObjectConverter {
 
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
-		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil
+		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 				.getIdentifiers(shadow);
-		Collection<? extends ResourceAttribute<?>> attributes = ResourceObjectShadowUtil
+		Collection<? extends ResourceAttribute<?>> attributes = ShadowUtil
 				.getAttributes(shadow);
 
 		if (isProtectedShadow(resource, objectClassDefinition, attributes)) {
@@ -544,7 +544,7 @@ public class ResouceObjectConverter {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void applyAfterOperationAttributes(ShadowType shadow,
 			Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(shadow);
 		for (ResourceAttribute attributeAfter : resourceAttributesAfterAdd) {
 			ResourceAttribute attributeBefore = attributesContainer.findAttribute(attributeAfter.getName());
@@ -751,7 +751,7 @@ public class ResouceObjectConverter {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 
 		ResourceAttribute<?> activationProperty = attributesContainer.findAttribute(activationCapability
 				.getEnableDisable().getAttribute());
@@ -790,7 +790,7 @@ public class ResouceObjectConverter {
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		QName enableDisableAttribute = activationCapability.getEnableDisable().getAttribute();
-		List<Object> values = ResourceObjectShadowUtil.getAttributeValues(shadow, enableDisableAttribute);
+		List<Object> values = ShadowUtil.getAttributeValues(shadow, enableDisableAttribute);
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
 		LOGGER.trace(
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
@@ -1065,7 +1065,7 @@ public class ResouceObjectConverter {
 	
 	public <T extends ShadowType> boolean isProtectedShadow(ResourceType resource,
 			PrismObject<T> shadow) throws SchemaException {
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(shadow);
 		if (attributesContainer == null) {
 			return false;

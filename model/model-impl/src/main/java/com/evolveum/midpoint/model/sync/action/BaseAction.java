@@ -55,7 +55,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -320,7 +320,7 @@ public abstract class BaseAction implements Action {
     private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {
     	PrismObject<ShadowType> account = getAccountShadowFromChange(change);
         if (account != null) {
-            return ResourceObjectShadowUtil.getIntent(account.asObjectable());
+            return ShadowUtil.getIntent(account.asObjectable());
         }
 
         LOGGER.warn("Can't get account type from change (resource {}), because current and old shadow are null. " +

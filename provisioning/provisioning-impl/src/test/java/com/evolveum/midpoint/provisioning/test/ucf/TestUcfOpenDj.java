@@ -47,7 +47,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
@@ -337,7 +337,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, accountDefinition,
 				identifiers, null, result);
-		ResourceAttributeContainer resObj = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
 		AssertJUnit.assertNull(resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName")));
 

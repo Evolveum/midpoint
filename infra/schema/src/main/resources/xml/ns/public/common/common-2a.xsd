@@ -3212,6 +3212,22 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Constraints script execution only to resource objects of a specified kind.
+                        If not present then the scrip will be executed for objects of all kinds.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Constraints script execution only to resource objects with a specified intent.
+                        If not present then the scrip will be executed for objects with any intent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="order" type="tns:ProvisioningScriptOrderType">
                 <xsd:annotation>
                     <xsd:documentation>

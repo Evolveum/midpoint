@@ -80,7 +80,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -322,7 +322,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		shadowType.setResourceRef(resourceRef);
 		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
 		PrismObject<ShadowType> shadow = shadowType.asPrismObject();
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
 		ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 		icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 		
@@ -369,7 +369,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		assertNotNull("No objectClass in shadow "+shadow, shadow.asObjectable().getObjectClass());
 		assertEquals("Wrong objectClass in shadow "+shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
-		Collection<ResourceAttribute<?>> attributes = ResourceObjectShadowUtil.getAttributes(shadow);
+		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertNotNull("No attributes in shadow "+shadow, attributes);
 		assertFalse("Empty attributes in shadow "+shadow, attributes.isEmpty());
 	}

@@ -79,7 +79,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -612,13 +612,13 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 //
 //			}
 			
-			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
-			List<Object> snValues = ResourceObjectShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
+			String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
+			List<Object> snValues = ShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
 			assertNotNull(snValues);
 			assertFalse("Surname attributes must not be empty", snValues.isEmpty());
 			assertEquals(1, snValues.size());
 			
-			String name = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_NAME);
+			String name = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_NAME);
 			assertEquals("After rename, dn is not equal.", "uid=rename,ou=People,dc=example,dc=com", name);
 			assertEquals("shadow name not changed after rename", "uid=rename,ou=People,dc=example,dc=com", accountType.getName().getOrig());
 			
@@ -673,7 +673,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			display("Object before password change",accountType);
 			
 			String uid = null;
-			uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
+			uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
 			assertNotNull(uid);
 			
 			SearchResultEntry entryBefore = openDJController.searchAndAssertByEntryUuid(uid);			
@@ -874,7 +874,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 //			assertFalse("Account was not disabled.", accountType.getActivation().isEnabled());
 			
-			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
+			String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
 
 			
 			assertNotNull(uid);

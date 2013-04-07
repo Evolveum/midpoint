@@ -13,6 +13,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -31,9 +32,11 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheProvisioner.class);
 	
 	@Override
-	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, 
+			ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult parentResult)
+					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
-	shadow = shadowManager.createRepositoryShadow(shadow, resource);
+	shadow = shadowManager.createRepositoryShadow(shadow, resource, objectClassDefinition);
 
 	if (shadow == null) {
 		parentResult

@@ -36,7 +36,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -87,7 +87,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 
 	
 	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ShadowType shadow) {
-		return getRefinedDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
+		return getRefinedDefinition(kind, ShadowUtil.getIntent(shadow));
 	}
 	
 	/**
@@ -105,6 +105,16 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return null;
 	}
 	
+	public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
+		for (Definition def: definitions) {
+			if ((def instanceof RefinedObjectClassDefinition) 
+					&& (def.getTypeName().equals(objectClassName))) {
+				return (RefinedObjectClassDefinition)def;
+			}
+		}
+		return null;
+	}
+	
 	public RefinedObjectClassDefinition getDefaultRefinedDefinition(ShadowKindType kind) {
 		return getRefinedDefinition(kind, (String)null);
 	}
@@ -114,7 +124,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 	
 	public PrismObjectDefinition<ShadowType> getObjectDefinition(ShadowKindType kind, ShadowType shadow) {
-		return getObjectDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
+		return getObjectDefinition(kind, ShadowUtil.getIntent(shadow));
 	}
 		
 	private void add(RefinedObjectClassDefinition refinedAccountDefinition) {

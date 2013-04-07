@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -271,7 +271,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         // apply appropriate schema
         PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        ResourceObjectShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
+        ShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
 
         OperationResult result = new OperationResult("ADD");
         String oid = repositoryService.addObject(fileAccount, null, result);

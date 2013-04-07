@@ -88,7 +88,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -234,7 +234,7 @@ public abstract class ShadowCache {
 			RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
 			
 			// Let's get all the identifiers from the Shadow <attributes> part
-			Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(repositoryShadow);
+			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(repositoryShadow);
 			
 			if (identifiers == null || identifiers.isEmpty()) {
 				//check if the account is not only partially created (exist only in repo so far)
@@ -289,7 +289,9 @@ public abstract class ShadowCache {
 
 	}
 
-	public abstract <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+	public abstract <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, 
+			ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult parentResult)
+					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 	
 	public <T extends ShadowType> String addShadow(PrismObject<T> shadow, ProvisioningScriptsType scripts,
 			ResourceType resource, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws CommunicationException,
@@ -325,7 +327,7 @@ public abstract class ShadowCache {
 		}
 	
 		// This is where the repo shadow is created (if needed) 
-		String oid = afterAddOnResource(shadow, resource, parentResult);
+		String oid = afterAddOnResource(shadow, resource, ShadowUtil.getObjectClassDefinition(shadow), parentResult);
 		shadow.setOid(oid);
 		
 		ObjectDelta<T> delta = ObjectDelta.createAddDelta(shadow);
@@ -563,7 +565,7 @@ public abstract class ShadowCache {
 	
 	protected <T extends ShadowType> ResourceType getResource(PrismObject<T> shadow, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow.asObjectable());
+		String resourceOid = ShadowUtil.getResourceOid(shadow.asObjectable());
 		if (resourceOid == null) {
 			throw new SchemaException("Shadow " + shadow + " does not have an resource OID");
 		}
@@ -639,23 +641,23 @@ public abstract class ShadowCache {
 	}
 
 	public <T extends ShadowType> void searchObjectsIterative(final Class<T> type,
-			final QName objectClass, final ResourceType resourceType,
+			final QName objectClassName, final ResourceType resourceType,
 			ObjectQuery query, final ShadowHandler<T> handler, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
-		Validate.notNull(objectClass, "Object class must not be null.");
+		Validate.notNull(objectClassName, "Object class must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
+		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClassName,
 				ObjectTypeUtil.toShortString(resourceType));
 
-		searchObjectsIterativeInternal(type, objectClass, resourceType, query, handler,
+		searchObjectsIterativeInternal(type, objectClassName, resourceType, query, handler,
 				true, parentResult);
 
 	}
 
-	private <T extends ShadowType> void searchObjectsIterativeInternal(final Class<T> type, QName objectClass,
+	private <T extends ShadowType> void searchObjectsIterativeInternal(final Class<T> type, QName objectClassName,
 			final ResourceType resourceType, ObjectQuery query,
 			final ShadowHandler<T> handler,
 			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
@@ -668,10 +670,10 @@ public abstract class ShadowCache {
 			throw new ConfigurationException("No schema for "+resourceType);
 		}
 		
-		RefinedObjectClassDefinition objectClassDef = determineObjectClassDefinition(type, resourceType, query);
+		final RefinedObjectClassDefinition objectClassDef = determineObjectClassDefinition(type, objectClassName, resourceType, query);
 
 		if (objectClassDef == null) {
-			String message = "Object class " + objectClass + " is not defined in schema of "
+			String message = "Object class " + objectClassName + " is not defined in schema of "
 					+ ObjectTypeUtil.toShortString(resourceType);
 			LOGGER.error(message);
 			parentResult.recordFatalError(message);
@@ -745,7 +747,7 @@ public abstract class ShadowCache {
 							try {
 
 								repoShadow = shadowManager.createRepositoryShadow(
-										resourceShadow, resourceType);
+										resourceShadow, resourceType, objectClassDef);
 								String oid = repositoryService.addObject(repoShadow, null,
 										parentResult);
 								repoShadow.setOid(oid);
@@ -1047,19 +1049,21 @@ public abstract class ShadowCache {
 	}
 	
 	private <T extends ShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(Class<T> type, 
-			ResourceType resourceType, ObjectQuery query) throws SchemaException, ConfigurationException {
+			QName objectClassName, ResourceType resourceType, ObjectQuery query) throws SchemaException, ConfigurationException {
 		ShadowKindType kind = null;
 		String intent = null;
 		if (query != null && query.getFilter() != null) {
 			List<? extends ObjectFilter> conditions = ((AndFilter) query.getFilter()).getCondition();
 			kind = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_KIND);
-			intent = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_INTENT);	
+			intent = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_INTENT);
 		}
-		// TODO: mix in object class somehow
+		RefinedObjectClassDefinition objectClassDefinition;
 		if (kind == null) {
-			kind = ShadowKindType.ACCOUNT;
+			objectClassDefinition = getRefinedScema(resourceType).getRefinedDefinition(objectClassName);
+		} else {
+			objectClassDefinition = getRefinedScema(resourceType).getRefinedDefinition(kind, intent);
 		}
-		RefinedObjectClassDefinition objectClassDefinition = getRefinedScema(resourceType).getRefinedDefinition(kind, intent);
+		
 		return objectClassDefinition;
 	}
 	
@@ -1097,9 +1101,9 @@ public abstract class ShadowCache {
 			resultShadow = repoShadow;
 		}
 		
-		ResourceAttributeContainer resourceAttributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer resourceAttributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
-		ResourceAttributeContainer repoAttributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
 				.getAttributesContainer(resultShadow);
 
 		T resultShadowType = resultShadow.asObjectable();

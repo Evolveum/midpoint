@@ -32,8 +32,9 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,7 +52,9 @@ public class ShadowCacheReconciler extends ShadowCache{
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
 	@Override
-	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, 
+			ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult parentResult)
+					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
 		cleanShadowInRepository(shadow, parentResult);
 
@@ -73,7 +76,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	
 	private <T extends ShadowType> void cleanShadowInRepository(PrismObject<T> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
 		PrismObject<T> oldShadow = shadow.clone();
-		ResourceObjectShadowUtil.getAttributesContainer(oldShadow).clear();
+		ShadowUtil.getAttributesContainer(oldShadow).clear();
 		ShadowCacheUtil.normalizeShadow(shadow.asObjectable(), parentResult);
 
 		// FIXME: ugly hack, need to be fixed (problem with comparing operation

@@ -40,7 +40,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -82,7 +82,7 @@ public class ShadowCacheUtil {
 				return false;
 			}
 
-			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 			ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
 					.getEnableDisable().getAttribute());
 
@@ -117,7 +117,7 @@ public class ShadowCacheUtil {
 			shadow.setCredentials(null);
 		}
 
-		ResourceAttributeContainer normalizedContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer normalizedContainer = ShadowUtil.getAttributesContainer(shadow);
 		ResourceAttributeContainer oldContainer = normalizedContainer.clone();
 
 		normalizedContainer.clear();
@@ -142,7 +142,7 @@ public class ShadowCacheUtil {
 	}
 
 	public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 		if (attributesContainer.getNamingAttribute() == null) {
 			// No naming attribute defined. Try to fall back to identifiers.
 			Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();

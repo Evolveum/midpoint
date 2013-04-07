@@ -56,7 +56,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.Cloner;
@@ -750,7 +750,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		}
 		if (object.canRepresent(ShadowType.class)) {
 			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-			Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(shadow);
+			Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
 			if (identifiers == null) {
 				return null;
 			}

@@ -47,7 +47,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -321,7 +321,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
     	O objectType = object.asObjectable();
     	if (objectType instanceof ShadowType) {
-    		ResourceObjectShadowUtil.checkConsistence((PrismObject<? extends ShadowType>) object, desc);
+    		ShadowUtil.checkConsistence((PrismObject<? extends ShadowType>) object, desc);
     	}
     }
 	

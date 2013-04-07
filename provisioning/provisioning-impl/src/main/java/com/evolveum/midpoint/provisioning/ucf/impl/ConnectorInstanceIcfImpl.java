@@ -119,7 +119,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -930,7 +930,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		validateShadow(object, "add", false);
 		ShadowType objectType = object.asObjectable();
 
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(object);
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
@@ -1061,7 +1061,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (attributesContainer == null) {
 			throw new IllegalArgumentException("Cannot " + operation + " shadow without attributes container");
 		}
-		ResourceAttributeContainer resourceAttributesContainer = ResourceObjectShadowUtil
+		ResourceAttributeContainer resourceAttributesContainer = ShadowUtil
 				.getAttributesContainer(shadow);
 		if (resourceAttributesContainer == null) {
 			throw new IllegalArgumentException("Cannot " + operation
@@ -1761,7 +1761,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ShadowType shadowType = object.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();
 		if (qnameObjectClass == null) {
-			ResourceAttributeContainer attrContainer = ResourceObjectShadowUtil
+			ResourceAttributeContainer attrContainer = ShadowUtil
 					.getAttributesContainer(shadowType);
 			if (attrContainer == null) {
 				return null;
@@ -1905,13 +1905,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
 				// password has to go to the credentials section
 				ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
-				ResourceObjectShadowUtil.setPassword(shadow, password);
+				ShadowUtil.setPassword(shadow, password);
 				LOGGER.trace("Converted password: {}", password);
 				continue;
 			}
 			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
 				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
-				ActivationType activationType = ResourceObjectShadowUtil
+				ActivationType activationType = ShadowUtil
 						.getOrCreateActivation(shadow);
 				activationType.setEnabled(enabled);
 				LOGGER.trace("Converted enabled: {}", enabled);
@@ -2105,7 +2105,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					LOGGER.trace("Got current shadow: {}", currentShadow.dump());
 				}
 
-				Collection<ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil.getIdentifiers(currentShadow);
+				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(currentShadow);
 
 				Change change = new Change(identifiers, currentShadow, getToken(icfDelta.getToken()));
 				change.setObjectClassDefinition(objClassDefinition);
