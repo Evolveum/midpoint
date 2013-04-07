@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
@@ -250,16 +251,23 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			if (schemaHandling.getAccountType() != null && !schemaHandling.getAccountType().isEmpty()) {
 		
 				parseAccountTypesFromSchemaHandling(rSchema, resourceType, schemaHandling, prismContext, 
-						"definition of "+ObjectTypeUtil.toShortString(resourceType));
+						"definition of "+resourceType);
 				
 			} else {
 				parseAccountTypesFromSchema(rSchema, resourceType, prismContext, 
-						"definition of "+ObjectTypeUtil.toShortString(resourceType));
+						"definition of "+resourceType);
+			}
+			
+			if (schemaHandling.getEntitlementType() != null && !schemaHandling.getEntitlementType().isEmpty()) {
+				
+				parseEntitlementTypesFromSchemaHandling(rSchema, resourceType, schemaHandling, prismContext, 
+						"definition of "+resourceType);
+				
 			}
 			
 		} else {
 			parseAccountTypesFromSchema(rSchema, resourceType, prismContext, 
-					"definition of "+ObjectTypeUtil.toShortString(resourceType));
+					"definition of "+resourceType);
 		}
 		
 		return rSchema;
@@ -282,6 +290,26 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			}
 				
 			rSchema.add(rAccountDef);
+		}		
+	}
+	
+	private static void parseEntitlementTypesFromSchemaHandling(RefinedResourceSchema rSchema, ResourceType resourceType,
+			SchemaHandlingType schemaHandling, PrismContext prismContext, String contextDescription) throws SchemaException {
+		
+		RefinedObjectClassDefinition rEntDefDefault = null;
+		for (ResourceEntitlementTypeDefinitionType entTypeDefType: schemaHandling.getEntitlementType()) {
+			String entTypeName = entTypeDefType.getName();
+			RefinedObjectClassDefinition rEntDef = RefinedObjectClassDefinition.parse(entTypeDefType, resourceType, rSchema, prismContext, "entitlement type '"+entTypeName+"', in "+contextDescription);
+			
+			if (rEntDef.isDefault()) {
+				if (rEntDefDefault == null) {
+					rEntDefDefault = rEntDef;
+				} else {
+					throw new SchemaException("More than one default entitlement definitions ("+rEntDefDefault+", "+rEntDef+") in " + contextDescription);
+				}
+			}
+				
+			rSchema.add(rEntDef);
 		}		
 	}
 
@@ -315,7 +343,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	
 	@Override
 	public String toString() {
-		return "RSchema(ns=" + namespace + ")";
+		return "rSchema(ns=" + namespace + ")";
 	}
 
 }

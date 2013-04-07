@@ -159,6 +159,13 @@
 						<c:value>false</c:value>
 					</outbound>
 				</attribute>-->
+				
+				<activation>
+					<enabled>
+						<outbound/>
+					</enabled>
+				</activation>
+				
 				<credentials>
 					<password>
 						<outbound>
@@ -166,11 +173,6 @@
 						</outbound>
 					</password>
 				</credentials>
-				<activation>
-					<enabled>
-						<outbound/>
-					</enabled>
-				</activation>
 
 			</accountType>
 		</schemaHandling>

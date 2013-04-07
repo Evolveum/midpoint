@@ -500,7 +500,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
      */
     @Override
     protected String getDebugDumpClassName() {
-        return "RRAD";
+        return "rRAD";
     }
 
     @Override

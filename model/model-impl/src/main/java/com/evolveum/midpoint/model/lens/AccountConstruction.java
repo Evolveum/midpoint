@@ -405,7 +405,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (refinedAccountDefinition == null) {
 			sb.append("null");
 		} else {
-			sb.append(refinedAccountDefinition.getResourceAccountType());
+			sb.append(refinedAccountDefinition.getShadowDiscriminator());
 		}
 		sb.append(")");
 		if (attributeConstructions != null) {

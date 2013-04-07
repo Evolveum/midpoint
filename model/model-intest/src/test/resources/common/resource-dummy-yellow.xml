@@ -185,6 +185,16 @@
 			<dependency>
 				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 			</dependency>
+			<activation>
+            	<enabled>
+                    <outbound>
+                    	<strength>strong</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>            	
+            	</enabled>
+            </activation>
 			<credentials>
                 <password>
                     <outbound>
@@ -195,16 +205,6 @@
                     </outbound>
                 </password>
             </credentials>
-            <activation>
-            	<enabled>
-                    <outbound>
-                    	<strength>strong</strength>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>            	
-            	</enabled>
-            </activation>
 		</accountType>
 	</schemaHandling>
 	

@@ -105,6 +105,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
@@ -195,10 +196,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
+		OperationResult subResult = result.createSubresult(AbstractModelIntegrationTest.class+".importObjectFromFile");
+		subResult.addParam("filename", filename);
 		LOGGER.trace("importObjectFromFile: {}", filename);
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
-		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
+		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, subResult);
+		subResult.computeStatus();
+		if (subResult.isError()) {
+			throw new SystemException("Import of file "+filename+" failed: "+subResult.getMessage());
+		}
 	}
 	
 	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, String filename, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException {

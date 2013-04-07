@@ -125,11 +125,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 		
-		// Connectors
-		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
-		addObjectFromFile(CONNECTOR_DBTABLE_FILENAME, ConnectorType.class, initResult);
-		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
-		
 		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();

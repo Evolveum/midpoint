@@ -115,8 +115,6 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		LOGGER.trace("initSystem");
 		
-		modelService.postInit(initResult);
-		
 		// Resources
 		File targetDir = new File(TEST_TARGET_DIR);
 		if (!targetDir.exists()) {

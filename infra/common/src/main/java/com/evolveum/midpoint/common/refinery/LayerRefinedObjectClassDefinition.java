@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -283,8 +284,8 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.createBlankShadow();
 	}
 
-	public ResourceShadowDiscriminator getResourceAccountType() {
-		return refinedObjectClassDefinition.getResourceAccountType();
+	public ResourceShadowDiscriminator getShadowDiscriminator() {
+		return refinedObjectClassDefinition.getShadowDiscriminator();
 	}
 
 	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
@@ -313,6 +314,10 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 
 	public MappingType getActivationOutbound() {
 		return refinedObjectClassDefinition.getActivationOutbound();
+	}
+
+	public Collection<ResourceEntitlementAssociationType> getEntitlementAssociations() {
+		return refinedObjectClassDefinition.getEntitlementAssociations();
 	}
 
 	@Override

@@ -252,6 +252,27 @@
 				</outbound>
 			</attribute>
 			
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+            
+            <protected>
+            	<icfs:name>daviejones</icfs:name>
+            </protected>
+            <protected>
+            	<icfs:name>calypso</icfs:name>
+            </protected>
+            
+            <activation>
+            	<enabled>
+            		<outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</enabled>
+            </activation>
+			
 			<credentials>
                 <password>
                     <outbound>
@@ -268,26 +289,6 @@
                 </password>
             </credentials>
             
-            <activation>
-            	<enabled>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-            		</outbound>
-            	</enabled>
-            </activation>
-            
-            <iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-            
-            <protected>
-            	<icfs:name>daviejones</icfs:name>
-            </protected>
-            <protected>
-            	<icfs:name>calypso</icfs:name>
-            </protected>
 		</accountType>
 		
 	</schemaHandling>

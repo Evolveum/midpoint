@@ -2521,6 +2521,22 @@
             <xsd:element name="dependency" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="entitlementAssociation" type="tns:ResourceEntitlementAssociationType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
+            <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
+            <xsd:element name="protected" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specification of a protected account: account that cannot be affected by IDM. It will be
+            			ignored by operations, will not appear in lists, etc. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>         	
+            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of activation handling for this account type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -2640,22 +2656,6 @@
 		                        Definition of credentials handling for this account type.
 		                    </xsd:documentation>
 		                </xsd:annotation>
-		            </xsd:element>
-		            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
-		                <xsd:annotation>
-		                    <xsd:documentation>
-		                        Definition of credentials handling for this account type.
-		                    </xsd:documentation>
-		                </xsd:annotation>
-		            </xsd:element>
-		            <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
-		            <xsd:element name="protected" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
-		            	<xsd:annotation>
-		            		<xsd:documentation>
-		            			Specification of a protected account: account that cannot be affected by IDM. It will be
-		            			ignored by operations, will not appear in lists, etc. 
-		            		</xsd:documentation>
-		            	</xsd:annotation>
 		            </xsd:element>
 		        </xsd:sequence>
         	</xsd:extension>
@@ -4507,6 +4507,7 @@
                     </xsd:element>
                     <xsd:element name="attributes" type="tns:ShadowAttributesType" minOccurs="0">
                     </xsd:element>
+                    <xsd:element name="entitlements" type="tns:ShadowEntitlementsType" minOccurs="0"/>
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4614,6 +4615,54 @@
                 its content directly to the body of resource object. Doing so will cause problems
                 with UPA rule and it will effectively prohibit the the of type replacement extensibility
                 on this object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+	    <xsd:sequence>
+	        <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+	        </xsd:any>
+	    </xsd:sequence>
+	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ShadowEntitlementsType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+	    <xsd:sequence>
+	        <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+	    </xsd:sequence>
+	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ShadowAssociationType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+	    <xsd:sequence>
+	        <xsd:element name="name" type="xsd:string"/>
+	        <xsd:element name="oid" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+	        <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0" maxOccurs="1"/>
+	    </xsd:sequence>
+	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ShadowIdentifiersType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                TODO
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

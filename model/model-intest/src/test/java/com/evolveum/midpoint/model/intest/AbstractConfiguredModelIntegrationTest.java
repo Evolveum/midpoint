@@ -271,7 +271,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
-				
+			
+		modelService.postInit(initResult);
+		
 		// System Configuration
 		try {
 			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);

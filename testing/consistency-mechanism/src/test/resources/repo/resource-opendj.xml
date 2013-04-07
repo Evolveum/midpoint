@@ -485,23 +485,12 @@ This is now the only account type that midPoint can work with. -->
             	<associationAttribute>ri:member</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </entitlementAssociation>
-           <credentials>
-                <password>
-                    <outbound>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
-                    <inbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                    		<generate/>
-                    	</expression>
-                    </inbound>
-                </password>
-            </credentials>
             
-             <activation>
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+            
+            <activation>
                 <enabled>
                     <outbound/>
                     <inbound>
@@ -527,9 +516,23 @@ This is now the only account type that midPoint can work with. -->
 <!--                     </inbound> -->
 <!--                 </enabled> -->
 <!--             </activation> -->
-<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
+            
+           <credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                    	<strength>weak</strength>
+                    	<expression>
+                    		<generate/>
+                    	</expression>
+                    </inbound>
+                </password>
+            </credentials>
+            
         </accountType>
         <entitlementType>
             <name>ldapGroup</name>

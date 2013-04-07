@@ -103,11 +103,11 @@ public class TestRefinedSchema {
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
         System.out.println(rSchema.dump());
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL);
+        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, false);
         
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.MODEL);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, false);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL, false);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.MODEL, false);
 
         
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
@@ -133,11 +133,11 @@ public class TestRefinedSchema {
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
         System.out.println(rSchema.dump());
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL);
+        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, true);
         
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION, true);
         
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
@@ -146,11 +146,11 @@ public class TestRefinedSchema {
     }
 
 	private void assertLayerRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, LayerType sourceLayer,
-			LayerType validationLayer) {
+			LayerType validationLayer, boolean assertEntitlements) {
 		System.out.println("Refined schema: layer="+sourceLayer);
 		LayerRefinedResourceSchema lrSchema = rSchema.forLayer(sourceLayer);
         System.out.println(lrSchema.dump());
-        assertRefinedSchema(resourceType, lrSchema, sourceLayer, validationLayer);
+        assertRefinedSchema(resourceType, lrSchema, sourceLayer, validationLayer, assertEntitlements);
 	}
 
 	@Test
@@ -171,39 +171,57 @@ public class TestRefinedSchema {
         System.out.println("Refined schema");
         System.out.println(rSchema.dump());
         
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.SCHEMA);
+        assertRefinedSchema(resourceType, rSchema, null, LayerType.SCHEMA, false);
 
     }
     
-    private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, LayerType sourceLayer, LayerType validationLayer) {
+    private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, 
+    		LayerType sourceLayer, LayerType validationLayer, boolean assertEntitlements) {
         assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
-        RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
+        RefinedObjectClassDefinition rAccountDef = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         
         RefinedObjectClassDefinition accountDefByNullObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, null);
-        assertTrue("findAccountDefinitionByObjectClass(null) returned wrong value", rAccount.equals(accountDefByNullObjectclass));
+        assertTrue("findAccountDefinitionByObjectClass(null) returned wrong value", rAccountDef.equals(accountDefByNullObjectclass));
         
         RefinedObjectClassDefinition accountDefByIcfAccountObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, 
         		new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
-        assertTrue("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccount.equals(accountDefByIcfAccountObjectclass));
+        assertTrue("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccountDef.equals(accountDefByIcfAccountObjectclass));
 
-        assertRObjectClassDef(rAccount, resourceType, sourceLayer, validationLayer);
+        assertRObjectClassDef(rAccountDef, resourceType, sourceLayer, validationLayer);
         System.out.println("Refined account definitionn:");
-        System.out.println(rAccount.dump());
+        System.out.println(rAccountDef.dump());
         
-        Collection<? extends RefinedAttributeDefinition> attributeDefinitions = rAccount.getAttributeDefinitions();
-        assertNotNull("Null attributeDefinitions", attributeDefinitions);
-        assertFalse("Empty attributeDefinitions", attributeDefinitions.isEmpty());
-        assertEquals("Unexpected number of attributeDefinitions", 55, attributeDefinitions.size());
+        assertEquals("Wrong kind", ShadowKindType.ACCOUNT, rAccountDef.getKind());
         
-        RefinedAttributeDefinition disabledAttribute = rAccount.findAttributeDefinition("ds-pwp-account-disabled");
+        Collection<? extends RefinedAttributeDefinition> accAttrsDef = rAccountDef.getAttributeDefinitions();
+        assertNotNull("Null attributeDefinitions", accAttrsDef);
+        assertFalse("Empty attributeDefinitions", accAttrsDef.isEmpty());
+        assertEquals("Unexpected number of attributeDefinitions", 55, accAttrsDef.size());
+        
+        RefinedAttributeDefinition disabledAttribute = rAccountDef.findAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No ds-pwp-account-disabled attribute", disabledAttribute);
         assertTrue("ds-pwp-account-disabled not ignored", disabledAttribute.isIgnored());
         
         // This is compatibility with PrismContainerDefinition, it should work well
-        Collection<? extends ItemDefinition> propertyDefinitions = rAccount.getDefinitions();
+        Collection<? extends ItemDefinition> propertyDefinitions = rAccountDef.getDefinitions();
         assertNotNull("Null propertyDefinitions", propertyDefinitions);
         assertFalse("Empty propertyDefinitions", propertyDefinitions.isEmpty());
         assertEquals("Unexpected number of propertyDefinitions", 55, propertyDefinitions.size());
+        
+        if (assertEntitlements) {        	
+	        assertFalse("No entitlement definitions", rSchema.getRefinedDefinitions(ShadowKindType.ENTITLEMENT).isEmpty());
+	        RefinedObjectClassDefinition rEntDef = rSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, (String)null);
+	        
+	        assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
+	        
+	        Collection<? extends RefinedAttributeDefinition> entAttrDefs = rEntDef.getAttributeDefinitions();
+	        assertNotNull("Null attributeDefinitions", entAttrDefs);
+	        assertFalse("Empty attributeDefinitions", entAttrDefs.isEmpty());
+	        assertEquals("Unexpected number of attributeDefinitions", 11, entAttrDefs.size());
+	        // TODO
+	        
+	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociations().size());
+        }
     }
 
 

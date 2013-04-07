@@ -853,12 +853,14 @@ public class SchemaProcessor implements Processor {
             if (fields == null) {
                 continue;
             }
+            
+            boolean isObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
 
             List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
             for (Entry<String, JFieldVar> fieldEntry : fields.entrySet()) {
                 String field = fieldEntry.getKey();
-                if ("serialVersionUID".equals(field) || "oid".equals(field) || "version".equals(field)
-                        || "id".equals(field) || COMPLEX_TYPE_FIELD_NAME.equals(field)) {
+                if (isObject && ("serialVersionUID".equals(field) || "oid".equals(field) || "version".equals(field)
+                        || "id".equals(field) || COMPLEX_TYPE_FIELD_NAME.equals(field))) {
                     continue;
                 }
 
@@ -895,6 +897,7 @@ public class SchemaProcessor implements Processor {
             }
 
             updateClassAnnotation(classOutline);
+            boolean isObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
 
             System.out.println("Updating fields and get/set methods: " + classOutline.implClass.fullName());
 
@@ -913,7 +916,7 @@ public class SchemaProcessor implements Processor {
                 }
 
                 boolean remove;
-                if ("oid".equals(field) || "version".equals(field)) {
+                if (isObject && ("oid".equals(field) || "version".equals(field))) {
                     System.out.println("Updating simple field: " + fieldVar.name());
                     remove = updateSimpleField(fieldVar, classOutline, METHOD_AS_PRISM_CONTAINER);
                 } else if ("id".equals(field)) {

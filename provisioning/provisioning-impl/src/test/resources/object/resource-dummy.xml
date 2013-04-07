@@ -58,6 +58,13 @@
 				<ref>ri:loot</ref>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
+			<entitlementAssociation>
+            	<name>ri:group</name>
+            	<entitlementType>group</entitlementType>
+            	<direction>entitlementToSubject</direction>
+            	<associationAttribute>ri:members</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </entitlementAssociation>
 			<protected>
 				<icfs:name>root</icfs:name>
 			</protected>
@@ -68,6 +75,11 @@
 				<icfs:name>daviejones</icfs:name>
 			</protected>
 		</accountType>
+		<entitlementType>
+        	<name>group</name>
+        	<default>true</default>
+        	<objectClass>ri:GroupObjectClass</objectClass>
+        </entitlementType>
 	</schemaHandling>
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
