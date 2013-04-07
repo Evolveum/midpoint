@@ -119,6 +119,16 @@ This definition is tailored for import from the CSV File.
                         </target>
                     </inbound>
                 </attribute>
+                
+                <activation>
+                    <enabled>
+                        <outbound/>
+                        <inbound>
+							<strength>weak</strength>
+                        </inbound>
+                    </enabled>
+                </activation>
+                
                 <credentials>
                     <password>
                         <outbound>
@@ -134,14 +144,7 @@ This definition is tailored for import from the CSV File.
                         </inbound>
 	                </password>
                 </credentials>
-                <activation>
-                    <enabled>
-                        <outbound/>
-                        <inbound>
-							<strength>weak</strength>
-                        </inbound>
-                    </enabled>
-                </activation>
+                
             </accountType>
         </schemaHandling>
      	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">

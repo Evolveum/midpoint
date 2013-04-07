@@ -403,6 +403,26 @@ object.
 				</outbound>
 			</attribute>
 			
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			
+			<protected>
+                <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+            </protected>
+            
+            <activation>
+                <enabled>
+                    <outbound/>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </enabled>
+            </activation>
+			
             <credentials>
                 <password>
                     <outbound>
@@ -418,24 +438,7 @@ object.
                     </inbound>
                 </password>
             </credentials>
-            
-            <activation>
-                <enabled>
-                    <outbound/>
-                    <inbound>
-                    	<strength>weak</strength>
-                        <expression>
-                            <asIs/>
-                        </expression>
-                    </inbound>
-                </enabled>
-            </activation>
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			<protected>
-                <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
-            </protected>
+			
 		</accountType>
 	</schemaHandling>
 

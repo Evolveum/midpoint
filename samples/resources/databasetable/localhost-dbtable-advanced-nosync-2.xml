@@ -204,18 +204,20 @@ icfs:name = icfs:uid so this not yet possible -->
         </outbound>
       </attribute>
 
+				<activation>
+					<enabled>
+						<outbound/>
+					</enabled>
+				</activation>
 
 				<credentials>
 					<password>
 						<outbound/>
 					</password>
 				</credentials>
-				<activation>
-					<enabled>
-						<outbound/>
-					</enabled>
-				</activation>
+				
 			</accountType>
+				
 		</schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
 			<configured>

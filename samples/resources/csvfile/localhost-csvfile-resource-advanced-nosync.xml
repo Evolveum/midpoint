@@ -167,6 +167,13 @@ using an Identity Connector Framework connector.
 						<c:value>false</c:value>
 					</outbound>
 				</attribute>-->
+				
+				<activation>
+					<enabled>
+						<outbound/>
+					</enabled>
+				</activation>
+				
 				<credentials>
 					<password>
 						<outbound>
@@ -174,11 +181,6 @@ using an Identity Connector Framework connector.
 						</outbound>
 					</password>
 				</credentials>
-				<activation>
-					<enabled>
-						<outbound/>
-					</enabled>
-				</activation>
 
 			</accountType>
 		</schemaHandling>

@@ -277,16 +277,19 @@ object.
                     </inbound>
 
                 </attribute>
+                
+               	<activation>
+                    <enabled>
+                        <outbound/>
+                    </enabled>
+                </activation>
+                
                 <credentials>
                     <password>
                         <outbound/>
                     </password>
                 </credentials>
-                <activation>
-                    <enabled>
-                        <outbound/>
-                    </enabled>
-                </activation>
+                
             </accountType>
         </schemaHandling>
         

@@ -199,6 +199,14 @@ This resource definition contains also definition to enable synchronization.
 					</target>
 					</inbound>
 				</attribute>
+				<activation>
+					<enabled>
+						<outbound/>
+						<inbound>
+							<strength>weak</strength>
+						</inbound>
+					</enabled>
+				</activation>
 				<credentials>
 					<password>
 						<outbound/>
@@ -210,14 +218,6 @@ This resource definition contains also definition to enable synchronization.
 						</inbound>
 					</password>
 				</credentials>
-				<activation>
-					<enabled>
-						<outbound/>
-						<inbound>
-							<strength>weak</strength>
-						</inbound>
-					</enabled>
-				</activation>
 			</accountType>
 		</schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">

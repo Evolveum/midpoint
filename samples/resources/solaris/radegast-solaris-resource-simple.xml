@@ -151,15 +151,6 @@ using an Identity Connector Framework Solaris connector.
 					</expression>
 				</outbound>
 			</attribute>
-            <credentials>
-                <password>
-                    <outbound>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
-                </password>
-            </credentials>
             
             <activation>
                 <enabled>
@@ -172,6 +163,16 @@ using an Identity Connector Framework Solaris connector.
                     </inbound>
                 </enabled>
             </activation>
+            
+            <credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
 		</accountType>
 	</schemaHandling>
 

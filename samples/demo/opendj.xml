@@ -433,6 +433,22 @@
 				</inbound>
 			</attribute>
 			
+			<protected>
+                <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+            </protected>
+			
+            <activation>
+                <enabled>
+                    <outbound/>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </enabled>
+            </activation>
+			
             <credentials>
                 <password>
                     <outbound>
@@ -449,20 +465,6 @@
                 </password>
             </credentials>
             
-            <activation>
-                <enabled>
-                    <outbound/>
-                    <inbound>
-                    	<strength>weak</strength>
-                        <expression>
-                            <asIs/>
-                        </expression>
-                    </inbound>
-                </enabled>
-            </activation>
-			<protected>
-                <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
-            </protected>
 		</accountType>
 	</schemaHandling>
 

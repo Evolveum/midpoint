@@ -187,6 +187,16 @@ object.
                             <c:value>false</c:value>
                         </outbound>
                     </attribute>-->
+                    
+                <activation>
+                    <enabled>
+                        <outbound/>
+                        <inbound>
+							<strength>weak</strength>
+                        </inbound>
+                    </enabled>
+                </activation>
+                    
                 <credentials>
                     <password>
                         <outbound>
@@ -203,14 +213,7 @@ object.
 						<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:ValuePolicyType"/>
                     </password>
                 </credentials>
-                <activation>
-                    <enabled>
-                        <outbound/>
-                        <inbound>
-							<strength>weak</strength>
-                        </inbound>
-                    </enabled>
-                </activation>
+                
             </accountType>
         </schemaHandling>
        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">

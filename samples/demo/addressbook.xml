@@ -128,16 +128,16 @@
 						</source>
 					</outbound>
 				</attribute>
-				<credentials>
-					<password>
-						<outbound/>
-					</password>
-				</credentials>
 				<activation>
 					<enabled>
 						<outbound/>
 					</enabled>
 				</activation>
+				<credentials>
+					<password>
+						<outbound/>
+					</password>
+				</credentials>
 			</accountType>
 		</schemaHandling>
 

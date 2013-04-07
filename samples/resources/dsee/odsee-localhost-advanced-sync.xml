@@ -279,6 +279,15 @@ object.
                     </inbound>
 
                 </attribute>
+                
+                <activation>
+                    <enabled>
+                        <outbound>
+                        	<strength>weak</strength>
+                        </outbound>
+                    </enabled>
+                </activation>
+                
                 <credentials>
                     <password>
                         <outbound>
@@ -289,13 +298,7 @@ object.
                         </outbound>
                     </password>
                 </credentials>
-                <activation>
-                    <enabled>
-                        <outbound>
-                        	<strength>weak</strength>
-                        </outbound>
-                    </enabled>
-                </activation>
+                
             </accountType>
         </schemaHandling>
         

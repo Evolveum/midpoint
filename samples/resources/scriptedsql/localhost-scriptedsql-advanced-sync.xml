@@ -20,17 +20,6 @@
 <!--                                                         -->
 
 
-<!--
-
-This file is an example of Resource definition. It defines an Solaris resource
-using an Identity Connector Framework Solaris connector.
-
-This resource definition contains also definition to enable synchronization and
-especially an expression that is using a lookup of value from an configuration
-object.
-
--->
-
 <c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -263,6 +252,14 @@ object.
 						</target>
 					</inbound>
 				</attribute>
+				<activation>
+					<enabled>
+						<outbound/>
+						<inbound>
+							<strength>weak</strength>
+						</inbound>
+					</enabled>
+				</activation>
 				<credentials>
 					<password>
 						<outbound/>
@@ -274,14 +271,6 @@ object.
 						</inbound>
 					</password>
 				</credentials>
-				<activation>
-					<enabled>
-						<outbound/>
-						<inbound>
-							<strength>weak</strength>
-						</inbound>
-					</enabled>
-				</activation>
 			</accountType>
 		</schemaHandling>
 	<capabilities>

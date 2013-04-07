@@ -234,19 +234,22 @@ else {
 						<c:value>false</c:value>
 					</outbound>
 				</attribute>-->
-				<credentials>
-					<password>
-						<outbound/>
-					</password>
-				</credentials>
+				
+				<iteration>
+                                	<maxIterations>5</maxIterations>
+                        	</iteration>
+
 				<activation>
 					<enabled>
 						<outbound/>
 					</enabled>
 				</activation>
-    				<iteration>
-                                	<maxIterations>5</maxIterations>
-                        	</iteration>
+				
+				<credentials>
+					<password>
+						<outbound/>
+					</password>
+				</credentials>    				
 
 			</accountType>
 		</schemaHandling>

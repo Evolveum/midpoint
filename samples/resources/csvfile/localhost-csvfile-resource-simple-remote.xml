@@ -116,16 +116,16 @@ connector server.
                     <!-- Access limitation for this attribute.
                           -->
 				</c:attribute>
-				<credentials>
-					<password>
-						<outbound/>
-					</password>
-				</credentials>
 				<activation>
 					<enabled>
 						<outbound/>
 					</enabled>
 				</activation>
+				<credentials>
+					<password>
+						<outbound/>
+					</password>
+				</credentials>
 			</c:accountType>
 		</c:schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">

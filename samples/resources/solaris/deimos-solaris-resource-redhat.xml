@@ -155,27 +155,6 @@ using an Identity Connector Framework Solaris connector.
 					</expression>
 				</outbound>
 			</attribute>
-            <credentials>
-                <password>
-                    <outbound>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
-                </password>
-            </credentials>
-            
-            <activation>
-                <enabled>
-                    <outbound/>
-                    <inbound>
-                    	<strength>weak</strength>
-                        <expression>
-                            <asIs/>
-                        </expression>
-                    </inbound>
-                </enabled>
-            </activation>
             
             <protected>
                 <icfs:name>root</icfs:name>
@@ -267,6 +246,28 @@ using an Identity Connector Framework Solaris connector.
             <protected>
                 <icfs:name>midpoint</icfs:name>
             </protected>
+            
+            <activation>
+                <enabled>
+                    <outbound/>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </enabled>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
 		</accountType>
 	</schemaHandling>
 

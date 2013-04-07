@@ -165,6 +165,13 @@ using an Identity Connector Framework connector.
 					<access>update</access>
 					<access>read</access>
 				</attribute>
+				
+				<activation>
+					<enabled>
+						<outbound/>
+					</enabled>
+				</activation>
+				
 				<credentials>
 					<password>
 						<outbound>
@@ -172,11 +179,6 @@ using an Identity Connector Framework connector.
 						</outbound>
 					</password>
 				</credentials>
-				<activation>
-					<enabled>
-						<outbound/>
-					</enabled>
-				</activation>
 
 			</accountType>
 		</schemaHandling>

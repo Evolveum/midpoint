@@ -121,7 +121,24 @@ This resource definition contains only the very basic definitions for midPoint t
 				<displayName>Entry UUID</displayName>
 				<access>read</access>
 			</attribute>
+
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
 			
+			<protected>
+                <icfs:name>root</icfs:name>
+            </protected>
+			
+			<activation>
+                    <enabled>
+                        <outbound/>
+                        <inbound>
+				<strength>weak</strength>
+                        </inbound>
+                    </enabled>
+                </activation>
+                
                 <credentials>
                     <password>
                         <outbound/>
@@ -133,20 +150,7 @@ This resource definition contains only the very basic definitions for midPoint t
                         </inbound>
                     </password>
                 </credentials>
-                <activation>
-                    <enabled>
-                        <outbound/>
-                        <inbound>
-				<strength>weak</strength>
-                        </inbound>
-                    </enabled>
-                </activation>
-				<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-		<protected>
-                <icfs:name>root</icfs:name>
-            </protected>
+        
 		</accountType>
 	</schemaHandling>
 	</resource>
