@@ -164,8 +164,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		ItemDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
-		
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
+		//TODO: matching rule
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, ACCOUNT_WILL_ICF_UID);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
 		System.out.println("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "
