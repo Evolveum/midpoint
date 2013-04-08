@@ -32,6 +32,17 @@ import org.hibernate.criterion.SimpleExpression;
  */
 public abstract class Matcher<T> {
 
+    /**
+     * Create hibernate {@link Criterion} based on matcher defined in filter.
+     *
+     * @param operation
+     * @param propertyName
+     * @param value
+     * @param matcher      Now type of {@link String}, but will be updated to {@link javax.xml.namespace.QName}
+     *                     type after query-api update
+     * @return
+     * @throws QueryException
+     */
     public abstract Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
             throws QueryException;
 

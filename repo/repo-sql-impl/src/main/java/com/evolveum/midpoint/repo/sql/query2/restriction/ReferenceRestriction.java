@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -55,8 +56,6 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
     @Override
     public Criterion interpretInternal(RefFilter filter) throws QueryException {
-        //todo implement
-
         List<? extends PrismValue> values = filter.getValues();
         PrismReferenceValue refValue = null;
         if (values != null && !values.isEmpty()) {
@@ -122,6 +121,11 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         }
 
         Definition definition = definitions.get(definitions.size() - 1);
+        if (definition instanceof CollectionDefinition) {
+            CollectionDefinition colDef = (CollectionDefinition) definition;
+            definition = colDef.getDefinition();
+        }
+
         if (!(definition instanceof ReferenceDefinition)) {
             throw new QueryException("Definition '" + definition + "' is not reference definition.");
         }

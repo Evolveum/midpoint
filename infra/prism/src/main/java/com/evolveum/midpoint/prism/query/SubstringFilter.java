@@ -25,7 +25,7 @@ public class SubstringFilter extends StringValueFilter {
 	}
 	
 	SubstringFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, String value) {
-		super(parentPath, definition, value);
+		super(parentPath, definition, matchingRule, value);
 	}
 
 	public static SubstringFilter createSubstring(ItemPath path, ItemDefinition definition, String value) {

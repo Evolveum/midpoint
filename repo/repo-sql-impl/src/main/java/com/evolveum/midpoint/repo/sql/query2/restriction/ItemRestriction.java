@@ -160,7 +160,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         QueryInterpreter interpreter = context.getInterpreter();
         Matcher matcher = interpreter.findMatcher(value);
 
-        return matcher.match(operation, propertyName, value, null);    //todo get matcher from filter
+        return matcher.match(operation, propertyName, value, filter.getMatchingRule());
     }
 
     protected List<Definition> createDefinitionPath(ItemPath path, QueryContext context) throws QueryException {

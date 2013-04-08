@@ -74,6 +74,7 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
             throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
         }
 
+        //todo remove after some time [lazyman]
         //attempt to fix value type for polystring (if it was string we create polystring from it)
         if (PolyString.class.equals(def.getJaxbType()) && (value instanceof String)) {
             value = new PolyString((String) value, (String) value);

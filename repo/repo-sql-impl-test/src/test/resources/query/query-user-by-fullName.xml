@@ -23,6 +23,7 @@
 	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
 	<equal>
+        <matching>polyStringNorm</matching>
 		<path>c:fullName</path>
 		<value>cpt jack sparrow</value>
 	</equal>

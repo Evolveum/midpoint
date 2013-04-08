@@ -59,9 +59,13 @@ public class ClassDefinitionParser {
             return null;
         }
 
-        QName jaxbName = getJaxbName(clazz);
-        Class jaxbType = getJaxbType(clazz);
-        EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, clazz.getSimpleName(), clazz);
+        EntityDefinition entityDef;
+        Definition def = createDefinitionFromClass(clazz);
+        if (def instanceof EntityDefinition) {
+            entityDef = (EntityDefinition) def;
+        } else {
+            return def;
+        }
         updateEntityDefinition(entityDef, clazz);
 
         Method[] methods = clazz.getMethods();
@@ -114,6 +118,36 @@ public class ClassDefinitionParser {
         //todo implement
     }
 
+    //todo REFACTOR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! probably delete this class and start over! :)
+    private Definition createDefinitionFromClass(Class clazz) {
+        QName jaxbName = getJaxbName(clazz);
+        Class jaxbType = getJaxbType(clazz);
+
+        String jpaName = clazz.getSimpleName();
+        Class jpaType = clazz;
+
+        Definition definition;
+        if (ObjectReference.class.isAssignableFrom(jpaType)) {
+            ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            definition = refDef;
+        } else if (RAnyContainer.class.isAssignableFrom(jpaType)) {
+            definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
+        } else if (Set.class.isAssignableFrom(jpaType)) {
+            CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            definition = collDef;
+        } else if (isEntity(clazz)) {
+            EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            //todo implement recursion
+//            updateEntityDefinition(entityDef);
+            definition = entityDef;
+        } else {
+            PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            definition = propDef;
+        }
+
+        return definition;
+    }
+
     private Definition createDefinitionFromMethod(Method method) {
         QName jaxbName = getJaxbName(method);
         Class jaxbType = getJaxbType(method);
@@ -132,7 +166,7 @@ public class ClassDefinitionParser {
             CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
             updateCollectionDefinition(collDef, method);
             definition = collDef;
-        } else if (isReturningEntity(method)) {
+        } else if (isEntity(method.getReturnType())) {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
             //todo implement recursion
 //            updateEntityDefinition(entityDef);
@@ -146,8 +180,7 @@ public class ClassDefinitionParser {
         return definition;
     }
 
-    private boolean isReturningEntity(Method method) {
-        Class type = method.getReturnType();
+    private boolean isEntity(Class type) {
         if (RPolyString.class.isAssignableFrom(type)) {
             //it's hibernate entity but from prism point of view it's property
             return false;

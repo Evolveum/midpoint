@@ -24,6 +24,7 @@
 	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
 	<equal>
+        <matching>polyStringNorm</matching>
 		<path>c:name</path>
 		<value>some name identificator</value>
 	</equal>

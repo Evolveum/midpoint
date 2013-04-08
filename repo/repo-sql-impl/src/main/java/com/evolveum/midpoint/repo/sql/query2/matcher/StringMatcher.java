@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.hibernate.criterion.Criterion;
@@ -30,8 +31,8 @@ import org.hibernate.criterion.Criterion;
  */
 public class StringMatcher extends Matcher<String> {
 
-    public static final String CASE_SENSITIVE = "caseSensitive";
-    public static final String IGNORE_CASE = "ignoreCase";
+    //todo will be changed to QName later (after query api update)
+    public static final String IGNORE_CASE = StringIgnoreCaseMatchingRule.NAME.getLocalPart();
 
     @Override
     public Criterion match(ItemRestrictionOperation operation, String propertyName, String value, String matcher)

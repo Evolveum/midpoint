@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -35,42 +38,37 @@ import org.hibernate.criterion.Restrictions;
  */
 public class PolyStringMatcher extends Matcher<PolyString> {
 
-    public static final String STRICT = "strict";
+    //todo will be changed to QNames later (after query api update)
+    public static final String STRICT = PolyStringStrictMatchingRule.NAME.getLocalPart();
+    public static final String ORIG = PolyStringOrigMatchingRule.NAME.getLocalPart();
+    public static final String NORM = PolyStringNormMatchingRule.NAME.getLocalPart();
+
     public static final String STRICT_IGNORE_CASE = "strictIgnoreCase";
-    public static final String ORIG = "orig";
     public static final String ORIG_IGNORE_CASE = "origIgnoreCase";
-    public static final String NORM = "norm";
     public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
     @Override
     public Criterion match(ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
             throws QueryException {
 
-        boolean ignoreCase = STRICT_IGNORE_CASE.equalsIgnoreCase(matcher)
-                || ORIG_IGNORE_CASE.equalsIgnoreCase(matcher)
-                || NORM_IGNORE_CASE.equalsIgnoreCase(matcher);
+        boolean ignoreCase = STRICT_IGNORE_CASE.equals(matcher)
+                || ORIG_IGNORE_CASE.equals(matcher)
+                || NORM_IGNORE_CASE.equals(matcher);
 
-        if (StringUtils.isEmpty(matcher) || startsWith(STRICT, matcher)) {
+        if (StringUtils.isEmpty(matcher)
+                || STRICT.equals(matcher) || STRICT_IGNORE_CASE.equals(matcher)) {
             Conjunction conjunction = Restrictions.conjunction();
             conjunction.add(createOrigMatch(operation, propertyName, value, ignoreCase));
             conjunction.add(createNormMatch(operation, propertyName, value, ignoreCase));
 
             return conjunction;
-        } else if (startsWith(ORIG, matcher)) {
+        } else if (ORIG.equals(matcher) || ORIG_IGNORE_CASE.equals(matcher)) {
             return createOrigMatch(operation, propertyName, value, ignoreCase);
-        } else if (startsWith(NORM, matcher)) {
+        } else if (NORM.equals(matcher) || NORM_IGNORE_CASE.equals(matcher)) {
             return createNormMatch(operation, propertyName, value, ignoreCase);
         } else {
             throw new QueryException("Unknown matcher '" + matcher + "'.");
         }
-    }
-
-    private boolean startsWith(String startsWith, String text) {
-        if (StringUtils.isEmpty(text)) {
-            return false;
-        }
-
-        return text.toLowerCase().startsWith(startsWith.toLowerCase());
     }
 
     private Criterion createNormMatch(ItemRestrictionOperation operation, String propertyName, PolyString value,
