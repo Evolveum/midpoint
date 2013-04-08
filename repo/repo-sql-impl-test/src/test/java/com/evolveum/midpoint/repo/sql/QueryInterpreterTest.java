@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -212,6 +214,33 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void queryUserByName2() throws Exception {
+        LOGGER.info("===[{}]===", new Object[]{"queryUserByName"});
+        Session session = open();
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        PolyString fullName = new PolyString("micky.mouse01");
+        fullName.recompute(prismContext.getDefaultPolyStringNormalizer());
+        main.add(Restrictions.eq("fullName.norm", fullName.getNorm()));
+
+        main.list();
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
+                "micky.mouse01");
+
+        main = getInterpretedQueryCriteria(session, UserType.class, filter);
+        main.list();
+
+        String real = getInterpretedQuery(session, UserType.class,filter);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
     public void queryConnectorByType() throws Exception {
         LOGGER.info("===[{}]===", new Object[]{"queryConnectorByType"});
         Session session = open();
@@ -280,32 +309,36 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         close(session);
     }
 
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectFilter filter) throws
-            QueryException, SchemaException, FileNotFoundException, JAXBException {
+    private <T extends ObjectType> Criteria getInterpretedQueryCriteria(Session session, Class<T> type,
+                                                                         ObjectFilter filter) throws QueryException,
+            SchemaException, FileNotFoundException, JAXBException {
 
         QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", filter.debugDump(3));
 
-        Criteria criteria = interpreter.interpret(filter);
+        LOGGER.info("QUERY TYPE TO CONVERT : {}", filter.dump());
 
-        return HibernateToSqlTranslator.toSql(criteria);
+        return interpreter.interpret(filter);
+    }
+
+    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectFilter filter) throws
+            QueryException, SchemaException, FileNotFoundException, JAXBException {
+        return HibernateToSqlTranslator.toSql(getInterpretedQueryCriteria(session, type, filter));
     }
 
     private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
             QueryException, SchemaException, FileNotFoundException, JAXBException {
 
-        QueryInterpreter interpreter = new QueryInterpreter(session, type, prismContext);
-
-        Document document = DOMUtil.parseFile(file);
         QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
-        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-
         LOGGER.info("QUERY TYPE TO CONVERT : {}", QueryUtil.dump(queryType));
 
-        ObjectQuery  query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
+        ObjectQuery query = null;
+        try {
+            query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
+        } catch (Exception ex) {
+            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
+        }
 
-        Criteria criteria = interpreter.interpret(query.getFilter());
-        return HibernateToSqlTranslator.toSql(criteria);
+        return getInterpretedQuery(session, type, query.getFilter());
     }
 
     private Session open() {

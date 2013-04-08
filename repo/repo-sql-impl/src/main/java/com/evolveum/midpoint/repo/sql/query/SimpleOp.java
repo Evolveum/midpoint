@@ -26,6 +26,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Conjunction;
@@ -33,10 +35,6 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -136,7 +134,16 @@ public class SimpleOp extends Op {
 						filterValue = ((PolyStringType) filterValue).getNorm();
 					} else if (filterValue instanceof PolyString){
 						filterValue = ((PolyString) filterValue).getNorm();
-					}
+                    } else if (filterValue instanceof String) {
+                        if (filterValue != null) {
+                            PrismContext prismContext = getInterpreter().getPrismContext();
+                            PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
+                            PolyString poly = new PolyString((String) filterValue);
+                            poly.recompute(normalizer);
+
+                            filterValue = poly.getNorm();
+                        }
+                    }
 				}
 				// }
 				break;
