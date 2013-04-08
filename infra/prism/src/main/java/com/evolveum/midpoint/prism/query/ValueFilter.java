@@ -9,6 +9,7 @@ public abstract class ValueFilter extends ObjectFilter {
 	
 	private ItemPath parentPath;
 	private ItemDefinition definition;
+	private String matchingRule;
 	
 	public ValueFilter() {
 		// TODO Auto-generated constructor stub
@@ -17,6 +18,19 @@ public abstract class ValueFilter extends ObjectFilter {
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition){
 		this.parentPath = parentPath;
 		this.definition = definition;
+	}
+	
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule){
+		this.parentPath = parentPath;
+		this.definition = definition;
+		this.matchingRule = matchingRule;
+	}
+	
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, Element expression){
+		super(expression);
+		this.parentPath = parentPath;
+		this.definition = definition;
+		this.matchingRule = matchingRule;
 	}
 	
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition, Element expression){
@@ -41,10 +55,19 @@ public abstract class ValueFilter extends ObjectFilter {
 		this.parentPath = path;
 	}
 	
+	public String getMatchingRule() {
+		return matchingRule;
+	}
+	
+	public void setMatchingRule(String matchingRule) {
+		this.matchingRule = matchingRule;
+	}
+	
 	protected void cloneValues(ValueFilter clone) {
 		super.cloneValues(clone);
 		clone.parentPath = this.parentPath;
 		clone.definition = this.definition;
+		clone.matchingRule = this.matchingRule;
 	}
 
 }

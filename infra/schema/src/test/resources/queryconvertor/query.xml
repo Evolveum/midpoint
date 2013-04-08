@@ -27,10 +27,12 @@
 		<equal>
 			<path>c:failedOperationType</path>
 			<value>add</value>
+			<matching>insensitive</matching>
 		</equal>
 		<equal>
 			<path>c:name</path>
 			<value>someName</value>
+			<matching>norm</matching>
 		</equal>
 	</and>
 </query>

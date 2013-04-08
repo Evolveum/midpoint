@@ -77,7 +77,19 @@
                  <jaxb:dom/> 
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="matching" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Property which specifies matching rules. E.g. for poluString, 
+                        matching rules can be: norm, orig, strict etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:element name="matching" type="xsd:string"/>
     
     <xsd:complexType name="PagingType">
         <xsd:annotation>

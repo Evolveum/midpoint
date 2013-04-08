@@ -29,8 +29,8 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, List<? extends PrismValue> values) {
-		super(path, definition);
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, String matchingRule, List<? extends PrismValue> values) {
+		super(path, definition, matchingRule);
 		this.values = values;
 	}
 	
@@ -42,6 +42,10 @@ public abstract class PropertyValueFilter extends ValueFilter{
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, Element expression) {
 		super(path, definition, expression);
+	}
+	
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, String matchingRule, Element expression) {
+		super(path, definition, matchingRule, expression);
 	}
 	
 	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, PrismValue value){

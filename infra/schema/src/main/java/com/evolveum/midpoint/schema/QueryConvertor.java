@@ -171,7 +171,11 @@ public class QueryConvertor {
 		Element equal = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_EQUAL);
 		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
 //		equal.appendChild(value);
-
+		
+		Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
+		matching.setTextContent(filter.getMatchingRule());
+		equal.appendChild(matching);
+		
 		Element path = createPathElement(filter, doc);
 		equal.appendChild(path);
 
@@ -252,6 +256,10 @@ public class QueryConvertor {
 
 		Element path = createPathElement(filter, doc);
 		substring.appendChild(path);
+		
+		Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
+		matching.setTextContent(filter.getMatchingRule());
+		substring.appendChild(matching);
 
 //		QName propertyName = filter.getDefinition().getName();
 		String val = filter.getValue();
@@ -383,6 +391,17 @@ public class QueryConvertor {
 		throw new SchemaException("Could not convert query, because query does not contain property path.");	
 		}
 		
+		
+		String matchingRule = null;
+		Element matching = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_MATCHING);
+		if (matching != null){
+			if (!(matching.getTextContent() instanceof String)){
+				throw new SchemaException("Matching type must be string. Fix your query definition");
+		}
+			 matchingRule = matching.getTextContent();
+		}
+		
+		
 		List<Element> values = getValues(filter);
 		
 		if (values == null || values.isEmpty()){
@@ -391,7 +410,7 @@ public class QueryConvertor {
 				expression = DOMUtil.findElementRecursive((Element) filter, SchemaConstantsGenerated.C_VALUE_EXPRESSION);
 			}
 			ItemDefinition itemDef = pcd.findItemDefinition(path);
-			return EqualsFilter.createEqual(path.allExceptLast(), itemDef, expression);
+			return EqualsFilter.createEqual(path.allExceptLast(), itemDef, matchingRule, expression);
 		}
 		
 		if (path.last() == null){
@@ -420,7 +439,7 @@ public class QueryConvertor {
 				throw new IllegalStateException("Single value property "+itemDef.getName()+"should have specified only one value.");
 			}
 		}
-		return EqualsFilter.createEqual(path, itemDef, item.getValues());
+		return EqualsFilter.createEqual(path, itemDef, matchingRule, item.getValues());
 	}
 	
 	private static RefFilter createRefFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException{
@@ -503,6 +522,18 @@ public class QueryConvertor {
 		if (path == null || path.isEmpty()){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
+		
+		Element matching = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_MATCHING);
+		
+		String matchingRule = null;
+		if (matching != null) {
+			if (!(matching.getTextContent() instanceof String)) {
+				throw new SchemaException("Matching type must be string. Fix your query definition");
+			}
+			matchingRule = matching.getTextContent();
+		}
+		 
+		
 		List<Element> values = getValues(filter);
 
 		if (path.last() == null){
@@ -527,7 +558,7 @@ public class QueryConvertor {
 
 		String substring = values.get(0).getTextContent();
 
-		return SubstringFilter.createSubstring(path, itemDef, substring);
+		return SubstringFilter.createSubstring(path, itemDef, matchingRule, substring);
 	}
 
 	private static OrgFilter createOrgFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {

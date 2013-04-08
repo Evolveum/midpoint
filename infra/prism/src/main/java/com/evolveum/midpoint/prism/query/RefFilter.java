@@ -23,8 +23,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class RefFilter extends PropertyValueFilter{
 	
-	RefFilter(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values) {
-		super(path, definition, values);
+	RefFilter(ItemPath path, ItemDefinition definition, String matchingRule, List<PrismReferenceValue> values) {
+		super(path, definition, matchingRule, values);
 	}
 		
 	RefFilter(ItemPath path, ItemDefinition definition, PrismReferenceValue value) {
@@ -36,7 +36,7 @@ public class RefFilter extends PropertyValueFilter{
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values){
-		return new RefFilter(path, definition, values);
+		return new RefFilter(path, definition, null, values);
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, Element expression){
@@ -77,7 +77,7 @@ public class RefFilter extends PropertyValueFilter{
 
 	@Override
 	public RefFilter clone() {
-		RefFilter clone = new RefFilter(getParentPath(), getDefinition(), (List<PrismReferenceValue>) getValues());
+		RefFilter clone = new RefFilter(getParentPath(), getDefinition(), getMatchingRule(), (List<PrismReferenceValue>) getValues());
 		cloneValues(clone);
 		return clone;
 	}
@@ -96,7 +96,7 @@ public class RefFilter extends PropertyValueFilter{
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("EQUALS: \n");
+		sb.append("REF: \n");
 		
 		if (getParentPath() != null){
 			DebugUtil.indentDebugDump(sb, indent+1);

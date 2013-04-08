@@ -10,7 +10,12 @@ public abstract class StringValueFilter extends ValueFilter{
 	public StringValueFilter(ItemPath parentPath, ItemDefinition definition, String value) {
 		super(parentPath, definition);
 		this.value = value;
-	}	
+	}
+	
+	public StringValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, String value) {
+		super(parentPath, definition, matchingRule);
+		this.value = value;
+	}
 	
 	public String getValue() {
 		return value;

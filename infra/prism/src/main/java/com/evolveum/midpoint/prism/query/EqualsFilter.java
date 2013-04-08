@@ -30,11 +30,11 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	EqualsFilter(){	
 	}
 	
-	EqualsFilter(ItemPath parentPath, ItemDefinition definition, List<PrismValue> values) {
-		super(parentPath, definition, values);
+	EqualsFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, List<PrismValue> values) {
+		super(parentPath, definition, matchingRule, values);
 	}
 
-	EqualsFilter(ItemPath parentPath, ItemDefinition definition, PrismValue value) {
+	EqualsFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, PrismValue value) {
 		super(parentPath, definition, value);
 	}
 	
@@ -42,19 +42,32 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		super(parentPath, definition, expression);
 	}
 	
+	EqualsFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, Element expression) {
+		super(parentPath, definition, matchingRule, expression);
+	}
+	
 	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, PrismValue value) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-		return new EqualsFilter(path, itemDef, value);
+		return new EqualsFilter(path, itemDef, null, value);
+	}
+	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, String matchingRule, PrismValue value) {
+		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
+		return new EqualsFilter(path, itemDef, matchingRule, value);
 	}
 
-	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, List<PrismValue> values) {
+	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, String matchingRule, List<PrismValue> values) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-		return new EqualsFilter(path, itemDef, values);
+		return new EqualsFilter(path, itemDef, matchingRule, values);
 	}
 
 	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, Element expression) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(path, itemDef, expression);
+	}
+	
+	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, String matchingRule, Element expression) {
+		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
+		return new EqualsFilter(path, itemDef, matchingRule, expression);
 	}
 
 	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition item, Object realValue) {
@@ -83,7 +96,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	
 	@Override
 	public EqualsFilter clone() {
-		EqualsFilter clone = new EqualsFilter(getParentPath(), getDefinition(), (List<PrismValue>) getValues());
+		EqualsFilter clone = new EqualsFilter(getParentPath(), getDefinition(), getMatchingRule(), (List<PrismValue>) getValues());
 		cloneValues(clone);
 		return clone;
 	}
@@ -125,10 +138,21 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 			indent += 1;
 			for (PrismValue val : getValues()) {
 				sb.append(val.debugDump(indent));
+				
 			}
+			sb.append("\n");
 		} else {
 			DebugUtil.indentDebugDump(sb, indent);
 			sb.append("null\n");
+		}
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("MATCHING: ");
+		if (getMatchingRule() != null) {
+			indent += 1;
+				sb.append(getMatchingRule());
+		} else {
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append("default\n");
 		}
 		return sb.toString();
 	}

@@ -20,12 +20,20 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class SubstringFilter extends StringValueFilter {
 
-	public SubstringFilter(ItemPath parentPath, ItemDefinition definition, String value) {
+	SubstringFilter(ItemPath parentPath, ItemDefinition definition, String value) {
+		super(parentPath, definition, value);
+	}
+	
+	SubstringFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, String value) {
 		super(parentPath, definition, value);
 	}
 
 	public static SubstringFilter createSubstring(ItemPath path, ItemDefinition definition, String value) {
 		return new SubstringFilter(path, definition, value);
+	}
+	
+	public static SubstringFilter createSubstring(ItemPath path, ItemDefinition definition, String matchingRule, String value) {
+		return new SubstringFilter(path, definition, matchingRule, value);
 	}
 	
 	public static SubstringFilter createSubstring(Class clazz, PrismContext prismContext, QName propertyName, String value) {
@@ -75,9 +83,19 @@ public class SubstringFilter extends StringValueFilter {
 		if (getValue() != null) {
 			DebugUtil.indentDebugDump(sb, indent);
 			sb.append(getValue());
+			sb.append("\n");
 		} else {
 			DebugUtil.indentDebugDump(sb, indent);
 			sb.append("null\n");
+		}
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("MATCHING: ");
+		if (getMatchingRule() != null) {
+			indent += 1;
+				sb.append(getMatchingRule());
+		} else {
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append("default\n");
 		}
 		return sb.toString();
 	}
