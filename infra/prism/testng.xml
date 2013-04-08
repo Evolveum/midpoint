@@ -42,6 +42,7 @@
 			<class name="com.evolveum.midpoint.prism.TestPath"/>
 			<class name="com.evolveum.midpoint.prism.TestFind"/>
 			<class name="com.evolveum.midpoint.prism.TestObjectQuery"/>
+			<class name="com.evolveum.midpoint.prism.match.TestMatchingRule"/>
         </classes>
     </test>
 </suite>

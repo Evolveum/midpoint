@@ -161,8 +161,9 @@ public class UserPolicyProcessor {
 			// TODO
 			ItemDelta<? extends PrismValue> apropriItemDelta = null;
 			
-			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple, userDefinition.findItemDefinition(itemPath),
-					apropriItemDelta, userOdo.getNewObject(), true, true, "user template "+userTemplate, true);
+			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
+					userDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
+					true, true, "user template "+userTemplate, true);
 			
 			itemDelta.simplify();
 			itemDelta.validate("user template "+userTemplate);

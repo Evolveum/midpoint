@@ -23,8 +23,11 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -148,6 +152,13 @@ public class TestSynchronization extends AbstractIntegrationTest {
 			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
 			
 			assertEquals("Synchronization service was not called.", true, mock.wasCalledNotifyChange());
+			
+			ResourceObjectShadowChangeDescription lastChange = mock.getLastChange();
+//			ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
+//			assertNotNull("Null object delta in change notification", objectDelta);
+//			assertEquals("Wrong change type in delta in change notification", ChangeType.ADD, objectDelta.getChangeType());
+			assertNotNull("No current shadow in change notification", lastChange.getCurrentShadow());
+			assertNotNull("No old shadow in change notification", lastChange.getOldShadow());
 
 		} finally {
 			repositoryService.deleteObject(TaskType.class, SYNC_TASK_OID, result);

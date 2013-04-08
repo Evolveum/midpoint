@@ -28,12 +28,15 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -163,7 +166,7 @@ public class LensUtil {
 	 */
 	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
-    		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer,
+    		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer, ValueMatcher<?> valueMatcher,
     		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
     	
 		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
@@ -260,7 +263,7 @@ public class LensUtil {
                     		"skipping adding in {}", new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
-                if (filterExistingValues && hasValue(itemExisting, value)) {
+                if (filterExistingValues && hasValue(itemExisting, value, valueMatcher)) {
                 	LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
@@ -312,7 +315,7 @@ public class LensUtil {
                     		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
-                if (filterExistingValues && !hasValue(itemExisting, value)) {
+                if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher)) {
                 	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value in {}",
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
@@ -408,11 +411,15 @@ public class LensUtil {
 		return values;
 	}
 	
-	private static <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue) {
+	private static <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue, ValueMatcher<?> valueMatcher) {
 		if (existingUserItem == null) {
 			return false;
 		}
-		return existingUserItem.contains(newValue, true);
+		if (valueMatcher != null && newValue instanceof PrismPropertyValue) {
+			return valueMatcher.hasRealValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
+		} else {
+			return existingUserItem.contains(newValue, true);
+		}
 	}
 	
 	private static <V extends PrismValue> Collection<V> collectAllValues(DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple) {

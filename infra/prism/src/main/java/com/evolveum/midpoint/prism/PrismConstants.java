@@ -47,6 +47,9 @@ public class PrismConstants {
 	public static final String PREFIX_NS_TYPES = "t";
 	public static final String NS_QUERY = NS_PREFIX + "query-2";
 	public static final String PREFIX_NS_QUERY = "q";
+	
+	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-2";
+	public static final String PREFIX_NS_MATCHING = "mr";
 
 	// Annotations
 

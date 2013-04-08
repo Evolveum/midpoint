@@ -37,6 +37,8 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
 
+	// NAMESPACES
+	
 	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-2";
 	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
@@ -44,7 +46,11 @@ public abstract class SchemaConstants {
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	public static final String NS_C_PREFIX = "c";
 	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2";
-	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";
+	public static final String NS_FILTER = NS_MIDPOINT_PUBLIC + "/common/value-filter-1.xsd";
+	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-2";
+	
+	// COMMON NAMESPACE
+	
 	public static final QName C_FILTER_TYPE_URI = new QName(NS_QUERY, "uri");
 	public static final QName C_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_OBJECT = new QName(NS_C, "object");

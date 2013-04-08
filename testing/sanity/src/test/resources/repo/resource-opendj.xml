@@ -29,6 +29,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
@@ -137,6 +138,8 @@ This is now the only account type that midPoint can work with. -->
             will make it immutable. -->
                 <access>create</access>
                 <access>read</access>
+                
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
 
                 <!-- Outbound expression for the __NAME__ attribute.
       If account is created or updated, the __NAME__ attribute
@@ -150,7 +153,7 @@ This is now the only account type that midPoint can work with. -->
 
       It is an XPath expression, similar to BPEL assignment expressions. -->
                 <outbound>
-                    <strength>weak</strength>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
 						<path>$user/name</path>
 					</source>
@@ -191,6 +194,8 @@ This is now the only account type that midPoint can work with. -->
            do anything with this attribute. -->
 
                 <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
+                
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
 
             </attribute>
 
@@ -252,6 +257,7 @@ This is now the only account type that midPoint can work with. -->
                 <access>create</access>
                 <access>read</access>
                 <access>update</access>
+                
                 <outbound>
                 	<source>
                 		<path>$c:user/c:familyName</path>
@@ -330,11 +336,17 @@ This is now the only account type that midPoint can work with. -->
                 <displayName>Login Name</displayName>
                 <access>create</access>
                 <access>read</access>
+                
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                
                 <outbound>
                 	<description>
                 		It is mapped from (and also to) "name" property of user. It is essentially a login name.
                 		This outbound construction is using a Groovy expression.
                 	</description>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
                 	<source>
                 		<path>$user/name</path>
                 	</source>

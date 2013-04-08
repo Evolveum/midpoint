@@ -39,6 +39,7 @@ import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -82,6 +84,9 @@ public class ReconciliationProcessor {
 
 	@Autowired(required=true)
 	PrismContext prismContext;
+
+	@Autowired(required=true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 	
     public static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName() + ".processReconciliation";
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
@@ -192,6 +197,8 @@ public class ReconciliationProcessor {
         	// Too loud :-)
         	//LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
+        	ValueMatcher<?> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
+        	
         	boolean hasValue = false;
         	for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePvwo: shouldBePValues) {
         		Mapping<?> shouldBeMapping = shouldBePvwo.getMapping();
@@ -203,7 +210,7 @@ public class ReconciliationProcessor {
         			continue;
         		}
         		Object shouldBeRealValue = shouldBePvwo.getPropertyValue().getValue();
-        		if (!isInValues(shouldBeRealValue, arePValues)) {
+        		if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
         			if (attributeDefinition.isSingleValue()) {
 	        			if (hasValue) {
 	        				throw new SchemaException("Attept to set more than one value for single-valued attribute "+attrName+" in "+accCtx.getResourceShadowDiscriminator());
@@ -246,12 +253,12 @@ public class ReconciliationProcessor {
 		accCtx.addToSecondaryDelta(attrDelta);
 	}
 
-	private boolean isInValues(Object shouldBeValue, Collection<PrismPropertyValue<Object>> arePValues) {
+	private boolean isInValues(ValueMatcher valueMatcher, Object shouldBeValue, Collection<PrismPropertyValue<Object>> arePValues) {
 		if (arePValues == null || arePValues.isEmpty()) {
 			return false;
 		}
 		for (PrismPropertyValue<Object> isPValue: arePValues) {
-			if (isPValue.getValue().equals(shouldBeValue)) {
+			if (valueMatcher.match(isPValue.getValue(), shouldBeValue)) {
 				return true;
 			}
 		}

@@ -264,6 +264,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = REQUEST_DIR_NAME + "user-modify-password.xml";
     private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = REQUEST_DIR_NAME + "user-modify-activation-disable.xml";
     private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = REQUEST_DIR_NAME + "user-modify-activation-enable.xml";
+    private static final String REQUEST_USER_MODIFY_NAME_FILENAME = REQUEST_DIR_NAME + "user-modify-name.xml";
 
     private static final String REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME = REQUEST_DIR_NAME + "user-modify-add-role-pirate.xml";
     private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME = REQUEST_DIR_NAME + "user-modify-add-role-captain-1.xml";
@@ -1139,13 +1140,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
     /**
      * We are going to modify the user. As the user has an account, the user
      * changes should be also applied to the account (by schemaHandling).
-     *
-     * @throws DirectoryException
      */
     @Test
-    public void test020ModifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException {
-        displayTestTile("test020ModifyUser");
+    public void test020ModifyUser() throws Exception {
+    	final String TEST_NAME = "test020ModifyUser";
+        displayTestTile(TEST_NAME);
         // GIVEN
 
         assertNoRepoCache();
@@ -1199,21 +1198,38 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
-
+        assertOpenDJAccountJack(uid, "jack");
+    }
+    
+    private SearchResultEntry assertOpenDJAccountJack(String entryUuid, String uid) throws DirectoryException {
+    	SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
+    	return assertOpenDJAccountJack(entry, uid);
+    }
+    
+    private SearchResultEntry assertOpenDJAccountJack(SearchResultEntry entry, String uid) throws DirectoryException {
+    	return assertOpenDJAccountJack(entry, uid, "Jack");
+    }
+    
+    private SearchResultEntry assertOpenDJAccountJack(SearchResultEntry entry, String uid, String givenName) throws DirectoryException {
         display(entry);
-
-        OpenDJController.assertAttribute(entry, "uid", "jack");
-        OpenDJController.assertAttribute(entry, "givenName", "Jack");
-        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-        // These two should be assigned from the User modification by
-        // schemaHandling
-        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
-        // This will get translated from "somewhere" to this (outbound expression in schemeHandling)
-        OpenDJController.assertAttribute(entry, "l", "There there over the corner");
-        OpenDJController.assertAttribute(entry, "postalAddress", "Number 1");
-
+        
+	    OpenDJController.assertDn(entry, "uid="+uid+",ou=people,dc=example,dc=com");
+	    OpenDJController.assertAttribute(entry, "uid", uid);
+	    if (givenName == null) {
+	    	OpenDJController.assertAttribute(entry, "givenName");
+	    } else {
+	    	OpenDJController.assertAttribute(entry, "givenName", givenName);
+	    }
+	    OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+	    // These two should be assigned from the User modification by
+	    // schemaHandling
+	    OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+	    OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
+	    // This will get translated from "somewhere" to this (outbound expression in schemeHandling)
+	    OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+	    OpenDJController.assertAttribute(entry, "postalAddress", "Number 1");
+	    
+	    return entry;
     }
 
     /**
@@ -1275,19 +1291,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
-        display(entry);
-
-        OpenDJController.assertAttribute(entry, "uid", "jack");
-        OpenDJController.assertAttribute(entry, "givenName", "Jack");
-        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-        // These two should be assigned from the User modification by
-        // schemaHandling
-        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "l", "There there over the corner");
-
+        SearchResultEntry entry = assertOpenDJAccountJack(uid, "jack");
+        
         String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull(passwordAfter);
 
@@ -1309,20 +1314,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME, ObjectModificationType.class);
 
         SearchResultEntry entry = openDJController.searchByUid("jack");
-        display(entry);
-
-        OpenDJController.assertAttribute(entry, "uid", "jack");
-        OpenDJController.assertAttribute(entry, "givenName", "Jack");
-        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-        // These two should be assigned from the User modification by
-        // schemaHandling
-        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+        assertOpenDJAccountJack(entry, "jack");
 
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
-        System.out.println("ds-pwp-account-disabled before change: " + pwpAccountDisabled);
-        System.out.println();
+        display("ds-pwp-account-disabled before change", pwpAccountDisabled);
         assertNull(pwpAccountDisabled);
         assertNoRepoCache();
 
@@ -1406,21 +1401,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if LDAP account was updated
 
         entry = openDJController.searchAndAssertByEntryUuid(uid);
-        display(entry);
-
-        OpenDJController.assertAttribute(entry, "uid", "jack");
-        OpenDJController.assertAttribute(entry, "givenName", "Jack");
-        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-        // These two should be assigned from the User modification by
-        // schemaHandling
-        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+        assertOpenDJAccountJack(entry, "jack");
 
         pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
         assertNotNull(pwpAccountDisabled);
 
-        System.out.println("ds-pwp-account-disabled after change: " + pwpAccountDisabled);
+        display("ds-pwp-account-disabled after change", pwpAccountDisabled);
 
         assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", pwpAccountDisabled);
     }
@@ -1519,16 +1505,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if LDAP account was updated
 
         SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
-        display(entry);
-
-        OpenDJController.assertAttribute(entry, "uid", "jack");
-        OpenDJController.assertAttribute(entry, "givenName", "Jack");
-        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-        // These two should be assigned from the User modification by
-        // schemaHandling
-        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+        assertOpenDJAccountJack(entry, "jack");
 
         // The value of ds-pwp-account-disabled should have been removed
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
@@ -1629,6 +1606,65 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
     
+    @Test
+    public void test047RenameUser() throws Exception {
+    	final String TEST_NAME = "test047RenameUser";
+        displayTestTile(TEST_NAME);
+        // GIVEN
+
+        assertNoRepoCache();
+
+        ObjectModificationType objectChange = unmarshallJaxbFromFile(
+        		REQUEST_USER_MODIFY_NAME_FILENAME, ObjectModificationType.class);
+
+        // WHEN
+        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+        // THEN
+        assertNoRepoCache();
+        displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
+        assertSuccess("modifyObject has failed", result);
+
+        // Check if user object was modified in the repo
+
+        OperationResult repoResult = new OperationResult("getObject");
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
+        UserType repoUserType = repoUser.asObjectable(); 
+        display("repository user", repoUser);
+
+        PrismAsserts.assertEqualsPolyString("wrong value for User name", "jsparrow", repoUserType.getName());
+        PrismAsserts.assertEqualsPolyString("wrong value for User fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
+        PrismAsserts.assertEqualsPolyString("wrong value for User locality", "somewhere", repoUserType.getLocality());
+        assertEquals("wrong value for employeeNumber", "1", repoUserType.getEmployeeNumber());
+
+        // Check if appropriate accountRef is still there
+
+        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        assertEquals(1, accountRefs.size());
+        ObjectReferenceType accountRef = accountRefs.iterator().next();
+        assertEquals("Wrong OID in "+accountRef+" in "+repoUserType,
+        		accountShadowOidOpendj, accountRef.getOid());
+
+        // Check if shadow is still in the repo and that it is untouched
+
+        repoResult = new OperationResult("getObject");
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
+        repoResult.computeStatus();
+        assertSuccess("getObject(repo) has failed", repoResult);
+        display("repository shadow", repoShadow);
+        AssertJUnit.assertNotNull(repoShadow);
+        ShadowType repoShadowType = repoShadow.asObjectable();
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+
+        String uid = checkRepoShadow(repoShadow);
+
+        // Check if LDAP account was updated
+        assertOpenDJAccountJack(uid, "jsparrow");
+    }
+
+    
     /**
      * We are going to modify the user. As the user has an account, the user
      * changes should be also applied to the account (by schemaHandling).
@@ -1687,20 +1723,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if LDAP account was updated
         SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
-
-        display(entry);
-
-        OpenDJController.assertAttribute(entry, "uid", "jack");
-        OpenDJController.assertNoAttribute(entry, "givenName");
-        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-        // These two should be assigned from the User modification by
-        // schemaHandling
-        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
-        // This will get translated from "somewhere" to this (outbound expression in schemeHandling)
-        OpenDJController.assertAttribute(entry, "l", "There there over the corner");
-        OpenDJController.assertAttribute(entry, "postalAddress", "Number 1");
-
+        assertOpenDJAccountJack(entry, "jsparrow", null);
     }
 
     /**
@@ -2368,40 +2391,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
 
-
-    @Test
-    public void test060ListResourcesWithBrokenResource() throws Exception {
-        displayTestTile("test060ListResourcesWithBrokenResource");
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test060ListResourcesWithBrokenResource");
-        final OperationResult result = task.getResult();
-
-        // WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
-
-        // THEN
-        assertNotNull("listObjects returned null list", resources);
-
-        for (PrismObject<ResourceType> object : resources) {
-            ResourceType resource = object.asObjectable();
-            //display("Resource found",resource);
-            display("Found " + ObjectTypeUtil.toShortString(resource) + ", result " + (resource.getFetchResult() == null ? "null" : resource.getFetchResult().getStatus()));
-
-            assertNotNull(resource.getOid());
-            assertNotNull(resource.getName());
-
-            if (resource.getOid().equals(RESOURCE_BROKEN_OID)) {
-                assertEquals("No error in fetchResult in " + ObjectTypeUtil.toShortString(resource), OperationResultStatusType.FATAL_ERROR, resource.getFetchResult().getStatus());
-            } else {
-                assertTrue("Unexpected error in fetchResult in " + ObjectTypeUtil.toShortString(resource),
-                        resource.getFetchResult() == null || resource.getFetchResult().getStatus() == OperationResultStatusType.SUCCESS);
-            }
-
-        }
-
-    }
-
+    
     // Synchronization tests
 
     /**
@@ -3346,6 +3336,39 @@ public class TestSanity extends AbstractModelIntegrationTest {
         	String xml = PrismTestUtil.marshalToString(object);
         }
         
+    }
+    
+    @Test
+    public void test410ListResourcesWithBrokenResource() throws Exception {
+        displayTestTile("test060ListResourcesWithBrokenResource");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test060ListResourcesWithBrokenResource");
+        final OperationResult result = task.getResult();
+
+        // WHEN
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
+
+        // THEN
+        assertNotNull("listObjects returned null list", resources);
+
+        for (PrismObject<ResourceType> object : resources) {
+            ResourceType resource = object.asObjectable();
+            //display("Resource found",resource);
+            display("Found " + ObjectTypeUtil.toShortString(resource) + ", result " + (resource.getFetchResult() == null ? "null" : resource.getFetchResult().getStatus()));
+
+            assertNotNull(resource.getOid());
+            assertNotNull(resource.getName());
+
+            if (resource.getOid().equals(RESOURCE_BROKEN_OID)) {
+                assertEquals("No error in fetchResult in " + ObjectTypeUtil.toShortString(resource), OperationResultStatusType.FATAL_ERROR, resource.getFetchResult().getStatus());
+            } else {
+                assertTrue("Unexpected error in fetchResult in " + ObjectTypeUtil.toShortString(resource),
+                        resource.getFetchResult() == null || resource.getFetchResult().getStatus() == OperationResultStatusType.SUCCESS);
+            }
+
+        }
+
     }
     
     @Test

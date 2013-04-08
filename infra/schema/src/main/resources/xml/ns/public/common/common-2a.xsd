@@ -2765,6 +2765,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+            <xsd:element name="matchingRule" type="xsd:QName" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specification of a mathing rule for an attribute. Matching rule is used to compare values
+            			of the attribute. The default rule is a literal comparison which is good for most attribute
+            			types and for case-sensitive strings. An alternative matching rule may be specified e.g.
+            			for case insensitive strings.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>

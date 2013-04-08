@@ -48,6 +48,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
@@ -504,6 +505,13 @@ public class OpenDJController extends AbstractResourceController {
 				1, attrs.size());
 		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
 		return attribute.iterator().next().getValue().toString();
+	}
+	
+	public static void assertDn(SearchResultEntry response, String expected) throws DirectoryException {
+		DN actualDn = response.getDN();
+		if (actualDn.compareTo(DN.decode(expected)) != 0) {
+			AssertJUnit.fail("Wrong DN, expected "+expected+" but was "+actualDn.toString());
+		}
 	}
 
 	public static void assertAttribute(SearchResultEntry response, String name, String... values) {

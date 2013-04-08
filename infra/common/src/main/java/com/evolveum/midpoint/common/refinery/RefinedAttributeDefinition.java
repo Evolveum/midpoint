@@ -57,6 +57,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private MappingType outboundMappingType;
     private List<MappingType> inboundMappingTypes;
     private Map<LayerType,PropertyLimitations> limitationsMap = new HashMap<LayerType, PropertyLimitations>();
+    private QName matchingRuleQName = null;
 
     protected RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getDefaultName(), attrDef.getTypeName(), prismContext);
@@ -280,6 +281,14 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		this.fetchStrategy = fetchStrategy;
 	}
 
+	public QName getMatchingRuleQName() {
+		return matchingRuleQName;
+	}
+
+	public void setMatchingRuleQName(QName matchingRuleQName) {
+		this.matchingRuleQName = matchingRuleQName;
+	}
+
 	static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
     		ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext, 
                                             String contextDescription) throws SchemaException {
@@ -296,6 +305,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
         if (schemaHandlingAttrDefType != null) {
         	rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
+        	rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
         }
         
         PropertyLimitations schemaLimitations = getOrCreateLimitations(rAttrDef.limitationsMap, LayerType.SCHEMA);

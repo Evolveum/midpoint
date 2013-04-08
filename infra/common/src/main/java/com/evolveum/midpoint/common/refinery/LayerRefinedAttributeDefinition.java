@@ -395,6 +395,10 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 		return refinedAttributeDefinition.getHelp();
 	}
 
+	public QName getMatchingRuleQName() {
+		return refinedAttributeDefinition.getMatchingRuleQName();
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

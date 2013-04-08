@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -94,9 +95,12 @@ public class ConsolidationProcessor {
     
     @Autowired(required = true)
     private ProvisioningService provisioningService;
-    
+
     @Autowired(required=true)
-    PrismContext prismContext;
+	private MatchingRuleRegistry matchingRuleRegistry;
+
+    @Autowired(required=true)
+    PrismContext prismContext;    
 
     /**
      * Converts delta set triples to a secondary account deltas.
@@ -189,69 +193,84 @@ public class ConsolidationProcessor {
         // Iterate and process each attribute separately. Now that we have squeezed the data we can process each attribute just
         // with the data in ItemValueWithOrigin triples.
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry : squeezedAttributes.entrySet()) {
-            QName attributeName = entry.getKey();
-            ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, attributeName);
-            DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> triple = entry.getValue();
-
-            LOGGER.trace("Consolidating account {}, attribute {}", rat, attributeName);
-                        
-            RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
-            
-            boolean forceAddUnchangedValues = false;
-            PropertyDelta<?> existingAttributeDelta = null;
-            if (existingDelta != null ) {
-            	existingAttributeDelta = existingDelta.findPropertyDelta(attributePath);
-            }
-            if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
-            	// We need to add all values if there is replace delta. Otherwise the zero-set values will be
-            	// lost
-            	forceAddUnchangedValues = true;
-            }
-            
-            // Use this common utility method to do the computation. It does most of the work.
-			PropertyDelta<?> propDelta = (PropertyDelta<?>) LensUtil.consolidateTripleToDelta(
-					attributePath, (DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
-            		addUnchangedValues || forceAddUnchangedValues, false, "account " + rat, completeAccount);
-			
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
-			}
-            
-			if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
-				// We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
-				// state and all the values needs to be passed on
-				LOGGER.trace("Skipping consolidaiton with sync delta as there was a replace delta on top of that already");
-			} else {
-				// Also consider a synchronization delta (if it is present). This may filter out some deltas.
-	            propDelta = consolidateWithSync(accCtx, propDelta);
-	            if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
-				}
-			}
-
-            if (propDelta != null && !propDelta.isEmpty()) {
-            	if (existingAttributeDelta == null || !existingAttributeDelta.isReplace()) {
-            		// We cannot simplify if there is already a replace delta. This might result in
-            		// two replace deltas and therefore some information may be lost
-            		propDelta.simplify();
-            	}
-            	
-            	// Validate the delta. i.e. make sure it conforms to schema (that it does not have more values than allowed, etc.)
-            	if (existingAttributeDelta != null) {
-            		// Let's make sure that both the previous delta and this delta makes sense
-            		PropertyDelta<?> mergedDelta = existingAttributeDelta.clone();
-            		mergedDelta.merge((PropertyDelta)propDelta);
-            		mergedDelta.validate();
-            	} else {
-            		propDelta.validate();            		
-            	}
-                objectDelta.addModification(propDelta);
-            }
-            
+        	QName attributeName = entry.getKey();
+        	DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> triple = entry.getValue();
+        	PropertyDelta<?> propDelta = consolidateAttribute(rAccount, rat, existingDelta, accCtx, 
+        			addUnchangedValues, completeAccount, attributeName, (DeltaSetTriple)triple);
+        	if (propDelta != null) {
+        		objectDelta.addModification(propDelta);
+        	}
         }
 
         return objectDelta;
     }
+
+	private <T> PropertyDelta<T> consolidateAttribute(RefinedObjectClassDefinition rAccount,
+			ResourceShadowDiscriminator rat, ObjectDelta<ShadowType> existingDelta, LensProjectionContext<ShadowType> accCtx,
+			boolean addUnchangedValues, boolean completeAccount, QName attributeName,
+			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<T>>> triple) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+
+        ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, attributeName);
+                    
+        RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
+        ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
+        
+        boolean forceAddUnchangedValues = false;
+        PropertyDelta<?> existingAttributeDelta = null;
+        if (existingDelta != null ) {
+        	existingAttributeDelta = existingDelta.findPropertyDelta(attributePath);
+        }
+        if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
+        	// We need to add all values if there is replace delta. Otherwise the zero-set values will be
+        	// lost
+        	forceAddUnchangedValues = true;
+        }
+        
+        LOGGER.trace("CONSOLIDATE ATTRIBUTE {}\n({}) completeAccount={}, addUnchangedValues={}, forceAddUnchangedValues={}",
+        		new Object[]{ attributeName, rat, completeAccount, addUnchangedValues, forceAddUnchangedValues});
+        
+        // Use this common utility method to do the computation. It does most of the work.
+		PropertyDelta<T> propDelta = (PropertyDelta<T>) LensUtil.consolidateTripleToDelta(
+				attributePath, (DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
+				valueMatcher, addUnchangedValues || forceAddUnchangedValues, completeAccount, "account " + rat, completeAccount);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
+		}
+        
+		if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
+			// We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
+			// state and all the values needs to be passed on
+			LOGGER.trace("Skipping consolidaiton with sync delta as there was a replace delta on top of that already");
+		} else {
+			// Also consider a synchronization delta (if it is present). This may filter out some deltas.
+            propDelta = consolidateWithSync(accCtx, propDelta, valueMatcher);
+            if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
+			}
+		}
+
+        if (propDelta != null && !propDelta.isEmpty()) {
+        	if (existingAttributeDelta == null || !existingAttributeDelta.isReplace()) {
+        		// We cannot simplify if there is already a replace delta. This might result in
+        		// two replace deltas and therefore some information may be lost
+        		propDelta.simplify();
+        	}
+        	
+        	// Validate the delta. i.e. make sure it conforms to schema (that it does not have more values than allowed, etc.)
+        	if (existingAttributeDelta != null) {
+        		// Let's make sure that both the previous delta and this delta makes sense
+        		PropertyDelta<?> mergedDelta = existingAttributeDelta.clone();
+        		mergedDelta.merge((PropertyDelta)propDelta);
+        		mergedDelta.validate();
+        	} else {
+        		propDelta.validate();            		
+        	}
+        	return propDelta;
+        }
+		
+        return null;
+	}
 
 	private boolean hasWeakMapping(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes) {
@@ -297,14 +316,15 @@ public class ConsolidationProcessor {
      * @param delta  new delta created during consolidation process
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
-    private <T> PropertyDelta<T> consolidateWithSync(LensProjectionContext<ShadowType> accCtx, PropertyDelta<T> delta) {
+    private <T> PropertyDelta<T> consolidateWithSync(LensProjectionContext<ShadowType> accCtx, PropertyDelta<T> delta, 
+    		ValueMatcher<T> valueMatcher) {
         if (delta == null) {
             return null;
         }
 
         ObjectDelta<ShadowType> syncDelta = accCtx.getSyncDelta();
         if (syncDelta == null) {
-            return consolidateWithSyncAbsolute(accCtx, delta);
+            return consolidateWithSyncAbsolute(accCtx, delta, valueMatcher);
         }
 
         PropertyDelta<T> alreadyDoneDelta = syncDelta.findPropertyDelta(delta.getPath());
@@ -312,8 +332,8 @@ public class ConsolidationProcessor {
             return delta;
         }
 
-        cleanupValues(delta.getValuesToAdd(), alreadyDoneDelta);
-        cleanupValues(delta.getValuesToDelete(), alreadyDoneDelta);
+        cleanupValues(delta.getValuesToAdd(), alreadyDoneDelta, valueMatcher);
+        cleanupValues(delta.getValuesToDelete(), alreadyDoneDelta, valueMatcher);
 
         if (delta.getValues(Object.class).isEmpty()) {
             return null;
@@ -329,7 +349,8 @@ public class ConsolidationProcessor {
      * @param delta
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
-    private <T> PropertyDelta<T> consolidateWithSyncAbsolute(LensProjectionContext<ShadowType> accCtx, PropertyDelta<T> delta) {
+    private <T> PropertyDelta<T> consolidateWithSyncAbsolute(LensProjectionContext<ShadowType> accCtx, PropertyDelta<T> delta,
+    		ValueMatcher<T> valueMatcher) {
         if (delta == null || accCtx.getObjectOld() == null) {
             return delta;
         }
@@ -340,8 +361,8 @@ public class ConsolidationProcessor {
             return delta;
         }
 
-        cleanupAbsoluteValues(delta.getValuesToAdd(), true, absoluteProperty);
-        cleanupAbsoluteValues(delta.getValuesToDelete(), false, absoluteProperty);
+        cleanupAbsoluteValues(delta.getValuesToAdd(), true, absoluteProperty, valueMatcher);
+        cleanupAbsoluteValues(delta.getValuesToDelete(), false, absoluteProperty, valueMatcher);
 
         if (delta.getValues(Object.class).isEmpty()) {
             return null;
@@ -359,7 +380,8 @@ public class ConsolidationProcessor {
      *                 from {@link Collection} values parameter if they already are not in {@link PrismProperty} parameter.
      * @param property property with absolute state
      */
-    private <T> void cleanupAbsoluteValues(Collection<PrismPropertyValue<T>> values, boolean adding, PrismProperty<T> property) {
+    private <T> void cleanupAbsoluteValues(Collection<PrismPropertyValue<T>> values, boolean adding, PrismProperty<T> property,
+    		ValueMatcher<T> valueMatcher) {
         if (values == null) {
             return;
         }
@@ -367,11 +389,11 @@ public class ConsolidationProcessor {
         Iterator<PrismPropertyValue<T>> iterator = values.iterator();
         while (iterator.hasNext()) {
             PrismPropertyValue<T> value = iterator.next();
-            if (adding && property.hasRealValue(value)) {
+            if (adding && valueMatcher.hasRealValue(property,value)) {
                 iterator.remove();
             }
 
-            if (!adding && !property.hasRealValue(value)) {
+            if (!adding && !valueMatcher.hasRealValue(property,value)) {
                 iterator.remove();
             }
         }
@@ -385,7 +407,8 @@ public class ConsolidationProcessor {
      * @param values           collection which has to be filtered
      * @param alreadyDoneDelta already applied delta from sync
      */
-    private <T> void cleanupValues(Collection<PrismPropertyValue<T>> values, PropertyDelta<T> alreadyDoneDelta) {
+    private <T> void cleanupValues(Collection<PrismPropertyValue<T>> values, PropertyDelta<T> alreadyDoneDelta,
+    		ValueMatcher<T> valueMatcher) {
         if (values == null) {
             return;
         }
@@ -393,7 +416,7 @@ public class ConsolidationProcessor {
         Iterator<PrismPropertyValue<T>> iterator = values.iterator();
         while (iterator.hasNext()) {
             PrismPropertyValue<T> valueToAdd = iterator.next();
-            if (alreadyDoneDelta.isRealValueToAdd(valueToAdd)) {
+            if (valueMatcher.isRealValueToAdd(alreadyDoneDelta, valueToAdd)) {
                 iterator.remove();
             }
         }
