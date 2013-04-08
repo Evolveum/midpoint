@@ -174,10 +174,11 @@ public class ShadowConstraintsChecker {
 		
 		OrFilter isNotDead = OrFilter.createOr(EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, null));
+		//TODO: set matching rule instead of null
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues),
+						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null, identifierValues),
 						isNotDead));
 		
 		List<PrismObject<ShadowType>> foundObjects = repositoryService.searchObjects(ShadowType.class, query, result);

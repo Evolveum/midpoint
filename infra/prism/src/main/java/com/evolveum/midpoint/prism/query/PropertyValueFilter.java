@@ -48,9 +48,9 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		super(path, definition, matchingRule, expression);
 	}
 	
-	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, PrismValue value){
+	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, PrismValue value){
 		if (filterClass.isAssignableFrom(EqualsFilter.class)){
-			return EqualsFilter.createEqual(path, itemDef, value);
+			return EqualsFilter.createEqual(path, itemDef, matchingRule, value);
 		} else if (filterClass.isAssignableFrom(LessFilter.class)){
 			return LessFilter.createLessFilter(path, itemDef, value, false);
 		} else if (filterClass.isAssignableFrom(GreaterFilter.class)){
@@ -59,17 +59,17 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		throw new IllegalArgumentException("Bad filter class");
 	}
 
-	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, List<PrismValue> values) {
+	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, List<PrismValue> values) {
 		if (filterClass.isAssignableFrom(EqualsFilter.class)) {
-			return EqualsFilter.createEqual(path, itemDef, values);
+			return EqualsFilter.createEqual(path, itemDef, matchingRule, values);
 		}
 		throw new IllegalArgumentException("Bad filter class");
 	}
 		
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, ItemDefinition item, Object realValue) {
+	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, ItemDefinition item, String matchingRule, Object realValue) {
 
 		if (realValue == null){
-			return create(filterClass, parentPath, item, new PrismPropertyValue(null));
+			return create(filterClass, parentPath, item, matchingRule, new PrismPropertyValue(null));
 		}
 		if (List.class.isAssignableFrom(realValue.getClass())) {
 			List<PrismValue> prismValues = new ArrayList<PrismValue>();
@@ -81,10 +81,10 @@ public abstract class PropertyValueFilter extends ValueFilter{
 					prismValues.add(val);
 				}
 			}
-			return create(filterClass, parentPath, item, prismValues);
+			return create(filterClass, parentPath, item, matchingRule, prismValues);
 		}
 		PrismPropertyValue value = new PrismPropertyValue(realValue);
-		return create(filterClass, parentPath, item, value);
+		return create(filterClass, parentPath, item, matchingRule, value);
 	}
 
 	
@@ -96,7 +96,7 @@ public abstract class PropertyValueFilter extends ValueFilter{
 					+ containerDef);
 		}
 
-		return create(filterClass, parentPath, itemDef, Arrays.asList(values));
+		return create(filterClass, parentPath, itemDef, null, Arrays.asList(values));
 	}
 
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
@@ -107,7 +107,7 @@ public abstract class PropertyValueFilter extends ValueFilter{
 					+ containerDef);
 		}
 
-		return createPropertyFilter(filterClass, parentPath, itemDef, realValue);
+		return createPropertyFilter(filterClass, parentPath, itemDef, null, realValue);
 	}
 
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue)

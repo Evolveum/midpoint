@@ -400,9 +400,11 @@ public class ShadowManager {
 			// .createEqualFilterFromElements(doc, xpath, identifierElements,
 			// resourceShadow
 			// .asPrismObject().getPrismContext()));
+			//
+			// TODO TODO TODO TODO: set matching rule instead of null
 			filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
 					ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-					new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(),
+					new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null,
 					identifier.getValues()));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",

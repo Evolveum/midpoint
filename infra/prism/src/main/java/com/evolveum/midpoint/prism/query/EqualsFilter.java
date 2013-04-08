@@ -70,8 +70,8 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		return new EqualsFilter(path, itemDef, matchingRule, expression);
 	}
 
-	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition item, Object realValue) {
-		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, item, realValue);
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition item, String matchingRule, Object realValue) {
+		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, item, matchingRule, realValue);
 	}	
 	
 	public static EqualsFilter createEqual(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,

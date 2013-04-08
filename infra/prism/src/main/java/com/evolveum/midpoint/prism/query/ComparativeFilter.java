@@ -38,7 +38,7 @@ public abstract class ComparativeFilter extends PropertyValueFilter{
 	
 	
 	public static ComparativeFilter createComparativeFilter(Class filterClass, ItemPath parentPath, ItemDefinition item, Object realValue, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, item, realValue);
+		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, item, null, realValue);
 		comparativeFilter.setEquals(equals);
 		return comparativeFilter;
 	}
