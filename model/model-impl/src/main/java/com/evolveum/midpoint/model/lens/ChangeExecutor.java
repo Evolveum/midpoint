@@ -132,7 +132,7 @@ public class ChangeExecutor {
     }
 
     public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
     	
@@ -176,10 +176,6 @@ public class ChangeExecutor {
 	    			throw e;
 	    		} catch (SecurityViolationException e) {
 	        		recordFatalError(subResult, result, null, e);
-	    			throw e;
-	    		} catch (RewindException e) {
-	    			subResult.recordHandledError(e);
-	    			result.computeStatusComposite();
 	    			throw e;
 	    		} catch (ExpressionEvaluationException e) {
 	        		recordFatalError(subResult, result, null, e);
@@ -302,7 +298,7 @@ public class ChangeExecutor {
      */
     private <F extends ObjectType, P extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject,
     		LensFocusContext<F> focusContext, LensProjectionContext<P> accCtx,
-    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, RewindException {
+    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
     	if (prismObject == null) {
     		return;
     	}
@@ -422,7 +418,7 @@ public class ChangeExecutor {
 
     }
 	
-    private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, RewindException{
+    private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
     	OperationResult result = new OperationResult("Updating situation in account (Model)");
     	result.addParam("situation", situation);
@@ -466,7 +462,7 @@ public class ChangeExecutor {
     	void executeDelta(ObjectDelta<T> objectDelta, LensElementContext<T> objectContext, LensContext<F,P> context,
     			ResourceType resource, Task task, OperationResult parentResult) 
     			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
-    			ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
+    			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
         if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
@@ -575,7 +571,7 @@ public class ChangeExecutor {
     private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeAddition(ObjectDelta<T> change, 
     		LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result) 
     				throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, 
-    				ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
+    				ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         PrismObject<T> objectToAdd = change.getObjectToAdd();
 
@@ -627,7 +623,7 @@ public class ChangeExecutor {
 
     private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeModification(ObjectDelta<T> change, 
     		LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, RewindException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (change.isEmpty()) {
             // Nothing to do
             return;
@@ -705,7 +701,7 @@ public class ChangeExecutor {
 
     private <F extends ObjectType, P extends ObjectType> String addProvisioningObject(PrismObject<? extends ObjectType> object, LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         if (object.canRepresent(ShadowType.class)) {
             ShadowType shadow = (ShadowType) object.asObjectable();
@@ -732,7 +728,7 @@ public class ChangeExecutor {
 
     private <F extends ObjectType, P extends ObjectType> String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
             Collection<? extends ItemDelta> modifications, LensContext<F, P> context, ProvisioningOperationOptions options, 
-            ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, RewindException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
     	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
     	ProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);

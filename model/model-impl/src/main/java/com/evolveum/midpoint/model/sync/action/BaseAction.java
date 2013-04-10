@@ -41,7 +41,6 @@ import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.prism.OriginType;
@@ -154,7 +153,7 @@ public abstract class BaseAction implements Action {
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
-    		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
+    		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         Validate.notNull(change, "Resource object change description must not be null.");
         Validate.notNull(situation, "Synchronization situation must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -337,7 +336,7 @@ public abstract class BaseAction implements Action {
         return change.getCurrentShadow().getOid();
     }
 
-    protected void synchronizeUser(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
+    protected void synchronizeUser(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Validate.notNull(context, "Sync context must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
         try {
@@ -366,10 +365,7 @@ public abstract class BaseAction implements Action {
 		} catch (SecurityViolationException e) {
 			logSynchronizationError(e, context);
             throw e;
-		} catch (RewindException e) {
-			logSynchronizationError(e, context);
-            throw e;
-        } catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
         	logSynchronizationError(ex, context);
             throw ex;
 		}
@@ -381,7 +377,7 @@ public abstract class BaseAction implements Action {
     	}
 	}
 
-	protected void executeChanges(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RewindException {
+	protected void executeChanges(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notNull(context, "Sync context must not be null.");
         try {
             getExecutor().executeChanges(context, task, result);
@@ -409,10 +405,7 @@ public abstract class BaseAction implements Action {
 		} catch (ExpressionEvaluationException e) {
 			logExecutionError(e, context);
             throw e;
-		} catch (RewindException e) {
-			logExecutionError(e, context);
-            throw e;
-		}
+		} 
     }
 	
 	private void logExecutionError(Throwable ex, LensContext<UserType,ShadowType> context) {

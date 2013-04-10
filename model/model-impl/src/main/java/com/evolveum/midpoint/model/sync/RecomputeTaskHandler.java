@@ -33,7 +33,6 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
-import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -227,19 +226,19 @@ public class RecomputeTaskHandler implements TaskHandler {
 		LOGGER.trace("Recomputing user {}", user);
 		
 		
-		int rewindAttempts = 0;
-		while (true) {
-			RewindException rewindException = null;
-			
+//		int rewindAttempts = 0;
+//		while (true) {
+//			RewindException rewindException = null;
+//			
 			LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
 			LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 			focusContext.setObjectOld(user);
 			focusContext.setOid(user.getOid());
 			syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 			syncContext.setDoReconciliationForAllProjections(true);
-			
-			try {
-				
+//			
+//			try {
+//				
 				LOGGER.trace("Recomputing of user {}: context:\n{}", user,syncContext.dump());
 				
 				clockwork.run(syncContext, task, result);
@@ -247,17 +246,17 @@ public class RecomputeTaskHandler implements TaskHandler {
 				LOGGER.trace("Recomputing of user {}: {}", user,result.getStatus());
 				
 				// No rewind exception, the execution was acceptable
-				break;
-				
-			} catch (RewindException e) {
-				rewindException = e;
-				LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
-				rewindAttempts++;
-			}
-			if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
-				Clockwork.throwException(rewindException.getCause());
-			}
-		}
+//				break;
+//				
+//			} catch (RewindException e) {
+//				rewindException = e;
+//				LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
+//				rewindAttempts++;
+//			}
+//			if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
+//				Clockwork.throwException(rewindException.getCause());
+//			}
+//		}
 		
 		// TODO: process result
 	}

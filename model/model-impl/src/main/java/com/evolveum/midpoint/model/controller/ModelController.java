@@ -58,7 +58,6 @@ import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -352,27 +351,27 @@ public class ModelController implements ModelService, ModelInteractionService {
 				
 				int rewindAttempts = 0;
 				LensContext<?, ?> context = contextFactory.createContext(deltas, options, task, result);
-				while (true) {
-					RewindException rewindException = null;
-					try {
-						
+//				while (true) {
+//					RewindException rewindException = null;
+//					try {
+//						
 						clockwork.run(context, task, result);
 						
 						// No rewind exception, the execution was acceptable
-						break;
-						
-					} catch (RewindException e) {
-						rewindException = e;
-						LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
-						rewindAttempts++;
-						if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
-							result.recordFatalError(rewindException.getCause());
-							Clockwork.throwException(rewindException.getCause());
-						}
-						result.muteLastSubresultError();
-						context.reset();
-					}
-				}
+//						break;
+//						
+//					} catch (RewindException e) {
+//						rewindException = e;
+//						LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
+//						rewindAttempts++;
+//						if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
+//							result.recordFatalError(rewindException.getCause());
+//							Clockwork.throwException(rewindException.getCause());
+//						}
+//						result.muteLastSubresultError();
+//						context.reset();
+//					}
+//				}
 			}
 			
 			result.computeStatus();
