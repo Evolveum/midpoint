@@ -198,6 +198,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private static final String RESOURCE_BROKEN_FILENAME = REPO_DIR_NAME + "resource-broken.xml";
     private static final String RESOURCE_BROKEN_OID = "ef2bc95b-76e0-59e2-ffff-ffffffffffff";
+    
+    private static final String RESOURCE_DUMMY_FILENAME = REPO_DIR_NAME + "resource-dummy.xml";
+    private static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
     private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector";
     private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConnector";
@@ -703,8 +706,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // TODO: model web
 
     }
-
-
+  
     @Test
     public void test004Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
             FaultMessage {
@@ -763,6 +765,26 @@ public class TestSanity extends AbstractModelIntegrationTest {
         capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
         assertNotNull("activation capability not found", capAct);
 
+    }
+    
+    @Test
+    public void test005resolveConnectorRef() throws Exception{
+    	
+    	displayTestTile("test004Capabilities");
+    	
+    	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+
+    	modelWeb.addObject(resource.asObjectable(), new Holder<String>(), new Holder<OperationResultType>());
+    	
+    	 OperationResult repoResult = new OperationResult("getObject");
+
+         PrismObject<ResourceType> uObject = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, repoResult);
+         assertNotNull(uObject);
+         
+         ResourceType resourceType = uObject.asObjectable();
+         assertNotNull("Reference on the connector must not be null in resource.",resourceType.getConnectorRef());
+         assertNotNull("Missing oid reference on the connector",resourceType.getConnectorRef().getOid());
+         
     }
 
     /**
@@ -3328,7 +3350,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         
         display("Resources", objectListHolder.value);
-        assertEquals("Unexpected number of resources", 3, objectListHolder.value.getObject().size());
+        assertEquals("Unexpected number of resources", 4, objectListHolder.value.getObject().size());
         // TODO
         
         for(ObjectType object: objectListHolder.value.getObject()) {

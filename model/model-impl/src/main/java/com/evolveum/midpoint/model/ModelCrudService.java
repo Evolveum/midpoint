@@ -25,13 +25,17 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.controller.ModelUtils;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -40,6 +44,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismValidate;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -85,6 +90,10 @@ public class ModelCrudService {
 	
 	@Autowired(required = true)
 	PrismContext prismContext;
+	
+	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
+	RepositoryService repository;
 	
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -175,13 +184,16 @@ public class ModelCrudService {
 		// Task task = taskManager.createTaskInstance(); // in the future, this
 		// task instance will come from GUI
 
+		Utils.resolveReferences(object, repository, false, prismContext, result);
+        
+		
 		RepositoryCache.enter();
 		try {
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Entering addObject with {}", object);
-				LOGGER.trace(object.dump());
-			}
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("Entering addObject with {}", object);
+//				LOGGER.trace(object.dump());
+//			}
 			
 			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);

@@ -60,6 +60,13 @@ public class ModelExecuteOptions implements Serializable {
      * is to wait until all changes are approved/rejected and then execute the operation as a whole.)
      */
     Boolean executeImmediatelyAfterApproval;
+    
+    
+    /**
+     * Option to user overwrite flag. It can be used from web service, if we want to re-import some object
+     */
+    Boolean overwrite;
+    
 
     public Boolean getForce() {
 		return force;
@@ -155,6 +162,30 @@ public class ModelExecuteOptions implements Serializable {
 	public static ModelExecuteOptions createReconcile(){
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setReconcile(true);
+		return opts;
+	}
+	
+	public Boolean getOverwrite() {
+		return overwrite;
+	}
+	
+	public void setOverwrite(Boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+	
+	public static boolean isOverwrite(ModelExecuteOptions options){
+		if (options == null){
+			return false;
+		}
+		if (options.overwrite == null){
+			return false;
+		}
+		return options.overwrite;
+	}
+	
+	public static ModelExecuteOptions createOverwrite(){
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setOverwrite(true);
 		return opts;
 	}
 
