@@ -55,6 +55,7 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -327,7 +328,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw ex;
 			}
 		} else {
-			oid = cacheRepositoryService.addObject(object, null, result);
+			RepoAddOptions addOptions = null;
+			if (ProvisioningOperationOptions.isOverwrite(options)){
+				addOptions = RepoAddOptions.createOverwrite();
+			}
+			oid = cacheRepositoryService.addObject(object, addOptions, result);
 			result.computeStatus();
 		}
 

@@ -154,6 +154,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
@@ -770,7 +771,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test005resolveConnectorRef() throws Exception{
     	
-    	displayTestTile("test004Capabilities");
+    	displayTestTile("test005resolveConnectorRef");
     	
     	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
 
@@ -784,6 +785,46 @@ public class TestSanity extends AbstractModelIntegrationTest {
          ResourceType resourceType = uObject.asObjectable();
          assertNotNull("Reference on the connector must not be null in resource.",resourceType.getConnectorRef());
          assertNotNull("Missing oid reference on the connector",resourceType.getConnectorRef().getOid());
+         
+    }
+    
+    @Test
+    public void test006reimportResourceDummy() throws Exception{
+    	
+    	displayTestTile("test006reimportResourceDummy");
+    	
+    	//get object from repo (with version set and try to add it - it should be re-added, without error)
+    	 OperationResult repoResult = new OperationResult("getObject");
+
+         PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, repoResult);
+         assertNotNull(resource);
+         
+     	modelWeb.addObject(resource.asObjectable(), new Holder<String>(), new Holder<OperationResultType>());
+
+     	//TODO: add some asserts
+     	
+    	
+     	//parse object from file again and try to add it - this should fail, becasue the same object already exists)
+     	resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+     
+		try {
+			modelWeb.addObject(resource.asObjectable(), new Holder<String>(),
+					new Holder<OperationResultType>());
+			fail("Expected object already exists exception, but haven't got one.");
+		} catch (FaultMessage ex) {
+			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType){ 
+			// this is OK, we expect this
+			} else{
+				fail("Expected object already exists exception, but haven't got one.");
+			}
+			LOGGER.info("fault {}", ex.getFaultInfo());
+			LOGGER.info("fault {}", ex.getCause());
+		} 
+     	
+         
+//         ResourceType resourceType = uObject.asObjectable();
+//         assertNotNull("Reference on the connector must not be null in resource.",resourceType.getConnectorRef());
+//         assertNotNull("Missing oid reference on the connector",resourceType.getConnectorRef().getOid());
          
     }
 

@@ -190,14 +190,19 @@ public class ModelCrudService {
 		RepositoryCache.enter();
 		try {
 
-//			if (LOGGER.isTraceEnabled()) {
-//				LOGGER.trace("Entering addObject with {}", object);
-//				LOGGER.trace(object.dump());
-//			}
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Entering addObject with {}", object);
+				LOGGER.trace(object.dump());
+			}
+			
+			ModelExecuteOptions options = null;
+			if (StringUtils.isNotEmpty(objectType.getVersion())){
+				options = ModelExecuteOptions.createOverwrite();
+			}
 			
 			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelController.executeChanges(deltas, null, task, result);
+			modelController.executeChanges(deltas, options, task, result);
 			
 			oid = objectDelta.getOid();
 

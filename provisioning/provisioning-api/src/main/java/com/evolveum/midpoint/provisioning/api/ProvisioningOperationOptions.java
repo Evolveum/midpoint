@@ -11,6 +11,8 @@ public class ProvisioningOperationOptions {
 	
 	Boolean doDiscovery;
 
+	Boolean overwrite;
+	
 	public Boolean getCompletePostponed() {
 		return completePostponed;
 	}
@@ -85,26 +87,51 @@ public class ProvisioningOperationOptions {
 	}
 
 	public Boolean getDoDiscovery() {
-		return postpone;
+		return doDiscovery;
 	}
 
-	public void setDoDiscovery(Boolean postpone) {
-		this.postpone = postpone;
+	public void setDoDiscovery(Boolean doDiscovery) {
+		this.doDiscovery = doDiscovery;
 	}
 	
 	public static boolean isDoDiscovery(ProvisioningOperationOptions options){
 		if (options == null) {
 			return false;
 		}
-		if (options.postpone == null) {
+		if (options.doDiscovery == null) {
 			return false;
 		}
-		return options.postpone;
+		return options.doDiscovery;
 	}
 	
 	public static ProvisioningOperationOptions createDoDiscovery(boolean doDiscovery) {
 		ProvisioningOperationOptions opts = new ProvisioningOperationOptions();
-		opts.setPostpone(doDiscovery);
+		opts.setDoDiscovery(doDiscovery);
+		return opts;
+	}
+
+	
+	public Boolean getOverwrite() {
+		return overwrite;
+	}
+
+	public void setOverwrite(Boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+	
+	public static boolean isOverwrite(ProvisioningOperationOptions options){
+		if (options == null) {
+			return false;
+		}
+		if (options.overwrite == null) {
+			return false;
+		}
+		return options.overwrite;
+	}
+	
+	public static ProvisioningOperationOptions createOverwrite(boolean overwrite) {
+		ProvisioningOperationOptions opts = new ProvisioningOperationOptions();
+		opts.setOverwrite(overwrite);
 		return opts;
 	}
 

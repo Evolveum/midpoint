@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -484,18 +485,12 @@ public class ChangeExecutor {
     		
     	try {
     		
-    		ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(context.getOptions());
-   
-    		if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
-    			provisioningOptions.setCompletePostponed(false);
-    		}
-    	
 	        if (objectDelta.getChangeType() == ChangeType.ADD) {
-	            executeAddition(objectDelta, context, provisioningOptions, resource, task, result);
+	            executeAddition(objectDelta, context, resource, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
-	        	executeModification(objectDelta, context, provisioningOptions, resource, task, result);
+	        	executeModification(objectDelta, context, resource, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
-	            executeDeletion(objectDelta, context, provisioningOptions, resource, task, result);
+	            executeDeletion(objectDelta, context, resource, task, result);
 	        }
 	        
 	        // To make sure that the OID is set (e.g. after ADD operation)
@@ -535,6 +530,7 @@ public class ChangeExecutor {
 		}
 		
 		provisioningOptions.setForce(options.getForce());
+		provisioningOptions.setOverwrite(options.getOverwrite());
 		return provisioningOptions;
 	}
 
@@ -565,7 +561,7 @@ public class ChangeExecutor {
 	}
 
     private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeAddition(ObjectDelta<T> change, 
-    		LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result) 
+    		LensContext<F, P> context, ResourceType resource, Task task, OperationResult result) 
     				throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, 
     				ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
@@ -586,13 +582,22 @@ public class ChangeExecutor {
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
+        	ProvisioningOperationOptions options = copyFromModelOptions(context.getOptions());
+        	if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
+        		options.setCompletePostponed(false);
+    		}
             oid = addProvisioningObject(objectToAdd, context, options, resource, task, result);
             if (oid == null) {
             	throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
             }
             result.addReturn("createdAccountOid", oid);
         } else {
-            oid = cacheRepositoryService.addObject(objectToAdd, null, result);
+        	RepoAddOptions addOpt = null;
+        	if (ModelExecuteOptions.isOverwrite(context.getOptions())){
+        		addOpt = RepoAddOptions.createOverwrite();
+        	}
+        	
+            oid = cacheRepositoryService.addObject(objectToAdd, addOpt, result);
             if (oid == null) {
             	throw new SystemException("Repository addObject returned null OID while adding " + objectToAdd);
             }
@@ -602,7 +607,7 @@ public class ChangeExecutor {
 
     
     private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeDeletion(ObjectDelta<T> change, 
-    		LensContext<F,P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result) throws
+    		LensContext<F,P> context, ResourceType resource, Task task, OperationResult result) throws
             ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         String oid = change.getOid();
@@ -611,6 +616,10 @@ public class ChangeExecutor {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
+        	ProvisioningOperationOptions options = copyFromModelOptions(context.getOptions());
+        	if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
+        		options.setCompletePostponed(false);
+    		}
             deleteProvisioningObject(objectTypeClass, oid, context, options, resource, task, result);
         } else {
             cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
@@ -618,7 +627,7 @@ public class ChangeExecutor {
     }
 
     private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeModification(ObjectDelta<T> change, 
-    		LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
+    		LensContext<F, P> context, ResourceType resource, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (change.isEmpty()) {
             // Nothing to do
@@ -631,6 +640,10 @@ public class ChangeExecutor {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
+        	ProvisioningOperationOptions options = copyFromModelOptions(context.getOptions());
+        	if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
+        		options.setCompletePostponed(false);
+    		}
             String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), context, options, resource, task, result);
             if (!oid.equals(change.getOid())){
             	change.setOid(oid);

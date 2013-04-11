@@ -234,29 +234,29 @@ public class ObjectImporter {
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
-//            if (BooleanUtils.isTrue(options.isOverwrite())) {
-//                // Try to delete conflicting object
-//            	result.muteLastSubresultError();
-//                String deletedOid = deleteObject(object, repository, result);
-//                if (deletedOid != null) {
-//                    if (object.canRepresent(TaskType.class))
-//                    	taskManager.onTaskDelete(deletedOid, result);
-//                    if (BooleanUtils.isTrue(options.isKeepOid())) {
-//                        object.setOid(deletedOid);
-//                    }
-//                    repository.addObject(object, null, result);
-//                    if (object.canRepresent(TaskType.class))
-//                    	taskManager.onTaskCreate(object.getOid(), result);
-//                    result.recordSuccess();
-//                } else {
-//                    // cannot delete, throw original exception
-//                    result.recordFatalError("Object already exists, cannot overwrite", e);
-//                    throw e;
-//                }
-//            } else {
+            if (BooleanUtils.isTrue(options.isOverwrite())) {
+                // Try to delete conflicting object
+            	result.muteLastSubresultError();
+                String deletedOid = deleteObject(object, repository, result);
+                if (deletedOid != null) {
+                    if (object.canRepresent(TaskType.class))
+                    	taskManager.onTaskDelete(deletedOid, result);
+                    if (BooleanUtils.isTrue(options.isKeepOid())) {
+                        object.setOid(deletedOid);
+                    }
+                    repository.addObject(object, null, result);
+                    if (object.canRepresent(TaskType.class))
+                    	taskManager.onTaskCreate(object.getOid(), result);
+                    result.recordSuccess();
+                } else {
+                    // cannot delete, throw original exception
+                    result.recordFatalError("Object already exists, cannot overwrite", e);
+                    throw e;
+                }
+            } else {
                 result.recordFatalError("Object already exists", e);
                 throw e;
-//            }
+            }
             
         } catch (SchemaException ex){
         	result.computeStatus();
