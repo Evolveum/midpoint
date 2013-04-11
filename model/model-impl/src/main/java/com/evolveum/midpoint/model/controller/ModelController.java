@@ -317,7 +317,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		
 		RepositoryCache.enter();
         setRequesteeIfNecessary(task, deltas, result);
-		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = null;
+		
 		try {
 		
 			if (ModelExecuteOptions.isRaw(options)) {
@@ -344,34 +344,11 @@ public class ModelController implements ModelService, ModelInteractionService {
 				auditService.audit(auditRecord, task);
 				
 			} else {
-				clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(deltas.size());
-				for (ObjectDelta delta : deltas){
-					clonedDeltas.add(delta.clone());
-				}
 				
-				int rewindAttempts = 0;
 				LensContext<?, ?> context = contextFactory.createContext(deltas, options, task, result);
-//				while (true) {
-//					RewindException rewindException = null;
-//					try {
-//						
-						clockwork.run(context, task, result);
+
+				clockwork.run(context, task, result);
 						
-						// No rewind exception, the execution was acceptable
-//						break;
-//						
-//					} catch (RewindException e) {
-//						rewindException = e;
-//						LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
-//						rewindAttempts++;
-//						if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
-//							result.recordFatalError(rewindException.getCause());
-//							Clockwork.throwException(rewindException.getCause());
-//						}
-//						result.muteLastSubresultError();
-//						context.reset();
-//					}
-//				}
 			}
 			
 			result.computeStatus();

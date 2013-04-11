@@ -224,39 +224,19 @@ public class RecomputeTaskHandler implements TaskHandler {
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing user {}", user);
-		
-		
-//		int rewindAttempts = 0;
-//		while (true) {
-//			RewindException rewindException = null;
-//			
-			LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
-			LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
-			focusContext.setObjectOld(user);
-			focusContext.setOid(user.getOid());
-			syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
-			syncContext.setDoReconciliationForAllProjections(true);
-//			
-//			try {
-//				
-				LOGGER.trace("Recomputing of user {}: context:\n{}", user,syncContext.dump());
-				
-				clockwork.run(syncContext, task, result);
-				
-				LOGGER.trace("Recomputing of user {}: {}", user,result.getStatus());
-				
-				// No rewind exception, the execution was acceptable
-//				break;
-//				
-//			} catch (RewindException e) {
-//				rewindException = e;
-//				LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
-//				rewindAttempts++;
-//			}
-//			if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
-//				Clockwork.throwException(rewindException.getCause());
-//			}
-//		}
+
+		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class,
+				ShadowType.class, prismContext);
+		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
+		focusContext.setObjectOld(user);
+		focusContext.setOid(user.getOid());
+		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+		syncContext.setDoReconciliationForAllProjections(true);
+		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
+
+		clockwork.run(syncContext, task, result);
+
+		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 		
 		// TODO: process result
 	}

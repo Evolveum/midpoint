@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -30,9 +32,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -49,8 +49,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author lazyman

@@ -382,8 +382,7 @@ public class ChangeExecutor {
             userDeltaOp.setExecutionResult(result);
     		userContext.addToExecutedDeltas(userDeltaOp);
         }
-//        updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountRef, result);
-        
+
     }
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
@@ -412,10 +411,7 @@ public class ChangeExecutor {
             userDeltaOp.setExecutionResult(result);
     		userContext.addToExecutedDeltas(userDeltaOp);
         }
-        
-      //setting new situation to account
-//        updateSituationInAccount(task, null, accountRef, result);
-
+ 
     }
 	
     private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
