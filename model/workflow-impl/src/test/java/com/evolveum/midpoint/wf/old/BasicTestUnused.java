@@ -27,6 +27,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.RepositoryService;
+import org.activiti.engine.impl.history.HistoryLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -72,7 +73,7 @@ public class BasicTestUnused extends AbstractTestNGSpringContextTests {
     public void init() throws FileNotFoundException {
         processEngine = ProcessEngineConfiguration
                 .createStandaloneInMemProcessEngineConfiguration()
-                .setHistory(ProcessEngineConfiguration.HISTORY_FULL)
+                .setHistory(HistoryLevel.FULL.getKey())
                 .buildProcessEngine();
         RepositoryService repositoryService = processEngine.getRepositoryService();
         repositoryService.createDeployment().addClasspathResource("processes/AddRoles._bpmn20.xml").deploy();

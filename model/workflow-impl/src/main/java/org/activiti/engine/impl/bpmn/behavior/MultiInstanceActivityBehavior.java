@@ -1,24 +1,3 @@
-/*
- * Copyright (c) 2012 Evolveum
- *
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
- * compliance with the License.
- *
- * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
- * CDDLv1.0.txt file in the source code distribution.
- * See the License for the specific language governing
- * permission and limitations under the License.
- *
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
- *
- * Portions Copyrighted 2012 [name of copyright owner]
- */
-
 /* Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +14,7 @@
 package org.activiti.engine.impl.bpmn.behavior;
 
 import org.activiti.engine.ActivitiException;
+import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.delegate.BpmnError;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.ExecutionListener;
@@ -48,12 +28,12 @@ import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.activiti.engine.impl.pvm.delegate.CompositeActivityBehavior;
 import org.activiti.engine.impl.pvm.delegate.SubProcessActivityBehavior;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -62,26 +42,26 @@ import java.util.logging.Logger;
  * Multi instance functionality is implemented as an {@link org.activiti.engine.impl.pvm.delegate.ActivityBehavior} that
  * wraps the original {@link org.activiti.engine.impl.pvm.delegate.ActivityBehavior} of the activity.
  *
- * Only subclasses of {@link org.activiti.engine.impl.bpmn.behavior.AbstractBpmnActivityBehavior} can have multi-instance
- * behavior. As such, special logic is contained in the {@link org.activiti.engine.impl.bpmn.behavior.AbstractBpmnActivityBehavior}
- * to delegate to the {@link MultiInstanceActivityBehavior} if needed.
- *
+ * Only subclasses of {@link AbstractBpmnActivityBehavior} can have multi-instance
+ * behavior. As such, special logic is contained in the {@link AbstractBpmnActivityBehavior}
+ * to delegate to the {@link org.activiti.engine.impl.bpmn.behavior.MultiInstanceActivityBehavior} if needed.
+ * 
  * @author Joram Barrez
  * @author Falko Menge
  */
-public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBehavior
+public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBehavior  
   implements CompositeActivityBehavior, SubProcessActivityBehavior {
-
-  protected static final Logger LOGGER = Logger.getLogger(MultiInstanceActivityBehavior.class.getName());
-
+  
+  protected static final Logger LOGGER = LoggerFactory.getLogger(MultiInstanceActivityBehavior.class);
+  
   // Variable names for outer instance(as described in spec)
   protected final String NUMBER_OF_INSTANCES = "nrOfInstances";
   protected final String NUMBER_OF_ACTIVE_INSTANCES = "nrOfActiveInstances";
   protected final String NUMBER_OF_COMPLETED_INSTANCES = "nrOfCompletedInstances";
-
+  
   // Variable names for inner instances (as described in the spec)
   protected final String LOOP_COUNTER = "loopCounter";
-
+  
   // Instance members
   protected ActivityImpl activity;
   protected AbstractBpmnActivityBehavior innerActivityBehavior;
@@ -90,7 +70,7 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
   protected Expression collectionExpression;
   protected String collectionVariable;
   protected String collectionElementVariable;
-
+  
   /**
    * @param innerActivityBehavior The original {@link org.activiti.engine.impl.pvm.delegate.ActivityBehavior} of the activity
    *                         that will be wrapped inside this behavior.
@@ -146,17 +126,20 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
     } else if (collectionExpression != null) {
       Object obj = collectionExpression.getValue(execution);
       if (!(obj instanceof Collection)) {
-        throw new ActivitiException(collectionExpression.getExpressionText()+"' didn't resolve to a Collection");
+        throw new ActivitiIllegalArgumentException(collectionExpression.getExpressionText()+"' didn't resolve to a Collection");
       }
       nrOfInstances = ((Collection) obj).size();
     } else if (collectionVariable != null) {
       Object obj = execution.getVariable(collectionVariable);
+      if (obj == null) {
+        throw new ActivitiIllegalArgumentException("Variable " + collectionVariable + " is not found");
+      }
       if (!(obj instanceof Collection)) {
-        throw new ActivitiException("Variable " + collectionVariable+"' is not a Collection");
+        throw new ActivitiIllegalArgumentException("Variable " + collectionVariable+"' is not a Collection");
       }
       nrOfInstances = ((Collection) obj).size();
     } else {
-      throw new ActivitiException("Couldn't resolve collection expression nor variable reference");
+      throw new ActivitiIllegalArgumentException("Couldn't resolve collection expression nor variable reference");
     }
     return nrOfInstances;
   }
@@ -208,7 +191,7 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
     } else if (value instanceof String) {
       return Integer.valueOf((String) value);
     } else {
-      throw new ActivitiException("Could not resolve loopCardinality expression '" 
+      throw new ActivitiIllegalArgumentException("Could not resolve loopCardinality expression '" 
               +loopCardinalityExpression.getExpressionText()+"': not a number nor number String");
     }
   }
@@ -217,13 +200,13 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
     if (completionConditionExpression != null) {
       Object value = completionConditionExpression.getValue(execution);
       if (! (value instanceof Boolean)) {
-        throw new ActivitiException("completionCondition '"
+        throw new ActivitiIllegalArgumentException("completionCondition '"
                 + completionConditionExpression.getExpressionText()
                 + "' does not evaluate to a boolean value");
       }
       Boolean booleanValue = (Boolean) value;
-      if (LOGGER.isLoggable(Level.FINE)) {
-        LOGGER.fine("Completion condition of multi-instance satisfied: " + booleanValue);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Completion condition of multi-instance satisfied: {}", booleanValue);
       }
       return booleanValue;
     }
@@ -231,33 +214,31 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
   }
   
   protected void setLoopVariable(ActivityExecution execution, String variableName, Object value) {
-      LOGGER.fine("setLoopVariable: execution = " + execution + ", setting " + variableName + " := " + value);
     execution.setVariableLocal(variableName, value);
   }
   
   protected Integer getLoopVariable(ActivityExecution execution, String variableName) {
     Object value = execution.getVariableLocal(variableName);
-    LOGGER.fine("getLoopVariable: " + variableName + " in " + execution + " yields " + value);
     ActivityExecution parent = execution.getParent();
     while (value == null && parent != null) {
       value = parent.getVariableLocal(variableName);
-      LOGGER.fine("getLoopVariable2: " + variableName + " in " + parent + " yields " + value);
       parent = parent.getParent();
     }
     return (Integer) value;
   }
 
-    protected Integer getLoopVariableLocal(ActivityExecution execution, String variableName) {
-        Object value = execution.getVariableLocal(variableName);
-        LOGGER.fine("getLoopVariableLocal: " + variableName + " in " + execution + " yields " + value);
-        return (Integer) value;
-    }
+  protected Integer getLoopVariableLocal(ActivityExecution execution, String variableName) {
+      Object value = execution.getVariableLocal(variableName);
+      return (Integer) value;
+  }
+
   
   /**
    * Since no transitions are followed when leaving the inner activity,
    * it is needed to call the end listeners yourself.
    */
   protected void callActivityEndListeners(ActivityExecution execution) {
+    // TODO: This is currently done without a proper {@link AtomicOperation} causing problems, see http://jira.codehaus.org/browse/ACT-1339
     List<ExecutionListener> listeners = activity.getExecutionListeners(org.activiti.engine.impl.pvm.PvmEvent.EVENTNAME_END);
     for (ExecutionListener executionListener : listeners) {
       try {
@@ -270,16 +251,11 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
     }
   }
   
-  protected void logLoopDetails(ActivityExecution execution, String custom, int loopCounter,
+  protected void logLoopDetails(ActivityExecution execution, String custom, int loopCounter, 
           int nrOfCompletedInstances, int nrOfActiveInstances, int nrOfInstances) {
-    if (LOGGER.isLoggable(Level.FINE)) {
-      StringBuilder strb = new StringBuilder();
-      strb.append("Multi-instance '" + execution.getActivity() + "' " + custom + ". ");
-      strb.append("Details: loopCounter=" + loopCounter + ", ");
-      strb.append("nrOrCompletedInstances=" + nrOfCompletedInstances + ", ");
-      strb.append("nrOfActiveInstances=" + nrOfActiveInstances+ ", ");
-      strb.append("nrOfInstances=" + nrOfInstances);
-      LOGGER.fine(strb.toString());
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Multi-instance '{}' {}. Details: loopCounter={}, nrOrCompletedInstances={},nrOfActiveInstances={},nrOfInstances={}",
+              new Object[] { execution.getActivity(), custom, loopCounter, nrOfCompletedInstances, nrOfActiveInstances, nrOfInstances } );
     }
   }
 

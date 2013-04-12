@@ -1011,6 +1011,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         executionManager.unscheduleTask(task, parentResult);
     }
 
+    // use with care (e.g. w.r.t. dependent tasks)
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         try {
             ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);

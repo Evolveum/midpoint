@@ -96,12 +96,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     private static final String OPERATION_ACTIVITI_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiTaskToWorkItem";
     private static final String OPERATION_APPROVE_OR_REJECT_WORK_ITEM = DOT_CLASS + "approveOrRejectWorkItem";
 
-//    public WfDataAccessor(WorkflowManager workflowManager, com.evolveum.midpoint.repo.api.RepositoryService repositoryService, WfCore wfCore, ActivitiEngine activitiEngine) {
-//        this.workflowManager = workflowManager;
-//        this.repositoryService = repositoryService;
-//        this.wfCore = wfCore;
-//    }
-
     public ActivitiEngine getActivitiEngine() {
         //return workflowManager.getActivitiEngine();
         return activitiEngine;
@@ -225,21 +219,23 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (finished) {
             HistoryService hs = getActivitiEngine().getHistoryService();
 
-            HistoricProcessInstanceQuery hpiq = hs.createHistoricProcessInstanceQuery().processDefinitionKey("AddRoles").finished().orderByProcessInstanceEndTime().desc();
+            HistoricProcessInstanceQuery hpiq = hs.createHistoricProcessInstanceQuery().finished().orderByProcessInstanceEndTime().desc();
             if (requestedBy) {
                 hpiq = hpiq.startedBy(userOid);
             }
             if (requestedFor) {
-                hpiq = hpiq.processInstanceBusinessKey(userOid);
+//                hpiq = hpiq.processInstanceBusinessKey(userOid);
+                hpiq = hpiq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, userOid);
             }
             return hpiq;
         } else {
-            ProcessInstanceQuery piq = getActivitiEngine().getRuntimeService().createProcessInstanceQuery().processDefinitionKey("AddRoles").orderByProcessInstanceId().asc();
+            ProcessInstanceQuery piq = getActivitiEngine().getRuntimeService().createProcessInstanceQuery().orderByProcessInstanceId().asc();
             if (requestedBy) {
                 piq = piq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, userOid);
             }
             if (requestedFor) {
-                piq = piq.processInstanceBusinessKey(userOid);
+                //piq = piq.processInstanceBusinessKey(userOid);
+                piq = piq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, userOid);
             }
             return piq;
         }
@@ -913,7 +909,10 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     private PrismObject<ObjectType> getAdditionalData(Task task, Map<String,Object> variables, OperationResult result) throws ObjectNotFoundException {
         Object d = variables.get(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA);
-        if (d instanceof PrismObject) {
+
+        if (d instanceof ObjectType) {
+            return ((ObjectType) d).asPrismObject();
+        } else if (d instanceof PrismObject) {
             return (PrismObject<ObjectType>) d;
         } else if (d instanceof String && ((String) d).startsWith("@")) {   // brutal hack - reference to another process variable in the form of @variableName
             d = variables.get(((String) d).substring(1));

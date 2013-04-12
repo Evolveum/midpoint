@@ -58,6 +58,17 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
         return pc;
     }
 
+    public static ActivitiInterface getActivitiInterface() {
+        return getBean("activitiInterface", ActivitiInterface.class);
+    }
+
+    private static<T> T getBean(String name, Class<T> aClass) {
+        T bean = getApplicationContext().getBean(name, aClass);
+        if (bean == null) {
+            throw new IllegalStateException("Could not find " + name + " bean");
+        }
+        return bean;
+    }
 }
 
   

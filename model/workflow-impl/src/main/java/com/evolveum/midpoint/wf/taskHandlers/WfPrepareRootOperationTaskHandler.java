@@ -101,7 +101,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
                         }
                         for (ObjectDelta delta : deltas) {
                             if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Adding delta from task {} to root model context; delta = ", child, delta.debugDump(0));
+                                LOGGER.trace("Adding delta from task {} to root model context; delta = {}", child, delta.debugDump(0));
                             }
                             rootContext.getFocusContext().addPrimaryDelta(delta);
                             changed = true;

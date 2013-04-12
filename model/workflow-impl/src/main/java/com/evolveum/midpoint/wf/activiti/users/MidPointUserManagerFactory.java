@@ -23,13 +23,14 @@ package com.evolveum.midpoint.wf.activiti.users;
 
 import org.activiti.engine.impl.interceptor.Session;
 import org.activiti.engine.impl.interceptor.SessionFactory;
-import org.activiti.engine.impl.persistence.entity.UserManager;
+import org.activiti.engine.impl.persistence.entity.UserEntityManager;
+
 
 public class MidPointUserManagerFactory implements SessionFactory {
 
     @Override
     public Class<?> getSessionType() {
-        return UserManager.class;
+        return UserEntityManager.class;
     }
 
     @Override

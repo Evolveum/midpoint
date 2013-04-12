@@ -195,7 +195,8 @@ public class ProcessInstanceController {
         StartProcessCommand spc = new StartProcessCommand();
         spc.setTaskOid(task.getOid());
         spc.setProcessName(instruction.getProcessName());
-        spc.setSendStartConfirmation(instruction.isSimple());	// for simple processes we should get wrapper-generated start events
+        //spc.setSendStartConfirmation(instruction.isSimple());	// for simple processes we should get wrapper-generated start events
+        spc.setSendStartConfirmation(true);     // we always want to get start confirmation
         spc.setVariablesFrom(instruction.getProcessVariables());
         spc.setProcessOwner(task.getOwner().getOid());
 
@@ -247,8 +248,8 @@ public class ProcessInstanceController {
         // record the process state
         recordProcessState(task, description, null, event, result);
 
-        // let us record process id (when getting "process started" event)
-        if (event instanceof ProcessStartedEvent) {
+        // let us record process id (if unknown or when getting "process started" event)
+        if (wfTaskUtil.getProcessId(task) == null || event instanceof ProcessStartedEvent) {
             wfTaskUtil.setWfProcessIdImmediate(task, event.getPid(), result);
         }
 
@@ -261,7 +262,15 @@ public class ProcessInstanceController {
             changeProcessor.finishProcess(event, task, result);
             wfTaskUtil.setProcessInstanceFinishedImmediate(task, true, result);
 
-            // todo for passive tasks we should change the task status manually....
+            // passive tasks can be 'let go' at this point
+            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+                task.finishHandler(result);
+
+                // if the task was not closed ... (i.e. if there are other handler(s) on the stack)
+                if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+                    taskManager.unpauseTask(task, result);
+                }
+            }
         }
     }
 

@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 
-@Component
+@Component("primaryUserChangeProcessor")
 public class PrimaryUserChangeProcessor extends PrimaryChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryUserChangeProcessor.class);

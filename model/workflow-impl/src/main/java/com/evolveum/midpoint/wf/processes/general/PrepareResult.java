@@ -24,6 +24,7 @@ package com.evolveum.midpoint.wf.processes.general;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
@@ -36,8 +37,12 @@ public class PrepareResult implements JavaDelegate {
 
         Boolean loopLevelsStop = (Boolean) execution.getVariable(ProcessVariableNames.LOOP_LEVELS_STOP);
         Validate.notNull(loopLevelsStop, "loopLevels_stop is undefined");
+        boolean approved = !loopLevelsStop;
 
-        execution.setVariable(WfConstants.VARIABLE_WF_ANSWER, !loopLevelsStop);
+        execution.setVariable(WfConstants.VARIABLE_WF_ANSWER, approved);
+        execution.setVariable(WfConstants.VARIABLE_MIDPOINT_STATE, "Final decision is " + (approved ? "APPROVED" : "REFUSED"));
+
+        SpringApplicationContextHolder.getActivitiInterface().notifyMidpointFinal(execution);
     }
 
 }

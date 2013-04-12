@@ -420,11 +420,9 @@ public class WfTaskUtil {
             values = idProp.getRealValues(String.class);
         }
         if (values == null || values.isEmpty()) {
-//            LOGGER.error("Process ID is not known for task " + task.getName());
             return null;
         } else {
             return values.iterator().next();
-            //String id = (String) idProp.getRealValue(String.class);
         }
     }
 

@@ -84,7 +84,7 @@ import java.util.Map;
  *
  * @author mederly
  */
-@Component
+@Component("addRoleAssignmentWrapper")
 public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddRoleAssignmentWrapper.class);
@@ -209,13 +209,12 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             String objectOid = getObjectOid(modelContext);
             PrismObject<UserType> requester = getRequester(task, result);
 
-
             StartProcessInstructionForPrimaryStage instruction = new StartProcessInstructionForPrimaryStage();
 
             prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
 
             instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
-            instruction.setSimple(true);
+            instruction.setSimple(false);
 
             instruction.setTaskName(new PolyStringType("Workflow for approving adding " + roleName + " to " + userName));
             instruction.addProcessVariable(WfConstants.VARIABLE_PROCESS_NAME, "Adding " + roleName + " to " + userName);

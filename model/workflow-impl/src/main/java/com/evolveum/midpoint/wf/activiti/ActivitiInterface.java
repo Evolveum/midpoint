@@ -31,8 +31,10 @@ import com.evolveum.midpoint.wf.ProcessInstanceController;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.messages.*;
+import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
+import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.history.HistoricDetail;
 import org.activiti.engine.history.HistoricDetailQuery;
 import org.activiti.engine.history.HistoricFormProperty;
@@ -160,8 +162,9 @@ public class ActivitiInterface {
             if (owner != null) {
                 activitiEngine.getIdentityService().setAuthenticatedUserId(owner);
             }
-            String businessKey = (String) map.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID);
-            ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), businessKey, map);
+            //String businessKey = (String) map.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID);
+            //ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), businessKey, map);
+            ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), map);
 
             // let us send a reply back (useful for listener-free processes)
 
@@ -240,4 +243,19 @@ public class ActivitiInterface {
         }
     }
 
+    public void notifyMidpointFinal(DelegateExecution execution) {
+        notifyMidpoint(execution, new ProcessFinishedEvent());
+    }
+
+    public void notifyMidpoint(DelegateExecution execution) {
+        notifyMidpoint(execution, new ProcessEvent());
+    }
+
+    public void notifyMidpoint(DelegateExecution execution, ProcessEvent event) {
+        event.setPid(execution.getProcessInstanceId());
+        event.setRunning(true);
+        event.setTaskOid((String) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_TASK_OID));
+        event.setVariablesFrom(execution.getVariables());
+        activiti2midpoint(event, null, new OperationResult(DOT_CLASS + "notifyMidpoint"));
+    }
 }

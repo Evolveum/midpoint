@@ -29,6 +29,7 @@ import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.activiti.users.MidPointUserManagerFactory;
 import org.activiti.engine.*;
 import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
+import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.engine.impl.interceptor.SessionFactory;
 import org.activiti.engine.repository.Deployment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,7 @@ public class ActivitiEngine {
                 .setJdbcUsername(wfConfiguration.getJdbcUser())
                 .setJdbcPassword(wfConfiguration.getJdbcPassword())
                 .setJobExecutorActivate(false)
-                .setHistory(ProcessEngineConfiguration.HISTORY_FULL);
+                .setHistory(HistoryLevel.FULL.getKey());
 
         pec = pec.setJobExecutorActivate(true);
 
@@ -182,8 +183,8 @@ public class ActivitiEngine {
         }
 
         if (existing == null || tooOld) {
-            repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
-            LOGGER.info("Successfully deployed Activiti resource " + name);
+            Deployment deployment = repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
+            LOGGER.info("Successfully deployed Activiti resource " + name); // + " as deployment with id = " + deployment.getId() + ", name = " + deployment.getName());
         }
     }
 

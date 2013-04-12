@@ -662,8 +662,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         for (int i = 0; i < subtasks.size(); i++) {
             Task subtask = subtasks.get(i);
-            assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
-            assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
+            //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
+            //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
             PrismProperty<ObjectDelta> deltas = subtask.getExtension(WfTaskUtil.WFDELTA_TO_PROCESS_PROPERTY_NAME);
             assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
             assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());

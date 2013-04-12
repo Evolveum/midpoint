@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -106,6 +107,9 @@ public class RecordIndividualDecision implements JavaDelegate {
         if (setLoopApprovesInLevelStop != null) {
             execution.setVariable(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
         }
+        execution.setVariable(WfConstants.VARIABLE_MIDPOINT_STATE, "User " + decision.getUser() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
+
+        SpringApplicationContextHolder.getActivitiInterface().notifyMidpoint(execution);
     }
 
     // todo fixme: copied from web SecurityUtils

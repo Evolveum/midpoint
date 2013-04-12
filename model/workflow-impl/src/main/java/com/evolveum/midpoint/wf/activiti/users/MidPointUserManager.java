@@ -24,11 +24,11 @@ package com.evolveum.midpoint.wf.activiti.users;
 import org.activiti.engine.identity.User;
 import org.activiti.engine.impl.Page;
 import org.activiti.engine.impl.persistence.entity.UserEntity;
-import org.activiti.engine.impl.persistence.entity.UserManager;
+import org.activiti.engine.impl.persistence.entity.UserEntityManager;
 
 import java.util.List;
 
-public class MidPointUserManager extends UserManager {
+public class MidPointUserManager extends UserEntityManager {
 
     @Override
     public User createNewUser(String userId) {
@@ -41,7 +41,7 @@ public class MidPointUserManager extends UserManager {
     }
 
     @Override
-    public void updateUser(User updatedUser) {
+    public void updateUser(UserEntity updatedUser) {
         throw new UnsupportedOperationException("MidPoint user manager doesn't support updating a user");
     }
 
