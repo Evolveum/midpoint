@@ -730,7 +730,7 @@ public class ChangeExecutor {
             OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
+    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), result);
     	ProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.DELETE, resource, result);
         provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
     }
@@ -739,7 +739,7 @@ public class ChangeExecutor {
             Collection<? extends ItemDelta> modifications, LensContext<F, P> context, ProvisioningOperationOptions options, 
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
-    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
+    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), result);
     	ProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
         return changedOid;
@@ -754,6 +754,10 @@ public class ChangeExecutor {
     		return null;
     	}
     	
+    	if (resource == null){
+    		LOGGER.warn("Resource does not exist. Skipping processing scripts.");
+    		return null;
+    	}
     	ProvisioningScriptsType resourceScripts = resource.getScripts();
     	PrismObject<? extends ShadowType> resourceObject = (PrismObject<? extends ShadowType>) changedObject;
         
