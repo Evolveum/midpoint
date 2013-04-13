@@ -68,15 +68,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
     private static final String OPERATION_LOAD_PROCESS_INSTANCE = DOT_CLASS + "loadProcessInstance";
-    private static final String OPERATION_LOAD_REQUESTER = DOT_CLASS + "loadRequester";
-    private static final String OPERATION_LOAD_OBJECT_OLD = DOT_CLASS + "loadObjectOld";
-    private static final String OPERATION_LOAD_OBJECT_NEW = DOT_CLASS + "loadObjectNew";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
-    private static final String OPERATION_LOAD_REQUEST_COMMON = DOT_CLASS + "loadRequestCommon";
-    private static final String OPERATION_LOAD_REQUEST_SPECIFIC = DOT_CLASS + "loadRequestSpecific";
-    private static final String OPERATION_LOAD_ADDITIONAL_DATA = DOT_CLASS + "loadAdditionalData";
-    private static final String OPERATION_LOAD_TRACKING_DATA = DOT_CLASS + "loadTrackingData";
-    
+
     private static final String ID_ACCORDION = "accordion";
     private static final String ID_ADDITIONAL_INFO = "additionalInfo";
 
@@ -87,7 +80,6 @@ public class PageWorkItem extends PageAdminWorkItems {
     private IModel<ObjectWrapper> requesterModel;
     private IModel<ObjectWrapper> objectOldModel;
     private IModel<ObjectWrapper> objectNewModel;
-    private IModel<ObjectWrapper> requestCommonModel;
     private IModel<ObjectWrapper> requestSpecificModel;
     private IModel<ObjectWrapper> additionalDataModel;
     private IModel<ObjectWrapper> trackingDataModel;
@@ -113,13 +105,6 @@ public class PageWorkItem extends PageAdminWorkItems {
             protected ObjectWrapper load() {
                 loadWorkItemDetailedDtoIfNecessary();
                 return getObjectNewWrapper();
-            }
-        };
-        requestCommonModel = new LoadableModel<ObjectWrapper>(false) {
-            @Override
-            protected ObjectWrapper load() {
-                loadWorkItemDetailedDtoIfNecessary();
-                return getRequestCommonWrapper();
             }
         };
         requestSpecificModel = new LoadableModel<ObjectWrapper>(false) {
@@ -217,24 +202,14 @@ public class PageWorkItem extends PageAdminWorkItems {
         return p;
     }
 
-    private ObjectWrapper getRequestCommonWrapper() {
-        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getRequestCommonData();
-
-        ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(false);
-
-        return wrapper;
-    }
-
     private ObjectWrapper getRequestSpecificWrapper() {
-        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getRequestSpecificData();
+        PrismObject<?> prism = workItemDtoModel.getObject().getWorkItem().getRequestSpecificData();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
         wrapper.setShowEmpty(true);
         wrapper.setMinimalized(false);
+        wrapper.setShowInheritedObjectAttributes(false);
 
         return wrapper;
     }
@@ -274,7 +249,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemDetailed workItem = null;
         try {
             WorkflowService wfm = getWorkflowService();
-            workItem = wfm.getWorkItemByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
+            workItem = wfm.getWorkItemDetailsByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
@@ -525,7 +500,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowService().saveWorkItemPrism(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
+            getWorkflowService().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -45,6 +46,8 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
 
     @Autowired
     WfTaskUtil wfTaskUtil;
+
+    ChangeProcessor changeProcessor;
 
     String getObjectOid(ModelContext<?,?> modelContext) {
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
@@ -110,6 +113,7 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
         instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
         instruction.addProcessVariable(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
         instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
+        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
         instruction.setWrapper(this);
         instruction.setNoProcess(false);
         instruction.addProcessVariable(WfConstants.VARIABLE_START_TIME, new Date());
@@ -147,5 +151,13 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
         return "not implemented yet";
     }
 
+    @Override
+    public ChangeProcessor getChangeProcessor() {
+        return changeProcessor;
+    }
 
+    @Override
+    public void setChangeProcessor(ChangeProcessor changeProcessor) {
+        this.changeProcessor = changeProcessor;
+    }
 }

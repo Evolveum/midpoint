@@ -25,18 +25,17 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -44,17 +43,20 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfTaskUtil;
+import com.evolveum.midpoint.wf.WorkflowServiceImpl;
+import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.general.Decision;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.activiti.engine.form.FormProperty;
+import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +65,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -88,6 +91,15 @@ import java.util.Map;
 public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddRoleAssignmentWrapper.class);
+
+    @Autowired
+    private PrismContext prismContext;
+
+    @Autowired
+    private ActivitiEngine activitiEngine;
+
+    @Autowired
+    private WorkflowServiceImpl workflowService;
 
     @Override
     public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<Objectable> change, Task task, OperationResult result) {
@@ -212,6 +224,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             StartProcessInstructionForPrimaryStage instruction = new StartProcessInstructionForPrimaryStage();
 
             prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
+            instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, userName);
 
             instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
             instruction.setSimple(false);
@@ -585,7 +598,40 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         return formatter.format(time.toGregorianCalendar().getTime());
     }
 
+    public static final QName ROLE_APPROVAL_FORM_NAME = new QName(SchemaConstants.NS_WFCF, "RoleApprovalForm");
 
+    @Override
+    public PrismObject<?> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+        }
+
+        PrismObjectDefinition<RoleApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(RoleApprovalFormType.COMPLEX_TYPE);
+        PrismObject<RoleApprovalFormType> formPrism = formDefinition.instantiate();
+        RoleApprovalFormType form = formPrism.asObjectable();
+
+        form.setUser((String) variables.get(AddRoleVariableNames.USER_NAME));
+
+        // todo check type compatibility
+        ApprovalRequest request = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
+        Validate.notNull(request, "Approval request is not present among process variables");
+
+        AssignmentType assignment = (AssignmentType) request.getItemToApprove();
+        Validate.notNull(assignment, "Approval request does not contain as assignment");
+
+        RoleType role = (RoleType) (assignment).getTarget();
+        Validate.notNull(role, "Approval request does not contain role information");
+
+        form.setRole(role.getName() == null ? role.getOid() : role.getName().getOrig());        // ==null should not occur
+        form.setRequesterComment(assignment.getDescription());
+        form.setTimeInterval(formatTimeIntervalBrief(assignment));
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resulting prism object instance = " + formPrism.debugDump());
+        }
+        return formPrism;
+    }
 
 
 }

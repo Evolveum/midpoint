@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +115,11 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
             }
         }
         return instructions;
+    }
+
+    @Override
+    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+        throw new NotImplementedException();
     }
 
     private ApprovalRequest<String> createApprovalRequest(ItemDelta delta) {

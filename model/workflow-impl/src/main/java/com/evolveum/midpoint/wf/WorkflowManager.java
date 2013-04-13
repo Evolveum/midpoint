@@ -91,34 +91,6 @@ public class WorkflowManager {
     @Autowired
     private WfConfiguration wfConfiguration;
 
-//    @Autowired
-//    private ChangeProcessor[] allChangeProcessors;
-
-    // ordinary classes (not spring beans)
-    private WfHook wfHook;
-    private List<ChangeProcessor> changeProcessors;
-
-    @PostConstruct
-    public void initialize() {
-
-        LOGGER.info("Initializing WorkflowManager...");
-
-        // todo remove when sure that everything related to spring DI works
-        Validate.notNull(wfConfiguration, "WorkflowManager is not initialized properly, wfConfiguration is null");
-//        Validate.notNull(allChangeProcessors, "WorkflowManager is not initialized properly, allChangeProcessors is null");
-
-        if (!wfConfiguration.isEnabled()) {
-            LOGGER.info("Workflow management is not enabled.");
-        } else {
-
-            changeProcessors = wfConfiguration.getChangeProcessorsBeans();
-            wfHook = new WfHook(this);
-            wfHook.register(hookRegistry);
-
-            LOGGER.info("WorkflowManager is initialized.");
-        }
-    }
-
     public WfConfiguration getWfConfiguration() {
         return wfConfiguration;
     }
@@ -137,9 +109,5 @@ public class WorkflowManager {
 
     public WorkflowServiceImpl getDataAccessor() {
         return workflowServiceImpl;
-    }
-
-    public List<ChangeProcessor> getChangeProcessors() {
-        return changeProcessors;
     }
 }

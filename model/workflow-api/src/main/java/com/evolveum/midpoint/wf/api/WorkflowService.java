@@ -79,7 +79,7 @@ public interface WorkflowService {
      * =========================================================================
      */
 
-    public WorkItemDetailed getWorkItemByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+    public WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
 
     public ProcessInstance getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
 
@@ -94,12 +94,11 @@ public interface WorkflowService {
      */
     public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult);
 
-    public void saveWorkItemPrism(String taskId, PrismObject specific, boolean decision, OperationResult result);
+    public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult result);
 
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
     public void deleteProcessInstance(String instanceId, OperationResult parentResult);
-
 
     public boolean isEnabled();
 

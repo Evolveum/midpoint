@@ -27,10 +27,12 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,12 +41,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
 import com.evolveum.midpoint.wf.WfConfiguration;
+import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.activiti.engine.task.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author mederly
@@ -86,6 +92,9 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
     public void init() {
         Validate.notNull(beanName, "Bean name was not set correctly.");
         processWrappers = wfConfiguration.getPrimaryChangeProcessorWrappers(beanName);
+        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
+            processWrapper.setChangeProcessor(this);
+        }
     }
 
     @Override
@@ -355,4 +364,19 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
     }
 
 
+    @Override
+    public PrismObject<?> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+        String wrapperClassName = (String) variables.get(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperClassName);
+        return wrapper.getRequestSpecificData(task, variables, result);
+    }
+
+    public PrimaryApprovalProcessWrapper findProcessWrapper(String name) {
+        for (PrimaryApprovalProcessWrapper w : processWrappers) {
+            if (name.equals(w.getClass().getName())) {
+                return w;
+            }
+        }
+        throw new IllegalStateException("Wrapper " + name + " is not registered.");
+    }
 }

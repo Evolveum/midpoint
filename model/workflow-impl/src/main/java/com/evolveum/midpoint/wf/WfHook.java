@@ -37,6 +37,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Provides an interface between the model and the workflow engine:
@@ -44,24 +48,30 @@ import org.apache.commons.lang.Validate;
  *
  * @author mederly
  */
+@Component
 public class WfHook implements ChangeHook {
 
     private static final Trace LOGGER = TraceManager.getTrace(WfHook.class);
 
     public static final String WORKFLOW_HOOK_URI = "http://midpoint.evolveum.com/model/workflow-hook-1";        // todo
 
-    private WorkflowManager workflowManager;
+    @Autowired
+    private WfConfiguration wfConfiguration;
+
+    @Autowired
+    private HookRegistry hookRegistry;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
 
-    public WfHook(WorkflowManager workflowManager) {
-        this.workflowManager = workflowManager;
-    }
-
-    public void register(HookRegistry hookRegistry) {
-        LOGGER.trace("Registering workflow hook");
-        hookRegistry.registerChangeHook(WfHook.WORKFLOW_HOOK_URI, this);
+    @PostConstruct
+    public void init() {
+        if (wfConfiguration.isEnabled()) {
+            hookRegistry.registerChangeHook(WfHook.WORKFLOW_HOOK_URI, this);
+            LOGGER.info("Workflow change hook was registered.");
+        } else {
+            LOGGER.info("Workflow change hook is not registered, because workflows are disabled.");
+        }
     }
 
     @Override
@@ -110,7 +120,7 @@ public class WfHook implements ChangeHook {
 
     HookOperationMode startProcessesIfNeeded(ModelContext context, Task task, OperationResult result) {
 
-        for (ChangeProcessor changeProcessor : workflowManager.getChangeProcessors()) {
+        for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
             }

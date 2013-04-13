@@ -74,9 +74,12 @@ public class ObjectWrapper implements Serializable {
 	private boolean selected;
 
     private boolean showAssignments = false;
+    private boolean showInheritedObjectAttributes = true;       // whether to show name and description properties and metadata container
     private boolean readonly = false;
 
-	public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
+    private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(ObjectType.F_METADATA, ObjectType.F_EXTENSION);
+
+    public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 
@@ -326,6 +329,13 @@ public class ObjectWrapper implements Serializable {
 			if (!showAssignments && AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
 				continue;
 			}
+            if (!showInheritedObjectAttributes) {
+                boolean result = INHERITED_OBJECT_SUBCONTAINERS.contains(containerDef.getName());
+                LOGGER.info("checking " + containerDef.getName() + ", result = " + result);
+                if (result) {
+                    continue;
+                }
+            }
 
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 			PrismContainer prismContainer = object.findContainer(def.getName());
@@ -618,5 +628,13 @@ public class ObjectWrapper implements Serializable {
 
     public void setReadonly(boolean readonly) {
         this.readonly = readonly;
+    }
+
+    public boolean isShowInheritedObjectAttributes() {
+        return showInheritedObjectAttributes;
+    }
+
+    public void setShowInheritedObjectAttributes(boolean showInheritedObjectAttributes) {
+        this.showInheritedObjectAttributes = showInheritedObjectAttributes;
     }
 }

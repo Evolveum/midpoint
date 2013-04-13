@@ -42,8 +42,7 @@ public class WorkItemDetailed extends WorkItem {
     private PrismObject<UserType> requester;
     private PrismObject<ObjectType> objectOld;              // object before requested modification (typically, a user)
     private PrismObject<ObjectType> objectNew;              // object after requested modification (typically, a user)
-    private PrismObject<ObjectType> requestSpecificData;    // data whose format is specific to the request (e.g. reason, ...)
-    private PrismObject<ObjectType> requestCommonData;      // data common to all (or majority of) requests - e.g. date of the request, ...
+    private PrismObject<?> requestSpecificData;    // data whose format is specific to the request (e.g. reason, ...)
     private PrismObject<ObjectType> trackingData;           // general tracking data, e.g. IDs of related objects in activiti
     private PrismObject<ObjectType> additionalData;         // additional data, e.g. the description of the role to be added
 
@@ -71,14 +70,6 @@ public class WorkItemDetailed extends WorkItem {
         this.objectOld = objectOld;
     }
 
-    public PrismObject<ObjectType> getRequestCommonData() {
-        return requestCommonData;
-    }
-
-    public void setRequestCommonData(PrismObject<ObjectType> requestCommonData) {
-        this.requestCommonData = requestCommonData;
-    }
-
     public PrismObject<UserType> getRequester() {
         return requester;
     }
@@ -87,11 +78,11 @@ public class WorkItemDetailed extends WorkItem {
         this.requester = requester;
     }
 
-    public PrismObject<ObjectType> getRequestSpecificData() {
+    public PrismObject<?> getRequestSpecificData() {
         return requestSpecificData;
     }
 
-    public void setRequestSpecificData(PrismObject<ObjectType> requestSpecificData) {
+    public void setRequestSpecificData(PrismObject<?> requestSpecificData) {
         this.requestSpecificData = requestSpecificData;
     }
 

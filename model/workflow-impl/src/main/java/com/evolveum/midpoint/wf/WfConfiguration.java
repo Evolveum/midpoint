@@ -81,7 +81,8 @@ public class WfConfiguration implements BeanFactoryAware {
     private String jdbcUser;
     private String jdbcPassword;
 
-    private String[] changeProcessors;
+    private String[] changeProcessorsNames;
+    private List<ChangeProcessor> changeProcessors = null;
 
     private int processCheckInterval;
     private String autoDeploymentFrom;
@@ -138,7 +139,7 @@ public class WfConfiguration implements BeanFactoryAware {
         processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
 
-        changeProcessors = c.getStringArray("changeProcessor");
+        changeProcessorsNames = c.getStringArray("changeProcessor");
 
 //        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
@@ -197,24 +198,28 @@ public class WfConfiguration implements BeanFactoryAware {
         return autoDeploymentFrom;
     }
 
-    public List<ChangeProcessor> getChangeProcessorsBeans() {
-        List<ChangeProcessor> retval = new ArrayList<ChangeProcessor>();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resolving change processors: configured list = " + StringUtils.join(changeProcessors, ","));
-        }
+    public synchronized List<ChangeProcessor> getChangeProcessors() {
         if (changeProcessors != null) {
-            for (String processorName : changeProcessors) {
+            return changeProcessors;
+        }
+
+        changeProcessors = new ArrayList<ChangeProcessor>();
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resolving change processors: configured list = " + StringUtils.join(changeProcessorsNames, ","));
+        }
+        if (changeProcessorsNames != null) {
+            for (String processorName : changeProcessorsNames) {
                 LOGGER.trace("Searching for change processor " + processorName);
                 try {
                     ChangeProcessor processor = (ChangeProcessor) beanFactory.getBean(processorName);
-                    retval.add(processor);
+                    changeProcessors.add(processor);
                 } catch(BeansException e) {
                     throw new SystemException("Change processor " + processorName + " could not be found.", e);
                 }
             }
         }
-        LOGGER.debug("Resolved " + retval.size() + " change processors.");
-        return retval;
+        LOGGER.debug("Resolved " + changeProcessors.size() + " change processors.");
+        return changeProcessors;
     }
 
     public List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers(String beanName) {
@@ -223,7 +228,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
         Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
 
-        if (changeProcessors == null || !Arrays.asList(changeProcessors).contains(beanName)) {
+        if (changeProcessorsNames == null || !Arrays.asList(changeProcessorsNames).contains(beanName)) {
             LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors.");
             return retval;
         }
@@ -249,5 +254,15 @@ public class WfConfiguration implements BeanFactoryAware {
             LOGGER.debug("Resolved " + retval.size() + " process wrappers for primary change processor " + beanName);
         }
         return retval;
+    }
+
+    public ChangeProcessor findChangeProcessor(String processorClassName) {
+        for (ChangeProcessor cp : getChangeProcessors()) {
+            if (processorClassName.equals(cp.getClass().getName())) {
+                return cp;
+            }
+        }
+
+        throw new IllegalStateException("Change processor " + processorClassName + " is not registered.");
     }
 }

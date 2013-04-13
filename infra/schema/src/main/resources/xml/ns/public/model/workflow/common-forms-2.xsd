@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 Pavol Mederly                 -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/model/workflow/common-forms-2"
+            xmlns:tns="http://midpoint.evolveum.com/model/workflow/common-forms-2"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Common work item forms.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:complexType name="RoleApprovalForm">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="user" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Full Name</a:displayName>
+                        <a:displayOrder>100</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="role" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Role to be approved</a:displayName>
+                        <a:displayOrder>110</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timeInterval" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Time interval</a:displayName>
+                        <a:displayOrder>120</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="requesterComment" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Requester's comment</a:displayName>
+                        <a:displayOrder>130</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="comment" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Your comment</a:displayName>
+                        <a:displayOrder>140</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

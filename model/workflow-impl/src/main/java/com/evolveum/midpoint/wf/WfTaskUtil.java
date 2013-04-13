@@ -76,6 +76,9 @@ public class WfTaskUtil {
     @Autowired(required = true)
     private PrismContext prismContext;
 
+    @Autowired
+    private WfConfiguration wfConfiguration;
+
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
 
     public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
@@ -333,19 +336,12 @@ public class WfTaskUtil {
         task.setExtensionProperty(w);
     }
 
-    public ChangeProcessor getChangeProcessor(Task task, List<ChangeProcessor> processors) {
+    public ChangeProcessor getChangeProcessor(Task task) {
         String processorClassName = getExtensionValue(String.class, task, WFCHANGE_PROCESSOR_PROPERTY_NAME);
         if (processorClassName == null) {
             throw new IllegalStateException("No change processor defined in task " + task);
         }
-
-        for (ChangeProcessor cp : processors) {
-            if (processorClassName.equals(cp.getClass().getName())) {
-                return cp;
-            }
-        }
-
-        throw new IllegalStateException("Change processor " + processorClassName + " is not registered.");
+        return wfConfiguration.findChangeProcessor(processorClassName);
     }
 
 

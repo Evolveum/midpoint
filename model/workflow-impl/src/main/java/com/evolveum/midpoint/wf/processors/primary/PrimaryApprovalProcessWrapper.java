@@ -23,11 +23,14 @@ package com.evolveum.midpoint.wf.processors.primary;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processors.ChangeProcessor;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
 
@@ -81,4 +84,9 @@ public interface PrimaryApprovalProcessWrapper {
     String getProcessSpecificDetails(HistoricProcessInstance instance, Map<String, Object> vars);
 
 
+    ChangeProcessor getChangeProcessor();
+
+    void setChangeProcessor(ChangeProcessor changeProcessor);
+
+    PrismObject<?> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result);
 }

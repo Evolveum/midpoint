@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
+import com.evolveum.midpoint.wf.api.WorkItem;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -34,6 +36,11 @@ public class MyWorkItemDto implements Serializable {
 
     private String name;
     private Date createdDate;
+
+    public MyWorkItemDto(WorkItem workItem) {
+        this.name = workItem.getName();
+        this.createdDate = workItem.getCreateTime();
+    }
 
     public Date getCreatedDate() {
         return createdDate;

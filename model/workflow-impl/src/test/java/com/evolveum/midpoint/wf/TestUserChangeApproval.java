@@ -680,7 +680,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
             String taskId = processInstance.getWorkItems().get(0).getTaskId();
-            //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemByTaskId(taskId, result);
+            //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsByTaskId(taskId, result);
 
             org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
             assertNotNull("activiti task not found", t);

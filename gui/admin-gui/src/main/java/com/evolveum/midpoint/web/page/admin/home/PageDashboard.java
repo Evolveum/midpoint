@@ -36,9 +36,12 @@ import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.wf.api.WorkItem;
+import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,6 +78,8 @@ public class PageDashboard extends PageAdminHome {
     private static final String ID_WORK_ITEMS = "workItems";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
+
+    private static final int MAX_WORK_ITEMS = 1000;
 
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
 
@@ -184,7 +189,15 @@ public class PageDashboard extends PageAdminHome {
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
         callableResult.setResult(result);
 
-        //todo implement work items loading
+        List<WorkItem> workItems = null;
+        try {
+            workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(), true, 0, MAX_WORK_ITEMS, result);
+            for (WorkItem workItem : workItems) {
+                list.add(new MyWorkItemDto(workItem));
+            }
+        } catch (WorkflowException e) {
+            result.recordFatalError("Couldn't get list of work items.", e);
+        }
 
         result.recordSuccessIfUnknown();
         result.recomputeStatus();

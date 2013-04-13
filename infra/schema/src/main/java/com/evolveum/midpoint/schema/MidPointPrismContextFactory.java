@@ -140,6 +140,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/extension-2.xsd", "wf");
 
+        //schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/common-forms-2.xsd", "wfcf");
+
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-1.xsd", "noop");
     }
 	

@@ -33,6 +33,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.*;
+import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -85,10 +87,9 @@ public class WorkflowServiceImpl implements WorkflowService {
     private static final String OPERATION_DELETE_PROCESS_INSTANCE = DOT_CLASS + "deleteProcessInstance";
     private static final String OPERATION_COUNT_WORK_ITEMS_RELATED_TO_USER = DOT_CLASS + "countWorkItemsRelatedToUser";
     private static final String OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER = DOT_CLASS + "listWorkItemsRelatedToUser";
-    private static final char FLAG_CLEAR_ON_ENTRY = 'C';
     private static final String OPERATION_COUNT_PROCESS_INSTANCES_RELATED_TO_USER = DOT_CLASS + "countProcessInstancesRelatedToUser";
     private static final String OPERATION_LIST_PROCESS_INSTANCES_RELATED_TO_USER = DOT_CLASS + "listProcessInstancesRelatedToUser";
-    private static final String OPERATION_GET_WORK_ITEM_BY_TASK_ID = DOT_CLASS + "getWorkItemByTaskId";
+    private static final String OPERATION_GET_WORK_ITEM_DETAILS_BY_TASK_ID = DOT_CLASS + "getWorkItemDetailsByTaskId";
     private static final String OPERATION_GET_PROCESS_INSTANCE_BY_TASK_ID = DOT_CLASS + "getProcessInstanceByTaskId";
     private static final String OPERATION_GET_PROCESS_INSTANCE_BY_INSTANCE_ID = DOT_CLASS + "getProcessInstanceByInstanceId";
     private static final String OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE = DOT_CLASS + "activitiToMidpointProcessInstance";
@@ -96,15 +97,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     private static final String OPERATION_ACTIVITI_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiTaskToWorkItem";
     private static final String OPERATION_APPROVE_OR_REJECT_WORK_ITEM = DOT_CLASS + "approveOrRejectWorkItem";
 
-    public ActivitiEngine getActivitiEngine() {
-        //return workflowManager.getActivitiEngine();
-        return activitiEngine;
-    }
-
-    /*
-    * Some externally-visible methods. These count* and list* methods are used by the GUI.
-    */
-
+    private static final char FLAG_CLEAR_ON_ENTRY = 'C';
 
     /*
      * Work items for user
@@ -206,7 +199,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             List<ProcessInstance> mInstances = finished ?
                     activitiToMidpointProcessInstancesHistory((List<HistoricProcessInstance>) instances, false, result) :
                     activitiToMidpointProcessInstances((List<org.activiti.engine.runtime.ProcessInstance>) instances, false, result);
-            result.recomputeStatus();
             return mInstances;
         } catch (ActivitiException e) {
             String m = "Couldn't list process instances related to " + userOid + " due to Activiti exception";
@@ -224,7 +216,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 hpiq = hpiq.startedBy(userOid);
             }
             if (requestedFor) {
-//                hpiq = hpiq.processInstanceBusinessKey(userOid);
                 hpiq = hpiq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, userOid);
             }
             return hpiq;
@@ -234,7 +225,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 piq = piq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, userOid);
             }
             if (requestedFor) {
-                //piq = piq.processInstanceBusinessKey(userOid);
                 piq = piq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, userOid);
             }
             return piq;
@@ -247,8 +237,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * =========================================================================
      */
 
-    public WorkItemDetailed getWorkItemByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
-        OperationResult result = parentResult.createSubresult(OPERATION_GET_WORK_ITEM_BY_TASK_ID);
+    public WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
+        OperationResult result = parentResult.createSubresult(OPERATION_GET_WORK_ITEM_DETAILS_BY_TASK_ID);
         result.addParam("taskId", taskId);
         WorkItemDetailed retval = (WorkItemDetailed) taskToWorkItem(getTaskById(taskId, result), true, result);
         result.recordSuccessIfUnknown();
@@ -346,6 +336,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
         if (problems > 0) {
             result.recordWarning(problems + " finished instance(s) could not be shown; last exception: " + lastException.getMessage(), lastException);
+        } else {
+            result.recordSuccessIfUnknown();
         }
         return retval;
     }
@@ -408,6 +400,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (getProcessDetails) {
                 pi.setDetails(getProcessSpecificDetails(instance, vars, result));
             }
+            result.recordSuccessIfUnknown();
+            return pi;
         } catch (Exception e) {     // todo: was: WorkflowException but there can be e.g. NPEs there
             result.recordFatalError("Couldn't get information about finished process instance " + instance.getId(), e);
             pi.setName("(unreadable process instance with id = " + instance.getId() + ")");
@@ -415,9 +409,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             pi.setDetails("Process instance details couldn't be found because of the following problem:\n" + sw.toString());
+            return pi;
         }
-
-        return pi;
     }
 
     private Map<String, Object> getHistoricVariables(String pid, OperationResult result) throws WorkflowException {
@@ -523,8 +516,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 ((WorkItemDetailed) wi).setRequester((PrismObject<UserType>) variables.get(WfConstants.VARIABLE_MIDPOINT_REQUESTER));
                 ((WorkItemDetailed) wi).setObjectOld((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_BEFORE));
                 ((WorkItemDetailed) wi).setObjectNew((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER));
-                ((WorkItemDetailed) wi).setRequestCommonData(getRequestCommon(task, result));
-                ((WorkItemDetailed) wi).setRequestSpecificData(getRequestSpecific(task, variables, result));
+                ((WorkItemDetailed) wi).setRequestSpecificData(getRequestSpecificData(task, variables, result));
                 ((WorkItemDetailed) wi).setTrackingData(getTrackingData(task, variables, result));
                 ((WorkItemDetailed) wi).setAdditionalData(getAdditionalData(task, variables, result));
             } catch (SchemaException e) {
@@ -601,7 +593,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 
 
-    private static final QName WORK_ITEM_NAME = new QName(SchemaConstants.NS_C, "WorkItem");
+    public static final QName WORK_ITEM_NAME = new QName(SchemaConstants.NS_C, "WorkItem");
+
     private static final QName WORK_ITEM_TASK_ID = new QName(SchemaConstants.NS_C, "01: taskId");
     private static final QName WORK_ITEM_PROCESS_INSTANCE_ID = new QName(SchemaConstants.NS_C, "02: processInstanceId");
     private static final QName WORK_ITEM_EXECUTION_ID = new QName(SchemaConstants.NS_C, "03: executionId");
@@ -663,74 +656,56 @@ public class WorkflowServiceImpl implements WorkflowService {
         return retval.toString();
     }
 
-    /**
-     * Approves or rejects a work item (without supplying any further information).
-     *
-     * @param taskId identifier of activiti task backing the work item
-     * @param decision true = approve, false = reject
-     * @param parentResult
-     */
     public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult) {
+        approveOrRejectWorkItemWithDetails(taskId, null, decision, parentResult);
+    }
+
+    // todo error reporting
+    public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(OPERATION_APPROVE_OR_REJECT_WORK_ITEM);
         result.addParam("taskId", taskId);
         result.addParam("decision", decision);
+        result.addParam("task-specific data", specific);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Approving/rejecting work item " + taskId);
             LOGGER.trace("Decision: " + decision);
+            LOGGER.trace("WorkItem form object (task-specific) = " + (specific != null ? specific.debugDump() : "(none)"));
         }
 
         FormService formService = getActivitiEngine().getFormService();
         Map<String,String> propertiesToSubmit = new HashMap<String,String>();
-        TaskFormData data = getActivitiEngine().getFormService().getTaskFormData(taskId);
-
-        // we hope that the form has a property named "decision"
         propertiesToSubmit.put(WfConstants.FORM_FIELD_DECISION, Boolean.toString(decision));
-        formService.submitTaskFormData(taskId, propertiesToSubmit);
 
-        result.recordSuccessIfUnknown();
-    }
-
-    // todo error reporting
-    public void saveWorkItemPrism(String taskId, PrismObject specific, boolean decision, OperationResult result) {
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Saving work item " + taskId);
-            LOGGER.trace("Decision: " + decision);
-            LOGGER.trace("WorkItem form object (process-specific) = " + specific.debugDump());
-        }
-
-        FormService formService = getActivitiEngine().getFormService();
-        Map<String,String> propertiesToSubmit = new HashMap<String,String>();
-        TaskFormData data = getActivitiEngine().getFormService().getTaskFormData(taskId);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("# of form properties: " + data.getFormProperties().size());
-        }
-
-        for (FormProperty formProperty : data.getFormProperties()) {
+        if (specific != null) {
+            TaskFormData data = getActivitiEngine().getFormService().getTaskFormData(taskId);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
+                LOGGER.trace("# of form properties: " + data.getFormProperties().size());
             }
 
-            if (formProperty.isWritable()) {
-
-                Object value;
-
-                if (WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
-                    value = decision;
-                } else {
-                    QName propertyName = new QName(SchemaConstants.NS_C, formProperty.getName());
-                    value = specific.getPropertyRealValue(propertyName, Object.class);
-                }
+            for (FormProperty formProperty : data.getFormProperties()) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
+                    LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
                 }
 
-                propertiesToSubmit.put(formProperty.getId(), value == null ? "" : value.toString());
+                if (formProperty.isWritable()) {
+
+                    Object value;
+
+                    if (!WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
+                        QName propertyName = new QName(SchemaConstants.NS_C, formProperty.getName());
+                        value = specific.getPropertyRealValue(propertyName, Object.class);
+
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
+                        }
+
+                        propertiesToSubmit.put(formProperty.getId(), value == null ? "" : value.toString());
+                    }
+                }
             }
         }
 
@@ -739,163 +714,25 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
 
         formService.submitTaskFormData(taskId, propertiesToSubmit);
+
+        result.recordSuccessIfUnknown();
     }
 
 
-    private PrismObject<ObjectType> getRequestSpecific(Task task, Map<String,Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, WorkflowException {
+    private PrismObject<?> getRequestSpecificData(Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, WorkflowException {
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+        String cpClassName = (String) variables.get(WfConstants.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+        if (cpClassName == null) {
+            throw new IllegalStateException("Change processor is unknown for task: " + task);
         }
 
-        // todo - use NS other than NS_C (at least for form properties)
-
-        ComplexTypeDefinition ctd = new ComplexTypeDefinition(WORK_ITEM_NAME, WORK_ITEM_NAME, prismContext);
-
-        TaskFormData data = getActivitiEngine().getFormService().getTaskFormData(task.getId());
-
-        for (FormProperty formProperty : data.getFormProperties()) {
-
-            LOGGER.trace("- form property: name=" + formProperty.getName() + ", value=" + formProperty.getValue() + ", type=" + formProperty.getType());
-
-            if (WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
-                LOGGER.trace("   - it is a decision field, concealing it.");
-                continue;
-            }
-
-            String propertyName = getPropertyName(formProperty);
-            String propertyType = getPropertyType(formProperty);
-
-            QName pname = new QName(SchemaConstants.NS_C, propertyName);
-            QName ptype;
-
-            if (propertyType == null) {
-                FormType t = formProperty.getType();
-                String ts = t == null ? "string" : t.getName();
-
-                if ("string".equals(ts)) {
-                    ptype = DOMUtil.XSD_STRING;
-                } else if ("boolean".equals(ts)) {
-                    ptype = DOMUtil.XSD_BOOLEAN;
-                } else if ("long".equals(ts)) {
-                    ptype = DOMUtil.XSD_LONG;
-                } else if ("date".equals(ts)) {
-                    ptype = new QName(W3C_XML_SCHEMA_NS_URI, "date",
-                            DOMUtil.NS_W3C_XML_SCHEMA_PREFIX);
-                } else if ("enum".equals(ts)) {
-                    ptype = DOMUtil.XSD_INT;        // TODO: implement somehow ...
-                } else {
-                    LOGGER.warn("Unknown Activiti type: " + ts);
-                    continue;
-                }
-                PrismPropertyDefinition ppd = ctd.createPropertyDefinifion(pname, ptype);
-                if (!formProperty.isWritable()) {
-                    ppd.setReadOnly();
-                }
-                ppd.setMinOccurs(0);
-            } else {
-                ptype = new QName(SchemaConstants.NS_C, propertyType);
-                ComplexTypeDefinition childCtd = prismContext.getSchemaRegistry().findComplexTypeDefinition(ptype);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Complex type = " + ptype + ", its definition = " + childCtd);
-                }
-                PrismContainerDefinition pcd = new PrismContainerDefinition(pname, childCtd, prismContext);
-                ctd.add(pcd);
-            }
-
-        }
-
-        ctd.setObjectMarker(true);
-
-        PrismObjectDefinition<ObjectType> prismObjectDefinition = new PrismObjectDefinition<ObjectType>(WORK_ITEM_NAME, ctd, prismContext, ObjectType.class);
-        PrismObject<ObjectType> instance = prismObjectDefinition.instantiate();
-
-        for (FormProperty formProperty : data.getFormProperties()) {
-
-            if (WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
-                continue;
-            }
-
-            FormType t = formProperty.getType();
-            String ts = t == null ? "string" : t.getName();
-
-            boolean isBoolean = "boolean".equals(ts);
-
-            if (!isBoolean && containsFlag(formProperty, FLAG_CLEAR_ON_ENTRY)) {
-                continue;
-            }
-
-            String propertyName = getPropertyName(formProperty);
-            String propertyType = getPropertyType(formProperty);
-
-            QName pname = new QName(SchemaConstants.NS_C, propertyName);
-            if (propertyType == null) {
-                Object value = formProperty.getValue();     // non-string values cannot be read here as for now...
-                if (isBoolean && containsFlag(formProperty, FLAG_CLEAR_ON_ENTRY)) {
-                    value = Boolean.FALSE;        // todo: brutal hack to avoid three-state check box
-                }
-                instance.findOrCreateProperty(pname).setValue(new PrismPropertyValue<Object>(value));
-            } else {
-                // this is defunct as for now
-                Object value = variables.get(propertyName);
-                if (value instanceof RoleType) {
-                    RoleType roleType = (RoleType) value;
-                    PrismContainer container = instance.findOrCreateContainer(pname);
-                    container.add(roleType.asPrismContainerValue().clone());
-                }
-            }
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resulting prism object instance = " + instance.debugDump());
-        }
-        return instance;
+        ChangeProcessor changeProcessor = wfConfiguration.findChangeProcessor(cpClassName);
+        return changeProcessor.getRequestSpecificData(task, variables, result);
     }
 
     // TODO make more clean!
     private boolean containsFlag(FormProperty formProperty, char flag) {
         return formProperty.getId().contains("" + FLAG_SEPARATOR_CHAR + flag);
-    }
-
-    private PrismObject<ObjectType> getRequestCommon(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        // todo - use NS other than NS_C (at least for form properties)
-
-        ComplexTypeDefinition ctd = new ComplexTypeDefinition(WORK_ITEM_NAME, WORK_ITEM_NAME, prismContext);
-        ctd.createPropertyDefinifion(WORK_ITEM_TASK_ID, DOMUtil.XSD_STRING).setReadOnly();
-        ctd.createPropertyDefinifion(WORK_ITEM_TASK_NAME, DOMUtil.XSD_STRING).setReadOnly();
-        //ctd.createPropertyDefinifion(WORK_ITEM_ASSIGNEE, DOMUtil.XSD_STRING);
-        //ctd.createPropertyDefinifion(WORK_ITEM_CANDIDATES, DOMUtil.XSD_STRING);
-        //ctd.createPropertyDefinifion(WORK_ITEM_CREATED, DOMUtil.XSD_DATETIME).setReadOnly();
-        ctd.createPropertyDefinifion(WORK_ITEM_CREATED, DOMUtil.XSD_STRING).setReadOnly();
-
-        ctd.setObjectMarker(true);
-
-        PrismObjectDefinition<ObjectType> prismObjectDefinition = new PrismObjectDefinition<ObjectType>(WORK_ITEM_NAME, ctd, prismContext, ObjectType.class);
-        PrismObject<ObjectType> instance = prismObjectDefinition.instantiate();
-        instance.findOrCreateProperty(WORK_ITEM_TASK_ID).setValue(new PrismPropertyValue<Object>(task.getId()));
-        instance.findOrCreateProperty(WORK_ITEM_TASK_NAME).setValue(new PrismPropertyValue<Object>(task.getName()));
-
-
-//        instance.findOrCreateProperty(WORK_ITEM_CREATED).setValue(new PrismPropertyValue<Object>(
-//                XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime().getTime())));
-
-        // todo i18n (it's an ugly hack now); default PrismObject viewer does not show the time
-        instance.findOrCreateProperty(WORK_ITEM_CREATED).setValue(new PrismPropertyValue<Object>(
-                task.getCreateTime().toString()));
-
-//        if (task.getAssignee() != null) {
-//            instance.findOrCreateProperty(WORK_ITEM_ASSIGNEE).setValue(new PrismPropertyValue<Object>(task.getAssignee()));
-//        }
-//        String candidates = getCandidatesAsString(task);
-//        if (candidates != null) {
-//            instance.findOrCreateProperty(WORK_ITEM_CANDIDATES).setValue(new PrismPropertyValue<Object>(candidates));
-//        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resulting prism object instance = " + instance.debugDump());
-        }
-        return instance;
     }
 
     // todo: ObjectNotFoundException used in unusual way (not in connection with midPoint repository)
@@ -965,6 +802,58 @@ public class WorkflowServiceImpl implements WorkflowService {
         return instance;
     }
 
+    public void extractFormFieldsDefinitions(ComplexTypeDefinition ctd, TaskFormData data) {
+
+        for (FormProperty formProperty : data.getFormProperties()) {
+
+            LOGGER.trace("- form property: name=" + formProperty.getName() + ", value=" + formProperty.getValue() + ", type=" + formProperty.getType());
+
+            if (WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
+                LOGGER.trace("   - it is a decision field, concealing it.");
+                continue;
+            }
+
+            String propertyName = getPropertyName(formProperty);
+            String propertyType = getPropertyType(formProperty);
+
+            QName pname = new QName(SchemaConstants.NS_C, propertyName);
+            QName ptype;
+
+            if (propertyType == null) {
+                FormType t = formProperty.getType();
+                String ts = t == null ? "string" : t.getName();
+
+                if ("string".equals(ts)) {
+                    ptype = DOMUtil.XSD_STRING;
+                } else if ("boolean".equals(ts)) {
+                    ptype = DOMUtil.XSD_BOOLEAN;
+                } else if ("long".equals(ts)) {
+                    ptype = DOMUtil.XSD_LONG;
+                } else if ("date".equals(ts)) {
+                    ptype = new QName(W3C_XML_SCHEMA_NS_URI, "date",
+                            DOMUtil.NS_W3C_XML_SCHEMA_PREFIX);
+                } else if ("enum".equals(ts)) {
+                    ptype = DOMUtil.XSD_INT;        // TODO: implement somehow ...
+                } else {
+                    LOGGER.warn("Unknown Activiti type: " + ts);
+                    continue;
+                }
+                PrismPropertyDefinition ppd = ctd.createPropertyDefinifion(pname, ptype);
+                if (!formProperty.isWritable()) {
+                    ppd.setReadOnly();
+                }
+                ppd.setMinOccurs(0);
+            } else {
+                ptype = new QName(SchemaConstants.NS_C, propertyType);
+                ComplexTypeDefinition childCtd = prismContext.getSchemaRegistry().findComplexTypeDefinition(ptype);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Complex type = " + ptype + ", its definition = " + childCtd);
+                }
+                PrismContainerDefinition pcd = new PrismContainerDefinition(pname, childCtd, prismContext);
+                ctd.add(pcd);
+            }
+        }
+    }
 
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_STOP_PROCESS_INSTANCE);
@@ -1001,4 +890,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     public PrismContext getPrismContext() {
         return prismContext;
     }
+
+    private ActivitiEngine getActivitiEngine() {
+        return activitiEngine;
+    }
+
+
 }

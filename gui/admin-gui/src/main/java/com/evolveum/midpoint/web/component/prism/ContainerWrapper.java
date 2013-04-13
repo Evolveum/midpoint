@@ -37,11 +37,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -49,6 +45,9 @@ import java.util.Set;
 public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
+
+    private static final List<QName> INHERITED_OBJECT_ATTRIBUTES = Arrays.asList(ObjectType.F_NAME, ObjectType.F_DESCRIPTION, ObjectType.F_FETCH_RESULT, ObjectType.F_PARENT_ORG, ObjectType.F_PARENT_ORG_REF);
+
     private String displayName;
     private ObjectWrapper object;
     private T container;
@@ -59,6 +58,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private List<PropertyWrapper> properties;
 
     private boolean readonly;
+    private boolean showInheritedObjectAttributes;
 
     public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path) {
         Validate.notNull(container, "Prism object must not be null.");
@@ -70,6 +70,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         this.path = path;
         main = path == null;
         readonly = object.isReadonly();
+        showInheritedObjectAttributes = object.isShowInheritedObjectAttributes();
     }
 
     ObjectWrapper getObject() {
@@ -195,6 +196,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                 Collection<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
                 for (PrismPropertyDefinition def : propertyDefinitions) {
                     if (def.isIgnored() || skipProperty(def)) {
+                        continue;
+                    }
+                    if (!showInheritedObjectAttributes && INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
                         continue;
                     }
 

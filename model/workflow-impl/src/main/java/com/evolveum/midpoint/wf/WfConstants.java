@@ -34,6 +34,7 @@ public class WfConstants {
     public static final String VARIABLE_MIDPOINT_STATE = "midPointState";
 
     public static final String VARIABLE_MIDPOINT_PROCESS_WRAPPER = "midPointProcessWrapper";
+    public static final String VARIABLE_MIDPOINT_CHANGE_PROCESSOR = "midPointChangeProcessor";
 
     public static final String VARIABLE_MIDPOINT_REQUESTER_OID = "midPointRequesterOid";
     public static final String VARIABLE_MIDPOINT_REQUESTER = "midPointRequester";

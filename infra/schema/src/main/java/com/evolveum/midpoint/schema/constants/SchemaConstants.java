@@ -48,7 +48,8 @@ public abstract class SchemaConstants {
 	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2";
 	public static final String NS_FILTER = NS_MIDPOINT_PUBLIC + "/common/value-filter-1.xsd";
 	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-2";
-	
+    public static final String NS_WFCF = "http://midpoint.evolveum.com/model/workflow/common-forms-2";
+
 	// COMMON NAMESPACE
 	
 	public static final QName C_FILTER_TYPE_URI = new QName(NS_QUERY, "uri");

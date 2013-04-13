@@ -255,7 +255,7 @@ public class ProcessInstanceController {
 
         // should we finish this task?
         if (event instanceof ProcessFinishedEvent || !event.isRunning()) {
-            ChangeProcessor changeProcessor = wfTaskUtil.getChangeProcessor(task, workflowManager.getChangeProcessors());
+            ChangeProcessor changeProcessor = wfTaskUtil.getChangeProcessor(task);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Calling finishProcess on " + changeProcessor);
             }
