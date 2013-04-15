@@ -74,14 +74,14 @@ public class PolyStringMatcher extends Matcher<PolyString> {
     private Criterion createNormMatch(ItemRestrictionOperation operation, String propertyName, PolyString value,
                                       boolean ignoreCase) throws QueryException {
 
-        String realValue = value != null ? value.getOrig() : null;
+        String realValue = value != null ? value.getNorm() : null;
         return basicMatch(operation, propertyName + '.' + RPolyString.F_NORM, realValue, ignoreCase);
     }
 
     private Criterion createOrigMatch(ItemRestrictionOperation operation, String propertyName, PolyString value,
                                       boolean ignoreCase) throws QueryException {
 
-        String realValue = value != null ? value.getNorm() : null;
+        String realValue = value != null ? value.getOrig() : null;
         return basicMatch(operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);
     }
 }

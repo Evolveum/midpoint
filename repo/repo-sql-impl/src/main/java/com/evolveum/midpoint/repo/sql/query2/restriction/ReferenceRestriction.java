@@ -95,7 +95,7 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         QueryContext context = getContext();
 
         StringBuilder sb = new StringBuilder();
-        String alias = context.getAlias(filter.getParentPath());
+        String alias = context.getAlias(createFullPath(filter));
         if (StringUtils.isNotEmpty(alias)) {
             sb.append(alias);
             sb.append('.');

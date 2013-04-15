@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -562,7 +563,7 @@ public class EncodingTest extends BaseSQLRepoTest {
             try {
                 ObjectQuery query = new ObjectQuery();
                 ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
-                        toPolyString(USER_FULL_NAME));
+                        toPolyString(USER_FULL_NAME), PolyStringNormMatchingRule.NAME.getLocalPart());
                 query.setFilter(filter);
                 subresult1.addParam("query", query);
                 List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, subresult1);

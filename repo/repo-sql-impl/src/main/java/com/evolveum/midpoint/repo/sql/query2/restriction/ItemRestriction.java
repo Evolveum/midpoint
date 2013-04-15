@@ -31,10 +31,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
-import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.*;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -68,7 +65,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
     @Override
     public Criterion interpret(T filter) throws QueryException {
 
-        ItemPath path = filter.getParentPath();
+        ItemPath path = createFullPath(filter);
         if (path != null) {
             // at first we build criterias with aliases
             updateQueryContext(path);
@@ -116,15 +113,21 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                     //add dot with jpaName to property path
                     propertyPrefix += entityDef.getJpaName() + ".";
                 }
+                definition = entityDef;
             } else if (childDef instanceof AnyDefinition) {
                 LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
                         new Object[]{childDef.getJpaName(), propPath.toString()});
                 addNewCriteriaToContext(propPath, childDef.getJpaName());
+                break;
             } else if (childDef instanceof CollectionDefinition) {
-                throw new QueryException("not implemented yet.");
+                LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
+                        new Object[]{childDef.getJpaName(), propPath.toString()});
+                addNewCriteriaToContext(propPath, childDef.getJpaName());
+            } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition) {
+                break;
             } else {
                 //todo throw something here [lazyman]
-                throw new QueryException("not implemented yet.");
+                throw new QueryException("Not implemented yet.");
             }
         }
     }

@@ -93,6 +93,16 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 			throws SchemaException {
 		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, type, prismContext, propertyPath, realValue);
 	}
+
+    public static EqualsFilter createEqual(Class<? extends Objectable> type, PrismContext prismContext,
+                                           QName propertyName, Object realValue, String matchingRule)
+            throws SchemaException {
+        EqualsFilter filter =  (EqualsFilter) createPropertyFilter(EqualsFilter.class, type, prismContext,
+                propertyName, realValue);
+        filter.setMatchingRule(matchingRule);
+
+        return filter;
+    }
 	
 	@Override
 	public EqualsFilter clone() {

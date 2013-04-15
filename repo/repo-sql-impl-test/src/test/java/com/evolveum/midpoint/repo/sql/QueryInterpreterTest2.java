@@ -313,7 +313,7 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
         Criteria refs = main.createCriteria("accountRefs", "a");
-        refs.add(Restrictions.eq("a.targetOid", "123"));
+        refs.add(Restrictions.conjunction().add(Restrictions.eq("a.targetOid", "123")));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
