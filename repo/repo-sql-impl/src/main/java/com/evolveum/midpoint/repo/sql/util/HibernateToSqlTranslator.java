@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2012 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.repo.sql.util;
@@ -40,8 +40,11 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 
 /**
+ * CAUTION: THIS CLASS WILL BE REMOVED
+ *
  * @author lazyman
  */
+@Deprecated
 public class HibernateToSqlTranslator {
 
     /**

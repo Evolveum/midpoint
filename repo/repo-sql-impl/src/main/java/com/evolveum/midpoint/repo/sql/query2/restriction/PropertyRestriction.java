@@ -57,7 +57,6 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
     @Override
     public Criterion interpretInternal(ValueFilter filter)
             throws QueryException {
-        //todo implement
         QueryContext context = getContext();
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
