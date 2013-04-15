@@ -65,6 +65,8 @@ public class ClassDefinitionParser {
         Method[] methods = entity.getJpaType().getMethods();
         LOGGER.info("### {}", new Object[]{entity.getJpaName()});
 
+        entity.setEmbedded(entity.getJpaType().getAnnotation(Embeddable.class) != null);
+
         for (Method method : methods) {
             String methodName = method.getName();
             if (Modifier.isStatic(method.getModifiers()) || "getClass".equals(methodName) ||

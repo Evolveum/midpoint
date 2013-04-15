@@ -63,6 +63,9 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         ItemPath fullPath = createFullPath(filter);
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
+        if (def.isLob()) {
+            throw new QueryException("Can't query based on clob property value '" + def + "'.");
+        }
 
         String propertyName = def.getJpaName();
         Object value;
@@ -87,7 +90,7 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
             Object[] constants = type.getEnumConstants();
             for (Object constant : constants) {
                 Enum e = (Enum) constant;
-                if (e.name().equals(((Enum)value).name())) {
+                if (e.name().equals(((Enum) value).name())) {
                     value = e;
                     break;
                 }

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -53,6 +54,7 @@ import java.util.List;
 public abstract class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemRestriction.class);
+    private String propertyPrefix = "";
 
     @Override
     public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
@@ -112,7 +114,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                     addNewCriteriaToContext(propPath, entityDef.getJpaName());
                 } else {
                     //add dot with jpaName to property path
-
+                    propertyPrefix += entityDef.getJpaName() + ".";
                 }
             } else if (childDef instanceof AnyDefinition) {
                 LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
@@ -160,7 +162,13 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         QueryInterpreter interpreter = context.getInterpreter();
         Matcher matcher = interpreter.findMatcher(value);
 
-        return matcher.match(operation, propertyName, value, filter.getMatchingRule());
+        String fullPropertyName = "";
+        if (StringUtils.isNotEmpty(propertyPrefix)) {
+            fullPropertyName += propertyPrefix;
+        }
+        fullPropertyName += propertyName;
+
+        return matcher.match(operation, fullPropertyName, value, filter.getMatchingRule());
     }
 
     protected List<Definition> createDefinitionPath(ItemPath path, QueryContext context) throws QueryException {
