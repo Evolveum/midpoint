@@ -75,9 +75,23 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         //todo remove after some time [lazyman]
-        //attempt to fix value type for polystring (if it was string we create polystring from it)
+        //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
         if (PolyString.class.equals(def.getJaxbType()) && (value instanceof String)) {
             value = new PolyString((String) value, (String) value);
+        }
+
+        //todo improve - implement common interface for all enums in repository and remove dumb class casting [lazyman]
+        //this updates value if it's enum and translate it to repository enum wrapper
+        if (def.isEnumerated() && (value != null)) {
+            Class type = def.getJpaType();
+            Object[] constants = type.getEnumConstants();
+            for (Object constant : constants) {
+                Enum e = (Enum) constant;
+                if (e.name().equals(((Enum)value).name())) {
+                    value = e;
+                    break;
+                }
+            }
         }
 
         if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {

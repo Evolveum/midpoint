@@ -35,6 +35,7 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.xml.namespace.QName;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -49,27 +50,20 @@ public class ClassDefinitionParser {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassDefinitionParser.class);
 
-    public Definition parse(Class clazz) {
-        if (clazz.isInterface()) {// || !clazz.isAnnotationPresent(Entity.class)) {
-            return null;
-        }
+    public <T extends RObject> EntityDefinition parseObjectTypeClass(Class<T> type) {
+        ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
+        QName jaxbName = objectType.getQName();
+        Class jaxbType = objectType.getClassDefinition();
 
-        //we doesn't need to check java.lang or other packages than our sql repo
-        if (!clazz.getPackage().getName().startsWith("com.evolveum.midpoint.repo.sql.data")) {
-            return null;
-        }
+        EntityDefinition entityDefinition = new EntityDefinition(jaxbName, jaxbType, type.getSimpleName(), type);
+        updateEntityDefinition(entityDefinition);
 
-        EntityDefinition entityDef;
-        Definition def = createDefinitionFromClass(clazz);
-        if (def instanceof EntityDefinition) {
-            entityDef = (EntityDefinition) def;
-        } else {
-            return def;
-        }
-        updateEntityDefinition(entityDef, clazz);
+        return entityDefinition;
+    }
 
-        Method[] methods = clazz.getMethods();
-        LOGGER.info("### {}", new Object[]{clazz.getName()});
+    private void updateEntityDefinition(EntityDefinition entity) {
+        Method[] methods = entity.getJpaType().getMethods();
+        LOGGER.info("### {}", new Object[]{entity.getJpaName()});
 
         for (Method method : methods) {
             String methodName = method.getName();
@@ -81,106 +75,67 @@ public class ClassDefinitionParser {
 
             LOGGER.trace("# {}", new Object[]{methodName});
 
-            Definition definition = createDefinitionFromMethod(method);
-            entityDef.getDefinitions().add(definition);
+            QName jaxbName = getJaxbName(method);
+            Class jaxbType = getJaxbType(method);
+            String jpaName = getJpaName(method);
+            Definition definition =  createDefinition(jaxbName, jaxbType, jpaName, method);
+            entity.getDefinitions().add(definition);
         }
 
-        Collections.sort(entityDef.getDefinitions(), new DefinitionComparator());
-
-        return entityDef;
+        Collections.sort(entity.getDefinitions(), new DefinitionComparator());
     }
 
-    private QName getJaxbName(Class clazz) {
-        if (RObject.class.isAssignableFrom(clazz)) {
-            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
-            return objectType.getQName();
-        }
-
-        //todo implement
-        return null;
-    }
-
-    private Class getJaxbType(Class clazz) {
-        if (RObject.class.isAssignableFrom(clazz)) {
-            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
-            return objectType.getClassDefinition();
-        }
-
-        if (clazz.getAnnotation(JaxbType.class) != null) {
-            JaxbType type = (JaxbType) clazz.getAnnotation(JaxbType.class);
-            return type.type();
-        }
-
-        return clazz;
-    }
-
-    private void updateEntityDefinition(EntityDefinition definition, Class clazz) {
-        //todo implement
-    }
-
-    //todo REFACTOR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! probably delete this class and start over! :)
-    private Definition createDefinitionFromClass(Class clazz) {
-        QName jaxbName = getJaxbName(clazz);
-        Class jaxbType = getJaxbType(clazz);
-
-        String jpaName = clazz.getSimpleName();
-        Class jpaType = clazz;
+    private Definition createDefinition(QName jaxbName, Class jaxbType, String jpaName, AnnotatedElement object) {
+        Class jpaType = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
 
         Definition definition;
         if (ObjectReference.class.isAssignableFrom(jpaType)) {
             ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            definition = refDef;
+            definition = updateReferenceDefinition(refDef, object);
         } else if (RAnyContainer.class.isAssignableFrom(jpaType)) {
             definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
         } else if (Set.class.isAssignableFrom(jpaType)) {
             CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            updateCollectionDefinition(collDef, object);
             definition = collDef;
-        } else if (isEntity(clazz)) {
+        } else if (isEntity(object)) {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
             //todo implement recursion
 //            updateEntityDefinition(entityDef);
             definition = entityDef;
         } else {
             PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            definition = propDef;
+            definition = updatePropertyDefinition(propDef, object);
         }
 
         return definition;
     }
 
-    private Definition createDefinitionFromMethod(Method method) {
-        QName jaxbName = getJaxbName(method);
-        Class jaxbType = getJaxbType(method);
+    private CollectionDefinition updateCollectionDefinition(CollectionDefinition definition, AnnotatedElement object) {
+        Definition collDef;
+        if (object instanceof Method) {
+            Method method = (Method) object;
+            ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
+            Class clazz = (Class) type.getActualTypeArguments()[0];
 
-        String jpaName = getJpaName(method.getName());
-        Class jpaType = method.getReturnType();
-
-        Definition definition;
-        if (ObjectReference.class.isAssignableFrom(jpaType)) {
-            ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            updateReferenceDefinition(refDef, method);
-            definition = refDef;
-        } else if (RAnyContainer.class.isAssignableFrom(jpaType)) {
-            definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
-        } else if (Set.class.isAssignableFrom(jpaType)) {
-            CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            updateCollectionDefinition(collDef, method);
-            definition = collDef;
-        } else if (isEntity(method.getReturnType())) {
-            EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            //todo implement recursion
-//            updateEntityDefinition(entityDef);
-            definition = entityDef;
+            QName jaxbName = getJaxbName(method);
+            String jpaName = getJpaName(method);
+            collDef = createDefinition(jaxbName, clazz, jpaName, clazz);
         } else {
-            PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            updatePropertyDefinition(propDef, method);
-            definition = propDef;
+            throw new RuntimeException("AAAAAAAAAAAAAAAAAAAAAAAA");
+//            Class clazz = (Class) object;
+//
+//            return definition; //todo fix
+//            collDef = createDefinition(jaxbName, jaxbType, jpaName, clazz, clazz);
         }
+
+        definition.setDefinition(collDef);
 
         return definition;
     }
 
-    private boolean isEntity(Class type) {
+    private boolean isEntity(AnnotatedElement object) {
+        Class type = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
         if (RPolyString.class.isAssignableFrom(type)) {
             //it's hibernate entity but from prism point of view it's property
             return false;
@@ -189,35 +144,29 @@ public class ClassDefinitionParser {
         return type.getAnnotation(Entity.class) != null || type.getAnnotation(Embeddable.class) != null;
     }
 
-    private void updateCollectionDefinition(CollectionDefinition definition, Method method) {
-        ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
-        Class clazz = (Class) type.getActualTypeArguments()[0];
-
-        ClassDefinitionParser parser = new ClassDefinitionParser();
-        Definition collDef = parser.parse(clazz);
-
-        definition.setDefinition(collDef);
-    }
-
-    private void updateReferenceDefinition(ReferenceDefinition definition, Method method) {
-        if (method.isAnnotationPresent(Embedded.class)) {
-            definition.setEmbedded(true);
-        }
-    }
-
-    private void updatePropertyDefinition(PropertyDefinition definition, Method method) {
-        if (method.isAnnotationPresent(Lob.class)) {
+    private PropertyDefinition updatePropertyDefinition(PropertyDefinition definition, AnnotatedElement object) {
+        if (object.isAnnotationPresent(Lob.class)) {
             definition.setLob(true);
         }
 
-        if (method.isAnnotationPresent(Enumerated.class)) {
+        if (object.isAnnotationPresent(Enumerated.class)) {
             definition.setEnumerated(true);
         }
 
         //todo implement also lookup for @Table indexes
-        if (method.isAnnotationPresent(Index.class)) {
+        if (object.isAnnotationPresent(Index.class)) {
             definition.setIndexed(true);
         }
+
+        return definition;
+    }
+
+    private ReferenceDefinition updateReferenceDefinition(ReferenceDefinition definition, AnnotatedElement object) {
+        if (object.isAnnotationPresent(Embedded.class)) {
+            definition.setEmbedded(true);
+        }
+
+        return definition;
     }
 
     private QName getJaxbName(Method method) {
@@ -231,10 +180,22 @@ public class ClassDefinitionParser {
     }
 
     private Class getJaxbType(Method method) {
-        return getJaxbType(method.getReturnType());
+        Class clazz = method.getReturnType();
+        if (RObject.class.isAssignableFrom(clazz)) {
+            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
+            return objectType.getClassDefinition();
+        }
+
+        if (clazz.getAnnotation(JaxbType.class) != null) {
+            JaxbType type = (JaxbType) clazz.getAnnotation(JaxbType.class);
+            return type.type();
+        }
+
+        return clazz;
     }
 
-    private String getJpaName(String methodName) {
+    private String getJpaName(Method method) {
+        String methodName = method.getName();
         return getPropertyName(methodName);
     }
 

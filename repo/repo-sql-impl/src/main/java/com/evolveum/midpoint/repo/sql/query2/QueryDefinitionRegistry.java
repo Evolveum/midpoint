@@ -43,7 +43,7 @@ public class QueryDefinitionRegistry implements Dumpable {
                 continue;
             }
 
-            Definition definition = classDefinitionParser.parse(clazz);
+            Definition definition = classDefinitionParser.parseObjectTypeClass(clazz);
             if (definition == null) {
                 continue;
             }

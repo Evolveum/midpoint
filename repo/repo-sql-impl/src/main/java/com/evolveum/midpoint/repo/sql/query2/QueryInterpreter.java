@@ -152,14 +152,16 @@ public class QueryInterpreter {
             throws QueryException {
 
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
-            if (restriction.canHandle(filter, context)) {
-                Restriction<T> res = restriction.cloneInstance();
-                res.setContext(context);
-                res.setParent(parent);
-                res.setQuery(query);
-
-                return res;
+            if (!restriction.canHandle(filter, context)) {
+                continue;
             }
+
+            Restriction<T> res = restriction.cloneInstance();
+            res.setContext(context);
+            res.setParent(parent);
+            res.setQuery(query);
+
+            return res;
         }
 
         LOGGER.error("Couldn't find proper restriction that can handle filter '{}'.", new Object[]{filter.dump()});
