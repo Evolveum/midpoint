@@ -814,6 +814,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} catch (SecurityViolationException e) {
 				recordFatalError(LOGGER, result, "Couldn't delete object: security violation: " + e.getMessage(), e);
 				throw e;
+			} catch (RuntimeException e){
+				recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
+				throw e;
 			}
 
 		} else {

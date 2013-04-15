@@ -71,7 +71,7 @@ public class ErrorHandlerFactory {
 			return securityViolationHandler;
 		}
 		
-		throw new SystemException("Unknown error occurred: "+ex.getClass().getName()+": "+ex.getMessage(), ex);
+		throw new SystemException(ex.getClass().getName()+": "+ex.getMessage(), ex);
 	}
 	
 	
