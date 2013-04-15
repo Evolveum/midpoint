@@ -20,35 +20,36 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Project</name>
-	<groupId>com.evolveum.midpoint</groupId>
-	<artifactId>midpoint</artifactId>
-	<version>2.2-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<description>Utility module to compile all of the maven based midPoint projects.</description>
-	<organization>
-		<name>evolveum</name>
-		<url>http://www.evolveum.com</url>
-	</organization>
-	<licenses>
-		<license>
-			<name>CDDL v1.0</name>
-			<url>http://www.sun.com/cddl/cddl.html</url>
-			<distribution>repo</distribution>
-			<comments>A business-friendly OSS license</comments>
-		</license>
-	</licenses>
-	<issueManagement>
-		<system>Atlassian JIRA</system>
-		<url>https://jira.evolveum.com/browse/MID</url>
-	</issueManagement>
-	<scm>
-		<connection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</developerConnection>
-		<url>http://fisheye.evolveum.com/browse/MidPoint/trunk</url>
-	</scm>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>midPoint Project</name>
+    <groupId>com.evolveum.midpoint</groupId>
+    <artifactId>midpoint</artifactId>
+    <version>2.2-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <description>Utility module to compile all of the maven based midPoint projects.</description>
+    <organization>
+        <name>evolveum</name>
+        <url>http://www.evolveum.com</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>CDDL v1.0</name>
+            <url>http://www.sun.com/cddl/cddl.html</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <issueManagement>
+        <system>Atlassian JIRA</system>
+        <url>https://jira.evolveum.com/browse/MID</url>
+    </issueManagement>
+    <scm>
+        <connection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</connection>
+        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</developerConnection>
+        <url>http://fisheye.evolveum.com/browse/MidPoint/trunk</url>
+    </scm>
     <build>
         <plugins>
             <plugin>
@@ -63,80 +64,65 @@
         </plugins>
     </build>
     <repositories>
-		<repository>
-			<id>evolveum</id>
-			<name>Evolveum</name>
-			<url>http://nexus.evolveum.com/nexus/content/groups/public</url>
-		</repository>
-	</repositories>
-	<properties>
+        <repository>
+            <id>evolveum</id>
+            <name>Evolveum</name>
+            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+    <properties>
         <!-- Build system options - more options in build-system/pom.xml -->
-		<project.source.version>1.6</project.source.version>
-		<clover.version>3.1.6</clover.version>
-	</properties>
-	<modules>
-		<module>build-system</module>
-		<module>tools</module>
-		<module>infra</module>
-		<module>repo</module>
-		<module>provisioning</module>
-		<module>model</module>
-		<module>gui</module>
-		<module>icf-connectors</module>
-		<module>samples</module>
-	</modules>
-	<profiles>
-		<profile>
-			<id>clover</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.atlassian.maven.plugins</groupId>
-						<artifactId>maven-clover2-plugin</artifactId>
-						<version>${clover.version}</version>
-						<configuration>
-							<targetPercentage>0%</targetPercentage>
-							<includesTestSourceRoots>true</includesTestSourceRoots>
-							<jdk>${project.source.version}</jdk>
-							<generateXml>true</generateXml>
-							<generateHistorical>true</generateHistorical>
-							<multiproject>true</multiproject>
+        <project.source.version>1.6</project.source.version>
+        <clover.version>3.1.11</clover.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <modules>
+        <module>build-system</module>
+        <module>tools</module>
+        <module>infra</module>
+        <module>repo</module>
+        <module>provisioning</module>
+        <module>model</module>
+        <module>gui</module>
+        <module>icf-connectors</module>
+        <module>samples</module>
+    </modules>
+    <profiles>
+        <profile>
+            <id>clover</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.atlassian.maven.plugins</groupId>
+                        <artifactId>maven-clover2-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <targetPercentage>0%</targetPercentage>
+                            <includesTestSourceRoots>true</includesTestSourceRoots>
+                            <jdk>${project.source.version}</jdk>
+                            <generateXml>true</generateXml>
+                            <generateHistorical>true</generateHistorical>
+                            <multiproject>true</multiproject>
                             <excludes>
                                 <exclude>**/MidpointAspect.java</exclude>
                             </excludes>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-			<reporting>
-				<plugins>
-					<plugin>
-						<groupId>com.atlassian.maven.plugins</groupId>
-						<artifactId>maven-clover2-plugin</artifactId>
-						<version>${clover.version}</version>
-					</plugin>
-				</plugins>
-			</reporting>
-			<dependencies>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
 
-				<dependency>
-					<groupId>com.cenqua.clover</groupId>
-					<artifactId>clover</artifactId>
-					<version>${clover.version}</version>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>sanity</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<modules>
-				<module>testing</module>
-			</modules>
-		</profile>
-	</profiles>
+        </profile>
+        <profile>
+            <id>sanity</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>testing</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>
