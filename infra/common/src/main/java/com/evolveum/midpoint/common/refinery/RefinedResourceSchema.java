@@ -171,6 +171,10 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 	
 	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {
+		if (resource == null){
+			throw new SchemaException("Could not get refined schema, resource does not exist.");
+		}
+		
 		Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
 		if (userDataEntry != null) {
 			if (userDataEntry instanceof RefinedResourceSchema) {
