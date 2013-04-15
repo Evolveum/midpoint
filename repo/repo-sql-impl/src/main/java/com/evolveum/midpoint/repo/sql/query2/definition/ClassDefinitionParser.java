@@ -78,7 +78,7 @@ public class ClassDefinitionParser {
             QName jaxbName = getJaxbName(method);
             Class jaxbType = getJaxbType(method);
             String jpaName = getJpaName(method);
-            Definition definition =  createDefinition(jaxbName, jaxbType, jpaName, method);
+            Definition definition = createDefinition(jaxbName, jaxbType, jpaName, method);
             entity.getDefinitions().add(definition);
         }
 
@@ -100,8 +100,9 @@ public class ClassDefinitionParser {
             definition = collDef;
         } else if (isEntity(object)) {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            //todo implement recursion
-//            updateEntityDefinition(entityDef);
+            if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())) {
+                updateEntityDefinition(entityDef);
+            }
             definition = entityDef;
         } else {
             PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType);
@@ -119,14 +120,13 @@ public class ClassDefinitionParser {
             Class clazz = (Class) type.getActualTypeArguments()[0];
 
             QName jaxbName = getJaxbName(method);
+            Class jaxbType = getJaxbType(clazz);
             String jpaName = getJpaName(method);
-            collDef = createDefinition(jaxbName, clazz, jpaName, clazz);
+            collDef = createDefinition(jaxbName, jaxbType, jpaName, clazz);
         } else {
-            throw new RuntimeException("AAAAAAAAAAAAAAAAAAAAAAAA");
-//            Class clazz = (Class) object;
-//
-//            return definition; //todo fix
-//            collDef = createDefinition(jaxbName, jaxbType, jpaName, clazz, clazz);
+            // todo what to do here, when we're looking at collection in collection (if there is something
+            // like collection in entity which is in collection)
+            throw new UnsupportedOperationException("Not implemented yet.");
         }
 
         definition.setDefinition(collDef);
@@ -180,7 +180,10 @@ public class ClassDefinitionParser {
     }
 
     private Class getJaxbType(Method method) {
-        Class clazz = method.getReturnType();
+        return getJaxbType(method.getReturnType());
+    }
+
+    private Class getJaxbType(Class clazz) {
         if (RObject.class.isAssignableFrom(clazz)) {
             ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
             return objectType.getClassDefinition();

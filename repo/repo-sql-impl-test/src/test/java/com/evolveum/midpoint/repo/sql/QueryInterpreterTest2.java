@@ -68,6 +68,22 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreterTest2.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
 
+    @Test(expectedExceptions = QueryException.class)
+    public void queryClob() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext,
+                    UserType.F_DESCRIPTION, "aaa");
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+            //should throw exception, because description is lob and can't be queried
+            getInterpretedQuery(session, UserType.class, query);
+        } finally {
+            close(session);
+        }
+    }
+
     @Test
     public void queryEnum() throws Exception {
         Session session = open();

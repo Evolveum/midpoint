@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
+import com.evolveum.midpoint.repo.sql.query2.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.type.QNameType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -39,6 +40,7 @@ import javax.persistence.*;
 /**
  * @author lazyman
  */
+@JaxbType(type = ObjectReferenceType.class)
 @Entity
 @IdClass(RObjectReferenceId.class)
 @Table(name = "m_reference")
