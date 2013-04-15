@@ -1560,6 +1560,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		modelService.executeChanges(newDeltas, null, task, parentResult);
 		
+		account = modelService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
+		assertNotNull(account);
+		shadow = account.asObjectable();
+		assertNotNull(shadow.getObjectChange());
+		display("shadow after communication problem", shadow);
 //		parentResult.computeStatus();
 //		assertEquals("expected handled error in the result", OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
 		

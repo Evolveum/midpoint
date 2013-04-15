@@ -729,10 +729,19 @@ public class ChangeExecutor {
     		LensContext<F, P> context, ProvisioningOperationOptions options, ResourceType resource, Task task, 
             OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
-    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), result);
-    	ProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.DELETE, resource, result);
-        provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
+    	
+		ProvisioningScriptsType scripts = null;
+		try {
+			PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid,
+					GetOperationOptions.createNoFetch(), result);
+			scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.DELETE, resource,
+					result);
+		} catch (ObjectNotFoundException ex) {
+			// this is almost OK, mute the error and try to delete account (it
+			// will fail if something is wrong)
+			result.muteLastSubresultError();
+		}
+		provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
     }
 
     private <F extends ObjectType, P extends ObjectType> String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,

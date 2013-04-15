@@ -653,7 +653,7 @@ public class PageUser extends PageAdminUsers {
 			try {
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
 						ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
-
+				
 				if (reference.getOid() == null) {
 					continue;
 				}
@@ -1540,6 +1540,11 @@ public class PageUser extends PageAdminUsers {
 				ObjectWrapper accWrapper = accDto.getObject();
 				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, userWrapper
 						.getObject().getDefinition(), accWrapper.getObject());
+				refDeltas.add(refDelta);
+			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
+				ObjectWrapper accWrapper = accDto.getObject();
+				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, userWrapper
+						.getObject().getDefinition(), accWrapper.getObject().getOid());
 				refDeltas.add(refDelta);
 			}
 		}
