@@ -106,6 +106,7 @@ public class ChangeExecutor {
 	private static final String OPERATION_EXECUTE_PROJECTION = OPERATION_EXECUTE + ".projection";
 	private static final String OPERATION_LINK_ACCOUNT = ChangeExecutor.class.getName() + ".linkAccount";
 	private static final String OPERATION_UNLINK_ACCOUNT = ChangeExecutor.class.getName() + ".unlinkAccount";
+	private static final String OPERATION_UPDATE_SITUATION_ACCOUNT = ChangeExecutor.class.getName() + ".updateSituationInAccount";
 
     @Autowired(required = true)
     private transient TaskManager taskManager;
@@ -142,7 +143,7 @@ public class ChangeExecutor {
 	        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
 	        if (userDelta != null) {
 	
-	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS);
+	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS+"."+focusContext.getObjectTypeClass().getSimpleName());
 	        	try {
 	        		
 		            executeDelta(userDelta, focusContext, syncContext, null, task, subResult);
@@ -194,7 +195,7 @@ public class ChangeExecutor {
         	if (accCtx.getWave() != syncContext.getExecutionWave()) {
         		continue;
 			}
-        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_PROJECTION);
+        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_PROJECTION+"."+accCtx.getObjectTypeClass().getSimpleName());
         	subResult.addContext("discriminator", accCtx.getResourceShadowDiscriminator());
 			try {
 				ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
@@ -417,7 +418,7 @@ public class ChangeExecutor {
 	
     private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
-    	OperationResult result = new OperationResult("Updating situation in account (Model)");
+    	OperationResult result = new OperationResult(OPERATION_UPDATE_SITUATION_ACCOUNT);
     	result.addParam("situation", situation);
     	result.addParam("accountRef", accountRef);
 		

@@ -71,7 +71,13 @@ ul.messagesTop .messages-error{
 	display: block;
 }
 
-ul.messagesTop .messages-error .messages-error-content, 
+/* { */
+/* 	display: block; */
+/* 	padding-left: 20px; */
+/* 	padding-bottom: 5px; */
+/* 	padding-right: 10px; */
+/* } */
+ul.messagesTop .messages-error .messages-error-content,
 ul.messagesTop .messages-succ .messages-succ-content, 
 ul.messagesTop .messages-warn .messages-warn-content, 
 ul.messagesTop .messages-warn .messages-exp-content,
@@ -162,9 +168,22 @@ ul.messagesTop .messages-error-details-section .arrow-down {
 	background-position: 0px -32px;
 }
 
+ul.messagesTop .messages-error-details-section .messages-succ-details-section .messages-details-content,
+ul.messagesTop .messages-error-details-section .messages-info-details-section .messages-details-content,
+ul.messagesTop .messages-error-details-section .messages-warn-details-section .messages-details-content {
+	display: none;
+	padding-left: 30px;
+}
+
 ul.messagesTop .messages-details-content {
 	display: none;
 	padding-left: 30px;
+}
+
+ul.messagesTop .messages-error-details-section .messages-details-content {
+	display: block;
+	padding-left: 30px;
+	background-position: 0px -32px;
 }
 
 ul.messagesTop .message-info .errorStack {

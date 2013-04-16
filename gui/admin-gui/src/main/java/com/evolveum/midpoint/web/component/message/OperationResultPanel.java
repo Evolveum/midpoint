@@ -91,23 +91,7 @@ public class OperationResultPanel extends Panel {
         //initCount(operationContent, model);
         initExceptionLayout(operationContent, model);
 
-        ListView<OpResult> subresults = new ListView<OpResult>("subresults",
-                createSubresultsModel(model)) {
-
-            @Override
-            protected void populateItem(final ListItem<OpResult> item) {
-                item.add(new AttributeAppender("class", createMessageLiClass(item.getModel()), " "));
-                item.add(new AttributeModifier("title", new LoadableModel<String>() {
-
-					@Override
-					protected String load() {
-						return getString("operationResultPanel.title." + createMessageTooltip(item.getModel()).getObject());
-					}
-				}));
-                item.add(new OperationResultPanel("subresult", item.getModel()));
-            }
-        };
-        add(subresults);
+       
     }
     
     private WebMarkupContainer initCountPanel(final IModel<OpResult> model){
@@ -149,6 +133,26 @@ public class OperationResultPanel extends Panel {
             }
         };
         operationContent.add(params);
+        
+        ListView<OpResult> subresults = new ListView<OpResult>("subresults",
+                createSubresultsModel(model)) {
+
+            @Override
+            protected void populateItem(final ListItem<OpResult> item) {
+                item.add(new AttributeAppender("class", createMessageLiClass(item.getModel()), " "));
+                item.add(new AttributeModifier("title", new LoadableModel<String>() {
+
+					@Override
+					protected String load() {
+						return getString("operationResultPanel.title." + createMessageTooltip(item.getModel()).getObject());
+					}
+				}));
+                item.add(new OperationResultPanel("subresult", item.getModel()));
+            }
+        };
+        operationContent.add(subresults);
+        
+        
     }
     
     private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model) {

@@ -357,6 +357,10 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 					(status == OperationResultStatus.PARTIAL_ERROR);
 	}
 
+	public boolean isFatalError(){
+		return (status == OperationResultStatus.FATAL_ERROR);
+	}
+	
 	public boolean isPartialError() {
 		return (status == OperationResultStatus.PARTIAL_ERROR);
 	}

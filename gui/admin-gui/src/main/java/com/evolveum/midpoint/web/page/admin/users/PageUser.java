@@ -1431,7 +1431,7 @@ public class PageUser extends PageAdminUsers {
 		// }
 
 		boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
-		if (userAdded || result.isSuccess() || result.isHandledError() || result.isInProgress()) {
+		if (userAdded || !result.isFatalError()) {
 			showResultInSession(result);
 			// todo refactor this...what is this for? why it's using some
 			// "shadow" param from result???
