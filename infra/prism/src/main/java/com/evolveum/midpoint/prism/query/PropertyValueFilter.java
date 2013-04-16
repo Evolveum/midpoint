@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public abstract class PropertyValueFilter extends ValueFilter{
 
@@ -83,7 +84,15 @@ public abstract class PropertyValueFilter extends ValueFilter{
 			}
 			return create(filterClass, parentPath, item, matchingRule, prismValues);
 		}
-		PrismPropertyValue value = new PrismPropertyValue(realValue);
+		
+		//temporary hack to not allow polystring type to go to the filter..we want polyString
+		PrismPropertyValue value = null;
+		if (realValue instanceof PolyStringType){
+			value = new PrismPropertyValue(((PolyStringType) realValue).toPolyString());
+		} else{
+			value = new PrismPropertyValue(realValue);
+		}
+		
 		return create(filterClass, parentPath, item, matchingRule, value);
 	}
 
