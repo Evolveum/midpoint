@@ -26,6 +26,10 @@ import com.evolveum.midpoint.task.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,6 +41,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 import java.util.List;
 
@@ -60,6 +66,9 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	@Autowired(required=true)
 	private ProvisioningService provisioningService;
 	
+	@Autowired(required = true)
+    private PrismContext prismContext;
+	
 	private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
 	@PostConstruct
@@ -75,15 +84,63 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		String resourceOid = task.getObjectOid();
-		opResult.addContext("resourceOid", resourceOid);
-		if (resourceOid==null) {
-			// This "run" has failed. Utterly.
-			opResult.recordFatalError("Resource OID is null");
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		}
+		
+		ResourceType resource = null;
+        try {
+
+            resource = task.getObject(ResourceType.class, opResult).asObjectable();
+
+        } catch (ObjectNotFoundException ex) {
+            String resourceOid = null;
+            if (task.getObjectRef() != null) {
+                resourceOid = task.getObjectRef().getOid();
+            }
+            LOGGER.error("Import: Resource not found: {}", resourceOid, ex);
+            // This is bad. The resource does not exist. Permanent problem.
+            opResult.recordFatalError("Resource not found " + resourceOid, ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        } catch (SchemaException ex) {
+            LOGGER.error("Import: Error dealing with schema: {}", ex.getMessage(), ex);
+            // Not sure about this. But most likely it is a misconfigured resource or connector
+            // It may be worth to retry. Error is fatal, but may not be permanent.
+            opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+            return runResult;
+        } catch (RuntimeException ex) {
+            LOGGER.error("Import: Internal Error: {}", ex.getMessage(), ex);
+            // Can be anything ... but we can't recover from that.
+            // It is most likely a programming error. Does not make much sense to retry.
+            opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        }
+
+        if (resource == null) {
+            LOGGER.error("Import: No resource specified");
+            opResult.recordFatalError("No resource specified");
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        }
+        String resourceOid = resource.getOid();
+        
+		RefinedResourceSchema refinedSchema;
+        try {
+            refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+        } catch (SchemaException e) {
+            LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
+            opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        }
+        
+        RefinedObjectClassDefinition rObjectClass = Utils.determineObjectClass(refinedSchema, task);        
+        if (rObjectClass == null) {
+            LOGGER.error("Import: No objectclass specified and no default can be determined.");
+            opResult.recordFatalError("No objectclass specified and no default can be determined");
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        }
 		
 		try {
 			
@@ -92,7 +149,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// This will detect the changes and notify model about them.
 			// It will use extension of task to store synchronization state
 			
-			progress += provisioningService.synchronize(resourceOid, task, opResult);
+			progress += provisioningService.synchronize(resourceOid, rObjectClass.getTypeName(), task, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Live Sync: Resource does not exist, OID: {}",resourceOid);

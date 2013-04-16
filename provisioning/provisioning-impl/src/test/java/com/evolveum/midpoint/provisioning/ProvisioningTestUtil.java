@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.test.impl.TestDummy;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -273,6 +274,23 @@ public class ProvisioningTestUtil {
 		assertEquals("Unexpected number of defnitions", 10, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
+	}
+	
+	public static QName getDefaultAccountObjectClass(ResourceType resourceType) {
+		String namespace = ResourceTypeUtil.getResourceNamespace(resourceType);
+		return new QName(namespace, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+	}
+	
+	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName, 
+			T... expectedValues) {
+		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
+		assertAttribute(resource, shadow, attrQname, expectedValues);
+	}
+	
+	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname, 
+			T... expectedValues) {
+		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
+		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
 	}
 
 }

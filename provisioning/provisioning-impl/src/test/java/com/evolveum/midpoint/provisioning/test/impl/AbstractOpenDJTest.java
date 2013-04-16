@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  */
 public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
-	protected static final String TEST_DIR_NAME = "src/test/resources/impl";
+	protected static final String TEST_DIR_NAME = "src/test/resources/impl/opendj";
 	
 	protected static final String RESOURCE_OPENDJ_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj.xml";
 	protected static final String RESOURCE_OPENDJ_INITIALIZED_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj-initialized.xml";
@@ -57,6 +57,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
 	protected static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
+	protected static final String ACCOUNT_NEW_DN = "uid=will,ou=People,dc=example,dc=com";
 	
 	protected static final String ACCOUNT_BAD_FILENAME = TEST_DIR_NAME + "/account-bad.xml";
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
@@ -120,5 +121,12 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 //		addObjectFromFile(FILENAME_ACCOUNT1);
 		addObjectFromFile(ACCOUNT_BAD_FILENAME, ShadowType.class, initResult);
 	}
+	
+	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
+		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+	}
 
+	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
+		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+	}
 }

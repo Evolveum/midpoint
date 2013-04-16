@@ -44,6 +44,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -108,51 +113,20 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
         
-        assertEquals("Unexpected number of users", 7, users.size());
-        
-        PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
-        assertNotNull("No admin", admin);
-        assertAccounts(admin, 0);
-        assertEnabled(admin);
-        
-        PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        assertNotNull("No jack", jack);
-        assertAccounts(jack, 0);
-        assertEnabled(jack);
-        
-        PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
-        assertNotNull("No barbossa", barbossa);
-        assertAccounts(barbossa, 1);
-        // Barbossa had opendj account before
-        assertAccount(barbossa, RESOURCE_OPENDJ_OID);
-        assertEnabled(barbossa);
-        
-        PrismObject<UserType> guybrush = getUser(USER_GUYBRUSH_OID);
-        assertNotNull("No guybrush", guybrush);
-        assertAccounts(guybrush, 1);
-        assertAccount(guybrush, RESOURCE_DUMMY_OID);
-        assertEnabled(guybrush);
-        
-        rapp = getUser(USER_RAPP_OID);
-        assertNotNull("No rapp", rapp);
-        // Rapp account should be linked
-        assertAccounts(rapp, 1);
-        assertAccount(rapp, RESOURCE_DUMMY_OID);
-        assertEnabled(rapp);
-        
-        PrismObject<UserType> herman = findUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
-        assertNotNull("No herman", herman);
-        assertAccounts(herman, 1);
-        assertAccount(herman, RESOURCE_DUMMY_OID);
-        assertEnabled(herman);
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID, RESOURCE_OPENDJ_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         
         // These are protected accounts, they should not be imported
-        PrismObject<UserType> daviejones = findUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
-        assertNull("Jones sneaked in", daviejones);
-        PrismObject<UserType> calypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
-        assertNull("Calypso sneaked in", calypso);
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertEquals("Unexpected number of users", 7, users.size());
 	}
-	
+
 	@Test
     public void test200ReconcileDummy() throws Exception {
 		final String TEST_NAME = "test200ReconcileDummy";
@@ -197,29 +171,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
         
-        assertEquals("Unexpected number of users", 7, users.size());
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID, RESOURCE_OPENDJ_OID);
         
-        PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
-        assertNotNull("No admin", admin);
-        assertAccounts(admin, 0);
-        assertEnabled(admin);
-        
-        PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        assertNotNull("No jack", jack);
-        assertAccounts(jack, 0);
-        assertEnabled(jack);
-        
-        PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
-        assertNotNull("No barbossa", barbossa);
-        assertAccounts(barbossa, 1);
-        assertAccount(barbossa, RESOURCE_OPENDJ_OID);
-        assertEnabled(barbossa);
-        
-        PrismObject<UserType> guybrush = getUser(USER_GUYBRUSH_OID);
-        assertNotNull("No guybrush", guybrush);
-        assertAccounts(guybrush, 1);
-        assertAccount(guybrush, RESOURCE_DUMMY_OID);
-        assertEnabled(guybrush);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
         // Guybrushes fullname should be corrected back to real fullname
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
         		"Guybrush Threepwood");
@@ -233,29 +189,42 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
         		"Arr!", "I want to be a pirate!");
         
-        PrismObject<UserType> rapp = getUser(USER_RAPP_OID);
-        assertNotNull("No rapp", rapp);
-        // Rapp account should be linked
-        assertAccounts(rapp, 1);
-        assertAccount(rapp, RESOURCE_DUMMY_OID);
-        assertEnabled(rapp);
-        
-        PrismObject<UserType> herman = findUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
-        assertNotNull("No herman", herman);
-        assertAccounts(herman, 1);
-        assertAccount(herman, RESOURCE_DUMMY_OID);
-        assertEnabled(herman);
-        
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+
         // These are protected accounts, they should not be imported
-        PrismObject<UserType> daviejones = findUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
-        assertNull("Jones sneaked in", daviejones);
-        PrismObject<UserType> calypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
-        assertNull("Calypso sneaked in", calypso);
-        
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         // Calypso is protected account. Reconciliation should not touch it
         assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
         		"Calypso");
+        
+        assertEquals("Unexpected number of users", 7, users.size());
+	}
+	
+	private void assertNoImporterUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = findUserByUsername(username);
+        assertNull("User "+username+" sneaked in", user);
+	}
+
+	private void assertImportedUserByOid(String userOid, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		PrismObject<UserType> user = getUser(userOid);
+		assertNotNull("No user "+userOid, user);
+		assertImportedUser(user, resourceOids);
 	}
 		
+	private void assertImportedUserByUsername(String username, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = findUserByUsername(username);
+		assertNotNull("No user "+username, user);
+		assertImportedUser(user, resourceOids);
+	}
+		
+	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+        assertAccounts(user, resourceOids.length);
+        for (String resourceOid: resourceOids) {
+        	assertAccount(user, resourceOid);	
+        }
+        assertEnabled(user);
+	}
 
 }

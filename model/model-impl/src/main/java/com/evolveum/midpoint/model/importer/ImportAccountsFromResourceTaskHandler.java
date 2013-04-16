@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -191,18 +192,22 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         runResult.setProgress(0);
 
         // Determine resource for the import
-
+        
+        String resourceOid = task.getObjectOid();
+        if (resourceOid == null) {
+            LOGGER.error("Import: No resource OID specified in the task");
+            opResult.recordFatalError("No resource OID specified in the task");
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+        }
+        
         ResourceType resource = null;
         try {
 
-            resource = task.getObject(ResourceType.class, opResult).asObjectable();
+            resource = provisioning.getObject(ResourceType.class, resourceOid, null, opResult).asObjectable();
 
         } catch (ObjectNotFoundException ex) {
-            String resourceOid = null;
-            if (task.getObjectRef() != null) {
-                resourceOid = task.getObjectRef().getOid();
-            }
-            LOGGER.error("Import: Resource not found: {}", resourceOid, ex);
+            LOGGER.error("Import: Resource {} not found: {}", new Object[]{resourceOid, ex.getMessage(), ex});
             // This is bad. The resource does not exist. Permanent problem.
             opResult.recordFatalError("Resource not found " + resourceOid, ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
@@ -221,7 +226,22 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
-        }
+        } catch (CommunicationException ex) {
+        	LOGGER.error("Import: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
+            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+            return runResult;
+		} catch (ConfigurationException ex) {
+			LOGGER.error("Import: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
+            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+		} catch (SecurityViolationException ex) {
+			LOGGER.error("Import: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
+            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
+		}
 
         if (resource == null) {
             LOGGER.error("Import: No resource specified");
@@ -239,35 +259,23 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
-        // Determine object class to import
-        QName objectclass = null;
-        PrismProperty<QName> objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
-        if (objectclassProperty != null) {
-            objectclass = objectclassProperty.getValue().getValue();
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("Refined schema:\n{}", refinedSchema.dump());
         }
-
-        if (objectclass == null) {
-            if (refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT) != null) {
-                objectclass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName();
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Import: No objectclass specified, using default value of " + objectclass + ".");
-                }
-            }
-        }
-
-        if (objectclass == null) {
+        
+        RefinedObjectClassDefinition rObjectClass = Utils.determineObjectClass(refinedSchema, task);        
+        if (rObjectClass == null) {
             LOGGER.error("Import: No objectclass specified and no default can be determined.");
             opResult.recordFatalError("No objectclass specified and no default can be determined");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
 
-        LOGGER.info("Start executing import from resource {}, importing object class {}", ObjectTypeUtil.toShortString(resource), objectclass);
+        LOGGER.info("Start executing import from resource {}, importing object class {}", resource, rObjectClass.getTypeName());
 
         // Instantiate result handler. This will be called with every search result in the following iterative search
-        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, refinedAccountDefinition, task, changeNotificationDispatcher);
+        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, rObjectClass, task, changeNotificationDispatcher);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);
@@ -279,7 +287,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         try {
 
             provisioning.searchObjectsIterative(ShadowType.class,
-            		ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectclass, prismContext), handler, opResult);
+            		ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), rObjectClass.getTypeName(), prismContext), handler, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Import: Object not found: {}", ex.getMessage(), ex);
@@ -335,7 +343,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
         LOGGER.info("Finished import from resource {}, importing object class {}. Processed {} objects, {} errors",
-                new Object[]{ObjectTypeUtil.toShortString(resource), objectclass, handler.getProgress(), handler.getErrors()});
+                new Object[]{resource, rObjectClass.getTypeName(), handler.getProgress(), handler.getErrors()});
         LOGGER.trace("Import from resource run finished (task {}, run result {})", task, runResult);
 
         return runResult;

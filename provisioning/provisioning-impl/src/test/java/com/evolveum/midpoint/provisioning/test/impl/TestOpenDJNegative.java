@@ -48,7 +48,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -411,7 +413,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		
 		try {
 
-			provisioningService.synchronize(RESOURCE_OPENDJ_OID, task, result);
+			provisioningService.synchronize(RESOURCE_OPENDJ_OID, 
+					new QName(RESOURCE_NS, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
 			
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -626,7 +629,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				result).asObjectable();
 		display("repo shadow", repoAccountType);
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", repoAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_NEW_DN, repoAccountType.getName());
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, repoAccountType.getFailedOperationType());
 		OperationResultType repoResult = repoAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", repoResult);
@@ -635,7 +638,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_NEW_DN, provisioningAccountType.getName());
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, provisioningAccountType.getFailedOperationType());
 		OperationResultType provisioningResult = provisioningAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", provisioningResult);
@@ -727,7 +730,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		
 		try {
 
-			provisioningService.synchronize(RESOURCE_OPENDJ_OID, task, result);
+			provisioningService.synchronize(RESOURCE_OPENDJ_OID, new QName(RESOURCE_NS, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
+					task, result);
 			
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (CommunicationException e) {

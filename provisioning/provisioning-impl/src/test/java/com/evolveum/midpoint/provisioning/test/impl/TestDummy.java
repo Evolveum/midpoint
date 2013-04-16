@@ -798,23 +798,27 @@ public class TestDummy extends AbstractDummyTest {
 
 		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result)
 				.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountType.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountType.getKind());
+		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
+		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
 		display("account from provisioning", provisioningAccountType);
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, provisioningAccountType.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, provisioningAccountType.getKind());
+		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
+		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -916,8 +920,9 @@ public class TestDummy extends AbstractDummyTest {
 	private void checkAccountWill(ShadowType shadow, OperationResult result) {
 		checkAccountShadow(shadow, result);
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-		assertEquals("Unexpected number of attributes", 5, attributes.size());
+		assertEquals("Unexpected number of attributes", 6, attributes.size());
 		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
 		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 	}
 
@@ -1186,7 +1191,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		display("Retrieved account shadow", accountType);
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		assertTrue(dummyAccount.isEnabled());
 		
 		syncServiceMock.reset();
@@ -1209,7 +1214,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if activation was changed
-		dummyAccount = dummyResource.getAccountByUsername("will");
+		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		assertFalse(dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -1230,7 +1235,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull(accountType);
 		display("Retrieved account shadow", accountType);
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		assertFalse("Account is not disabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.reset();
@@ -1253,7 +1258,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if activation was changed
-		dummyAccount = dummyResource.getAccountByUsername("will");
+		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		assertTrue(dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -1286,10 +1291,10 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if activation was changed
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong fullname", "Pirate Will Turner", dummyAccount.getAttributeValue("fullname"));
 		
-		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
+		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1320,7 +1325,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1351,7 +1356,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
+		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1382,7 +1387,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1417,7 +1422,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1435,7 +1440,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		DummyAccount willDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_ICF_UID);
+		DummyAccount willDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		willDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, null);
 
 		// WHEN
@@ -1899,7 +1904,8 @@ public class TestDummy extends AbstractDummyTest {
 		// Dry run to remember the current sync token in the task instance.
 		// Otherwise a last sync token whould be used and
 		// no change would be detected
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
+				syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1930,7 +1936,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.dump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
+				syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1982,7 +1989,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.dump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
+				syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -2055,7 +2063,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.dump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
+				syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -2111,7 +2120,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.dump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
+				syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -2174,7 +2184,8 @@ public class TestDummy extends AbstractDummyTest {
 		dummyAccount.replaceAttributeValue("fullname", "Maxwell deamon");
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
+				syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -2246,7 +2257,7 @@ public class TestDummy extends AbstractDummyTest {
 				String icfName = ShadowUtil.getSingleStringAttributeValue(shadow,
 						SchemaTestConstants.ICFS_NAME);
 				assertNotNull("No ICF NAME", icfName);
-				PrismAsserts.assertEqualsPolyString("Wrong shadow name", icfName, shadow.getName());
+				assertEquals("Wrong shadow name ("+shadow.getName()+")", StringUtils.lowerCase(icfName), StringUtils.lowerCase(shadow.getName().getOrig()));
 				assertNotNull("No kind in "+shadow, shadow.getKind());
 
 				if (shadow.getKind() == ShadowKindType.ACCOUNT) {

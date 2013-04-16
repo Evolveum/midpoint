@@ -20,19 +20,21 @@
 <!-- -->
 
 
-<c:account oid="c0c010c0-d34d-b44f-f11d-333222666666"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<account oid="c0c010c0-d34d-b44f-f11d-333222123456"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<c:name>william</c:name>
-	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<c:objectClass>ri:AccountObjectClass</c:objectClass>
-	<c:attributes>
-		<icfs:name>uid=william,ou=People,dc=example,dc=com</icfs:name>
-		<ri:uid>william</ri:uid>
+	<name>uid=will,ou=People,dc=example,dc=com</name>
+	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<kind>account</kind>
+	<attributes>
+		<!-- Note the capital "P", this is important for the tests -->
+		<icfs:name>uid=will,ou=People,dc=example,dc=com</icfs:name>
+		<ri:uid>will</ri:uid>
 		<ri:cn>Will Turner</ri:cn>
 		<ri:givenName>Will</ri:givenName>
 		<ri:sn>Turner</ri:sn>
-	</c:attributes>
-</c:account>
+	</attributes>
+</account>

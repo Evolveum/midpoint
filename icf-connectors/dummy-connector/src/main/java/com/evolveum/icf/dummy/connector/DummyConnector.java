@@ -20,6 +20,7 @@
  */
 package com.evolveum.icf.dummy.connector;
 
+import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
@@ -54,7 +55,9 @@ import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AbstractFilterTranslator;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
+import org.identityconnectors.framework.spi.AttributeNormalizer;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
@@ -96,7 +99,7 @@ import com.evolveum.icf.dummy.connector.Utils;
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME",
 configurationClass = DummyConfiguration.class)
 public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
-        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
+        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp, AttributeNormalizer {
 	
 	// We want to see if the ICF framework logging works properly
     private static final Log log = Log.getLog(DummyConnector.class);
@@ -138,6 +141,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	instanceName = null;
         }
         resource = DummyResource.getInstance(instanceName);
+        
+        resource.setCaseIgnoreId(this.configuration.getCaseIgnoreId());
         
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
@@ -594,7 +599,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
-    public FilterTranslator<String> createFilterTranslator(ObjectClass objectClass, OperationOptions options) {
+    public FilterTranslator<Filter> createFilterTranslator(ObjectClass objectClass, OperationOptions options) {
         log.info("createFilterTranslator::begin");
         validate(objectClass);
 
@@ -606,12 +611,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
-    public void executeQuery(ObjectClass objectClass, String query, ResultsHandler handler, OperationOptions options) {
+    public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
         log.info("executeQuery::begin");
         validate(objectClass);
         notNull(handler, "Results handled object can't be null.");
-
-        // Lets be stupid now and just return everything. ICF will filter it.
         
         if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
         	
@@ -918,6 +921,28 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 				account.setPassword(new String(passwdChars));
 			}
 		});
+	}
+
+	/* (non-Javadoc)
+	 * @see org.identityconnectors.framework.spi.AttributeNormalizer#normalizeAttribute(org.identityconnectors.framework.common.objects.ObjectClass, org.identityconnectors.framework.common.objects.Attribute)
+	 */
+	@Override
+	public Attribute normalizeAttribute(ObjectClass ObjectClass, Attribute attribute) {
+		if (!configuration.getCaseIgnoreId()) {
+			return attribute;
+		}
+		String attrName = attribute.getName();
+		if (Uid.NAME.equals(attrName) || Name.NAME.equals(attrName)) {
+			List<String> values = (List) attribute.getValue();
+			AttributeBuilder builder = new AttributeBuilder();
+			builder.setName(attrName);
+			for (String origVal: values) {
+				builder.addValue(StringUtils.lowerCase(origVal));
+			}
+			return builder.build();
+		} else {
+			return attribute;
+		}
 	}
 
 }

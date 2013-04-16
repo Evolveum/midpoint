@@ -26,12 +26,16 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -45,6 +49,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -57,6 +62,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -268,6 +274,48 @@ public final class Utils {
 	        String oid = objects.get(0).getOid();
 	        refVal.setOid(oid);
 	        result.recordSuccessIfUnknown();
+	    }
+	    
+	    public static RefinedObjectClassDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) {
+	    	
+	    	QName objectclass = null;
+	    	PrismProperty<QName> objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+	        if (objectclassProperty != null) {
+	            objectclass = objectclassProperty.getValue().getValue();
+	        }
+	        
+	        ShadowKindType kind = null;
+	        PrismProperty<ShadowKindType> kindProperty = task.getExtension(ImportConstants.KIND_PROPERTY_NAME);
+	        if (kindProperty != null) {
+	        	kind = kindProperty.getValue().getValue();
+	        }
+	        
+	        String intent = null;
+	        PrismProperty<String> intentProperty = task.getExtension(ImportConstants.INTENT_PROPERTY_NAME);
+	        if (intentProperty != null) {
+	        	intent = intentProperty.getValue().getValue();
+	        }
+	        
+	        RefinedObjectClassDefinition refinedObjectClassDefinition;
+
+	        if (kind != null) {
+	        	refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
+	        	LOGGER.trace("Determined refined object class {} by using kind={}, intent={}",
+	        			new Object[]{refinedObjectClassDefinition, kind, intent});
+	        } else if (objectclass != null) {
+	        	refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(objectclass);
+	        	LOGGER.trace("Determined refined object class {} by using objectClass={}",
+	        			new Object[]{refinedObjectClassDefinition, objectclass});
+	        } else {
+	        	if (LOGGER.isTraceEnabled()) {
+                    LOGGER.debug("No kind or objectclass specified in the task {}, using default values", task);
+                }
+	        	refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
+	        	LOGGER.trace("Determined refined object class {} by using default ACCOUNT kind",
+	        			new Object[]{refinedObjectClassDefinition});
+	        }
+	        
+	        return refinedObjectClassDefinition;
 	    }
 
 }

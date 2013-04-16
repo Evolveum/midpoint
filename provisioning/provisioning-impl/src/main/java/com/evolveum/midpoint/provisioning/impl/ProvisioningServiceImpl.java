@@ -342,7 +342,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+	public int synchronize(String resourceOid, QName objectClass, Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(resourceOid, "Resource oid must not be null.");
@@ -373,7 +373,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			LOGGER.trace("Calling shadow cache to fetch changes.");
 			List<Change<ShadowType>> changes = getShadowCache(Mode.STANDARD).fetchChanges(
-					ShadowType.class, resourceType, tokenProperty, result);
+					ShadowType.class, resourceType, objectClass, tokenProperty, result);
 			LOGGER.trace("Changes returned to ProvisioningServiceImpl:\n{}", changes);
 
 			// synchronize changes

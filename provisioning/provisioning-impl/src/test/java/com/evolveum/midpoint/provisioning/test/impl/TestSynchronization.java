@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -146,7 +147,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
 					addOperation.getResultCode());
 
 			// WHEN
-			provisioningService.synchronize(resourceType.getOid(), syncCycle, result);
+			provisioningService.synchronize(resourceType.getOid(), ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType),
+					syncCycle, result);
 			
 			// THEN
 			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;

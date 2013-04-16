@@ -42,6 +42,7 @@
 
     <import resource="classpath:ctx-provisioning-test.xml"/>
     <import resource="classpath:ctx-audit.xml"/>
+    <import resource="classpath:ctx-common.xml"/>
     <import resource="classpath:ctx-configuration-test-no-repo.xml"/>
 
 </beans>

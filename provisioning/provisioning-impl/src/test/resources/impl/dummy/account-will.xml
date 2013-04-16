@@ -24,14 +24,16 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
-	<name>will</name>
+	<name>Will</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<kind>account</kind>
 	<attributes>
-		<icfs:name>will</icfs:name>
+		<icfs:name>Will</icfs:name>
 		<ri:fullname>Will Turner</ri:fullname>
 		<ri:ship>Flying Dutchman</ri:ship>
+		<ri:weapon>Sword</ri:weapon>
+		<ri:weapon>LOVE</ri:weapon>
 		<ri:loot>42</ri:loot>
 		<ri:treasure>Not silver and gold</ri:treasure>
 	</attributes>

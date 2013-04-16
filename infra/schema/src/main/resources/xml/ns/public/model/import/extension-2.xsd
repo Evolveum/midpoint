@@ -24,6 +24,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/model/import/extension-2"
             xmlns:tns="http://midpoint.evolveum.com/model/import/extension-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 
@@ -32,6 +33,9 @@
             Import task extensions.
         </xsd:documentation>
     </xsd:annotation>
+    
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
 
     <xsd:element name="objectclass" type="xsd:QName">
         <xsd:annotation>
@@ -39,6 +43,22 @@
                 QName of an object class to process in the import task.
                 E.g. during import from resource.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="kind" type="c:ShadowKindType">
+        <xsd:annotation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="intent" type="xsd:string">
+        <xsd:annotation>
             <xsd:appinfo>
             	<a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>

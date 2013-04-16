@@ -33,13 +33,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -103,6 +107,8 @@ public class ShadowManager {
 	private PrismContext prismContext;
 	@Autowired(required = true)
 	private TaskManager taskManager;
+	@Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
 		
@@ -160,9 +166,10 @@ public class ShadowManager {
 	 * @throws ConfigurationException 
 	 */
 	public <T extends ShadowType> PrismObject<T> lookupShadowInRepository(Class<T> type, PrismObject<T> resourceShadow,
-			ResourceType resource, OperationResult parentResult) throws SchemaException, ConfigurationException {
+			RefinedObjectClassDefinition rObjClassDef, ResourceType resource, OperationResult parentResult) 
+					throws SchemaException, ConfigurationException {
 
-		ObjectQuery query = createSearchShadowQuery(resourceShadow, resource, prismContext,
+		ObjectQuery query = createSearchShadowQuery(resourceShadow, rObjClassDef, resource, prismContext,
 				parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter:\n{}",
@@ -193,7 +200,8 @@ public class ShadowManager {
 	}
 
 	public <T extends ShadowType> PrismObject<T> lookupShadowByName(Class<T> type, 
-			PrismObject<T> resourceShadow, ResourceType resource, OperationResult parentResult) 
+			PrismObject<T> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
+			ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
 
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
@@ -209,15 +217,12 @@ public class ShadowManager {
 		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
 				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
 				new ItemPath(ShadowType.F_ATTRIBUTES), secondaryIdentifier.getDefinition(),
-				secondaryIdentifier.getValue()));
-//		ObjectQuery query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
-//				parentResult);
+				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
 					query.dump());
 		}
-//		PagingType paging = new PagingType();
 
 		// TODO: check for errors
 		List<PrismObject<T>> results;
@@ -252,9 +257,24 @@ public class ShadowManager {
 		return repoShadow;
 	}
 
+	private <T> PrismPropertyValue<T> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
+		RefinedAttributeDefinition refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getName());
+		QName matchingRuleQName = refinedAttributeDefinition.getMatchingRuleQName();
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
+		PrismPropertyValue<T> origPValue = attr.getValue();
+		if (matchingRule != null) {
+			T normalizedValue = matchingRule.normalize(origPValue.getValue());
+			PrismPropertyValue<T> normalizedPValue = origPValue.clone();
+			normalizedPValue.setValue(normalizedValue);
+			return normalizedPValue;
+		} else {
+			return origPValue;
+		}
+	}
+
 	public <T extends ShadowType> PrismObject<T> findOrCreateShadowFromChange(
 			Class<T> type, ResourceType resource, Change<T> change,
-			ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
@@ -301,7 +321,7 @@ public class ShadowManager {
 	}
 	
 	private <T extends ShadowType> PrismObject<T> createNewAccountFromChange(Change<T> change, ResourceType resource, 
-			ObjectClassComplexTypeDefinition objectClassDefinition,
+			RefinedObjectClassDefinition objectClassDefinition,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException, ConfigurationException,
 			SecurityViolationException {
@@ -366,7 +386,8 @@ public class ShadowManager {
 		return query;
 	}
 
-	private <T extends ShadowType> ObjectQuery createSearchShadowQuery(PrismObject<T> resourceShadow, ResourceType resource,
+	private <T extends ShadowType> ObjectQuery createSearchShadowQuery(PrismObject<T> resourceShadow, 
+			RefinedObjectClassDefinition rObjClassDef, ResourceType resource,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		// XPathHolder xpath = createXpathHolder();
 		ResourceAttributeContainer attributesContainer = ShadowUtil
@@ -394,18 +415,11 @@ public class ShadowManager {
 		// doc);
 		ObjectFilter filter = null;
 		try {
-			// filter = QueryUtil.createAndFilter(doc,
-			// QueryUtil.createEqualRefFilter(doc, null,
-			// SchemaConstants.I_RESOURCE_REF, resource.getOid()), QueryUtil
-			// .createEqualFilterFromElements(doc, xpath, identifierElements,
-			// resourceShadow
-			// .asPrismObject().getPrismContext()));
-			//
 			// TODO TODO TODO TODO: set matching rule instead of null
 			filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
 					ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
 					new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null,
-					identifier.getValues()));
+					getNormalizedValue(identifier, rObjClassDef)));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",
 			// e.getMessage(), e);
@@ -423,7 +437,7 @@ public class ShadowManager {
 	 * Create a copy of a shadow that is suitable for repository storage.
 	 */
 	public <T extends ShadowType> PrismObject<T> createRepositoryShadow(PrismObject<T> shadow, ResourceType resource,
-			ObjectClassComplexTypeDefinition objectClassDefinition)
+			RefinedObjectClassDefinition objectClassDefinition)
 			throws SchemaException {
 
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
@@ -474,8 +488,27 @@ public class ShadowManager {
 		if (repoShadowType.getObjectClass() == null) {
 			repoShadowType.setObjectClass(attributesContainer.getDefinition().getTypeName());
 		}
+		
+		normalizeAttributes(repoShadow, objectClassDefinition);
 
 		return repoShadow;
+	}
+	
+	private <T extends ShadowType> void normalizeAttributes(PrismObject<T> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+		for (ResourceAttribute<?> attribute: ShadowUtil.getAttributes(shadow)) {
+			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(attribute.getName());
+			normalizeAttribute(attribute, rAttrDef);			
+		}
+	}
+
+	private <T> void normalizeAttribute(ResourceAttribute<T> attribute, RefinedAttributeDefinition rAttrDef) throws SchemaException {
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
+		if (matchingRule != null) {
+			for (PrismPropertyValue<T> pval: attribute.getValues()) {
+				T normalizedRealValue = matchingRule.normalize(pval.getValue());
+				pval.setValue(normalizedRealValue);
+			}
+		}
 	}
 
 }

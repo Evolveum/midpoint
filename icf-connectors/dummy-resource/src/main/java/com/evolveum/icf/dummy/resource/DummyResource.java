@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Resource for use with dummy ICF connector.
  * 
@@ -73,6 +75,7 @@ public class DummyResource {
 	private int latestSyncToken;
 	private boolean tolerateDuplicateValues = false;
 	private boolean enforceSchema = true;
+	private boolean caseIgnoreId = false;
 	
 	private BreakMode schemaBreakMode = BreakMode.NONE;
 	
@@ -162,6 +165,14 @@ public class DummyResource {
 		this.uselessGuardedString = uselessGuardedString;
 	}
 
+	public boolean isCaseIgnoreId() {
+		return caseIgnoreId;
+	}
+
+	public void setCaseIgnoreId(boolean caseIgnoreId) {
+		this.caseIgnoreId = caseIgnoreId;
+	}
+
 	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException {
 		if (schemaBreakMode == BreakMode.NONE) {
 			return accountObjectClass;
@@ -192,12 +203,16 @@ public class DummyResource {
 		return accounts.values();
 	}
 	
+	private <T extends DummyObject> T getObject(Map<String,T> map, String id) {
+		return map.get(normalize(id));
+	}
+	
 	public DummyAccount getAccountByUsername(String username) {
-		return accounts.get(username);
+		return getObject(accounts, username);
 	}
 	
 	public DummyGroup getGroupByName(String name) {
-		return groups.get(name);
+		return getObject(groups, name);
 	}
 
 	public Collection<DummyGroup> listGroups() {
@@ -205,48 +220,51 @@ public class DummyResource {
 	}
 	
 	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException {
-		String id = newObject.getName();
+		String normalId = normalize(newObject.getName());
 		Class<? extends DummyObject> type = newObject.getClass();
-		if (map.containsKey(id)) {
-			throw new ObjectAlreadyExistsException(type.getSimpleName()+" with identifier "+id+" already exists");
+		if (map.containsKey(normalId)) {
+			throw new ObjectAlreadyExistsException(type.getSimpleName()+" with identifier "+normalId+" already exists");
 		}
 		
 		newObject.setResource(this);
-		map.put(id, newObject);
+		map.put(normalId, newObject);
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, type, id, DummyDeltaType.ADD);
+			DummyDelta delta = new DummyDelta(syncToken, type, normalId, DummyDeltaType.ADD);
 			deltas.add(delta);
 		}
 		
-		return id;
+		return newObject.getName();
 	}
 	
 	private <T extends DummyObject> void deleteObject(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException {
-		if (map.containsKey(id)) {
-			map.remove(id);
+		String normalId = normalize(id);
+		if (map.containsKey(normalId)) {
+			map.remove(normalId);
 		} else {
-			throw new ObjectDoesNotExistException(type.getSimpleName()+" with identifier "+id+" does not exist");
+			throw new ObjectDoesNotExistException(type.getSimpleName()+" with identifier "+normalId+" does not exist");
 		}
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, type, id, DummyDeltaType.DELETE);
+			DummyDelta delta = new DummyDelta(syncToken, type, normalId, DummyDeltaType.DELETE);
 			deltas.add(delta);
 		}
 	}
 
 	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
-		T existingObject = map.get(oldName);
+		String normalOldName = normalize(oldName);
+		String normalNewName = normalize(newName);
+		T existingObject = map.get(normalOldName);
 		if (existingObject == null) {
-			throw new ObjectDoesNotExistException("Cannot rename, "+type.getSimpleName()+" with username '"+oldName+"' does not exist");
+			throw new ObjectDoesNotExistException("Cannot rename, "+type.getSimpleName()+" with username '"+normalOldName+"' does not exist");
 		}
-		if (map.containsKey(newName)) {
-			throw new ObjectAlreadyExistsException("Cannot rename, "+type.getSimpleName()+" with username '"+newName+"' already exists");
+		if (map.containsKey(normalNewName)) {
+			throw new ObjectAlreadyExistsException("Cannot rename, "+type.getSimpleName()+" with username '"+normalNewName+"' already exists");
 		}
-		map.put(newName, existingObject);
-		map.remove(oldName);
+		map.put(normalNewName, existingObject);
+		map.remove(normalOldName);
 		existingObject.setName(newName);
 	}
 	
@@ -335,6 +353,15 @@ public class DummyResource {
 	public int getLatestSyncToken() {
 		return latestSyncToken;
 	}
+	
+	private String normalize(String id) {
+		if (caseIgnoreId) {
+			return StringUtils.lowerCase(id);
+		} else {
+			return id;
+		}
+	}
+
 	
 	public List<DummyDelta> getDeltasSince(int syncToken) {
 		List<DummyDelta> result = new ArrayList<DummyDelta>();

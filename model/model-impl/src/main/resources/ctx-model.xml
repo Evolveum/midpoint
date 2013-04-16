@@ -267,10 +267,6 @@
         </property>
     </bean>
 
-    <bean id="matchingRuleRegistry" class="com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory" 
-    	factory-method="createRegistry">
-    </bean>
-
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 

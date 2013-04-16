@@ -40,6 +40,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean supportSchema = true;
     private boolean readablePassword = false;
     private boolean requireExplicitEnable = false;
+    private boolean caseIgnoreId = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -95,6 +96,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setRequireExplicitEnable(boolean requireExplicitEnable) {
 		this.requireExplicitEnable = requireExplicitEnable;
+	}
+	
+	/**
+	 * If set to true then the identifiers will be considered case-insensitive
+	 */
+	@ConfigurationProperty(displayMessageKey = "UI_CASE_IGNORE_ID",
+    		helpMessageKey = "UI_CASE_IGNORE_ID")
+	public boolean getCaseIgnoreId() {
+		return caseIgnoreId;
+	}
+
+	public void setCaseIgnoreId(boolean caseIgnoreId) {
+		this.caseIgnoreId = caseIgnoreId;
 	}
 
 	/**

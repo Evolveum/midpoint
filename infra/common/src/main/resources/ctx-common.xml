@@ -25,5 +25,9 @@
      http://www.springframework.org/schema/beans
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
 	default-autowire="byName">
+	
+	<bean id="matchingRuleRegistry" class="com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory" 
+    	factory-method="createRegistry">
+    </bean>
 
 </beans>

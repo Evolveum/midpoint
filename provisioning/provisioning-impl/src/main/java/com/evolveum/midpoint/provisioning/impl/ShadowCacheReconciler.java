@@ -25,6 +25,7 @@ import java.util.Collection;
 
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -53,7 +54,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 
 	@Override
 	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, 
-			ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult parentResult)
+			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
 		cleanShadowInRepository(shadow, parentResult);

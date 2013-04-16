@@ -20,20 +20,19 @@
 <!-- -->
 
 
-<account oid="c0c010c0-d34d-b44f-f11d-333222123456"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<c:account oid="c0c010c0-d34d-b44f-f11d-333222654321"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<name>will</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<kind>account</kind>
-	<attributes>
-		<icfs:name>uid=will,ou=People,dc=example,dc=com</icfs:name>
-		<ri:uid>will</ri:uid>
-		<ri:cn>Will Turner</ri:cn>
-		<ri:givenName>Will</ri:givenName>
-		<ri:sn>Turner</ri:sn>
-	</attributes>
-</account>
+	<c:name>uid=sparrow,ou=People,dc=example,dc=com</c:name>
+	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+	<c:objectClass>ri:AccountObjectClass</c:objectClass>
+	<c:attributes>
+		<icfs:name>uid=sparrow,ou=People,dc=example,dc=com</icfs:name>
+		<ri:uid>sparrow</ri:uid>
+		<ri:cn>Jack Sparrow</ri:cn>
+		<ri:givenName>Jack</ri:givenName>
+		<ri:sn>Sparrow</ri:sn>
+	</c:attributes>
+</c:account>

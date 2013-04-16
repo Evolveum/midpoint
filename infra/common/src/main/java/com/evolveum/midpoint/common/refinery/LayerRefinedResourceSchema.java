@@ -88,6 +88,10 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 	public LayerRefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent) {
 		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getRefinedDefinition(kind, intent),layer);
 	}
+	
+	public LayerRefinedObjectClassDefinition getRefinedDefinition(QName typeName) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getRefinedDefinition(typeName),layer);
+	}
 
 	public void add(Definition def) {
 		refinedResourceSchema.add(def);

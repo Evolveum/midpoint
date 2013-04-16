@@ -83,7 +83,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 	protected static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
-	protected static final String ACCOUNT_WILL_ICF_UID = "will";
+	protected static final String ACCOUNT_WILL_USERNAME = "Will";
 
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
@@ -134,7 +134,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(RESOURCE_DUMMY_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(getResourceDummyFilename(), IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 
 		dummyResource = DummyResource.getInstance();
@@ -148,6 +148,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyResource.addAccount(dummyAccountDaemon);
 
 		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, ShadowType.class, initResult);
+	}
+	
+	protected String getResourceDummyFilename() {
+		return RESOURCE_DUMMY_FILENAME;
 	}
 
 	protected <T extends ShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
@@ -165,12 +169,12 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		//TODO: matching rule
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, ACCOUNT_WILL_ICF_UID);
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, getWillRepoIcfUid());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
-		System.out.println("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "
+		System.out.println("Looking for shadows of \"" + getWillRepoIcfUid() + "\" with filter "
 				+ query.dump());
-		display("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "
+		display("Looking for shadows of \"" + getWillRepoIcfUid() + "\" with filter "
 				+ query.dump());
 
 		
@@ -178,18 +182,24 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 				result);
 
 		
-		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_WILL_ICF_UID + "\"", 1, objects.size());
+		assertEquals("Wrong number of shadows for ICF UID \"" + getWillRepoIcfUid() + "\"", 1, objects.size());
 
 	}
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
-		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+	}
+	
+	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
+		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
 	}
 	
 	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
 		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
+	}
+	
+	protected String getWillRepoIcfUid() {
+		return ACCOUNT_WILL_USERNAME;
 	}
 
 
