@@ -152,9 +152,11 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         if (filter instanceof EqualsFilter) {
             operation = ItemRestrictionOperation.EQ;
         } else if (filter instanceof GreaterFilter) {
-            operation = ItemRestrictionOperation.GT;
+            GreaterFilter gf = (GreaterFilter) filter;
+            operation = gf.isEquals() ? ItemRestrictionOperation.GE : ItemRestrictionOperation.GT;
         } else if (filter instanceof LessFilter) {
-            operation = ItemRestrictionOperation.LT;
+            LessFilter lf = (LessFilter) filter;
+            operation = lf.isEquals() ? ItemRestrictionOperation.LE : ItemRestrictionOperation.LT;
         } else if (filter instanceof SubstringFilter) {
             operation = ItemRestrictionOperation.SUBSTRING;
         } else {

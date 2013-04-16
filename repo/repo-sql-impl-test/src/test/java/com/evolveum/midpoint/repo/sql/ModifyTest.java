@@ -53,7 +53,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -557,9 +556,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         description = afterSecondModifyType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals(null, description.getSituation());
 
-        //we add one millisecond to timestamp, because LessFilter is now not LessOrEqual only Less
-        timestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(
-                DateUtils.addMilliseconds(XMLGregorianCalendarType.asDate(timestamp), 1));
         LessFilter filter = LessFilter.createLessFilter(null, afterSecondModify.findItem(
         		ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), timestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
