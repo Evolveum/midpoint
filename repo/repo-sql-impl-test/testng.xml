@@ -31,8 +31,7 @@
     <test name="Query Add Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest"/>
-            <!--<class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest2"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.Query2PackageTest"/>-->
+            <class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest2"/>
             <class name="com.evolveum.midpoint.repo.sql.DeleteTest"/>
             <class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest"/>
             <class name="com.evolveum.midpoint.repo.sql.AddOverwriteTest"/>
@@ -43,11 +42,11 @@
             <class name="com.evolveum.midpoint.repo.sql.OrgStructTest"/>
         </classes>
     </test>
-    <test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.repo.sql.ConcurrencyTest"/>
-        </classes>
-    </test>
+    <!--<test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">-->
+        <!--<classes>-->
+            <!--<class name="com.evolveum.midpoint.repo.sql.ConcurrencyTest"/>-->
+        <!--</classes>-->
+    <!--</test>-->
     <test name="RAnyConverter" parallel="false" preserve-order="true" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.RAnyConverterStaticTest"/>

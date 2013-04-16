@@ -40,13 +40,16 @@ import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.*;
+import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -640,8 +643,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			LOGGER.trace("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
-				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
-				criteria = interpreter.interpret(query.getFilter());
+				QueryInterpreter interpreter = new QueryInterpreter();
+				criteria = interpreter.interpret(query, type, getPrismContext(), session);
+
+                com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
+                        new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, type, getPrismContext());
+                Criteria criteria1 = oldInterpreter.interpret(query.getFilter());
+
+                String s0 = HibernateToSqlTranslator.toSql(criteria);
+                String s1 = HibernateToSqlTranslator.toSql(criteria1);
+                boolean equals = StringUtils.equals(s0, s1);
+                LOGGER.info(">>> EQUALS: {} NEW:\n{}\nOLD:\n{}", new Object[]{equals, s0, s1});
+                LOGGER.info(">>>>>> EQUALS: {} NEW: {} OLD: {}", new Object[]{equals, s0, s1});
+
+//                criteria1.list();
+//                criteria = criteria1;
 			} else {
 				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			}
@@ -711,8 +727,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			LOGGER.trace("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
-				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
-				criteria = interpreter.interpret(query.getFilter());
+                QueryInterpreter interpreter = new QueryInterpreter();
+                criteria = interpreter.interpret(query, type, getPrismContext(), session);
+
+                com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
+                        new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, type, getPrismContext());
+                Criteria criteria1 = oldInterpreter.interpret(query.getFilter());
+
+                String s0 = HibernateToSqlTranslator.toSql(criteria);
+                String s1 = HibernateToSqlTranslator.toSql(criteria1);
+                boolean equals = StringUtils.equals(s0, s1);
+                LOGGER.info(">>> EQUALS: {} NEW:\n{}\nOLD:\n{}", new Object[]{equals, s0, s1});
+                LOGGER.info(">>>>>> EQUALS: {} NEW: {} OLD: {}", new Object[]{equals, s0, s1});
+
+//                criteria1.list();
+//                criteria = criteria1;
 			} else {
 				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			}
@@ -1144,7 +1173,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		}
 
 		try {
-			QueryRegistry registry = QueryRegistry.getInstance();
+			QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
 			// PropertyPath path = new
 			// XPathHolder(paging.getOrderBy()).toPropertyPath();
 			if (paging.getOrderBy() == null) {
@@ -1152,8 +1181,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 						+ "'.");
 				return query;
 			}
-			EntityDefinition definition = registry.findDefinition(ObjectTypes.getObjectType(type).getQName());
-			Definition def = definition.findDefinition(paging.getOrderBy());
+            EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+			Definition def = definition.findDefinition(paging.getOrderBy(), Definition.class);
 			if (def == null) {
 				LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
 						+ "list will not be ordered by it.");
@@ -1162,10 +1191,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			switch (paging.getDirection()) {
 			case ASCENDING:
-				query = query.addOrder(Order.asc(def.getRealName()));
+				query = query.addOrder(Order.asc(def.getJpaName()));
 				break;
 			case DESCENDING:
-				query = query.addOrder(Order.desc(def.getRealName()));
+				query = query.addOrder(Order.desc(def.getJpaName()));
 			}
 		} catch (QueryException ex) {
 			throw new SystemException(ex.getMessage(), ex);
