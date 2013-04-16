@@ -197,6 +197,9 @@ public class ChangeExecutor {
 			}
         	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_PROJECTION+"."+accCtx.getObjectTypeClass().getSimpleName());
         	subResult.addContext("discriminator", accCtx.getResourceShadowDiscriminator());
+			if (accCtx.getResource() != null) {
+				subResult.addParam("resource", accCtx.getResource().getName());
+			}
 			try {
 				ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
 				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {

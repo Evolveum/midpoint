@@ -1077,7 +1077,8 @@ public class PageUser extends PageAdminUsers {
 					delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
 				}
 
-				subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+				//what is this???
+//				subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 
 				WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 				if (LOGGER.isTraceEnabled()) {
@@ -1085,11 +1086,11 @@ public class PageUser extends PageAdminUsers {
 				}
 
 				deltas.add(delta);
-				subResult.recordSuccess();
+//				subResult.recordSuccess();
 			} catch (Exception ex) {
-				if (subResult != null) {
-					subResult.recordFatalError("Couldn't compute account delta.", ex);
-				}
+//				if (subResult != null) {
+					result.recordFatalError("Couldn't compute account delta.", ex);
+//				}
 				LoggingUtils.logException(LOGGER, "Couldn't compute account delta", ex);
 			}
 		}
