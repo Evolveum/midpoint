@@ -63,12 +63,6 @@ public class XPathSegment {
         this.value = null;
     }
 
-//    public XPathSegment(QName qName, String value) {
-//        this.qName = qName;
-//        this.variable = false;
-//        this.value = value;
-//    }
-
     public XPathSegment(String value) {
         this.qName = qName;
         this.variable = false;

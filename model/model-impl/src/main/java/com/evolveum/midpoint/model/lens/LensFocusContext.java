@@ -178,7 +178,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return assignmentDelta;
     }
     
-	public Collection<? extends ItemDelta<?>> getExecutionWaveAssignmentItemDeltas(String id) throws SchemaException {
+	public Collection<? extends ItemDelta<?>> getExecutionWaveAssignmentItemDeltas(Long id) throws SchemaException {
 		if (getObjectTypeClass() != UserType.class) {
     		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
     	}

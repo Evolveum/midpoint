@@ -130,7 +130,7 @@ public class DomSerializer {
 		parentElement.appendChild(element);
 		serializeItems(value.getItems(), parent.getDefinition(), element);
 		if (value.getId() != null) {
-			element.setAttribute(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME, value.getId());
+			element.setAttribute(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME, value.getId().toString());
 		}
 	}
 	

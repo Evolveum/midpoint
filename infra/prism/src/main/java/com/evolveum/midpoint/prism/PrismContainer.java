@@ -188,7 +188,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		}
 	}
     
-    public PrismContainerValue<V> getValue(String id) {
+    public PrismContainerValue<V> getValue(Long id) {
     	for (PrismContainerValue<V> pval: getValues()) {
     		if ((id == null && pval.getId() == null) ||
     				id.equals(pval.getId())) {
@@ -431,7 +431,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	}
 
 	private PrismContainerValue<V> findValue(IdItemPathSegment idSegment) {
-    	String id = null;
+		Long id = null;
     	if (idSegment != null) {
     		id = idSegment.getId();
     	}

@@ -40,7 +40,7 @@ public class TestConstants {
 	
 	public static final File USER_FILE = new File("src/test/resources/common/user-jack.xml");
 	
-	public static final String USER_ASSIGNMENT_1_ID = "111";
+	public static final Long USER_ASSIGNMENT_1_ID = 111L;
 	
 	public static final String USER_ACCOUNT_REF_1_OID = "2f9b9299-6f45-498f-aaaa-000000001111";
 	public static final String USER_ACCOUNT_REF_2_OID = "2f9b9299-6f45-498f-aaaa-000000002222";

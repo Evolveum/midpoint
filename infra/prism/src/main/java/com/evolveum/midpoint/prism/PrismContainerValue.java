@@ -55,7 +55,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	// This is list. We need to maintain the order internally to provide consistent
     // output in DOM and other ordering-sensitive representations
     private List<Item<?>> items = new ArrayList<Item<?>>();
-    private String id;
+    private Long id;
     // The elements are set during a schema-less parsing, e.g. during a dumb JAXB parsing of the object
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition).
@@ -68,7 +68,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	// Nothing to do
     }
     
-    public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, String id) {
+    public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id) {
 		super(type, source, container);
 		this.id = id;
 	}
@@ -136,11 +136,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         return properties;
     }
     
-    public String getId() {
+    public Long getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 	

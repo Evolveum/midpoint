@@ -270,8 +270,14 @@ object.
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
-				<access>create</access>
-				<access>read</access>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>false</update>
+					</access>
+				</limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<source>
 						<path>$user/name</path>
@@ -289,14 +295,26 @@ object.
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>Entry UUID</displayName>
-				<access>read</access>
+				<limitations>
+					<access>
+						<create>false</create>
+						<read>true</read>
+						<update>false</update>
+					</access>
+				</limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
+
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -311,9 +329,6 @@ object.
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<!-- The path can be shorteden like this. $user is a default source "context" in outbound -->
@@ -330,9 +345,6 @@ object.
 			<attribute>
 				<ref>ri:givenName</ref>
 				<displayName>Given Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<!-- Full namespace prefixes can be used in the path -->
@@ -348,8 +360,7 @@ object.
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<access>create</access>
-				<access>read</access>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>

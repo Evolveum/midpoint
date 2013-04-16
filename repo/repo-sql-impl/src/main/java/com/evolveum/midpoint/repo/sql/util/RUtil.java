@@ -330,24 +330,12 @@ public final class RUtil {
         return ref;
     }
 
-    public static Long getLongContainerIdFromString(String text) throws DtoTranslationException {
-        if (StringUtils.isEmpty(text)) {
-            return null;
-        }
-
-        if (!text.matches("[0-9]+")) {
-            throw new DtoTranslationException("Couldn't create long id from '" + text + "'.");
-        }
-
-        return Long.parseLong(text);
+    public static Long getLongContainerIdFromString(Long val) throws DtoTranslationException {
+        return val;
     }
 
-    public static String getStringFromLong(Long id) {
-        if (id == null) {
-            return null;
-        }
-
-        return id.toString();
+    public static Long getStringFromLong(Long id) {
+        return id;
     }
 
     /**

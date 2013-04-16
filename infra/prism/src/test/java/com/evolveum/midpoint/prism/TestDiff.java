@@ -204,12 +204,12 @@ public class TestDiff {
     	
     	PrismContainer<AssignmentType> ass1 = assignmentContDef.instantiate();
     	PrismContainerValue<AssignmentType> ass1cval = ass1.createNewValue();
-    	ass1cval.setId("1");
+    	ass1cval.setId(1L);
     	ass1cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "blah blah");
     	
     	PrismContainer<AssignmentType> ass2 = assignmentContDef.instantiate();
     	PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
-    	ass2cval.setId("1");
+    	ass2cval.setId(1L);
     	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
 		
 		// WHEN
@@ -223,7 +223,7 @@ public class TestDiff {
         		modifications, 
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment("1"),
+        				new IdItemPathSegment(1L),
         				new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
         		"chamalalia patlama paprtala");
         ItemDelta.checkConsistence(modifications);

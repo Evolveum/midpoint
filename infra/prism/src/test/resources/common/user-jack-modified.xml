@@ -49,12 +49,12 @@
     </polyName>
     <locality>World's End</locality>
 
-	<assignment id="i1111">
+	<assignment id="1111">
 		<description>Assignment 1</description>
 		<!-- Presence of comments should not matter in diff -->
 	</assignment>
 
-	<assignment id="i1112">
+	<assignment id="1112">
 		<description>Assignment II</description>
 		<accountConstruction>
 			<howto>Whatever</howto>
@@ -62,7 +62,7 @@
 		</accountConstruction>
 	</assignment>
 	
-	<assignment id="i1113">
+	<assignment id="1113">
 		<description>Assignment 3</description>
 	</assignment>
 

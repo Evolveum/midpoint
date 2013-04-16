@@ -282,7 +282,7 @@ public class XPathHolder {
             if (segment instanceof NameItemPathSegment) {
                 xsegment = new XPathSegment(((NameItemPathSegment)segment).getName());
             } else if (segment instanceof IdItemPathSegment) {
-                xsegment = new XPathSegment(((IdItemPathSegment) segment).getId());
+                xsegment = new XPathSegment(idToString(((IdItemPathSegment) segment).getId()));
             }
             this.segments.add(xsegment);
         }
@@ -292,7 +292,7 @@ public class XPathHolder {
 
     // Part 2: Export to external representations.
 
-    public String getXPath() {
+	public String getXPath() {
 		StringBuilder sb = new StringBuilder();
 
 		addPureXpath(sb);
@@ -419,7 +419,7 @@ public class XPathHolder {
         List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>(xsegments.size());
         for (XPathSegment segment : xsegments) {
             if (segment.isIdValueFilter()) {
-                segments.add(new IdItemPathSegment(segment.getValue()));
+                segments.add(new IdItemPathSegment(idToLong(segment.getValue())));
             } else {
                 QName qName = segment.getQName();
                 boolean variable = segment.isVariable();
@@ -590,5 +590,20 @@ public class XPathHolder {
 		}
 		return false;
 	}
+
 	
+	private Long idToLong(String stringVal) {
+		if (stringVal == null) {
+			return null;
+		}
+		return Long.valueOf(stringVal);
+	}
+	
+	private String idToString(Long longVal) {
+		if (longVal == null) {
+			return null;
+		}
+		return longVal.toString();
+	}
+
 }

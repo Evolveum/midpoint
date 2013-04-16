@@ -106,7 +106,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 new ModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
                         new ItemPath(
                                 new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment("1"),
+                                new IdItemPathSegment(1L),
                                 new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
                         true)
         };
@@ -139,14 +139,14 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 new ModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
                         new ItemPath(
                                 new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment("1"),
+                                new IdItemPathSegment(1L),
                                 new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
                         true),
 
                 new ModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true,
                         new ItemPath(
                                 new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment("1"),
+                                new IdItemPathSegment(1L),
                                 new NameItemPathSegment(AssignmentType.F_ACCOUNT_CONSTRUCTION)),
                         true),
         };

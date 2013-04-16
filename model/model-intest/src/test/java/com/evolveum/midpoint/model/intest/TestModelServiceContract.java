@@ -218,7 +218,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         PrismContainer<Containerable> assignmentContainer = userBarbossa.findContainer(UserType.F_ASSIGNMENT);
         assertEquals("Unexpected number of assignment values", 2, assignmentContainer.size());
-        PrismAsserts.assertValueId("1001",assignmentContainer);
+        PrismAsserts.assertValueId(1001L,assignmentContainer);
 	}
 	
 	@Test
@@ -1529,7 +1529,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         value.setExpression(expression);
         radt.setOutbound(value);
         ObjectDelta<UserType> accountAssignmentUserDelta =
-                createReplaceAccountConstructionUserDelta(USER_JACK_OID, "1", accountConstruction);
+                createReplaceAccountConstructionUserDelta(USER_JACK_OID, 1L, accountConstruction);
         deltas.add(accountAssignmentUserDelta);
 
         PrismObject<UserType> userJackOld = getUser(USER_JACK_OID);

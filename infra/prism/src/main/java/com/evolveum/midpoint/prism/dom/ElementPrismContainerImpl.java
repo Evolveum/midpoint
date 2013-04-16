@@ -93,7 +93,7 @@ public class ElementPrismContainerImpl<T extends Containerable> extends ElementP
 	protected Map<String,String> getAttributeMap() {
 		Map<String,String> map = new HashMap<String, String>();
 		if (getValue().getId() != null) {
-			map.put(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME, getValue().getId());
+			map.put(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME, getValue().getId().toString());
 		}
 		return map;
 	}

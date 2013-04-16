@@ -212,7 +212,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     private void checkContainersSize(PrismContainer newContainer, PrismContainer oldContainer) {
         AssertJUnit.assertEquals(newContainer.size(), oldContainer.size());
 
-        List<String> checked = new ArrayList<String>();
+        List<Long> checked = new ArrayList<Long>();
         List<PrismContainerValue> newValues = newContainer.getValues();
         for (PrismContainerValue value : newValues) {
             PrismContainerValue oldValue = oldContainer.getValue(value.getId());
@@ -243,9 +243,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> fileUser = (PrismObject<UserType>) prismContext.getPrismDomProcessor().parseObjects(file)
                 .get(0);
-        int id = 1;
+        long id = 1;
         for (AssignmentType assignment : fileUser.asObjectable().getAssignment()) {
-            assignment.setId(Integer.toString(id));
+            assignment.setId(id);
             id++;
         }
 

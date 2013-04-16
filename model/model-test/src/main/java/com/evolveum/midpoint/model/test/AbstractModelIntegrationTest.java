@@ -565,7 +565,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return accountConstructionType;
     }
 
-    protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, String id, AccountConstructionType newValue) throws SchemaException {
+    protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, AccountConstructionType newValue) throws SchemaException {
         PrismPropertyDefinition ppd = getAssignmentDefinition().findPropertyDefinition(AssignmentType.F_ACCOUNT_CONSTRUCTION);
         PropertyDelta<AccountConstructionType> acDelta =
                 PropertyDelta.createModificationReplaceProperty(

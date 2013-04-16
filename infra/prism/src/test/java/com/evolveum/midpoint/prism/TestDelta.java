@@ -746,7 +746,7 @@ public class TestDelta {
 		
 		PrismContainer<AssignmentType> assignment = user.findOrCreateContainer(UserType.F_ASSIGNMENT);
     	PrismContainerValue<AssignmentType> assignmentValue = assignment.createNewValue();
-    	assignmentValue.setId("123");
+    	assignmentValue.setId(123L);
     	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
     	
     	return user;

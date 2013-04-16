@@ -44,11 +44,11 @@
     	<t:norm>dzek sperou</t:norm>
     </polyName>
 
-	<assignment id="i1111">
+	<assignment id="1111">
 		<description>Assignment 1</description>
 	</assignment>
 
-	<assignment id="i1112">
+	<assignment id="1112">
 		<description>Assignment 2</description>
 		<accountConstruction>
 			<howto>Just do it</howto>

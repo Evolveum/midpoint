@@ -247,8 +247,8 @@ public class PrismAsserts {
 	}
 
 	
-	public static<C extends Containerable> void assertValueId(String expectedId, PrismContainer<C> container) {
-		List<String> ids = new ArrayList<String>();
+	public static<C extends Containerable> void assertValueId(Long expectedId, PrismContainer<C> container) {
+		List<Long> ids = new ArrayList<Long>();
 		for (PrismContainerValue<C> value: container.getValues()) {
 			if (MiscUtil.equals(expectedId, value.getId())) {
 				return;

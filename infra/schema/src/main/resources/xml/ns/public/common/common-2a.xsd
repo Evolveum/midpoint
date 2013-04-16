@@ -587,7 +587,7 @@
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="extension" type="tns:ExtensionType" />
 
@@ -1979,7 +1979,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="credentials" type="tns:CredentialsType"/>
 
@@ -2025,7 +2025,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="LoginEventType">
@@ -2123,7 +2123,7 @@
             <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
 
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:element name="assignment" type="tns:AssignmentType"/>
@@ -2198,7 +2198,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceType">
@@ -2333,7 +2333,7 @@
         <xsd:sequence>
             <xsd:element name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" minOccurs="0"/>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:simpleType name="AvailabilityStatusType">
@@ -2556,7 +2556,7 @@
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
             <!-- TODO -->
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:complexType name="ResourceBusinessConfigurationType">
@@ -2582,7 +2582,7 @@
                         </xsd:annotation>
                     </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:simpleType name="ResourceAdministrativeStateType">
@@ -4053,6 +4053,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Object template used in case the midPoint (focus) objects are created or modified.
+            			This overrides the system global object templates.
+            			
+            			This option is usually used set per-resource user template.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+                    	<a:objectReferenceTargetType>tns:UserTemplateType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="reconcileAttributes" type="xsd:boolean" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -4650,7 +4663,7 @@
 	        <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
 	        </xsd:any>
 	    </xsd:sequence>
-	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:complexType name="ShadowEntitlementsType">
@@ -4665,7 +4678,7 @@
 	    <xsd:sequence>
 	        <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded"/>
 	    </xsd:sequence>
-	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:complexType name="ShadowAssociationType">
@@ -4682,7 +4695,7 @@
 	        <xsd:element name="oid" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0" maxOccurs="1"/>
 	    </xsd:sequence>
-	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:complexType name="ShadowIdentifiersType">
@@ -4698,7 +4711,7 @@
 	        <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
 	        </xsd:any>
 	    </xsd:sequence>
-	    <xsd:attribute name="id" type="xsd:string" use="optional"/>
+	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:complexType name="SynchronizationSituationDescriptionType">
@@ -4769,7 +4782,7 @@
             <xsd:sequence>
                 <xsd:element ref="c:object" minOccurs="0" maxOccurs="unbounded"/>
             </xsd:sequence>
-            <xsd:attribute name="id" type="xsd:string" use="optional"/>
+            <xsd:attribute name="id" type="xsd:long" use="optional"/>
         </xsd:complexType>
     </xsd:element>
 
@@ -4947,7 +4960,7 @@
         	</xsd:element> -->
         	<!-- TODO: more elements will be added in the future: item, target, condition, parameters -->
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 	
 	<xsd:simpleType name="AuthorizationDecisionType">
@@ -5138,7 +5151,7 @@
     		</xsd:element>
     		<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0"/>
     	</xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
     <xsd:simpleType name="ExclusionPolicyType">

@@ -238,7 +238,7 @@ public class PrismDomProcessor {
 		for (Object value : valueElements) {
 			if (value instanceof Element) {
 				Element element = (Element) value;
-				String id = getContainerId(element);
+				Long id = getContainerId(element);
 				PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, id);
 				List<Element> childElements = DOMUtil.listChildElements(element);
 				Collection<? extends Item> newContainerItems = parsePrismContainerItems(childElements,
@@ -296,19 +296,19 @@ public class PrismDomProcessor {
 		return oid;
 	}
 
-	private String getContainerId(Element element) {
+	private Long getContainerId(Element element) {
 		String id = element.getAttribute(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME);
 		if (StringUtils.isNotBlank(id)) {
-			return id;
+			return Long.valueOf(id);
 		}
 		id = element.getAttributeNS(element.getNamespaceURI(), PrismConstants.ATTRIBUTE_ID_LOCAL_NAME);
 		if (StringUtils.isNotBlank(id)) {
-			return id;
+			return Long.valueOf(id);
 		}
 		id = element
 				.getAttributeNS(DOMUtil.XML_ID_ATTRIBUTE.getNamespaceURI(), DOMUtil.XML_ID_ATTRIBUTE.getLocalPart());
 		if (StringUtils.isNotBlank(id)) {
-			return id;
+			return Long.valueOf(id);
 		}
 		return null;
 	}

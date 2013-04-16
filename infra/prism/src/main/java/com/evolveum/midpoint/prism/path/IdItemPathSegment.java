@@ -31,17 +31,17 @@ import java.io.Serializable;
  */
 public class IdItemPathSegment extends ItemPathSegment {
 	
-	private String id;
+	private Long id;
 	
 	public IdItemPathSegment() {
 		this.id = null;
 	}
 
-	public IdItemPathSegment(String id) {
+	public IdItemPathSegment(Long id) {
 		this.id = id;
 	}
 
-	public String getId() {
+	public Long getId() {
 		return id;
 	}
 
