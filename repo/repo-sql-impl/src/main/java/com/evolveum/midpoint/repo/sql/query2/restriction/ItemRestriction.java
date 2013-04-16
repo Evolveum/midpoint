@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
@@ -220,5 +222,50 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
 
         return null;
+    }
+
+    protected Object getValueFromFilter(ValueFilter filter, PropertyDefinition def) throws QueryException {
+        Object value;
+        if (filter instanceof PropertyValueFilter) {
+            value = getValue(((PropertyValueFilter) filter).getValues());
+        } else if (filter instanceof StringValueFilter) {
+            value = ((StringValueFilter) filter).getValue();
+        } else {
+            throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
+        }
+
+        //todo remove after some time [lazyman]
+        //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
+        if (PolyString.class.equals(def.getJaxbType()) && (value instanceof String)) {
+            LOGGER.warn("Trying to query PolyString value but filter contains String '{}'.", new Object[]{filter});
+            value = new PolyString((String) value, (String) value);
+        }
+        //attempt to fix value type for polystring (if it was polystringtype in filter we create polystring from it)
+        if (PolyString.class.equals(def.getJaxbType()) && (value instanceof PolyStringType)) {
+            LOGGER.warn("Trying to query PolyString value but filter contains PolyStringType '{}'.", new Object[]{filter});
+            PolyStringType type = (PolyStringType) value;
+            value = new PolyString(type.getOrig(), type.getNorm());
+        }
+
+        //todo improve - implement common interface for all enums in repository and remove naive class casting [lazyman]
+        //this updates value if it's enum and translate it to repository enum wrapper
+        if (def.isEnumerated() && (value != null)) {
+            Class type = def.getJpaType();
+            Object[] constants = type.getEnumConstants();
+            for (Object constant : constants) {
+                Enum e = (Enum) constant;
+                if (e.name().equals(((Enum) value).name())) {
+                    value = e;
+                    break;
+                }
+            }
+        }
+
+        if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {
+            throw new QueryException("Value should by type of '" + def.getJaxbType() + "' but it's '"
+                    + value.getClass() + "', filter '" + filter + "'.");
+        }
+
+        return value;
     }
 }

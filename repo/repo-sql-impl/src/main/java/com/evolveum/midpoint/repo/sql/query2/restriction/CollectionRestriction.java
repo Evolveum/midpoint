@@ -27,17 +27,14 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.criterion.Criterion;
 
 /**
  * @author lazyman
  */
-public class PropertyRestriction extends ItemRestriction<ValueFilter> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PropertyRestriction.class);
+public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
     @Override
     public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
@@ -46,35 +43,32 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ValueFilter valFilter = (ValueFilter) filter;
-
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         ItemPath fullPath = createFullPath(valFilter);
 
-        PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
-
-        return def != null;
-    }
-
-    @Override
-    public Criterion interpretInternal(ValueFilter filter)
-            throws QueryException {
-        QueryContext context = getContext();
-
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        ItemPath fullPath = createFullPath(filter);
-        PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
-        if (def.isLob()) {
-            throw new QueryException("Can't query based on clob property value '" + def + "'.");
+        CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);
+        if (def == null) {
+            return false;
         }
 
-        String propertyName = def.getJpaName();
-        Object value = getValueFromFilter(filter, def);
-
-        return createCriterion(propertyName, value, filter);
+        return def.getDefinition() instanceof PropertyDefinition;
     }
 
     @Override
-    public PropertyRestriction cloneInstance() {
-        return new PropertyRestriction();
+    public Criterion interpretInternal(ValueFilter filter) throws QueryException {
+        ItemPath fullPath = createFullPath(filter);
+        QueryContext context = getContext();
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);
+
+        String alias = context.getAlias(fullPath);
+        Object value = getValueFromFilter(filter, (PropertyDefinition) def.getDefinition());
+
+        return createCriterion(alias + ".elements", value, filter);
+    }
+
+    @Override
+    public Restriction cloneInstance() {
+        return new CollectionRestriction();
     }
 }

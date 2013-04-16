@@ -68,6 +68,31 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreterTest2.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
 
+    @Test
+    public void queryDependent() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RTask.class, "t");
+        Criteria d = main.createCriteria("dependent", "d");
+        d.add(Restrictions.eq("d.elements", "123456"));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        LOGGER.info("exp. query>\n{}", new Object[]{expected});
+
+        ObjectFilter filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_DEPENDENT, "123456");
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        String real = getInterpretedQuery(session, TaskType.class, query);
+
+        com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
+                new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, TaskType.class, prismContext);
+        expected = HibernateToSqlTranslator.toSql(oldInterpreter.interpret(filter));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
     @Test(expectedExceptions = QueryException.class)
     public void queryClob() throws Exception {
         Session session = open();
