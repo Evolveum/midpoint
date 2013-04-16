@@ -22,6 +22,9 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -69,6 +72,79 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
     private static final File TEST_DIR = new File("./src/test/resources/query");
 
     @Test
+    public void queryOrganizationNorm() throws Exception {
+        Session session = open();
+
+        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
+                new PolyString("asdf", "asdf"), PolyStringNormMatchingRule.NAME.getLocalPart());
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        Criteria o = main.createCriteria("organization", "o");
+
+        o.add(Restrictions.eq("o.norm", "asdf"));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        String real = getInterpretedQuery(session, UserType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryOrganizationOrig() throws Exception {
+        Session session = open();
+
+        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
+                new PolyString("asdf", "asdf"), PolyStringOrigMatchingRule.NAME.getLocalPart());
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        Criteria o = main.createCriteria("organization", "o");
+
+        o.add(Restrictions.eq("o.orig", "asdf"));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        String real = getInterpretedQuery(session, UserType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryOrganizationStrict() throws Exception {
+        Session session = open();
+
+        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
+                new PolyString("asdf", "asdf"));
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
+                new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, UserType.class, prismContext);
+        String old = HibernateToSqlTranslator.toSql(oldInterpreter.interpret(filter));
+        LOGGER.info("old. query>\n{}", new Object[]{old});
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        Criteria o = main.createCriteria("organization", "o");
+
+        o.add(Restrictions.conjunction()
+                .add(Restrictions.eq("o.orig", "asdf"))
+                .add(Restrictions.eq("o.norm", "asdf")));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        String real = getInterpretedQuery(session, UserType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
     public void queryDependent() throws Exception {
         Session session = open();
 
@@ -77,7 +153,6 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
         d.add(Restrictions.eq("d.elements", "123456"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
-        LOGGER.info("exp. query>\n{}", new Object[]{expected});
 
         ObjectFilter filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_DEPENDENT, "123456");
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -85,7 +160,8 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
 
         com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
                 new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, TaskType.class, prismContext);
-        expected = HibernateToSqlTranslator.toSql(oldInterpreter.interpret(filter));
+        String old = HibernateToSqlTranslator.toSql(oldInterpreter.interpret(filter));
+        LOGGER.info("old. query>\n{}", new Object[]{old});
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);

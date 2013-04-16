@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -63,6 +64,11 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
         String alias = context.getAlias(fullPath);
         Object value = getValueFromFilter(filter, (PropertyDefinition) def.getDefinition());
+
+        //custom propertyPath handling for PolyString (it's embedded entity, not a primitive)
+        if (value instanceof PolyString) {
+            return createCriterion(alias, value, filter);
+        }
 
         return createCriterion(alias + ".elements", value, filter);
     }
