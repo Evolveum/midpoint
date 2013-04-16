@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -114,6 +115,8 @@ public class PrismObjectPanel extends Panel {
         header.add(createHeaderOnClickBehaviour(model));
         headerPanel.add(header);
         Label description = new Label("description", createDescription(model));
+        description.add(new AttributeModifier("title", createDescription(model)));
+
         description.add(createHeaderOnClickBehaviour(model));
         headerPanel.add(description);
 

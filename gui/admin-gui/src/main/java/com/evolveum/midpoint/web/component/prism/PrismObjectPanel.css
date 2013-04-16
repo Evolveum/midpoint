@@ -68,6 +68,11 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderText {
 	float: left;
 	margin-left: 10px;
 	text-align: left;
+
+    max-width: 450px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons {

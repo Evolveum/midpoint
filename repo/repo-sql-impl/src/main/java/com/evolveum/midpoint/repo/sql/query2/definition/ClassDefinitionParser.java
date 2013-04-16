@@ -63,7 +63,7 @@ public class ClassDefinitionParser {
 
     private void updateEntityDefinition(EntityDefinition entity) {
         Method[] methods = entity.getJpaType().getMethods();
-        LOGGER.info("### {}", new Object[]{entity.getJpaName()});
+        LOGGER.trace("### {}", new Object[]{entity.getJpaName()});
 
         entity.setEmbedded(entity.getJpaType().getAnnotation(Embeddable.class) != null);
 
