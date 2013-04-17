@@ -40,33 +40,33 @@ import java.util.Date;
 public class WorkItemDetailed extends WorkItem {
 
     private PrismObject<UserType> requester;
-    private PrismObject<ObjectType> objectOld;              // object before requested modification (typically, a user)
-    private PrismObject<ObjectType> objectNew;              // object after requested modification (typically, a user)
-    private PrismObject<?> requestSpecificData;    // data whose format is specific to the request (e.g. reason, ...)
-    private PrismObject<ObjectType> trackingData;           // general tracking data, e.g. IDs of related objects in activiti
-    private PrismObject<ObjectType> additionalData;         // additional data, e.g. the description of the role to be added
+    private PrismObject<? extends ObjectType> objectOld;              // object before requested modification (typically, a user)
+    private PrismObject<? extends ObjectType> objectNew;              // object after requested modification (typically, a user)
+    private PrismObject<? extends ObjectType> requestSpecificData;    // data whose format is specific to the request (e.g. reason, ...)
+    private PrismObject<? extends ObjectType> trackingData;           // general tracking data, e.g. IDs of related objects in activiti
+    private PrismObject<? extends ObjectType> additionalData;         // additional data, e.g. the description of the role to be added
 
-    public PrismObject<ObjectType> getAdditionalData() {
+    public PrismObject<? extends ObjectType> getAdditionalData() {
         return additionalData;
     }
 
-    public void setAdditionalData(PrismObject<ObjectType> additionalData) {
+    public void setAdditionalData(PrismObject<? extends ObjectType> additionalData) {
         this.additionalData = additionalData;
     }
 
-    public PrismObject<ObjectType> getObjectNew() {
+    public PrismObject<? extends ObjectType> getObjectNew() {
         return objectNew;
     }
 
-    public void setObjectNew(PrismObject<ObjectType> objectNew) {
+    public void setObjectNew(PrismObject<? extends ObjectType> objectNew) {
         this.objectNew = objectNew;
     }
 
-    public PrismObject<ObjectType> getObjectOld() {
+    public PrismObject<? extends ObjectType> getObjectOld() {
         return objectOld;
     }
 
-    public void setObjectOld(PrismObject<ObjectType> objectOld) {
+    public void setObjectOld(PrismObject<? extends ObjectType> objectOld) {
         this.objectOld = objectOld;
     }
 
@@ -78,19 +78,19 @@ public class WorkItemDetailed extends WorkItem {
         this.requester = requester;
     }
 
-    public PrismObject<?> getRequestSpecificData() {
+    public PrismObject<? extends ObjectType> getRequestSpecificData() {
         return requestSpecificData;
     }
 
-    public void setRequestSpecificData(PrismObject<?> requestSpecificData) {
+    public void setRequestSpecificData(PrismObject<? extends ObjectType> requestSpecificData) {
         this.requestSpecificData = requestSpecificData;
     }
 
-    public PrismObject<ObjectType> getTrackingData() {
+    public PrismObject<? extends ObjectType> getTrackingData() {
         return trackingData;
     }
 
-    public void setTrackingData(PrismObject<ObjectType> trackingData) {
+    public void setTrackingData(PrismObject<? extends ObjectType> trackingData) {
         this.trackingData = trackingData;
     }
 }

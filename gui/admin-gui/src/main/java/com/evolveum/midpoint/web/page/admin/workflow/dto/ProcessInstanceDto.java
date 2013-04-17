@@ -26,6 +26,9 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.api.WorkItem;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author mederly
  */
@@ -57,6 +60,17 @@ public class ProcessInstanceDto extends Selectable {
         return processInstance;
     }
 
+    public List<WorkItemDto> getWorkItems() {
+        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();
+        if (processInstance.getWorkItems() != null) {
+            for (WorkItem workItem : processInstance.getWorkItems()) {
+                retval.add(new WorkItemDto(workItem));
+            }
+        }
+        return retval;
+    }
+
+
     public String getTasks() {
         if (processInstance.getWorkItems() == null || processInstance.getWorkItems().isEmpty()) {
             return "-";
@@ -85,6 +99,10 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getDetails() {
-        return processInstance.getDetails();
+        return "NOT IMPLEMENTED";
+    }
+
+    public Object getVariable(String name) {
+        return processInstance.getVariables().get(name);
     }
 }

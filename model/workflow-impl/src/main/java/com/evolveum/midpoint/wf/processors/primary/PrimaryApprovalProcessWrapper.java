@@ -88,5 +88,5 @@ public interface PrimaryApprovalProcessWrapper {
 
     void setChangeProcessor(ChangeProcessor changeProcessor);
 
-    PrismObject<?> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result);
+    PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result);
 }

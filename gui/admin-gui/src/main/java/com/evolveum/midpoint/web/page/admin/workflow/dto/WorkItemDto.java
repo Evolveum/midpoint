@@ -29,6 +29,10 @@ import com.evolveum.midpoint.wf.api.WorkItem;
  */
 public class WorkItemDto extends Selectable {
 
+    public static final String F_NAME = "name";
+    public static final String F_OWNER_OR_CANDIDATES = "ownerOrCandidates";
+    public static final String F_CREATED = "created";
+
     WorkItem workItem;
 
     public WorkItemDto(WorkItem workItem) {
@@ -49,5 +53,22 @@ public class WorkItemDto extends Selectable {
 
     public String getCandidates() {
         return workItem.getCandidates();
+    }
+
+    public String getCreated() {
+        //todo use date format
+        return workItem.getCreateTime() != null ? workItem.getCreateTime().toString() : null;
+    }
+
+    public String getOwnerOrCandidates() {
+        if (workItem.getAssigneeName() != null) {
+            return workItem.getAssigneeName();
+        } else if (workItem.getAssignee() != null) {
+            return workItem.getAssignee();      // todo ???
+        } else if (workItem.getCandidates() != null) {
+            return workItem.getCandidates();
+        } else {
+            return null;
+        }
     }
 }

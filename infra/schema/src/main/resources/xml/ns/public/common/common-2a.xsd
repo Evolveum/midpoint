@@ -6855,5 +6855,97 @@
     </xsd:complexType>
     <xsd:element name="roleApprovalForm" type="tns:RoleApprovalFormType" substitutionGroup="c:object"/>
 
+    <xsd:complexType name="TrackingDataFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="taskId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Activiti task identifier</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="processInstanceId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Activiti process instance identifier</a:displayName>
+                                <a:displayOrder>110</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executionId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Activiti process execution identifier</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskOwner" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Task owner</a:displayName>
+                                <a:displayOrder>130</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskAssignee" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Task assignee</a:displayName>
+                                <a:displayOrder>140</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskCandidates" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Task candidates</a:displayName>
+                                <a:displayOrder>150</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="processDefinitionKey" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Activiti process definition key (name)</a:displayName>
+                                <a:displayOrder>160</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="processDefinitionId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Activiti process definition identifier</a:displayName>
+                                <a:displayOrder>170</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="shadowTaskOid" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Corresponding (shadow) task for this process instance</a:displayName>
+                                <a:displayOrder>200</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="trackingDataForm" type="tns:TrackingDataFormType" substitutionGroup="c:object"/>
+
 </xsd:schema>
 

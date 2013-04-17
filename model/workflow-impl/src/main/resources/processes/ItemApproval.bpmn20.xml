@@ -114,7 +114,7 @@
                         <activiti:formProperty id="timeInterval" expression="#{approvalRequest.timeInterval}" name="03: Time interval" readable="true" writable="false"/>
                         <activiti:formProperty id="comment" expression="#{approvalRequest.assignment.description}" name="04: Requester's comment" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
                         -->
-                        <activiti:formProperty id="[C]comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
+                        <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
                     </extensionElements>
                 </userTask>

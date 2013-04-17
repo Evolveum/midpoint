@@ -23,7 +23,9 @@ package com.evolveum.midpoint.wf.api;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author mederly
@@ -35,17 +37,7 @@ public class ProcessInstance implements Serializable {
     private Date startTime;
     private Date endTime;
     private List<WorkItem> workItems;
-    // process-specific details useful for the requestor/assignee - e.g. current status of DecisionList variable
-    // currently brutally hacked (as whole workflow package ;)
-    private String details;
-
-    public String getDetails() {
-        return details;
-    }
-
-    public void setDetails(String details) {
-        this.details = details;
-    }
+    private Map<String,Object> variables;
 
     public String getName() {
         return name;
@@ -89,5 +81,13 @@ public class ProcessInstance implements Serializable {
 
     public String toString() {
         return "[process instance: id=" + processId + ", name=" + name + "]";
+    }
+
+    public Map<String, Object> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(Map<String, Object> variables) {
+        this.variables = variables;
     }
 }

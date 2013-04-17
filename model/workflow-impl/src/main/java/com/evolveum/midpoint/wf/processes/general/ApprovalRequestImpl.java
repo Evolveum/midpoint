@@ -26,19 +26,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import java.io.Serializable;
 import java.util.List;
 
-public class ApprovalRequest<I extends Serializable> implements Serializable {
+public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequest<I> {
 
-    private static final long serialVersionUID = 5834362449970050179L;
+    private static final long serialVersionUID = 5111362449970050179L;
 
     private I itemToApprove;
     private ApprovalSchemaType approvalSchema;
 
-    public ApprovalRequest(I itemToApprove, ApprovalSchemaType approvalSchema) {
+    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema) {
         this.itemToApprove = itemToApprove;
         this.approvalSchema = approvalSchema;
     }
 
-    public ApprovalRequest(I itemToApprove, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved) {
+    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved) {
 
         this.itemToApprove = itemToApprove;
         if (approvalSchema != null) {
@@ -68,6 +68,7 @@ public class ApprovalRequest<I extends Serializable> implements Serializable {
     }
 
 
+    @Override
     public ApprovalSchemaType getApprovalSchema() {
         return approvalSchema;
     }
@@ -76,6 +77,7 @@ public class ApprovalRequest<I extends Serializable> implements Serializable {
         this.approvalSchema = approvalSchema;
     }
 
+    @Override
     public I getItemToApprove() {
         return itemToApprove;
     }

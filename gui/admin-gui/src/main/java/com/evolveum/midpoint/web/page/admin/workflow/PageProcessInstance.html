@@ -41,15 +41,9 @@
                 <td><wicket:message key="pageProcessInstance.finished"/></td>
                 <td><b><span wicket:id="finished"/></b></td>
             </tr>
-            <tr>
-                <td style="vertical-align: top; padding-top: 5px;"><wicket:message key="pageProcessInstance.tasks"/></td>
-                <td><pre><span wicket:id="tasks"/></pre></td>
-            </tr>
-            <tr>
-                <td style="vertical-align: top; padding-top: 5px;"><wicket:message key="pageProcessInstance.details"/></td>
-                <td><pre><span wicket:id="details"/></pre></td>
-            </tr>
         </table>
+
+        <div wicket:id="details"/>
        	
         <div class="operatingFormButtons">
             <a wicket:id="backButton"/>

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.general.Decision;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
@@ -194,7 +195,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     }
 
     private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, RoleType role) {
-        return new ApprovalRequest(a, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved());
+        return new ApprovalRequestImpl(a, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved());
     }
 
 
@@ -601,7 +602,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     public static final QName ROLE_APPROVAL_FORM_NAME = new QName(SchemaConstants.NS_WFCF, "RoleApprovalForm");
 
     @Override
-    public PrismObject<?> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
@@ -134,11 +135,15 @@ public class PageProcessInstance extends PageAdminWorkItems {
         Label finished = new Label("finished", new PropertyModel(model, "finished"));
         mainForm.add(finished);
 
-        Label tasks = new Label("tasks", new PropertyModel(model, "tasks"));
-        mainForm.add(tasks);
+//        Label tasks = new Label("tasks", new PropertyModel(model, "tasks"));
+//        mainForm.add(tasks);
 
-        Label details = new Label("details", new PropertyModel(model, "details"));
-        mainForm.add(details);
+//        WorkItemsPanel workItemsPanel = new WorkItemsPanel("tasks", new PropertyModel(model, "workItems"));
+//        mainForm.add(workItemsPanel);
+
+        // todo make configurable
+        ItemApprovalPanel itemApprovalPanel = new ItemApprovalPanel("details", model);
+        mainForm.add(itemApprovalPanel);
 	}
 
 	private void initButtons(final Form mainForm) {

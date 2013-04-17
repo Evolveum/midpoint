@@ -46,6 +46,7 @@ import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.general.Decision;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
@@ -119,7 +120,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
 
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
-        throw new NotImplementedException();
+        return null;        // todo implement this
     }
 
     private ApprovalRequest<String> createApprovalRequest(ItemDelta delta) {
@@ -131,7 +132,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         List<ObjectReferenceType> approvers = new ArrayList<ObjectReferenceType>();
         approvers.add(approverRef);
 
-        return new ApprovalRequest("Password change", null, approvers, null, null);
+        return new ApprovalRequestImpl("Password change", null, approvers, null, null);
     }
 
     private StartProcessInstructionForPrimaryStage createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task task, OperationResult result) {

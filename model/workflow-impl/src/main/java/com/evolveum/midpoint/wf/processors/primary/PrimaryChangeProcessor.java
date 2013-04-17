@@ -365,7 +365,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
 
 
     @Override
-    public PrismObject<?> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
         String wrapperClassName = (String) variables.get(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
         PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperClassName);
         return wrapper.getRequestSpecificData(task, variables, result);

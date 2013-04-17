@@ -216,7 +216,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 
     private ObjectWrapper getAdditionalDataWrapper() {
-        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getAdditionalData();
+        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getAdditionalData();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
@@ -228,7 +228,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getTrackingDataWrapper() {
-        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData();
+        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
