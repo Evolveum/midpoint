@@ -243,10 +243,6 @@ public class SchemaToDomProcessor {
 		annotation.appendChild(appinfo);
 
 		addCommonDefinitionAnnotations(definition, appinfo);
-				
-		if (definition.isIgnored()) {
-			addAnnotation(A_IGNORE, "true", appinfo);
-		}
 		
 		if (!definition.canCreate() || !definition.canRead() || !definition.canUpdate()) {
 			// read-write-create attribute is the default. If any of this flags is missing, we must
@@ -472,6 +468,14 @@ public class SchemaToDomProcessor {
 	}
 	
 	private void addCommonDefinitionAnnotations(Definition definition, Element appinfoElement) {
+		if (definition.isIgnored()) {
+			addAnnotation(A_IGNORE, "true", appinfoElement);
+		}
+		
+		if ((definition instanceof ItemDefinition) && ((ItemDefinition)definition).isOperational()) {
+			addAnnotation(A_OPERATIONAL, "true", appinfoElement);
+		}
+		
 		if (definition.getDisplayName() != null) {
 			addAnnotation(A_DISPLAY_NAME, definition.getDisplayName(), appinfoElement);
 		}

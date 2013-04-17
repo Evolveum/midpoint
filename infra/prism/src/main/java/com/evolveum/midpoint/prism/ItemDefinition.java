@@ -61,6 +61,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	protected QName name;
 	private int minOccurs = 1;
     private int maxOccurs = 1;
+    private boolean operational;
     private boolean dynamic;
 
 	// TODO: annotations
@@ -187,6 +188,14 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     public boolean isOptional() {
         return getMinOccurs() == 0;
     }
+
+	public boolean isOperational() {
+		return operational;
+	}
+
+	public void setOperational(boolean operational) {
+		this.operational = operational;
+	}
 
 	/**
 	 * Returns true if definition was created during the runtime based on a dynamic information

@@ -803,19 +803,20 @@ class DomToSchemaProcessor {
 		
 		QName elementName = itemDef.getName();
 		
-		// ignore		
-		List<Element> ignore = SchemaProcessorUtil.getAnnotationElements(annotation, A_IGNORE);
-		if (ignore != null && !ignore.isEmpty()) {
-			if (ignore.size() != 1) {
-				throw new SchemaException("More than one "+A_IGNORE.getLocalPart()+" annotation on declaration of element "+elementName);
-			}
-			String ignoreString = ignore.get(0).getTextContent();
-			if (StringUtils.isEmpty(ignoreString)) {
-				// Element is present but no content: defaults to "true"
-				itemDef.setIgnored(true);
-			} else {
-				itemDef.setIgnored(Boolean.parseBoolean(ignoreString));
-			}
+		// ignore
+		Boolean ignore = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_IGNORE);
+		if (ignore == null) {
+			itemDef.setIgnored(false);
+		} else {
+			itemDef.setIgnored(ignore);
+		}
+
+		// operational
+		Boolean operational = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_OPERATIONAL);
+		if (operational == null) {
+			itemDef.setOperational(false);
+		} else {
+			itemDef.setOperational(operational);
 		}
 				
 		// displayName
