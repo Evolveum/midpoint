@@ -25,16 +25,14 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
-import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -44,7 +42,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -59,7 +56,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.time.Duration;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -253,11 +249,21 @@ public class PrismValuePanel extends Panel {
     }
 
     private InputPanel createInputComponent(String id, IModel<String> label, Form form) {
+        ValueWrapper valueWrapper = model.getObject();
+        ObjectWrapper objectWrapper = valueWrapper.getProperty().getContainer().getObject();
+        PrismProperty property = valueWrapper.getProperty().getItem();
+        boolean required = property.getDefinition().getMinOccurs() > 0;
+        //enforcing required for user will be enabled later (MID-1048)
+        if (UserType.class.isAssignableFrom(objectWrapper.getObject().getCompileTimeClass())) {
+            required = false;
+        }
+
         InputPanel component = createTypedInputComponent(id);
 
         final List<FormComponent> formComponents = component.getFormComponents();
         for (FormComponent formComponent : formComponents) {
             formComponent.setLabel(label);
+            formComponent.setRequired(required);
 
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
@@ -331,7 +337,8 @@ public class PrismValuePanel extends Panel {
                 values.remove(wrapper);
                 break;
             case DELETED:
-                throw new IllegalStateException("Couldn't delete already deleted item: " + toString());
+                error("Couldn't delete already deleted item: " + wrapper.toString());
+                target.add(((PageBase)getPage()).getFeedbackPanel());
             case NOT_CHANGED:
                 wrapper.setStatus(ValueStatus.DELETED);
                 break;

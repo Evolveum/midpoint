@@ -106,6 +106,11 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
+        int minOccurs = property.getDefinition().getMinOccurs();
+        while (values.size() < minOccurs) {
+            values.add(createValue());
+        }
+
         if (values.isEmpty()) {
             values.add(createValue());
         }
