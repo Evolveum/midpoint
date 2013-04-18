@@ -45,6 +45,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -52,6 +53,7 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -84,15 +86,15 @@ public class PrismValuePanel extends Panel {
         feedback.setOutputMarkupId(true);
         add(feedback);
 
-//        //helpButton
-//        StaticImage helpButtonImage = new StaticImage("helpButton", new Model<String>("../../img/formIcon/InfoSmall.png"));
-//        helpButtonImage.setOutputMarkupId(true);
-//        add(helpButtonImage);
-//
-//        //helpContent
-//        Label labelHelpContent = new Label("helpContent", "This is help text sample...");
-//        labelHelpContent.setMarkupId("content_" + helpButtonImage.getMarkupId());
-//        add(labelHelpContent);
+        //helpButton
+        Image helpButtonImage = new Image("helpButton", new Model<String>("InfoSmall.png"));
+        helpButtonImage.setOutputMarkupId(true);
+        add(helpButtonImage);
+
+        //helpContent
+        Label labelHelpContent = new Label("helpContent", createHelpModel());
+        labelHelpContent.setMarkupId("content_" + helpButtonImage.getMarkupId());
+        add(labelHelpContent);
 
         //input
         InputPanel input = createInputComponent("input", label, form);
@@ -135,6 +137,17 @@ public class PrismValuePanel extends Panel {
             }
         });
         add(removeButton);
+    }
+
+    private IModel<String> createHelpModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                PropertyWrapper wrapper = model.getObject().getProperty();
+                return wrapper.getItem().getHelp();
+            }
+        };
     }
 
     private boolean isAccessible(PrismPropertyDefinition def, ContainerStatus status) {
@@ -269,11 +282,11 @@ public class PrismValuePanel extends Panel {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
             formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
-				
-				@Override
-				protected void onUpdate(AjaxRequestTarget target) {			
-				}
-			});
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                }
+            });
 
             // Validation occurs when submitting the form
 //            if (form != null) {
@@ -300,7 +313,7 @@ public class PrismValuePanel extends Panel {
             panel = new ThreeStateCheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
-            
+
             PrismPropertyDefinition def = property.getDefinition();
             if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
                 panel.getBaseFormComponent().setRequired(true);
@@ -338,7 +351,7 @@ public class PrismValuePanel extends Panel {
                 break;
             case DELETED:
                 error("Couldn't delete already deleted item: " + wrapper.toString());
-                target.add(((PageBase)getPage()).getFeedbackPanel());
+                target.add(((PageBase) getPage()).getFeedbackPanel());
             case NOT_CHANGED:
                 wrapper.setStatus(ValueStatus.DELETED);
                 break;

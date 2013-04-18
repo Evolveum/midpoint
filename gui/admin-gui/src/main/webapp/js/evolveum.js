@@ -146,11 +146,19 @@ function showLeftMenu() {
 }
 
 function showFormHelpContainer(){
+    //show if help is not empty
+    if ($(objectFormHelpContainer).find('.objectFormHelpContent').text() == '') {
+        return;
+    }
 	objectFormHelpContainer.show();
 	clearTimeout(interval);
 }
 
 function hideFormHelpContainer(){
+    //hide if help is not empty
+    if ($(objectFormHelpContainer).find('.objectFormHelpContent').text() == '') {
+        return;
+    }
 	clearTimeout(interval);
 	objectFormHelpContainer.hide();
 }
