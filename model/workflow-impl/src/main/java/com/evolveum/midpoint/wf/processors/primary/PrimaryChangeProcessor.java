@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -49,7 +49,6 @@ import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.activiti.engine.task.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -366,7 +365,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
 
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
-        String wrapperClassName = (String) variables.get(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+        String wrapperClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
         PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperClassName);
         return wrapper.getRequestSpecificData(task, variables, result);
     }

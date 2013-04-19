@@ -23,17 +23,15 @@ package com.evolveum.midpoint.wf.taskHandlers;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.WfTaskUtil;
-import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.messages.QueryProcessCommand;
 import org.apache.commons.lang.Validate;
-
-
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -58,7 +56,7 @@ public class WfProcessShadowTaskHandler implements TaskHandler {
 	private TaskManager taskManager;
 
     @Autowired(required = true)
-    private WorkflowManager workflowManager;
+    private WfConfiguration wfConfiguration;
 
     @Autowired(required = true)
     private ActivitiInterface activitiInterface;
@@ -94,7 +92,7 @@ public class WfProcessShadowTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 
-        if (workflowManager.isEnabled()) {
+        if (wfConfiguration.isEnabled()) {
 		
 		    // is this task already closed? (this flag is set by activiti2midpoint when it gets information about wf process termination)
             // todo: fixme this is a bit weird

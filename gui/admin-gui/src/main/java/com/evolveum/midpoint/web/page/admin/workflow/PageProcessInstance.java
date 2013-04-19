@@ -129,19 +129,13 @@ public class PageProcessInstance extends PageAdminWorkItems {
 		Label pid = new Label("pid", new PropertyModel(model, "instanceId"));
 		mainForm.add(pid);
 
-        Label started = new Label("started", new PropertyModel(model, "started"));
+        Label started = new Label("started", new PropertyModel(model, "startedTime"));
         mainForm.add(started);
 
-        Label finished = new Label("finished", new PropertyModel(model, "finished"));
+        Label finished = new Label("finished", new PropertyModel(model, "finishedTime"));
         mainForm.add(finished);
 
-//        Label tasks = new Label("tasks", new PropertyModel(model, "tasks"));
-//        mainForm.add(tasks);
-
-//        WorkItemsPanel workItemsPanel = new WorkItemsPanel("tasks", new PropertyModel(model, "workItems"));
-//        mainForm.add(workItemsPanel);
-
-        // todo make configurable
+        // todo make configurable (what panel to display)
         ItemApprovalPanel itemApprovalPanel = new ItemApprovalPanel("details", model);
         mainForm.add(itemApprovalPanel);
 	}

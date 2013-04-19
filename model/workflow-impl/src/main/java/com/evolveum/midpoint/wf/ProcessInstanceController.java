@@ -68,7 +68,7 @@ public class ProcessInstanceController {
     private static final boolean USE_WFSTATUS = true;
 
     @Autowired(required = true)
-    private WorkflowManager workflowManager;    // used to get wf configuration and a list of change processors
+    private WfConfiguration wfConfiguration;
 
     @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
@@ -151,7 +151,7 @@ public class ProcessInstanceController {
         if (active) {
 
             ScheduleType schedule = new ScheduleType();
-            schedule.setInterval(workflowManager.getWfConfiguration().getProcessCheckInterval());
+            schedule.setInterval(wfConfiguration.getProcessCheckInterval());
             schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + TASK_START_DELAY)));
             t.pushHandlerUri(WfProcessShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
 

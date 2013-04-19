@@ -61,7 +61,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
     public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-2";
     public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-2";
     public static final QName MODEL_CONTEXT_PROPERTY = new QName(MODEL_CONTEXT_NS, "modelContext");
-    public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");;
+    public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
 
     @Autowired(required = true)
 	private TaskManager taskManager;

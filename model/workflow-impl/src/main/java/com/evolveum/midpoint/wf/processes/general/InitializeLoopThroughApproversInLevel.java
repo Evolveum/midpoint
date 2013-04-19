@@ -35,8 +35,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -90,7 +90,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
                 LOGGER.trace("Approvers at the level " + level + " are: " + approverRefs);
             }
             if (approverRefs.isEmpty()) {
-                LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(WfConstants.VARIABLE_PROCESS_NAME) + " (id " + execution.getProcessInstanceId() + ")");
+                LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_NAME) + " (id " + execution.getProcessInstanceId() + ")");
             }
         }
 
@@ -184,12 +184,12 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         Map<QName, Object> variables = new HashMap<QName, Object>();
 
-        PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER);
+        PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_AFTER);
         if (user != null) {
             variables.put(SchemaConstants.C_USER, user);
         }
 
-        PrismObject<UserType> requester = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER);
+        PrismObject<UserType> requester = (PrismObject<UserType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER);
         if (requester != null) {
             variables.put(SchemaConstants.C_REQUESTER, requester);
         }

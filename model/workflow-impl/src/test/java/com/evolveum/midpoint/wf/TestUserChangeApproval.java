@@ -80,7 +80,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-@DependsOn("workflowManager")
+//@DependsOn("workflowServiceImpl")
 public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest {
 
     protected static final Trace LOGGER = TraceManager.getTrace(TestUserChangeApproval.class);
@@ -105,7 +105,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	private TaskManager taskManager;
 
     @Autowired(required = true)
-    private WorkflowManager workflowManager;
+    private WorkflowServiceImpl workflowServiceImpl;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -674,7 +674,6 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             String pid = wfTaskUtil.getProcessId(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            WorkflowServiceImpl workflowServiceImpl = workflowManager.getDataAccessor();
             ProcessInstance processInstance = workflowServiceImpl.getProcessInstanceByInstanceId(pid, false, true, result);
             assertNotNull("Process instance information cannot be retrieved", processInstance);
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());

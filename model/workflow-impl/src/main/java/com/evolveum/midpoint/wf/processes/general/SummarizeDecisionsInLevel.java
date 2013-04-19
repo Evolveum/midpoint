@@ -23,7 +23,7 @@ package com.evolveum.midpoint.wf.processes.general;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -39,7 +39,7 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        DecisionList decisionList = (DecisionList) execution.getVariable(WfConstants.VARIABLE_DECISION_LIST);
+        DecisionList decisionList = (DecisionList) execution.getVariable(CommonProcessVariableNames.VARIABLE_DECISION_LIST);
         Validate.notNull(decisionList, "decisionList is null");
         ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "level is null");

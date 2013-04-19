@@ -13,17 +13,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.namespace.QName;
@@ -105,18 +104,18 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
 
     void prepareCommonInstructionAttributes(StartProcessInstructionForPrimaryStage instruction, ModelContext<?,?> modelContext, String objectOid, PrismObject<UserType> requester, Task task) {
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
-        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
-        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_BEFORE, fc.getObjectOld());
-        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER, fc.getObjectNew());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_BEFORE, fc.getObjectOld());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_AFTER, fc.getObjectNew());
         //spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_DELTA, change);
-        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER, requester);
-        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
-        instruction.addProcessVariable(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
-        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
-        instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER, requester);
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
         instruction.setWrapper(this);
         instruction.setNoProcess(false);
-        instruction.addProcessVariable(WfConstants.VARIABLE_START_TIME, new Date());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
     }
 
     /*

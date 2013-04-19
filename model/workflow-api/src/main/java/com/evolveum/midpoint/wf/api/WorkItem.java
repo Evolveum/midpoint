@@ -46,9 +46,9 @@ public class WorkItem implements Serializable {
     private String taskId;
     private String name;
     private String assignee;
-    private String assigneeName;
     private String candidates;
     private Date createTime;
+    private String assigneeName;
 
     public String getAssignee() {
         return assignee;
@@ -56,14 +56,6 @@ public class WorkItem implements Serializable {
 
     public void setAssignee(String assignee) {
         this.assignee = assignee;
-    }
-
-    public String getAssigneeName() {
-        return assigneeName;
-    }
-
-    public void setAssigneeName(String assigneeName) {
-        this.assigneeName = assigneeName;
     }
 
     public String getName() {
@@ -112,5 +104,13 @@ public class WorkItem implements Serializable {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public String getAssigneeName() {
+        return assigneeName;
+    }
+
+    public void setAssigneeName(String assigneeName) {
+        this.assigneeName = assigneeName;
     }
 }

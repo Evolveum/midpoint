@@ -146,6 +146,27 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         };
         columns.add(column);
 
+        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.result")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
+                                     final IModel<ProcessInstanceDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        ProcessInstanceDto pi = rowModel.getObject();
+                        Boolean result = pi.getAnswer();
+                        if (result == null) {
+                            return "";
+                        } else {
+                            return result ? "APPROVED" : "REJECTED";        // todo i18n
+                        }
+                    }
+                }));
+            }
+        });
+
         columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started")) {
 
             @Override

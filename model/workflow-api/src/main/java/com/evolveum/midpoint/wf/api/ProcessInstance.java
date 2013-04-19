@@ -28,6 +28,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Information about workflow process instance.
+ *
+ * Beware, the list of work items (workItems) may not be always present.
+ * It depends on situation, e.g. when retrieving list of process instances, we do not populate this attribute.
+ * When retrieving specific instance, we usually do.
+ *
  * @author mederly
  */
 public class ProcessInstance implements Serializable {
@@ -36,8 +42,10 @@ public class ProcessInstance implements Serializable {
     private String name;
     private Date startTime;
     private Date endTime;
-    private List<WorkItem> workItems;
     private Map<String,Object> variables;
+    private boolean finished;
+
+    private List<WorkItem> workItems;           // optional
 
     public String getName() {
         return name;
@@ -89,5 +97,13 @@ public class ProcessInstance implements Serializable {
 
     public void setVariables(Map<String, Object> variables) {
         this.variables = variables;
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public void setFinished(boolean finished) {
+        this.finished = finished;
     }
 }

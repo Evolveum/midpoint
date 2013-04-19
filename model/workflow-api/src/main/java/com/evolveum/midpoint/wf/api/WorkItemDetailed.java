@@ -93,4 +93,5 @@ public class WorkItemDetailed extends WorkItem {
     public void setTrackingData(PrismObject<? extends ObjectType> trackingData) {
         this.trackingData = trackingData;
     }
+
 }

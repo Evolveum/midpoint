@@ -22,17 +22,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <h2><wicket:message key="ItemApprovalPanel.itemToBeApproved" /></h2>
-    <td><span wicket:id="itemToBeApproved"/></td>
+    <h2><font wicket:id="itemToBeApprovedLabel">...</font></h2>
+    <span wicket:id="itemToBeApproved"/>
 
     <h2><wicket:message key="ItemApprovalPanel.approvalSchema" /></h2>
-    <td><span wicket:id="approvalSchema"/></td>
+    <span wicket:id="approvalSchema"/>
 
-    <h2><wicket:message key="ItemApprovalPanel.decisionsDone" /></h2>
-    <td><div wicket:id="decisionsDone"/></td>
+    <h2><span wicket:id="decisionsDoneLabel" /></h2>
+    <div wicket:id="decisionsDone"/>
 
-    <h2><wicket:message key="ItemApprovalPanel.currentWorkItems" /></h2>
-    <td><div wicket:id="currentWorkItems"/></td>
+    <h2><span wicket:id="currentWorkItemsLabel" /></h2>
+    <div wicket:id="currentWorkItems"/>
 
 </wicket:panel>
 </html>

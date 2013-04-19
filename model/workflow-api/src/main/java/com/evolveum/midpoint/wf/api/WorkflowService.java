@@ -29,14 +29,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import java.util.List;
 
 /**
+ * TODO specify and clean-up error handling
+ *
  * @author mederly
  */
 
 public interface WorkflowService {
 
     /*
-     * Work items for user
-     * ===================
+     * Work items
+     * ==========
      */
 
     /**
@@ -63,27 +65,45 @@ public interface WorkflowService {
      */
     public List<WorkItem> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws WorkflowException;
 
+    /**
+     * Provides detailed information about a given work item (may be inefficient, so use with care).
+     *
+     * @param taskId
+     * @param parentResult
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws WorkflowException
+     */
+    public WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+
     /*
-    * Process instances for user
-    * ==========================
-    * (1) current
-    * (2) historic (finished)
-    */
+     * Process instances
+     * =================
+     */
 
     public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException;
 
     public List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException;
 
-    /*
-     * Work Item and Process Instance by Activiti Task ID or Process Instance ID
-     * =========================================================================
-     */
-
-    public WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
-
     public ProcessInstance getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
 
-    public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getProcessDetails, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+    /**
+     * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)
+     *
+     * @param instanceId
+     * @param historic
+     * @param getWorkItems
+     * @param parentResult
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws WorkflowException
+     */
+    public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+
+    /*
+     * CHANGING THINGS
+     * ===============
+     */
 
     /**
      * Approves or rejects a work item (without supplying any further information).
@@ -100,7 +120,13 @@ public interface WorkflowService {
 
     public void deleteProcessInstance(String instanceId, OperationResult parentResult);
 
+    /*
+     * MISC
+     * ====
+     */
+
     public boolean isEnabled();
 
+    // TODO remove this
     public PrismContext getPrismContext();
 }

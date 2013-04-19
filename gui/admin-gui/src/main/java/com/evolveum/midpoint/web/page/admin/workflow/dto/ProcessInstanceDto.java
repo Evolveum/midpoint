@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.api.WorkItem;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,11 +41,11 @@ public class ProcessInstanceDto extends Selectable {
         this.processInstance = processInstance;
     }
 
-    public String getStarted() {
+    public String getStartedTime() {
         return processInstance.getStartTime() == null ? "-" : WebMiscUtil.getFormatedDate(processInstance.getStartTime());
     }
 
-    public String getFinished() {
+    public String getFinishedTime() {
         return processInstance.getEndTime() == null ? "-" : WebMiscUtil.getFormatedDate(processInstance.getEndTime());
     }
 
@@ -70,33 +71,32 @@ public class ProcessInstanceDto extends Selectable {
         return retval;
     }
 
-
-    public String getTasks() {
-        if (processInstance.getWorkItems() == null || processInstance.getWorkItems().isEmpty()) {
-            return "-";
-        } else {
-            StringBuffer sb = new StringBuffer();
-            for (WorkItem wi : processInstance.getWorkItems()) {
-                sb.append(wi.getTaskId() + ": " + wi.getName());
-                if (!wi.getAssignee().isEmpty()) {
-                    sb.append(", assigned to ");
-                    sb.append(wi.getAssigneeName());
-                }
-                if (!wi.getCandidates().isEmpty()) {
-                    sb.append("(candidates: ");
-                    sb.append(wi.getCandidates());
-                    sb.append(")");
-                }
-                if (wi.getCreateTime() != null) {
-                	
-                	
-                    sb.append(", created on " + WebMiscUtil.getFormatedDate(wi.getCreateTime()));
-                }
-                sb.append("\n");
-            }
-            return sb.toString();
-        }
-    }
+//    public String getTasks() {
+//        if (processInstance.getWorkItems() == null || processInstance.getWorkItems().isEmpty()) {
+//            return "-";
+//        } else {
+//            StringBuffer sb = new StringBuffer();
+//            for (WorkItem wi : processInstance.getWorkItems()) {
+//                sb.append(wi.getTaskId() + ": " + wi.getName());
+//                if (!wi.getAssignee().isEmpty()) {
+//                    sb.append(", assigned to ");
+//                    sb.append(wi.getAssigneeName());
+//                }
+//                if (!wi.getCandidates().isEmpty()) {
+//                    sb.append("(candidates: ");
+//                    sb.append(wi.getCandidates());
+//                    sb.append(")");
+//                }
+//                if (wi.getCreateTime() != null) {
+//
+//
+//                    sb.append(", created on " + WebMiscUtil.getFormatedDate(wi.getCreateTime()));
+//                }
+//                sb.append("\n");
+//            }
+//            return sb.toString();
+//        }
+//    }
 
     public String getDetails() {
         return "NOT IMPLEMENTED";
@@ -104,5 +104,13 @@ public class ProcessInstanceDto extends Selectable {
 
     public Object getVariable(String name) {
         return processInstance.getVariables().get(name);
+    }
+
+    public Boolean getAnswer() {
+        return (Boolean) processInstance.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
+    }
+
+    public boolean isFinished() {
+        return processInstance.isFinished();
     }
 }

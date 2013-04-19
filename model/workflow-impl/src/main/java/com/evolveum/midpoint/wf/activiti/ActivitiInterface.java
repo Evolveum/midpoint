@@ -28,10 +28,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
-import com.evolveum.midpoint.wf.WfConstants;
-import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.messages.*;
-import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -41,7 +39,6 @@ import org.activiti.engine.history.HistoricFormProperty;
 import org.activiti.engine.history.HistoricVariableUpdate;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -148,8 +145,8 @@ public class ActivitiInterface {
                 LOGGER.trace("midpointTaskOid = " + spic.getTaskOid());
             }
 
-            map.put(WfConstants.VARIABLE_MIDPOINT_TASK_OID, spic.getTaskOid());
-            map.put(WfConstants.VARIABLE_MIDPOINT_LISTENER, new IdmExecutionListenerProxy());
+            map.put(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, spic.getTaskOid());
+            map.put(CommonProcessVariableNames.VARIABLE_MIDPOINT_LISTENER, new IdmExecutionListenerProxy());
             map.putAll(spic.getVariables());
 
             if (LOGGER.isTraceEnabled()) {
@@ -254,7 +251,7 @@ public class ActivitiInterface {
     public void notifyMidpoint(DelegateExecution execution, ProcessEvent event) {
         event.setPid(execution.getProcessInstanceId());
         event.setRunning(true);
-        event.setTaskOid((String) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_TASK_OID));
+        event.setTaskOid((String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
         event.setVariablesFrom(execution.getVariables());
         activiti2midpoint(event, null, new OperationResult(DOT_CLASS + "notifyMidpoint"));
     }

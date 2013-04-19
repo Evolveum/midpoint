@@ -21,17 +21,24 @@
 
 package com.evolveum.midpoint.wf.activiti;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.WorkflowManager;
+import com.evolveum.midpoint.wf.WorkflowServiceImpl;
 import com.evolveum.midpoint.wf.activiti.users.MidPointUserManagerFactory;
+import com.evolveum.midpoint.wf.api.WorkflowException;
 import org.activiti.engine.*;
+import org.activiti.engine.history.HistoricDetail;
+import org.activiti.engine.history.HistoricDetailQuery;
+import org.activiti.engine.history.HistoricVariableUpdate;
 import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.engine.impl.interceptor.SessionFactory;
 import org.activiti.engine.repository.Deployment;
+import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.Resource;
@@ -43,15 +50,12 @@ import javax.annotation.PreDestroy;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author mederly
  */
 @Component
-//@DependsOn({ "wfConfiguration" })
 public class ActivitiEngine {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiEngine.class);

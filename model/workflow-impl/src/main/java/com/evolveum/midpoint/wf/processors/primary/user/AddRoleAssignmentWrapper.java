@@ -31,33 +31,27 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConstants;
-import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.WorkflowServiceImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.general.Decision;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.activiti.engine.form.FormProperty;
-import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.apache.commons.lang.StringUtils;
@@ -231,7 +225,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             instruction.setSimple(false);
 
             instruction.setTaskName(new PolyStringType("Workflow for approving adding " + roleName + " to " + userName));
-            instruction.addProcessVariable(WfConstants.VARIABLE_PROCESS_NAME, "Adding " + roleName + " to " + userName);
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_NAME, "Adding " + roleName + " to " + userName);
 
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
@@ -244,7 +238,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
 //                resolveRolesAndOrgUnits(fc.getObjectNew(), result);
 //            }
 
-            instruction.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA, roleType);
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_ADDITIONAL_DATA, roleType);
             instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
             ObjectDelta<Objectable> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);

@@ -23,48 +23,26 @@ package com.evolveum.midpoint.wf.processors.primary.user;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConstants;
-import com.evolveum.midpoint.wf.WfTaskUtil;
-import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
-import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.processes.general.Decision;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.runtime.ProcessInstance;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -149,8 +127,8 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         instruction.setSimple(true);
 
         instruction.setTaskName(new PolyStringType("Workflow for approving password change for " + userName));
-        instruction.addProcessVariable(WfConstants.VARIABLE_PROCESS_NAME, "Changing password for " + userName);
-        instruction.addProcessVariable(WfConstants.VARIABLE_START_TIME, new Date());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_NAME, "Changing password for " + userName);
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
 
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve changing password for " + userName);

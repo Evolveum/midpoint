@@ -24,8 +24,8 @@ package com.evolveum.midpoint.wf.processes.general;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -55,8 +55,8 @@ public class RecordIndividualDecision implements JavaDelegate {
         ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "level is null");
 
-        Boolean yesOrNo = (Boolean) execution.getVariable(WfConstants.FORM_FIELD_DECISION);
-        String comment = (String) execution.getVariable(WfConstants.FORM_FIELD_COMMENT);
+        Boolean yesOrNo = (Boolean) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION);
+        String comment = (String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_COMMENT);
 
         Decision decision = new Decision();
 
@@ -107,7 +107,7 @@ public class RecordIndividualDecision implements JavaDelegate {
         if (setLoopApprovesInLevelStop != null) {
             execution.setVariable(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
         }
-        execution.setVariable(WfConstants.VARIABLE_MIDPOINT_STATE, "User " + decision.getUser() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE, "User " + decision.getUser() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
         SpringApplicationContextHolder.getActivitiInterface().notifyMidpoint(execution);
     }
