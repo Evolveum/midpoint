@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -37,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.InternalsConfig;
@@ -61,6 +64,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -198,9 +202,27 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}
 	
+	protected <T> void assertDummyAccountAttributeValues(String accountId, String attributeName, T... expectedValues) {
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
+		assertNotNull("No account '"+accountId+"'", dummyAccount);
+		assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);
+	}
+	
+	protected <T> void assertDummyAttributeValues(DummyObject object, String attributeName, T... expectedValues) {
+		Set<T> attributeValues = (Set<T>) object.getAttributeValues(attributeName, expectedValues[0].getClass());
+		assertNotNull("No attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues);
+		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues, expectedValues);
+	}
+	
 	protected String getWillRepoIcfUid() {
 		return ACCOUNT_WILL_USERNAME;
 	}
+	
+	protected void assertMember(DummyGroup group, String accountId) {
+		Collection<String> members = group.getMembers();
+		assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
+	}
+
 
 
 }

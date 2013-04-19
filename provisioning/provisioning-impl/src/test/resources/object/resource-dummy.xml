@@ -65,7 +65,7 @@
 			</attribute>
 			<entitlementAssociation>
             	<name>ri:group</name>
-            	<entitlementType>group</entitlementType>
+            	<entitlementIntent>group</entitlementIntent>
             	<direction>entitlementToSubject</direction>
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>

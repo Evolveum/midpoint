@@ -336,13 +336,13 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		return this;
     	}
     	
-    	IdItemPathSegment idSegment = getIdSegment(path);
+    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
     	PrismContainerValue<V> cval = findValue(idSegment);
     	if (cval == null) {
     		return null;
     	}
     	// descent to the correct value
-    	ItemPath rest = pathRest(path);
+    	ItemPath rest = ItemPath.pathRestStartingWithName(path);
     	return cval.find(rest);
 	}
 
@@ -352,13 +352,13 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		return new PartiallyResolvedValue<X>((Item<X>)this, null);
     	}
     	
-    	IdItemPathSegment idSegment = getIdSegment(path);
+    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
     	PrismContainerValue<V> cval = findValue(idSegment);
     	if (cval == null) {
     		return null;
     	}
     	// descent to the correct value
-    	ItemPath rest = pathRest(path);
+    	ItemPath rest = ItemPath.pathRestStartingWithName(path);
     	return cval.findPartial(rest);
 	}
 
@@ -412,23 +412,15 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		}
     	}
     	
-    	IdItemPathSegment idSegment = getIdSegment(itemPath);
+    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(itemPath);
     	PrismContainerValue<V> cval = findValue(idSegment);
     	if (cval == null) {
     		return null;
     	}
     	// descent to the correct value
-    	ItemPath rest = pathRest(itemPath);
+    	ItemPath rest = ItemPath.pathRestStartingWithName(itemPath);
     	return cval.findCreateItem(rest, type, itemDefinition, create);
     }
-    
-	private IdItemPathSegment getIdSegment(ItemPath itemPath) {
-		ItemPathSegment first = itemPath.first();
-		if (first instanceof IdItemPathSegment) {
-			return (IdItemPathSegment)first;
-		}
-		return null;
-	}
 
 	private PrismContainerValue<V> findValue(IdItemPathSegment idSegment) {
 		Long id = null;
@@ -449,17 +441,6 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	        	}
 	        }
 	        return null;
-    	}
-    }
-
-    private ItemPath pathRest(ItemPath path) {
-    	ItemPathSegment pathSegment = path.first();
-    	if (pathSegment instanceof NameItemPathSegment) {
-    		return path;
-    	} else if (pathSegment instanceof IdItemPathSegment) {
-    		return path.rest();
-    	} else {
-    		throw new IllegalArgumentException("Unexpected path segment "+pathSegment);
     	}
     }
 
@@ -563,12 +544,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
 
     public <I extends Item<?>> void removeItem(ItemPath path, Class<I> itemType) {
-    	IdItemPathSegment idSegment = getIdSegment(path);
+    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
     	PrismContainerValue<V> cval = findValue(idSegment);
     	if (cval == null) {
     		return;
     	}
-    	cval.removeItem(pathRest(path.rest()), itemType);
+    	cval.removeItem(ItemPath.pathRestStartingWithName(path.rest()), itemType);
     }
 
     // Expects that the "self" path segment is NOT included in the basePath
@@ -664,6 +645,32 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	} else {
     		return super.contains(value, false);
     	}
+	}
+    
+    @Override
+	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
+		if (path == null || path.isEmpty()) {
+			// We are at the end of path, continue with regular visits all the way to the bottom
+			if (recursive) {
+    			accept(visitor);
+    		} else {
+    			visitor.visit(this);
+    		}
+		} else {
+			IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
+			ItemPath rest = ItemPath.pathRestStartingWithName(path);
+			if (idSegment == null || idSegment.isWildcard()) {
+				// visit all values
+				for (PrismContainerValue<V> cval: getValues()) {
+					cval.accept(visitor, rest, recursive);
+				}
+			} else {
+				PrismContainerValue<V> cval = findValue(idSegment);
+		    	if (cval != null) {
+		    		cval.accept(visitor, rest, recursive);
+		    	}
+			}
+		}
 	}
 
 	@Override

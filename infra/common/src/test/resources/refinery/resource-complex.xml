@@ -374,7 +374,7 @@
 			</attribute>
 			<entitlementAssociation>
             	<name>ri:group</name>
-            	<entitlementType>group</entitlementType>
+            	<entitlementIntent>group</entitlementIntent>
             	<direction>entitlementToSubject</direction>
             	<associationAttribute>ri:uniqueMembers</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>

@@ -534,13 +534,6 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         DummyObjectClass dummyAccountObjectClass = resource.getGroupObjectClass();
         buildAttributes(objClassBuilder, dummyAccountObjectClass);
         
-        // members
-        AttributeInfoBuilder membersAttrBuilder = new AttributeInfoBuilder(GROUP_MEMBERS_ATTR_NAME, String.class);
-        membersAttrBuilder.setMultiValued(true);
-        membersAttrBuilder.setRequired(false);
-        membersAttrBuilder.setReturnedByDefault(true);
-        objClassBuilder.addAttributeInfo(membersAttrBuilder.build());
-        
         // __ENABLE__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
         
@@ -813,11 +806,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			Set<Object> values = group.getAttributeValues(name, Object.class);
 			builder.addAttribute(name, values);
 		}
-		
-		if (attributesToGet == null || attributesToGet.contains(GROUP_MEMBERS_ATTR_NAME)) {
-			builder.addAttribute(GROUP_MEMBERS_ATTR_NAME, group.getMembers().toArray(new String[0]));
-		}
-		
+				
 		if (attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_NAME)) {
 			builder.addAttribute(OperationalAttributes.ENABLE_NAME, group.isEnabled());
 		}

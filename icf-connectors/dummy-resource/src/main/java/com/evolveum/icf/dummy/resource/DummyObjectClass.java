@@ -69,9 +69,9 @@ public class DummyObjectClass {
 		addAttributeDefinition(attributeName,attributeType,isOptional,false);
 	}
 
-	public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isOptional,
+	public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isRequired,
 			boolean isMulti) {
-		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attributeName,attributeType,isOptional,isMulti);
+		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attributeName,attributeType,isRequired,isMulti);
 		add(attrDef);
 	}
 	

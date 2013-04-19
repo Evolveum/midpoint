@@ -77,19 +77,31 @@ public class ShadowUtil {
 		return getAttributesContainer(shadow).getAttributes();	
 	}
 	
+	public static <T> ResourceAttribute<T> getAttribute(PrismObject<? extends ShadowType> shadow, QName attrName) {
+		return getAttributesContainer(shadow).findAttribute(attrName);	
+	}
+	
 	public static ResourceAttributeContainer getAttributesContainer(ShadowType shadowType) {
 		return getAttributesContainer(shadowType.asPrismObject());
 	}
 	
 	public static ResourceAttributeContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow) {
-		PrismContainer attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		return getAttributesContainer(shadow, ShadowType.F_ATTRIBUTES);
+	}
+	
+	public static ResourceAttributeContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow, QName containerName) {
+		return getAttributesContainer(shadow.getValue(), containerName);
+	}
+	
+	public static ResourceAttributeContainer getAttributesContainer(PrismContainerValue<?> cval, QName containerName) {
+		PrismContainer attributesContainer = cval.findContainer(containerName);
 		if (attributesContainer == null) {
 			return null;
 		}
 		if (attributesContainer instanceof ResourceAttributeContainer) {
 			return (ResourceAttributeContainer)attributesContainer;
 		} else {
-			throw new SystemException("Expected that <attributes> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
+			throw new SystemException("Expected that <"+containerName.getLocalPart()+"> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
 		}
 	}
 	

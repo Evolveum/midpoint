@@ -31,6 +31,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
@@ -168,6 +169,16 @@ public class PrismContext {
 		getSchemaRegistry().applyDefinition(delta, delta.getObjectTypeClass(), false);
 	}
 	
+	public <C extends Containerable, O extends Objectable> void adopt(C containerable, Class<O> type, ItemPath path) throws SchemaException {
+		PrismContainerValue<C> prismContainerValue = containerable.asPrismContainerValue();
+		adopt(prismContainerValue, type, path);
+	}
+
+	public <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, Class<O> type, ItemPath path) throws SchemaException {
+		prismContainerValue.revive(this);
+		getSchemaRegistry().applyDefinition(prismContainerValue, type, path, false);
+	}
+
     /**
      * Method used to marshal objects to xml in debug messages.
      * @param object

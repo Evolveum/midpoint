@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -217,7 +218,7 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public ItemDelta createEmptyDelta(ItemPath path) {
+	public PropertyDelta createEmptyDelta(ItemPath path) {
 		return refinedAttributeDefinition.createEmptyDelta(path);
 	}
 

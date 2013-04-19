@@ -19,6 +19,7 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +57,16 @@ public class DummyAccount extends DummyObject {
 		this.password = password;
 	}
 	
+	@Override
+	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException {
+		return resource.getAccountObjectClass();
+	}
+
+	@Override
+	public String getShortTypeName() {
+		return "account";
+	}
+
 	@Override
 	public String toStringContent() {
 		return super.toStringContent() + ", password=" + password; 

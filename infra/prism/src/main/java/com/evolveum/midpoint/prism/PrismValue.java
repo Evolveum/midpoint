@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public abstract class PrismValue implements Visitable, Serializable, Dumpable, DebugDumpable {
+public abstract class PrismValue implements Visitable, PathVisitable, Serializable, Dumpable, DebugDumpable {
 	
 	private OriginType originType;
     private Objectable originObject;
@@ -127,6 +127,17 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
+	}
+	
+	@Override
+	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
+		// This implementation is supposed to only work for non-hierarchical values, such as properties and references.
+		// hierarchical values must override it.
+		if (recursive) {
+			accept(visitor);
+		} else {
+			visitor.visit(this);
+		}
 	}
 
 	public Element asDomElement() {

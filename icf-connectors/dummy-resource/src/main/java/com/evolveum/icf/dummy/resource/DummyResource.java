@@ -336,6 +336,7 @@ public class DummyResource {
 		accountObjectClass.addAttributeDefinition("description", String.class, false, false);
 		accountObjectClass.addAttributeDefinition("interests", String.class, false, true);
 		groupObjectClass.clear();
+		groupObjectClass.addAttributeDefinition(DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
 	}
 
 	public DummySyncStyle getSyncStyle() {

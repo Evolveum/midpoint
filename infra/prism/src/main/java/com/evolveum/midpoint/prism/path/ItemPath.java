@@ -177,10 +177,15 @@ public class ItemPath implements Serializable {
 		return segments.isEmpty();
 	}
 	
+	/**
+	 * Makes the path "normal" by inserting null Id segments where they were omitted. 
+	 */
 	public ItemPath normalize() {
 		ItemPath normalizedPath = new ItemPath();
 		ItemPathSegment lastSegment = null;
-		for (ItemPathSegment origSegment: segments) {
+		Iterator<ItemPathSegment> iterator = segments.iterator();
+		while (iterator.hasNext()) {
+			ItemPathSegment origSegment = iterator.next();
 			if (lastSegment != null && !(lastSegment instanceof IdItemPathSegment) && 
 					!(origSegment instanceof IdItemPathSegment)) {
 				normalizedPath.segments.add(new IdItemPathSegment());
@@ -188,7 +193,9 @@ public class ItemPath implements Serializable {
 			normalizedPath.segments.add(origSegment);
 			lastSegment = origSegment;
 		}
-		if (lastSegment != null && !(lastSegment instanceof IdItemPathSegment)) {
+		if (lastSegment != null && !(lastSegment instanceof IdItemPathSegment) &&
+				// Make sure we do not insert the Id segment as a last one. That is not correct and it would spoil comparing paths
+				iterator.hasNext()) {
 			normalizedPath.segments.add(new IdItemPathSegment());
 		}
 		return normalizedPath;
@@ -268,7 +275,25 @@ public class ItemPath implements Serializable {
 		}
 		return ((NameItemPathSegment)segment).getName();
 	}
-
+	
+	public static IdItemPathSegment getFirstIdSegment(ItemPath itemPath) {
+		ItemPathSegment first = itemPath.first();
+		if (first instanceof IdItemPathSegment) {
+			return (IdItemPathSegment)first;
+		}
+		return null;
+	}
+	
+	public static ItemPath pathRestStartingWithName(ItemPath path) {
+    	ItemPathSegment pathSegment = path.first();
+    	if (pathSegment instanceof NameItemPathSegment) {
+    		return path;
+    	} else if (pathSegment instanceof IdItemPathSegment) {
+    		return path.rest();
+    	} else {
+    		throw new IllegalArgumentException("Unexpected path segment "+pathSegment);
+    	}
+    }
 
 	@Override
 	public String toString() {

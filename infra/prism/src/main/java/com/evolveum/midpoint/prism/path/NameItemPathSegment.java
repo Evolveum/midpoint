@@ -31,11 +31,19 @@ import java.io.Serializable;
  */
 public class NameItemPathSegment extends ItemPathSegment {
 	
+	public static final NameItemPathSegment WILDCARD = NameItemPathSegment.createWildcard();
+	
 	private QName name;
 	private boolean isVariable = false;
 	
 	public NameItemPathSegment(QName name) {
 		this.name = name;
+	}
+
+	private static NameItemPathSegment createWildcard() {
+		NameItemPathSegment segment = new NameItemPathSegment(null);
+		segment.setWildcard(true);
+		return segment;
 	}
 
 	public NameItemPathSegment(QName name, boolean isVariable) {
@@ -53,13 +61,13 @@ public class NameItemPathSegment extends ItemPathSegment {
 
 	@Override
 	public String toString() {
-		return (isVariable ? "$" : "") + PrettyPrinter.prettyPrint(name);
+		return (isVariable ? "$" : "") + (isWildcard() ? "*" : PrettyPrinter.prettyPrint(name));
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
+		int result = super.hashCode();
 		result = prime * result + (isVariable ? 1231 : 1237);
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
@@ -69,7 +77,7 @@ public class NameItemPathSegment extends ItemPathSegment {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
@@ -83,6 +91,5 @@ public class NameItemPathSegment extends ItemPathSegment {
 			return false;
 		return true;
 	}
-
 	
 }

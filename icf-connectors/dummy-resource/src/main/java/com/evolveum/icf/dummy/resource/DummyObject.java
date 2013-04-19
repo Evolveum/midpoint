@@ -19,6 +19,7 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +42,7 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 	private String name;
 	private Map<String,Set<Object>> attributes = new HashMap<String, Set<Object>>();
 	private boolean enabled = true;
-	private DummyResource resource;
+	protected DummyResource resource;
 
 	public DummyObject() {
 	}
@@ -163,6 +164,12 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		
 		currentValues.add(valueToAdd);
 	}
+	
+	public void removeAttributeValue(String name, Object value) throws SchemaViolationException {
+		Collection<Object> values = new ArrayList<Object>();
+		values.add(value);
+		removeAttributeValues(name, values);
+	}
 
 	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException {
 		Set<Object> currentValues = attributes.get(name);
@@ -186,13 +193,13 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		}
 	}
 
-	private void checkSchema(String attrName, Collection<Object> values, String operationName) throws SchemaViolationException {
+	protected void checkSchema(String attrName, Collection<Object> values, String operationName) throws SchemaViolationException {
 		if (resource == null || !resource.isEnforceSchema()) {
 			return;
 		}
 		DummyObjectClass accountObjectClass;
 		try {
-			accountObjectClass = resource.getAccountObjectClass();
+			accountObjectClass = getObjectClass();
 		} catch (Exception e) {
 			// No not enforce schema if the schema is broken (simulated)
 			return;
@@ -211,8 +218,11 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		if (!attributeDefinition.isMulti() && values != null && values.size() > 1) {
 			throw new SchemaViolationException(operationName + " of single-valued attribute "+attrName+" results in "+values.size()+" values");
 		}
-}
+	}
 
+	abstract protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException;
+
+	public abstract String getShortTypeName();
 	
 	@Override
 	public String toString() {

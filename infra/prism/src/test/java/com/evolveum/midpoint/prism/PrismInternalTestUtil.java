@@ -26,7 +26,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -185,6 +187,32 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	public static PrismObjectDefinition<UserType> getUserTypeDefinition() {
 		return PrismTestUtil.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
+	
+	public static void assertVisitor(Visitable visitable, int expectedVisits) {
+		final List<Visitable> visits = new ArrayList<Visitable>();
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				visits.add(visitable);
+				System.out.println("Visiting: "+visitable);
+			}
+		};
+		visitable.accept(visitor);
+		assertEquals("Wrong number of visits", expectedVisits, visits.size());
+	}
+	
+	public static void assertPathVisitor(PathVisitable visitable, final ItemPath path, final boolean recursive, int expectedVisits) {
+		final List<Visitable> visits = new ArrayList<Visitable>();
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				visits.add(visitable);
+				System.out.println("Visiting(path="+path+",recursive="+recursive+"): "+visitable);
+			}
+		};
+		visitable.accept(visitor, path, recursive);
+		assertEquals("Wrong number of visits for path "+path, expectedVisits, visits.size());
 	}
 
 }

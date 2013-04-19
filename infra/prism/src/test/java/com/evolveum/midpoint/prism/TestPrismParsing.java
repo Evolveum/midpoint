@@ -273,6 +273,26 @@ public class TestPrismParsing {
 		assertUserContent(user);
 		assertUserExtension(user);
 		assertVisitor(user,51);
+		
+		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), true, 9);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID)), true, 3);
+		assertPathVisitor(user, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), true, 2);
+		assertPathVisitor(user, new ItemPath(UserType.F_EXTENSION), true, 15);
+		
+		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), false, 1);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID)), false, 1);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				IdItemPathSegment.WILDCARD), false, 2);
+		assertPathVisitor(user, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
+		assertPathVisitor(user, new ItemPath(UserType.F_EXTENSION), false, 1);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_EXTENSION),
+				NameItemPathSegment.WILDCARD), false, 5);
 	}
 	
 	private void assertUserAdhoc(PrismObject<UserType> user) {
@@ -415,19 +435,6 @@ public class TestPrismParsing {
 		PrismAsserts.assertDefinition(bottlesPropertyDef, USER_ADHOC_BOTTLES_ELEMENT, DOMUtil.XSD_INT, 1, -1);
 		assertTrue("Bottles definition is NOT dynamic", bottlesPropertyDef.isDynamic());
 		
-	}
-	
-	private void assertVisitor(PrismObject<UserType> user, int expectedVisits) {
-		final List<Visitable> visits = new ArrayList<Visitable>();
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				visits.add(visitable);
-				System.out.println("Visiting: "+visitable);
-			}
-		};
-		user.accept(visitor);
-		assertEquals("Wrong number of visits", expectedVisits, visits.size());
 	}
 	
 	private void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {

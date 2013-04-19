@@ -44,8 +44,10 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -65,6 +67,8 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -80,19 +84,28 @@ public class ProvisioningTestUtil {
 	
 	
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+	
 	public static final String RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME = "fullname";
 	public static final QName RESOURCE_DUMMY_ATTR_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME);
 	public static final ItemPath RESOURCE_DUMMY_ATTR_FULLNAME_PATH = new ItemPath(ShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_FULLNAME_QNAME);	
+	
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME = "title";
 	public static final QName RESOURCE_DUMMY_ATTR_TITLE_QNAME = new QName(RESOURCE_DUMMY_NS, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 	public static final ItemPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new ItemPath(ShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
+	
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME = "ship";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME = "loot";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME = "treasure";
 	
 	public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
+	
 	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
+	public static final QName DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME = new QName(RESOURCE_DUMMY_NS, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION);
+	public static final ItemPath DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH = new ItemPath(ShadowType.F_ATTRIBUTES, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME);
+	
+	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
+	public static final QName DUMMY_ENTITLEMENT_GROUP_QNAME = new QName(RESOURCE_DUMMY_NS, DUMMY_ENTITLEMENT_GROUP_NAME);
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();
@@ -240,8 +253,8 @@ public class ProvisioningTestUtil {
 		
 		ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
 		assertNotNull("No definition for members", membersDef);
-		assertEquals(-1, membersDef.getMaxOccurs());
-		assertEquals(0, membersDef.getMinOccurs());
+		assertEquals("Wrong maxOccurs", -1, membersDef.getMaxOccurs());
+		assertEquals("Wrong minOccurs", 0, membersDef.getMinOccurs());
 		assertTrue("No members create", membersDef.canCreate());
 		assertTrue("No members update", membersDef.canUpdate());
 		assertTrue("No members read", membersDef.canRead());
@@ -291,6 +304,16 @@ public class ProvisioningTestUtil {
 			T... expectedValues) {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
+	
+	public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, String groupOid, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(DUMMY_ENTITLEMENT_GROUP_QNAME);
+		association.setOid(groupOid);
+		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ENTITLEMENTS, ShadowEntitlementsType.F_ASSOCIATION);
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class, 
+				accountOid, entitlementAssociationPath, prismContext, association);
+		return delta;
 	}
 
 }

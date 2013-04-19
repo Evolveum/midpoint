@@ -23,13 +23,17 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,8 +44,11 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -99,6 +106,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptA
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -125,14 +135,14 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
  *
  */
 @Component
-public class ResouceObjectConverter {
+public class ResourceObjectConverter {
 	
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
 	@Autowired
 	private PrismContext prismContext;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ResouceObjectConverter.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
 	
 	public <T extends ShadowType> PrismObject<T> getResourceObject(ConnectorInstance connector, ResourceType resource, 
@@ -328,17 +338,15 @@ public class ResouceObjectConverter {
 	
 	public <T extends ShadowType> Collection<PropertyModificationOperation> modifyResourceObject(
 			ConnectorInstance connector, ResourceType resource,
-			ObjectClassComplexTypeDefinition objectClassDefinition, PrismObject<T> shadow, ProvisioningScriptsType scripts,
-			Collection<? extends ItemDelta> objectChanges, OperationResult parentResult)
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<T> shadow, ProvisioningScriptsType scripts,
+			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
-		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-				.getIdentifiers(shadow);
-		Collection<? extends ResourceAttribute<?>> attributes = ShadowUtil
-				.getAttributes(shadow);
+		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+		Collection<? extends ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 
 		if (isProtectedShadow(resource, objectClassDefinition, attributes)) {
 			LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
@@ -347,90 +355,252 @@ public class ResouceObjectConverter {
 					+ objectClassDefinition + ": " + identifiers);
 		}
 		
-		getAttributeChanges(objectChanges, operations, resource, shadow, objectClassDefinition);
+		collectAttributeAndEntitlementChanges(objectDeltas, operations, resource, shadow, objectClassDefinition);
 		
-		if (operations.isEmpty()){
-			LOGGER.trace("No modifications for connector object specified. Skipping processing of modifyShadow.");
-			parentResult.recordSuccess();
-			return new ArrayList<PropertyModificationOperation>(0);
-		}
-		
-		// This must go after the skip check above. Otherwise the scripts would be executed even if there is no need to.
-		addExecuteScriptOperation(operations, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
-		
-		//check identifier if it is not null
-		if (identifiers.isEmpty() && shadow.asObjectable().getFailedOperationType()!= null){
-			throw new GenericConnectorException(
-					"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-		}
-		
-		if (avoidDuplicateValues(resource)) {
-			// We need to filter out the deltas that add duplicate values or remove values that are not there
-			
-			PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, 
-					ShadowType.class, objectClassDefinition, identifiers, null, parentResult);
-			Collection<Operation> filteredOperations = new ArrayList(operations.size());
-			for (Operation origOperation: operations) {
-				if (origOperation instanceof PropertyModificationOperation) {
-					PropertyDelta<?> propertyDelta = ((PropertyModificationOperation)origOperation).getPropertyDelta();
-					PropertyDelta<?> filteredDelta = propertyDelta.narrow(currentShadow);
-					if (filteredDelta != null && !filteredDelta.isEmpty()) {
-						if (propertyDelta == filteredDelta) {
-							filteredOperations.add(origOperation);
-						} else {
-							PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
-							filteredOperations.add(newOp);
-						}
-					}
-				}else if (origOperation instanceof ExecuteProvisioningScriptOperation){
-					filteredOperations.add(origOperation);					
-				}
-			}
-			if (filteredOperations.isEmpty()){
-				LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
-				parentResult.recordSuccess();
-				return new HashSet<PropertyModificationOperation>();
-			}
-			operations = filteredOperations;
-		}
-	
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
-		try {
+				
+		if (operations.isEmpty()){
+			// We have to check BEFORE we add script operations, otherwise the check would be pointless
+			LOGGER.trace("No modifications for connector object specified. Skipping processing of modifyShadow.");
+		} else {
+		
+			// This must go after the skip check above. Otherwise the scripts would be executed even if there is no need to.
+			addExecuteScriptOperation(operations, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
+			
+			//check identifier if it is not null
+			if (identifiers.isEmpty() && shadow.asObjectable().getFailedOperationType()!= null){
+				throw new GenericConnectorException(
+						"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+			}
+	
+			// Execute primary ICF operation on this shadow
+			sideEffectChanges = executeModify(connector, resource, objectClassDefinition, identifiers, operations, parentResult);
+		}
+		
+		// Execute entitlement modification on other objects (if needed)
+		executeEntitlementChanges(connector, resource, objectClassDefinition, shadow, scripts, objectDeltas, parentResult);
+		
+		parentResult.recordSuccess();
+		return sideEffectChanges;
+	}
+	
+	private Collection<PropertyModificationOperation> executeModify(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers, 
+					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
+		Collection<PropertyModificationOperation> sideEffectChanges = null;
 
+		if (operations.isEmpty()){
+			LOGGER.trace("No modifications for connector object. Skipping modification.");
+		}
+		
+		// Invoke ICF
+		try {
+			
+			if (avoidDuplicateValues(resource)) {
+				// We need to filter out the deltas that add duplicate values or remove values that are not there
+				
+				PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, 
+						ShadowType.class, objectClassDefinition, identifiers, null, parentResult);
+				Collection<Operation> filteredOperations = new ArrayList(operations.size());
+				for (Operation origOperation: operations) {
+					if (origOperation instanceof PropertyModificationOperation) {
+						PropertyDelta<?> propertyDelta = ((PropertyModificationOperation)origOperation).getPropertyDelta();
+						PropertyDelta<?> filteredDelta = propertyDelta.narrow(currentShadow);
+						if (filteredDelta != null && !filteredDelta.isEmpty()) {
+							if (propertyDelta == filteredDelta) {
+								filteredOperations.add(origOperation);
+							} else {
+								PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
+								filteredOperations.add(newOp);
+							}
+						}
+					}else if (origOperation instanceof ExecuteProvisioningScriptOperation){
+						filteredOperations.add(origOperation);					
+					}
+				}
+				if (filteredOperations.isEmpty()){
+					LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
+					parentResult.recordSuccess();
+					return new HashSet<PropertyModificationOperation>();
+				}
+				operations = filteredOperations;
+			}
+			
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(
-						"PROVISIONING MODIFY operation on resource {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
-						new Object[] { resource, shadow.asObjectable().getObjectClass(),
-								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(operations) });
+						"PROVISIONING MODIFY operation on {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
+						new Object[] { resource, PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName()),
+								SchemaDebugUtil.debugDump(identifiers,1), SchemaDebugUtil.debugDump(operations,1) });
 			}
 			
-			// Invoke ICF
 			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
 					parentResult);
 
-			LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
-					SchemaDebugUtil.debugDump(sideEffectChanges));
+		LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
+				SchemaDebugUtil.debugDump(sideEffectChanges));
 
 		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Object to modify not found. Reason: " + ex.getMessage(), ex);
-			throw new ObjectNotFoundException("Object to modify not found. " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Object to modify not found: " + ex.getMessage(), ex);
+			throw new ObjectNotFoundException("Object to modify not found: " + ex.getMessage(), ex);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communicationg with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error comminicationg with connector " + connector + ": "
 					+ ex.getMessage(), ex);
+		} catch (SchemaException ex) {
+			parentResult.recordFatalError("Schema violation: " + ex.getMessage(), ex);
+			throw new SchemaException("Schema violation: " + ex.getMessage(), ex);
+		} catch (SecurityViolationException ex) {
+			parentResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
+			throw new SecurityViolationException("Security violation: " + ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError(
 					"Generic error in the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector connector " + connector + ": "
 					+ ex.getMessage(), ex);
+		} catch (ConfigurationException ex) {
+			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
+			throw new ConfigurationException("Configuration error: " + ex.getMessage(), ex);
 		}
 		
-		parentResult.recordSuccess();
 		return sideEffectChanges;
 	}
-
 	
+	private <T extends ShadowType> void executeEntitlementChanges(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<T> shadow, ProvisioningScriptsType scripts,
+			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
+		
+		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		
+		for (ItemDelta itemDelta : objectDeltas) {
+			if (new ItemPath(ShadowType.F_ENTITLEMENTS).equals(itemDelta.getParentPath())) {
+				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;
+				
+				collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToAdd(), objectClassDefinition,
+						shadow, rSchema, resource, ModificationType.ADD);
+				collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToDelete(), objectClassDefinition,
+						shadow, rSchema, resource, ModificationType.DELETE);
+				collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToReplace(), objectClassDefinition,
+						shadow, rSchema, resource, ModificationType.REPLACE);
+			}
+		}
+		
+		// Execute
+		
+		for (Entry<ResourceObjectDiscriminator,Collection<Operation>> entry: roMap.entrySet()) {
+			ResourceObjectDiscriminator disc = entry.getKey();
+			RefinedObjectClassDefinition ocDef = disc.getObjectClassDefinition();
+			Collection<? extends ResourceAttribute<?>> identifiers = disc.getIdentifiers();
+			Collection<Operation> operations = entry.getValue();
+			
+			// TODO: better handling of result, partial failures, etc.
+			
+			executeModify(connector, resource, ocDef, identifiers, operations, parentResult);
+			
+		}
+		
+	}
+	
+	private <T, S extends ShadowType> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
+			Collection<PrismContainerValue<ShadowAssociationType>> set, RefinedObjectClassDefinition objectClassDefinition,
+			PrismObject<S> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
+					throws SchemaException {
+		if (set == null) {
+			return;
+		}
+		for (PrismContainerValue<ShadowAssociationType> associationCVal: set) {
+			collectEntitlementAsObjectOperation(roMap, associationCVal, objectClassDefinition, shadow,
+					rSchema, resource, modificationType);
+		}
+	}
+	
+	private <T, S extends ShadowType> void collectEntitlementAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
+			PrismContainerValue<ShadowAssociationType> associationCVal, RefinedObjectClassDefinition objectClassDefinition,
+			PrismObject<S> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
+					throws SchemaException {
+		
+		ShadowAssociationType associationType = associationCVal.asContainerable();
+		QName associationName = associationType.getName();
+		if (associationName == null) {
+			throw new SchemaException("No name in entitlement association "+associationCVal);
+		}
+		ResourceEntitlementAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
+		if (assocDefType == null) {
+			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
+		}
+		
+		ResourceEntitlementAssociationDirectionType direction = assocDefType.getDirection();
+		if (direction != ResourceEntitlementAssociationDirectionType.ENTITLEMENT_TO_SUBJECT) {
+			// Process just this one direction. The other direction was processed before
+			return;
+		}
+		
+		String entitlementIntent = assocDefType.getEntitlementIntent();
+		if (entitlementIntent == null) {
+			throw new SchemaException("No entitlement intent specified in association "+associationCVal+" in "+resource);
+		}
+		RefinedObjectClassDefinition entitlementOcDef = rSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, entitlementIntent);
+		if (entitlementOcDef == null) {
+			throw new SchemaException("No definition of entitlement intent '"+entitlementIntent+"' specified in association "+associationCVal+" in "+resource);
+		}
+		
+		QName assocAttrName = assocDefType.getAssociationAttribute();
+		if (assocAttrName == null) {
+			throw new SchemaException("No association attribute definied in entitlement association in "+resource);
+		}
+		
+		RefinedAttributeDefinition assocAttrDef = entitlementOcDef.findAttributeDefinition(assocAttrName);
+		if (assocAttrDef == null) {
+			throw new SchemaException("Association attribute '"+assocAttrName+"'definied in entitlement association was not found in entitlement intent '"+entitlementIntent+"' in schema for "+resource);
+		}
+		
+		ResourceAttributeContainer identifiersContainer = 
+				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
+		Collection<ResourceAttribute<?>> identifiers = identifiersContainer.getAttributes();
+		
+		ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef, identifiers);
+		Collection<Operation> operations = roMap.get(disc);
+		if (operations == null) {
+			operations = new ArrayList<Operation>();
+			roMap.put(disc, operations);
+		}
+		
+		QName valueAttrName = assocDefType.getValueAttribute();
+		if (valueAttrName == null) {
+			throw new SchemaException("No value attribute definied in entitlement association in "+resource);
+		}
+		ResourceAttribute<T> valueAttr = ShadowUtil.getAttribute(shadow, valueAttrName);
+		if (valueAttr == null) {
+			// TODO: check schema and try to fetch full shadow if necessary
+			throw new SchemaException("No value attribute "+valueAttrName+" in shadow");
+		}
+		
+		PropertyDelta<T> attributeDelta = null;
+		for(Operation operation: operations) {
+			if (operation instanceof PropertyModificationOperation) {
+				PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
+				if (propOp.getPropertyDelta().getName().equals(assocAttrName)) {
+					attributeDelta = propOp.getPropertyDelta();
+				}
+			}
+		}
+		if (attributeDelta == null) {
+			attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
+			PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
+			operations.add(attributeModification);
+		}
+		
+		if (modificationType == ModificationType.ADD) {
+			attributeDelta.addValuesToAdd(valueAttr.getClonedValues());
+		} else if (modificationType == ModificationType.DELETE) {
+			attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
+		} else if (modificationType == ModificationType.REPLACE) {
+			// TODO: check if already exists
+			attributeDelta.setValuesToReplace(valueAttr.getClonedValues());
+		}
+	}
+
 	public <T extends ShadowType> void searchResourceObjects(ConnectorInstance connector, 
 			final ResourceType resourceType, RefinedObjectClassDefinition objectClassDef,
 			final ResultHandler<T> resultHandler, ObjectQuery query, final OperationResult parentResult) throws SchemaException,
@@ -517,13 +687,12 @@ public class ResouceObjectConverter {
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
-//			parentResult.getLastSubresult().muteError();
-			throw new ObjectNotFoundException("Object not found. Identifiers: " + identifiers + ". Reason: "
+			throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
+						PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
 					+ e.getMessage(), e);
 		} catch (CommunicationException e) {
 			parentResult.recordFatalError("Error communication with the connector " + connector
 					+ ": " + e.getMessage(), e);
-//			parentResult.getLastSubresult().muteError();
 			throw new CommunicationException("Error communication with the connector " + connector
 					+ ": " + e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
@@ -617,18 +786,18 @@ public class ResouceObjectConverter {
 		}		
 	}
 
-	private <T extends ShadowType> void getAttributeChanges(Collection<? extends ItemDelta> objectChange, 
-			Collection<Operation> changes, ResourceType resource, PrismObject<T> shadow, 
-			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-	if (changes == null) {
-			changes = new HashSet<Operation>();
+	private <T extends ShadowType> void collectAttributeAndEntitlementChanges(Collection<? extends ItemDelta> objectChange, 
+			Collection<Operation> operations, ResourceType resource, PrismObject<T> shadow, 
+			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+		if (operations == null) {
+			operations = new ArrayList<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
 			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
-					changes.add(attributeModification);
+					operations.add(attributeModification);
 				} else if (itemDelta instanceof ContainerDelta) {
 					// skip the container delta - most probably password change
 					// - it is processed earlier
@@ -640,17 +809,108 @@ public class ResouceObjectConverter {
 				Operation activationOperation = determineActivationChange(shadow.asObjectable(), objectChange, resource, objectClassDefinition);
 				LOGGER.trace("Determinig activation change");
 				if (activationOperation != null){
-					changes.add(activationOperation);
+					operations.add(activationOperation);
 				}
+			} else if (new ItemPath(ShadowType.F_ENTITLEMENTS).equals(itemDelta.getParentPath())) { 
+				if (itemDelta instanceof ContainerDelta) {
+					collectEntitlementChange((ContainerDelta<ShadowAssociationType>)itemDelta, operations, objectClassDefinition, resource);
+				} else {
+					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
+				}				
 			} else {
 				LOGGER.trace("Skipp converting item delta: {}. It's not account change, but it it shadow change.", itemDelta);	
 			}
 			
 			
 		}
-		// return changes;
+	}
+		
+	/**
+	 * Collects entitlement changes from the shadow to entitlement section into attribute operations.
+	 * NOTE: only collects  SUBJECT_TO_ENTITLEMENT entitlement direction.
+	 */
+	private void collectEntitlementChange(ContainerDelta<ShadowAssociationType> itemDelta, Collection<Operation> operations, 
+			RefinedObjectClassDefinition objectClassDefinition, ResourceType resource) throws SchemaException {
+		Map<QName, PropertyDelta<?>> deltaMap = new HashMap<QName, PropertyDelta<?>>();
+		
+		collectEntitlementToAttrsDelta(deltaMap, itemDelta.getValuesToAdd(), objectClassDefinition, resource, ModificationType.ADD);
+		collectEntitlementToAttrsDelta(deltaMap, itemDelta.getValuesToDelete(), objectClassDefinition, resource, ModificationType.DELETE);
+		collectEntitlementToAttrsDelta(deltaMap, itemDelta.getValuesToReplace(), objectClassDefinition, resource, ModificationType.REPLACE);
+
+		for(PropertyDelta<?> attrDelta: deltaMap.values()) {
+			PropertyModificationOperation attributeModification = new PropertyModificationOperation(attrDelta);
+			operations.add(attributeModification);
+		}
 	}
 	
+	private <T> void collectEntitlementToAttrsDelta(Map<QName, PropertyDelta<?>> deltaMap, 
+			Collection<PrismContainerValue<ShadowAssociationType>> set,
+			RefinedObjectClassDefinition objectClassDefinition, ResourceType resource, ModificationType modificationType) throws SchemaException {
+		if (set == null) {
+			return;
+		}
+		for (PrismContainerValue<ShadowAssociationType> associationCVal: set) {
+			collectEntitlementToAttrDelta(deltaMap, associationCVal, objectClassDefinition, resource, modificationType);
+		}
+	}
+	
+	/**
+	 *  Collects entitlement changes from the shadow to entitlement section into attribute operations.
+	 *  Collects a single value.
+	 *  NOTE: only collects  SUBJECT_TO_ENTITLEMENT entitlement direction.
+	 */
+	private <T> void collectEntitlementToAttrDelta(Map<QName, PropertyDelta<?>> deltaMap, PrismContainerValue<ShadowAssociationType> associationCVal,
+			RefinedObjectClassDefinition objectClassDefinition, ResourceType resource, ModificationType modificationType) throws SchemaException {
+		
+		ShadowAssociationType associationType = associationCVal.asContainerable();
+		QName associationName = associationType.getName();
+		if (associationName == null) {
+			throw new SchemaException("No name in entitlement association "+associationCVal);
+		}
+		ResourceEntitlementAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
+		if (assocDefType == null) {
+			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
+		}
+		
+		ResourceEntitlementAssociationDirectionType direction = assocDefType.getDirection();
+		if (direction != ResourceEntitlementAssociationDirectionType.SUBJECT_TO_ENTITLEMENT) {
+			// Process just this one direction. The other direction means modification of another object and
+			// therefore will be processed later
+			return;
+		}
+		
+		QName assocAttrName = assocDefType.getAssociationAttribute();
+		if (assocAttrName == null) {
+			throw new SchemaException("No association attribute definied in entitlement association in "+resource);
+		}
+		RefinedAttributeDefinition assocAttrDef = objectClassDefinition.findAttributeDefinition(assocAttrName);
+		if (assocAttrDef == null) {
+			throw new SchemaException("Association attribute '"+assocAttrName+"'definied in entitlement association was not found in schema for "+resource);
+		}
+		PropertyDelta<T> attributeDelta = (PropertyDelta<T>) deltaMap.get(assocAttrName);
+		if (attributeDelta == null) {
+			attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
+			deltaMap.put(assocAttrName, attributeDelta);
+		}
+		
+		QName valueAttrName = assocDefType.getValueAttribute();
+		if (valueAttrName == null) {
+			throw new SchemaException("No value attribute definied in entitlement association in "+resource);
+		}
+		ResourceAttributeContainer identifiersContainer = 
+				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
+		PrismProperty<T> valueAttr = identifiersContainer.findProperty(valueAttrName);
+		
+		if (modificationType == ModificationType.ADD) {
+			attributeDelta.addValuesToAdd(valueAttr.getClonedValues());
+		} else if (modificationType == ModificationType.DELETE) {
+			attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
+		} else if (modificationType == ModificationType.REPLACE) {
+			// TODO: check if already exists
+			attributeDelta.setValuesToReplace(valueAttr.getClonedValues());
+		}
+	}
+
 	public <T extends ShadowType> List<Change<T>> fetchChanges(ConnectorInstance connector, ResourceType resource, 
 			Class<T> type, ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,

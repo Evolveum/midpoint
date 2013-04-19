@@ -56,7 +56,7 @@ import java.util.Map;
  *
  * @author Radovan Semancik
  */
-public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, Serializable {
+public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, PathVisitable, Serializable {
 
     private static final long serialVersionUID = 510000191615288733L;
 
@@ -513,6 +513,17 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		}
 	}
 	
+	@Override
+	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
+		// This implementation is supposed to only work for non-hierarchical items, such as properties and references.
+		// hierarchical items must override it.
+		if (recursive) {
+			accept(visitor);
+		} else {
+			visitor.visit(this);
+		}
+	}
+
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		applyDefinition(definition, true);
 	}

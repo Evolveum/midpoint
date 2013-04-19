@@ -163,7 +163,7 @@ public class PrismPropertyDefinition extends ItemDefinition {
     }
 
     @Override
-	public ItemDelta createEmptyDelta(ItemPath path) {
+	public PropertyDelta createEmptyDelta(ItemPath path) {
 		return new PropertyDelta(path, this);
 	}
 

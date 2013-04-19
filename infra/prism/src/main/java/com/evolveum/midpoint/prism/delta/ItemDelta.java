@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PathVisitable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -43,7 +44,9 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -55,7 +58,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * 
  */
-public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, Serializable {
+public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, PathVisitable, Serializable {
 
 	/**
 	 * Name of the property
@@ -154,6 +157,59 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 	
+	@Override
+	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
+		if (path == null || path.isEmpty()) {
+			if (recursive) {
+				accept(visitor);
+			} else {
+				visitor.visit(this);
+			}
+		} else {
+			IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
+			ItemPath rest = ItemPath.pathRestStartingWithName(path);
+			if (idSegment == null || idSegment.isWildcard()) {
+				// visit all values
+				if (getValuesToAdd() != null) {
+					for (V pval : getValuesToAdd()) {
+						pval.accept(visitor, rest, recursive);
+					}
+				}
+				if (getValuesToDelete() != null) {
+					for (V pval : getValuesToDelete()) {
+						pval.accept(visitor, rest, recursive);
+					}
+				}
+				if (getValuesToReplace() != null) {
+					for (V pval : getValuesToReplace()) {
+						pval.accept(visitor, rest, recursive);
+					}
+				}
+			} else {
+				Long id = idSegment.getId();
+				acceptSet(getValuesToAdd(), id, visitor, rest, recursive);
+				acceptSet(getValuesToDelete(), id, visitor, rest, recursive);
+				acceptSet(getValuesToReplace(), id, visitor, rest, recursive);
+			}
+		}
+	}
+
+	private void acceptSet(Collection<V> set, Long id, Visitor visitor, ItemPath rest, boolean recursive) {
+		if (set == null) {
+			return;
+		}
+		for (V pval : set) {
+			if (pval instanceof PrismContainerValue<?>) {
+				PrismContainerValue<?> cval = (PrismContainerValue<?>)pval;
+				if (id == null || id.equals(cval.getId())) {
+					pval.accept(visitor, rest, recursive);
+				}
+			} else {
+				throw new IllegalArgumentException("Attempt to fit container id to "+pval.getClass());
+			}
+		}		
+	}
+
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		this.definition = definition;
 		if (getValuesToAdd() != null) {
@@ -883,6 +939,20 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		
 	}
+	
+	public static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, ItemPath path,
+			boolean recursive) {
+		for (ItemDelta modification: modifications) {
+			ItemPath modPath = modification.getPath();
+			CompareResult rel = modPath.compareComplex(path);
+			if (rel == CompareResult.EQUIVALENT) {
+				modification.accept(visitor, null, recursive);
+			} else if (rel == CompareResult.SUBPATH) {
+				modification.accept(visitor, path.substract(modPath), recursive);
+			}
+		}
+	}
+
 	
 	public <I extends Item> I computeChangedItem(I oldItem) throws SchemaException {
 		if (isEmpty()) {

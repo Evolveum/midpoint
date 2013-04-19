@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.Dumpable;
  */
 public class DummyGroup extends DummyObject {
 	
-	private Collection<String> members = new ArrayList<String>();
+	public static final String ATTR_MEMBERS_NAME = "members";
 
 	public DummyGroup() {
 		super();
@@ -49,20 +49,30 @@ public class DummyGroup extends DummyObject {
 	}
 	
 	public Collection<String> getMembers() {
-		return members;
+		return getAttributeValues(ATTR_MEMBERS_NAME, String.class);
 	}
 	
-	public void addMember(String newMember) {
-		members.add(newMember);
+	public void addMember(String newMember) throws SchemaViolationException {
+		addAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
 
-	public void removeMember(String newMember) {
-		members.remove(newMember);
+	public void removeMember(String newMember) throws SchemaViolationException {
+		removeAttributeValue(ATTR_MEMBERS_NAME, newMember);
+	}
+	
+	@Override
+	protected DummyObjectClass getObjectClass() {
+		return resource.getGroupObjectClass();
+	}
+
+	@Override
+	public String getShortTypeName() {
+		return "group";
 	}
 
 	@Override
 	public String toStringContent() {
-		return super.toStringContent() + ", members=" + members; 
+		return super.toStringContent() + ", members=" + getMembers(); 
 	}
 
 	@Override
@@ -72,7 +82,7 @@ public class DummyGroup extends DummyObject {
 
 	@Override
 	protected void extendDebugDump(StringBuilder sb, int indent) {
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "Members", members, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Members", getMembers(), indent + 1);
 	}
 	
 }

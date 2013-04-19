@@ -54,15 +54,18 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -729,6 +732,13 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	public <T extends Objectable> void applyDefinition(ObjectDelta<T> objectDelta, Class<T> type, boolean force) throws SchemaException {
 		PrismObjectDefinition<T> objectDefinition = determineDefinitionFromClass(type);
 		objectDelta.applyDefinition(objectDefinition, force);
+	}
+	
+	public <C extends Containerable, O extends Objectable> void applyDefinition(PrismContainerValue<C> prismContainerValue, Class<O> type, 
+			ItemPath path, boolean force) throws SchemaException {
+		PrismObjectDefinition<O> objectDefinition = determineDefinitionFromClass(type);
+		PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
+		prismContainerValue.applyDefinition(containerDefinition, force);
 	}
 		
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {

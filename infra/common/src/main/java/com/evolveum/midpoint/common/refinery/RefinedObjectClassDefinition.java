@@ -175,13 +175,22 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		}
 		return secondaryIdentifiers;
 	}
+
+	private Collection<? extends RefinedAttributeDefinition> createIdentifiersCollection() {
+		return new ArrayList<RefinedAttributeDefinition>();
+	}
 	
 	public Collection<ResourceEntitlementAssociationType> getEntitlementAssociations() {
 		return entitlementAssociations;
 	}
-
-	private Collection<? extends RefinedAttributeDefinition> createIdentifiersCollection() {
-		return new ArrayList<RefinedAttributeDefinition>();
+	
+	public ResourceEntitlementAssociationType findEntitlementAssociation(QName name) {
+		for (ResourceEntitlementAssociationType assocType: entitlementAssociations) {
+			if (assocType.getName().equals(name)) {
+				return assocType;
+			}
+		}
+		return null;
 	}
 	
 	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {

@@ -480,7 +480,7 @@ This is now the only account type that midPoint can work with. -->
  			<entitlementAssociation>
             	<name>ri:group</name>
             	<displayName>LDAP Group Membership</displayName>
-            	<entitlementType>ldapGroup</entitlementType>
+            	<entitlementIntent>ldapGroup</entitlementIntent>
             	<direction>entitlementToSubject</direction>
             	<associationAttribute>ri:member</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>

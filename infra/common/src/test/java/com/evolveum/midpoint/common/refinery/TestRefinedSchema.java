@@ -79,6 +79,8 @@ public class TestRefinedSchema {
 	private static final File RESOURCE_COMPLEX_FILE = new File(TEST_DIR_NAME, "resource-complex.xml");
 	private static final File RESOURCE_COMPLEX_DEPRECATED_FILE = new File(TEST_DIR_NAME, "resource-complex-deprecated.xml");
 	private static final File RESOURCE_SIMPLE_FILE = new File(TEST_DIR_NAME, "resource-simple.xml");
+	
+	private static final String ENTITLEMENT_GROUP_INTENT = "group";
     
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -211,6 +213,9 @@ public class TestRefinedSchema {
         if (assertEntitlements) {        	
 	        assertFalse("No entitlement definitions", rSchema.getRefinedDefinitions(ShadowKindType.ENTITLEMENT).isEmpty());
 	        RefinedObjectClassDefinition rEntDef = rSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, (String)null);
+	        assertNotNull("No entitlement definition for null intent", rEntDef);
+	        RefinedObjectClassDefinition rEntDefGroup = rSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, ENTITLEMENT_GROUP_INTENT);
+	        assertNotNull("No entitlement for intent '"+ENTITLEMENT_GROUP_INTENT+"'", rEntDefGroup);
 	        
 	        assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
 	        

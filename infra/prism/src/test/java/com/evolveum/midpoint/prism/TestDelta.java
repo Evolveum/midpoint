@@ -35,8 +35,12 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -734,8 +738,66 @@ public class TestDelta {
         // TODO
     }
 	
+	@Test
+    public void testDeltaComplex() throws Exception {
+		System.out.println("\n\n===[ testDeltaComplex ]===\n");
+		// GIVEN
+		
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("Foo Bar"));
+    	
+    	PrismObjectDefinition<UserType> userTypeDefinition = getUserTypeDefinition();
+    	
+    	PrismContainerDefinition<ActivationType> activationDefinition = userTypeDefinition.findContainerDefinition(UserType.F_ACTIVATION);
+    	PrismContainer<ActivationType> activationContainer = activationDefinition.instantiate();
+    	PrismPropertyDefinition enabledDef = activationDefinition.findPropertyDefinition(ActivationType.F_ENABLED);
+    	PrismProperty<Boolean> enabledProperty = enabledDef.instantiate();
+    	enabledProperty.setRealValue(true);
+    	activationContainer.add(enabledProperty);
+    	delta.addModificationDeleteContainer(UserType.F_ACTIVATION, activationContainer.getValue().clone());
+		
+    	PrismContainerDefinition<AssignmentType> assDef = userTypeDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+    	PrismPropertyDefinition descDef = assDef.findPropertyDefinition(AssignmentType.F_DESCRIPTION);
+    	
+    	PrismContainerValue<AssignmentType> assVal1 = new PrismContainerValue<AssignmentType>();
+    	assVal1.setId(111L);
+    	PrismProperty<String> descProp1 = descDef.instantiate();
+    	descProp1.setRealValue("desc 1");
+    	assVal1.add(descProp1);
 
-	public PrismObject<UserType> createUser() throws SchemaException {
+    	PrismContainerValue<AssignmentType> assVal2 = new PrismContainerValue<AssignmentType>();
+    	assVal2.setId(222L);
+    	PrismProperty<String> descProp2 = descDef.instantiate();
+    	descProp2.setRealValue("desc 2");
+    	assVal2.add(descProp2);
+    	
+    	delta.addModificationAddContainer(UserType.F_ASSIGNMENT, assVal1, assVal2);
+    	
+		System.out.println("Delta:");
+		System.out.println(delta.dump());
+				
+		// WHEN, THEN
+		PrismInternalTestUtil.assertVisitor(delta, 14);
+		
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_FULL_NAME), true, 2);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION), true, 4);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), true, 2);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ASSIGNMENT), true, 7);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				IdItemPathSegment.WILDCARD), true, 6);
+		
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_FULL_NAME), false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION), false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ASSIGNMENT), false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				IdItemPathSegment.WILDCARD), false, 2);
+    }
+	
+
+	private PrismObject<UserType> createUser() throws SchemaException {
 		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
 		PrismObject<UserType> user = userDef.instantiate();

@@ -1266,12 +1266,12 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test123ModifyObjectReplace() throws Exception {
-		displayTestTile("test123ModifyObjectReplace");
+		final String TEST_NAME = "test123ModifyObjectReplace";
+		displayTestTile(TEST_NAME);
 
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test123ModifyObjectReplace");
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ ".test123ModifyObjectReplace");
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		
 		syncServiceMock.reset();
 
@@ -1282,7 +1282,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, syncTask, result);
+				new ProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1290,11 +1290,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 		
 		delta.checkConsistence();
-		// check if activation was changed
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-		assertEquals("Wrong fullname", "Pirate Will Turner", dummyAccount.getAttributeValue("fullname"));
-		
-		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1325,7 +1321,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1356,7 +1352,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1387,7 +1383,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1422,7 +1418,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1756,6 +1752,72 @@ public class TestDummy extends AbstractDummyTest {
 
 		checkConsistency(shadow.asPrismObject());
 	}
+	
+	@Test
+	public void test210ModifyGroupReplace() throws Exception {
+		final String TEST_NAME = "test210ModifyGroupReplace";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
+				GROUP_PIRATES_OID, ProvisioningTestUtil.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH, prismContext, "Bloodthirsty pirates");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
+		delta.checkConsistence();
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertDummyAttributeValues(group, ProvisioningTestUtil.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty pirates");
+		
+		syncServiceMock.assertNotifySuccessOnly();
+	}
+	
+	@Test
+	public void test220EntitleAccountWill() throws Exception {
+		final String TEST_NAME = "test220EntitleAccountWill";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, GROUP_PIRATES_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
+		delta.checkConsistence();
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertMember(group, getWillRepoIcfUid());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+	}
+	
+	// TODO: detitle
+	// TODO: delete group
 
 	@Test
 	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,
@@ -2276,14 +2338,6 @@ public class TestDummy extends AbstractDummyTest {
 			}
 
 		};
-	}
-	
-	private <T> void assertDummyAttributeValues(String accountId, String attributeName, T... expectedValues) {
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
-		assertNotNull("No account '"+accountId+"'", dummyAccount);
-		Set<T> attributeValues = (Set<T>) dummyAccount.getAttributeValues(attributeName, expectedValues[0].getClass());
-		assertNotNull("No attribute "+attributeName+" in account "+accountId, attributeValues);
-		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in account "+accountId, attributeValues, expectedValues);
 	}
 
 }

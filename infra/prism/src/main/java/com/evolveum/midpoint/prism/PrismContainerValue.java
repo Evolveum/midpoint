@@ -734,6 +734,30 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}
 	}
     
+    @Override
+	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
+    	if (path == null || path.isEmpty()) {
+			// We are at the end of path, continue with regular visits all the way to the bottom
+    		if (recursive) {
+    			accept(visitor);
+    		} else {
+    			visitor.visit(this);
+    		}
+		} else {
+			ItemPathSegment first = path.first();
+	    	if (!(first instanceof NameItemPathSegment)) {
+	    		throw new IllegalArgumentException("Attempt to lookup item using a non-name path "+path+" in "+this);
+	    	}
+	    	QName subName = ((NameItemPathSegment)first).getName();
+	    	ItemPath rest = path.rest();
+	    	for (Item<?> item : items) {
+	            if (first.isWildcard() || subName.equals(item.getName())) {
+	            	item.accept(visitor, rest, recursive);
+	            }
+	    	}
+		}
+	}
+    
     public boolean hasCompleteDefinition() {
     	for (Item<?> item: getItems()) {
     		if (!item.hasCompleteDefinition()) {

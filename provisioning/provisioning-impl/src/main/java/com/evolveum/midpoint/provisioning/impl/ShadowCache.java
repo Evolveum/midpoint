@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.framework.impl.api.ConnectorFacadeFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,21 +38,27 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -104,6 +112,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
@@ -115,7 +124,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptA
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -150,7 +161,7 @@ public abstract class ShadowCache {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	@Autowired(required = true)
-	private ResouceObjectConverter resouceObjectConverter;
+	private ResourceObjectConverter resouceObjectConverter;
 	@Autowired(required = true)
 	protected ShadowManager shadowManager;
 	@Autowired(required = true)
@@ -363,7 +374,7 @@ public abstract class ShadowCache {
 		
 		RefinedObjectClassDefinition objectClassDefinition =  applyAttributesDefinition(shadow, resource);
 
-		LOGGER.trace("modifications before merging deltas, {}", DebugUtil.debugDump(modifications));
+		preprocessEntitlements(modifications, resource, parentResult);
 
 		modifications = beforeModifyOnResource(shadow, options, modifications);
 
@@ -448,8 +459,10 @@ public abstract class ShadowCache {
 	private Collection<? extends ItemDelta> convertToPropertyDelta(
 			Collection<PropertyModificationOperation> sideEffectChanges) {
 		Collection<PropertyDelta> sideEffectDelta = new ArrayList<PropertyDelta>();
-		for (PropertyModificationOperation mod : sideEffectChanges){
-			sideEffectDelta.add(mod.getPropertyDelta());
+		if (sideEffectChanges != null) {
+			for (PropertyModificationOperation mod : sideEffectChanges){
+				sideEffectDelta.add(mod.getPropertyDelta());
+			}
 		}
 		
 		return sideEffectDelta;
@@ -1140,7 +1153,119 @@ public abstract class ShadowCache {
 	
 	
 	
+	// ENTITLEMENTS
 	
+	/**
+	 * Makes sure that all the entitlements have identifiers in them so this is usable by the
+	 * ResourceObjectConverter.
+	 */
+	private <T extends ShadowType> void preprocessEntitlements(PrismObject<T> shadow,  final ResourceType resource,
+			final OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				try {
+					preprocessEntitlement((PrismContainerValue<ShadowAssociationType>)visitable, resource, result);
+				} catch (SchemaException e) {
+					throw new TunnelException(e);
+				} catch (ObjectNotFoundException e) {
+					throw new TunnelException(e);
+				} catch (ConfigurationException e) {
+					throw new TunnelException(e);
+				}
+			}
+		};
+		try {
+			shadow.accept(visitor , new ItemPath(
+				new NameItemPathSegment(ShadowType.F_ENTITLEMENTS),
+				new NameItemPathSegment(ShadowEntitlementsType.F_ASSOCIATION),
+				IdItemPathSegment.WILDCARD), false);
+		} catch (TunnelException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof SchemaException) {
+				throw (SchemaException)cause;
+			} else if (cause instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)cause;
+			} else if (cause instanceof ConfigurationException) {
+				throw (ConfigurationException)cause;
+			} else {
+				throw new SystemException("Unexpected exception "+cause, cause);
+			}
+		}
+	}
 	
+	/**
+	 * Makes sure that all the entitlements have identifiers in them so this is usable by the
+	 * ResourceObjectConverter.
+	 */	
+	private <T extends ShadowType> void preprocessEntitlements(Collection<? extends ItemDelta> modifications, final ResourceType resource, 
+			final OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				try {
+					preprocessEntitlement((PrismContainerValue<ShadowAssociationType>)visitable, resource, result);
+				} catch (SchemaException e) {
+					throw new TunnelException(e);
+				} catch (ObjectNotFoundException e) {
+					throw new TunnelException(e);
+				} catch (ConfigurationException e) {
+					throw new TunnelException(e);
+				}
+			}
+		};
+		try {
+			ItemDelta.accept(modifications, visitor , new ItemPath(
+				new NameItemPathSegment(ShadowType.F_ENTITLEMENTS),
+				new NameItemPathSegment(ShadowEntitlementsType.F_ASSOCIATION),
+				IdItemPathSegment.WILDCARD), false);
+		} catch (TunnelException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof SchemaException) {
+				throw (SchemaException)cause;
+			} else if (cause instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)cause;
+			} else if (cause instanceof ConfigurationException) {
+				throw (ConfigurationException)cause;
+			} else {
+				throw new SystemException("Unexpected exception "+cause, cause);
+			}
+		}
+	}
 	
+
+	private void preprocessEntitlement(PrismContainerValue<ShadowAssociationType> association, ResourceType resource, OperationResult result) 
+			throws SchemaException, ObjectNotFoundException, ConfigurationException {
+		PrismContainer<Containerable> identifiersContainer = association.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+		if (identifiersContainer != null && !identifiersContainer.isEmpty()) {
+			// We already have identifiers here
+			return;
+		}
+		ShadowAssociationType associationType = association.asContainerable();
+		if (StringUtils.isEmpty(associationType.getOid())) {
+			throw new SchemaException("No identifiers and no OID specified in entitlements association "+association);
+		}
+		PrismObject<ShadowType> repoShadow;
+		try {
+			repoShadow = repositoryService.getObject(ShadowType.class, associationType.getOid(), result);
+		} catch (ObjectNotFoundException e) {
+			throw new ObjectNotFoundException(e.getMessage()+" while resolving entitlement association OID in "+association, e);
+		}
+		applyAttributesDefinition(repoShadow, resource);
+		transplantIdentifiers(association, repoShadow);
+	}
+
+	private void transplantIdentifiers(PrismContainerValue<ShadowAssociationType> association, PrismObject<ShadowType> repoShadow) throws SchemaException {
+		PrismContainer<Containerable> identifiersContainer = association.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+		if (identifiersContainer == null) {
+			ResourceAttributeContainer origContainer = ShadowUtil.getAttributesContainer(repoShadow);
+			identifiersContainer = new ResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS, origContainer.getDefinition(), prismContext);
+			association.add(identifiersContainer);
+		}
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(repoShadow);
+		for (ResourceAttribute<?> identifier: identifiers) {
+			identifiersContainer.add(identifier.clone());
+		}
+	}
+
 }

@@ -72,6 +72,8 @@ public class TestPath {
 		ItemPath path1 = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
 		ItemPath path2 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L),
 									  new NameItemPathSegment(new QName(NS, "bar")));
+		ItemPath path22 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L),
+				  new NameItemPathSegment(new QName(NS, "bar")), new IdItemPathSegment(null));
 		ItemPath path3 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L),
 				  					  new NameItemPathSegment(new QName(NS, "bar")), new IdItemPathSegment(333L));
 		ItemPath path4 = new ItemPath(new QName(NS, "x"));
@@ -81,6 +83,7 @@ public class TestPath {
 		// WHEN
 		ItemPath normalized1 = path1.normalize();
 		ItemPath normalized2 = path2.normalize();
+		ItemPath normalized22 = path22.normalize();
 		ItemPath normalized3 = path3.normalize();
 		ItemPath normalized4 = path4.normalize();
 		ItemPath normalized5 = path5.normalize();
@@ -89,15 +92,17 @@ public class TestPath {
 		// THEN
 		System.out.println("Normalized path 1:" + normalized1);
 		System.out.println("Normalized path 2:" + normalized2);
+		System.out.println("Normalized path 22:" + normalized22);
 		System.out.println("Normalized path 3:" + normalized3);
 		System.out.println("Normalized path 4:" + normalized4);
 		System.out.println("Normalized path 5:" + normalized5);
 		System.out.println("Normalized path E:" + normalizedE);
 
-		assertNormalizedPath(normalized1, "foo", null, "bar", null);
-		assertNormalizedPath(normalized2, "foo", 123L, "bar", null);
+		assertNormalizedPath(normalized1, "foo", null, "bar");
+		assertNormalizedPath(normalized2, "foo", 123L, "bar");
+		assertNormalizedPath(normalized22, "foo", 123L, "bar", null);
 		assertNormalizedPath(normalized3, "foo", 123L, "bar", 333L);
-		assertNormalizedPath(normalized4, "x", null);
+		assertNormalizedPath(normalized4, "x");
 		assertNormalizedPath(normalized5, "foo", 123L);
 		assert normalizedE.isEmpty() : "normalizedE is not empty";
 	}
@@ -111,12 +116,16 @@ public class TestPath {
 		ItemPath pathFooNull = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment());
 		ItemPath pathFoo123 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
 		ItemPath pathFooBar = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
+		ItemPath pathFooNullBar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(), 
+												new NameItemPathSegment(new QName(NS, "bar")));
 				
 		// WHEN, THEN
-		assert pathFoo.equivalent(pathFooNull);
+		assert pathFoo.isSubPath(pathFooNull);
 		assert !pathFoo.equivalent(pathFoo123);
+		assert !pathFooNull.equivalent(pathFoo123);
 		assert pathFoo.isSubPath(pathFooBar);
 		assert pathFooBar.isSuperPath(pathFoo);
+		assert pathFooBar.equivalent(pathFooNullBar);
 		
 	}
 
@@ -130,10 +139,12 @@ public class TestPath {
 			assert name.getNamespaceURI().equals(NS) : "wrong namespace: "+name.getNamespaceURI();
 			assert name.getLocalPart().equals(expected[i]) : "wrong local name, expected "+expected[i]+", was "+name.getLocalPart();
 			
-			ItemPathSegment idSegment = normalized.getSegments().get(i+1);
-			assert idSegment instanceof IdItemPathSegment : "Expected is segment but it was "+nameSegment.getClass();
-			Long id = ((IdItemPathSegment)idSegment).getId();
-			assertId(id, (Long)expected[i+1]);
+			if (i + 1 < expected.length) {
+				ItemPathSegment idSegment = normalized.getSegments().get(i+1);
+				assert idSegment instanceof IdItemPathSegment : "Expected is segment but it was "+nameSegment.getClass();
+				Long id = ((IdItemPathSegment)idSegment).getId();
+				assertId(id, (Long)expected[i+1]);
+			}
 		}
 	}
 
