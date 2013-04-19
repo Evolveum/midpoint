@@ -141,7 +141,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
@@ -161,8 +161,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Check accountRef
 		PrismObject<UserType> userGuybrush = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
         UserType userGuybrushType = userGuybrush.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userGuybrushType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userGuybrushType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userGuybrushType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userGuybrushType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
@@ -511,7 +511,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		OperationResult result = new OperationResult(TestModelServiceContract.class.getName() + ".addBrokenAccountRef");
 		
 		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationAddCollection(UserType.class, 
-				UserType.F_ACCOUNT_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
+				UserType.F_LINK_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
 		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
 		
 		result.computeStatus();

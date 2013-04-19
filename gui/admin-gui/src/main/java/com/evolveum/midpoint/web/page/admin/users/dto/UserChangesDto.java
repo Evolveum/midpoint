@@ -66,7 +66,7 @@ public class UserChangesDto implements Serializable {
 			return;
 		}
 
-		ItemPath account = new ItemPath(UserType.F_ACCOUNT_REF);
+		ItemPath account = new ItemPath(UserType.F_LINK_REF);
 
 		if (delta.getChangeType().equals(ChangeType.DELETE)) {
 

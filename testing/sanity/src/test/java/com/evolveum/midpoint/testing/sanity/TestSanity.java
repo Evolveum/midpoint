@@ -920,7 +920,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertSuccess("getObject has failed", repoResult);
         display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals("No accountRefs", 1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         accountShadowOidOpendj = accountRef.getOid();
@@ -1039,7 +1039,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         // OpenDJ account was added in previous test, hence 2 accounts
         assertEquals(2, accountRefs.size());
 
@@ -1236,7 +1236,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if appropriate accountRef is still there
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue("No OID in "+accountRef+" in "+repoUserType,
@@ -1331,7 +1331,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue("No OID in "+accountRef+" in "+repoUserType,
@@ -1404,7 +1404,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue("No OID in "+accountRef+" in "+repoUserType,
@@ -1507,7 +1507,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUser.getLocality());
 
         // Check if appropriate accountRef is still there
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
             assertTrue("No OID in "+accountRef+" in "+repoUser,
@@ -1594,7 +1594,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
-        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
+        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_LINK_REF, ObjectReferenceType.class, accountRefToDelete);
         modificationValue.getAny().add(accountRefToDeleteElement);
         modificationDeleteAccountRef.setValue(modificationValue);
         objectChange.getModification().add(modificationDeleteAccountRef);
@@ -1618,7 +1618,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         // only OpenDJ account should be left now
         assertEquals(1, accountRefs.size());
         ObjectReferenceType ref = accountRefs.get(0);
@@ -1702,7 +1702,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if appropriate accountRef is still there
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.iterator().next();
         assertEquals("Wrong OID in "+accountRef+" in "+repoUserType,
@@ -1764,7 +1764,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if appropriate accountRef is still there
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.iterator().next();
         accountRef.getOid().equals(accountShadowOidOpendj);
@@ -1888,7 +1888,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         accountShadowOidGuybrushOpendj = accountRef.getOid();
@@ -1989,7 +1989,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         assertEquals(accountShadowOidGuybrushOpendj, accountRef.getOid());
@@ -2071,7 +2071,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         assertEquals(accountShadowOidGuybrushOpendj, accountRef.getOid());
@@ -2217,7 +2217,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals("Unexpected number or accountRefs", 1, accountRefs.size());
 
     }
@@ -2254,7 +2254,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("User (repository)", repoUser);
 
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         assertEquals(accountShadowOidGuybrushOpendj, accountRef.getOid());
@@ -2339,7 +2339,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("User (repository)", repoUser);
 
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         assertEquals(accountShadowOidGuybrushOpendj, accountRef.getOid());
@@ -2427,7 +2427,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUserType);
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(0, accountRefs.size());
 
         // Check if shadow was deleted from the repo
@@ -2592,8 +2592,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         UserType user = searchUserByName(WILL_NAME);
 
         PrismAsserts.assertEqualsPolyString("Wrong name.",  WILL_NAME, user.getName());
-        assertNotNull(user.getAccountRef());
-        assertFalse(user.getAccountRef().isEmpty());
+        assertNotNull(user.getLinkRef());
+        assertFalse(user.getLinkRef().isEmpty());
 //        AssertJUnit.assertEquals(user.getName(), WILL_NAME);
 
         // TODO: more checks
@@ -2677,7 +2677,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         //check user and account ref
         userType = searchUserByName("e");
 
-        List<ObjectReferenceType> accountRefs = userType.getAccountRef();
+        List<ObjectReferenceType> accountRefs = userType.getLinkRef();
         assertEquals("Account ref not found, or found too many", 1, accountRefs.size());
 
         //check account defined by account ref
@@ -2720,7 +2720,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         final String userName = "wturner1";
         UserType user = searchUserByName(userName);
 
-        List<ObjectReferenceType> accountRefs = user.getAccountRef();
+        List<ObjectReferenceType> accountRefs = user.getLinkRef();
         assertEquals("Account ref not found, or found too many", 1, accountRefs.size());
 
         //check account defined by account ref
@@ -2982,7 +2982,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             assertTrue("User "+user.getName()+" is disabled", user.getActivation() == null || user.getActivation().isEnabled() == null ||
             		user.getActivation().isEnabled());
 
-            List<ObjectReferenceType> accountRefs = user.getAccountRef();
+            List<ObjectReferenceType> accountRefs = user.getLinkRef();
             AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
             ObjectReferenceType accountRef = accountRefs.get(0);
 
@@ -3109,7 +3109,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         displayJaxb("User (repository)", repoUser, new QName("user"));
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals("Wrong number of accountRefs after recompute for user "+repoUser.getName(), 1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         accountShadowOidGuybrushOpendj = accountRef.getOid();
@@ -3258,7 +3258,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         displayJaxb("User (repository)", repoUser, new QName("user"));
 
-        List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+        List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals("Guybrush has wrong number of accounts", 1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         accountShadowOidGuybrushOpendj = accountRef.getOid();
@@ -3325,7 +3325,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismAsserts.assertEqualsPolyString("wrong repo familyName", "Marley", repoUser.getFamilyName());
         PrismAsserts.assertEqualsPolyString("wrong repo fullName", "Elaine Marley", repoUser.getFullName());
 
-        accountRefs = repoUser.getAccountRef();
+        accountRefs = repoUser.getLinkRef();
         assertEquals("Elaine has wrong number of accounts", 1, accountRefs.size());
         accountRef = accountRefs.get(0);
         String accountShadowOidElaineOpendj = accountRef.getOid();

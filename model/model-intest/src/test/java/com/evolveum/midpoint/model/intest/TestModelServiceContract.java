@@ -235,7 +235,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
@@ -254,8 +254,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
@@ -397,7 +397,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
@@ -443,7 +443,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
@@ -486,15 +486,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         Collection<SelectorOptions<GetOperationOptions>> options = 
-        	SelectorOptions.createCollection(UserType.F_ACCOUNT, GetOperationOptions.createResolve());
+        	SelectorOptions.createCollection(UserType.F_LINK, GetOperationOptions.createResolve());
         
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
@@ -502,8 +502,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
-        assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
-        ShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
+        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
+        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
         assertDummyShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         result.computeStatus();
@@ -522,8 +522,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         Collection<SelectorOptions<GetOperationOptions>> options = 
             	SelectorOptions.createCollection(GetOperationOptions.createResolve(),
-        			new ItemPath(UserType.F_ACCOUNT),
-    				new ItemPath(UserType.F_ACCOUNT, ShadowType.F_RESOURCE)
+        			new ItemPath(UserType.F_LINK),
+    				new ItemPath(UserType.F_LINK, ShadowType.F_RESOURCE)
         	);
         
 		// WHEN
@@ -531,8 +531,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
@@ -540,8 +540,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
-        assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
-        ShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
+        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
+        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
         assertDummyShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         assertNotNull("Resource in account was not resolved", ResourceObjectShadowType.getResource());
@@ -565,15 +565,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         getOpts.setResolve(true);
         getOpts.setNoFetch(true);
 		Collection<SelectorOptions<GetOperationOptions>> options = 
-        	SelectorOptions.createCollection(UserType.F_ACCOUNT, getOpts);
+        	SelectorOptions.createCollection(UserType.F_LINK, getOpts);
         
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
@@ -581,8 +581,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
-        assertEquals("Unexpected number of accounts", 1, userJackType.getAccount().size());
-        ShadowType ResourceObjectShadowType = userJackType.getAccount().get(0);
+        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
+        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
         assertDummyShadowRepo(ResourceObjectShadowType.asPrismObject(), accountOid, "jack");
         
         result.computeStatus();
@@ -606,7 +606,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         account.setOid(accountOid);
         		
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         
@@ -621,7 +621,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
         
 		// Check is shadow is gone
         try {
@@ -675,7 +675,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
@@ -712,7 +712,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.clear();
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
@@ -765,7 +765,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		        
@@ -1193,7 +1193,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setOid(accountOid);
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		userDelta.addModification(accountRefDelta);
         
 		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
@@ -1246,7 +1246,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
@@ -1305,7 +1305,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
@@ -1320,8 +1320,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
@@ -1828,8 +1828,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
 		PrismObject<UserType> userBlackbeard = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
         UserType userBlackbeardType = userBlackbeard.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userBlackbeardType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userBlackbeardType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userBlackbeardType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userBlackbeardType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
@@ -1887,8 +1887,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         

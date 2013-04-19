@@ -99,7 +99,7 @@ public class TestDeltaConverter {
     	assertNotNull("No object delta", objectDelta);
     	objectDelta.checkConsistence();
     	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
-    	ReferenceDelta accoutRefDelta = objectDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
+    	ReferenceDelta accoutRefDelta = objectDelta.findReferenceModification(UserType.F_LINK_REF);
     	assertNotNull("No accountRef delta", accoutRefDelta);
     	Collection<PrismReferenceValue> valuesToAdd = accoutRefDelta.getValuesToAdd();
     	assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
@@ -231,7 +231,7 @@ public class TestDeltaConverter {
         ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid("54321");
-        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_ACCOUNT_REF, ObjectReferenceType.class, accountRefToDelete);
+        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_LINK_REF, ObjectReferenceType.class, accountRefToDelete);
         modificationValue.getAny().add(accountRefToDeleteElement);
         modificationDeleteAccountRef.setValue(modificationValue);
         objectChange.getModification().add(modificationDeleteAccountRef);

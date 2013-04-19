@@ -322,7 +322,7 @@ public class ChangeExecutor {
         		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
             // Link should NOT exist
         	
-        	PrismReference accountRef = userTypeNew.asPrismObject().findReference(UserType.F_ACCOUNT_REF);
+        	PrismReference accountRef = userTypeNew.asPrismObject().findReference(UserType.F_LINK_REF);
         	if (accountRef != null) {
         		for (PrismReferenceValue accountRefVal: accountRef.getValues()) {
         			if (accountRefVal.getOid().equals(accountOid)) {
@@ -344,7 +344,7 @@ public class ChangeExecutor {
         } else {
             // Link should exist
         	
-            for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
+            for (ObjectReferenceType accountRef : userTypeNew.getLinkRef()) {
                 if (accountOid.equals(accountRef.getOid())) {
                     // Already linked, nothing to do, only be sure, the situation is set with the good value
                 	LOGGER.trace("Updating situation in already linked account.");
@@ -374,7 +374,7 @@ public class ChangeExecutor {
         accountRef.setTargetType(ShadowType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
-        		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
+        		UserType.F_LINK_REF, getUserDefinition(), accountRef); 
 
         try {
             cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
@@ -402,7 +402,7 @@ public class ChangeExecutor {
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
-        		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef.clone()); 
+        		UserType.F_LINK_REF, getUserDefinition(), accountRef.clone()); 
         
         try {
             cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);

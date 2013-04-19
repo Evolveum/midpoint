@@ -27,23 +27,7 @@
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>barbossa</name>
-    <fullName>Hector Barbossa</fullName>
-    <givenName>Hector</givenName>
-    <familyName>Barbossa</familyName>
-    <locality>Caribbean</locality>
-    
-    <activation>
-    	<enabled>true</enabled>
-    </activation>
-    
-    <credentials>
-        <password>
-        	<value>
-	            <clearValue>deadjacktellnotales</clearValue>
-            </value>
-        </password>
-    </credentials>
-    
+
     <assignment id="1001">
 		<accountConstruction>
 			<description>Brethren account construction</description>
@@ -92,6 +76,23 @@
 		</accountConstruction>
 	</assignment>
     
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+
+    <fullName>Hector Barbossa</fullName>
+    <givenName>Hector</givenName>
+    <familyName>Barbossa</familyName>
+    <locality>Caribbean</locality>
+    
+    <activation>
+    	<enabled>true</enabled>
+    </activation>
+    
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>deadjacktellnotales</clearValue>
+            </value>
+        </password>
+    </credentials>
     
 </user>

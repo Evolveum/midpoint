@@ -27,19 +27,7 @@
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>bill</name>
-    <fullName>Bill Turner</fullName>
-    <givenName>Bill</givenName>
-    <familyName>Turner</familyName>
-    <locality>Caribbean</locality>
-    
-    <credentials>
-        <password>
-        	<value>
-	            <clearValue>aaaaaaa</clearValue>
-            </value>
-        </password>
-    </credentials>
-    
+
     <!--<assignment id="1001">-->
 		<!--<accountConstruction>-->
 			<!--<description>Brethren account construction</description>-->
@@ -106,6 +94,21 @@
 		<!--</accountConstruction>-->
 	<!--</assignment>-->
     
-    <!--<accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>-->
+    <!--<linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>-->
+
+    <fullName>Bill Turner</fullName>
+    <givenName>Bill</givenName>
+    <familyName>Turner</familyName>
+    <locality>Caribbean</locality>
+    
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>aaaaaaa</clearValue>
+            </value>
+        </password>
+    </credentials>
+    
+
     
 </user>

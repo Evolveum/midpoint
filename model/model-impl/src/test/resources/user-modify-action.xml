@@ -21,7 +21,9 @@
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'>
     <name>william</name>
-    <accountRef oid="87654321-d34d-b44f-f11d-333222111111"/>
+
+    <linkRef oid="87654321-d34d-b44f-f11d-333222111111"/>
+
     <fullName>William Tell</fullName>
     <givenName>William</givenName>
     <familyName>Tell</familyName>

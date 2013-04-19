@@ -262,10 +262,10 @@ public class PageUser extends PageAdminUsers {
 						return wrapper;
 					}
 					user = getModelService().getObject(UserType.class, delta.getOid(), null, task, result);
-					ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_ACCOUNT_REF);
+					ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_LINK_REF);
 					ObjectDelta clonedDelta = delta.clone();
 					if (refDelta != null && refDelta.isDelete()) {
-						clonedDelta.removeReferenceModification(UserType.F_ACCOUNT_REF);
+						clonedDelta.removeReferenceModification(UserType.F_LINK_REF);
 					}
 					ContainerDelta assigmentDelta = delta.findContainerDelta(UserType.F_ASSIGNMENT);
 					if (assigmentDelta != null && assigmentDelta.isDelete()) {
@@ -305,7 +305,7 @@ public class PageUser extends PageAdminUsers {
 			for (ObjectDelta delta : deltas) {
 				ObjectWrapper accountWrapper = acc.getObject();
 				if (delta.isModify() && delta.getObjectTypeClass().equals(UserType.class)) {
-					ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_ACCOUNT_REF);
+					ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_LINK_REF);
 					if (refDelta == null) {
 						continue;
 					}
@@ -645,7 +645,7 @@ public class PageUser extends PageAdminUsers {
 
 		ObjectWrapper user = userModel.getObject();
 		PrismObject<UserType> prismUser = user.getObject();
-		List<ObjectReferenceType> references = prismUser.asObjectable().getAccountRef();
+		List<ObjectReferenceType> references = prismUser.asObjectable().getLinkRef();
 		OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
 		Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
 		for (ObjectReferenceType reference : references) {
@@ -1151,7 +1151,7 @@ public class PageUser extends PageAdminUsers {
 			PrismObject<ShadowType> account = delta.getObjectToAdd();
 			WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
 
-			userType.getAccount().add(account.asObjectable());
+			userType.getLink().add(account.asObjectable());
 		}
 
 		PrismObjectDefinition userDef = user.getDefinition();
@@ -1310,7 +1310,7 @@ public class PageUser extends PageAdminUsers {
 		// handle accounts
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
 		PrismObjectDefinition objectDefinition = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-		PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(UserType.F_ACCOUNT_REF);
+		PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(UserType.F_LINK_REF);
 		ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
 		if (!refDelta.isEmpty()) {
 			userDelta.addModification(refDelta);
@@ -1438,7 +1438,7 @@ public class PageUser extends PageAdminUsers {
 			// "shadow" param from result???
 			PrismObject<UserType> user = userWrapper.getObject();
 			UserType userType = user.asObjectable();
-			for (ObjectReferenceType ref : userType.getAccountRef()) {
+			for (ObjectReferenceType ref : userType.getLinkRef()) {
 				Object o = findParam("shadow", ref.getOid(), result);
 				if (o != null && o instanceof ShadowType) {
 					ShadowType accountType = (ShadowType) o;
@@ -1539,12 +1539,12 @@ public class PageUser extends PageAdminUsers {
 		for (UserAccountDto accDto : accountDtos) {
 			if (accDto.getStatus() == UserDtoStatus.DELETE) {
 				ObjectWrapper accWrapper = accDto.getObject();
-				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, userWrapper
+				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, userWrapper
 						.getObject().getDefinition(), accWrapper.getObject());
 				refDeltas.add(refDelta);
 			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
 				ObjectWrapper accWrapper = accDto.getObject();
-				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, userWrapper
+				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, userWrapper
 						.getObject().getDefinition(), accWrapper.getObject().getOid());
 				refDeltas.add(refDelta);
 			}

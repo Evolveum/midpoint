@@ -34,6 +34,7 @@
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00002</name>
+
         <metadata>
             <creatorRef oid="cccccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
             <createApproverRef oid="cccccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
@@ -44,6 +45,27 @@
             <modifyApproverRef oid="mmmccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
             <modifyChannel>http://modifyChannelUri</modifyChannel>
         </metadata>
+
+        <assignment id="1">
+            <metadata>
+                <creatorRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
+                <createApproverRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
+                <createApproverRef oid="dddccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
+                <createChannel>http://createChannelUri</createChannel>
+                <modifierRef oid="eeeccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
+                <modifyApproverRef oid="eeeccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
+                <modifyApproverRef oid="eeeccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
+                <modifyChannel>http://modifyChannelUri</modifyChannel>
+            </metadata>
+            <accountConstruction>
+                <description>
+                    Account construction.
+                </description>
+                <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
+                <type>default</type>
+            </accountConstruction>
+        </assignment>
+
         <fullName>
             <t:orig>Test UserX00002</t:orig>
             <t:norm>test userx00002</t:norm>
@@ -83,25 +105,6 @@
         <activation>
             <enabled>true</enabled>
         </activation>
-        <assignment id="1">
-            <metadata>
-                <creatorRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
-                <createApproverRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
-                <createApproverRef oid="dddccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
-                <createChannel>http://createChannelUri</createChannel>
-                <modifierRef oid="eeeccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
-                <modifyApproverRef oid="eeeccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
-                <modifyApproverRef oid="eeeccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
-                <modifyChannel>http://modifyChannelUri</modifyChannel>
-            </metadata>
-            <accountConstruction>
-                <description>
-                    Account construction.
-                </description>
-                <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
-                <type>default</type>
-            </accountConstruction>
-        </assignment>
     </object>
 
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -109,6 +112,9 @@
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00003</name>
+
+        <linkRef oid="1234" />
+
         <fullName>
             <t:orig>Test UserX00003</t:orig>
             <t:norm>test userx00003</t:norm>
@@ -138,7 +144,6 @@
         <activation>
             <enabled>true</enabled>
         </activation>
-        <accountRef oid="1234" />
     </object>
 
     <resource>

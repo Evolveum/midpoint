@@ -457,7 +457,7 @@ public class RUser extends RObject {
         repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
 
-        repo.getAccountRefs().addAll(RUtil.safeListReferenceToSet(jaxb.getAccountRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
+        repo.getAccountRefs().addAll(RUtil.safeListReferenceToSet(jaxb.getLinkRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
 
         ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
@@ -520,7 +520,7 @@ public class RUser extends RObject {
 
         List accRefs = RUtil.safeSetReferencesToList(repo.getAccountRefs(), prismContext);
         if (!accRefs.isEmpty()) {
-            jaxb.getAccountRef().addAll(accRefs);
+            jaxb.getLinkRef().addAll(accRefs);
         }
 
         for (RAssignment rAssignment : repo.getAssignments()) {

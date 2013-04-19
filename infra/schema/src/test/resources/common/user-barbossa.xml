@@ -31,6 +31,20 @@
     	<t:orig>barbossa</t:orig>
     	<t:norm>barbossa</t:norm>
     </name>
+    
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+
+    <assignment>
+		<accountConstruction>
+			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
+			<attribute>
+				<ref>ri:l</ref>
+				<value>Shipwreck cove</value>
+			</attribute>
+		</accountConstruction>
+	</assignment>
+    
     <extension>
 		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
 		<foo:num xsi:type="xsd:int">42</foo:num>
@@ -61,18 +75,6 @@
             </value>
         </password>
     </credentials>
-    
-    <assignment>
-		<accountConstruction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:l</ref>
-				<value>Shipwreck cove</value>
-			</attribute>
-		</accountConstruction>
-	</assignment>
-    
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+
     
 </user>

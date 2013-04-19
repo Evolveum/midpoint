@@ -26,6 +26,9 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>guybrush</name>
+
+    <linkRef oid="22226666-2200-6666-6666-444400004444" type="c:AccountShadowType"/>
+
     <fullName>Guybrush Threepwood</fullName>
     <givenName>Guybrush</givenName>
     <familyName>Threepwood</familyName>
@@ -39,5 +42,5 @@
 <!--         </password> -->
 <!--     </credentials> -->
     
-    <accountRef oid="22226666-2200-6666-6666-444400004444" type="c:AccountShadowType"/>
+
 </user>

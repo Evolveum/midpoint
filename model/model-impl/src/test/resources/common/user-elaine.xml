@@ -26,11 +26,7 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>elaine</name>
-    <fullName>Elaine Marley</fullName>
-    <givenName>Elaine</givenName>
-    <familyName>Marley</familyName>
-    <locality>Melee Island</locality>
-    
+
     <assignment>
 		<accountConstruction>
 			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
@@ -49,7 +45,14 @@
 		</accountConstruction>
 	</assignment>
     
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-22220004000e" type="c:AccountShadowType"/>
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-22220104000e" type="c:AccountShadowType"/>
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-22220204000e" type="c:AccountShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220004000e" type="c:AccountShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220104000e" type="c:AccountShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220204000e" type="c:AccountShadowType"/>
+
+    <fullName>Elaine Marley</fullName>
+    <givenName>Elaine</givenName>
+    <familyName>Marley</familyName>
+    <locality>Melee Island</locality>
+    
+
 </user>

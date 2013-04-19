@@ -257,7 +257,7 @@ public class TestParseUser {
 		
 		// TODO: check accountConstruction
 		
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_1_OID);
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_2_OID);
@@ -296,7 +296,7 @@ public class TestParseUser {
 		assertNotNull("No activation", activation);
 		assertEquals("User not enabled", Boolean.TRUE, activation.isEnabled());
 		
-		List<ObjectReferenceType> accountRefs = userType.getAccountRef();
+		List<ObjectReferenceType> accountRefs = userType.getLinkRef();
 		assertNotNull("No accountRef list", accountRefs);
 		assertEquals("Wrong number of list entries", 3, accountRefs.size());
 		

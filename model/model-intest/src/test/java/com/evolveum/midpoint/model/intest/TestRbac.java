@@ -190,7 +190,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         		prismContext, "Bloody Pirate");
         
 		ObjectDelta<UserType> delta = ObjectDelta.createModificationAddReference(UserType.class, USER_JACK_OID, 
-				UserType.F_ACCOUNT_REF, prismContext, account);
+				UserType.F_LINK_REF, prismContext, account);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		
 		// We need to switch off the encorcement for this opertation. Otherwise we won't be able to create the account
@@ -450,11 +450,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = userJack.asObjectable().getAccountRef().iterator().next().getOid();
+        String accountOid = userJack.asObjectable().getLinkRef().iterator().next().getOid();
         
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // Use modification of user to delete account. Deleting account directly is tested later.
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_ACCOUNT_REF, prismContext, accountOid);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF, prismContext, accountOid);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
 		// WHEN
@@ -509,7 +509,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = userJack.asObjectable().getAccountRef().iterator().next().getOid();        
+        String accountOid = userJack.asObjectable().getLinkRef().iterator().next().getOid();        
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // This all goes in the same context with user, explicit unlink should not be necessary
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);

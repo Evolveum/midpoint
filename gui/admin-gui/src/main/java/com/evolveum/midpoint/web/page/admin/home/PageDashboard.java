@@ -133,7 +133,7 @@ public class PageDashboard extends PageAdminHome {
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-        List<ObjectReferenceType> references = user.asObjectable().getAccountRef();
+        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
 

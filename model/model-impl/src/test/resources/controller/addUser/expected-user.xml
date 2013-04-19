@@ -26,10 +26,13 @@
    http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../ns/public/common/common-2a.xsd">
 
 	<name>bond</name>
+
+	<linkRef oid="10000000-0000-0000-0000-000000000004" type="c:AccountShadowType" />
+
 	<fullName>James Bond</fullName>
 	<givenName>James</givenName>
 	<familyName>Bond</familyName>
 	<honorificSuffix>Jr.</honorificSuffix>
 	<locality>home</locality>
-	<accountRef oid="10000000-0000-0000-0000-000000000004" type="c:AccountShadowType" />
+
 </c:object>

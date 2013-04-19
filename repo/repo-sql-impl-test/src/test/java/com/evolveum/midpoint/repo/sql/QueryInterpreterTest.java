@@ -300,7 +300,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        RefFilter filter = RefFilter.createReferenceEqual(UserType.class, UserType.F_ACCOUNT_REF, prismContext, "123");
+        RefFilter filter = RefFilter.createReferenceEqual(UserType.class, UserType.F_LINK_REF, prismContext, "123");
         String real = getInterpretedQuery(session, UserType.class, filter);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});

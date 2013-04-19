@@ -296,7 +296,7 @@ public class PageUsers extends PageAdminUsers {
                 UserType user = rowModel.getObject().getValue();
 
                 PrismObject<UserType> object = user.asPrismObject();
-                PrismReference accountRef = object.findReference(UserType.F_ACCOUNT_REF);
+                PrismReference accountRef = object.findReference(UserType.F_LINK_REF);
                 int count = accountRef != null ? accountRef.size() : 0;
 
                 cellItem.add(new Label(componentId, new Model<Integer>(count)));

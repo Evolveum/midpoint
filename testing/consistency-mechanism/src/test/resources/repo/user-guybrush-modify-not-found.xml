@@ -22,21 +22,9 @@
 <user oid="c0c010c0-d34d-b33f-f00d-111111111222"
    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>guybrush123</name>
-    <fullName>Guybrush Threepwood</fullName>
-    <givenName>Guybrush</givenName>
-    <familyName>Threepwood</familyName>
-    <emailAddress>guybrush@evolveum.com</emailAddress>
-    <organizationalUnit>Loosers</organizationalUnit>
-    <locality>Deep in the Caribbean</locality>
 
-    <credentials>
-        <password>
-        	<value>
-	            <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
-            </value>
-        </password>
-    </credentials>
-    
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="AccountShadowType"/>
+
      <assignment>
 		<accountConstruction>
 			<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
@@ -52,5 +40,19 @@
 		</accountConstruction>
 	</assignment>
     
-    <accountRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="AccountShadowType"/>
+    <fullName>Guybrush Threepwood</fullName>
+    <givenName>Guybrush</givenName>
+    <familyName>Threepwood</familyName>
+    <emailAddress>guybrush@evolveum.com</emailAddress>
+    <organizationalUnit>Loosers</organizationalUnit>
+    <locality>Deep in the Caribbean</locality>
+
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
+            </value>
+        </password>
+    </credentials>
+    
 </user>

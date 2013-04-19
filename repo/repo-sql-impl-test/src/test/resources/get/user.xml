@@ -25,6 +25,9 @@
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <user oid="f00d-0">
         <name>get account user</name>
+
+        <linkRef oid="f00d-acc" type="c:AccountShadowType"/>
+
         <fullName>
             <t:orig>Hector Barbossa</t:orig>
             <t:norm>hector barbossa</t:norm>
@@ -37,7 +40,6 @@
             <t:orig>Barbossa</t:orig>
             <t:norm>barbossa</t:norm>
         </familyName>
-        <accountRef oid="f00d-acc" type="c:AccountShadowType"/>
     </user>
 
     <object xsi:type="AccountShadowType" oid="f00d-acc"

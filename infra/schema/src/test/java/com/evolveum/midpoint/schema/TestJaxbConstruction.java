@@ -145,13 +145,13 @@ public class TestJaxbConstruction {
 		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
 		filter.setFilter(filterElement);
 		accountRefType.setFilter(filter);
-		userType.getAccountRef().add(accountRefType);
+		userType.getLinkRef().add(accountRefType);
 		
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID);
 		user.checkConsistence();
 		user.assertDefinitions();
 
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
         assertEquals("1/ Wrong accountRef values", 1, accountRef.getValues().size());
         PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
         Element prismFilterElement = accountRefVal0.getFilter();
@@ -160,15 +160,15 @@ public class TestJaxbConstruction {
 
         ShadowType accountShadowType = new ShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
-        userType.getAccount().add(accountShadowType);
+        userType.getLink().add(accountShadowType);
         //value still should be only one... (reference was only resolved)
-        assertEquals("2/ Wrong accountRef values", 1, user.findReference(UserType.F_ACCOUNT_REF).getValues().size());
+        assertEquals("2/ Wrong accountRef values", 1, user.findReference(UserType.F_LINK_REF).getValues().size());
 
 		accountShadowType = new ShadowType();
 		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
-		userType.getAccount().add(accountShadowType);
+		userType.getLink().add(accountShadowType);
 
-        assertEquals("3/ Wrong accountRef values", 2, user.findReference(UserType.F_ACCOUNT_REF).getValues().size());
+        assertEquals("3/ Wrong accountRef values", 2, user.findReference(UserType.F_LINK_REF).getValues().size());
 		
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 		user.checkConsistence();
@@ -209,16 +209,16 @@ public class TestJaxbConstruction {
 		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
 		filter.setFilter(filterElement);
 		accountRefType.setFilter(filter);
-		userType.getAccountRef().add(accountRefType);
+		userType.getLinkRef().add(accountRefType);
 		
 
 		ShadowType accountShadowType = new ShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
-        userType.getAccount().add(accountShadowType);
+        userType.getLink().add(accountShadowType);
 
 		accountShadowType = new ShadowType();
 		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
-		userType.getAccount().add(accountShadowType);
+		userType.getLink().add(accountShadowType);
 
 		// WHEN
 		prismContext.adopt(userType);
@@ -245,7 +245,7 @@ public class TestJaxbConstruction {
 		checkExtension(extensionContainer,"user extension");
 		checkExtension(extension,"user extension");
 		
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
         assertEquals("Wrong accountRef values", 2, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 		
@@ -263,7 +263,7 @@ public class TestJaxbConstruction {
 
 
 	private void assertAccountRefs(UserType userType, String... accountOids) {
-		List<ObjectReferenceType> accountRefs = userType.getAccountRef();
+		List<ObjectReferenceType> accountRefs = userType.getLinkRef();
 		assertEquals("Wrong number of accountRefs", accountOids.length, accountRefs.size());
 		for (String expectedAccountOid: accountOids) {
 			assertAccountRef(accountRefs, expectedAccountOid);

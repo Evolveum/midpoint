@@ -22,6 +22,9 @@
 <user oid="c0c010c0-d34d-b33f-f00d-111111111222"
    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>guybrush</name>
+
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="AccountShadowType"/>
+
     <fullName>Guybrush Threepwood</fullName>
     <givenName>Guybrush</givenName>
     <familyName>Threepwood</familyName>
@@ -37,5 +40,4 @@
         </password>
     </credentials>
 
-    <accountRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="AccountShadowType"/>
 </user>

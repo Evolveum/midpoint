@@ -316,7 +316,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(filename));
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddReference(UserType.class, focusContext
-				.getObjectOld().getOid(), UserType.F_ACCOUNT_REF, prismContext, account);
+				.getObjectOld().getOid(), UserType.F_LINK_REF, prismContext, account);
 		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}

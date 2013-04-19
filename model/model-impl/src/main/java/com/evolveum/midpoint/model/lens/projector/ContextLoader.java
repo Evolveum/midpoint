@@ -360,7 +360,7 @@ public class ContextLoader {
 	private void loadAccountRefsFromUser(LensContext<UserType,ShadowType> context, PrismObject<UserType> user,
 			SynchronizationPolicyDecision policyDecision, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		if (accountRef == null) {
 			return;
 		}
@@ -424,15 +424,15 @@ public class ContextLoader {
 		ReferenceDelta accountRefDelta;
 		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
 			PrismReference accountRef = userPrimaryDelta.getObjectToAdd().findReference(
-					UserType.F_ACCOUNT_REF);
+					UserType.F_LINK_REF);
 			if (accountRef == null) {
 				// Adding new user with no accountRef -> nothing to do
 				return;
 			}
-			accountRefDelta = accountRef.createDelta(new ItemPath(UserType.F_ACCOUNT_REF));
+			accountRefDelta = accountRef.createDelta(new ItemPath(UserType.F_LINK_REF));
 			accountRefDelta.addValuesToAdd(PrismValue.cloneValues(accountRef.getValues()));
 		} else if (userPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
+			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_LINK_REF);
 			if (accountRefDelta == null) {
 				return;
 			}
@@ -444,7 +444,7 @@ public class ContextLoader {
 		if (accountRefDelta.isReplace()) {
 			// process "replace" by distributing values to delete and add
 			accountRefDelta = (ReferenceDelta) accountRefDelta.clone();
-			PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+			PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 			accountRefDelta.distributeReplace(accountRef == null ? null : accountRef.getValues());
 		}
 		
@@ -586,9 +586,9 @@ public class ContextLoader {
 		// We need to make sure this happens on the real primary user delta
 
 		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
-			userPrimaryDelta.getObjectToAdd().removeReference(UserType.F_ACCOUNT_REF);
+			userPrimaryDelta.getObjectToAdd().removeReference(UserType.F_LINK_REF);
 		} else if (userPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-			userPrimaryDelta.removeReferenceModification(UserType.F_ACCOUNT_REF);
+			userPrimaryDelta.removeReferenceModification(UserType.F_LINK_REF);
 		}
 
 	}

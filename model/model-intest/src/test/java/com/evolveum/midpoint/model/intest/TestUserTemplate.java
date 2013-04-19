@@ -104,7 +104,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
 	}
 	
 	@Test
@@ -136,7 +136,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 2);
         
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
         
         result.computeStatus();
         assertSuccess(result);
@@ -179,7 +179,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 2);
         
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
         
         result.computeStatus();
         assertSuccess(result);
@@ -215,7 +215,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 1);
         
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
         assertSuccess(result);
@@ -255,7 +255,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 1);
         
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
         assertSuccess(result);
@@ -290,7 +290,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
         
         UserType userAfterType = userAfter.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userAfterType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 1, userAfterType.getLinkRef().size());
         
         result.computeStatus();
         assertSuccess(result);
@@ -327,7 +327,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 2);
                 
         UserType userAfterType = userAfter.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 2, userAfterType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 2, userAfterType.getLinkRef().size());
         
         result.computeStatus();
         assertSuccess(result);
@@ -364,7 +364,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
                 
         UserType userAfterType = userAfter.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userAfterType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 1, userAfterType.getLinkRef().size());
         
         result.computeStatus();
         assertSuccess(result);

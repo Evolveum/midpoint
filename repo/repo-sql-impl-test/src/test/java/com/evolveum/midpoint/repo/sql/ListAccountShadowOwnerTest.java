@@ -117,14 +117,14 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
         // WHEN (link account)
         Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationAddCollection(UserType.class,
-                UserType.F_ACCOUNT_REF, prismContext, account);
+                UserType.F_LINK_REF, prismContext, account);
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
         // THEN
         accountOwnerOid = repositoryService.listAccountShadowOwner(accountOid, result);
         assertEquals("listAccountShadowOwner returned wrong value", userOid, accountOwnerOid);
 
         // WHEN (unlink account)
-        modifications = ReferenceDelta.createModificationDeleteCollection(UserType.class, UserType.F_ACCOUNT_REF,
+        modifications = ReferenceDelta.createModificationDeleteCollection(UserType.class, UserType.F_LINK_REF,
                 prismContext, account);
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
         // THEN

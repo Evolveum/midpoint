@@ -114,7 +114,7 @@ public class PageMyPasswords extends PageAdminHome {
 
             dto.getAccounts().add(createDefaultPasswordAccountDto(user));
 
-            PrismReference reference = user.findReference(UserType.F_ACCOUNT_REF);
+            PrismReference reference = user.findReference(UserType.F_LINK_REF);
             if (reference == null || reference.getValues() == null) {
                 LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
                 return dto;

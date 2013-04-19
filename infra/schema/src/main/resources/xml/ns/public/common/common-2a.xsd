@@ -1517,15 +1517,78 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- ################################## -->
-    <!-- ##    Identity Schema Layer     ## -->
-    <!-- ################################## -->
+    <xsd:complexType name="FocusType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+            	TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
 
-    <!-- The following clauses belong to the identity schema layer. This schema 
-		defines the "identity model", the basic objects for midPoint system that 
-		are common for most IDM deployments. It is supposed to be heavily used by 
-		midPoint low-level components and also by business logic. 
-		See https://wiki.evolveum.com/display/midPoint/Identity+Schema -->
+                    <xsd:element name="link" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	TODO: update
+                            
+                                Set of user's accounts. This is the set of
+                                accounts that belongs to the user in a sense
+                                that these accounts represents the user (the
+                                same physical person, they are analogous).
+                                This element contains full AccountType XML
+                                elements.
+                                This version will probably be used in workflows and
+                                business logic.
+
+                                If this attribute is present in the User object,
+                                the accountRef attribute for the same account
+                                OID must not be present.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:linkRef</a:objectReference>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	TODO: update
+                            	
+                                Set of user's accounts. This is the set of
+                                accounts that belongs to the user in a sense
+                                that these accounts represents the user (the
+                                same physical person, they are analogous).
+                                This element contains a set of pointers to
+                                Account objects (by OID) this version
+                                will be used in repository (for storage).
+
+                                If this attribute is present in the User
+                                object, the account attribute for the same account
+                                OID must not be present.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	TODO: update
+                                Set of user's assignments.
+                                Represents objects (such as roles) or accounts directly assigned to
+                                a user.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
     <xsd:complexType name="UserType">
         <xsd:annotation>
@@ -1539,7 +1602,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:FocusType">
                 <xsd:sequence>
                     <xsd:element name="fullName" type="t:PolyStringType">
                         <xsd:annotation>
@@ -1876,66 +1939,12 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Set of user's assignments.
-                                Represents objects (such as roles) or accounts directly assigned to
-                                a user.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <!-- xsd:choice minOccurs="0" maxOccurs="unbounded" -->
-                    <xsd:element name="account" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Set of user's accounts. This is the set of
-                                accounts that belongs to the user in a sense
-                                that these accounts represents the user (the
-                                same physical person, they are analogous).
-                                This element contains full AccountType XML
-                                elements.
-                                This version will probably be used in workflows and
-                                business logic.
-
-                                If this attribute is present in the User object,
-                                the accountRef attribute for the same account
-                                OID must not be present.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:accountRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="accountRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Set of user's accounts. This is the set of
-                                accounts that belongs to the user in a sense
-                                that these accounts represents the user (the
-                                same physical person, they are analogous).
-                                This element contains a set of pointers to
-                                Account objects (by OID) this version
-                                will be used in repository (for storage).
-
-                                If this attribute is present in the User
-                                object, the account attribute for the same account
-                                OID must not be present.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <!-- /xsd:choice -->
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="user" type="tns:UserType" substitutionGroup="c:object"/>
+
 
     <xsd:complexType name="CredentialsType">
         <xsd:annotation>
@@ -4831,32 +4840,12 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
-                    <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
+                   <xsd:element name="inducement" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Set of role's assignments.
-                                Represents objects (such as roles) or accounts assigned to the
-                                role and therefore implied by the role.
-
-                                The assignment may contain account construction. Such element
-                                specified the account specified by this element should be
-                                created when the role is assigned (unless such account already
-                                exists). The account should be set up according to the definitions
-                                contained in this element.
-
-                                TODO: variables in the expressions:
-                                $user
-                                $role
-                                $assignment
-                                $account
-                                $resource
-
-                                If the role implying this account is unassigned
-                                and no other role or assignment implies the account, the
-                                account should be removed (depending on assignment enforcement mode,
-                                http://wiki.evolveum.com/display/midPoint/Account+Synchronization+Settings).
+                            	TODO
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

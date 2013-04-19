@@ -528,7 +528,7 @@ public class PageContentAccounts extends PageAdminResources {
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
                 refValue.setTargetType(dto.getAccountType());
                 delta.addModification(ReferenceDelta.createModificationDelete(UserType.class,
-                        UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+                        UserType.F_LINK_REF, getPrismContext(), refValue));
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             }
             
@@ -539,7 +539,7 @@ public class PageContentAccounts extends PageAdminResources {
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
                 refValue.setTargetType(dto.getAccountType());
                 delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
-                        UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+                        UserType.F_LINK_REF, getPrismContext(), refValue));
                 
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
                 

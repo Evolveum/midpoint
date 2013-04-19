@@ -275,7 +275,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		boolean found = false; 
 		for (PrismReferenceValue val: accountRef.getValues()) {
 			if (val.getOid().equals(accountOid)) {
@@ -286,7 +286,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		if (accountRef == null) {
 			return;
 		}
@@ -306,7 +306,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAccounts(PrismObject<UserType> user, int numAccounts) throws ObjectNotFoundException, SchemaException {
-		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		if (accountRef == null) {
 			assert numAccounts == 0 : "Expected "+numAccounts+" but "+user+" has no accountRef";
 			return;
@@ -345,7 +345,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		
 		return userDelta;
@@ -708,8 +708,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected String getSingleUserAccountRef(PrismObject<UserType> user) {
         UserType userType = user.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
@@ -720,7 +720,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected String getUserAccountRef(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
         UserType userType = user.asObjectable();
-        for (ObjectReferenceType accountRefType: userType.getAccountRef()) {
+        for (ObjectReferenceType accountRefType: userType.getLinkRef()) {
         	String accountOid = accountRefType.getOid();
 	        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 	        PrismObject<ShadowType> account = getAccountNoFetch(accountOid);
@@ -734,7 +734,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertUserNoAccountRefs(PrismObject<UserType> user) {
 		UserType userJackType = user.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
 	}
 	
 	protected void assertNoAccountShadow(String accountOid) throws SchemaException {

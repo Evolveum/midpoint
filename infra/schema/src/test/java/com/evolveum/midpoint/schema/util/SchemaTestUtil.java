@@ -93,9 +93,9 @@ public class SchemaTestUtil {
 		assertEquals("Assignment size", 6, assignmentContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(assignmentContainer, AssignmentType.F_ACCOUNT_CONSTRUCTION, AccountConstructionType.COMPLEX_TYPE, 0, 1);
 		
-		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(UserType.F_ACCOUNT_REF, PrismReferenceDefinition.class);
-		PrismAsserts.assertDefinition(accountRefDef, UserType.F_ACCOUNT_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
+		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(UserType.F_LINK_REF, PrismReferenceDefinition.class);
+		PrismAsserts.assertDefinition(accountRefDef, UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
 		assertEquals("Wrong target type in accountRef", ShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
-		assertEquals("Wrong composite object element name in accountRef", UserType.F_ACCOUNT, accountRefDef.getCompositeObjectElementName());
+		assertEquals("Wrong composite object element name in accountRef", UserType.F_LINK, accountRefDef.getCompositeObjectElementName());
 	}
 }

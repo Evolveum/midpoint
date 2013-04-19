@@ -127,7 +127,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		modifications.add(accountDelta);
         
 		// WHEN
@@ -138,8 +138,8 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
@@ -175,7 +175,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		modifications.add(accountDelta);
         
 		// WHEN
@@ -186,7 +186,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
         
 		// Check is shadow is gone
         try {
@@ -221,7 +221,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
@@ -247,7 +247,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		modifications.add(accountDelta);
         
 		// WHEN
@@ -289,7 +289,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		modifications.add(accountDelta);
         
 		// WHEN
@@ -358,8 +358,8 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		// Check accountRef
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
@@ -394,8 +394,8 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		// Check accountRef
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
