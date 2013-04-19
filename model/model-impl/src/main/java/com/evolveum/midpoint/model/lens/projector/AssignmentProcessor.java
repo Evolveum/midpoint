@@ -21,12 +21,15 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
+import ch.qos.logback.classic.Logger;
+
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.AccountConstructionPack;
 import com.evolveum.midpoint.model.lens.Assignment;
@@ -63,6 +66,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -267,9 +271,18 @@ public class AssignmentProcessor {
             	evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, result);
             } catch (ObjectNotFoundException ex){
             	if (ModelExecuteOptions.isForce(context.getOptions())){
-            		return;
+            		continue;
             	} 
-            	throw ex;
+            	ModelUtils.recordFatalError(result, ex);
+            	continue;
+            } catch (SchemaException ex){
+            	ModelUtils.recordFatalError(result, ex);
+            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(determineResource(assignmentType), determineIntent(assignmentType));
+				LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rad);
+				if (accCtx != null) {
+					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				}
+            	continue;
             }
             
             context.rememberResources(evaluatedAssignment.getResources(result));
@@ -451,6 +464,34 @@ public class AssignmentProcessor {
         
     }
     
+	private String determineResource(AssignmentType assignmentType) {
+		if (assignmentType.getAccountConstruction() != null){
+			AccountConstructionType accConstruction = assignmentType.getAccountConstruction();
+			if (accConstruction.getResource() != null){
+				return accConstruction.getResource().getOid();
+			} else if (accConstruction.getResourceRef() != null){
+				return accConstruction.getResourceRef().getOid();
+			} 
+			
+			throw new IllegalStateException("No resource defined in account construction.");
+		}
+		
+		throw new IllegalArgumentException("Account construction not defined in the assigment.");
+	}
+	
+	private String determineIntent(AssignmentType assignmentType) {
+		if (assignmentType.getAccountConstruction() != null){
+			AccountConstructionType accConstruction = assignmentType.getAccountConstruction();
+			if (accConstruction.getIntent() != null){
+				return accConstruction.getIntent();
+			} 
+			
+			return "default";
+		}
+		
+		throw new IllegalArgumentException("Account construction not defined in the assigment.");
+	}
+
 	private Collection<PrismPropertyValue<AccountConstruction>> getConstructions(AccountConstructionPack accountConstructionPack) {
 		if (accountConstructionPack == null) {
 			return null;
