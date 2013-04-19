@@ -31,9 +31,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.ROrgRootRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -55,11 +53,9 @@ import javax.persistence.*;
 public class RSystemConfiguration extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
-    @QueryAttribute(polyString = true)
     private RPolyString name;
     private String globalAccountSynchronizationSettings;
     private REmbeddedReference globalPasswordPolicyRef;
-    @QueryAttribute(name = "orgRootRef", multiValue = true, reference = true)
     private Set<RObjectReference> orgRootRef;
     private String modelHooks;
     private String logging;

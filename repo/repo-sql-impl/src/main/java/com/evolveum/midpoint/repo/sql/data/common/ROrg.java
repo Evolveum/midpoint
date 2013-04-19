@@ -2,11 +2,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -21,14 +19,11 @@ import java.util.Set;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 public class ROrg extends RAbstractRole {
 
-    @QueryAttribute(polyString = true)
     private RPolyString name;
-    @QueryAttribute(polyString = true)
     private RPolyString displayName;
     private String identifier;
     private Set<String> orgType;
     private String costCenter;
-    @QueryAttribute(polyString = true)
     private RPolyString locality;
 
     @Embedded
@@ -97,7 +92,7 @@ public class ROrg extends RAbstractRole {
 
         ROrg that = (ROrg) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null)return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (costCenter != null ? !costCenter.equals(that.costCenter) : that.costCenter != null) return false;
         if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
         if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;

@@ -123,11 +123,6 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
                 new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
-                new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, UserType.class, prismContext);
-        String old = HibernateToSqlTranslator.toSql(oldInterpreter.interpret(filter));
-        LOGGER.info("old. query>\n{}", new Object[]{old});
-
         Criteria main = session.createCriteria(RUser.class, "u");
         Criteria o = main.createCriteria("organization", "o");
 
@@ -157,11 +152,6 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
         ObjectFilter filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_DEPENDENT, "123456");
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, TaskType.class, query);
-
-        com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
-                new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, TaskType.class, prismContext);
-        String old = HibernateToSqlTranslator.toSql(oldInterpreter.interpret(filter));
-        LOGGER.info("old. query>\n{}", new Object[]{old});
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
@@ -413,8 +403,8 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
         LOGGER.info("===[{}]===", new Object[]{"queryUserAccountRef"});
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
-        Criteria refs = main.createCriteria("accountRefs", "a");
-        refs.add(Restrictions.conjunction().add(Restrictions.eq("a.targetOid", "123")));
+        Criteria refs = main.createCriteria("linkRef", "l");
+        refs.add(Restrictions.conjunction().add(Restrictions.eq("l.targetOid", "123")));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 

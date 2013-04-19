@@ -30,20 +30,17 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeState;
 import com.evolveum.midpoint.repo.sql.data.common.type.RResourceApproverRef;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +54,6 @@ import java.util.Set;
 public class RResource extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
-    @QueryAttribute(polyString = true)
     private RPolyString name;
     private REmbeddedReference connectorRef;
     private String namespace;
@@ -142,12 +138,12 @@ public class RResource extends RObject {
     public String getConsistency() {
         return consistency;
     }
-    
+
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
     public String getAccountSynchronizationSettings() {
-		return accountSynchronizationSettings;
-	}
+        return accountSynchronizationSettings;
+    }
 
     @Embedded
     public ROperationalState getOperationalState() {
@@ -210,10 +206,10 @@ public class RResource extends RObject {
     public void setScripts(String scripts) {
         this.scripts = scripts;
     }
-    
+
     public void setAccountSynchronizationSettings(String accountSynchronizationSettings) {
-		this.accountSynchronizationSettings = accountSynchronizationSettings;
-	}
+        this.accountSynchronizationSettings = accountSynchronizationSettings;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -307,11 +303,11 @@ public class RResource extends RObject {
                         new ItemPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
             }
             jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_CONSISTENCY),
-					repo.getConsistency(), ResourceConsistencyType.class, prismContext));
-			jaxb.setAccountSynchronizationSettings(RUtil.toJAXB(ResourceType.class, new ItemPath(
-					ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS), repo
-					.getAccountSynchronizationSettings(), AccountSynchronizationSettingsType.class,
-					prismContext));
+                    repo.getConsistency(), ResourceConsistencyType.class, prismContext));
+            jaxb.setAccountSynchronizationSettings(RUtil.toJAXB(ResourceType.class, new ItemPath(
+                    ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS), repo
+                    .getAccountSynchronizationSettings(), AccountSynchronizationSettingsType.class,
+                    prismContext));
 
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -357,9 +353,9 @@ public class RResource extends RObject {
                 ROperationalState.copyFromJAXB(jaxb.getOperationalState(), repoOpState, prismContext);
                 repo.setOperationalState(repoOpState);
             }
-            
+
             repo.setAccountSynchronizationSettings(RUtil.toRepo(jaxb.getAccountSynchronizationSettings(), prismContext));
-       
+
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

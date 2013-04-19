@@ -47,7 +47,6 @@ import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -257,7 +256,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			session = beginReadOnlyTransaction();
 			LOGGER.trace("Selecting account shadow owner for account {}.", new Object[] { accountOid });
 			Query query = session.createQuery("select user from " + ClassMapper.getHQLType(UserType.class)
-					+ " as user left join user.accountRefs as ref where ref.targetOid = :oid");
+					+ " as user left join user.linkRef as ref where ref.targetOid = :oid");
 			query.setString("oid", accountOid);
 
 			List<RUser> users = query.list();
@@ -645,19 +644,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (query != null && query.getFilter() != null) {
 				QueryInterpreter interpreter = new QueryInterpreter();
 				criteria = interpreter.interpret(query, type, getPrismContext(), session);
-
-                com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
-                        new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, type, getPrismContext());
-                Criteria criteria1 = oldInterpreter.interpret(query.getFilter());
-
-                String s0 = HibernateToSqlTranslator.toSql(criteria);
-                String s1 = HibernateToSqlTranslator.toSql(criteria1);
-                boolean equals = StringUtils.equals(s0, s1);
-                LOGGER.info(">>> EQUALS: {} NEW:\n{}\nOLD:\n{}", new Object[]{equals, s0, s1});
-                LOGGER.info(">>>>>> EQUALS: {} NEW: {} OLD: {}", new Object[]{equals, s0, s1});
-
-//                criteria1.list();
-//                criteria = criteria1;
 			} else {
 				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			}
@@ -729,19 +715,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (query != null && query.getFilter() != null) {
                 QueryInterpreter interpreter = new QueryInterpreter();
                 criteria = interpreter.interpret(query, type, getPrismContext(), session);
-
-                com.evolveum.midpoint.repo.sql.query.QueryInterpreter oldInterpreter =
-                        new com.evolveum.midpoint.repo.sql.query.QueryInterpreter(session, type, getPrismContext());
-                Criteria criteria1 = oldInterpreter.interpret(query.getFilter());
-
-                String s0 = HibernateToSqlTranslator.toSql(criteria);
-                String s1 = HibernateToSqlTranslator.toSql(criteria1);
-                boolean equals = StringUtils.equals(s0, s1);
-                LOGGER.info(">>> EQUALS: {} NEW:\n{}\nOLD:\n{}", new Object[]{equals, s0, s1});
-                LOGGER.info(">>>>>> EQUALS: {} NEW: {} OLD: {}", new Object[]{equals, s0, s1});
-
-//                criteria1.list();
-//                criteria = criteria1;
 			} else {
 				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			}

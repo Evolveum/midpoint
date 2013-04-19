@@ -26,22 +26,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
-import com.evolveum.midpoint.repo.sql.query.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query2.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Where;
+
 import javax.persistence.*;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -60,53 +52,29 @@ import java.util.Set;
                 @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_norm"),
                 @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm")})
 @ForeignKey(name = "fk_user")
-public class RUser extends RObject {
+public class RUser extends RFocus {
 
-    @QueryAttribute(polyString = true)
     private RPolyString name;
-    @QueryAttribute(polyString = true)
     private RPolyString fullName;
-    @QueryAttribute(polyString = true)
     private RPolyString givenName;
-    @QueryAttribute(polyString = true)
     private RPolyString familyName;
-    @QueryAttribute(polyString = true)
     private RPolyString additionalName;
-    @QueryAttribute(polyString = true)
     private RPolyString honorificPrefix;
-    @QueryAttribute(polyString = true)
     private RPolyString honorificSuffix;
-    @QueryAttribute
     private String emailAddress;
-    @QueryAttribute
     private String telephoneNumber;
-    @QueryAttribute
     private String employeeNumber;
-    @QueryAttribute(multiValue = true)
     private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
-    @QueryAttribute
     private RPolyString locality;
-    @QueryEntity(embedded = true)
     private RCredentials credentials;
-    @QueryEntity(embedded = true)
     private RActivation activation;
-    @QueryAttribute
     private String costCenter;
-    @QueryAttribute
     private String locale;
-    @QueryAttribute
     private String timezone;
-    @QueryAttribute(polyString = true)
     private RPolyString title;
-    @QueryAttribute(polyString = true)
     private RPolyString nickName;
-    @QueryAttribute
     private String preferredLanguage;
-    @QueryAttribute(name = "accountRef", multiValue = true, reference = true)
-    private Set<RObjectReference> accountRefs;
-    private Set<RAssignment> assignments;
-    @QueryAttribute(multiValue = true, polyString = true)
     private Set<RPolyString> organization;
 
     @ElementCollection
@@ -118,29 +86,6 @@ public class RUser extends RObject {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RPolyString> getOrganization() {
         return organization;
-    }
-
-    @JaxbName(localPart = "accountRef")
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RAccountRef.DISCRIMINATOR)
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getAccountRefs() {
-        if (accountRefs == null) {
-            accountRefs = new HashSet<RObjectReference>();
-        }
-        return accountRefs;
-    }
-
-    @JaxbName(localPart = "assignment")
-    @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAssignment> getAssignments() {
-        if (assignments == null) {
-            assignments = new HashSet<RAssignment>();
-        }
-        return assignments;
     }
 
     @Embedded
@@ -338,14 +283,6 @@ public class RUser extends RObject {
         this.telephoneNumber = telephoneNumber;
     }
 
-    public void setAssignments(Set<RAssignment> assignments) {
-        this.assignments = assignments;
-    }
-
-    public void setAccountRefs(Set<RObjectReference> accountRefs) {
-        this.accountRefs = accountRefs;
-    }
-
     public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
     }
@@ -380,8 +317,6 @@ public class RUser extends RObject {
             return false;
         if (telephoneNumber != null ? !telephoneNumber.equals(rUser.telephoneNumber) : rUser.telephoneNumber != null)
             return false;
-        if (assignments != null ? !assignments.equals(rUser.assignments) : rUser.assignments != null) return false;
-        if (accountRefs != null ? !accountRefs.equals(rUser.accountRefs) : rUser.accountRefs != null) return false;
         if (locale != null ? !locale.equals(rUser.locale) : rUser.locale != null) return false;
         if (title != null ? !title.equals(rUser.title) : rUser.title != null) return false;
         if (nickName != null ? !nickName.equals(rUser.nickName) : rUser.nickName != null) return false;
@@ -419,7 +354,7 @@ public class RUser extends RObject {
 
     public static void copyFromJAXB(UserType jaxb, RUser repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+        RFocus.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
@@ -456,24 +391,11 @@ public class RUser extends RObject {
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
         repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
-
-        repo.getAccountRefs().addAll(RUtil.safeListReferenceToSet(jaxb.getLinkRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
-
-        ContainerIdGenerator gen = new ContainerIdGenerator();
-        for (AssignmentType assignment : jaxb.getAssignment()) {
-            RAssignment rAssignment = new RAssignment();
-            rAssignment.setOwner(repo);
-
-            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
-            rAssignment.setId((Long) gen.generate(null, rAssignment));
-
-            repo.getAssignments().add(rAssignment);
-        }
     }
 
     public static void copyToJAXB(RUser repo, UserType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RFocus.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
@@ -516,15 +438,6 @@ public class RUser extends RObject {
         units = RUtil.safeSetPolyToList(repo.getOrganization());
         if (!units.isEmpty()) {
             jaxb.getOrganization().addAll(units);
-        }
-
-        List accRefs = RUtil.safeSetReferencesToList(repo.getAccountRefs(), prismContext);
-        if (!accRefs.isEmpty()) {
-            jaxb.getLinkRef().addAll(accRefs);
-        }
-
-        for (RAssignment rAssignment : repo.getAssignments()) {
-            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
         }
     }
 

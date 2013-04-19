@@ -28,8 +28,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationTypeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
-import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,31 +60,21 @@ import java.util.Set;
 public class RResourceObjectShadow extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadow.class);
-    @QueryAttribute(polyString = true)
     private RPolyString name;
-    @QueryAttribute
     private QName objectClass;
     private RActivation activation;
     private ROperationResult result;
-    @QueryAttribute(reference = true)
     private REmbeddedReference resourceRef;
     private String objectChange;
     private Integer attemptNumber;
-    @QueryAttribute
     private Boolean dead;
-    @QueryAttribute(enumerated = true)
     private RFailedOperationTypeType failedOperationType;
-    @QueryAttribute
     private String intent;
-    @QueryAttribute(enumerated = true)
     private RSynchronizationSituation synchronizationSituation;
     private Set<RSynchronizationSituationDescription> synchronizationSituationDescription;
     //attributes
-    @QueryEntity(any = true)
     private RAnyContainer attributes;
-    @QueryAttribute
     private XMLGregorianCalendar synchronizationTimestamp;
-    @QueryAttribute(enumerated = true)
     private RShadowKind kind;
 
     @Enumerated(EnumType.ORDINAL)

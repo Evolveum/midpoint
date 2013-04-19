@@ -26,7 +26,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstruction
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -61,11 +59,9 @@ public class RAssignment extends RContainer implements ROwnable {
     private String ownerOid;
     private Long ownerId;
     //extension
-    @QueryEntity(any = true)
     private RAnyContainer extension;
     //assignment fields
     private String description;
-    @QueryEntity(embedded = true)
     private RActivation activation;
     private String accountConstruction;
     private REmbeddedReference targetRef;

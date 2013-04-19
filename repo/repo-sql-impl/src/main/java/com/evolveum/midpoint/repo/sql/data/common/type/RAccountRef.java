@@ -29,6 +29,7 @@ import javax.persistence.Entity;
 /**
  * @author lazyman
  */
+//todo rename to link ref probably
 @Entity
 @DiscriminatorValue(RAccountRef.DISCRIMINATOR)
 public class RAccountRef extends RObjectReference {

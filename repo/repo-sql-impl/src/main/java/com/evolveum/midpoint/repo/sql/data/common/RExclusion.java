@@ -24,7 +24,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExclusionPolicyType;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
@@ -48,7 +47,6 @@ public class RExclusion extends RContainer implements ROwnable {
     private Long ownerId;
     //exclusion
     private String description;
-    @QueryAttribute(reference = true)
     private REmbeddedReference targetRef;
     private RExclusionPolicyType policy;
 

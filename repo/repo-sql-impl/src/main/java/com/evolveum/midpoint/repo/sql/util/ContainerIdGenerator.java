@@ -78,35 +78,25 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         }
 
         RContainer parent = ((ROwnable) container).getContainerOwner();
-        if (parent instanceof RUser) {
-            RUser user = (RUser) parent;
-
-            Long id = getNextId(user.getAssignments());
-            LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
-            return id;
-        } else if (parent instanceof RAbstractRole) {
-            RAbstractRole role = (RAbstractRole) parent;
-
-            Set<RContainer> containers = new HashSet<RContainer>();
-            if (role.getAssignments() != null) {
-                containers.addAll(role.getAssignments());
-            }
-            if (role.getExclusions() != null) {
-                containers.addAll(role.getExclusions());
-            }
-            if (role.getAuthorizations() != null) {
-                containers.addAll(role.getAuthorizations());
-            }
-
-            Long id = getNextId(containers);
-            LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
-            return id;
-        } else {
+        if (!(parent instanceof RFocus)) {
             return null;
-//                throw new HibernateException("Couldn't create id for '"
-//                        + container.getClass().getSimpleName() + "' assignment have unknown parent '"
-//                        + parent + "'.");
         }
+
+        Set<RContainer> containers = new HashSet<RContainer>();
+        if (parent instanceof RFocus) {
+            containers.addAll(((RFocus) parent).getAssignment());
+        }
+
+        if (parent instanceof RAbstractRole) {
+            RAbstractRole role = (RAbstractRole) parent;
+            containers.addAll(role.getAssignment());
+            containers.addAll(role.getExclusions());
+            containers.addAll(role.getAuthorizations());
+        }
+
+        Long id = getNextId(containers);
+        LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
+        return id;
     }
 
     private String toString(Object object) {

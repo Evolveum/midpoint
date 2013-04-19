@@ -25,12 +25,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
-import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Embedded;
@@ -43,9 +40,7 @@ import javax.persistence.Entity;
 @ForeignKey(name = "fk_account_shadow")
 public class RAccountShadow extends RResourceObjectShadow {
 
-    @QueryAttribute
     private String accountType;
-    @QueryEntity(embedded = true)
     private RCredentials credentials;
 
     public String getAccountType() {
@@ -100,7 +95,7 @@ public class RAccountShadow extends RResourceObjectShadow {
     }
 
     public static void copyFromJAXB(AccountShadowType jaxb, RAccountShadow repo,
-            PrismContext prismContext) throws DtoTranslationException {
+                                    PrismContext prismContext) throws DtoTranslationException {
         RResourceObjectShadow.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setAccountType(jaxb.getAccountType());

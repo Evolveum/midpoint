@@ -24,7 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.query.QueryRegistry;
+import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
@@ -137,7 +137,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         try {
-            QueryRegistry.getInstance();
+            QueryDefinitionRegistry.getInstance();
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException("Couldn't initialize query registry, reason: "
                     + ex.getMessage(), ex);

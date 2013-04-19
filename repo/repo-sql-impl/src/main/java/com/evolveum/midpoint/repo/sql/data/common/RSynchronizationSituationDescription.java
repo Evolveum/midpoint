@@ -2,7 +2,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.id.RSynchronizationSituationDescriptionId;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import org.apache.commons.lang.Validate;
@@ -24,7 +23,6 @@ public class RSynchronizationSituationDescription implements Serializable {
     private Long shadowId;
     private String checksum;
     //fields
-    @QueryAttribute(enumerated = true)
     private RSynchronizationSituation situation;
     private XMLGregorianCalendar timestampValue;
     private String chanel;

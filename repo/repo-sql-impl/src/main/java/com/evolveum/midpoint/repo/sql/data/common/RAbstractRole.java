@@ -21,12 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -49,11 +47,10 @@ import java.util.Set;
 @ForeignKey(name = "fk_abstract_role")
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
         indexes = {@Index(name = "iRequestable", columnNames = "requestable")})
-public abstract class RAbstractRole extends RObject {
+public abstract class RAbstractRole extends RFocus {
 
-    private Set<RAssignment> assignments;
+    private Set<RAssignment> inducement;
     private Set<RExclusion> exclusions;
-    @QueryAttribute
     private Boolean requestable;
     private Set<RObjectReference> approverRefs;
     private String approvalProcess;
@@ -105,11 +102,11 @@ public abstract class RAbstractRole extends RObject {
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAssignment> getAssignments() {
-        if (assignments == null) {
-            assignments = new HashSet<RAssignment>();
+    public Set<RAssignment> getInducement() {
+        if (inducement == null) {
+            inducement = new HashSet<RAssignment>();
         }
-        return assignments;
+        return inducement;
     }
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
@@ -141,8 +138,8 @@ public abstract class RAbstractRole extends RObject {
         this.exclusions = exclusions;
     }
 
-    public void setAssignments(Set<RAssignment> assignments) {
-        this.assignments = assignments;
+    public void setInducement(Set<RAssignment> inducement) {
+        this.inducement = inducement;
     }
 
     public void setApprovalProcess(String approvalProcess) {
@@ -180,7 +177,7 @@ public abstract class RAbstractRole extends RObject {
 
         RAbstractRole that = (RAbstractRole) o;
 
-        if (assignments != null ? !assignments.equals(that.assignments) : that.assignments != null)
+        if (inducement != null ? !inducement.equals(that.inducement) : that.inducement != null)
             return false;
         if (exclusions != null ? !exclusions.equals(that.exclusions) : that.exclusions != null)
             return false;
@@ -215,12 +212,12 @@ public abstract class RAbstractRole extends RObject {
 
     public static void copyToJAXB(RAbstractRole repo, AbstractRoleType jaxb, PrismContext prismContext)
             throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RFocus.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setRequestable(repo.getRequestable());
-        if (repo.getAssignments() != null) {
-            for (RAssignment rAssignment : repo.getAssignments()) {
-                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+        if (repo.getInducement() != null) {
+            for (RAssignment inducement : repo.getInducement()) {
+                jaxb.getInducement().add(inducement.toJAXB(prismContext));
             }
         }
         if (repo.getExclusions() != null) {
@@ -262,17 +259,17 @@ public abstract class RAbstractRole extends RObject {
 
     public static void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole repo, PrismContext prismContext)
             throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+        RFocus.copyFromJAXB(jaxb, repo, prismContext);
         repo.setRequestable(jaxb.isRequestable());
 
         ContainerIdGenerator gen = new ContainerIdGenerator();
-        for (AssignmentType assignment : jaxb.getAssignment()) {
-            RAssignment rAssignment = new RAssignment(repo);
+        for (AssignmentType inducement : jaxb.getInducement()) {
+            RAssignment rInducement = new RAssignment(repo);
 
-            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
-            gen.generate(null, rAssignment);
+            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext);
+            gen.generate(null, rInducement);
 
-            repo.getAssignments().add(rAssignment);
+            repo.getInducement().add(rInducement);
         }
 
         for (ExclusionType exclusion : jaxb.getExclusion()) {

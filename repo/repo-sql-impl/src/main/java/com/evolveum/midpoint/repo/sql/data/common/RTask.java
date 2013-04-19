@@ -26,13 +26,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UriStack;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -40,7 +38,6 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -53,14 +50,10 @@ import java.util.Set;
         indexes = {@Index(name = "iTaskName", columnNames = "name_norm")})
 public class RTask extends RObject {
 
-    @QueryAttribute(polyString = true)
     private RPolyString name;
-    @QueryAttribute
     private String taskIdentifier;
-    @QueryAttribute(enumerated = true)
     private RTaskExecutionStatusType executionStatus;
     private String node;
-    @QueryAttribute
     private String category;
     private String handlerUri;
     private String otherHandlersUriStack;
@@ -74,15 +67,12 @@ public class RTask extends RObject {
 
     private REmbeddedReference objectRef;
     private REmbeddedReference ownerRef;
-    @QueryAttribute
     private String parent;
 
     private ROperationResultStatusType resultStatus;
     private String canRunOnNode;
     private RThreadStopActionType threadStopAction;
-    @QueryAttribute(multiValue = true)
     private Set<String> dependent;
-    @QueryAttribute(enumerated = true)
     private RTaskWaitingReason waitingReason;
 
     @ElementCollection
@@ -327,7 +317,8 @@ public class RTask extends RObject {
         if (category != null ? !category.equals(rTask.category) : rTask.category != null) return false;
         if (parent != null ? !parent.equals(rTask.parent) : rTask.parent != null) return false;
         if (dependent != null ? !dependent.equals(rTask.dependent) : rTask.dependent != null) return false;
-        if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null) return false;
+        if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null)
+            return false;
 
         return true;
     }

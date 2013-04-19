@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,20 +50,13 @@ import java.util.Set;
 public class RConnector extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
-    @QueryAttribute(polyString = true)
     private RPolyString name;
-    @QueryAttribute
     private String framework;
-    @QueryAttribute(reference = true)
     private REmbeddedReference connectorHostRef;
-    @QueryAttribute
     private String connectorType;
-    @QueryAttribute
     private String connectorVersion;
-    @QueryAttribute
     private String connectorBundle;
     private Set<String> targetSystemType;
-    @QueryAttribute
     private String namespace;
     private String xmlSchema;
 
