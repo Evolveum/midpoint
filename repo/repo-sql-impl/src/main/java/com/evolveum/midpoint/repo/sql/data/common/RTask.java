@@ -52,7 +52,7 @@ public class RTask extends RObject {
 
     private RPolyString name;
     private String taskIdentifier;
-    private RTaskExecutionStatusType executionStatus;
+    private RTaskExecutionStatus executionStatus;
     private String node;
     private String category;
     private String handlerUri;
@@ -61,17 +61,17 @@ public class RTask extends RObject {
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private Long progress;
-    private RTaskRecurrenceType recurrence;
-    private RTaskBindingType binding;
+    private RTaskRecurrence recurrence;
+    private RTaskBinding binding;
     private String schedule;
 
     private REmbeddedReference objectRef;
     private REmbeddedReference ownerRef;
     private String parent;
 
-    private ROperationResultStatusType resultStatus;
+    private ROperationResultStatus resultStatus;
     private String canRunOnNode;
-    private RThreadStopActionType threadStopAction;
+    private RThreadStopAction threadStopAction;
     private Set<String> dependent;
     private RTaskWaitingReason waitingReason;
 
@@ -98,7 +98,7 @@ public class RTask extends RObject {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
-    public ROperationResultStatusType getResultStatus() {
+    public ROperationResultStatus getResultStatus() {
         return resultStatus;
     }
 
@@ -108,7 +108,7 @@ public class RTask extends RObject {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
-    public RThreadStopActionType getThreadStopAction() {
+    public RThreadStopAction getThreadStopAction() {
         return threadStopAction;
     }
 
@@ -141,17 +141,17 @@ public class RTask extends RObject {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
-    public RTaskBindingType getBinding() {
+    public RTaskBinding getBinding() {
         return binding;
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public RTaskExecutionStatusType getExecutionStatus() {
+    public RTaskExecutionStatus getExecutionStatus() {
         return executionStatus;
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public RTaskRecurrenceType getRecurrence() {
+    public RTaskRecurrence getRecurrence() {
         return recurrence;
     }
 
@@ -174,11 +174,11 @@ public class RTask extends RObject {
         this.canRunOnNode = canRunOnNode;
     }
 
-    public void setResultStatus(ROperationResultStatusType resultStatus) {
+    public void setResultStatus(ROperationResultStatus resultStatus) {
         this.resultStatus = resultStatus;
     }
 
-    public void setThreadStopAction(RThreadStopActionType threadStopAction) {
+    public void setThreadStopAction(RThreadStopAction threadStopAction) {
         this.threadStopAction = threadStopAction;
     }
 
@@ -227,11 +227,11 @@ public class RTask extends RObject {
         return taskIdentifier;
     }
 
-    public void setBinding(RTaskBindingType binding) {
+    public void setBinding(RTaskBinding binding) {
         this.binding = binding;
     }
 
-    public void setExecutionStatus(RTaskExecutionStatusType executionStatus) {
+    public void setExecutionStatus(RTaskExecutionStatus executionStatus) {
         this.executionStatus = executionStatus;
     }
 
@@ -255,7 +255,7 @@ public class RTask extends RObject {
         this.progress = progress;
     }
 
-    public void setRecurrence(RTaskRecurrenceType recurrence) {
+    public void setRecurrence(RTaskRecurrence recurrence) {
         this.recurrence = recurrence;
     }
 
@@ -413,17 +413,17 @@ public class RTask extends RObject {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
-        repo.setExecutionStatus(RTaskExecutionStatusType.toRepoType(jaxb.getExecutionStatus()));
+        repo.setExecutionStatus(RTaskExecutionStatus.toRepoType(jaxb.getExecutionStatus()));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setLastRunFinishTimestamp(jaxb.getLastRunFinishTimestamp());
         repo.setLastRunStartTimestamp(jaxb.getLastRunStartTimestamp());
         repo.setNode(jaxb.getNode());
         repo.setProgress(jaxb.getProgress());
-        repo.setBinding(RTaskBindingType.toRepoType(jaxb.getBinding()));
-        repo.setRecurrence(RTaskRecurrenceType.toRepoType(jaxb.getRecurrence()));
-        repo.setResultStatus(ROperationResultStatusType.toRepoType(jaxb.getResultStatus()));
+        repo.setBinding(RTaskBinding.toRepoType(jaxb.getBinding()));
+        repo.setRecurrence(RTaskRecurrence.toRepoType(jaxb.getRecurrence()));
+        repo.setResultStatus(ROperationResultStatus.toRepoType(jaxb.getResultStatus()));
         repo.setCanRunOnNode(jaxb.getCanRunOnNode());
-        repo.setThreadStopAction(RThreadStopActionType.toRepoType(jaxb.getThreadStopAction()));
+        repo.setThreadStopAction(RThreadStopAction.toRepoType(jaxb.getThreadStopAction()));
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
 

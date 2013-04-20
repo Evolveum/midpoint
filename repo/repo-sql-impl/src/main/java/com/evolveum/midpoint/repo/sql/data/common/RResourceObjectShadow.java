@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationTypeType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -68,7 +68,7 @@ public class RResourceObjectShadow extends RObject {
     private String objectChange;
     private Integer attemptNumber;
     private Boolean dead;
-    private RFailedOperationTypeType failedOperationType;
+    private RFailedOperationType failedOperationType;
     private String intent;
     private RSynchronizationSituation synchronizationSituation;
     private Set<RSynchronizationSituationDescription> synchronizationSituationDescription;
@@ -127,7 +127,7 @@ public class RResourceObjectShadow extends RObject {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
-    public RFailedOperationTypeType getFailedOperationType() {
+    public RFailedOperationType getFailedOperationType() {
         return failedOperationType;
     }
 
@@ -178,7 +178,7 @@ public class RResourceObjectShadow extends RObject {
         this.attemptNumber = attemptNumber;
     }
 
-    public void setFailedOperationType(RFailedOperationTypeType failedOperationType) {
+    public void setFailedOperationType(RFailedOperationType failedOperationType) {
         this.failedOperationType = failedOperationType;
     }
 
@@ -363,7 +363,7 @@ public class RResourceObjectShadow extends RObject {
 
         repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setDead(jaxb.isDead());
-        repo.setFailedOperationType(RFailedOperationTypeType.toRepoType(jaxb.getFailedOperationType()));
+        repo.setFailedOperationType(RFailedOperationType.toRepoType(jaxb.getFailedOperationType()));
 
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +

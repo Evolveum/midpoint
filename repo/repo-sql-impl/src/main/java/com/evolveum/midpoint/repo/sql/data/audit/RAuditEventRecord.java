@@ -24,7 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -63,7 +63,7 @@ public class RAuditEventRecord implements Serializable {
     //collection of object deltas
     private Set<RObjectDeltaOperation> deltas;
     private String channel;
-    private ROperationResultStatusType outcome;
+    private ROperationResultStatus outcome;
 
     public String getChannel() {
         return channel;
@@ -110,7 +110,7 @@ public class RAuditEventRecord implements Serializable {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public ROperationResultStatusType getOutcome() {
+    public ROperationResultStatus getOutcome() {
         return outcome;
     }
 
@@ -175,7 +175,7 @@ public class RAuditEventRecord implements Serializable {
         this.initiator = initiator;
     }
 
-    public void setOutcome(ROperationResultStatusType outcome) {
+    public void setOutcome(ROperationResultStatus outcome) {
         this.outcome = outcome;
     }
 
@@ -266,7 +266,7 @@ public class RAuditEventRecord implements Serializable {
         repo.setEventIdentifier(record.getEventIdentifier());
         repo.setHostIdentifier(record.getHostIdentifier());
         if (record.getOutcome() != null) {
-            repo.setOutcome(ROperationResultStatusType.toRepoType(record.getOutcome().createStatusType()));
+            repo.setOutcome(ROperationResultStatus.toRepoType(record.getOutcome().createStatusType()));
         }
         repo.setTaskIdentifier(record.getTaskIdentifier());
         repo.setTaskOID(record.getTaskOID());

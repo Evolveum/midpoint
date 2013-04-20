@@ -21,39 +21,38 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionPolicyType;
 
 /**
  * @author lazyman
  */
-public enum RTaskExecutionStatusType {
+public enum RExclusionPolicy {
 
-    RUNNABLE(TaskExecutionStatusType.RUNNABLE),
-    WAITING(TaskExecutionStatusType.WAITING),
-    SUSPENDED(TaskExecutionStatusType.SUSPENDED),
-    CLOSED(TaskExecutionStatusType.CLOSED);
+    ENFORCE(ExclusionPolicyType.ENFORCE),
+    APPROVE(ExclusionPolicyType.APPROVE),
+    REPORT(ExclusionPolicyType.REPORT);
 
-    private TaskExecutionStatusType status;
+    private ExclusionPolicyType policy;
 
-    private RTaskExecutionStatusType(TaskExecutionStatusType status) {
-        this.status = status;
+    private RExclusionPolicy(ExclusionPolicyType policy) {
+        this.policy = policy;
     }
 
-    public TaskExecutionStatusType getStatus() {
-        return status;
+    public ExclusionPolicyType getPolicy() {
+        return policy;
     }
 
-    public static RTaskExecutionStatusType toRepoType(TaskExecutionStatusType status) {
-        if (status == null) {
+    public static RExclusionPolicy toRepoType(ExclusionPolicyType policy) {
+        if (policy == null) {
             return null;
         }
 
-        for (RTaskExecutionStatusType repo : RTaskExecutionStatusType.values()) {
-            if (status.equals(repo.getStatus())) {
+        for (RExclusionPolicy repo : RExclusionPolicy.values()) {
+            if (policy.equals(repo.getPolicy())) {
                 return repo;
             }
         }
 
-        throw new IllegalArgumentException("Unknown task execution status type " + status);
+        throw new IllegalArgumentException("Unknown exclusion policy type " + policy);
     }
 }

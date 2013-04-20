@@ -21,37 +21,39 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
 /**
  * @author lazyman
  */
-public enum RTaskBindingType {
+public enum RThreadStopAction {
 
-    LOOSE(TaskBindingType.LOOSE),
-    TIGHT(TaskBindingType.TIGHT);
+    RESTART(ThreadStopActionType.RESTART),
+    RESCHEDULE(ThreadStopActionType.RESCHEDULE),
+    SUSPEND(ThreadStopActionType.SUSPEND),
+    CLOSE(ThreadStopActionType.CLOSE);
 
-    private TaskBindingType binding;
+    private ThreadStopActionType action;
 
-    private RTaskBindingType(TaskBindingType binding) {
-        this.binding = binding;
+    private RThreadStopAction(ThreadStopActionType action) {
+        this.action = action;
     }
 
-    public TaskBindingType getBinding() {
-        return binding;
+    public ThreadStopActionType getAction() {
+        return action;
     }
 
-    public static RTaskBindingType toRepoType(TaskBindingType binding) {
-        if (binding == null) {
+    public static RThreadStopAction toRepoType(ThreadStopActionType policy) {
+        if (policy == null) {
             return null;
         }
 
-        for (RTaskBindingType repo : RTaskBindingType.values()) {
-            if (binding.equals(repo.getBinding())) {
+        for (RThreadStopAction repo : RThreadStopAction.values()) {
+            if (policy.equals(repo.getAction())) {
                 return repo;
             }
         }
 
-        throw new IllegalArgumentException("Unknown task binding type " + binding);
+        throw new IllegalArgumentException("Unknown thread stop action type " + policy);
     }
 }

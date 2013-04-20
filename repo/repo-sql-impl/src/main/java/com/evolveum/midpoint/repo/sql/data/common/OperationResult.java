@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 
 import java.io.Serializable;
 
@@ -37,7 +37,7 @@ public interface OperationResult extends Serializable {
 
     String getPartialResults();
 
-    ROperationResultStatusType getStatus();
+    ROperationResultStatus getStatus();
 
     Long getToken();
 
@@ -55,7 +55,7 @@ public interface OperationResult extends Serializable {
 
     void setPartialResults(String partialResults);
 
-    void setStatus(ROperationResultStatusType status);
+    void setStatus(ROperationResultStatus status);
 
     void setToken(Long token);
 

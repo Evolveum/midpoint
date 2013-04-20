@@ -21,39 +21,39 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 
 /**
  * @author lazyman
  */
-public enum RThreadStopActionType {
+public enum RTaskExecutionStatus {
 
-    RESTART(ThreadStopActionType.RESTART),
-    RESCHEDULE(ThreadStopActionType.RESCHEDULE),
-    SUSPEND(ThreadStopActionType.SUSPEND),
-    CLOSE(ThreadStopActionType.CLOSE);
+    RUNNABLE(TaskExecutionStatusType.RUNNABLE),
+    WAITING(TaskExecutionStatusType.WAITING),
+    SUSPENDED(TaskExecutionStatusType.SUSPENDED),
+    CLOSED(TaskExecutionStatusType.CLOSED);
 
-    private ThreadStopActionType action;
+    private TaskExecutionStatusType status;
 
-    private RThreadStopActionType(ThreadStopActionType action) {
-        this.action = action;
+    private RTaskExecutionStatus(TaskExecutionStatusType status) {
+        this.status = status;
     }
 
-    public ThreadStopActionType getAction() {
-        return action;
+    public TaskExecutionStatusType getStatus() {
+        return status;
     }
 
-    public static RThreadStopActionType toRepoType(ThreadStopActionType policy) {
-        if (policy == null) {
+    public static RTaskExecutionStatus toRepoType(TaskExecutionStatusType status) {
+        if (status == null) {
             return null;
         }
 
-        for (RThreadStopActionType repo : RThreadStopActionType.values()) {
-            if (policy.equals(repo.getAction())) {
+        for (RTaskExecutionStatus repo : RTaskExecutionStatus.values()) {
+            if (status.equals(repo.getStatus())) {
                 return repo;
             }
         }
 
-        throw new IllegalArgumentException("Unknown thread stop action type " + policy);
+        throw new IllegalArgumentException("Unknown task execution status type " + status);
     }
 }

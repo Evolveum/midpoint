@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RExclusionPolicyType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RExclusionPolicy;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
@@ -48,7 +48,7 @@ public class RExclusion extends RContainer implements ROwnable {
     //exclusion
     private String description;
     private REmbeddedReference targetRef;
-    private RExclusionPolicyType policy;
+    private RExclusionPolicy policy;
 
     public RExclusion() {
         this(null);
@@ -92,7 +92,7 @@ public class RExclusion extends RContainer implements ROwnable {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public RExclusionPolicyType getPolicy() {
+    public RExclusionPolicy getPolicy() {
         return policy;
     }
 
@@ -105,7 +105,7 @@ public class RExclusion extends RContainer implements ROwnable {
         this.description = description;
     }
 
-    public void setPolicy(RExclusionPolicyType policy) {
+    public void setPolicy(RExclusionPolicy policy) {
         this.policy = policy;
     }
 
@@ -179,7 +179,7 @@ public class RExclusion extends RContainer implements ROwnable {
         repo.setId(RUtil.getLongContainerIdFromString(jaxb.getId()));
 
         repo.setDescription(jaxb.getDescription());
-        repo.setPolicy(RExclusionPolicyType.toRepoType(jaxb.getPolicy()));
+        repo.setPolicy(RExclusionPolicy.toRepoType(jaxb.getPolicy()));
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
     }
 

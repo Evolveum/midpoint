@@ -21,38 +21,38 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 
 /**
  * @author lazyman
  */
-public enum RExclusionPolicyType {
+public enum RFailedOperationType {
 
-    ENFORCE(ExclusionPolicyType.ENFORCE),
-    APPROVE(ExclusionPolicyType.APPROVE),
-    REPORT(ExclusionPolicyType.REPORT);
+    DELETE(FailedOperationTypeType.DELETE),
+    ADD(FailedOperationTypeType.ADD),
+    MODIFY(FailedOperationTypeType.MODIFY);
 
-    private ExclusionPolicyType policy;
+    private FailedOperationTypeType operation;
 
-    private RExclusionPolicyType(ExclusionPolicyType policy) {
-        this.policy = policy;
+    private RFailedOperationType(FailedOperationTypeType operation) {
+        this.operation = operation;
     }
 
-    public ExclusionPolicyType getPolicy() {
-        return policy;
+    public FailedOperationTypeType getOperation() {
+        return operation;
     }
 
-    public static RExclusionPolicyType toRepoType(ExclusionPolicyType policy) {
-        if (policy == null) {
+    public static RFailedOperationType toRepoType(FailedOperationTypeType operation) {
+        if (operation == null) {
             return null;
         }
 
-        for (RExclusionPolicyType repo : RExclusionPolicyType.values()) {
-            if (policy.equals(repo.getPolicy())) {
+        for (RFailedOperationType repo : RFailedOperationType.values()) {
+            if (operation.equals(repo.getOperation())) {
                 return repo;
             }
         }
 
-        throw new IllegalArgumentException("Unknown exclusion policy type " + policy);
+        throw new IllegalArgumentException("Unknown failed operation type " + operation);
     }
 }

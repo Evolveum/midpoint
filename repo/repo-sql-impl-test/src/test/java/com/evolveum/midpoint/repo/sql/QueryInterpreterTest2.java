@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
@@ -179,7 +179,7 @@ public class QueryInterpreterTest2 extends BaseSQLRepoTest {
     public void queryEnum() throws Exception {
         Session session = open();
         Criteria main = session.createCriteria(RTask.class, "t");
-        main.add(Restrictions.eq("executionStatus", RTaskExecutionStatusType.WAITING));
+        main.add(Restrictions.eq("executionStatus", RTaskExecutionStatus.WAITING));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 

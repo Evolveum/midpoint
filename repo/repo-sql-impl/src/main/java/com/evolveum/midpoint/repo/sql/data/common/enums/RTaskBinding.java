@@ -21,38 +21,37 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskBindingType;
 
 /**
  * @author lazyman
  */
-public enum RFailedOperationTypeType {
+public enum RTaskBinding {
 
-    DELETE(FailedOperationTypeType.DELETE),
-    ADD(FailedOperationTypeType.ADD),
-    MODIFY(FailedOperationTypeType.MODIFY);
+    LOOSE(TaskBindingType.LOOSE),
+    TIGHT(TaskBindingType.TIGHT);
 
-    private FailedOperationTypeType operation;
+    private TaskBindingType binding;
 
-    private RFailedOperationTypeType(FailedOperationTypeType operation) {
-        this.operation = operation;
+    private RTaskBinding(TaskBindingType binding) {
+        this.binding = binding;
     }
 
-    public FailedOperationTypeType getOperation() {
-        return operation;
+    public TaskBindingType getBinding() {
+        return binding;
     }
 
-    public static RFailedOperationTypeType toRepoType(FailedOperationTypeType operation) {
-        if (operation == null) {
+    public static RTaskBinding toRepoType(TaskBindingType binding) {
+        if (binding == null) {
             return null;
         }
 
-        for (RFailedOperationTypeType repo : RFailedOperationTypeType.values()) {
-            if (operation.equals(repo.getOperation())) {
+        for (RTaskBinding repo : RTaskBinding.values()) {
+            if (binding.equals(repo.getBinding())) {
                 return repo;
             }
         }
 
-        throw new IllegalArgumentException("Unknown failed operation type " + operation);
+        throw new IllegalArgumentException("Unknown task binding type " + binding);
     }
 }

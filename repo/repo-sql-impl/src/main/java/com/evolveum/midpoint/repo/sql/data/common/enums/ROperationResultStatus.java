@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStat
 /**
  * @author lazyman
  */
-public enum ROperationResultStatusType {
+public enum ROperationResultStatus {
 
     SUCCESS(OperationResultStatusType.SUCCESS),
     WARNING(OperationResultStatusType.WARNING),
@@ -39,7 +39,7 @@ public enum ROperationResultStatusType {
 
     private OperationResultStatusType status;
 
-    private ROperationResultStatusType(OperationResultStatusType status) {
+    private ROperationResultStatus(OperationResultStatusType status) {
         this.status = status;
     }
 
@@ -47,12 +47,12 @@ public enum ROperationResultStatusType {
         return status;
     }
 
-    public static ROperationResultStatusType toRepoType(OperationResultStatusType status) {
+    public static ROperationResultStatus toRepoType(OperationResultStatusType status) {
         if (status == null) {
             return null;
         }
 
-        for (ROperationResultStatusType repo : ROperationResultStatusType.values()) {
+        for (ROperationResultStatus repo : ROperationResultStatus.values()) {
             if (status.equals(repo.getStatus())) {
                 return repo;
             }

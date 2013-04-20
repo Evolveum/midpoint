@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -50,7 +50,7 @@ public class RObjectDeltaOperation implements OperationResult {
     private String checksum;
     //operation result
     private String operation;
-    private ROperationResultStatusType status;
+    private ROperationResultStatus status;
     private Long token;
     private String messageCode;
     private String message;
@@ -114,7 +114,7 @@ public class RObjectDeltaOperation implements OperationResult {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public ROperationResultStatusType getStatus() {
+    public ROperationResultStatus getStatus() {
         return status;
     }
 
@@ -175,7 +175,7 @@ public class RObjectDeltaOperation implements OperationResult {
         recomputeChecksum();
     }
 
-    public void setStatus(ROperationResultStatusType status) {
+    public void setStatus(ROperationResultStatus status) {
         this.status = status;
     }
 

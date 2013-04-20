@@ -26,14 +26,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskRecurrenceType;
 /**
  * @author lazyman
  */
-public enum RTaskRecurrenceType {
+public enum RTaskRecurrence {
 
     SINGLE(TaskRecurrenceType.SINGLE),
     RECURRING(TaskRecurrenceType.RECURRING);
 
     private TaskRecurrenceType recurrence;
 
-    private RTaskRecurrenceType(TaskRecurrenceType recurrence) {
+    private RTaskRecurrence(TaskRecurrenceType recurrence) {
         this.recurrence = recurrence;
     }
 
@@ -41,12 +41,12 @@ public enum RTaskRecurrenceType {
         return recurrence;
     }
 
-    public static RTaskRecurrenceType toRepoType(TaskRecurrenceType recurrence) {
+    public static RTaskRecurrence toRepoType(TaskRecurrenceType recurrence) {
         if (recurrence == null) {
             return null;
         }
 
-        for (RTaskRecurrenceType repo : RTaskRecurrenceType.values()) {
+        for (RTaskRecurrence repo : RTaskRecurrence.values()) {
             if (recurrence.equals(repo.getRecurrence())) {
                 return repo;
             }

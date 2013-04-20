@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -429,7 +429,7 @@ public final class RUtil {
         repo.setMessage(jaxb.getMessage());
         repo.setMessageCode(jaxb.getMessageCode());
         repo.setOperation(jaxb.getOperation());
-        repo.setStatus(ROperationResultStatusType.toRepoType(jaxb.getStatus()));
+        repo.setStatus(ROperationResultStatus.toRepoType(jaxb.getStatus()));
         repo.setToken(jaxb.getToken());
 
         try {
