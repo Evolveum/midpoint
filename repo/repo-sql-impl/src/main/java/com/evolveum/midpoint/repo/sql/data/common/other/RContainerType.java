@@ -30,7 +30,6 @@ public enum RContainerType {
 
     ASSIGNMENT(RAssignment.class),
     EXCLUSION(RExclusion.class),
-
     ACCOUNT(RAccountShadow.class),
     CONNECTOR(RConnector.class),
     CONNECTOR_HOST(RConnectorHost.class),
@@ -47,8 +46,8 @@ public enum RContainerType {
     NODE(RNode.class),
     ORG(ROrg.class),
     ABSTRACT_ROLE(RAbstractRole.class),
-
-    AUTHORIZATION(RAuthorization.class);
+    AUTHORIZATION(RAuthorization.class),
+    FOCUS(RFocus.class);
 
     private Class<? extends RContainer> clazz;
 

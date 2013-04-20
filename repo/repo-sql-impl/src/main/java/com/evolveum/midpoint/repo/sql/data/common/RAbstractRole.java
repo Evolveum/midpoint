@@ -51,23 +51,23 @@ import java.util.Set;
 public abstract class RAbstractRole extends RFocus {
 
     private Set<RAssignment> inducement;
-    private Set<RExclusion> exclusions;
+    private Set<RExclusion> exclusion;
     private Boolean requestable;
-    private Set<RObjectReference> approverRefs;
+    private Set<RObjectReference> approverRef;
     private String approvalProcess;
     private String approvalSchema;
     private String approvalExpression;
     private String automaticallyApproved;
-    private Set<RAuthorization> authorizations;
+    private Set<RAuthorization> authorization;
 
     @OneToMany(mappedBy = RAuthorization.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAuthorization> getAuthorizations() {
-        if (authorizations == null) {
-            authorizations = new HashSet<RAuthorization>();
+    public Set<RAuthorization> getAuthorization() {
+        if (authorization == null) {
+            authorization = new HashSet<RAuthorization>();
         }
-        return authorizations;
+        return authorization;
     }
 
     public Boolean getRequestable() {
@@ -114,30 +114,30 @@ public abstract class RAbstractRole extends RFocus {
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RExclusion> getExclusions() {
-        if (exclusions == null) {
-            exclusions = new HashSet<RExclusion>();
+    public Set<RExclusion> getExclusion() {
+        if (exclusion == null) {
+            exclusion = new HashSet<RExclusion>();
         }
-        return exclusions;
+        return exclusion;
     }
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RRoleApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getApproverRefs() {
-        if (approverRefs == null) {
-            approverRefs = new HashSet<RObjectReference>();
+    public Set<RObjectReference> getApproverRef() {
+        if (approverRef == null) {
+            approverRef = new HashSet<RObjectReference>();
         }
-        return approverRefs;
+        return approverRef;
     }
 
-    public void setApproverRefs(Set<RObjectReference> approverRefs) {
-        this.approverRefs = approverRefs;
+    public void setApproverRef(Set<RObjectReference> approverRef) {
+        this.approverRef = approverRef;
     }
 
-    public void setExclusions(Set<RExclusion> exclusions) {
-        this.exclusions = exclusions;
+    public void setExclusion(Set<RExclusion> exclusion) {
+        this.exclusion = exclusion;
     }
 
     public void setInducement(Set<RAssignment> inducement) {
@@ -164,8 +164,8 @@ public abstract class RAbstractRole extends RFocus {
         this.requestable = requestable;
     }
 
-    public void setAuthorizations(Set<RAuthorization> authorizations) {
-        this.authorizations = authorizations;
+    public void setAuthorization(Set<RAuthorization> authorization) {
+        this.authorization = authorization;
     }
 
     @Override
@@ -181,9 +181,9 @@ public abstract class RAbstractRole extends RFocus {
 
         if (inducement != null ? !inducement.equals(that.inducement) : that.inducement != null)
             return false;
-        if (exclusions != null ? !exclusions.equals(that.exclusions) : that.exclusions != null)
+        if (exclusion != null ? !exclusion.equals(that.exclusion) : that.exclusion != null)
             return false;
-        if (approverRefs != null ? !approverRefs.equals(that.approverRefs) : that.approverRefs != null)
+        if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null)
             return false;
         if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null)
             return false;
@@ -195,7 +195,7 @@ public abstract class RAbstractRole extends RFocus {
             return false;
         if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null)
             return false;
-        if (authorizations != null ? !authorizations.equals(that.authorizations) : that.authorizations != null)
+        if (authorization != null ? !authorization.equals(that.authorization) : that.authorization != null)
             return false;
 
         return true;
@@ -222,19 +222,19 @@ public abstract class RAbstractRole extends RFocus {
                 jaxb.getInducement().add(inducement.toJAXB(prismContext));
             }
         }
-        if (repo.getExclusions() != null) {
-            for (RExclusion rExclusion : repo.getExclusions()) {
+        if (repo.getExclusion() != null) {
+            for (RExclusion rExclusion : repo.getExclusion()) {
                 jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
             }
         }
-        if (repo.getAuthorizations() != null) {
-            for (RAuthorization rAuth : repo.getAuthorizations()) {
+        if (repo.getAuthorization() != null) {
+            for (RAuthorization rAuth : repo.getAuthorization()) {
                 jaxb.getAuthorization().add(rAuth.toJAXB(prismContext));
             }
         }
 
-        if (repo.getApproverRefs() != null) {
-            for (RObjectReference repoRef : repo.getApproverRefs()) {
+        if (repo.getApproverRef() != null) {
+            for (RObjectReference repoRef : repo.getApproverRef()) {
                 jaxb.getApproverRef().add(repoRef.toJAXB(prismContext));
             }
         }
@@ -280,7 +280,7 @@ public abstract class RAbstractRole extends RFocus {
             RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
             gen.generate(null, rExclusion);
 
-            repo.getExclusions().add(rExclusion);
+            repo.getExclusion().add(rExclusion);
         }
 
         for (AuthorizationType exclusion : jaxb.getAuthorization()) {
@@ -289,13 +289,13 @@ public abstract class RAbstractRole extends RFocus {
             RAuthorization.copyFromJAXB(exclusion, rAuth, jaxb, prismContext);
             gen.generate(null, rAuth);
 
-            repo.getAuthorizations().add(rAuth);
+            repo.getAuthorization().add(rAuth);
         }
 
         for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {
             RObjectReference ref = RUtil.jaxbRefToRepo(approverRef, prismContext, repo, RReferenceOwner.ROLE_APPROVER);
             if (ref != null) {
-                repo.getApproverRefs().add(ref);
+                repo.getApproverRef().add(ref);
             }
         }
 
