@@ -28,12 +28,14 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query.matcher.Matcher;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -247,25 +249,36 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             value = new PolyString(type.getOrig(), type.getNorm());
         }
 
-        //todo improve - implement common interface for all enums in repository and remove naive class casting [lazyman]
-        //this updates value if it's enum and translate it to repository enum wrapper
-        if (def.isEnumerated() && (value != null)) {
-            Class type = def.getJpaType();
-            Object[] constants = type.getEnumConstants();
-            for (Object constant : constants) {
-                Enum e = (Enum) constant;
-                if (e.name().equals(((Enum) value).name())) {
-                    value = e;
-                    break;
-                }
-            }
-        }
-
         if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {
             throw new QueryException("Value should by type of '" + def.getJaxbType() + "' but it's '"
                     + value.getClass() + "', filter '" + filter + "'.");
         }
 
+        if (def.isEnumerated()) {
+            value = getRepoEnumValue((Enum) value, def.getJpaType());
+        }
+
         return value;
+    }
+
+    private Enum getRepoEnumValue(Enum schemaValue, Class repoType) throws QueryException {
+        if (schemaValue == null) {
+            return null;
+        }
+
+        if (SchemaEnum.class.isAssignableFrom(repoType)) {
+            return (Enum) RUtil.getRepoEnumValue(schemaValue, repoType);
+        }
+
+        Object[] constants = repoType.getEnumConstants();
+        for (Object constant : constants) {
+            Enum e = (Enum) constant;
+            if (e.name().equals(schemaValue.name())) {
+                return e;
+            }
+        }
+
+        throw new QueryException("Unknown enum value '" + schemaValue + "', which is type of '"
+                + schemaValue.getClass() + "'.");
     }
 }

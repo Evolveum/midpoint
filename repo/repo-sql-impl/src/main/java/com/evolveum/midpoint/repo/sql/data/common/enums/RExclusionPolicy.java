@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionPolicyType;
 
 /**
  * @author lazyman
  */
+@JaxbType(type = ExclusionPolicyType.class)
 public enum RExclusionPolicy implements SchemaEnum<ExclusionPolicyType> {
 
     ENFORCE(ExclusionPolicyType.ENFORCE),

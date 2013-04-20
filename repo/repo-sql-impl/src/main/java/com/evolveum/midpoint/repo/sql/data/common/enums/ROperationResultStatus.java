@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 
 /**
  * @author lazyman
  */
+@JaxbType(type = OperationResultStatusType.class)
 public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusType> {
 
     SUCCESS(OperationResultStatusType.SUCCESS),

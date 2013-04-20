@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
 
 /**
  * @author lazyman
  */
+@JaxbType(type = AuthorizationDecisionType.class)
 public enum RAuthorizationDecision implements SchemaEnum<AuthorizationDecisionType> {
 
     ALLOW(AuthorizationDecisionType.ALLOW),

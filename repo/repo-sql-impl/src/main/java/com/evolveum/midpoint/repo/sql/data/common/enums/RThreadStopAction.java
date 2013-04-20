@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
 /**
  * @author lazyman
  */
+@JaxbType(type = ThreadStopActionType.class)
 public enum RThreadStopAction implements SchemaEnum<ThreadStopActionType> {
 
     RESTART(ThreadStopActionType.RESTART),

@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskWaitingReasonType;
 
 /**
  * @author lazyman
  */
+@JaxbType(type = TaskWaitingReasonType.class)
 public enum RTaskWaitingReason implements SchemaEnum<TaskWaitingReasonType> {
 
     OTHER_TASKS(TaskWaitingReasonType.OTHER_TASKS),
