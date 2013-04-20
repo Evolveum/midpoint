@@ -29,7 +29,7 @@
 	<modification>
 		<t:modificationType>add</t:modificationType>
 		<t:value>
-			<c:account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+			<c:link xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab"> 
 				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
 				<!-- No name here. We expect that it will be generated -->
@@ -39,7 +39,7 @@
 					<icfs:name>jsparrow</icfs:name>
 					<ri:FULL_NAME>Cpt. Jack Sparrow</ri:FULL_NAME>
 				</c:attributes>
-			</c:account>
+			</c:link>
 		</t:value>
 	</modification>
 </objectModification>

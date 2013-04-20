@@ -27,7 +27,7 @@
     <modification>
         <t:modificationType>add</t:modificationType>
         <t:value>
-            <c:accountRef oid="1234567890" />
+            <c:linkRef oid="1234567890" />
         </t:value>
     </modification>
 </objectModification>

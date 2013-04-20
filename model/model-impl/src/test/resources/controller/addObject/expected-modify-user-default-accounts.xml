@@ -28,7 +28,7 @@
     	<t:modificationType>add</t:modificationType>
         <t:path>.</t:path>
         <t:value>
-            <c:accountRef oid="10000000-0000-0000-0000-000000000004" type="c:AccountShadowType"/>
+            <c:linkRef oid="10000000-0000-0000-0000-000000000004" type="c:AccountShadowType"/>
         </t:value>
     </modification>
 </objectModification>

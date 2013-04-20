@@ -24,6 +24,9 @@
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'>
     <c:name>deniels</c:name>
+
+    <c:linkRef oid="a0c010c0-d34d-b33f-f00d-111111111555" type="c:AccountShadowType"/>
+
     <i:fullName>Jack Deniels</i:fullName>
     <i:givenName>Jack</i:givenName>
     <i:familyName>Deniels</i:familyName>
@@ -45,7 +48,5 @@
             </i:value>
         </i:password>
     </i:credentials>
-    
-    <c:accountRef oid="a0c010c0-d34d-b33f-f00d-111111111555" type="c:AccountShadowType"/>
     
 </i:user>

@@ -30,5 +30,5 @@
     <givenName>James Jr.</givenName>
     <honorificSuffix>007</honorificSuffix>
     <locality>home</locality>
-    <c:accountRef oid="acc11111-76e0-48e2-86d6-3d4f02d3e1a2"/>
+    <c:linkRef oid="acc11111-76e0-48e2-86d6-3d4f02d3e1a2"/>
 </c:object>
