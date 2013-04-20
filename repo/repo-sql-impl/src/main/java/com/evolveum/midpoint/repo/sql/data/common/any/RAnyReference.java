@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;

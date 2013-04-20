@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.repo.sql.data.common.enums;
+package com.evolveum.midpoint.repo.sql.data.common.other;
 
 /**
  * @author lazyman

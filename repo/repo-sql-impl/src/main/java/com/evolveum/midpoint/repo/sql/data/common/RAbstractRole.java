@@ -23,9 +23,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
+import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;

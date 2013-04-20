@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;

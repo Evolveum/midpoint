@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyLongId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.Columns;

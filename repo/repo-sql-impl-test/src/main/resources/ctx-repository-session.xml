@@ -79,6 +79,7 @@
                 <value>com.evolveum.midpoint.repo.sql.data.common.embedded</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.enums</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.id</value>
+                <value>com.evolveum.midpoint.repo.sql.data.common.other</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.type</value>
                 <value>com.evolveum.midpoint.repo.sql.data.audit</value>
             </list>

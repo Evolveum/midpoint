@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.repo.sql.data.common.type;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;

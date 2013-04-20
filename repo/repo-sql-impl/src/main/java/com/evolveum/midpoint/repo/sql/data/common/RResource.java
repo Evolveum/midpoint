@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RCapabilities;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeState;
 import com.evolveum.midpoint.repo.sql.data.common.type.RResourceApproverRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;

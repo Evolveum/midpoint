@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;

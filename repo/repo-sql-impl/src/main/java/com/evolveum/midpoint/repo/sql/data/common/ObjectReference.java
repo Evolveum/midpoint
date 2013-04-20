@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+
 import java.io.Serializable;
 
 /**

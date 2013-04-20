@@ -23,7 +23,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;

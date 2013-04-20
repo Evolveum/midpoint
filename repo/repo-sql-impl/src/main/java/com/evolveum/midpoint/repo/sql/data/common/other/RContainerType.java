@@ -19,7 +19,9 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.data.common;
+package com.evolveum.midpoint.repo.sql.data.common.other;
+
+import com.evolveum.midpoint.repo.sql.data.common.*;
 
 /**
  * @author lazyman
