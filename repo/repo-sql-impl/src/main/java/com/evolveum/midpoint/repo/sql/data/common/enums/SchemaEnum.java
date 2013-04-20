@@ -16,30 +16,18 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2012 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
-
 /**
+ * Interface that marks enumerated entities which are used as placeholders for schema
+ * enums (e.g. used in common.xsd and others). This simplifies translation between them.
+ *
  * @author lazyman
  */
-public enum RFailedOperationType implements SchemaEnum<FailedOperationTypeType> {
+public interface SchemaEnum<C> {
 
-    DELETE(FailedOperationTypeType.DELETE),
-    ADD(FailedOperationTypeType.ADD),
-    MODIFY(FailedOperationTypeType.MODIFY);
-
-    private FailedOperationTypeType operation;
-
-    private RFailedOperationType(FailedOperationTypeType operation) {
-        this.operation = operation;
-    }
-
-    @Override
-    public FailedOperationTypeType getSchemaValue() {
-        return operation;
-    }
+    C getSchemaValue();
 }

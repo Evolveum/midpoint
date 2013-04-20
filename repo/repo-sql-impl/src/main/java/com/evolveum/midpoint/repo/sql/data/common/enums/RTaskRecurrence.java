@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskRecurrenceType;
 /**
  * @author lazyman
  */
-public enum RTaskRecurrence {
+public enum RTaskRecurrence implements SchemaEnum<TaskRecurrenceType> {
 
     SINGLE(TaskRecurrenceType.SINGLE),
     RECURRING(TaskRecurrenceType.RECURRING);
@@ -37,21 +37,8 @@ public enum RTaskRecurrence {
         this.recurrence = recurrence;
     }
 
-    public TaskRecurrenceType getRecurrence() {
+    @Override
+    public TaskRecurrenceType getSchemaValue() {
         return recurrence;
-    }
-
-    public static RTaskRecurrence toRepoType(TaskRecurrenceType recurrence) {
-        if (recurrence == null) {
-            return null;
-        }
-
-        for (RTaskRecurrence repo : RTaskRecurrence.values()) {
-            if (recurrence.equals(repo.getRecurrence())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown task recurrence type " + recurrence);
     }
 }

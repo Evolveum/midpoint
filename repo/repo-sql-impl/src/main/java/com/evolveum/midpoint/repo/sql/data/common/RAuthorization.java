@@ -152,7 +152,7 @@ public class RAuthorization extends RContainer implements ROwnable {
         jaxb.setId(RUtil.getStringFromLong(repo.getId()));
         jaxb.setDescription(repo.getDescription());
         if (repo.getDecision() != null) {
-            jaxb.setDecision(repo.getDecision().getDecision());
+            jaxb.setDecision(repo.getDecision().getSchemaValue());
         }
 
         List types = RUtil.safeSetToList(repo.getAction());
@@ -161,8 +161,8 @@ public class RAuthorization extends RContainer implements ROwnable {
         }
     }
 
-    public static void copyFromJAXB(AuthorizationType jaxb, RAuthorization repo, ObjectType parent, PrismContext prismContext)
-            throws DtoTranslationException {
+    public static void copyFromJAXB(AuthorizationType jaxb, RAuthorization repo, ObjectType parent,
+                                    PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -170,7 +170,7 @@ public class RAuthorization extends RContainer implements ROwnable {
         repo.setId(RUtil.getLongContainerIdFromString(jaxb.getId()));
         repo.setDescription(jaxb.getDescription());
 
-        repo.setDecision(RAuthorizationDecision.getDecision(jaxb.getDecision()));
+        repo.setDecision(RUtil.getRepoEnumValue(jaxb.getDecision(), RAuthorizationDecision.class));
         repo.setAction(RUtil.listToSet(jaxb.getAction()));
     }
 

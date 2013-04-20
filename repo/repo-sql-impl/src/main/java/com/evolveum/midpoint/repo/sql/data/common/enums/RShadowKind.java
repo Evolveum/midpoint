@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 /**
  * @author lazyman
  */
-public enum RShadowKind {
+public enum RShadowKind implements SchemaEnum<ShadowKindType> {
 
     ACCOUNT(ShadowKindType.ACCOUNT),
     ENTITLEMENT(ShadowKindType.ENTITLEMENT),
@@ -38,21 +38,8 @@ public enum RShadowKind {
         this.kind = kind;
     }
 
-    public ShadowKindType getKind() {
+    @Override
+    public ShadowKindType getSchemaValue() {
         return kind;
-    }
-
-    public static RShadowKind toRepoType(ShadowKindType kind) {
-        if (kind == null) {
-            return null;
-        }
-
-        for (RShadowKind repo : RShadowKind.values()) {
-            if (kind.equals(repo.getKind())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown shadow kind type " + kind);
     }
 }

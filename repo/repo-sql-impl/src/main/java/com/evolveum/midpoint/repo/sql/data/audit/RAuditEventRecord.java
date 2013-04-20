@@ -266,7 +266,7 @@ public class RAuditEventRecord implements Serializable {
         repo.setEventIdentifier(record.getEventIdentifier());
         repo.setHostIdentifier(record.getHostIdentifier());
         if (record.getOutcome() != null) {
-            repo.setOutcome(ROperationResultStatus.toRepoType(record.getOutcome().createStatusType()));
+            repo.setOutcome(RUtil.getRepoEnumValue(record.getOutcome().createStatusType(), ROperationResultStatus.class));
         }
         repo.setTaskIdentifier(record.getTaskIdentifier());
         repo.setTaskOID(record.getTaskOID());

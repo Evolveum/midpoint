@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskBindingType;
 /**
  * @author lazyman
  */
-public enum RTaskBinding {
+public enum RTaskBinding implements SchemaEnum<TaskBindingType> {
 
     LOOSE(TaskBindingType.LOOSE),
     TIGHT(TaskBindingType.TIGHT);
@@ -37,21 +37,8 @@ public enum RTaskBinding {
         this.binding = binding;
     }
 
-    public TaskBindingType getBinding() {
+    @Override
+    public TaskBindingType getSchemaValue() {
         return binding;
-    }
-
-    public static RTaskBinding toRepoType(TaskBindingType binding) {
-        if (binding == null) {
-            return null;
-        }
-
-        for (RTaskBinding repo : RTaskBinding.values()) {
-            if (binding.equals(repo.getBinding())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown task binding type " + binding);
     }
 }

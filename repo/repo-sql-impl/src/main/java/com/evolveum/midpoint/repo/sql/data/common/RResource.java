@@ -291,7 +291,7 @@ public class RResource extends RObject {
                 ResourceBusinessConfigurationType business = new ResourceBusinessConfigurationType();
                 jaxb.setBusiness(business);
                 if (repo.getAdministrativeState() != null) {
-                    business.setAdministrativeState(repo.getAdministrativeState().getAdministrativeState());
+                    business.setAdministrativeState(repo.getAdministrativeState().getSchemaValue());
                 }
                 List<ObjectReferenceType> approvers = RUtil.safeSetReferencesToList(repo.getApproverRef(), prismContext);
                 if (!approvers.isEmpty()) {
@@ -346,7 +346,8 @@ public class RResource extends RObject {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.safeListReferenceToSet(business.getApproverRef(),
                         prismContext, repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER));
-                repo.setAdministrativeState(RResourceAdministrativeState.toRepoType(business.getAdministrativeState()));
+                repo.setAdministrativeState(RUtil.getRepoEnumValue(business.getAdministrativeState(),
+                        RResourceAdministrativeState.class));
             }
             if (jaxb.getOperationalState() != null) {
                 ROperationalState repoOpState = new ROperationalState();

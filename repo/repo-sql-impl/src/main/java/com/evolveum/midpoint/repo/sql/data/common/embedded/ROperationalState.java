@@ -4,6 +4,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAvailabilityStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
 import org.apache.commons.lang.Validate;
@@ -56,7 +57,7 @@ public class ROperationalState {
 
         try {
             if (repo.getLastAvailabilityStatus() != null) {
-                jaxb.setLastAvailabilityStatus(repo.getLastAvailabilityStatus().getStatus());
+                jaxb.setLastAvailabilityStatus(repo.getLastAvailabilityStatus().getSchemaValue());
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -70,7 +71,8 @@ public class ROperationalState {
 
         try {
             if (jaxb.getLastAvailabilityStatus() != null) {
-                repo.setLastAvailabilityStatus(RAvailabilityStatus.toRepoType(jaxb.getLastAvailabilityStatus()));
+                repo.setLastAvailabilityStatus(RUtil.getRepoEnumValue(jaxb.getLastAvailabilityStatus(),
+                        RAvailabilityStatus.class));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

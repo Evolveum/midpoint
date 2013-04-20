@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionPolicyType
 /**
  * @author lazyman
  */
-public enum RExclusionPolicy {
+public enum RExclusionPolicy implements SchemaEnum<ExclusionPolicyType> {
 
     ENFORCE(ExclusionPolicyType.ENFORCE),
     APPROVE(ExclusionPolicyType.APPROVE),
@@ -38,21 +38,8 @@ public enum RExclusionPolicy {
         this.policy = policy;
     }
 
-    public ExclusionPolicyType getPolicy() {
+    @Override
+    public ExclusionPolicyType getSchemaValue() {
         return policy;
-    }
-
-    public static RExclusionPolicy toRepoType(ExclusionPolicyType policy) {
-        if (policy == null) {
-            return null;
-        }
-
-        for (RExclusionPolicy repo : RExclusionPolicy.values()) {
-            if (policy.equals(repo.getPolicy())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown exclusion policy type " + policy);
     }
 }

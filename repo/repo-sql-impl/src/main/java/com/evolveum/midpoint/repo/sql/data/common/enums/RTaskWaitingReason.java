@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskWaitingReasonTy
 /**
  * @author lazyman
  */
-public enum RTaskWaitingReason {
+public enum RTaskWaitingReason implements SchemaEnum<TaskWaitingReasonType> {
 
     OTHER_TASKS(TaskWaitingReasonType.OTHER_TASKS),
 
@@ -40,21 +40,8 @@ public enum RTaskWaitingReason {
         this.reason = reason;
     }
 
-    public TaskWaitingReasonType getReason() {
+    @Override
+    public TaskWaitingReasonType getSchemaValue() {
         return reason;
-    }
-
-    public static RTaskWaitingReason toRepoType(TaskWaitingReasonType reason) {
-        if (reason == null) {
-            return null;
-        }
-
-        for (RTaskWaitingReason repo : RTaskWaitingReason.values()) {
-            if (reason.equals(repo.getReason())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown task waiting reason type " + reason);
     }
 }

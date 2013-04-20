@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStat
 /**
  * @author lazyman
  */
-public enum ROperationResultStatus {
+public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusType> {
 
     SUCCESS(OperationResultStatusType.SUCCESS),
     WARNING(OperationResultStatusType.WARNING),
@@ -43,21 +43,8 @@ public enum ROperationResultStatus {
         this.status = status;
     }
 
-    public OperationResultStatusType getStatus() {
+    @Override
+    public OperationResultStatusType getSchemaValue() {
         return status;
-    }
-
-    public static ROperationResultStatus toRepoType(OperationResultStatusType status) {
-        if (status == null) {
-            return null;
-        }
-
-        for (ROperationResultStatus repo : ROperationResultStatus.values()) {
-            if (status.equals(repo.getStatus())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown operation result status type " + status);
     }
 }

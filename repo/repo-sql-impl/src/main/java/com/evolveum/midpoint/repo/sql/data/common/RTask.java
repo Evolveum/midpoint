@@ -355,7 +355,7 @@ public class RTask extends RObject {
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
         if (repo.getExecutionStatus() != null) {
-            jaxb.setExecutionStatus(repo.getExecutionStatus().getStatus());
+            jaxb.setExecutionStatus(repo.getExecutionStatus().getSchemaValue());
         }
         jaxb.setHandlerUri(repo.getHandlerUri());
         jaxb.setLastRunFinishTimestamp(repo.getLastRunFinishTimestamp());
@@ -363,17 +363,17 @@ public class RTask extends RObject {
         jaxb.setNode(repo.getNode());
         jaxb.setProgress(repo.getProgress());
         if (repo.getBinding() != null) {
-            jaxb.setBinding(repo.getBinding().getBinding());
+            jaxb.setBinding(repo.getBinding().getSchemaValue());
         }
         if (repo.getRecurrence() != null) {
-            jaxb.setRecurrence(repo.getRecurrence().getRecurrence());
+            jaxb.setRecurrence(repo.getRecurrence().getSchemaValue());
         }
         if (repo.getResultStatus() != null) {
-            jaxb.setResultStatus(repo.getResultStatus().getStatus());
+            jaxb.setResultStatus(repo.getResultStatus().getSchemaValue());
         }
         jaxb.setCanRunOnNode(repo.getCanRunOnNode());
         if (repo.getThreadStopAction() != null) {
-            jaxb.setThreadStopAction(repo.getThreadStopAction().getAction());
+            jaxb.setThreadStopAction(repo.getThreadStopAction().getSchemaValue());
         }
         jaxb.setCategory(repo.getCategory());
         jaxb.setParent(repo.getParent());
@@ -390,7 +390,7 @@ public class RTask extends RObject {
         }
 
         if (repo.getWaitingReason() != null) {
-            jaxb.setWaitingReason(repo.getWaitingReason().getReason());
+            jaxb.setWaitingReason(repo.getWaitingReason().getSchemaValue());
         }
         List types = RUtil.safeSetToList(repo.getDependent());
         if (!types.isEmpty()) {
@@ -413,23 +413,23 @@ public class RTask extends RObject {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
-        repo.setExecutionStatus(RTaskExecutionStatus.toRepoType(jaxb.getExecutionStatus()));
+        repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionStatus(), RTaskExecutionStatus.class));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setLastRunFinishTimestamp(jaxb.getLastRunFinishTimestamp());
         repo.setLastRunStartTimestamp(jaxb.getLastRunStartTimestamp());
         repo.setNode(jaxb.getNode());
         repo.setProgress(jaxb.getProgress());
-        repo.setBinding(RTaskBinding.toRepoType(jaxb.getBinding()));
-        repo.setRecurrence(RTaskRecurrence.toRepoType(jaxb.getRecurrence()));
-        repo.setResultStatus(ROperationResultStatus.toRepoType(jaxb.getResultStatus()));
+        repo.setBinding(RUtil.getRepoEnumValue(jaxb.getBinding(), RTaskBinding.class));
+        repo.setRecurrence(RUtil.getRepoEnumValue(jaxb.getRecurrence(), RTaskRecurrence.class));
+        repo.setResultStatus(RUtil.getRepoEnumValue(jaxb.getResultStatus(), ROperationResultStatus.class));
         repo.setCanRunOnNode(jaxb.getCanRunOnNode());
-        repo.setThreadStopAction(RThreadStopAction.toRepoType(jaxb.getThreadStopAction()));
+        repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), prismContext));
         repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
-        repo.setWaitingReason(RTaskWaitingReason.toRepoType(jaxb.getWaitingReason()));
+        repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
         if (jaxb.getResult() != null) {

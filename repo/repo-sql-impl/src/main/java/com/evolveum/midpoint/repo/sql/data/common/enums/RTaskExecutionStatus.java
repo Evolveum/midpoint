@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatus
 /**
  * @author lazyman
  */
-public enum RTaskExecutionStatus {
+public enum RTaskExecutionStatus implements SchemaEnum<TaskExecutionStatusType> {
 
     RUNNABLE(TaskExecutionStatusType.RUNNABLE),
     WAITING(TaskExecutionStatusType.WAITING),
@@ -39,21 +39,8 @@ public enum RTaskExecutionStatus {
         this.status = status;
     }
 
-    public TaskExecutionStatusType getStatus() {
+    @Override
+    public TaskExecutionStatusType getSchemaValue() {
         return status;
-    }
-
-    public static RTaskExecutionStatus toRepoType(TaskExecutionStatusType status) {
-        if (status == null) {
-            return null;
-        }
-
-        for (RTaskExecutionStatus repo : RTaskExecutionStatus.values()) {
-            if (status.equals(repo.getStatus())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown task execution status type " + status);
     }
 }

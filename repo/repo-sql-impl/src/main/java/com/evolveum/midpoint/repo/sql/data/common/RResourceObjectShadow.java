@@ -299,16 +299,16 @@ public class RResourceObjectShadow extends RObject {
 
         jaxb.setAttemptNumber(repo.getAttemptNumber());
         if (repo.getFailedOperationType() != null) {
-            jaxb.setFailedOperationType(repo.getFailedOperationType().getOperation());
+            jaxb.setFailedOperationType(repo.getFailedOperationType().getSchemaValue());
         }
 
         if (repo.getSynchronizationSituation() != null) {
-            jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSyncType());
+            jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSchemaValue());
         }
 
         jaxb.setDead(repo.isDead());
         if (repo.getKind() != null) {
-            jaxb.setKind(repo.getKind().getKind());
+            jaxb.setKind(repo.getKind().getSchemaValue());
         }
 
         List situations = RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription());
@@ -338,7 +338,7 @@ public class RResourceObjectShadow extends RObject {
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectClass(jaxb.getObjectClass());
         repo.setIntent(jaxb.getIntent());
-        repo.setKind(RShadowKind.toRepoType(jaxb.getKind()));
+        repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
             RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
@@ -353,7 +353,8 @@ public class RResourceObjectShadow extends RObject {
         }
 
         if (jaxb.getSynchronizationSituation() != null) {
-            repo.setSynchronizationSituation(RSynchronizationSituation.toRepoType(jaxb.getSynchronizationSituation()));
+            repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),
+                    RSynchronizationSituation.class));
         }
 
         repo.getSynchronizationSituationDescription()
@@ -363,7 +364,7 @@ public class RResourceObjectShadow extends RObject {
 
         repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setDead(jaxb.isDead());
-        repo.setFailedOperationType(RFailedOperationType.toRepoType(jaxb.getFailedOperationType()));
+        repo.setFailedOperationType(RUtil.getRepoEnumValue(jaxb.getFailedOperationType(), RFailedOperationType.class));
 
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +

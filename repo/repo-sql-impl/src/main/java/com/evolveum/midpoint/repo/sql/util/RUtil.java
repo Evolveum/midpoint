@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -399,7 +400,7 @@ public final class RUtil {
         jaxb.setMessageCode(repo.getMessageCode());
         jaxb.setOperation(repo.getOperation());
         if (repo.getStatus() != null) {
-            jaxb.setStatus(repo.getStatus().getStatus());
+            jaxb.setStatus(repo.getStatus().getSchemaValue());
         }
         jaxb.setToken(repo.getToken());
 
@@ -429,7 +430,7 @@ public final class RUtil {
         repo.setMessage(jaxb.getMessage());
         repo.setMessageCode(jaxb.getMessageCode());
         repo.setOperation(jaxb.getOperation());
-        repo.setStatus(ROperationResultStatus.toRepoType(jaxb.getStatus()));
+        repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         repo.setToken(jaxb.getToken());
 
         try {
@@ -457,5 +458,21 @@ public final class RUtil {
         }
 
         return DigestUtils.md5Hex(builder.toString());
+    }
+
+    public static <T extends SchemaEnum> T getRepoEnumValue(Enum e, Class<T> type) {
+        if (e == null) {
+            return null;
+        }
+        Object[] values = type.getEnumConstants();
+        for (Object value : values) {
+            T schemaEnum = (T) value;
+            if (schemaEnum.getSchemaValue().equals(e)) {
+                return schemaEnum;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown schema enum value '" + e.name()
+                + "' of type '" + e.getClass() + "'.");
     }
 }

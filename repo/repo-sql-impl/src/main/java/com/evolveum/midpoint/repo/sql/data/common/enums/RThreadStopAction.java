@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionTyp
 /**
  * @author lazyman
  */
-public enum RThreadStopAction {
+public enum RThreadStopAction implements SchemaEnum<ThreadStopActionType> {
 
     RESTART(ThreadStopActionType.RESTART),
     RESCHEDULE(ThreadStopActionType.RESCHEDULE),
@@ -39,21 +39,8 @@ public enum RThreadStopAction {
         this.action = action;
     }
 
-    public ThreadStopActionType getAction() {
+    @Override
+    public ThreadStopActionType getSchemaValue() {
         return action;
-    }
-
-    public static RThreadStopAction toRepoType(ThreadStopActionType policy) {
-        if (policy == null) {
-            return null;
-        }
-
-        for (RThreadStopAction repo : RThreadStopAction.values()) {
-            if (policy.equals(repo.getAction())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown thread stop action type " + policy);
     }
 }

@@ -162,7 +162,7 @@ public class RExclusion extends RContainer implements ROwnable {
         jaxb.setDescription(repo.getDescription());
         jaxb.setId(RUtil.getStringFromLong(repo.getId()));
         if (repo.getPolicy() != null) {
-            jaxb.setPolicy(repo.getPolicy().getPolicy());
+            jaxb.setPolicy(repo.getPolicy().getSchemaValue());
         }
 
         if (repo.getTargetRef() != null) {
@@ -179,7 +179,7 @@ public class RExclusion extends RContainer implements ROwnable {
         repo.setId(RUtil.getLongContainerIdFromString(jaxb.getId()));
 
         repo.setDescription(jaxb.getDescription());
-        repo.setPolicy(RExclusionPolicy.toRepoType(jaxb.getPolicy()));
+        repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
     }
 

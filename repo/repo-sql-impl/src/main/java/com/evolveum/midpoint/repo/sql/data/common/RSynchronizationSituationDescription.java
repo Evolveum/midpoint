@@ -168,7 +168,7 @@ public class RSynchronizationSituationDescription implements Serializable {
         repo.setShadow(owner);
         repo.setChanel(jaxb.getChannel());
         repo.setTimestampValue(jaxb.getTimestamp());
-        repo.setSituation(RSynchronizationSituation.toRepoType(jaxb.getSituation()));
+        repo.setSituation(RUtil.getRepoEnumValue(jaxb.getSituation(), RSynchronizationSituation.class));
 
         return repo;
     }
@@ -180,7 +180,7 @@ public class RSynchronizationSituationDescription implements Serializable {
         jaxb.setChannel(repo.getChanel());
         jaxb.setTimestamp(repo.getTimestampValue());
         if (repo.getSituation() != null) {
-            jaxb.setSituation(repo.getSituation().getSyncType());
+            jaxb.setSituation(repo.getSituation().getSchemaValue());
         }
         return jaxb;
     }

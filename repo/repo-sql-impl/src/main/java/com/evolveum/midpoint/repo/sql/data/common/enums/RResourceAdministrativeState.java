@@ -2,9 +2,9 @@ package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAdministrativeStateType;
 
-public enum RResourceAdministrativeState {
-	
-	ENABLED(ResourceAdministrativeStateType.ENABLED),
+public enum RResourceAdministrativeState implements SchemaEnum<ResourceAdministrativeStateType> {
+
+    ENABLED(ResourceAdministrativeStateType.ENABLED),
     DISABLED(ResourceAdministrativeStateType.DISABLED);
 
     private ResourceAdministrativeStateType administrativeState;
@@ -13,23 +13,8 @@ public enum RResourceAdministrativeState {
         this.administrativeState = administrativeState;
     }
 
-    public ResourceAdministrativeStateType getAdministrativeState() {
+    @Override
+    public ResourceAdministrativeStateType getSchemaValue() {
         return administrativeState;
     }
-
-    public static RResourceAdministrativeState toRepoType(ResourceAdministrativeStateType status) {
-        if (status == null) {
-            return null;
-        }
-
-        for (RResourceAdministrativeState repo : RResourceAdministrativeState.values()) {
-            if (status.equals(repo.getAdministrativeState())) {
-                return repo;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown failed operation type " + status);
-    }
-
-
 }

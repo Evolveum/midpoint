@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisi
 /**
  * @author lazyman
  */
-public enum RAuthorizationDecision {
+public enum RAuthorizationDecision implements SchemaEnum<AuthorizationDecisionType> {
 
     ALLOW(AuthorizationDecisionType.ALLOW),
 
@@ -38,21 +38,8 @@ public enum RAuthorizationDecision {
         this.decision = decision;
     }
 
-    public AuthorizationDecisionType getDecision() {
+    @Override
+    public AuthorizationDecisionType getSchemaValue() {
         return decision;
-    }
-
-    public static RAuthorizationDecision getDecision(AuthorizationDecisionType decision) {
-        if (decision == null) {
-            return null;
-        }
-
-        for (RAuthorizationDecision dec : RAuthorizationDecision.values()) {
-            if (dec.getDecision().equals(decision)) {
-                return dec;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown authorization decision type: " + decision);
     }
 }
