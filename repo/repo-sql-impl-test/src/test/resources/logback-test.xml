@@ -45,6 +45,6 @@
     <logger name="com.evolveum.midpoint.prism.schema.SchemaRegistry" level="OFF"/>
     <logger name="com.evolveum.midpoint.prism.schema.SchemaHandler" level="OFF"/>
 
-    <logger name="com.evolveum.midpoint.repo.sql.query2" level="DEBUG"/>
+    <logger name="com.evolveum.midpoint.repo.sql.query" level="DEBUG"/>
 </configuration>
 

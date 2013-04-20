@@ -127,7 +127,7 @@ public class RAssignment extends RContainer implements ROwnable {
         return ownerOid;
     }
 
-    @com.evolveum.midpoint.repo.sql.query2.definition.Any(jaxbNameLocalPart = "extension")
+    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(optional = true, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
