@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -51,6 +52,11 @@ import javax.persistence.*;
 public class RAssignment extends RContainer implements ROwnable {
 
     public static final String F_OWNER = "owner";
+    /**
+     * enum identifier of object class which owns this assignment. It's used because we have to
+     * distinguish between assignments and inducements (all of them are the same kind) in {@link RAbstractRole}.
+     */
+    public static final String F_ASSIGNMENT_OWNER = "assignmentOwner";
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
 
@@ -58,6 +64,7 @@ public class RAssignment extends RContainer implements ROwnable {
     private RObject owner;
     private String ownerOid;
     private Long ownerId;
+    private RAssignmentOwner assignmentOwner;
     //extension
     private RAnyContainer extension;
     //assignment fields
@@ -68,11 +75,17 @@ public class RAssignment extends RContainer implements ROwnable {
     private RMetadata metadata;
 
     public RAssignment() {
-        this(null);
+        this(null, null);
     }
 
-    public RAssignment(RObject owner) {
+    public RAssignment(RObject owner, RAssignmentOwner assignmentOwner) {
         this.owner = owner;
+        this.assignmentOwner = assignmentOwner;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public RAssignmentOwner getAssignmentOwner() {
+        return assignmentOwner;
     }
 
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
@@ -180,6 +193,10 @@ public class RAssignment extends RContainer implements ROwnable {
 
     public void setMetadata(RMetadata metadata) {
         this.metadata = metadata;
+    }
+
+    public void setAssignmentOwner(RAssignmentOwner assignmentOwner) {
+        this.assignmentOwner = assignmentOwner;
     }
 
     @Transient

@@ -2,14 +2,14 @@ package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 
-public enum RAvailabilityStatusType {
+public enum RAvailabilityStatus {
 	
 	UP(AvailabilityStatusType.UP),
     DOWN(AvailabilityStatusType.DOWN);
 
     private AvailabilityStatusType status;
 
-    private RAvailabilityStatusType(AvailabilityStatusType status) {
+    private RAvailabilityStatus(AvailabilityStatusType status) {
         this.status = status;
     }
 
@@ -17,12 +17,12 @@ public enum RAvailabilityStatusType {
         return status;
     }
 
-    public static RAvailabilityStatusType toRepoType(AvailabilityStatusType status) {
+    public static RAvailabilityStatus toRepoType(AvailabilityStatusType status) {
         if (status == null) {
             return null;
         }
 
-        for (RAvailabilityStatusType repo : RAvailabilityStatusType.values()) {
+        for (RAvailabilityStatus repo : RAvailabilityStatus.values()) {
             if (status.equals(repo.getStatus())) {
                 return repo;
             }

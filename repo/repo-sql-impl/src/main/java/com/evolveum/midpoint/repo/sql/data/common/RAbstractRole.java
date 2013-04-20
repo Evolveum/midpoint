@@ -23,7 +23,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -99,6 +101,7 @@ public abstract class RAbstractRole extends RFocus {
         return approvalSchema;
     }
 
+    @Where(clause = RAssignment.F_ASSIGNMENT_OWNER + "=1")
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -264,7 +267,7 @@ public abstract class RAbstractRole extends RFocus {
 
         ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType inducement : jaxb.getInducement()) {
-            RAssignment rInducement = new RAssignment(repo);
+            RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
 
             RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext);
             gen.generate(null, rInducement);

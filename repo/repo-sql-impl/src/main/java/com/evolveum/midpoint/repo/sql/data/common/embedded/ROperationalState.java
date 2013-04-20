@@ -2,7 +2,7 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RAvailabilityStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAvailabilityStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
@@ -15,13 +15,13 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class ROperationalState {
 
-    RAvailabilityStatusType lastAvailabilityStatus;
+    RAvailabilityStatus lastAvailabilityStatus;
 
-    public RAvailabilityStatusType getLastAvailabilityStatus() {
+    public RAvailabilityStatus getLastAvailabilityStatus() {
         return lastAvailabilityStatus;
     }
 
-    public void setLastAvailabilityStatus(RAvailabilityStatusType lastAvailabilityStatus) {
+    public void setLastAvailabilityStatus(RAvailabilityStatus lastAvailabilityStatus) {
         this.lastAvailabilityStatus = lastAvailabilityStatus;
     }
 
@@ -70,7 +70,7 @@ public class ROperationalState {
 
         try {
             if (jaxb.getLastAvailabilityStatus() != null) {
-                repo.setLastAvailabilityStatus(RAvailabilityStatusType.toRepoType(jaxb.getLastAvailabilityStatus()));
+                repo.setLastAvailabilityStatus(RAvailabilityStatus.toRepoType(jaxb.getLastAvailabilityStatus()));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

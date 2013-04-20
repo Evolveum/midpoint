@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
@@ -60,6 +61,7 @@ public abstract class RFocus extends RObject {
         return linkRef;
     }
 
+    @Where(clause = RAssignment.F_ASSIGNMENT_OWNER + "=0")
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -108,8 +110,7 @@ public abstract class RFocus extends RObject {
 
         ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
-            RAssignment rAssignment = new RAssignment();
-            rAssignment.setOwner(repo);
+            RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
 
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
             rAssignment.setId((Long) gen.generate(null, rAssignment));
