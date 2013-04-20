@@ -37,7 +37,7 @@
     <givenName>James Jr.</givenName>
     <honorificSuffix>007</honorificSuffix>
     <locality>home</locality>
-    <account oid="12345">
+    <link oid="12345">
         <c:name>bond new</c:name>
         <resource oid="333">
             <c:name>ds1</c:name>
@@ -88,9 +88,9 @@
             <ldap:o>mi6</ldap:o>
             <mi6:mi6Licence>to kill</mi6:mi6Licence>
         </attributes>
-    </account>
+    </link>
 
-    <c:account oid="">
+    <c:link oid="">
         <c:name>jbond</c:name>
         <resource oid="444">
             <c:name>unix4</c:name>
@@ -185,5 +185,5 @@
               </definition>
             </schema>
         </resource>
-    </c:account>
+    </c:link>
 </c:object>
