@@ -40,7 +40,7 @@ import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.*;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
