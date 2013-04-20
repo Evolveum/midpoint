@@ -21,11 +21,11 @@
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>chivas</name>
     <extension/>
+    <link>
+        <resourceRef oid="a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+    </link>
     <fullName>Chivas Regal</fullName>
     <givenName>Chivas</givenName>
     <familyName>Regal</familyName>
-    <eMailAddress>chivas@regal.com</eMailAddress>
-    <account>
-        <resourceRef oid="a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
-    </account>
+    <emailAddress>chivas@regal.com</emailAddress>
 </user> 
