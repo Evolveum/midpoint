@@ -27,6 +27,49 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>capsize</name>
+
+    <link>
+        <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+        <objectClass>ridummy:AccountObjectClass</objectClass>
+        <attributes>
+            <ridummy:fullname>Captain Kate Capsize</ridummy:fullname>
+        </attributes>
+    </link>
+
+    <link>
+        <resourceRef oid="10000000-0000-0000-0000-000000000104"/>
+        <objectClass>ri:AccountObjectClass</objectClass>
+        <attributes>
+            <ri:fullname>Captain Kate Capsize</ri:fullname>
+        </attributes>
+    </link>
+
+    <link>
+        <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
+        <objectClass>ri:AccountObjectClass</objectClass>
+        <attributes>
+            <ri:fullname>Captain Kate Capsize</ri:fullname>
+        </attributes>
+    </link>
+
+    <assignment>
+        <accountConstruction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+        </accountConstruction>
+    </assignment>
+
+    <assignment>
+        <accountConstruction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000104"/>
+        </accountConstruction>
+    </assignment>
+
+    <assignment>
+        <accountConstruction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
+        </accountConstruction>
+    </assignment>
+
     <fullName>Kate Capsize</fullName>
     <givenName>Kate</givenName>
     <familyName>Capsize</familyName>
@@ -39,47 +82,4 @@
             </value>
         </password>
     </credentials>
-    
-    <assignment>
-		<accountConstruction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-		</accountConstruction>
-	</assignment>
-
-    <assignment>
-		<accountConstruction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-		</accountConstruction>
-	</assignment>
-
-    <assignment>
-		<accountConstruction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-		</accountConstruction>
-	</assignment>
-    
-    <account>
-    	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-    	<objectClass>ridummy:AccountObjectClass</objectClass>
-    	<attributes>
-    		<ridummy:fullname>Captain Kate Capsize</ridummy:fullname>
-    	</attributes>
-    </account>
-
-    <account>
-    	<resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-    	<objectClass>ri:AccountObjectClass</objectClass>
-    	<attributes>
-    		<ri:fullname>Captain Kate Capsize</ri:fullname>
-    	</attributes>
-    </account>
-
-    <account>
-    	<resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-    	<objectClass>ri:AccountObjectClass</objectClass>
-    	<attributes>
-    		<ri:fullname>Captain Kate Capsize</ri:fullname>
-    	</attributes>
-    </account>
-    
 </user>

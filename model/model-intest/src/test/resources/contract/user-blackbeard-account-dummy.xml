@@ -26,6 +26,19 @@
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
     <name>blackbeard</name>
+
+    <link xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+        <objectClass>ri:AccountObjectClass</objectClass>
+        <attributes>
+            <icfs:name>blackbeard</icfs:name>
+            <ri:fullname>Edward Teach</ri:fullname>
+        </attributes>
+        <activation>
+            <enabled>true</enabled>
+        </activation>
+    </link>
+
     <fullName>Edward Teach</fullName>
     <givenName>Edward</givenName>
     <familyName>Teach</familyName>
@@ -37,17 +50,4 @@
             </value>
         </password>
     </credentials>
-    
-    <account xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-		<objectClass>ri:AccountObjectClass</objectClass>
-		<attributes>
-			<icfs:name>blackbeard</icfs:name>
-			<ri:fullname>Edward Teach</ri:fullname>
-		</attributes>
-		<activation>
-			<enabled>true</enabled>
-		</activation>
-    </account>
-    
 </user>
