@@ -87,6 +87,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -192,7 +193,7 @@ public abstract class ShadowCache {
 		return prismContext;
 	}
 	
-	public <T extends ShadowType> PrismObject<T> getShadow(Class<T> type, String oid, PrismObject<T> repositoryShadow,
+	public <T extends ShadowType> PrismObject<T> getShadow(Class<T> type, String oid, PrismObject<T> repositoryShadow, GetOperationOptions options,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 
@@ -263,7 +264,8 @@ public abstract class ShadowCache {
 			resourceTypeManager.modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
 			try {
-				resourceShadow = handleError(ex, repositoryShadow, FailedOperation.GET, resource, null, true,
+				boolean compensate = GetOperationOptions.isDoNotDiscovery(options)? false : true;
+				resourceShadow = handleError(ex, repositoryShadow, FailedOperation.GET, resource, null, compensate,
 						null, parentResult);
 			} catch (GenericFrameworkException e) {
 				throw new SystemException(e);

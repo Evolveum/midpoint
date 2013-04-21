@@ -91,9 +91,11 @@ public abstract class ErrorHandler {
 		ResourceOperationDescription operationDescription = new ResourceOperationDescription();
 		operationDescription.setCurrentShadow(shadowType.asPrismObject());
 		if (resource != null){
-		operationDescription.setResource(resource.asPrismObject());
+			operationDescription.setResource(resource.asPrismObject());
 		}
-		operationDescription.setSourceChannel(task.getChannel());
+		if (task != null) {
+			operationDescription.setSourceChannel(task.getChannel());
+		}
 		operationDescription.setObjectDelta(delta);
 		operationDescription.setResult(result);
 		return operationDescription;

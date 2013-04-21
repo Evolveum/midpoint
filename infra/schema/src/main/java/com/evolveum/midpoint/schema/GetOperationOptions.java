@@ -43,6 +43,14 @@ public class GetOperationOptions {
 	 * any expressions, etc.
 	 */
 	Boolean raw;
+	
+	/**
+	 * Force to get object from the resource even if some of the error occurrd.
+	 * If the any copy of the shadow is fetched, we can't delete this object
+	 * from the gui, for example
+	 */
+	Boolean doNotDiscovery;
+	
 
 	public Boolean getResolve() {
 		return resolve;
@@ -115,6 +123,31 @@ public class GetOperationOptions {
 		opts.setRaw(true);
 		return opts;
 	}
+	
+	public Boolean getDoNotDiscovery() {
+		return doNotDiscovery;
+	}
+
+	public void setDoNotDiscovery(Boolean force) {
+		this.doNotDiscovery = force;
+	}
+	
+	public static boolean isDoNotDiscovery(GetOperationOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.doNotDiscovery == null) {
+			return false;
+		}
+		return options.doNotDiscovery;
+	}
+	
+	public static GetOperationOptions createDoNotDiscovery() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setDoNotDiscovery(true);
+		return opts;
+	}
+
 
 	@Override
 	public int hashCode() {
@@ -123,6 +156,7 @@ public class GetOperationOptions {
 		result = prime * result + ((noFetch == null) ? 0 : noFetch.hashCode());
 		result = prime * result + ((raw == null) ? 0 : raw.hashCode());
 		result = prime * result + ((resolve == null) ? 0 : resolve.hashCode());
+		result = prime * result + ((doNotDiscovery == null) ? 0 : doNotDiscovery.hashCode());
 		return result;
 	}
 
@@ -150,13 +184,18 @@ public class GetOperationOptions {
 				return false;
 		} else if (!resolve.equals(other.resolve))
 			return false;
+		if (doNotDiscovery == null) {
+			if (other.doNotDiscovery != null)
+				return false;
+		} else if (!doNotDiscovery.equals(other.doNotDiscovery))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ModelGetOptions(resolve=" + resolve + ", noFetch=" + noFetch
-				+ ", raw=" + raw + ")";
+		return "GetOperationOptions(resolve=" + resolve + ", noFetch=" + noFetch
+				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+")";
 	}
 
 }

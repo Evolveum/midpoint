@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -126,9 +128,15 @@ public class ReconciliationProcessor {
             if (!accContext.isFullShadow()) {
             	// We need to load the object
             	PrismObject<ShadowType> objectOld = provisioningService.getObject(
-            			ShadowType.class, accContext.getOid(), null, result);
+            			ShadowType.class, accContext.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
+            	ShadowType oldShadow = objectOld.asObjectable();
+            	if (oldShadow.getFetchResult() != null && oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR){
+            		accContext.setFullShadow(false);   		
+            	} else{
+            		accContext.setFullShadow(true);
+            	}
             	accContext.setObjectOld(objectOld);
-            	accContext.setFullShadow(true);
+            	
             	accContext.recompute();
             }
             

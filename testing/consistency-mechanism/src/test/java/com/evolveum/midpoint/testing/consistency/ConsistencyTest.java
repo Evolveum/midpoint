@@ -1833,6 +1833,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		}
 		
 		OperationResult modifyFamilyNameResult = new OperationResult("execute changes -> modify user's family name");
+		LOGGER.trace("execute changes -> modify user's family name");
 		Collection<? extends ItemDelta> familyNameDelta = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, addedUser.getDefinition(), new PolyString("Dylan"));
 		ObjectDelta familyNameD = ObjectDelta.createModifyDelta(USER_BOB_NO_FAMILY_NAME_OID, familyNameDelta, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> modifyFamilyNameDelta = createDeltaCollection(familyNameD);

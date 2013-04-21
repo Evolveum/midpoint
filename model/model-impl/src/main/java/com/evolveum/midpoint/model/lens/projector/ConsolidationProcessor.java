@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -168,25 +169,49 @@ public class ConsolidationProcessor {
 		// resource availability. We need to know, if the account was read full
 		// or we have only the shadow from the repository. If we have only
 		// shadow, the weak mappings may applied even if they should not be. 
-        boolean completeAccount = true;
+       
+		boolean completeAccount = accCtx.isFullShadow();
+		// in the case of the new account, set the complete account flag to
+		// true, because if it is not set to true, some weak mapping can be
+		// ignored
+       
+		if (SynchronizationPolicyDecision.ADD == accCtx.getSynchronizationPolicyDecision()) {
+			completeAccount = true;
+		} else {
+			if (!accCtx.isFullShadow() && hasWeakMapping(squeezedAttributes)) {
+			// Full account was not yet loaded. This will cause problems as
+			// the weak mapping may be applied even though it should not be
+			// applied
+			// and also same changes may be discarded because of unavailability
+			// of all
+			// account's attributes.Therefore load the account now, but with
+			// doNotDiscovery options..
+			// if (accCtx.getOid() != null){
+
+				LOGGER.trace("Loading full account {} from provisioning", accCtx);
+				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
+					accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
+				accCtx.setObjectOld(objectOld);
+				
+				ShadowType oldShadow = objectOld.asObjectable();
+				
+				if (oldShadow.getFetchResult() != null
+					&& oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR) {
+					accCtx.setFullShadow(false);
+					completeAccount = false;
+				} else {
+					accCtx.setFullShadow(true);
+					completeAccount = true;
+				}
+				
+				accCtx.recompute();
+
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
+				}
+        	} 
+		}
         
-        if (!accCtx.isFullShadow() && !accCtx.isAdd() && !accCtx.isDelete() && hasWeakMapping(squeezedAttributes)) {
-        	// There is at least one weak mapping and the full account was not yet loaded. This will cause problems as
-        	// the weak mapping may be applied even though it should not be applied. Therefore load the account now.
-        	LOGGER.trace("Loading full account {} because there are weak mappings", accCtx);
-        	PrismObject<ShadowType> objectOld = provisioningService.getObject(
-        			ShadowType.class, accCtx.getOid(), null, result);
-        	accCtx.setObjectOld(objectOld);
-        	accCtx.setFullShadow(true);
-        	accCtx.recompute();
-        	ShadowType oldShadow = objectOld.asObjectable();
-        	if (oldShadow.getFetchResult() != null && oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR){
-        		completeAccount = false;
-        	}
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
-        	}
-        }
         
         ObjectDelta<ShadowType> existingDelta = accCtx.getDelta();
 

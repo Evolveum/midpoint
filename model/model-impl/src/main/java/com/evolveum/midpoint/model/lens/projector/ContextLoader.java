@@ -66,6 +66,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -763,16 +764,28 @@ public class ContextLoader {
 									"Projection with null OID, no representation and no resource OID in account sync context "+projContext);
 						}
 					} else {
-						GetOperationOptions options = null;
-						if (projContext.isDoReconciliation()) {
-							projContext.setFullShadow(true);
-						} else {
-							projContext.setFullShadow(false);
-							options = GetOperationOptions.createNoFetch();
-						}
+						GetOperationOptions options = projContext.isDoReconciliation() ? GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
+//						if (projContext.isDoReconciliation()) {
+//							options = GetOperationOptions.createDoNotDiscovery();
+////							projContext.setFullShadow(true);
+//						} else {
+////							projContext.setFullShadow(false);
+//							options = GetOperationOptions.createNoFetch();
+//						}
 						PrismObject<P> objectOld = provisioningService.getObject(
 								projContext.getObjectTypeClass(), projectionObjectOid, options, result);
 						projContext.setObjectOld(objectOld);
+						P oldShadow = objectOld.asObjectable();
+						if (projContext.isDoReconciliation()) {
+							if (oldShadow.getFetchResult() != null
+									&& oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR) {
+								projContext.setFullShadow(false);
+							} else {
+								projContext.setFullShadow(true);
+							}
+						} else {
+							projContext.setFullShadow(false);
+						}
 						projectionObject = objectOld;
 					}
 				}

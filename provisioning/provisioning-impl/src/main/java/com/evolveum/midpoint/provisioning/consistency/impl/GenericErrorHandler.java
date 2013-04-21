@@ -65,94 +65,66 @@ public class GenericErrorHandler extends ErrorHandler{
 		result.addParam("currentOperation", op);
 		result.addParam("reconciled", true);
 		
-//		Task task = taskManager.createTaskInstance();
-		
 		switch (op) {
 		case GET:
-			if ((shadow.isDead() != null && shadow.isDead()) || shadow.getResource().getOperationalState() != null && AvailabilityStatusType.DOWN == shadow.getResource().getOperationalState().getLastAvailabilityStatus()){
-//				parentResult.computeStatus("Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-//				if (parentResult.isError()) {
-//					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
-//				}
-				result.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-				result.computeStatus();
-				shadow.setFetchResult(parentResult.createOperationResultType());
-				return shadow;
-			}
-			
-			if (shadow.getFailedOperationType() == null){
-				String message = "Generic error in the connector. Can't process shadow " + ObjectTypeUtil.toShortString(shadow) + ". ";
-				result.recordFatalError(message, ex);
-				throw new GenericFrameworkException(message, ex);
-			}
-//				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);
-//					String oid = provisioningService.addObject(shadow.asPrismObject(), null, result);
+				if ((shadow.isDead() != null && shadow.isDead()) || shadow.getResource().getOperationalState() != null
+						&& AvailabilityStatusType.DOWN == shadow.getResource().getOperationalState().getLastAvailabilityStatus() || !compensate) {
+					result.recordStatus(OperationResultStatus.PARTIAL_ERROR,
+							"Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 					result.computeStatus();
-					if (result.isSuccess()){
-						 PrismObject prismShadow = provisioningService.getObject(shadow.getClass(), shadow.getOid(), null, result);
-						 shadow = (T) prismShadow.asObjectable();
+					shadow.setFetchResult(parentResult.createOperationResultType());
+					return shadow;
+				}
+
+				if (shadow.getFailedOperationType() == null) {
+					String message = "Generic error in the connector. Can't process shadow "
+							+ ObjectTypeUtil.toShortString(shadow) + ". ";
+					result.recordFatalError(message, ex);
+					throw new GenericFrameworkException(message, ex);
+				}
+				try {
+					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);
+					result.computeStatus();
+					if (result.isSuccess()) {
+						PrismObject prismShadow = provisioningService.getObject(shadow.getClass(),
+								shadow.getOid(), null, result);
+						shadow = (T) prismShadow.asObjectable();
 					}
-//				} else if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()){
-//					if (shadow.getObjectChange() != null) {
-//						ObjectDeltaType deltaType = shadow.getObjectChange();
-//						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-//								deltaType.getModification(), shadow.asPrismObject().getDefinition());
-//						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null, result);
-//					} 
-//					shadow = (T) shadowCache.getShadow(shadow.getClass(), shadow.getOid(), null, result);
-//				} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()){
-//					
-//					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), ObjectOperationOption.FORCE, null, result);
-//				}
+				} finally {
+					result.computeStatus();
+				}
 				return shadow;
-			
-//			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
-//					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+
 		case MODIFY:
 			if (shadow.getFailedOperationType() == null) {
 				String message = "Generic error in the connector. Can't process shadow " + ObjectTypeUtil.toShortString(shadow) + ". ";
 				result.recordFatalError(message, ex);
 				throw new GenericFrameworkException(message, ex);
 			}
-				// get the modifications from the shadow before the account
-				// is created, because after successful creation of account,
-				// the modification will be lost
-				Collection<? extends ItemDelta> modifications = null;
-				if (shadow.getObjectChange() != null) {
-					ObjectDeltaType deltaType = shadow.getObjectChange();
-
-					modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
+			// get the modifications from the shadow before the account
+			// is created, because after successful creation of account,
+			// the modification will be lost
+			Collection<? extends ItemDelta> modifications = null;
+			if (shadow.getObjectChange() != null) {
+				ObjectDeltaType deltaType = shadow.getObjectChange();
+				modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
 							.asPrismObject().getDefinition());
-				}
-					PropertyDelta.applyTo(modifications, shadow.asPrismObject());
-//				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
-//				
-					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);						
-//					provisioningService.addObject(shadow.asPrismObject(), null, result);
-					// if (oid != null){
-					// shadow = shadowCache.getShadow(AccountShadowType.class,
-					// oid, null, parentResult);
-					// }
-					result.computeStatus();
+			}
+			PropertyDelta.applyTo(modifications, shadow.asPrismObject());
+			provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);						
+			result.computeStatus();
 
-					if (!result.isSuccess()) {
-						// account wasn't created, probably resource is
-						// still
-						// down, or there is other reason.just save the
-						// pending
-						// modifications to the shadow in the
-						// repository..next
-						// time by processing this shadow, we can try again
-						// TODO: probably there is a need to union current
-						// changes with previous
-						cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
-								result);
-						result.recordHandledError("Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
-					}
-
-				
-				return shadow;
+			if (!result.isSuccess()) {
+				// account wasn't created, probably resource is
+				// still down, or there is other reason.just save the
+				// pending modifications to the shadow in the
+				// repository..next time by processing this shadow, we can try again
+				// TODO: probably there is a need to union current changes with previous
+				cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
+					result);
+				result.recordHandledError("Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
+			}
+			return shadow;
 			
 		case DELETE:
 			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);

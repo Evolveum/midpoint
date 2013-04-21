@@ -82,7 +82,6 @@ public class SchemaExceptionHandler extends ErrorHandler{
 		}
 		
 		parentResult.recordFatalError("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
-		
 				throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
 	}	
 

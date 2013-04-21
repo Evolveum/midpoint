@@ -212,7 +212,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 
 				resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow((Class<ShadowType>) type, oid,
-						(PrismObject<ShadowType>) (repositoryObject), result);
+						(PrismObject<ShadowType>) (repositoryObject), options, result);
 
 			} catch (ObjectNotFoundException e) {
 				recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
@@ -937,15 +937,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ShadowType shadowType = shadow.asObjectable();
 		
 		try{
-//			ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
 			if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()){
 				getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
-//				finishAdd(shadow, resource, parentResult);
 			} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()){
 				getShadowCache(Mode.RECON).modifyShadow(shadow, null, shadow.getOid(), new ArrayList<ItemDelta>(), null, options, task, result);
 			} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()){
 				getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, null, task, result);
-//		operationFinisher.finishOperation(shadow, parentResult);
 			}
 		} catch (CommunicationException e) {
 			recordFatalError(LOGGER, result, "Couldn't finish operation: communication problem: " + e.getMessage(), e);
