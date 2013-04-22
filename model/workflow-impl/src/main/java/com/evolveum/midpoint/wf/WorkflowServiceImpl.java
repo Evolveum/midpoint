@@ -33,6 +33,8 @@ import com.evolveum.midpoint.wf.dao.ProcessInstanceProvider;
 import com.evolveum.midpoint.wf.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.dao.WorkItemProvider;
 
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -150,4 +152,10 @@ public class WorkflowServiceImpl implements WorkflowService {
         return prismContext;
     }
 
+    @Override
+    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
+        String processor = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+        Validate.notNull(processor, "There's no change processor name among the process instance variables");
+        return wfConfiguration.findChangeProcessor(processor).getProcessInstanceDetailsPanelName(processInstance);
+    }
 }

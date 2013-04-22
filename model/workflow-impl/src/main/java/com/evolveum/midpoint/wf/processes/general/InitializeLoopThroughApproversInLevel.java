@@ -184,15 +184,15 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         Map<QName, Object> variables = new HashMap<QName, Object>();
 
-        PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_AFTER);
-        if (user != null) {
-            variables.put(SchemaConstants.C_USER, user);
-        }
-
-        PrismObject<UserType> requester = (PrismObject<UserType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER);
-        if (requester != null) {
-            variables.put(SchemaConstants.C_REQUESTER, requester);
-        }
+//        PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_AFTER);
+//        if (user != null) {
+//            variables.put(SchemaConstants.C_USER, user);
+//        }
+//
+//        PrismObject<UserType> requester = (PrismObject<UserType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER);
+//        if (requester != null) {
+//            variables.put(SchemaConstants.C_REQUESTER, requester);
+//        }
 
         return variables;
     }

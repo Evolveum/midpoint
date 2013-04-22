@@ -4,6 +4,7 @@ package com.evolveum.midpoint.wf.processes;
  * @author Pavol
  */
 public class CommonProcessVariableNames {
+
     public static final String VARIABLE_PROCESS_NAME = "processName";
     public static final String VARIABLE_START_TIME = "startTime";
     public static final String VARIABLE_MIDPOINT_TASK_OID = "midPointTaskOid";
@@ -11,10 +12,10 @@ public class CommonProcessVariableNames {
     public static final String VARIABLE_MIDPOINT_CHANGE_PROCESSOR = "midPointChangeProcessor";
 
     public static final String VARIABLE_MIDPOINT_REQUESTER_OID = "midPointRequesterOid";
-    public static final String VARIABLE_MIDPOINT_REQUESTER = "midPointRequester";
 
     public static final String VARIABLE_MIDPOINT_STATE = "midPointState";
     public static final String VARIABLE_MIDPOINT_OBJECT_OID = "midPointObjectOid";
+    public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";
     public static final String VARIABLE_MIDPOINT_OBJECT_BEFORE = "midPointObjectBefore";
     public static final String VARIABLE_MIDPOINT_OBJECT_AFTER = "midPointObjectAfter";
     public static final String VARIABLE_MIDPOINT_DELTA = "midPointDelta";

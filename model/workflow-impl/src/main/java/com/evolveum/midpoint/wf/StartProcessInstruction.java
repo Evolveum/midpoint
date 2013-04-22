@@ -24,6 +24,8 @@ package com.evolveum.midpoint.wf;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -135,4 +137,5 @@ public class StartProcessInstruction implements DebugDumpable {
         return sb.toString();
 
     }
+
 }

@@ -98,10 +98,6 @@ public class ProcessInstanceDto extends Selectable {
 //        }
 //    }
 
-    public String getDetails() {
-        return "NOT IMPLEMENTED";
-    }
-
     public Object getVariable(String name) {
         return processInstance.getVariables().get(name);
     }

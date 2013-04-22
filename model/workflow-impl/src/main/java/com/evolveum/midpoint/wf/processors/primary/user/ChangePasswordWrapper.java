@@ -66,7 +66,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
     private PrismContext prismContext;
 
     @Override
-    public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<Objectable> change, Task task, OperationResult result) {
+    public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
         List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
@@ -134,7 +134,10 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve changing password for " + userName);
 
         instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
-        instruction.setDelta(itemDeltaToObjectDelta(objectOid, delta));
+
+        ObjectDelta objectDelta = itemDeltaToObjectDelta(objectOid, delta);
+        instruction.setDelta(objectDelta);
+        setDeltaProcessVariable(instruction, objectDelta);
 
         return instruction;
     }

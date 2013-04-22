@@ -30,17 +30,22 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
+import com.evolveum.midpoint.wf.StartProcessInstruction;
 import com.evolveum.midpoint.wf.WfConfiguration;
+import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.dao.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.WfTaskUtil;
@@ -54,6 +59,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +84,9 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
 
     @Autowired
     private WfConfiguration wfConfiguration;
+
+    @Autowired
+    private MiscDataUtil miscDataUtil;
 
     String beanName;
 
@@ -109,14 +118,14 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
             return null;
         }
 
-        ObjectDelta<Objectable> change = context.getFocusContext().getPrimaryDelta();
+        ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
         if (change == null) {
             return null;
         }
 
         // examine the request using process wrappers
 
-        ObjectDelta<Objectable> changeBeingDecomposed = change.clone();
+        ObjectDelta<? extends ObjectType> changeBeingDecomposed = change.clone();
         List<StartProcessInstructionForPrimaryStage> startProcessInstructions =
                 gatherStartProcessInstructions(context, changeBeingDecomposed, task, result);
 
@@ -130,7 +139,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         return startProcesses(startProcessInstructions, context, changeBeingDecomposed, task, result);
     }
 
-    private List<StartProcessInstructionForPrimaryStage> gatherStartProcessInstructions(ModelContext context, ObjectDelta<Objectable> changeBeingDecomposed, Task task, OperationResult result) {
+    private List<StartProcessInstructionForPrimaryStage> gatherStartProcessInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task task, OperationResult result) {
         List<StartProcessInstructionForPrimaryStage> startProcessInstructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
 
         for (PrimaryApprovalProcessWrapper wrapper : processWrappers) {
@@ -150,10 +159,24 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                 startProcessInstructions.addAll(processes);
             }
         }
+
+        // if we are adding a new object, we have to set OBJECT_TO_BE_ADDED variable in all instructions
+        if (changeBeingDecomposed.isAdd()) {
+            for (StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
+                String objectToBeAdded = null;
+                try {
+                    objectToBeAdded = miscDataUtil.serializeObjectToXml(changeBeingDecomposed.getObjectToAdd());
+                } catch (JAXBException e) {
+                    throw new SystemException("Couldn't serialize object to be added to XML due to JAXB exception", e);
+                }
+                instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
+            }
+        }
+
         return startProcessInstructions;
     }
 
-    private HookOperationMode startProcesses(List<StartProcessInstructionForPrimaryStage> startProcessInstructions, final ModelContext context, ObjectDelta<Objectable> changeWithoutApproval, Task rootTask, OperationResult result) {
+    private HookOperationMode startProcesses(List<StartProcessInstructionForPrimaryStage> startProcessInstructions, final ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Task rootTask, OperationResult result) {
 
         Throwable failReason;
 
@@ -282,7 +305,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
 
-    private LensContext prepareContextWithNoDelta(LensContext context, ObjectDelta<Objectable> changeAsPrototype) {
+    private LensContext prepareContextWithNoDelta(LensContext context, ObjectDelta<? extends ObjectType> changeAsPrototype) {
         LensContext contextCopy = ((LensContext) context).clone();
         contextCopy.replacePrimaryFocusDelta(
                 ObjectDelta.createEmptyDelta(
@@ -377,5 +400,13 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
             }
         }
         throw new IllegalStateException("Wrapper " + name + " is not registered.");
+    }
+
+    @Override
+    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
+        String wrapperName = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+        Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
+        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
+        return wrapper.getProcessInstanceDetailsPanelName(processInstance);
     }
 }

@@ -28,11 +28,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.runtime.ProcessInstance;
 
 import java.util.List;
 import java.util.Map;
@@ -72,21 +71,24 @@ public interface PrimaryApprovalProcessWrapper {
      * @return list of start process instructions
      */
 
-    List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<Objectable> change, Task task, OperationResult result);
+    List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result);
+
+    /**
+     * Returns the name of process instance details GUI panel. (Currently not used.)
+     * @return
+     */
+    String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
 
     // TODO (after this mark)
     //-------------------------------------------------------------------------------------
 
     List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException;
 
-    String getProcessSpecificDetailsForTask(String instanceId, Map<String, Object> vars);
-    String getProcessSpecificDetails(ProcessInstance instance, Map<String, Object> vars, List<org.activiti.engine.task.Task> tasks);
-    String getProcessSpecificDetails(HistoricProcessInstance instance, Map<String, Object> vars);
-
-
     ChangeProcessor getChangeProcessor();
 
     void setChangeProcessor(ChangeProcessor changeProcessor);
 
     PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result);
+
+
 }

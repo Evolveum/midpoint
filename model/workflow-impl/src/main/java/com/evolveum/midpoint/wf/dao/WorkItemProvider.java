@@ -30,6 +30,7 @@ import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -187,16 +188,19 @@ public class WorkItemProvider {
         if (getTaskDetails) {
             try {
                 Map<String,Object> variables = activitiEngineDataHelper.getProcessVariables(task.getId(), result);
-                ((WorkItemDetailed) wi).setRequester((PrismObject<UserType>) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER));
-                ((WorkItemDetailed) wi).setObjectOld((PrismObject<ObjectType>) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_BEFORE));
-                ((WorkItemDetailed) wi).setObjectNew((PrismObject<ObjectType>) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_AFTER));
+                ((WorkItemDetailed) wi).setRequester(miscDataUtil.getRequester(variables, result));
+                PrismObject<? extends ObjectType> objectBefore = miscDataUtil.getObjectBefore(variables, prismContext, result);
+                ((WorkItemDetailed) wi).setObjectOld(objectBefore);
+                ((WorkItemDetailed) wi).setObjectNew(miscDataUtil.getObjectAfter(variables, objectBefore, prismContext, result));
                 ((WorkItemDetailed) wi).setRequestSpecificData(getRequestSpecificData(task, variables, result));
                 ((WorkItemDetailed) wi).setTrackingData(getTrackingData(task, variables, result));
                 ((WorkItemDetailed) wi).setAdditionalData(getAdditionalData(task, variables, result));
             } catch (SchemaException e) {
                 throw new SystemException("Got unexpected schema exception when preparing information on Work Item", e);
             } catch (ObjectNotFoundException e) {
-                throw new SystemException("Got unexpected object-not-found exception when preparing information on Work Item; perhaps a task was deleted while we processed it.", e);
+                throw new SystemException("Got unexpected object-not-found exception when preparing information on Work Item; perhaps the requester or a workflow task was deleted in the meantime.", e);
+            } catch (JAXBException e) {
+                throw new SystemException("Got unexpected JAXB exception when preparing information on Work Item", e);
             }
         }
 

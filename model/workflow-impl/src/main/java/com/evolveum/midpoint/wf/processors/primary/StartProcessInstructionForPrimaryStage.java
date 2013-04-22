@@ -6,6 +6,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.StartProcessInstruction;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,19 +18,19 @@ import java.util.List;
  */
 public class StartProcessInstructionForPrimaryStage extends StartProcessInstruction implements DebugDumpable {
 
-    private List<ObjectDelta<Objectable>> deltas = new ArrayList<ObjectDelta<Objectable>>();
+    private List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
     private PrimaryApprovalProcessWrapper wrapper;
 
-    public List<ObjectDelta<Objectable>> getDeltas() {
+    public List<ObjectDelta<? extends ObjectType>> getDeltas() {
         return deltas;
     }
 
-    public void setDeltas(List<ObjectDelta<Objectable>> deltas) {
+    public void setDeltas(List<ObjectDelta<? extends ObjectType>> deltas) {
         this.deltas = deltas;
     }
 
-    public void setDelta(ObjectDelta<Objectable> delta) {
-        deltas = new ArrayList<ObjectDelta<Objectable>>();
+    public void setDelta(ObjectDelta<? extends ObjectType> delta) {
+        deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         deltas.add(delta);
     }
 
@@ -41,7 +42,7 @@ public class StartProcessInstructionForPrimaryStage extends StartProcessInstruct
 
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Deltas (count: " + deltas.size() + "):\n");
-        for (ObjectDelta<Objectable> delta : deltas) {
+        for (ObjectDelta<? extends ObjectType> delta : deltas) {
             sb.append(delta.debugDump(indent+1));
             sb.append("\n");
         }

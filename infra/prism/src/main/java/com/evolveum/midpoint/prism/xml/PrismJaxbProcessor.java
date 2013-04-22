@@ -40,6 +40,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -310,8 +311,13 @@ public class PrismJaxbProcessor {
 
 		return (Element) element.getFirstChild();
 	}
-	
-	public <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
+
+    public <T> Element marshalObjectToDom(T jaxbObject, QName elementQName) throws JAXBException {
+        return marshalObjectToDom(jaxbObject, elementQName, (Document) null);
+    }
+
+
+    public <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
 		if (doc == null) {
 			doc = DOMUtil.getDocument();
 		}

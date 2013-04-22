@@ -106,4 +106,8 @@ public class ProcessInstance implements Serializable {
     public void setFinished(boolean finished) {
         this.finished = finished;
     }
+
+    public Object getVariable(String name) {
+        return variables.get(name);
+    }
 }

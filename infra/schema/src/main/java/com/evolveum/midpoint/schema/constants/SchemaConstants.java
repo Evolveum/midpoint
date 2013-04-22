@@ -99,6 +99,7 @@ public abstract class SchemaConstants {
 	public static final QName C_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
 
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "PolyStringType");
+    public static final QName T_OBJECT_DELTA = new QName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
 
 	public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
 

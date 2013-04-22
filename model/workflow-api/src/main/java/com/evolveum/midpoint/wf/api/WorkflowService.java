@@ -129,4 +129,6 @@ public interface WorkflowService {
 
     // TODO remove this
     public PrismContext getPrismContext();
+
+    String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
 }

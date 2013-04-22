@@ -39,8 +39,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WorkflowServiceImpl;
-import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
@@ -52,8 +50,6 @@ import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPri
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.runtime.ProcessInstance;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,14 +86,8 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     @Autowired
     private PrismContext prismContext;
 
-    @Autowired
-    private ActivitiEngine activitiEngine;
-
-    @Autowired
-    private WorkflowServiceImpl workflowService;
-
     @Override
-    public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<Objectable> change, Task task, OperationResult result) {
+    public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) {
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getAssignmentToApproveList(change, result);
         if (approvalRequestList == null) {
@@ -107,7 +97,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         return prepareStartProcessInstructions(modelContext, task, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AssignmentType>> getAssignmentToApproveList(ObjectDelta<Objectable> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getAssignmentToApproveList(ObjectDelta<? extends ObjectType> change, OperationResult result) {
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<ApprovalRequest<AssignmentType>>();
 
@@ -230,65 +220,34 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
 
-//            if (fc.getObjectOld() != null) {
-//                resolveRolesAndOrgUnits(fc.getObjectOld(), result);
-//            }
-//
-//            if (fc.getObjectNew() != null) {
-//                resolveRolesAndOrgUnits(fc.getObjectNew(), result);
-//            }
-
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_ADDITIONAL_DATA, roleType);
             instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
-            ObjectDelta<Objectable> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
+            ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
             instruction.setDelta(delta);
+            setDeltaProcessVariable(instruction, delta);
 
             instructions.add(instruction);
         }
         return instructions;
     }
 
-    private ObjectDelta<Objectable> assignmentToDelta(ModelContext<?, ?> modelContext, ApprovalRequest<AssignmentType> approvalRequest, String objectOid) {
+    private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<?, ?> modelContext, ApprovalRequest<AssignmentType> approvalRequest, String objectOid) {
         PrismObject<UserType> user = (PrismObject<UserType>) modelContext.getFocusContext().getObjectNew();
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
         ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<AssignmentType>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition);
         addRoleDelta.addValueToAdd(approvalRequest.getItemToApprove().asPrismContainerValue().clone());
 
-        // casting to ObjectDelta is an ugly hack, but...
-        return (ObjectDelta) ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
+        return ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
     }
 
 
     public static final String APPROVER_MAIL_ADDRESS = "approverMailAddress";
 
-    //private static final QName ADDITIONAL_INFO = new QName(SchemaConstants.NS_C, "AdditionalInfo");       // todo: change namespace
-
     private boolean shouldRoleBeApproved(RoleType role) {
         return !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
     }
-
-//    private String formatAsAssignmentList(List<ApprovalRequest> assignmentsToApprove) {
-//        StringBuffer sb = new StringBuffer();
-//        if (assignmentsToApprove.size() > 1) {
-//            sb.append("roles ");
-//        } else if (assignmentsToApprove.size() == 1) {
-//            sb.append("role ");
-//        } else {
-//            throw new IllegalStateException("No roles to approve.");
-//        }
-//        boolean first = true;
-//        for (ApprovalRequest at : assignmentsToApprove) {
-//            if (first) {
-//                first = false;
-//            } else {
-//                sb.append(", ");
-//            }
-//            sb.append(formatAssignmentBrief(at.getAssignment()));
-//        }
-//        return sb.toString();
-//    }
 
     private RoleType resolveRoleRef(AssignmentType a, OperationResult result) {
         RoleType role = (RoleType) a.getTarget();
@@ -303,270 +262,6 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             a.setTarget(role);
         }
         return role;
-    }
-
-//
-//        AssignmentsApprovals assignmentsApprovals = (AssignmentsApprovals) event.getVariables().get(ASSIGNMENTS_APPROVALS);
-//        if (assignmentsApprovals == null) {
-//            throw new IllegalStateException("AssignmentsApprovals is null");           // todo
-//        }
-//
-//        if (context.getState() != ModelState.PRIMARY) {
-//            throw new IllegalStateException("Model state is not PRIMARY (it is " + context.getState() + "); task = " + task);
-//        }
-//
-//        List<AssignmentType> assignmentsApproved = new ArrayList<AssignmentType>();
-//        List<AssignmentType> assignmentsDisapproved = new ArrayList<AssignmentType>();
-//        for (AssignmentsApprovals.AssignmentApproval assignmentApproval : assignmentsApprovals.getAssignmentsApproval()) {
-//            if (LOGGER.isDebugEnabled()) {
-//                LOGGER.debug("Workflow result: approved=" + assignmentApproval.isApproved() + " for assignment=" + assignmentApproval.getAssignmentType());
-//            }
-//            if (assignmentApproval.isApproved()) {
-//                assignmentsApproved.add(assignmentApproval.getAssignmentType());
-//            } else {
-//                assignmentsDisapproved.add(assignmentApproval.getAssignmentType());
-//            }
-//        }
-//
-//        ObjectDelta<Objectable> change = context.getFocusContext().getPrimaryDelta();
-//        if (change.getChangeType() == ChangeType.ADD) {
-//
-//            PrismObject<?> prismToAdd = change.getObjectToAdd();
-//            boolean isUser = prismToAdd.getCompileTimeClass().isAssignableFrom(UserType.class);
-//
-//            if (!isUser) {
-//                throw new IllegalStateException("Object to be added is not User; task = " + task);
-//            }
-//
-//            UserType user = (UserType) prismToAdd.asObjectable();
-//            if (LOGGER.isTraceEnabled()) {
-//                LOGGER.trace("Assignments (" + user.getAssignment().size() + "): ");
-//            }
-//            for (AssignmentType a : new ArrayList<AssignmentType>(user.getAssignment())) {      // copy, because we want to modify the list
-//                ObjectReferenceType ort = a.getTargetRef();
-//                if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
-//                    if (LOGGER.isTraceEnabled()) {
-//                        LOGGER.trace(" - assignment: " + a);
-//                    }
-//                    if (assignmentsApproved.contains(a)) {
-//                        if (LOGGER.isTraceEnabled()) {
-//                            LOGGER.trace(" --- approved");
-//                        }
-//                    } else {
-//                        if (LOGGER.isTraceEnabled()) {
-//                            LOGGER.trace(" --- rejected; will be removed from the list");
-//                        }
-//                        user.getAssignment().remove(a);
-//                    }
-//                }
-//            }
-//        } else if (change.getChangeType() == ChangeType.MODIFY) {
-//
-//            boolean isUser = change.getObjectTypeClass().isAssignableFrom(UserType.class);
-//
-//            if (!isUser) {
-//                throw new IllegalStateException("Object to be added is not User; task = " + task);
-//            }
-//
-//            for (ItemDelta delta : change.getModifications()) {
-//                if (UserType.F_ASSIGNMENT.equals(delta.getName())) {
-//                    for (Object o : new ArrayList<Object>(delta.getValuesToAdd())) {
-//                        if (LOGGER.isTraceEnabled()) {
-//                            LOGGER.trace("Value to add = " + o);
-//                        }
-//                        PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
-//                        ObjectReferenceType ort = at.getValue().getTargetRef();
-//                        if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
-//                            if (LOGGER.isTraceEnabled()) {
-//                                LOGGER.trace(" - assignment: " + at);
-//                            }
-//                            if (assignmentsApproved.contains(at.asContainerable())) {
-//                                if (LOGGER.isTraceEnabled()) {
-//                                    LOGGER.trace(" --- approved");
-//                                }
-//                            } else {
-//                                if (LOGGER.isTraceEnabled()) {
-//                                    LOGGER.trace(" --- rejected; will be removed from the list");
-//                                }
-//                                delta.getValuesToAdd().remove(o);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        } else {
-//            throw new IllegalStateException("Operation that has to be continued is neither ADD nor MODIFY; task = " + task);
-//        }
-//
-//    }
-
-    private void addRolesRequested(StringBuffer sb, Map<String, Object> vars) {
-        sb.append("The following assignments were requested to be added:\n");
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = null; //(List<ApprovalRequest>) vars.get(ASSIGNMENTS_TO_APPROVE);
-        if (approvalRequestList == null) {
-            sb.append("(the list cannot be obtained)\n\n");
-        } else {
-            int counter = 1;
-            for (ApprovalRequest<AssignmentType> ata : approvalRequestList) {
-                sb.append(" ");
-                sb.append(counter++);
-                sb.append(". ");
-                sb.append(formatAssignmentFull(ata.getItemToApprove(), true));
-                sb.append("\n");
-            }
-            sb.append("\n");
-        }
-    }
-
-    private String formatAssignmentFull(AssignmentType assignment, boolean showOid) {
-        StringBuilder sb = new StringBuilder();
-        if (assignment.getTarget() != null) {
-            sb.append(assignment.getTarget().getName());
-        }
-        if (showOid || assignment.getTarget() == null) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append("(");
-            sb.append(assignment.getTargetRef().getOid());
-            sb.append(")");
-        }
-        if (assignment.getActivation() != null) {
-            if (assignment.getActivation().getValidFrom() != null) {
-                sb.append(", from ");
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-            }
-            if (assignment.getActivation().getValidTo() != null) {
-                sb.append(", to ");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            }
-        }
-        if (StringUtils.isNotBlank(assignment.getDescription())) {
-            sb.append(" (");
-            sb.append(assignment.getDescription());
-            sb.append(")");
-        }
-        return sb.toString();
-    }
-
-    private String formatAssignmentBrief(AssignmentType assignment) {
-        StringBuilder sb = new StringBuilder();
-        if (assignment.getTarget() != null) {
-            sb.append(assignment.getTarget().getName());
-        } else {
-            sb.append(assignment.getTargetRef().getOid());
-        }
-        if (assignment.getActivation() != null && (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
-            sb.append(" ");
-            sb.append("(");
-            sb.append(formatTimeIntervalBrief(assignment));
-            sb.append(")");
-        }
-        return sb.toString();
-    }
-
-    private void addDecisionsDone(StringBuffer sb, Map<String, Object> vars, boolean detailed) {
-        sb.append("Individual decisions done: ");
-        List<Decision<AssignmentType>> allDecisions = (List<Decision<AssignmentType>>) vars.get(ProcessVariableNames.ALL_DECISIONS);
-        if (allDecisions == null) {
-            sb.append("(error - list of decisions is null)\n");        // todo
-        } else if (allDecisions.isEmpty()) {
-            sb.append("none\n");
-        } else {
-            if (detailed) {
-                sb.append("\n");
-                for (Decision<AssignmentType> decision : allDecisions) {
-                    sb.append(" - " + (decision.isApproved() ? "APPROVED" : "NOT APPROVED") + " role " +
-                            formatAssignmentFull(decision.getApprovalRequest().getItemToApprove(), false) + " by " +
-                            decision.getUser() + " on " + decision.getDate() + ", with comment: " + decision.getComment() + "\n");
-                }
-            } else {
-                boolean first = true;
-                for (Decision<AssignmentType> decision : allDecisions) {
-                    if (first) {
-                        first = false;
-                    } else {
-                        sb.append("; ");
-                    }
-                    sb.append("role " + formatAssignmentBrief(decision.getApprovalRequest().getItemToApprove()) + " " +
-                            (decision.isApproved() ? "approved" : "NOT approved") +
-                            " by " + decision.getUser() +
-                            (!StringUtils.isEmpty(decision.getComment()) ? ", commenting: " + decision.getComment() : ""));
-                }
-            }
-        }
-        sb.append("\n");
-    }
-
-    private void addAssignmentsApprovals(StringBuffer sb, Map<String, Object> vars) {
-
-//        AssignmentsApprovals assignmentsApprovals = null; //(AssignmentsApprovals) vars.get(ASSIGNMENTS_APPROVALS);
-//        if (LOGGER.isTraceEnabled()) {
-//            LOGGER.trace("assignmentsApprovals = " + assignmentsApprovals);
-//        }
-//        if (assignmentsApprovals == null) {
-//            sb.append("(no information on definitive assignments approvals/rejections)\n");
-//            return;
-//        }
-//
-//        List<AssignmentsApprovals.AssignmentApproval> approved = new ArrayList<AssignmentsApprovals.AssignmentApproval>();
-//        List<AssignmentsApprovals.AssignmentApproval> rejected = new ArrayList<AssignmentsApprovals.AssignmentApproval>();
-//
-//        for (AssignmentsApprovals.AssignmentApproval assignmentApproval : assignmentsApprovals.getAssignmentsApproval()) {
-//            (assignmentApproval.isApproved() ? approved : rejected).add(assignmentApproval);
-//        }
-//
-//        sb.append("Assignments definitively approved: ");
-//        listAssignmentsApprovals(sb, approved);
-//        sb.append("\n");
-//        sb.append("Assignments definitively rejected: ");
-//        listAssignmentsApprovals(sb, rejected);
-//        sb.append("\n");
-    }
-
-//    private void listAssignmentsApprovals(StringBuffer sb, List<AssignmentsApprovals.AssignmentApproval> assignmentApprovals) {
-//        if (assignmentApprovals.isEmpty()) {
-//            sb.append("none\n");
-//        } else {
-//            sb.append("\n");
-//            for (AssignmentsApprovals.AssignmentApproval approval : assignmentApprovals) {
-//                sb.append(" - role " + formatAssignmentFull(approval.getAssignmentType(), false) + "\n");
-//            }
-//        }
-//    }
-
-    @Override
-    public String getProcessSpecificDetailsForTask(String instanceId, Map<String, Object> vars) {
-        StringBuffer sb = new StringBuffer();
-        addDecisionsDone(sb, vars, false);
-        return sb.toString();
-    }
-
-    // todo this is brutal hack
-    @Override
-    public String getProcessSpecificDetails(HistoricProcessInstance instance, Map<String, Object> vars) {
-        StringBuffer sb = new StringBuffer();
-        addRolesRequested(sb, vars);
-        addDecisionsDone(sb, vars, true);
-        sb.append("----------------------------------------------\n\n");
-        addAssignmentsApprovals(sb, vars);
-        if (instance.getDeleteReason() != null) {
-            sb.append("Reason for process deletion: ");
-            sb.append(instance.getDeleteReason());
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
-
-    // todo this is brutal hack
-    @Override
-    public String getProcessSpecificDetails(ProcessInstance instance, Map<String, Object> vars, List<org.activiti.engine.task.Task> tasks) {
-        StringBuffer sb = new StringBuffer();
-        addRolesRequested(sb, vars);
-        addDecisionsDone(sb, vars, true);
-        sb.append("----------------------------------------------\n\n");
-        addAssignmentsApprovals(sb, vars);
-        return sb.toString();
     }
 
     public static String formatTimeIntervalBrief(AssignmentType assignment) {
@@ -592,8 +287,6 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         DateFormat formatter = DateFormat.getDateInstance();
         return formatter.format(time.toGregorianCalendar().getTime());
     }
-
-    public static final QName ROLE_APPROVAL_FORM_NAME = new QName(SchemaConstants.NS_WFCF, "RoleApprovalForm");
 
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {

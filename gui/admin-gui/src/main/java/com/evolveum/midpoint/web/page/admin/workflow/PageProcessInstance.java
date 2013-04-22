@@ -34,10 +34,13 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author lazyman
@@ -57,7 +60,9 @@ public class PageProcessInstance extends PageAdminWorkItems {
     public static final String PARAM_PROCESS_INSTANCE_BACK_ALL = "PageProcessInstancesAll";
     private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadProcessInstance";
 
-	private IModel<ProcessInstanceDto> model;
+    private static final String ID_DETAILS = "details";
+
+    private IModel<ProcessInstanceDto> model;
 
     private PageParameters parameters;
 
@@ -79,7 +84,8 @@ public class PageProcessInstance extends PageAdminWorkItems {
 			}
 		};
 
-        initLayout();
+        String detailsPageClassName = getWorkflowService().getProcessInstanceDetailsPanelName(model.getObject().getProcessInstance());
+        initLayout(detailsPageClassName);
 	}
 
     private ProcessInstanceDto loadProcessInstance() {
@@ -113,16 +119,16 @@ public class PageProcessInstance extends PageAdminWorkItems {
 //        }
 //    }
 
-    private void initLayout() {
+    private void initLayout(String detailsPanelClassName) {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
-		initMainInfo(mainForm);
+		initMainInfo(mainForm, detailsPanelClassName);
 
 		initButtons(mainForm);
 	}
 
-	private void initMainInfo(Form mainForm) {
+	private void initMainInfo(Form mainForm, String detailsPanelClassName) {
         Label name = new Label("name", new PropertyModel(model, "name"));
         mainForm.add(name);
 
@@ -135,9 +141,29 @@ public class PageProcessInstance extends PageAdminWorkItems {
         Label finished = new Label("finished", new PropertyModel(model, "finishedTime"));
         mainForm.add(finished);
 
-        // todo make configurable (what panel to display)
-        ItemApprovalPanel itemApprovalPanel = new ItemApprovalPanel("details", model);
-        mainForm.add(itemApprovalPanel);
+        Throwable problem = null;
+        try {
+            Class<? extends Panel> panelClass = (Class<? extends Panel>) Class.forName(detailsPanelClassName);
+            Panel detailsPanel = panelClass.getConstructor(String.class, IModel.class).newInstance(ID_DETAILS, model);
+            mainForm.add(detailsPanel);
+        } catch (ClassNotFoundException e) {
+            problem = e;
+        } catch (InvocationTargetException e) {
+            problem = e;
+        } catch (InstantiationException e) {
+            problem = e;
+        } catch (NoSuchMethodException e) {
+            problem = e;
+        } catch (IllegalAccessException e) {
+            problem = e;
+        } catch (RuntimeException e) {
+            problem = e;
+        }
+
+        if (problem != null) {
+            Label problemLabel = new Label(ID_DETAILS, "Details cannot be shown because of the following exception: " + problem.getMessage() + ". Please see the log for more details");
+            mainForm.add(problemLabel);
+        }
 	}
 
 	private void initButtons(final Form mainForm) {

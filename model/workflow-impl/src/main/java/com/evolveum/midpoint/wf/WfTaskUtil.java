@@ -455,10 +455,10 @@ public class WfTaskUtil {
         task.setExtensionProperty(modelContextProperty);
     }
 
-    public void storeDeltasToProcess(List<ObjectDelta<Objectable>> deltas, Task task) throws SchemaException {
+    public void storeDeltasToProcess(List<ObjectDelta<? extends ObjectType>> deltas, Task task) throws SchemaException {
 
         PrismProperty<ObjectDeltaType> deltaToProcess = wfDeltaToProcessPropertyDefinition.instantiate();
-        for (ObjectDelta<Objectable> delta : deltas) {
+        for (ObjectDelta<? extends ObjectType> delta : deltas) {
             deltaToProcess.addRealValue(DeltaConvertor.toObjectDeltaType(delta));
         }
         task.addExtensionProperty(deltaToProcess);

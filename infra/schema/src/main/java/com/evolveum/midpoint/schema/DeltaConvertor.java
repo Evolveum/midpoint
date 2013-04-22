@@ -24,8 +24,10 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectDeltaOperationType;
 import org.w3c.dom.Document;
@@ -214,6 +216,13 @@ public class DeltaConvertor {
         }
 		return objectDeltaType;
 	}
+
+    public static String toObjectDeltaTypeXml(ObjectDelta<? extends Objectable> delta) throws SchemaException, JAXBException {
+        ObjectDeltaType objectDeltaType = toObjectDeltaType(delta);
+        Element element = delta.getPrismContext().getPrismJaxbProcessor().marshalObjectToDom(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
+        return DOMUtil.serializeDOMToString(element);
+    }
+
 
     public static ObjectDeltaOperationType toObjectDeltaOperationType(ObjectDeltaOperation objectDeltaOperation) throws SchemaException {
         ObjectDeltaOperationType retval = new ObjectDeltaOperationType();

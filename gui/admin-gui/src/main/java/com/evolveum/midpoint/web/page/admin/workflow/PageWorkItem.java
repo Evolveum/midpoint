@@ -151,7 +151,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
-        wrapper.setShowAssignments(true);
+        wrapper.setShowAssignments(false);
         wrapper.setReadonly(true);
 
         return wrapper;
