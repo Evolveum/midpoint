@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+<role oid="00000000-8888-6666-0000-100000000005"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <name>Basic Role - LDAP</name>    
+    <assignment id="1">
+    	<accountConstruction>
+    		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+    	</accountConstruction>
+    </assignment>
+    <inducement id="2">
+        <accountConstruction>
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+        </accountConstruction>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>
+    </inducement>
+    <approverRef oid="f65963e3-9d47-4b18-aaf3-bfc98bdfa000" type="c:UserType"/>  
+</role>

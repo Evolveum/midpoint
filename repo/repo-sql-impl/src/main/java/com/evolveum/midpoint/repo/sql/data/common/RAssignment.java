@@ -218,6 +218,7 @@ public class RAssignment extends RContainer implements ROwnable {
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
+        if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null) return false;
 
         return true;
     }
@@ -277,8 +278,6 @@ public class RAssignment extends RContainer implements ROwnable {
 
             repo.setExtension(extension);
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-
-            new ContainerIdGenerator().generate(null, extension);
         }
 
         if (jaxb.getActivation() != null) {

@@ -111,9 +111,7 @@ public abstract class RFocus extends RObject {
         ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
-
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
-            rAssignment.setId((Long) gen.generate(null, rAssignment));
 
             repo.getAssignment().add(rAssignment);
         }

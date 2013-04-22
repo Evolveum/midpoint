@@ -89,7 +89,7 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
         if (parent instanceof RAbstractRole) {
             RAbstractRole role = (RAbstractRole) parent;
-            containers.addAll(role.getAssignment());
+            containers.addAll(role.getInducement());
             containers.addAll(role.getExclusion());
             containers.addAll(role.getAuthorization());
         }

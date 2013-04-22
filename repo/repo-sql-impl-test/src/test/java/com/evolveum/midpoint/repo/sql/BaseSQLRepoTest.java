@@ -64,7 +64,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     }
 
     @BeforeClass
-    public void beforeClass() {
+    public void beforeClass() throws Exception {
         System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
     }

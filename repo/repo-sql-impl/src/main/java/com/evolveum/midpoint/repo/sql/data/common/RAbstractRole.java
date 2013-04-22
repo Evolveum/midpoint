@@ -267,27 +267,21 @@ public abstract class RAbstractRole extends RFocus {
         ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
-
             RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext);
-            gen.generate(null, rInducement);
 
             repo.getInducement().add(rInducement);
         }
 
         for (ExclusionType exclusion : jaxb.getExclusion()) {
             RExclusion rExclusion = new RExclusion(repo);
-
             RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
-            gen.generate(null, rExclusion);
 
             repo.getExclusion().add(rExclusion);
         }
 
         for (AuthorizationType exclusion : jaxb.getAuthorization()) {
             RAuthorization rAuth = new RAuthorization(repo);
-
             RAuthorization.copyFromJAXB(exclusion, rAuth, jaxb, prismContext);
-            gen.generate(null, rAuth);
 
             repo.getAuthorization().add(rAuth);
         }
