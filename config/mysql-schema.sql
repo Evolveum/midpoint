@@ -141,6 +141,7 @@ CREATE TABLE m_assignment (
   enabled                     BIT,
   validFrom                   DATETIME(6),
   validTo                     DATETIME(6),
+  assignmentOwner             INTEGER,
   description                 LONGTEXT,
   owner_id                    BIGINT      NOT NULL,
   owner_oid                   VARCHAR(36) NOT NULL,
@@ -300,6 +301,15 @@ CREATE TABLE m_exclusion (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
+CREATE TABLE m_focus (
+  id  BIGINT      NOT NULL,
+  oid VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
 CREATE TABLE m_generic_object (
   name_norm  VARCHAR(255),
   name_orig  VARCHAR(255),
@@ -314,8 +324,8 @@ CREATE TABLE m_generic_object (
   ENGINE = InnoDB;
 
 CREATE TABLE m_metadata (
-  owner_oid                     VARCHAR(36) NOT NULL,
   owner_id                      BIGINT      NOT NULL,
+  owner_oid                     VARCHAR(36) NOT NULL,
   createChannel                 VARCHAR(255),
   createTimestamp               DATETIME(6),
   creatorRef_description        LONGTEXT,
@@ -332,7 +342,7 @@ CREATE TABLE m_metadata (
   modifierRef_type              INTEGER,
   modifyChannel                 VARCHAR(255),
   modifyTimestamp               DATETIME(6),
-  PRIMARY KEY (owner_oid, owner_id)
+  PRIMARY KEY (owner_id, owner_oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_general_ci
@@ -718,7 +728,7 @@ ALTER TABLE m_abstract_role
 ADD INDEX fk_abstract_role (id, oid),
 ADD CONSTRAINT fk_abstract_role
 FOREIGN KEY (id, oid)
-REFERENCES m_object (id, oid);
+REFERENCES m_focus (id, oid);
 
 ALTER TABLE m_account_shadow
 ADD INDEX fk_account_shadow (id, oid),
@@ -832,6 +842,12 @@ ALTER TABLE m_exclusion
 ADD INDEX fk_exclusion_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_exclusion_owner
 FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object (id, oid);
+
+ALTER TABLE m_focus
+ADD INDEX fk_focus (id, oid),
+ADD CONSTRAINT fk_focus
+FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
 
 ALTER TABLE m_generic_object
@@ -976,7 +992,7 @@ ALTER TABLE m_user
 ADD INDEX fk_user (id, oid),
 ADD CONSTRAINT fk_user
 FOREIGN KEY (id, oid)
-REFERENCES m_object (id, oid);
+REFERENCES m_focus (id, oid);
 
 ALTER TABLE m_user_employee_type
 ADD INDEX fk_user_employee_type (user_id, user_oid),

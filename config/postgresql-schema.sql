@@ -106,6 +106,7 @@ CREATE TABLE m_assignment (
   enabled                     BOOLEAN,
   validFrom                   TIMESTAMP,
   validTo                     TIMESTAMP,
+  assignmentOwner             INT4,
   description                 TEXT,
   owner_id                    INT8        NOT NULL,
   owner_oid                   VARCHAR(36) NOT NULL,
@@ -235,6 +236,12 @@ CREATE TABLE m_exclusion (
   PRIMARY KEY (id, oid)
 );
 
+CREATE TABLE m_focus (
+  id  INT8        NOT NULL,
+  oid VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
 CREATE TABLE m_generic_object (
   name_norm  VARCHAR(255),
   name_orig  VARCHAR(255),
@@ -246,8 +253,8 @@ CREATE TABLE m_generic_object (
 );
 
 CREATE TABLE m_metadata (
-  owner_oid                     VARCHAR(36) NOT NULL,
   owner_id                      INT8        NOT NULL,
+  owner_oid                     VARCHAR(36) NOT NULL,
   createChannel                 VARCHAR(255),
   createTimestamp               TIMESTAMP,
   creatorRef_description        TEXT,
@@ -264,7 +271,7 @@ CREATE TABLE m_metadata (
   modifierRef_type              INT4,
   modifyChannel                 VARCHAR(255),
   modifyTimestamp               TIMESTAMP,
-  PRIMARY KEY (owner_oid, owner_id)
+  PRIMARY KEY (owner_id, owner_oid)
 );
 
 CREATE TABLE m_node (
@@ -586,7 +593,7 @@ CREATE INDEX iRequestable ON m_abstract_role (requestable);
 ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
 FOREIGN KEY (id, oid)
-REFERENCES m_object;
+REFERENCES m_focus;
 
 ALTER TABLE m_account_shadow
 ADD CONSTRAINT fk_account_shadow
@@ -683,6 +690,11 @@ REFERENCES m_container;
 ALTER TABLE m_exclusion
 ADD CONSTRAINT fk_exclusion_owner
 FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_focus
+ADD CONSTRAINT fk_focus
+FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
 ALTER TABLE m_generic_object
@@ -808,7 +820,7 @@ CREATE INDEX iUserEnabled ON m_user (enabled);
 ALTER TABLE m_user
 ADD CONSTRAINT fk_user
 FOREIGN KEY (id, oid)
-REFERENCES m_object;
+REFERENCES m_focus;
 
 ALTER TABLE m_user_employee_type
 ADD CONSTRAINT fk_user_employee_type

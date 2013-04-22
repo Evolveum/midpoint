@@ -108,6 +108,7 @@ CREATE TABLE m_assignment (
   enabled                     NUMBER(1, 0),
   validFrom                   TIMESTAMP,
   validTo                     TIMESTAMP,
+  assignmentOwner             NUMBER(10, 0),
   description                 CLOB,
   owner_id                    NUMBER(19, 0)     NOT NULL,
   owner_oid                   VARCHAR2(36 CHAR) NOT NULL,
@@ -237,6 +238,12 @@ CREATE TABLE m_exclusion (
   PRIMARY KEY (id, oid)
 ) INITRANS 30;
 
+CREATE TABLE m_focus (
+  id  NUMBER(19, 0)     NOT NULL,
+  oid VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (id, oid)
+) INITRANS 30;
+
 CREATE TABLE m_generic_object (
   name_norm  VARCHAR2(255 CHAR),
   name_orig  VARCHAR2(255 CHAR),
@@ -248,8 +255,8 @@ CREATE TABLE m_generic_object (
 ) INITRANS 30;
 
 CREATE TABLE m_metadata (
-  owner_oid                     VARCHAR2(36 CHAR) NOT NULL,
   owner_id                      NUMBER(19, 0)     NOT NULL,
+  owner_oid                     VARCHAR2(36 CHAR) NOT NULL,
   createChannel                 VARCHAR2(255 CHAR),
   createTimestamp               TIMESTAMP,
   creatorRef_description        CLOB,
@@ -266,7 +273,7 @@ CREATE TABLE m_metadata (
   modifierRef_type              NUMBER(10, 0),
   modifyChannel                 VARCHAR2(255 CHAR),
   modifyTimestamp               TIMESTAMP,
-  PRIMARY KEY (owner_oid, owner_id)
+  PRIMARY KEY (owner_id, owner_oid)
 ) INITRANS 30;
 
 CREATE TABLE m_node (
@@ -588,7 +595,7 @@ CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
 ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
 FOREIGN KEY (id, oid)
-REFERENCES m_object;
+REFERENCES m_focus;
 
 ALTER TABLE m_account_shadow
 ADD CONSTRAINT fk_account_shadow
@@ -685,6 +692,11 @@ REFERENCES m_container;
 ALTER TABLE m_exclusion
 ADD CONSTRAINT fk_exclusion_owner
 FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_focus
+ADD CONSTRAINT fk_focus
+FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
 ALTER TABLE m_generic_object
@@ -810,7 +822,7 @@ CREATE INDEX iUserEnabled ON m_user (enabled) INITRANS 30;
 ALTER TABLE m_user
 ADD CONSTRAINT fk_user
 FOREIGN KEY (id, oid)
-REFERENCES m_object;
+REFERENCES m_focus;
 
 ALTER TABLE m_user_employee_type
 ADD CONSTRAINT fk_user_employee_type
