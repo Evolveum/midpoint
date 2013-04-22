@@ -3091,6 +3091,7 @@
      		<xsd:element name="direction" type="tns:ResourceEntitlementAssociationDirectionType"></xsd:element>
      		<xsd:element name="associationAttribute" type="xsd:QName"></xsd:element>
      		<xsd:element name="valueAttribute" type="xsd:QName"></xsd:element>
+     		<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
      	</xsd:sequence>
      </xsd:complexType>
      

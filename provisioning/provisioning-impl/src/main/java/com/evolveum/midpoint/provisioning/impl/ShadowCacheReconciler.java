@@ -53,7 +53,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
 	@Override
-	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, 
+	public String afterAddOnResource(PrismObject<ShadowType> shadow, ResourceType resource, 
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
@@ -63,7 +63,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ShadowType> void afterModifyOnResource(PrismObject<T> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public void afterModifyOnResource(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successfull reconciliation.");
 		try{
 		cleanShadowInRepository(shadow, parentResult);
@@ -75,8 +75,8 @@ public class ShadowCacheReconciler extends ShadowCache{
 		
 	}
 	
-	private <T extends ShadowType> void cleanShadowInRepository(PrismObject<T> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
-		PrismObject<T> oldShadow = shadow.clone();
+	private void cleanShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
+		PrismObject<ShadowType> oldShadow = shadow.clone();
 		ShadowUtil.getAttributesContainer(oldShadow).clear();
 		ShadowCacheUtil.normalizeShadow(shadow.asObjectable(), parentResult);
 
@@ -113,7 +113,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
+	public Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
 		ObjectDeltaType shadowDelta = shadow.asObjectable().getObjectChange();
 		
 		//TODO: error handling

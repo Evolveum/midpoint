@@ -113,7 +113,7 @@ public class ShadowManager {
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
 		
 	
-	public <T extends ShadowType> void deleteConflictedShadowFromRepo(PrismObject<T> shadow, OperationResult parentResult){
+	public void deleteConflictedShadowFromRepo(PrismObject<ShadowType> shadow, OperationResult parentResult){
 		
 		try{
 			
@@ -125,11 +125,11 @@ public class ShadowManager {
 		
 	}
 	
-	public <T extends ShadowType> ResourceOperationDescription createResourceFailureDescription(
-			PrismObject<T> conflictedShadow, ResourceType resource, OperationResult parentResult){
+	public ResourceOperationDescription createResourceFailureDescription(
+			PrismObject<ShadowType> conflictedShadow, ResourceType resource, OperationResult parentResult){
 		ResourceOperationDescription failureDesc = new ResourceOperationDescription();
 		failureDesc.setCurrentShadow(conflictedShadow);
-		ObjectDelta<T> objectDelta = null;
+		ObjectDelta<ShadowType> objectDelta = null;
 		if (FailedOperationTypeType.ADD == conflictedShadow.asObjectable().getFailedOperationType()) {
 			objectDelta = ObjectDelta.createAddDelta(conflictedShadow);
 		} 
@@ -165,7 +165,7 @@ public class ShadowManager {
 	 * @throws SchemaException
 	 * @throws ConfigurationException 
 	 */
-	public <T extends ShadowType> PrismObject<T> lookupShadowInRepository(Class<T> type, PrismObject<T> resourceShadow,
+	public PrismObject<ShadowType> lookupShadowInRepository(PrismObject<ShadowType> resourceShadow,
 			RefinedObjectClassDefinition rObjClassDef, ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
 
@@ -178,9 +178,9 @@ public class ShadowManager {
 //		PagingType paging = new PagingType();
 
 		// TODO: check for errors
-		List<PrismObject<T>> results;
+		List<PrismObject<ShadowType>> results;
 
-		results = repositoryService.searchObjects(type, query, parentResult);
+		results = repositoryService.searchObjects(ShadowType.class, query, parentResult);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 
@@ -188,7 +188,7 @@ public class ShadowManager {
 			return null;
 		}
 		if (results.size() > 1) {
-			for (PrismObject<T> result : results) {
+			for (PrismObject<ShadowType> result : results) {
 				LOGGER.trace("Search result:\n{}", result.dump());
 			}
 			LOGGER.error("More than one shadows found for " + resourceShadow);
@@ -199,8 +199,8 @@ public class ShadowManager {
 		return results.get(0);
 	}
 
-	public <T extends ShadowType> PrismObject<T> lookupShadowByName(Class<T> type, 
-			PrismObject<T> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
+	public PrismObject<ShadowType> lookupShadowByName( 
+			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
 			ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
 
@@ -225,9 +225,9 @@ public class ShadowManager {
 		}
 
 		// TODO: check for errors
-		List<PrismObject<T>> results;
+		List<PrismObject<ShadowType>> results;
 
-		results = repositoryService.searchObjects(type, query, parentResult);
+		results = repositoryService.searchObjects(ShadowType.class, query, parentResult);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 
@@ -235,7 +235,7 @@ public class ShadowManager {
 			return null;
 		}
 		if (results.size() > 1) {
-			for (PrismObject<T> result : results) {
+			for (PrismObject<ShadowType> result : results) {
 				LOGGER.trace("Search result:\n{}", result.dump());
 			}
 			LOGGER.error("More than one shadows found for " + resourceShadow);
@@ -243,8 +243,8 @@ public class ShadowManager {
 			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
 		}
 
-		PrismObject<T> repoShadow = results.get(0);
-		T repoShadowType = repoShadow.asObjectable();
+		PrismObject<ShadowType> repoShadow = results.get(0);
+		ShadowType repoShadowType = repoShadow.asObjectable();
 		if (repoShadow != null) {
 			if (repoShadowType.getFailedOperationType() == null){
 				LOGGER.trace("Found shadow is ok, returning null");
@@ -272,13 +272,12 @@ public class ShadowManager {
 		}
 	}
 
-	public <T extends ShadowType> PrismObject<T> findOrCreateShadowFromChange(
-			Class<T> type, ResourceType resource, Change<T> change,
+	public PrismObject<ShadowType> findOrCreateShadowFromChange(ResourceType resource, Change<ShadowType> change,
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<T>> accountList = searchAccountByIdenifiers(type, change, resource, parentResult);
+		List<PrismObject<ShadowType>> accountList = searchAccountByIdenifiers(change, resource, parentResult);
 
 		if (accountList.size() > 1) {
 			String message = "Found more than one account with the identifier " + change.getIdentifiers() + ".";
@@ -287,7 +286,7 @@ public class ShadowManager {
 			throw new IllegalArgumentException(message);
 		}
 
-		PrismObject<T> newShadow = null;
+		PrismObject<ShadowType> newShadow = null;
 
 		if (accountList.isEmpty()) {
 			// account was not found in the repository, create it now
@@ -320,13 +319,13 @@ public class ShadowManager {
 		return newShadow;
 	}
 	
-	private <T extends ShadowType> PrismObject<T> createNewAccountFromChange(Change<T> change, ResourceType resource, 
+	private PrismObject<ShadowType> createNewAccountFromChange(Change<ShadowType> change, ResourceType resource, 
 			RefinedObjectClassDefinition objectClassDefinition,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException, ConfigurationException,
 			SecurityViolationException {
 
-		PrismObject<T> shadow = change.getCurrentShadow();
+		PrismObject<ShadowType> shadow = change.getCurrentShadow();
 		try {
 			shadow = createRepositoryShadow(shadow, resource, objectClassDefinition);
 		} catch (SchemaException ex) {
@@ -340,14 +339,14 @@ public class ShadowManager {
 		return shadow;
 	}
 	
-	private <T extends ShadowType> List<PrismObject<T>> searchAccountByIdenifiers(Class<T> type, Change<T> change, ResourceType resource, OperationResult parentResult)
+	private List<PrismObject<ShadowType>> searchAccountByIdenifiers(Change<ShadowType> change, ResourceType resource, OperationResult parentResult)
 			throws SchemaException {
 
 		ObjectQuery query = createSearchShadowQuery(change.getIdentifiers(), resource, prismContext, parentResult);
 
-		List<PrismObject<T>> accountList = null;
+		List<PrismObject<ShadowType>> accountList = null;
 		try {
-			accountList = repositoryService.searchObjects(type, query, parentResult);
+			accountList = repositoryService.searchObjects(ShadowType.class, query, parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError(
 					"Failed to search account according to the identifiers: " + change.getIdentifiers() + ". Reason: "
@@ -386,7 +385,7 @@ public class ShadowManager {
 		return query;
 	}
 
-	private <T extends ShadowType> ObjectQuery createSearchShadowQuery(PrismObject<T> resourceShadow, 
+	private ObjectQuery createSearchShadowQuery(PrismObject<ShadowType> resourceShadow, 
 			RefinedObjectClassDefinition rObjClassDef, ResourceType resource,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		// XPathHolder xpath = createXpathHolder();
@@ -436,13 +435,13 @@ public class ShadowManager {
 	/**
 	 * Create a copy of a shadow that is suitable for repository storage.
 	 */
-	public <T extends ShadowType> PrismObject<T> createRepositoryShadow(PrismObject<T> shadow, ResourceType resource,
+	public PrismObject<ShadowType> createRepositoryShadow(PrismObject<ShadowType> shadow, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition)
 			throws SchemaException {
 
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 
-		PrismObject<T> repoShadow = shadow.clone();
+		PrismObject<ShadowType> repoShadow = shadow.clone();
 		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
 				.getAttributesContainer(repoShadow);
 
@@ -459,7 +458,7 @@ public class ShadowManager {
 			repoAttributesContainer.add(p.clone());
 		}
 
-		T repoShadowType = repoShadow.asObjectable();
+		ShadowType repoShadowType = repoShadow.asObjectable();
 
 		if (repoShadowType.getKind() == null) {
 			repoShadowType.setKind(objectClassDefinition.getKind());
@@ -494,7 +493,7 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
-	private <T extends ShadowType> void normalizeAttributes(PrismObject<T> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+	private void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		for (ResourceAttribute<?> attribute: ShadowUtil.getAttributes(shadow)) {
 			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(attribute.getName());
 			normalizeAttribute(attribute, rAttrDef);			

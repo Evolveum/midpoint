@@ -881,6 +881,20 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return objectDelta;
     }
     
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, 
+    		ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	objectDelta.setOid(oid);
+    	PrismContainerValue<C>[] containerPValues = new PrismContainerValue[containerValues.length];
+    	for (int i=0; i<containerValues.length; i++) {
+    		C containerable = containerValues[i];
+    		prismContext.adopt(containerable, type, propertyPath);
+    		containerPValues[i] = containerable.asPrismContainerValue();
+    	}
+		fillInModificationDeleteContainer(objectDelta, propertyPath, containerPValues);
+    	return objectDelta;
+    }
+    
     protected static <O extends Objectable, C extends Containerable> void fillInModificationDeleteContainer(ObjectDelta<O> objectDelta,
     		ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
     	ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);

@@ -463,7 +463,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         try {
         	if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
         		resource.deleteAccount(id);
-        	} else if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+        	} else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
         		resource.deleteGroup(id);
         	} else {
         		throw new ConnectorException("Unknown object class "+objectClass);
@@ -742,7 +742,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					throw new ConnectorIOException(e.getMessage(), e);
 				}
 				if (attrDef == null) {
-					throw new IllegalArgumentException("Unknown attribute '"+name+"'");
+					throw new IllegalArgumentException("Unknown account attribute '"+name+"'");
 				}
 				if (!attrDef.isReturnedByDefault()) {
 					continue;
@@ -786,18 +786,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					continue;
 				}
 			} else {
-				DummyAttributeDefinition attrDef;
-				try {
-					attrDef = resource.getAccountObjectClass().getAttributeDefinition(name);
-				} catch (ConnectException e) {
-					log.error(e, e.getMessage());
-					throw new ConnectionFailedException(e.getMessage(), e);
-				} catch (FileNotFoundException e) {
-					log.error(e, e.getMessage());
-					throw new ConnectorIOException(e.getMessage(), e);
-				}
+				DummyAttributeDefinition attrDef = resource.getGroupObjectClass().getAttributeDefinition(name);
 				if (attrDef == null) {
-					throw new IllegalArgumentException("Unknown attribute '"+name+"'");
+					throw new IllegalArgumentException("Unknown group attribute '"+name+"'");
 				}
 				if (!attrDef.isReturnedByDefault()) {
 					continue;

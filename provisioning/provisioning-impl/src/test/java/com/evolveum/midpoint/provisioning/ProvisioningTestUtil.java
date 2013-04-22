@@ -315,5 +315,15 @@ public class ProvisioningTestUtil {
 				accountOid, entitlementAssociationPath, prismContext, association);
 		return delta;
 	}
+	
+	public static ObjectDelta<ShadowType> createDetitleDelta(String accountOid, String groupOid, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(DUMMY_ENTITLEMENT_GROUP_QNAME);
+		association.setOid(groupOid);
+		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ENTITLEMENTS, ShadowEntitlementsType.F_ASSOCIATION);
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class, 
+				accountOid, entitlementAssociationPath, prismContext, association);
+		return delta;
+	}
 
 }

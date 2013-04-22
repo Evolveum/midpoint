@@ -208,10 +208,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO: optimization needed: avoid multiple "gets" of the same
 			// object
 
-			ShadowType shadow = null;
 			try {
 
-				resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow((Class<ShadowType>) type, oid,
+				resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow(oid,
 						(PrismObject<ShadowType>) (repositoryObject), options, result);
 
 			} catch (ObjectNotFoundException e) {
@@ -373,7 +372,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			LOGGER.trace("Calling shadow cache to fetch changes.");
 			List<Change<ShadowType>> changes = getShadowCache(Mode.STANDARD).fetchChanges(
-					ShadowType.class, resourceType, objectClass, tokenProperty, result);
+					resourceType, objectClass, tokenProperty, result);
 			LOGGER.trace("Changes returned to ProvisioningServiceImpl:\n{}", changes);
 
 			// synchronize changes
@@ -1079,7 +1078,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		getShadowCache(Mode.STANDARD).searchObjectsIterative((Class<? extends ShadowType>) type, objectClass,
+		getShadowCache(Mode.STANDARD).searchObjectsIterative(objectClass,
 				resource.asObjectable(), query, shadowHandler, result);
 		result.recordSuccess();
 		result.cleanupResult();

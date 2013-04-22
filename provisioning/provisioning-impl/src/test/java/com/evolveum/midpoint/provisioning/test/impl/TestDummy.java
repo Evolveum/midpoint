@@ -1786,8 +1786,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test220EntitleAccountWill() throws Exception {
-		final String TEST_NAME = "test220EntitleAccountWill";
+	public void test220EntitleAccountWillPirates() throws Exception {
+		final String TEST_NAME = "test220EntitleAccountWillPirates";
 		displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -1816,8 +1816,108 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 	}
 	
-	// TODO: detitle
-	// TODO: delete group
+	/**
+	 * Reads the will accounts, checks that the entitlement is there.
+	 */
+	@Test
+	public void test221GetPirateWill() throws Exception {
+		final String TEST_NAME = "test221GetPirateWill";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		// WHEN
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+
+		// THEN
+		result.computeStatus();
+		display("Account", account);
+		
+		display(result);
+		assertSuccess(result);
+		
+		assertEntitlement(account, GROUP_PIRATES_OID);
+		
+		// Just make sure nothing has changed
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertMember(group, getWillRepoIcfUid());
+	}
+	
+	// TODO: role
+	
+	@Test
+	public void test228DetitleAccountWillPirates() throws Exception {
+		final String TEST_NAME = "test228DetitleAccountWillPirates";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, GROUP_PIRATES_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
+		delta.checkConsistence();
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertNoMember(group, getWillRepoIcfUid());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+	}
+	
+	@Test
+	public void test229DeleteGroupPirates() throws Exception {
+		final String TEST_NAME = "test229DeleteGroupPirates";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		// WHEN
+		provisioningService.deleteObject(ShadowType.class, GROUP_PIRATES_OID, null, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display(result);
+		assertSuccess(result);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		try {
+			repositoryService.getObject(ShadowType.class, GROUP_PIRATES_OID, result);
+			AssertJUnit.fail("Group shadow is not gone (repo)");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		try {
+			provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, result);
+			AssertJUnit.fail("Group shadow is not gone (provisioning)");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+
+		DummyGroup dummyAccount = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertNull("Dummy group '"+GROUP_PIRATES_NAME+"' is not gone from dummy resource", dummyAccount);
+	}
 
 	@Test
 	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,

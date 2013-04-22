@@ -209,7 +209,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	/**
 	 * This is using the shadow to go to the resource. But it cannot as OpenDJ is down.
 	 * It even cannot fetch schema. If there is no schema it does not even know how to process
-	 * identifiers in the shadow. Therefore the expected result is ConfigurationException.
+	 * identifiers in the shadow. Therefore the expected result is CommunicationException.
 	 * It must not be ObjectNotFound as we do NOT know that the shadow does not exist. 
 	 */
 	@Test
@@ -225,7 +225,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 			ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
 
 			AssertJUnit.fail("getObject succeeded unexpectedly");
-		} catch (ConfigurationException e) {
+		} catch (CommunicationException e) {
 			// This is expected
 			display("Expected exception", e);
 		}

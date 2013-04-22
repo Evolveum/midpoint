@@ -33,7 +33,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheProvisioner.class);
 	
 	@Override
-	public <T extends ShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, 
+	public String afterAddOnResource(PrismObject<ShadowType> shadow, ResourceType resource, 
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
@@ -73,7 +73,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ShadowType> void afterModifyOnResource(PrismObject<T> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public void afterModifyOnResource(PrismObject<ShadowType> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		Collection<? extends ItemDelta> shadowChanges = getShadowChanges(modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
@@ -108,7 +108,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	}
 
 	@Override
-	public <T extends ShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
+	public Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
 		
 		// TODO: error handling
 		//do not merge deltas when complete postponed operation is set to false, because it can cause some unexpected behavior..
@@ -129,9 +129,9 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T extends ShadowType> ObjectDelta mergeDeltas(PrismObject<T> shadow, Collection<? extends ItemDelta> modifications)
+	private ObjectDelta mergeDeltas(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications)
 			throws SchemaException {
-		T shadowType = shadow.asObjectable();
+		ShadowType shadowType = shadow.asObjectable();
 		if (shadowType.getObjectChange() != null) {
 
 			ObjectDeltaType deltaType = shadowType.getObjectChange();

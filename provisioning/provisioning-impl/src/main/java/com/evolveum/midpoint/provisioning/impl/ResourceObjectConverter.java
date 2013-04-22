@@ -60,6 +60,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
@@ -95,6 +98,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
@@ -110,6 +114,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlement
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -139,27 +144,34 @@ public class ResourceObjectConverter {
 	
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
-	@Autowired
+	@Autowired(required=true)
+	private EntitlementConverter entitlementConverter;
+	
+	@Autowired(required=true)
 	private PrismContext prismContext;
+
+	private PrismObjectDefinition<ShadowType> shadowTypeDefinition;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
+	public static final String FULL_SHADOW_KEY = ResourceObjectConverter.class.getName()+".fullShadow";
+
 	
-	public <T extends ShadowType> PrismObject<T> getResourceObject(ConnectorInstance connector, ResourceType resource, 
-			Class<T> type, Collection<? extends ResourceAttribute<?>> identifiers,
+	public PrismObject<ShadowType> getResourceObject(ConnectorInstance connector, ResourceType resource, 
+			Collection<? extends ResourceAttribute<?>> identifiers,
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException {
 
-		AttributesToReturn attributesToReturn = createAttributesToReturn(type, objectClassDefinition, identifiers, resource);
+		AttributesToReturn attributesToReturn = createAttributesToReturn(objectClassDefinition, identifiers, resource);
 		
-		PrismObject<T> resourceShadow = fetchResourceObject(connector, resource, type, objectClassDefinition, identifiers, 
+		PrismObject<ShadowType> resourceShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, 
 				attributesToReturn, parentResult);
 		
 		return resourceShadow;
 
 	}
 
-	private AttributesToReturn createAttributesToReturn(Class<?> type, RefinedObjectClassDefinition objectClassDefinition,
+	private AttributesToReturn createAttributesToReturn(RefinedObjectClassDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, ResourceType resource) throws SchemaException {
 		boolean apply = false;
 		AttributesToReturn attributesToReturn = new AttributesToReturn();
@@ -208,12 +220,12 @@ public class ResourceObjectConverter {
 		}
 	}
 
-	public <T extends ShadowType> PrismObject<T> addResourceObject(ConnectorInstance connector, ResourceType resource, 
-			PrismObject<T> shadow, ProvisioningScriptsType scripts, OperationResult parentResult)
+	public PrismObject<ShadowType> addResourceObject(ConnectorInstance connector, ResourceType resource, 
+			PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		T shadowType = shadow.asObjectable();
+		ShadowType shadowType = shadow.asObjectable();
 
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
@@ -275,9 +287,8 @@ public class ResourceObjectConverter {
 		return shadow;
 	}
 
-	public <T extends ShadowType> void deleteResourceObject(ConnectorInstance connector, ResourceType resource, 
-			PrismObject<T> shadow,
-			ObjectClassComplexTypeDefinition objectClassDefinition,
+	public void deleteResourceObject(ConnectorInstance connector, ResourceType resource, 
+			PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition,
 			ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -336,9 +347,9 @@ public class ResourceObjectConverter {
 		}
 	}
 	
-	public <T extends ShadowType> Collection<PropertyModificationOperation> modifyResourceObject(
+	public Collection<PropertyModificationOperation> modifyResourceObject(
 			ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<T> shadow, ProvisioningScriptsType scripts,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -399,8 +410,7 @@ public class ResourceObjectConverter {
 			if (avoidDuplicateValues(resource)) {
 				// We need to filter out the deltas that add duplicate values or remove values that are not there
 				
-				PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, 
-						ShadowType.class, objectClassDefinition, identifiers, null, parentResult);
+				PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
 				Collection<Operation> filteredOperations = new ArrayList(operations.size());
 				for (Operation origOperation: operations) {
 					if (origOperation instanceof PropertyModificationOperation) {
@@ -466,8 +476,8 @@ public class ResourceObjectConverter {
 		return sideEffectChanges;
 	}
 	
-	private <T extends ShadowType> void executeEntitlementChanges(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<T> shadow, ProvisioningScriptsType scripts,
+	private void executeEntitlementChanges(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
 		
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
@@ -475,14 +485,9 @@ public class ResourceObjectConverter {
 		
 		for (ItemDelta itemDelta : objectDeltas) {
 			if (new ItemPath(ShadowType.F_ENTITLEMENTS).equals(itemDelta.getParentPath())) {
-				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;
-				
-				collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToAdd(), objectClassDefinition,
-						shadow, rSchema, resource, ModificationType.ADD);
-				collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToDelete(), objectClassDefinition,
-						shadow, rSchema, resource, ModificationType.DELETE);
-				collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToReplace(), objectClassDefinition,
-						shadow, rSchema, resource, ModificationType.REPLACE);
+				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
+				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
+						shadow, rSchema, resource);
 			}
 		}
 		
@@ -502,117 +507,23 @@ public class ResourceObjectConverter {
 		
 	}
 	
-	private <T, S extends ShadowType> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
-			Collection<PrismContainerValue<ShadowAssociationType>> set, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<S> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
-					throws SchemaException {
-		if (set == null) {
-			return;
-		}
-		for (PrismContainerValue<ShadowAssociationType> associationCVal: set) {
-			collectEntitlementAsObjectOperation(roMap, associationCVal, objectClassDefinition, shadow,
-					rSchema, resource, modificationType);
-		}
-	}
-	
-	private <T, S extends ShadowType> void collectEntitlementAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
-			PrismContainerValue<ShadowAssociationType> associationCVal, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<S> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
-					throws SchemaException {
-		
-		ShadowAssociationType associationType = associationCVal.asContainerable();
-		QName associationName = associationType.getName();
-		if (associationName == null) {
-			throw new SchemaException("No name in entitlement association "+associationCVal);
-		}
-		ResourceEntitlementAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
-		if (assocDefType == null) {
-			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
-		}
-		
-		ResourceEntitlementAssociationDirectionType direction = assocDefType.getDirection();
-		if (direction != ResourceEntitlementAssociationDirectionType.ENTITLEMENT_TO_SUBJECT) {
-			// Process just this one direction. The other direction was processed before
-			return;
-		}
-		
-		String entitlementIntent = assocDefType.getEntitlementIntent();
-		if (entitlementIntent == null) {
-			throw new SchemaException("No entitlement intent specified in association "+associationCVal+" in "+resource);
-		}
-		RefinedObjectClassDefinition entitlementOcDef = rSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, entitlementIntent);
-		if (entitlementOcDef == null) {
-			throw new SchemaException("No definition of entitlement intent '"+entitlementIntent+"' specified in association "+associationCVal+" in "+resource);
-		}
-		
-		QName assocAttrName = assocDefType.getAssociationAttribute();
-		if (assocAttrName == null) {
-			throw new SchemaException("No association attribute definied in entitlement association in "+resource);
-		}
-		
-		RefinedAttributeDefinition assocAttrDef = entitlementOcDef.findAttributeDefinition(assocAttrName);
-		if (assocAttrDef == null) {
-			throw new SchemaException("Association attribute '"+assocAttrName+"'definied in entitlement association was not found in entitlement intent '"+entitlementIntent+"' in schema for "+resource);
-		}
-		
-		ResourceAttributeContainer identifiersContainer = 
-				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-		Collection<ResourceAttribute<?>> identifiers = identifiersContainer.getAttributes();
-		
-		ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef, identifiers);
-		Collection<Operation> operations = roMap.get(disc);
-		if (operations == null) {
-			operations = new ArrayList<Operation>();
-			roMap.put(disc, operations);
-		}
-		
-		QName valueAttrName = assocDefType.getValueAttribute();
-		if (valueAttrName == null) {
-			throw new SchemaException("No value attribute definied in entitlement association in "+resource);
-		}
-		ResourceAttribute<T> valueAttr = ShadowUtil.getAttribute(shadow, valueAttrName);
-		if (valueAttr == null) {
-			// TODO: check schema and try to fetch full shadow if necessary
-			throw new SchemaException("No value attribute "+valueAttrName+" in shadow");
-		}
-		
-		PropertyDelta<T> attributeDelta = null;
-		for(Operation operation: operations) {
-			if (operation instanceof PropertyModificationOperation) {
-				PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
-				if (propOp.getPropertyDelta().getName().equals(assocAttrName)) {
-					attributeDelta = propOp.getPropertyDelta();
-				}
-			}
-		}
-		if (attributeDelta == null) {
-			attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
-			PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
-			operations.add(attributeModification);
-		}
-		
-		if (modificationType == ModificationType.ADD) {
-			attributeDelta.addValuesToAdd(valueAttr.getClonedValues());
-		} else if (modificationType == ModificationType.DELETE) {
-			attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
-		} else if (modificationType == ModificationType.REPLACE) {
-			// TODO: check if already exists
-			attributeDelta.setValuesToReplace(valueAttr.getClonedValues());
-		}
-	}
 
-	public <T extends ShadowType> void searchResourceObjects(ConnectorInstance connector, 
-			final ResourceType resourceType, RefinedObjectClassDefinition objectClassDef,
-			final ResultHandler<T> resultHandler, ObjectQuery query, final OperationResult parentResult) throws SchemaException,
+	public void searchResourceObjects(final ConnectorInstance connector, 
+			final ResourceType resourceType, final RefinedObjectClassDefinition objectClassDef,
+			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final OperationResult parentResult) throws SchemaException,
 			CommunicationException, ObjectNotFoundException, ConfigurationException {
 		
-		ResultHandler<T> innerResultHandler = new ResultHandler<T>() {
+		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {
 			@Override
-			public boolean handle(PrismObject<T> shadow) {
+			public boolean handle(PrismObject<ShadowType> shadow) {
 				try {
-					shadow = handleResourceObjectRead(resourceType, shadow, parentResult);
+					shadow = postProcessResourceObjectRead(connector, resourceType, shadow, objectClassDef, parentResult);
 				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
+					throw new TunnelException(e);
+				} catch (CommunicationException e) {
+					throw new TunnelException(e);
+				} catch (GenericFrameworkException e) {
+					throw new TunnelException(e);
 				}
 				return resultHandler.handle(shadow);
 			}
@@ -629,6 +540,17 @@ public class ResourceObjectConverter {
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
+		} catch (TunnelException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof SchemaException) {
+				throw (SchemaException)cause;
+			} else if (cause instanceof CommunicationException) {
+				throw (CommunicationException)cause;
+			} if (cause instanceof GenericFrameworkException) {
+				new GenericConnectorException(cause.getMessage(), cause);
+			} else {
+				new SystemException(cause.getMessage(), cause);
+			}
 		}
 
 		parentResult.recordSuccess();
@@ -673,17 +595,17 @@ public class ResourceObjectConverter {
 	}
 
 
-	private <T extends ShadowType> PrismObject<T> fetchResourceObject(ConnectorInstance connector, ResourceType resource,
-			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
+	private PrismObject<ShadowType> fetchResourceObject(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			AttributesToReturn attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 
 		try {
-			PrismObject<T> resourceObject = connector.fetchObject(type, objectClassDefinition, identifiers,
+			PrismObject<ShadowType> resourceObject = connector.fetchObject(ShadowType.class, objectClassDefinition, identifiers,
 					attributesToReturn, parentResult);
-			return handleResourceObjectRead(resource, resourceObject, parentResult);
+			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, parentResult);
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
@@ -693,8 +615,7 @@ public class ResourceObjectConverter {
 		} catch (CommunicationException e) {
 			parentResult.recordFatalError("Error communication with the connector " + connector
 					+ ": " + e.getMessage(), e);
-			throw new CommunicationException("Error communication with the connector " + connector
-					+ ": " + e.getMessage(), e);
+			throw e;
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError(
 					"Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
@@ -702,7 +623,7 @@ public class ResourceObjectConverter {
 					+ e.getMessage(), e);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
-			throw new SchemaException("Can't get resource object, schema error: " + ex.getMessage(), ex);
+			throw ex;
 		} catch (ConfigurationException e) {
 			parentResult.recordFatalError(e);
 			throw e;
@@ -786,8 +707,8 @@ public class ResourceObjectConverter {
 		}		
 	}
 
-	private <T extends ShadowType> void collectAttributeAndEntitlementChanges(Collection<? extends ItemDelta> objectChange, 
-			Collection<Operation> operations, ResourceType resource, PrismObject<T> shadow, 
+	private void collectAttributeAndEntitlementChanges(Collection<? extends ItemDelta> objectChange, 
+			Collection<Operation> operations, ResourceType resource, PrismObject<ShadowType> shadow, 
 			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		if (operations == null) {
 			operations = new ArrayList<Operation>();
@@ -813,7 +734,7 @@ public class ResourceObjectConverter {
 				}
 			} else if (new ItemPath(ShadowType.F_ENTITLEMENTS).equals(itemDelta.getParentPath())) { 
 				if (itemDelta instanceof ContainerDelta) {
-					collectEntitlementChange((ContainerDelta<ShadowAssociationType>)itemDelta, operations, objectClassDefinition, resource);
+					entitlementConverter.collectEntitlementChange((ContainerDelta<ShadowAssociationType>)itemDelta, operations, objectClassDefinition, resource);
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}				
@@ -821,98 +742,11 @@ public class ResourceObjectConverter {
 				LOGGER.trace("Skipp converting item delta: {}. It's not account change, but it it shadow change.", itemDelta);	
 			}
 			
-			
 		}
 	}
 		
-	/**
-	 * Collects entitlement changes from the shadow to entitlement section into attribute operations.
-	 * NOTE: only collects  SUBJECT_TO_ENTITLEMENT entitlement direction.
-	 */
-	private void collectEntitlementChange(ContainerDelta<ShadowAssociationType> itemDelta, Collection<Operation> operations, 
-			RefinedObjectClassDefinition objectClassDefinition, ResourceType resource) throws SchemaException {
-		Map<QName, PropertyDelta<?>> deltaMap = new HashMap<QName, PropertyDelta<?>>();
-		
-		collectEntitlementToAttrsDelta(deltaMap, itemDelta.getValuesToAdd(), objectClassDefinition, resource, ModificationType.ADD);
-		collectEntitlementToAttrsDelta(deltaMap, itemDelta.getValuesToDelete(), objectClassDefinition, resource, ModificationType.DELETE);
-		collectEntitlementToAttrsDelta(deltaMap, itemDelta.getValuesToReplace(), objectClassDefinition, resource, ModificationType.REPLACE);
-
-		for(PropertyDelta<?> attrDelta: deltaMap.values()) {
-			PropertyModificationOperation attributeModification = new PropertyModificationOperation(attrDelta);
-			operations.add(attributeModification);
-		}
-	}
-	
-	private <T> void collectEntitlementToAttrsDelta(Map<QName, PropertyDelta<?>> deltaMap, 
-			Collection<PrismContainerValue<ShadowAssociationType>> set,
-			RefinedObjectClassDefinition objectClassDefinition, ResourceType resource, ModificationType modificationType) throws SchemaException {
-		if (set == null) {
-			return;
-		}
-		for (PrismContainerValue<ShadowAssociationType> associationCVal: set) {
-			collectEntitlementToAttrDelta(deltaMap, associationCVal, objectClassDefinition, resource, modificationType);
-		}
-	}
-	
-	/**
-	 *  Collects entitlement changes from the shadow to entitlement section into attribute operations.
-	 *  Collects a single value.
-	 *  NOTE: only collects  SUBJECT_TO_ENTITLEMENT entitlement direction.
-	 */
-	private <T> void collectEntitlementToAttrDelta(Map<QName, PropertyDelta<?>> deltaMap, PrismContainerValue<ShadowAssociationType> associationCVal,
-			RefinedObjectClassDefinition objectClassDefinition, ResourceType resource, ModificationType modificationType) throws SchemaException {
-		
-		ShadowAssociationType associationType = associationCVal.asContainerable();
-		QName associationName = associationType.getName();
-		if (associationName == null) {
-			throw new SchemaException("No name in entitlement association "+associationCVal);
-		}
-		ResourceEntitlementAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
-		if (assocDefType == null) {
-			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
-		}
-		
-		ResourceEntitlementAssociationDirectionType direction = assocDefType.getDirection();
-		if (direction != ResourceEntitlementAssociationDirectionType.SUBJECT_TO_ENTITLEMENT) {
-			// Process just this one direction. The other direction means modification of another object and
-			// therefore will be processed later
-			return;
-		}
-		
-		QName assocAttrName = assocDefType.getAssociationAttribute();
-		if (assocAttrName == null) {
-			throw new SchemaException("No association attribute definied in entitlement association in "+resource);
-		}
-		RefinedAttributeDefinition assocAttrDef = objectClassDefinition.findAttributeDefinition(assocAttrName);
-		if (assocAttrDef == null) {
-			throw new SchemaException("Association attribute '"+assocAttrName+"'definied in entitlement association was not found in schema for "+resource);
-		}
-		PropertyDelta<T> attributeDelta = (PropertyDelta<T>) deltaMap.get(assocAttrName);
-		if (attributeDelta == null) {
-			attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
-			deltaMap.put(assocAttrName, attributeDelta);
-		}
-		
-		QName valueAttrName = assocDefType.getValueAttribute();
-		if (valueAttrName == null) {
-			throw new SchemaException("No value attribute definied in entitlement association in "+resource);
-		}
-		ResourceAttributeContainer identifiersContainer = 
-				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-		PrismProperty<T> valueAttr = identifiersContainer.findProperty(valueAttrName);
-		
-		if (modificationType == ModificationType.ADD) {
-			attributeDelta.addValuesToAdd(valueAttr.getClonedValues());
-		} else if (modificationType == ModificationType.DELETE) {
-			attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
-		} else if (modificationType == ModificationType.REPLACE) {
-			// TODO: check if already exists
-			attributeDelta.setValuesToReplace(valueAttr.getClonedValues());
-		}
-	}
-
-	public <T extends ShadowType> List<Change<T>> fetchChanges(ConnectorInstance connector, ResourceType resource, 
-			Class<T> type, ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+	public List<Change<ShadowType>> fetchChanges(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException {
 		Validate.notNull(resource, "Resource must not be null.");
@@ -921,18 +755,18 @@ public class ResourceObjectConverter {
 		LOGGER.trace("Shadow converter, START fetch changes");
 
 		// get changes from the connector
-		List<Change<T>> changes = connector.fetchChanges(objectClass, lastToken, parentResult);
+		List<Change<ShadowType>> changes = connector.fetchChanges(objectClass, lastToken, parentResult);
 
-		Iterator<Change<T>> iterator = changes.iterator();
+		Iterator<Change<ShadowType>> iterator = changes.iterator();
 		while (iterator.hasNext()) {
-			Change<T> change = iterator.next();
+			Change<ShadowType> change = iterator.next();
 			if (change.getCurrentShadow() == null) {
 				// There is no current shadow in a change. Add it by fetching it explicitly.
 				if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {						
 					// but not if it is a delete event
 					try {
 						
-						PrismObject<T> currentShadow = fetchResourceObject(connector, resource, type, objectClass, 
+						PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, objectClass, 
 								change.getIdentifiers(), null, parentResult);
 						change.setCurrentShadow(currentShadow);
 						
@@ -947,7 +781,8 @@ public class ResourceObjectConverter {
 					}
 				}
 			} else {
-				PrismObject<T> currentShadow = handleResourceObjectRead(resource, change.getCurrentShadow(), parentResult);
+				PrismObject<ShadowType> currentShadow = postProcessResourceObjectRead(connector, resource, change.getCurrentShadow(), 
+						objectClass, parentResult);
 				change.setCurrentShadow(currentShadow);
 			}
 		}
@@ -957,11 +792,13 @@ public class ResourceObjectConverter {
 		return changes;
 	}
 	
-	
-	private <T extends ShadowType> PrismObject<T> handleResourceObjectRead(ResourceType resourceType,
-			PrismObject<T> resourceObject, OperationResult parentResult) throws SchemaException {
+	/**
+	 * Process simulated activation, credentials and other properties that are added to the object by midPoint. 
+	 */
+	private PrismObject<ShadowType> postProcessResourceObjectRead(ConnectorInstance connector, ResourceType resourceType,
+			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
 		
-		T resourceObjectType = resourceObject.asObjectable();
+		ShadowType resourceObjectType = resourceObject.asObjectable();
 		
 		// Protected object
 		if (isProtectedShadow(resourceType, resourceObject)) {
@@ -983,9 +820,14 @@ public class ResourceObjectConverter {
 			resourceObjectType.setActivation(null);
 		}
 		
+		// Entitlements
+		entitlementConverter.postProcessEntitlementsRead(connector, resourceType, resourceObject, objectClassDefinition, parentResult);
+		
 		return resourceObject;
 	}
 	
+	
+
 	/**
 	 * Completes activation state by determinig simulated activation if
 	 * necessary.
@@ -993,7 +835,7 @@ public class ResourceObjectConverter {
 	 * TODO: The placement of this method is not correct. It should go back to
 	 * ShadowConverter
 	 */
-	private <T extends ShadowType> ActivationType completeActivation(PrismObject<T> shadow, ResourceType resource,
+	private ActivationType completeActivation(PrismObject<ShadowType> shadow, ResourceType resource,
 			OperationResult parentResult) {
 
 		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
@@ -1006,8 +848,8 @@ public class ResourceObjectConverter {
 		}
 	}
 	
-	private <T extends ShadowType> ActivationType convertFromSimulatedActivationAttributes(
-			PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) {
+	private ActivationType convertFromSimulatedActivationAttributes(
+			PrismObject<ShadowType> shadow, ResourceType resource, OperationResult parentResult) {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
@@ -1235,8 +1077,8 @@ public class ResourceObjectConverter {
 //		return new PrismPropertyValue(enableValue);
 	}
 
-	private <T extends ShadowType> RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		T shadowType = shadow.asObjectable();
+	private RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
+		ShadowType shadowType = shadow.asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		if (refinedSchema == null) {
 			throw new ConfigurationException("No schema definied for "+resource);
@@ -1265,7 +1107,7 @@ public class ResourceObjectConverter {
 		return objectClassDefinition;
 	}
 	
-	private <T extends ShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(
+	private ObjectClassComplexTypeDefinition determineObjectClassDefinition(
 			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		// HACK FIXME
@@ -1323,8 +1165,8 @@ public class ResourceObjectConverter {
 		}
 	}
 	
-	public <T extends ShadowType> boolean isProtectedShadow(ResourceType resource,
-			PrismObject<T> shadow) throws SchemaException {
+	public boolean isProtectedShadow(ResourceType resource,
+			PrismObject<ShadowType> shadow) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(shadow);
 		if (attributesContainer == null) {
@@ -1342,7 +1184,7 @@ public class ResourceObjectConverter {
 	}
 
 	private boolean isProtectedShadowChange(ResourceType resource, Change change) throws SchemaException {
-		PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
+		PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
 		if (currentShadow != null) {
 			return isProtectedShadow(resource, currentShadow);
 		}
@@ -1369,5 +1211,10 @@ public class ResourceObjectConverter {
 		return ResourceObjectPattern.matches(attributes, protectedAccountPatterns);
 	}
 
-	
+	private PrismObjectDefinition<ShadowType> getShadowTypeDef() {
+		if (shadowTypeDefinition == null) {
+			shadowTypeDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		}
+		return shadowTypeDefinition;
+	}	
 }

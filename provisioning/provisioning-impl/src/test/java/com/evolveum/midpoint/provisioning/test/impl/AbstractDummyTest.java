@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
@@ -68,6 +69,8 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -223,6 +226,25 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
 	}
 
+	protected void assertNoMember(DummyGroup group, String accountId) {
+		Collection<String> members = group.getMembers();
+		assertFalse("Account "+accountId+" IS member of group "+group.getName()+" while not expecting it, members: "+members, members.contains(accountId));
+	}
+	
+	protected void assertEntitlement(PrismObject<ShadowType> account, String entitlementOid) {
+		ShadowType accountType = account.asObjectable();
+		ShadowEntitlementsType entitlements = accountType.getEntitlements();
+		assertNotNull("No entitlements in "+account, entitlements);
+		List<ShadowAssociationType> associations = entitlements.getAssociation();
+		assertNotNull("Null entitlement associations in "+account, associations);
+		assertFalse("Empty entitlement associations in "+account, associations.isEmpty());
+		for (ShadowAssociationType association: associations) {
+			if (entitlementOid.equals(association.getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+account);
+	}
 
 
 }
