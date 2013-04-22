@@ -90,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
@@ -138,7 +139,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
 		try {
 			ResourceType resource = change.getResource().asObjectable();
-
+		
 			if (!isSynchronizationEnabled(ResourceTypeUtil.determineSynchronization(resource, UserType.class))) {
 				String message = "SYNCHRONIZATION is not enabled for " + ObjectTypeUtil.toShortString(resource)
 						+ " ignoring change from channel " + change.getSourceChannel();
@@ -394,7 +395,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
 		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
-
+		
 		if (actions.isEmpty()) {
 
 			LOGGER.warn("Skipping synchronization on resource: {}. Actions was not found.",
@@ -411,10 +412,19 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				parentResult.recordSuccess();
 				return;
 			}
+			
+			UserTemplateType userTemplate = null;
+			if (synchronization != null){
+			ObjectReferenceType userTemplateRef = synchronization.getObjectTemplateRef();
+			if (userTemplateRef != null){
+				userTemplate = repositoryService.getObject(UserTemplateType.class, userTemplateRef.getOid(), parentResult).asObjectable();
+			}
+			} 
+			
 			for (Action action : actions) {
 				LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
 
-				userOid = action.executeChanges(userOid, change, situation.getSituation(), auditRecord, task,
+				userOid = action.executeChanges(userOid, change, userTemplate, situation.getSituation(), auditRecord, task,
 						parentResult);
 			}
 			parentResult.recordSuccess();

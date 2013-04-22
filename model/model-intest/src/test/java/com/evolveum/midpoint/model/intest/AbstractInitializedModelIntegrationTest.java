@@ -235,7 +235,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	}
 	
 	protected void assertUserJack(PrismObject<UserType> user, String name, String fullName, String givenName, String familyName, String locality) {
-		assertUser(user, USER_JACK_OID, name, fullName, givenName, familyName);
+		assertUser(user, USER_JACK_OID, name, fullName, givenName, familyName, locality);
 		UserType userType = user.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
 		PrismAsserts.assertEqualsPolyString("Wrong jack honorificSuffix", "PhD.", userType.getHonorificSuffix());

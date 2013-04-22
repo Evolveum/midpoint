@@ -142,7 +142,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertNotNull("No user OID in delta after operation", userOid);
         
         PrismObject<UserType> userAfter = getUser(userOid);
-        assertUser(userAfter, userOid, "charles", "Charles L. Charles", null, null);
+        assertUser(userAfter, userOid, "charles", "Charles L. Charles", null, null, null);
 		
 	}
 		

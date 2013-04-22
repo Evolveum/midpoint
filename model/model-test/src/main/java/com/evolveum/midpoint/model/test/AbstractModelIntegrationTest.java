@@ -229,8 +229,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (verbose) display("Users", users);
         assertEquals("Unexpected number of users", expectedNumberOfUsers, users.size());
     }
+    
+    protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
+    	assertUser(user, oid, name, fullName, givenName, familyName, null);
+    }
 		
-	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
+	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
 		assertObject(user);
 		assertEquals("Wrong "+user+" OID (prism)", oid, user.getOid());
 		UserType userType = user.asObjectable();
@@ -239,6 +243,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
+		
+		if (location != null) {
+			PrismAsserts.assertEqualsPolyString("Wrong " + user + " location", location,
+					userType.getLocality());
+		}
 	}
 	
 	protected void assertShadow(PrismObject<? extends ShadowType> shadow) {

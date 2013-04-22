@@ -71,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizati
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -151,7 +152,7 @@ public abstract class BaseAction implements Action {
     }
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate, 
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
     		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         Validate.notNull(change, "Resource object change description must not be null.");

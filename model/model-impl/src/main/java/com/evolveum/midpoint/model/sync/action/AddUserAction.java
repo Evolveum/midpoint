@@ -63,20 +63,25 @@ public class AddUserAction extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(AddUserAction.class);
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate, 
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
     			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        super.executeChanges(userOid, change, situation, auditRecord, task, result);
+        super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
         LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
+        	
             UserType user = getUser(userOid, subResult);
             if (user == null) {
                 //set user template to context from action configuration
-                context.setUserTemplate(getUserTemplate(subResult));
+				if (userTemplate != null) {
+					context.setUserTemplate(userTemplate);
+				} else {
+					context.setUserTemplate(getUserTemplate(subResult));
+				}
                 if (context.getUserTemplate() != null) {
                     LOGGER.debug("Using user template {}", context.getUserTemplate().getName());
                 } else {

@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -71,10 +72,10 @@ public class SynchronizeAction extends BaseAction {
     }
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate, 
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
             OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        super.executeChanges(userOid, change, situation, auditRecord, task, result);
+        super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);
 
         Class<? extends ShadowType> clazz = getClassFromChange(change);
         if (!ShadowType.class.isAssignableFrom(clazz)) {
@@ -98,7 +99,7 @@ public class SynchronizeAction extends BaseAction {
 
         LensContext<UserType, ShadowType> context = null;
         try {
-            context = createLensContext(userType, change.getResource().asObjectable(), change);
+            context = createLensContext(userType, change.getResource().asObjectable(), userTemplate, change);
 
             LensProjectionContext<ShadowType> accountContext = createAccountLensContext(context, change,
                     SynchronizationIntent.SYNCHRONIZE, null);
@@ -133,7 +134,7 @@ public class SynchronizeAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, ShadowType> createLensContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private LensContext<UserType, ShadowType> createLensContext(UserType user, ResourceType resource, UserTemplateType userTemplate, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
@@ -144,6 +145,7 @@ public class SynchronizeAction extends BaseAction {
         PrismObject<UserType> oldUser = user.asPrismObject();
         focusContext.setObjectOld(oldUser);
         context.rememberResource(resource);
+        context.setUserTemplate(userTemplate);
 
         return context;
     }
