@@ -304,6 +304,9 @@ public class RAssignment extends RContainer implements ROwnable {
             RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
             repo.setMetadata(metadata);
         }
+
+        ContainerIdGenerator gen = new ContainerIdGenerator();
+        repo.setId((Long) gen.generate(null, repo));
     }
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
