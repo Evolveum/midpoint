@@ -74,6 +74,7 @@ import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -384,13 +385,26 @@ public class PageTasks extends PageAdminTasks {
 
     private String createCurrentRuntime(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
-        Long time = task.getCurrentRuntime();
-        if (time == null) {
-            return "";
-        }
 
-        //todo i18n
-        return DurationFormatUtils.formatDurationWords(time, true, true);
+        if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+
+            //todo i18n and proper date/time formatting
+            Long time = task.getCompletionTimestamp();
+            if (time == null) {
+                return "";
+            }
+            return "closed at " + new Date(time).toLocaleString();
+
+        } else {
+
+            Long time = task.getCurrentRuntime();
+            if (time == null) {
+                return "";
+            }
+
+            //todo i18n
+            return DurationFormatUtils.formatDurationWords(time, true, true);
+        }
     }
 
     private String createLastCheckInTime(IModel<NodeDto> nodeModel) {

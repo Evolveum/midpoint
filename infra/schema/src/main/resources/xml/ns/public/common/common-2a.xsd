@@ -1054,6 +1054,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="completionTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The moment when the task was marked as closed. (May be different from
+                                lastRunFinishTimestamp, e.g. when task waits for its children to finish
+                                and then closes automatically.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="progress" type="xsd:long" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

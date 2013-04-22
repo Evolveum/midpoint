@@ -60,6 +60,7 @@ public class RTask extends RObject {
     private ROperationResult result;
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
+    private XMLGregorianCalendar completionTimestamp;
     private Long progress;
     private RTaskRecurrence recurrence;
     private RTaskBinding binding;
@@ -208,6 +209,11 @@ public class RTask extends RObject {
     }
 
     @Column(nullable = true)
+    public XMLGregorianCalendar getCompletionTimestamp() {
+        return completionTimestamp;
+    }
+
+    @Column(nullable = true)
     public XMLGregorianCalendar getLastRunStartTimestamp() {
         return lastRunStartTimestamp;
     }
@@ -241,6 +247,10 @@ public class RTask extends RObject {
 
     public void setLastRunFinishTimestamp(XMLGregorianCalendar lastRunFinishTimestamp) {
         this.lastRunFinishTimestamp = lastRunFinishTimestamp;
+    }
+
+    public void setCompletionTimestamp(XMLGregorianCalendar completionTimestamp) {
+        this.completionTimestamp = completionTimestamp;
     }
 
     public void setLastRunStartTimestamp(XMLGregorianCalendar lastRunStartTimestamp) {
@@ -297,6 +307,8 @@ public class RTask extends RObject {
         if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) return false;
         if (lastRunFinishTimestamp != null ? !lastRunFinishTimestamp.equals(rTask.lastRunFinishTimestamp) : rTask.lastRunFinishTimestamp != null)
             return false;
+        if (completionTimestamp != null ? !completionTimestamp.equals(rTask.completionTimestamp) : rTask.completionTimestamp != null)
+            return false;
         if (lastRunStartTimestamp != null ? !lastRunStartTimestamp.equals(rTask.lastRunStartTimestamp) : rTask.lastRunStartTimestamp != null)
             return false;
         if (node != null ? !node.equals(rTask.node) : rTask.node != null) return false;
@@ -333,6 +345,7 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (handlerUri != null ? handlerUri.hashCode() : 0);
         result1 = 31 * result1 + (otherHandlersUriStack != null ? otherHandlersUriStack.hashCode() : 0);
         result1 = 31 * result1 + (lastRunStartTimestamp != null ? lastRunStartTimestamp.hashCode() : 0);
+        result1 = 31 * result1 + (completionTimestamp != null ? completionTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (lastRunFinishTimestamp != null ? lastRunFinishTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (progress != null ? progress.hashCode() : 0);
         result1 = 31 * result1 + (recurrence != null ? recurrence.hashCode() : 0);
@@ -359,6 +372,7 @@ public class RTask extends RObject {
         }
         jaxb.setHandlerUri(repo.getHandlerUri());
         jaxb.setLastRunFinishTimestamp(repo.getLastRunFinishTimestamp());
+        jaxb.setCompletionTimestamp(repo.getCompletionTimestamp());
         jaxb.setLastRunStartTimestamp(repo.getLastRunStartTimestamp());
         jaxb.setNode(repo.getNode());
         jaxb.setProgress(repo.getProgress());
@@ -416,6 +430,7 @@ public class RTask extends RObject {
         repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionStatus(), RTaskExecutionStatus.class));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setLastRunFinishTimestamp(jaxb.getLastRunFinishTimestamp());
+        repo.setCompletionTimestamp(jaxb.getCompletionTimestamp());
         repo.setLastRunStartTimestamp(jaxb.getLastRunStartTimestamp());
         repo.setNode(jaxb.getNode());
         repo.setProgress(jaxb.getProgress());

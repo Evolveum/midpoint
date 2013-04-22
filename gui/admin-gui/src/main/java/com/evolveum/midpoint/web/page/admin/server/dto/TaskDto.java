@@ -83,6 +83,7 @@ public class TaskDto extends Selectable {
     private Long lastRunStartTimestampLong;
     private Long lastRunFinishTimestampLong;
     private Long nextRunStartTimeLong;
+    private Long completionTimestampLong;
     private TaskBinding binding;
     private TaskRecurrence recurrence;
 
@@ -132,6 +133,7 @@ public class TaskDto extends Selectable {
         execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, n != null);
         lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         lastRunStartTimestampLong = task.getLastRunStartTimestamp();
+        completionTimestampLong = task.getCompletionTimestamp();
         nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
 
         this.objectRef = task.getObjectRef();
@@ -423,4 +425,12 @@ public class TaskDto extends Selectable {
 	public void setNextRunStartTimeLong(Long nextRunStartTimeLong) {
 		this.nextRunStartTimeLong = nextRunStartTimeLong;
 	}
+
+    public Long getCompletionTimestamp() {
+        return completionTimestampLong;
+    }
+
+    public void setCompletionTimestampLong(Long completionTimestampLong) {
+        this.completionTimestampLong = completionTimestampLong;
+    }
 }

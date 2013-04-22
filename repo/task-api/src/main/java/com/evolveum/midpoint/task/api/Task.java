@@ -602,4 +602,6 @@ public interface Task extends Dumpable {
     void makeWaiting(TaskWaitingReason reason);
 
     void pushWaitForTasksHandlerUri();
+
+    Long getCompletionTimestamp();
 }

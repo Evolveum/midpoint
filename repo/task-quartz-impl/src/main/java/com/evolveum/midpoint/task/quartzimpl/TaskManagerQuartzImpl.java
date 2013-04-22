@@ -1014,7 +1014,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // use with care (e.g. w.r.t. dependent tasks)
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         try {
+            // todo do in one modify operation
             ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);
+            ((TaskQuartzImpl) task).setCompletionTimestampImmediate(System.currentTimeMillis(), parentResult);
         } finally {
             executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
         }
@@ -1023,6 +1025,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
         ((TaskQuartzImpl) task).setExecutionStatus(TaskExecutionStatus.CLOSED);
+        ((TaskQuartzImpl) task).setCompletionTimestamp(System.currentTimeMillis());
         executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
     }
 

@@ -59,11 +59,10 @@ import org.apache.commons.lang.Validate;
 /**
  * Implementation of a Task.
  * 
- * This is very simplistic now. It does not even serialize itself.
- * 
  * @see TaskManagerQuartzImpl
  * 
  * @author Radovan Semancik
+ * @author Pavol Mederly
  *
  */
 public class TaskQuartzImpl implements Task {
@@ -1832,6 +1831,44 @@ public class TaskQuartzImpl implements Task {
 									taskPrism.asObjectable().getLastRunFinishTimestamp()) 
 							  : null;
 	}
+
+    /*
+	 * Completion timestamp
+	 */
+
+    @Override
+    public Long getCompletionTimestamp() {
+        XMLGregorianCalendar gc = taskPrism.asObjectable().getCompletionTimestamp();
+        return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
+    }
+
+    public void setCompletionTimestamp(Long value) {
+        processModificationBatched(setCompletionTimestampAndPrepareDelta(value));
+    }
+
+    public void setCompletionTimestampImmediate(Long value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setCompletionTimestampAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+    }
+
+    public void setCompletionTimestampTransient(Long value) {
+        taskPrism.asObjectable().setCompletionTimestamp(
+                XmlTypeConverter.createXMLGregorianCalendar(value));
+    }
+
+    private PropertyDelta<?> setCompletionTimestampAndPrepareDelta(Long value) {
+        setCompletionTimestampTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+                taskManager.getTaskObjectDefinition(),
+                TaskType.F_COMPLETION_TIMESTAMP,
+                taskPrism.asObjectable().getCompletionTimestamp())
+                : null;
+    }
+
 
 	/*
 	 * Next run start time
