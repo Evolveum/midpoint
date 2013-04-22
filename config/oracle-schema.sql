@@ -481,6 +481,7 @@ CREATE TABLE m_task (
   binding                     NUMBER(10, 0),
   canRunOnNode                VARCHAR2(255 CHAR),
   category                    VARCHAR2(255 CHAR),
+  completionTimestamp         TIMESTAMP,
   executionStatus             NUMBER(10, 0),
   handlerUri                  VARCHAR2(255 CHAR),
   lastRunFinishTimestamp      TIMESTAMP,

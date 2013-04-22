@@ -479,6 +479,7 @@ CREATE TABLE m_task (
   binding                     INT,
   canRunOnNode                NVARCHAR(255),
   category                    NVARCHAR(255),
+  completionTimestamp         DATETIME2,
   executionStatus             INT,
   handlerUri                  NVARCHAR(255),
   lastRunFinishTimestamp      DATETIME2,
