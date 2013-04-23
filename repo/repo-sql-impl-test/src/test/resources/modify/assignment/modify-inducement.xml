@@ -20,6 +20,7 @@
   ~
   ~ Portions Copyrighted 2013 [name of copyright owner]
   -->
+
 <objectModification
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
@@ -27,12 +28,18 @@
 	<oid>00000000-8888-6666-0000-100000000005</oid>
 	<modification>
 		<t:modificationType>add</t:modificationType>
+        <t:path>c:inducement[5]</t:path>
 		<t:value>
-			<c:inducement id="5">
-                <c:accountConstruction>
-                    <c:resourceRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-                </c:accountConstruction>
-			</c:inducement>
+            <c:targetRef oid="12345678-d34d-b33f-f00d-987987987987" type="c:RoleType"/>
 		</t:value>
 	</modification>
+    <modification>
+        <t:modificationType>delete</t:modificationType>
+        <t:path>c:inducement[5]</t:path>
+        <t:value>
+            <c:accountConstruction>
+                <c:resourceRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+            </c:accountConstruction>
+        </t:value>
+    </modification>
 </objectModification>
