@@ -118,16 +118,11 @@ This resource definition contains also definition to enable synchronization.
                     <!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-					<access>read</access>
-<!--
-					<outbound default="true">
-						<expression>
-							<code>
-                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$i:user/c:name
-							</code>
-						</expression>
-					</outbound>-->
+					<limitations>
+						<access>
+							<read>true</read>
+						</access>
+					</limitations>
 				</attribute>
 				<attribute>
 					<ref>icfs:name</ref>
@@ -137,10 +132,15 @@ This resource definition contains also definition to enable synchronization.
 
                     <!-- Access limitation for this attribute.
                           -->
-					<access>create</access>
-					<access>read</access>
+					<limitations>
+						<minOccurs>0</minOccurs>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
 					<outbound>
-						<strength>weak</strength>
 						<source>
 							<path>$user/name</path>
 						</source>
@@ -151,7 +151,6 @@ This resource definition contains also definition to enable synchronization.
 						</target>
 					</inbound>
 				</attribute>
-
 				<attribute>
 					<ref>ri:firstName</ref>
 					<displayName>First name</displayName>
