@@ -390,8 +390,8 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
         List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
         try {
-            AccountConstructionType construction = WebMiscUtil.getValue(dto.getOldValue(),
-                    AssignmentType.F_ACCOUNT_CONSTRUCTION, AccountConstructionType.class);
+            ConstructionType construction = WebMiscUtil.getValue(dto.getOldValue(),
+                    AssignmentType.F_ACCOUNT_CONSTRUCTION, ConstructionType.class);
             PrismObject<ResourceType> resource = construction.getResource() != null
                     ? construction.getResource().asPrismObject() : null;
             if (resource == null) {

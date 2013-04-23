@@ -107,7 +107,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -727,7 +727,7 @@ public class PageUser extends PageAdminUsers {
 				}
 			} else if (assignment.getAccountConstruction() != null) {
 				// account assignment through account construction
-				AccountConstructionType construction = assignment.getAccountConstruction();
+				ConstructionType construction = assignment.getAccountConstruction();
 				if (construction.getResource() != null) {
 					targetObject = construction.getResource();
 				} else if (construction.getResourceRef() != null) {
@@ -1183,7 +1183,7 @@ public class PageUser extends PageAdminUsers {
 	 */
 	@Deprecated
 	private void removeResourceFromAccConstruction(AssignmentType assignment) {
-		AccountConstructionType accConstruction = assignment.getAccountConstruction();
+		ConstructionType accConstruction = assignment.getAccountConstruction();
 		if (accConstruction == null || accConstruction.getResource() == null) {
 			return;
 		}
@@ -1734,7 +1734,7 @@ public class PageUser extends PageAdminUsers {
 
 	private void addSelectedResourceAssignPerformed(ResourceType resource) {
 		AssignmentType assignment = new AssignmentType();
-		AccountConstructionType construction = new AccountConstructionType();
+		ConstructionType construction = new ConstructionType();
 		assignment.setAccountConstruction(construction);
 		construction.setResource(resource);
 

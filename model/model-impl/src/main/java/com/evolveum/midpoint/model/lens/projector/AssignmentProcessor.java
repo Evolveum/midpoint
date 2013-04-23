@@ -66,7 +66,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -466,7 +466,7 @@ public class AssignmentProcessor {
     
 	private String determineResource(AssignmentType assignmentType) {
 		if (assignmentType.getAccountConstruction() != null){
-			AccountConstructionType accConstruction = assignmentType.getAccountConstruction();
+			ConstructionType accConstruction = assignmentType.getAccountConstruction();
 			if (accConstruction.getResource() != null){
 				return accConstruction.getResource().getOid();
 			} else if (accConstruction.getResourceRef() != null){
@@ -481,7 +481,7 @@ public class AssignmentProcessor {
 	
 	private String determineIntent(AssignmentType assignmentType) {
 		if (assignmentType.getAccountConstruction() != null){
-			AccountConstructionType accConstruction = assignmentType.getAccountConstruction();
+			ConstructionType accConstruction = assignmentType.getAccountConstruction();
 			if (accConstruction.getIntent() != null){
 				return accConstruction.getIntent();
 			} 

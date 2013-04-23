@@ -2128,7 +2128,16 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0">
+                <xsd:element name="accountConstruction" type="tns:ConstructionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        	DEPRECATED
+                        	Use "construction" element instead.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                
+                <xsd:element name="construction" type="tns:ConstructionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
@@ -5199,7 +5208,7 @@
     </xsd:simpleType>
     
 
-    <xsd:complexType name="AccountConstructionType">
+    <xsd:complexType name="ConstructionType">
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="c:extension" minOccurs="0" maxOccurs="1"/>
@@ -5217,7 +5226,7 @@
                 <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Resource that should host the implied account.
+                            Resource that should host the implied resource object.
                         </xsd:documentation>
                         <xsd:appinfo>
                     		<a:objectReference>tns:resourceRef</a:objectReference>
@@ -5226,16 +5235,27 @@
                 </xsd:element>
             </xsd:choice>
             <xsd:choice>
+                <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Kind of resource object that should be created on the resource.
+
+                            This element is optional. If not specified defaults to account kind.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:choice>
                 <xsd:element name="intent" type="xsd:string" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Type of account that should be created on the resource.
+                            Intent of resource object that should be created on the resource.
 
-                            This must point to the a valid accountType definition in
+                            This must point to the a valid definition in
                             the resource object (in schemaHandling section).
 
-                            This element is optional. If not specified then the account
-                            type marked as default in the resource definition should be used.
+                            This element is optional. If not specified then the definition
+                            marked as default in the resource definition should be used.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -5295,7 +5315,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0"
+                    <xsd:element name="accountConstruction" type="tns:ConstructionType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>

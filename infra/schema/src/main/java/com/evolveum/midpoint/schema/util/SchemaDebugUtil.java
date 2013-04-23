@@ -252,7 +252,7 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 	
-	public static String prettyPrint(AccountConstructionType act) {
+	public static String prettyPrint(ConstructionType act) {
 		if (act == null) {
 			return "null";
 		}

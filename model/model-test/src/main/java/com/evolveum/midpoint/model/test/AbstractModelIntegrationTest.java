@@ -108,7 +108,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -556,7 +556,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			assignmentDelta.addValueToDelete(cval);
 		}
 		AssignmentType assignmentType = cval.asContainerable();
-		AccountConstructionType accountConstructionType = new AccountConstructionType();
+		ConstructionType accountConstructionType = new ConstructionType();
 		assignmentType.setAccountConstruction(accountConstructionType);
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resourceOid);
@@ -565,8 +565,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return assignmentDelta;
 	}
 
-    protected AccountConstructionType createAccountConstruction(String resourceOid, String intent) throws SchemaException {
-        AccountConstructionType accountConstructionType = new AccountConstructionType();
+    protected ConstructionType createAccountConstruction(String resourceOid, String intent) throws SchemaException {
+        ConstructionType accountConstructionType = new ConstructionType();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
         accountConstructionType.setResourceRef(resourceRef);
@@ -574,9 +574,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return accountConstructionType;
     }
 
-    protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, AccountConstructionType newValue) throws SchemaException {
+    protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, ConstructionType newValue) throws SchemaException {
         PrismPropertyDefinition ppd = getAssignmentDefinition().findPropertyDefinition(AssignmentType.F_ACCOUNT_CONSTRUCTION);
-        PropertyDelta<AccountConstructionType> acDelta =
+        PropertyDelta<ConstructionType> acDelta =
                 PropertyDelta.createModificationReplaceProperty(
                         new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_ACCOUNT_CONSTRUCTION)),
                         ppd,
@@ -855,7 +855,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertAssignedAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
-			AccountConstructionType accountConstruction = assignmentType.getAccountConstruction();
+			ConstructionType accountConstruction = assignmentType.getAccountConstruction();
 			if (accountConstruction != null) {
 				if (resourceOid.equals(accountConstruction.getResourceRef().getOid())) {
 					return;
@@ -868,7 +868,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertAssignedNoAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
-			AccountConstructionType accountConstruction = assignmentType.getAccountConstruction();
+			ConstructionType accountConstruction = assignmentType.getAccountConstruction();
 			if (accountConstruction != null) {
 				if (resourceOid.equals(accountConstruction.getResourceRef().getOid())) {
 					AssertJUnit.fail(user.toString()+" has account assignment for resource "+resourceOid+" while expecting no such assignment");
@@ -907,7 +907,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void fillinUserAssignmentAccountConstruction(PrismObject<UserType> user, String resourceOid) {
 		AssignmentType assignmentType = new AssignmentType();
-        AccountConstructionType accountConstruntion = new AccountConstructionType();
+        ConstructionType accountConstruntion = new ConstructionType();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
 		accountConstruntion.setResourceRef(resourceRef );

@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -124,8 +124,8 @@ public class TestJaxbSanity {
 		PrismObject<UserType> user2 = user2Type.asPrismObject();
 		
 		// Compare plain JAXB objects (not backed by containers)
-		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
-		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
+		ConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
+		ConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
 		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN
@@ -154,8 +154,8 @@ public class TestJaxbSanity {
 		UserType user2Type = user2.asObjectable();
 		
 		// Compare plain JAXB objects (not backed by containers)
-		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
-		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
+		ConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
+		ConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
 		assertTrue("AccountConstructionType not equals (JAXB)", ac1.equals(ac2));
 		assertTrue("AccountConstructionType hashcode does not match (JAXB)", ac1.hashCode() == ac2.hashCode());
 		
@@ -206,8 +206,8 @@ public class TestJaxbSanity {
 		PrismObject<UserType> user2 = user2Type.asPrismObject();
 		
 		// Compare plain JAXB objects (not backed by containers)
-		AccountConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
-		AccountConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
+		ConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
+		ConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
 		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN

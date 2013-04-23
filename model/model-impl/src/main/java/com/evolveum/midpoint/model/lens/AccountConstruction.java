@@ -48,7 +48,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
@@ -65,7 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class AccountConstruction implements DebugDumpable, Dumpable {
 
 	private AssignmentPath assignmentPath;
-	private AccountConstructionType accountConstructionType;
+	private ConstructionType accountConstructionType;
 	private ObjectType source;
 	private OriginType originType;
 	private String channel;
@@ -79,7 +79,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AccountConstruction.class);
 	
-	public AccountConstruction(AccountConstructionType accountConstructionType, ObjectType source) {
+	public AccountConstruction(ConstructionType accountConstructionType, ObjectType source) {
 		this.accountConstructionType = accountConstructionType;
 		this.source = source;
 		this.assignmentPath = null;

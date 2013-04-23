@@ -349,8 +349,8 @@ public class PageDashboard extends PageAdminHome {
             String name = null;
             String description = null;
             if (construction != null && !construction.isEmpty()) {
-                AccountConstructionType constr = (AccountConstructionType)
-                        construction.getRealValue(AccountConstructionType.class);
+                ConstructionType constr = (ConstructionType)
+                        construction.getRealValue(ConstructionType.class);
                 description = constr.getDescription();
 
                 if (constr.getResourceRef() != null) {

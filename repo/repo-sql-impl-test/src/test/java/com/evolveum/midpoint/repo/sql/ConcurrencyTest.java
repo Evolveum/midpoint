@@ -36,7 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -332,10 +332,10 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                     throw new IllegalArgumentException("No definition for " + attribute2 + " in " + userPrismDefinition);
                 }
                 PropertyDelta delta2 = new PropertyDelta(attribute2, propertyDefinition2);
-                if (AccountConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
-                    AccountConstructionType act = new AccountConstructionType();
+                if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
+                    ConstructionType act = new ConstructionType();
                     act.setDescription(dataWritten);
-                    delta2.setValueToReplace(new PrismPropertyValue<AccountConstructionType>(act));
+                    delta2.setValueToReplace(new PrismPropertyValue<ConstructionType>(act));
                 } else {
                     delta2.setValueToReplace(new PrismPropertyValue(dataWritten));
                 }
@@ -390,8 +390,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 }
 
                 if (attribute2 != null) {
-                    if (AccountConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
-                        dataRead = user.findProperty(attribute2).getRealValue(AccountConstructionType.class).getDescription();
+                    if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
+                        dataRead = user.findProperty(attribute2).getRealValue(ConstructionType.class).getDescription();
                     } else {
                         dataRead = user.findProperty(attribute2).getRealValue(String.class);
                     }

@@ -79,7 +79,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
@@ -1505,7 +1505,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
         assertNotNull("gossip attribute definition not found", gossipDefinition);
 
-        AccountConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
+        ConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
         ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
         radt.setRef(gossipDefinition.getName());
         MappingType outbound = new MappingType();

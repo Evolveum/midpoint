@@ -74,7 +74,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         newAssignment.setupContainerValue(newValue);
         if (AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(type)
                 && oldAssignment.getAccountConstruction() != null) {
-            AccountConstructionType construction = oldAssignment.getAccountConstruction();
+            ConstructionType construction = oldAssignment.getAccountConstruction();
             newAssignment.setAccountConstruction(construction.clone());
         }
 
@@ -183,7 +183,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             newAssignment.setActivation(null);
         }
 
-        AccountConstructionType construction = newAssignment.getAccountConstruction();
+        ConstructionType construction = newAssignment.getAccountConstruction();
         if (construction == null) {
             return newAssignment.asPrismContainerValue();
         }
