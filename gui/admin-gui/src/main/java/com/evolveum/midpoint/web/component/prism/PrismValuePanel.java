@@ -27,10 +27,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.input.PasswordPanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
+import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -300,9 +297,16 @@ public class PrismValuePanel extends Panel {
 
     private InputPanel createTypedInputComponent(String id) {
         PrismProperty property = model.getObject().getProperty().getItem();
-        QName valueType = property.getDefinition().getTypeName();
+        PrismPropertyDefinition definition = property.getDefinition();
+        QName valueType = definition.getTypeName();
 
         final String baseExpression = "value.value"; //pointing to prism property real value
+
+        //fixing MID-1230, will be improved with some kind of annotation or something like that
+        //now it works only in description
+        if (ObjectType.F_DESCRIPTION.equals(definition.getName())) {
+            return new TextAreaPanel(id, new PropertyModel(model, baseExpression));
+        }
 
         InputPanel panel;
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {

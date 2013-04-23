@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DatePanel;
@@ -31,17 +30,14 @@ import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
@@ -72,7 +68,7 @@ public class ACAttributeValuePanel extends SimplePanel<ACValueConstructionDto> {
         boolean required = definition.getMinOccurs() > 0;
 
         InputPanel input = createTypedInputComponent(ID_INPUT, definition);
-        for (FormComponent comp: input.getFormComponents()) {
+        for (FormComponent comp : input.getFormComponents()) {
             comp.setLabel(new PropertyModel(dto.getAttribute(), ACAttributeDto.F_NAME));
             comp.setRequired(required);
 

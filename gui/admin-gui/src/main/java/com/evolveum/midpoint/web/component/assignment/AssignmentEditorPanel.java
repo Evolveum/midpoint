@@ -52,6 +52,7 @@ import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -240,7 +241,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     }
 
     private void initBodyLayout(WebMarkupContainer body) {
-        TextField description = new TextField(ID_DESCRIPTION,
+        TextArea description = new TextArea(ID_DESCRIPTION,
                 new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
 

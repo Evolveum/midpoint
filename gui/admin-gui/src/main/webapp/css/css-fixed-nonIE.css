@@ -33,7 +33,13 @@
     bottom:0;
 }
 
-div.objectForm .tableForm input[type='text'], div.objectForm .tableForm input[type='password'], div.objectForm .tableForm input[type='checkbox'], .assignmentBody input[type="text"], .assignmentBody input[type="password"] {
+div.objectForm .tableForm input[type='text'],
+div.objectForm .tableForm input[type='password'],
+div.objectForm .tableForm input[type='checkbox'],
+div.objectForm .tableForm textarea,
+.assignmentBody input[type="text"],
+.assignmentBody input[type="password"],
+.assignmentBody textarea {
 	outline: none;
 	margin: 4px 0px 4px 10px;
 	padding: 5px;
