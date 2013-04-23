@@ -24,10 +24,20 @@
             xmlns:tns="http://example.com/p"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common objects.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.
@@ -68,6 +78,7 @@
             <xsd:element name="dateType" type="xsd:dateTime"/>
             <xsd:element name="locations" type="tns:LocationsType"/>
             <xsd:element name="referenceType" type="c:ObjectReferenceType"/>
+            <xsd:element name="polyType" type="t:PolyStringType"/>
         </xsd:sequence>
     </xsd:complexType>
 

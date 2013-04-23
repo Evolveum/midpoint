@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -55,7 +56,31 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverterStaticTest.class);
     private static final String NS_P = "http://example.com/p";
+    private static final String NS_T = "http://prism.evolveum.com/xml/ns/public/types-2";
     private static final String NS_FOO_RESOURCE = "http://example.com/foo";
+
+    @Test
+    public void testExtensionPolyString() throws Exception {
+        Session session = getFactory().openSession();
+
+        QName valueName = new QName(NS_P, "polyType");
+        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        AssertJUnit.assertNotNull(def);
+
+        Element poly = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
+        Element orig = DOMUtil.createElement(poly.getOwnerDocument(), new QName(NS_T, "orig"));
+        orig.setTextContent("Foo_Bar");
+        Element norm = DOMUtil.createElement(poly.getOwnerDocument(), new QName(NS_T, "norm"));
+        norm.setTextContent("foo bar");
+
+        poly.appendChild(orig);
+        poly.appendChild(norm);
+
+        Object realValue = RAnyConverter.getRealRepoValue(def, poly);
+        AssertJUnit.assertEquals(new PolyString("Foo_Bar", "foo bar"), realValue);
+
+        session.close();
+    }
 
     @Test
     public void testExtensionInteger() throws Exception {
@@ -252,17 +277,22 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testUserFullnameString() throws Exception {
+    public void testUserFullnamePolyString() throws Exception {
         Session session = getFactory().openSession();
 
         ItemDefinition def = getDefinition(UserType.class, UserType.F_FULL_NAME);
         AssertJUnit.assertNotNull("Definition not found for " + UserType.F_FULL_NAME, def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), UserType.F_FULL_NAME);
-        value.setTextContent("john example");
+        Element orig = DOMUtil.createElement(value.getOwnerDocument(), new QName(NS_T, "orig"));
+        orig.setTextContent("john example");
+        Element norm = DOMUtil.createElement(value.getOwnerDocument(), new QName(NS_T, "norm"));
+        norm.setTextContent("john example");
+        value.appendChild(orig);
+        value.appendChild(norm);
 
         Object realValue = RAnyConverter.getRealRepoValue(def, value);
-        AssertJUnit.assertEquals("john example", realValue);
+        AssertJUnit.assertEquals(new PolyString("john example", "john example"), realValue);
 
         session.close();
     }

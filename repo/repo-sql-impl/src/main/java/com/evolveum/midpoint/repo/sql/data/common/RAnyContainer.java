@@ -61,6 +61,7 @@ public class RAnyContainer implements Serializable {
     private Set<RAnyDate> dates;
     private Set<RAnyReference> references;
     private Set<RAnyClob> clobs;
+    private Set<RAnyPolyString> polys;
 
     @ForeignKey(name = "none")
     @MapsId("owner")
@@ -144,6 +145,19 @@ public class RAnyContainer implements Serializable {
         return references;
     }
 
+    @OneToMany(mappedBy = "anyContainer", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RAnyPolyString> getPolys() {
+        if (polys == null) {
+            polys = new HashSet<RAnyPolyString>();
+        }
+        return polys;
+    }
+
+    public void setPolys(Set<RAnyPolyString> polys) {
+        this.polys = polys;
+    }
+
     public void setClobs(Set<RAnyClob> clobs) {
         this.clobs = clobs;
     }
@@ -192,6 +206,7 @@ public class RAnyContainer implements Serializable {
         if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
         if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
         if (references != null ? !references.equals(that.references) : that.references != null) return false;
+        if (polys != null ? !polys.equals(that.polys) : that.polys != null) return false;
 
         return true;
     }
@@ -235,6 +250,7 @@ public class RAnyContainer implements Serializable {
         convertValues(converter, containerValue, repo.getLongs());
         convertValues(converter, containerValue, repo.getStrings());
         convertValues(converter, containerValue, repo.getReferences());
+        convertValues(converter, containerValue, repo.getPolys());
     }
 
     private static <T extends RAnyValue> void convertValues(RAnyConverter converter, PrismContainerValue containerValue,
@@ -293,6 +309,8 @@ public class RAnyContainer implements Serializable {
                 repo.getReferences().add((RAnyReference) value);
             } else if (value instanceof RAnyString) {
                 repo.getStrings().add((RAnyString) value);
+            } else if (value instanceof RAnyPolyString) {
+                repo.getPolys().add((RAnyPolyString) value);
             }
         }
     }

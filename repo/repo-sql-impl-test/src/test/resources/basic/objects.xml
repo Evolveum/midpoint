@@ -775,6 +775,10 @@
             <p:referenceType oid="12345678-1234-1234-1234-123456789012" type="c:UserType" relation="c:ObjectType">
                 <description>this is some description or something like that, which should be also stored in DB</description>
             </p:referenceType>
+            <p:polyType>
+                <t:orig>UserX00002</t:orig>
+                <t:norm>userx00002</t:norm>
+            </p:polyType>
         </extension>
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>

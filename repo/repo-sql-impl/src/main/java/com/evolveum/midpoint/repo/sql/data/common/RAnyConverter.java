@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -49,7 +51,7 @@ import java.util.*;
 public class RAnyConverter {
 
     private static enum ValueType {
-        LONG, STRING, DATE
+        LONG, STRING, DATE, POLY_STRING;
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverter.class);
@@ -68,6 +70,7 @@ public class RAnyConverter {
         TYPE_MAP.put(DOMUtil.XSD_FLOAT, ValueType.STRING);
 
         TYPE_MAP.put(DOMUtil.XSD_DATETIME, ValueType.DATE);
+        TYPE_MAP.put(PolyStringType.COMPLEX_TYPE, ValueType.POLY_STRING);
     }
 
     RAnyConverter(PrismContext prismContext) {
@@ -99,6 +102,9 @@ public class RAnyConverter {
                             RAnyDate dateValue = new RAnyDate();
                             dateValue.setValue(extractValue(propertyValue, Timestamp.class));
                             rValue = dateValue;
+                            break;
+                        case POLY_STRING:
+                            rValue = new RAnyPolyString(extractValue(propertyValue, PolyString.class));
                             break;
                         case STRING:
                         default:
