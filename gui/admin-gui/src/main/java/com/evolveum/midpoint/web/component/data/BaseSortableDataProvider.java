@@ -42,10 +42,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -159,6 +156,19 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         Validate.isTrue(cacheCleanupThreshold > 0, "Cache cleanup threshold must be bigger than zero.");
         this.cacheCleanupThreshold = cacheCleanupThreshold;
     }
+
+    @Override
+    public Iterator<? extends T> iterator(long first, long count) {
+        Iterator<? extends T> iterator = internalIterator(first, count);
+        saveProviderPaging(getQuery(), createPaging(first, count));
+
+        return iterator;
+    }
+
+    protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+    }
+
+    protected abstract Iterator<? extends T> internalIterator(long first, long count);
 
     @Override
     public long size() {

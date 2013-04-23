@@ -57,7 +57,7 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     }
 
     @Override
-    public Iterator<SelectableBean<ResourceType>> iterator(long first, long count) {
+    public Iterator<SelectableBean<ResourceType>> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         Set<String> alreadyUsedResources = createUsedResourceOidSet();

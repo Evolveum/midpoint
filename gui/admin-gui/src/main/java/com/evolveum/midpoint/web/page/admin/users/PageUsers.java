@@ -30,10 +30,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -310,11 +307,20 @@ public class PageUsers extends PageAdminUsers {
     private void initTable(OptionContent content) {
         List<IColumn<SelectableBean<UserType>, String>> columns = initColumns();
 
-        ObjectDataProvider<UserType> provider = new ObjectDataProvider(PageUsers.this, UserType.class);
+        ObjectDataProvider<UserType> provider = new ObjectDataProvider(PageUsers.this, UserType.class) {
+
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                UsersStorage storage = getSessionStorage().getUsers();
+                storage.setUsersPaging(paging);
+            }
+        };
         provider.setQuery(createQuery());
         TablePanel table = new TablePanel<SelectableBean<UserType>>("table", provider, columns);
-        table.getDataTable().setCurrentPage(model.getObject().getPageFrom());
         table.setOutputMarkupId(true);
+
+        UsersStorage storage = getSessionStorage().getUsers();
+        table.setCurrentPage(storage.getUsersPaging());
 
         content.getBodyContainer().add(table);
     }
@@ -386,10 +392,9 @@ public class PageUsers extends PageAdminUsers {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
 
-        table.setCurrentPage(model.getObject().getPageFrom());
-
         UsersStorage storage = getSessionStorage().getUsers();
         storage.setUsersSearch(model.getObject());
+        panel.setCurrentPage(storage.getUsersPaging());
 
         target.add(panel);
     }
@@ -445,6 +450,7 @@ public class PageUsers extends PageAdminUsers {
     private void clearButtonPerformed(AjaxRequestTarget target) {
         UsersStorage storage = getSessionStorage().getUsers();
         storage.setUsersSearch(null);
+        storage.setUsersPaging(null);
 
         model.reset();
 

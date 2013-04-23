@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -108,6 +109,20 @@ public class TablePanel<T> extends Panel {
 
     public void setItemsPerPage(int size) {
         getDataTable().setItemsPerPage(size);
+    }
+
+    public void setCurrentPage(ObjectPaging paging) {
+        if (paging == null) {
+            getDataTable().setCurrentPage(0);
+            return;
+        }
+
+        long page = ((paging.getOffset() + paging.getMaxSize()) / getDataTable().getItemsPerPage()) - 1;
+        if (page < 0) {
+            page = 0;
+        }
+
+        getDataTable().setCurrentPage(page);
     }
 
     public void setShowPaging(boolean showPaging) {

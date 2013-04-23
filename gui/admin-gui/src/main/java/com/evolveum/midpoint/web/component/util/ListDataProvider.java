@@ -46,7 +46,7 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
     }
 
     @Override
-    public Iterator<? extends T> iterator(long first, long count) {
+    public Iterator<? extends T> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         List<T> list = model.getObject();

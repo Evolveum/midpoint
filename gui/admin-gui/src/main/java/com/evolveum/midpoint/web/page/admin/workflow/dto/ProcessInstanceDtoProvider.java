@@ -75,7 +75,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
     }
 
     @Override
-    public Iterator<? extends ProcessInstanceDto> iterator(long first, long count) {
+    public Iterator<? extends ProcessInstanceDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);

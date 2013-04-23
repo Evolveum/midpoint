@@ -55,7 +55,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
     }
 
     @Override
-    public Iterator<? extends ResourceDto> iterator(long first, long count) {
+    public Iterator<? extends ResourceDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);

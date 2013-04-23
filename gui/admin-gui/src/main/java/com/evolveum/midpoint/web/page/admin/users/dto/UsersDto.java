@@ -34,16 +34,6 @@ public class UsersDto implements Serializable {
     private boolean givenName;
     private boolean familyName;
 
-    private int pageFrom;
-
-    public int getPageFrom() {
-        return pageFrom;
-    }
-
-    public void setPageFrom(int pageFrom) {
-        this.pageFrom = pageFrom;
-    }
-
     public boolean isFullName() {
         return fullName;
     }

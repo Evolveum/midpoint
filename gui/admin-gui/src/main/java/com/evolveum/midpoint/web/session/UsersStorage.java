@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 
 import java.io.Serializable;
@@ -34,6 +35,18 @@ public class UsersStorage implements Serializable {
      * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.users.PageUsers}
      */
     private UsersDto usersSearch;
+    /**
+     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.users.PageUsers}
+     */
+    private ObjectPaging usersPaging;
+
+    public ObjectPaging getUsersPaging() {
+        return usersPaging;
+    }
+
+    public void setUsersPaging(ObjectPaging usersPaging) {
+        this.usersPaging = usersPaging;
+    }
 
     public UsersDto getUsersSearch() {
         return usersSearch;

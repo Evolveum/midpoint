@@ -64,7 +64,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     }
 
     @Override
-    public Iterator<? extends WorkItemDto> iterator(long first, long count) {
+    public Iterator<? extends WorkItemDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);

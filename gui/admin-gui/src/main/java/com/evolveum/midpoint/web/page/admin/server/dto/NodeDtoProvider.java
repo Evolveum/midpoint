@@ -53,7 +53,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
     }
 
     @Override
-    public Iterator<? extends NodeDto> iterator(long first, long count) {
+    public Iterator<? extends NodeDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_NODES);

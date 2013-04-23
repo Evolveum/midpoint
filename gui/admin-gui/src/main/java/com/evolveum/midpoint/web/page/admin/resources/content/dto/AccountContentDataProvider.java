@@ -77,7 +77,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
     }
 
     @Override
-    public Iterator<? extends SelectableBean<AccountContentDto>> iterator(long first, long count) {
+    public Iterator<? extends SelectableBean<AccountContentDto>> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         getAvailableData().clear();
 

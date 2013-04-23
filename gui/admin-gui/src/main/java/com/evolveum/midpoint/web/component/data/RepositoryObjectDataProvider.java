@@ -71,7 +71,7 @@ public class RepositoryObjectDataProvider
     }
 
     @Override
-    public Iterator<DebugObjectItem> iterator(long first, long count) {
+    public Iterator<DebugObjectItem> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         getAvailableData().clear();
 
