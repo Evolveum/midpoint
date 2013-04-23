@@ -117,28 +117,24 @@ using an Identity Connector Framework DBTable connector.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
 					<access>read</access>
-<!--
-					<outbound default="true">
-						<expression>
-							<code>
-                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$i:user/c:name
-							</code>
-						</expression>
-					</outbound>-->
 				</attribute>
 				<attribute>
 					<ref>icfs:name</ref>
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
-					<displayName>Name</displayName>
+					<displayName>UserId</displayName>
 
                     <!-- Access limitation for this attribute.
                           -->
-					<access>create</access>
-					<access>read</access>
+					<limitations>
+						<minOccurs>0</minOccurs>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
 					<outbound>
-						<strength>weak</strength>
 						<source>
 							<path>$user/name</path>
 						</source>
@@ -189,20 +185,26 @@ icfs:name = icfs:uid so this not yet possible -->
 					</outbound>
 				</attribute>
 
-
-<attribute>
-        <ref>ri:pin</ref>
-        <displayName>PIN</displayName>
-        <minOccurs>1</minOccurs>
-        <outbound>
-	 <strength>weak</strength>
-          <expression>
-            <generate>
-		<valuePolicyRef  oid="81818181-76e0-59e2-8888-3d4f02d3fffa"/>
-		</generate>
-          </expression>
-        </outbound>
-      </attribute>
+				<attribute>
+				        <ref>ri:pin</ref>
+				        <displayName>PIN</displayName>
+					<limitations>
+					        <minOccurs>0</minOccurs>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
+				        <outbound>
+					 <strength>weak</strength>
+				          <expression>
+				            <generate>
+						<valuePolicyRef  oid="81818181-76e0-59e2-8888-3d4f02d3fffa"/>
+					    </generate>
+				          </expression>
+				        </outbound>
+			      </attribute>
 
 				<activation>
 					<enabled>
