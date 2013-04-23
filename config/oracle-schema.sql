@@ -70,6 +70,21 @@ CREATE TABLE m_any_long (
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, longValue)
 ) INITRANS 30;
 
+CREATE TABLE m_any_poly_string (
+  name_namespace         VARCHAR2(255 CHAR) NOT NULL,
+  name_localPart         VARCHAR2(100 CHAR) NOT NULL,
+  anyContainer_owner_id  NUMBER(19, 0)      NOT NULL,
+  anyContainer_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
+  anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
+  type_namespace         VARCHAR2(255 CHAR) NOT NULL,
+  type_localPart         VARCHAR2(100 CHAR) NOT NULL,
+  orig                   VARCHAR2(255 CHAR) NOT NULL,
+  dynamicDef             NUMBER(1, 0),
+  norm                   VARCHAR2(255 CHAR),
+  valueType              NUMBER(10, 0),
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, orig)
+) INITRANS 30;
+
 CREATE TABLE m_any_reference (
   name_namespace         VARCHAR2(255 CHAR) NOT NULL,
   name_localPart         VARCHAR2(100 CHAR) NOT NULL,
@@ -619,6 +634,13 @@ CREATE INDEX iLong ON m_any_long (longValue) INITRANS 30;
 
 ALTER TABLE m_any_long
 ADD CONSTRAINT fk_any_long
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+REFERENCES m_any;
+
+CREATE INDEX iPolyString ON m_any_poly_string (orig) INITRANS 30;
+
+ALTER TABLE m_any_poly_string
+ADD CONSTRAINT fk_any_poly_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
 REFERENCES m_any;
 

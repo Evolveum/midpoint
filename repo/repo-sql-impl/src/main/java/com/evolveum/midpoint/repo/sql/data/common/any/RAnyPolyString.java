@@ -68,7 +68,7 @@ public class RAnyPolyString implements RAnyValue {
         }
     }
 
-    @ForeignKey(name = "fk_any_string")
+    @ForeignKey(name = "fk_any_poly_string")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({

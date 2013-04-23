@@ -97,6 +97,24 @@ CREATE TABLE m_any_long (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
+CREATE TABLE m_any_poly_string (
+  name_namespace         VARCHAR(255) NOT NULL,
+  name_localPart         VARCHAR(100) NOT NULL,
+  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_oid VARCHAR(36)  NOT NULL,
+  anyContainer_ownertype INTEGER      NOT NULL,
+  type_namespace         VARCHAR(255) NOT NULL,
+  type_localPart         VARCHAR(100) NOT NULL,
+  orig                   VARCHAR(255) NOT NULL,
+  dynamicDef             BIT,
+  norm                   VARCHAR(255),
+  valueType              INTEGER,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, orig)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
 CREATE TABLE m_any_reference (
   name_namespace         VARCHAR(255) NOT NULL,
   name_localPart         VARCHAR(100) NOT NULL,
@@ -756,6 +774,14 @@ CREATE INDEX iLong ON m_any_long (longValue);
 ALTER TABLE m_any_long
 ADD INDEX fk_any_long (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType),
 ADD CONSTRAINT fk_any_long
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+REFERENCES m_any (owner_id, owner_oid, ownerType);
+
+CREATE INDEX iPolyString ON m_any_poly_string (orig);
+
+ALTER TABLE m_any_poly_string
+ADD INDEX fk_any_poly_string (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType),
+ADD CONSTRAINT fk_any_poly_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
 REFERENCES m_any (owner_id, owner_oid, ownerType);
 
