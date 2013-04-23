@@ -319,12 +319,14 @@ public abstract class ShadowCache {
 						FailedOperation.ADD, resource, null, true, task, parentResult);
 		}
 		
+		preprocessEntitlements(shadow, resource, parentResult);
+		
 		RefinedObjectClassDefinition objectClassDefinition;
 		try {
 			objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 			applyAttributesDefinition(shadow, resource);
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-			shadow = resouceObjectConverter.addResourceObject(connector, resource, shadow, scripts, parentResult);
+			shadow = resouceObjectConverter.addResourceObject(connector, resource, shadow, objectClassDefinition, scripts, parentResult);
 			
 		} catch (Exception ex) {
 			shadow = handleError(ex, shadow, FailedOperation.ADD, resource, null, ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);

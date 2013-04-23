@@ -299,7 +299,7 @@ public class ResourceObjectConverter {
 	}
 
 	public PrismObject<ShadowType> addResourceObject(ConnectorInstance connector, ResourceType resource, 
-			PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts, OperationResult parentResult)
+			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
@@ -315,6 +315,7 @@ public class ResourceObjectConverter {
 		Collection<Operation> additionalOperations = new ArrayList<Operation>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
 				parentResult);
+		entitlementConverter.processEntitlementsAdd(resource, shadow, objectClassDefinition);
 		
 		try {
 
@@ -323,8 +324,6 @@ public class ResourceObjectConverter {
 						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations,2) });
 			}
-			ObjectClassComplexTypeDefinition objectClassDefinition = ShadowUtil
-					.getObjectClassDefinition(shadowType);
 			checkActivationAttribute(shadowType, resource, objectClassDefinition);
 			
 			resourceAttributesAfterAdd = connector.addObject(shadow, additionalOperations, parentResult);
@@ -356,17 +355,19 @@ public class ResourceObjectConverter {
 			throw ex;
 		}
 		
-		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow being stored:\n{}", shadowType.asPrismObject().dump());
 		}
+		
+		// Execute entitlement modification on other objects (if needed)
+		executeEntitlementChangesAdd(connector, resource, objectClassDefinition, shadow, scripts, parentResult);
 
 		parentResult.recordSuccess();
 		return shadow;
 	}
 
 	public void deleteResourceObject(ConnectorInstance connector, ResourceType resource, 
-			PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition,
+			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition,
 			ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -389,6 +390,9 @@ public class ResourceObjectConverter {
 			throw new GenericConnectorException(
 					"Unable to delete account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 		}
+		
+		// Execute entitlement modification on other objects (if needed)
+		executeEntitlementChangesDelete(connector, resource, objectClassDefinition, shadow, scripts, parentResult);
 
 		Collection<Operation> additionalOperations = new ArrayList<Operation>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, resource,
@@ -467,7 +471,7 @@ public class ResourceObjectConverter {
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChanges(connector, resource, objectClassDefinition, shadow, scripts, objectDeltas, parentResult);
+		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadow, scripts, objectDeltas, parentResult);
 		
 		parentResult.recordSuccess();
 		return sideEffectChanges;
@@ -554,7 +558,20 @@ public class ResourceObjectConverter {
 		return sideEffectChanges;
 	}
 	
-	private void executeEntitlementChanges(ConnectorInstance connector, ResourceType resource,
+	private void executeEntitlementChangesAdd(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
+		
+		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		
+		entitlementConverter.collectEntitlementsAsObjectOperation(roMap, objectClassDefinition, shadow, rSchema, resource);
+		
+		executeEntitlements(connector, resource, roMap, parentResult);
+		
+	}
+	
+	private void executeEntitlementChangesModify(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
 		
@@ -569,8 +586,41 @@ public class ResourceObjectConverter {
 			}
 		}
 		
-		// Execute
+		executeEntitlements(connector, resource, roMap, parentResult);
 		
+	}
+	
+	private void executeEntitlementChangesDelete(ConnectorInstance connector, ResourceType resource,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
+			OperationResult parentResult) throws SchemaException  {
+		
+		try {
+			Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
+			RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+				
+			entitlementConverter.collectEntitlementsAsObjectOperationDelete(connector, roMap, objectClassDefinition,
+					shadow, rSchema, resource, parentResult);
+		
+			executeEntitlements(connector, resource, roMap, parentResult);
+			
+		// TODO: now just log the errors, but not NOT re-throw the exception (except for some exceptions)
+		// we want the original delete to take place, throwing an exception would spoil that
+		} catch (SchemaException e) {
+			throw e;
+		} catch (CommunicationException e) {
+			LOGGER.error(e.getMessage(), e);
+		} catch (ObjectNotFoundException e) {
+			LOGGER.error(e.getMessage(), e);
+		} catch (SecurityViolationException e) {
+			LOGGER.error(e.getMessage(), e);
+		} catch (ConfigurationException e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		
+	}
+	
+	private void executeEntitlements(ConnectorInstance connector, ResourceType resource,
+			Map<ResourceObjectDiscriminator, Collection<Operation>> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 		for (Entry<ResourceObjectDiscriminator,Collection<Operation>> entry: roMap.entrySet()) {
 			ResourceObjectDiscriminator disc = entry.getKey();
 			RefinedObjectClassDefinition ocDef = disc.getObjectClassDefinition();
@@ -582,9 +632,7 @@ public class ResourceObjectConverter {
 			executeModify(connector, resource, ocDef, identifiers, operations, parentResult);
 			
 		}
-		
 	}
-	
 
 	public void searchResourceObjects(final ConnectorInstance connector, 
 			final ResourceType resourceType, final RefinedObjectClassDefinition objectClassDef,

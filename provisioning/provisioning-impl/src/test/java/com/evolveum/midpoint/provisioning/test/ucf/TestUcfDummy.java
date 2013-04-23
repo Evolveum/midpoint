@@ -290,7 +290,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		// THEN
 		display("Generated resource schema", resourceSchema);
-		assertEquals("Unexpected number of definitions", 2, resourceSchema.getDefinitions().size());
+		assertEquals("Unexpected number of definitions", 3, resourceSchema.getDefinitions().size());
 		
 		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 		
@@ -302,7 +302,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		ResourceSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
 				"serialized schema", PrismTestUtil.getPrismContext());
 		display("Re-parsed resource schema", reparsedResourceSchema);
-		assertEquals("Unexpected number of definitions in re-parsed schema", 2, reparsedResourceSchema.getDefinitions().size());
+		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedResourceSchema.getDefinitions().size());
 		
 		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType);
 	}

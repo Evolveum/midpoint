@@ -2108,6 +2108,130 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 	}
 	
+	/**
+	 * LeChuck has both group and priv entitlement. Let's add him together with these entitlements.
+	 */
+	@Test
+	public void test230AddAccountLeChuck() throws Exception {
+		final String TEST_NAME = "test230AddAccountLeChuck";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		PrismObject<ShadowType> account = prismContext.parseObject(new File(ACCOUNT_LECHUCK_FILENAME));
+		account.checkConsistence();
+
+		display("Adding shadow", account);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("add object result", result);
+		assertSuccess("addObject has failed (result)", result);
+		assertEquals(ACCOUNT_LECHUCK_OID, addedObjectOid);
+
+		account.checkConsistence();
+		
+		// Check if the account was created in the dummy resource and that it has the entitlements
+
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_LECHUCK_NAME);
+		assertNotNull("No dummy account", dummyAccount);
+		assertEquals("Fullname is wrong", "LeChuck", dummyAccount.getAttributeValue(DummyAccount.ATTR_FULLNAME_NAME));
+		assertTrue("The account is not enabled", dummyAccount.isEnabled());
+		assertEquals("Wrong password", "und3ad", dummyAccount.getPassword());
+
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNotNull("Privilege object is gone!", priv);
+		
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertMember(group, ACCOUNT_LECHUCK_NAME);
+
+		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, result)
+				.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_LECHUCK_NAME, accountType.getName());
+		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountType.getKind());
+		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_LECHUCK_NAME);
+		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_LECHUCK_NAME);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+
+		PrismObject<ShadowType> provisioningAccount = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_LECHUCK_OID, null, result);
+		ShadowType provisioningAccountType = provisioningAccount.asObjectable();
+		display("account from provisioning", provisioningAccountType);
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_LECHUCK_NAME, provisioningAccountType.getName());
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, provisioningAccountType.getKind());
+		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_LECHUCK_NAME);
+		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_LECHUCK_NAME);
+		
+		assertEntitlement(account, GROUP_PIRATES_OID);
+		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
+
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+
+		checkConsistency(account);
+	}
+	
+	/**
+	 * LeChuck has both group and priv entitlement. If deleted it should be correctly removed from all
+	 * the entitlements.
+	 */
+	@Test
+	public void test235DeleteAccountLeChuck() throws Exception {
+		final String TEST_NAME = "test235DeleteAccountLeChuck";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		// WHEN
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("add object result", result);
+		assertSuccess("addObject has failed (result)", result);
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		// Check if the account is gone and that group membership is gone as well
+
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_LECHUCK_NAME);
+		assertNull("Dummy account is NOT gone", dummyAccount);
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNotNull("Privilege object is gone!", priv);
+		
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertNoMember(group, ACCOUNT_LECHUCK_NAME);
+
+		try {
+			repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, result);
+			
+			AssertJUnit.fail("Shadow (repo) is not gone");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		try {
+			provisioningService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, result);
+			
+			AssertJUnit.fail("Shadow (provisioning) is not gone");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}		
+	}
+	
 	@Test
 	public void test238DeletePrivPillage() throws Exception {
 		final String TEST_NAME = "test238DeletePrivPillage";

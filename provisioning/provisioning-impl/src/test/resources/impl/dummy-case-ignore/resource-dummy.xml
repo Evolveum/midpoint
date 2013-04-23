@@ -74,6 +74,13 @@
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </entitlementAssociation>
+            <entitlementAssociation>
+            	<name>ri:priv</name>
+            	<entitlementIntent>privilege</entitlementIntent>
+            	<direction>subjectToEntitlement</direction>
+            	<associationAttribute>ri:privileges</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </entitlementAssociation>
 			<protected>
 				<icfs:name>root</icfs:name>
 			</protected>
@@ -88,6 +95,11 @@
         	<name>group</name>
         	<default>true</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
+        </entitlementType>
+        <entitlementType>
+        	<name>privilege</name>
+        	<default>false</default>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </entitlementType>
 	</schemaHandling>
 	<consistency>

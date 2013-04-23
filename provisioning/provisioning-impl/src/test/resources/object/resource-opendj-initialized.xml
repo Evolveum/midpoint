@@ -204,7 +204,7 @@
             	<displayName>LDAP Group Membership</displayName>
             	<entitlementIntent>ldapGroup</entitlementIntent>
             	<direction>entitlementToSubject</direction>
-            	<associationAttribute>ri:member</associationAttribute>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </entitlementAssociation>
         </accountType>

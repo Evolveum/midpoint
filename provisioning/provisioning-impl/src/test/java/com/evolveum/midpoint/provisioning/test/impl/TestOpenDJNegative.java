@@ -668,6 +668,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, repoAccountType.getFailedOperationType());
 		OperationResultType repoResult = repoAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", repoResult);
+		display("repoResult in shadow", repoResult);
 		assertFailure("Result in shadow (repo)", repoResult);
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
