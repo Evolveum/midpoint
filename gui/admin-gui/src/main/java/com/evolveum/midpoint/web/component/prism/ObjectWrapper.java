@@ -35,11 +35,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
@@ -48,7 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.RestartResponseException;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -60,6 +57,10 @@ import java.util.*;
 public class ObjectWrapper implements Serializable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
+
+    private static final String DOT_CLASS = ObjectWrapper.class.getName() + ".";
+    private static final String CREATE_CONTAINERS = DOT_CLASS + "createContainers";
+
 	private PrismObject object;
 	private ObjectDelta oldDelta;
 	private ContainerStatus status;
@@ -77,7 +78,10 @@ public class ObjectWrapper implements Serializable {
     private boolean showInheritedObjectAttributes = true;       // whether to show name and description properties and metadata container
     private boolean readonly = false;
 
-    private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(ObjectType.F_METADATA, ObjectType.F_EXTENSION);
+    private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(ObjectType.F_METADATA,
+            ObjectType.F_EXTENSION);
+
+    private OperationResult result;
 
     public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
@@ -87,7 +91,17 @@ public class ObjectWrapper implements Serializable {
 		this.description = description;
 		this.object = object;
 		this.status = status;
+
+        createContainers();
 	}
+
+    public OperationResult getResult() {
+        return result;
+    }
+
+    public void clearResult() {
+        result = null;
+    }
 
 	public HeaderStatus getHeaderStatus() {
 		if (headerStatus == null) {
@@ -95,15 +109,15 @@ public class ObjectWrapper implements Serializable {
 		}
 		return headerStatus;
 	}
-	
+
 	public ObjectDelta getOldDelta() {
 		return oldDelta;
 	}
-	
+
 	public void setOldDelta(ObjectDelta oldDelta) {
 		this.oldDelta = oldDelta;
 	}
-	
+
 	public Boolean getEnableStatus() {
 		ContainerWrapper activation = null;
 		ItemPath resourceActivationPath = new ItemPath(ShadowType.F_ACTIVATION);
@@ -124,7 +138,7 @@ public class ObjectWrapper implements Serializable {
         if (activation == null) {
         	return true;
         }
-        
+
         PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ENABLED);
         if (enabledProperty.getValues().size() != 1) {
         	LOGGER.warn("No enabled property found for account " + getDisplayName() + ".");
@@ -219,13 +233,25 @@ public class ObjectWrapper implements Serializable {
 			container = definition.instantiate();
 		}
 
-		list.add(new ContainerWrapper(this, container, status, new ItemPath(name)));
+        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(name));
+        addSubresult(wrapper.getResult());
+		list.add(wrapper);
 		list.addAll(createContainerWrapper(container, new ItemPath(name)));
 
 		return list;
 	}
 
+    private void addSubresult(OperationResult subResult) {
+        if (result == null || subResult == null) {
+            return;
+        }
+
+        result.addSubresult(subResult);
+    }
+
 	private List<ContainerWrapper> createContainers() {
+        result = new OperationResult(CREATE_CONTAINERS);
+
 		List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
 		try {
@@ -241,14 +267,15 @@ public class ObjectWrapper implements Serializable {
 
 				ContainerWrapper container = new ContainerWrapper(this, attributes, status, new ItemPath(
 						ShadowType.F_ATTRIBUTES));
-				
+                addSubresult(container.getResult());
+
 				container.setMain(true);
 				containers.add(container);
-				
+
 				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ACTIVATION));
 				}
-				if (ShadowType.class.isAssignableFrom(clazz) && 
+				if (ShadowType.class.isAssignableFrom(clazz) &&
 						hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
 					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_CREDENTIALS));
 				}
@@ -256,16 +283,19 @@ public class ObjectWrapper implements Serializable {
                 containers =  createResourceContainers();
 			} else {
 				ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
+                addSubresult(container.getResult());
 				containers.add(container);
 
 				containers.addAll(createContainerWrapper(object, null));
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
-			throw new SystemException(ex.getMessage(), ex);
+			result.recordFatalError("Error occurred during container wrapping, reason: " + ex.getMessage(), ex);
 		}
 
 		Collections.sort(containers, new ItemWrapperComparator());
+        result.recomputeStatus();
+        result.recordSuccessIfUnknown();
 
 		return containers;
 	}
@@ -306,8 +336,11 @@ public class ObjectWrapper implements Serializable {
             container =  definition.instantiate();
         }
 
-        return new ContainerWrapper(this, container, status,
+        ContainerWrapper wrapper = new ContainerWrapper(this, container, status,
                 new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, name));
+        addSubresult(wrapper.getResult());
+
+        return wrapper;
     }
 
 	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path) {
@@ -339,12 +372,15 @@ public class ObjectWrapper implements Serializable {
 
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 			PrismContainer prismContainer = object.findContainer(def.getName());
+            ContainerWrapper container;
 			if (prismContainer != null) {
-				wrappers.add(new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath));
+                container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath);
 			} else {
 				prismContainer = containerDef.instantiate();
-				wrappers.add(new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath));
+				container = new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath);
 			}
+            addSubresult(container.getResult());
+            wrappers.add(container);
 
             if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {      // do not show internals of Assignments (e.g. activation)
 			    wrappers.addAll(createContainerWrapper(prismContainer, newPath));
@@ -409,11 +445,11 @@ public class ObjectWrapper implements Serializable {
 					//TODO: need to check if the resource has defined capabilities
                     //todo this is bad hack because now we have not tri-state checkbox
 					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
-						
+
 						if (object.asObjectable() instanceof ShadowType
                                 && (((ShadowType) object.asObjectable()).getActivation() == null
                                 || ((ShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
-							
+
 							if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 								continue;
 							}
@@ -480,7 +516,7 @@ public class ObjectWrapper implements Serializable {
 
         return cloned;
     }
-	
+
 	private boolean hasResourceCapability(ResourceType resource, Class<? extends CapabilityType> capabilityClass){
 		if (resource == null){
 			return false;

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.wf.api.WorkItemDetailed;
@@ -149,6 +150,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(false);
@@ -166,6 +170,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
@@ -183,6 +190,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
@@ -207,6 +217,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
         wrapper.setShowEmpty(true);
         wrapper.setMinimalized(false);
         wrapper.setShowInheritedObjectAttributes(false);
@@ -220,6 +233,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setReadonly(true);
@@ -232,6 +248,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setReadonly(true);

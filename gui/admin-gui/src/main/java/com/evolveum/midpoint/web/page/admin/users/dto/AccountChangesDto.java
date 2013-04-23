@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -109,6 +110,9 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			PrismObject object = delta.getObjectToAdd();
 
 			ObjectWrapper wrapper = new ObjectWrapper(null, null, object, ContainerStatus.ADDING);
+            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                showResultInSession(wrapper.getResult());
+            }
 			for (ContainerWrapper containerWrapper : wrapper.getContainers()) {
 				for (Object propertyValueObject : containerWrapper.getProperties()) {
 					List<SubmitAccountChangesDto> values = new ArrayList<SubmitAccountChangesDto>();

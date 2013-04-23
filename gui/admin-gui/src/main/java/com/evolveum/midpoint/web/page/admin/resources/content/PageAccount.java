@@ -110,6 +110,9 @@ public class PageAccount extends PageAdminResources {
         }
 
         ObjectWrapper wrapper = new ObjectWrapper(null, null, account, ContainerStatus.MODIFYING);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
         wrapper.setShowEmpty(false);
         return wrapper;
     }

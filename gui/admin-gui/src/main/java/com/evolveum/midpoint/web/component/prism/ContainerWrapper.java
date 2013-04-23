@@ -24,12 +24,12 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -46,7 +46,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
 
-    private static final List<QName> INHERITED_OBJECT_ATTRIBUTES = Arrays.asList(ObjectType.F_NAME, ObjectType.F_DESCRIPTION, ObjectType.F_FETCH_RESULT, ObjectType.F_PARENT_ORG, ObjectType.F_PARENT_ORG_REF);
+    private static final List<QName> INHERITED_OBJECT_ATTRIBUTES = Arrays.asList(ObjectType.F_NAME,
+            ObjectType.F_DESCRIPTION, ObjectType.F_FETCH_RESULT, ObjectType.F_PARENT_ORG, ObjectType.F_PARENT_ORG_REF);
+
+    private static final String DOT_CLASS = ContainerWrapper.class.getName() + ".";
+    private static final String CREATE_PROPERTIES = DOT_CLASS + "createProperties";
 
     private String displayName;
     private ObjectWrapper object;
@@ -60,6 +64,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private boolean readonly;
     private boolean showInheritedObjectAttributes;
 
+    private OperationResult result;
+
     public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path) {
         Validate.notNull(container, "Prism object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
@@ -71,6 +77,16 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         main = path == null;
         readonly = object.isReadonly();
         showInheritedObjectAttributes = object.isShowInheritedObjectAttributes();
+
+        createProperties();
+    }
+
+    OperationResult getResult() {
+        return result;
+    }
+
+    void clearResult() {
+        result = null;
     }
 
     ObjectWrapper getObject() {
@@ -107,6 +123,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     private List<PropertyWrapper> createProperties() {
+        result = new OperationResult(CREATE_PROPERTIES);
+
         List<PropertyWrapper> properties = new ArrayList<PropertyWrapper>();
 
         PrismContainerDefinition definition = null;
@@ -123,14 +141,18 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                     PrismProperty<QName> objectClassProp = parent.findProperty(ShadowType.F_OBJECT_CLASS);
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
-                    
+
                     definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
-                    		.toResourceAttributeContainerDefinition();
+                            .toResourceAttributeContainerDefinition();
                     if (LOGGER.isTraceEnabled()) {
-                    	LOGGER.trace("Refined account def:\n{}", definition.dump());
+                        LOGGER.trace("Refined account def:\n{}", definition.dump());
                     }
                 } catch (Exception ex) {
-                    throw new SystemException(ex.getMessage(), ex);
+                    LoggingUtils.logException(LOGGER, "Couldn't load definitions from refined schema for shadow", ex);
+                    result.recordFatalError("Couldn't load definitions from refined schema for shadow, reason: "
+                            + ex.getMessage(), ex);
+
+                    return properties;
                 }
             } else {
                 definition = container.getDefinition();
@@ -187,7 +209,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         } else {            // if not an assignment
 
-           if (container.getValues().size() == 1 ||
+            if (container.getValues().size() == 1 ||
                     (container.getValues().isEmpty() && (container.getDefinition() == null || container.getDefinition().isSingleValue()))) {
 
                 // there's no point in showing properties for non-single-valued parent containers,
@@ -213,6 +235,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         }
 
         Collections.sort(properties, new ItemWrapperComparator());
+
+        result.recomputeStatus();
 
         return properties;
     }

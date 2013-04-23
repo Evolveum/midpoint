@@ -258,7 +258,11 @@ public class PageUser extends PageAdminUsers {
 						user = delta.getObjectToAdd();
 						// user = userType.asPrismObject();
 						wrapper = new ObjectWrapper(null, null, user, ContainerStatus.ADDING);
-						wrapper.setShowEmpty(true);
+                        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                            showResultInSession(wrapper.getResult());
+                        }
+
+                        wrapper.setShowEmpty(true);
 						return wrapper;
 					}
 					user = getModelService().getObject(UserType.class, delta.getOid(), null, task, result);
@@ -294,8 +298,12 @@ public class PageUser extends PageAdminUsers {
 		if (!result.isSuccess()) {
 			showResultInSession(result);
 		}
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
 
-		return wrapper;
+
+        return wrapper;
 	}
 
 	private List<UserAccountDto> loadAccountsAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas) {
@@ -358,8 +366,12 @@ public class PageUser extends PageAdminUsers {
 //				}
 //				} 
 			
-					ObjectWrapper ow = new ObjectWrapper(resourceName, null, delta.getObjectToAdd(), ContainerStatus.ADDING);
-					ow.setShowEmpty(true);
+                ObjectWrapper ow = new ObjectWrapper(resourceName, null, delta.getObjectToAdd(), ContainerStatus.ADDING);
+                if (ow.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(ow.getResult())) {
+                    showResultInSession(ow.getResult());
+                }
+
+                ow.setShowEmpty(true);
 					wrappers.add(new UserAccountDto(ow, UserDtoStatus.ADD));
 			
 			}
@@ -436,7 +448,11 @@ public class PageUser extends PageAdminUsers {
 
 		ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 		ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
-		wrapper.setShowEmpty(!isEditingUser());
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
+
+        wrapper.setShowEmpty(!isEditingUser());
 		return wrapper;
 	}
 
@@ -674,6 +690,9 @@ public class PageUser extends PageAdminUsers {
 						.getName()), account, ContainerStatus.MODIFYING);
 				wrapper.setSelectable(true);
 				wrapper.setMinimalized(true);
+                if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                    showResultInSession(wrapper.getResult());
+                }
 				list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
 
 				subResult.recomputeStatus();
@@ -1719,7 +1738,11 @@ public class PageUser extends PageAdminUsers {
 
 				ObjectWrapper wrapper = new ObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
 						shadow.asPrismObject(), ContainerStatus.ADDING);
-				wrapper.setShowEmpty(true);
+                if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                    showResultInSession(wrapper.getResult());
+                }
+
+                wrapper.setShowEmpty(true);
 				wrapper.setMinimalized(false);
 				accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADD));
 				setResponsePage(getPage());
