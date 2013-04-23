@@ -77,6 +77,7 @@ import com.evolveum.icf.dummy.resource.DummyDelta;
 import com.evolveum.icf.dummy.resource.DummyDeltaType;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
@@ -109,7 +110,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     // Marker used in logging tests
     public static final String LOG_MARKER = "_M_A_R_K_E_R_";
     
-	private static final String GROUP_MEMBERS_ATTR_NAME = "members";
+	private static final String OBJECTCLASS_PRIVILEGE_NAME = "privilege";
     
     /**
      * Place holder for the {@link Configuration} passed into the init() method
@@ -203,12 +204,22 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     		}
         	
         } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-            // Convert attributes to account
             DummyGroup newGroup = convertToGroup(createAttributes);
 
             try {
     			
     			id = resource.addGroup(newGroup);
+    			
+    		} catch (ObjectAlreadyExistsException e) {
+    			throw new AlreadyExistsException(e.getMessage(),e);
+    		}
+            
+        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+            DummyPrivilege newPriv = convertToPriv(createAttributes);
+
+            try {
+    			
+    			id = resource.addPrivilege(newPriv);
     			
     		} catch (ObjectAlreadyExistsException e) {
     			throw new AlreadyExistsException(e.getMessage(),e);
@@ -304,6 +315,41 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        	}
 	        }
 	        
+        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+        	
+        	final DummyPrivilege priv = resource.getPrivilegeByName(uid.getUidValue());
+	        if (priv == null) {
+	        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : replaceAttributes) {
+	        	if (attr.is(Name.NAME)) {
+	        		String newName = (String)attr.getValue().get(0);
+	        		try {
+						resource.renamePrivilege(priv.getName(), newName);
+					} catch (ObjectDoesNotExistException e) {
+						throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+					} catch (ObjectAlreadyExistsException e) {
+						throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+					}
+	        		// We need to change the returned uid here
+	        		uid = new Uid(newName);
+	        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to change password on privilege");
+	        	
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to change enable on privilege");
+	        		
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						priv.replaceAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
+	        
         } else {
         	throw new ConnectorException("Unknown object class "+objectClass);
         }
@@ -377,6 +423,34 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					}
 	        	}
 	        }
+	        
+        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+        	
+        	DummyPrivilege priv = resource.getPrivilegeByName(uid.getUidValue());
+	        if (priv == null) {
+	        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : valuesToAdd) {
+	        	
+	        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+	        		throw new IllegalArgumentException("Attempt to change password on privilege");
+	        		
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
+	        		
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						priv.addAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						// we cannot throw checked exceptions. But this one looks suitable.
+						// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+						// The framework should deal with it ... somehow
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
         	
         } else {
         	throw new ConnectorException("Unknown object class "+objectClass);
@@ -442,6 +516,31 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					}
 	        	}
 	        }
+	        
+        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+        	
+        	DummyPrivilege priv = resource.getPrivilegeByName(uid.getUidValue());
+	        if (priv == null) {
+	        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+	        }
+	        
+	        for (Attribute attr : valuesToRemove) {
+	        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+	        		throw new IllegalArgumentException("Attempt to change password on privilege");
+	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+	        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+	        	} else {
+		        	String name = attr.getName();
+		        	try {
+						priv.removeAttributeValues(name, attr.getValue());
+					} catch (SchemaViolationException e) {
+						// we cannot throw checked exceptions. But this one looks suitable.
+						// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+						// The framework should deal with it ... somehow
+						throw new IllegalArgumentException(e.getMessage(),e);
+					}
+	        	}
+	        }
         	
         } else {
         	throw new ConnectorException("Unknown object class "+objectClass);
@@ -465,6 +564,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         		resource.deleteAccount(id);
         	} else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
         		resource.deleteGroup(id);
+        	} else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+        		resource.deletePrivilege(id);
         	} else {
         		throw new ConnectorException("Unknown object class "+objectClass);
         	}
@@ -494,6 +595,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         
         builder.defineObjectClass(createAccountObjectClass());
         builder.defineObjectClass(createGroupObjectClass());
+        builder.defineObjectClass(createPrivilegeObjectClass());
 
         log.info("schema::end");
         return builder.build();
@@ -531,11 +633,24 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         objClassBuilder.setType(ObjectClass.GROUP_NAME);
         
-        DummyObjectClass dummyAccountObjectClass = resource.getGroupObjectClass();
-        buildAttributes(objClassBuilder, dummyAccountObjectClass);
+        DummyObjectClass dummyObjectClass = resource.getGroupObjectClass();
+        buildAttributes(objClassBuilder, dummyObjectClass);
         
         // __ENABLE__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+        
+        // __NAME__ will be added by default
+        return objClassBuilder.build();
+	}
+	
+	private ObjectClassInfo createPrivilegeObjectClass() {
+        ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
+        objClassBuilder.setType(OBJECTCLASS_PRIVILEGE_NAME);
+        
+        DummyObjectClass dummyObjectClass = resource.getPrivilegeObjectClass();
+        buildAttributes(objClassBuilder, dummyObjectClass);
+        
+        // NO __ENABLE__ attribute in this object class
         
         // __NAME__ will be added by default
         return objClassBuilder.build();
@@ -620,8 +735,16 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
         	
         	Collection<DummyGroup> groups = resource.listGroups();
-	        for (DummyGroup account : groups) {
-	        	ConnectorObject co = convertToConnectorObject(account, options);
+	        for (DummyGroup group : groups) {
+	        	ConnectorObject co = convertToConnectorObject(group, options);
+	        	handler.handle(co);
+	        }
+	        
+        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+        	
+        	Collection<DummyPrivilege> privs = resource.listPrivileges();
+	        for (DummyPrivilege priv : privs) {
+	        	ConnectorObject co = convertToConnectorObject(priv, options);
 	        	handler.handle(co);
 	        }
         	
@@ -804,6 +927,41 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
         return builder.build();
 	}
+	
+	private ConnectorObject convertToConnectorObject(DummyPrivilege priv, OperationOptions options) {
+		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
+
+		Collection<String> attributesToGet = null;
+		if (options != null) {
+			String[] attributesToGetArray = options.getAttributesToGet();
+			if (attributesToGetArray != null && attributesToGetArray.length != 0) {
+				attributesToGet = Arrays.asList(attributesToGetArray);
+			}
+		}
+		
+		builder.setUid(priv.getName());
+		builder.addAttribute(Name.NAME, priv.getName());
+		
+		for (String name : priv.getAttributeNames()) {
+			if (attributesToGet != null) {
+				if (!attributesToGet.contains(name)) {
+					continue;
+				}
+			} else {
+				DummyAttributeDefinition attrDef = resource.getPrivilegeObjectClass().getAttributeDefinition(name);
+				if (attrDef == null) {
+					throw new IllegalArgumentException("Unknown privilege attribute '"+name+"'");
+				}
+				if (!attrDef.isReturnedByDefault()) {
+					continue;
+				}
+			}
+			Set<Object> values = priv.getAttributeValues(name, Object.class);
+			builder.addAttribute(name, values);
+		}
+				
+        return builder.build();
+	}
 
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) {
 		String userName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
@@ -874,6 +1032,37 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		}
 
 		return newGroup;
+	}
+	
+	private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) {
+		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		final DummyPrivilege newPriv = new DummyPrivilege(icfName);
+
+		Boolean enabled = null;
+		for (Attribute attr : createAttributes) {
+			if (attr.is(Uid.NAME)) {
+				throw new IllegalArgumentException("UID explicitly specified in the group attributes");
+				
+			} else if (attr.is(Name.NAME)) {
+				// Skip, already processed
+
+			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+				throw new IllegalArgumentException("Password specified for a privilege");
+				
+			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
+				throw new IllegalArgumentException("Unsupported ENABLE attribute in privilege");
+				
+			} else {
+				String name = attr.getName();
+				try {
+					newPriv.replaceAttributeValues(name,attr.getValue());
+				} catch (SchemaViolationException e) {
+					throw new IllegalArgumentException(e.getMessage(),e);
+				}
+			}
+		}
+
+		return newPriv;
 	}
 
 	private boolean getEnable(Attribute attr) {

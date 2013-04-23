@@ -107,6 +107,10 @@ public class ProvisioningTestUtil {
 	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
 	public static final QName DUMMY_ENTITLEMENT_GROUP_QNAME = new QName(RESOURCE_DUMMY_NS, DUMMY_ENTITLEMENT_GROUP_NAME);
 
+	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "priv";
+	public static final QName DUMMY_ENTITLEMENT_PRIVILEGE_QNAME = new QName(RESOURCE_DUMMY_NS, DUMMY_ENTITLEMENT_PRIVILEGE_NAME);
+	
+
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();
 		assertNotNull("xmlSchemaType is null",xmlSchemaType);
@@ -215,7 +219,7 @@ public class ProvisioningTestUtil {
 		checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT);
 	}
 	
-	public static void checkRepoGroupShadow(PrismObject<ShadowType> repoShadow) {
+	public static void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
 		checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT);
 	}
 	
@@ -284,7 +288,7 @@ public class ProvisioningTestUtil {
 		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
 		
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);		
-		assertEquals("Unexpected number of defnitions", 10, accountDef.getDefinitions().size());
+		assertEquals("Unexpected number of defnitions", 11, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 	}
@@ -306,9 +310,9 @@ public class ProvisioningTestUtil {
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
 	}
 	
-	public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, String groupOid, PrismContext prismContext) throws SchemaException {
+	public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
 		ShadowAssociationType association = new ShadowAssociationType();
-		association.setName(DUMMY_ENTITLEMENT_GROUP_QNAME);
+		association.setName(associationName);
 		association.setOid(groupOid);
 		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ENTITLEMENTS, ShadowEntitlementsType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class, 
@@ -316,9 +320,9 @@ public class ProvisioningTestUtil {
 		return delta;
 	}
 	
-	public static ObjectDelta<ShadowType> createDetitleDelta(String accountOid, String groupOid, PrismContext prismContext) throws SchemaException {
+	public static ObjectDelta<ShadowType> createDetitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
 		ShadowAssociationType association = new ShadowAssociationType();
-		association.setName(DUMMY_ENTITLEMENT_GROUP_QNAME);
+		association.setName(associationName);
 		association.setOid(groupOid);
 		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ENTITLEMENTS, ShadowEntitlementsType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class, 

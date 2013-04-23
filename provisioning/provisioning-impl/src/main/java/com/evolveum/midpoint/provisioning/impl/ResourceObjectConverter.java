@@ -89,6 +89,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -169,6 +170,83 @@ public class ResourceObjectConverter {
 		
 		return resourceShadow;
 
+	}
+	
+	/**
+	 * Tries to get the object directly if primary identifiers are present. Tries to search for the object if they are not. 
+	 */
+	public PrismObject<ShadowType> locateResourceObject(ConnectorInstance connector, ResourceType resource, 
+			Collection<? extends ResourceAttribute<?>> identifiers,
+			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException {
+
+		if (hasAllIdentifiers(identifiers, objectClassDefinition)) {
+			return getResourceObject(connector, resource, identifiers, objectClassDefinition, parentResult);
+		} else {
+			// Search
+			Collection<? extends RefinedAttributeDefinition> secondaryIdentifierDefs = objectClassDefinition.getSecondaryIdentifiers();
+			// Assume single secondary identifier for simplicity
+			if (secondaryIdentifierDefs.size() > 1) {
+				throw new UnsupportedOperationException("Composite secondary identifier is not supported yet");
+			} else if (secondaryIdentifierDefs.isEmpty()) {
+				throw new SchemaException("No secondary identifier defined, cannot search");
+			}
+			RefinedAttributeDefinition secondaryIdentifierDef = secondaryIdentifierDefs.iterator().next();
+			ResourceAttribute<?> secondaryIdentifier = null;
+			for (ResourceAttribute<?> identifier: identifiers) {
+				if (identifier.getName().equals(secondaryIdentifierDef.getName())) {
+					secondaryIdentifier = identifier;
+				}
+			}
+			if (secondaryIdentifier == null) {
+				throw new SchemaException("No secondary identifier present, cannot search. Identifiers: "+identifiers);
+			}
+			
+			final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
+			
+			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), secondaryIdentifierDef, secondaryIdentifier.getValue());
+			ObjectQuery query = new ObjectQuery();
+			query.setFilter(filter);
+			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
+			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+				@Override
+				public boolean handle(PrismObject<ShadowType> shadow) {
+					if (!shadowHolder.isEmpty()) {
+						throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
+					}
+					shadowHolder.setValue(shadow);
+					return true;
+				}
+			};
+			try {
+				connector.search(objectClassDefinition, query, handler, parentResult);
+				if (shadowHolder.isEmpty()) {
+					throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
+				}
+				PrismObject<ShadowType> shadow = shadowHolder.getValue();
+				return postProcessResourceObjectRead(connector, resource, shadow, objectClassDefinition, parentResult);
+			} catch (GenericFrameworkException e) {
+				throw new GenericConnectorException(e.getMessage(), e);
+			}
+		}
+
+	}
+
+	private boolean hasAllIdentifiers(Collection<? extends ResourceAttribute<?>> attributes,
+			RefinedObjectClassDefinition objectClassDefinition) {
+		Collection<? extends RefinedAttributeDefinition> identifierDefs = objectClassDefinition.getIdentifiers();
+		for (RefinedAttributeDefinition identifierDef: identifierDefs) {
+			boolean found = false;
+			for(ResourceAttribute<?> attribute: attributes) {
+				if (attribute.getName().equals(identifierDef.getName()) && !attribute.isEmpty()) {
+					found = true;
+				}
+			}
+			if (!found) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private AttributesToReturn createAttributesToReturn(RefinedObjectClassDefinition objectClassDefinition,

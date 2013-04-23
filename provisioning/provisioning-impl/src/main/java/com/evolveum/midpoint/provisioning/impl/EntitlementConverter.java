@@ -153,7 +153,9 @@ class EntitlementConverter {
 		
 		PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
 		associationCVal.asContainerable().setName(associationName);
-		PrismContainer<?> identifiersContainer = associationCVal.createContainer(ShadowAssociationType.F_IDENTIFIERS);
+		ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
+				ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
+		associationCVal.add(identifiersContainer);
 		identifiersContainer.add(valueAttribute);
 	}
 	
@@ -296,6 +298,9 @@ class EntitlementConverter {
 		ResourceAttributeContainer identifiersContainer = 
 				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
 		PrismProperty<T> valueAttr = identifiersContainer.findProperty(valueAttrName);
+		if (valueAttr == null) {
+			throw new SchemaException("No value attribute "+valueAttrName+" present in entitlement association '"+associationName+"' in shadow for "+resource);
+		}
 		
 		if (modificationType == ModificationType.ADD) {
 			attributeDelta.addValuesToAdd(valueAttr.getClonedValues());

@@ -763,10 +763,10 @@ public class IntegrationTestTools {
 				shadowType.getObjectClass());
 	}
 	
-	public static void checkGroupShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
-			ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) {
+	public static void checkEntitlementShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
+			ObjectChecker<ShadowType> checker, String objectClassLocalName, PrismContext prismContext, OperationResult parentResult) {
 		checkShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
-		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME),
+		assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), objectClassLocalName),
 				shadowType.getObjectClass());
 	}
 	

@@ -1183,7 +1183,10 @@ public abstract class ShadowCache {
 			if (associationContainer != null) {
 				for (PrismContainerValue<ShadowAssociationType> associationCVal: associationContainer.getValues()) {
 					ResourceAttributeContainer identifierContainer = ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-					Collection<ResourceAttribute<?>> entitlementIdentifiers = identifierContainer.getIdentifiers();
+					Collection<ResourceAttribute<?>> entitlementIdentifiers = identifierContainer.getAttributes();
+					if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
+						throw new IllegalStateException("No entitlement identifiers present for association "+associationCVal);
+					}
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
 					ResourceEntitlementAssociationType entitlementAssociationType = objectClassDefinition.findEntitlementAssociation(associationName);
@@ -1192,7 +1195,7 @@ public abstract class ShadowCache {
 					
 					PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
 					if (entitlementShadow == null) {
-						entitlementShadow = resouceObjectConverter.getResourceObject(connector, resource, entitlementIdentifiers, entitlementObjectClassDef, parentResult); 
+						entitlementShadow = resouceObjectConverter.locateResourceObject(connector, resource, entitlementIdentifiers, entitlementObjectClassDef, parentResult); 
 					}
 					PrismObject<ShadowType> entitlementRepoShadow = lookupOrCreateShadowInRepository(connector, entitlementShadow, entitlementObjectClassDef, resource, parentResult);
 					shadowAssociationType.setOid(entitlementRepoShadow.getOid());
@@ -1317,6 +1320,10 @@ public abstract class ShadowCache {
 		}
 		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(repoShadow);
 		for (ResourceAttribute<?> identifier: identifiers) {
+			identifiersContainer.add(identifier.clone());
+		}
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(repoShadow);
+		for (ResourceAttribute<?> identifier: secondaryIdentifiers) {
 			identifiersContainer.add(identifier.clone());
 		}
 	}

@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -1634,10 +1635,8 @@ public class TestDummy extends AbstractDummyTest {
 		final String TEST_NAME = "test200AddGroup";
 		displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		PrismObject<ShadowType> group = prismContext.parseObject(new File(GROUP_PIRATES_FILENAME));
@@ -1681,7 +1680,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
-		ProvisioningTestUtil.checkRepoGroupShadow(shadowFromRepo);
+		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
 
 		checkConsistency(group);
 	}
@@ -1703,9 +1702,9 @@ public class TestDummy extends AbstractDummyTest {
 		display("getObject result", result);
 		assertSuccess(result);
 
-		display("Retrieved account shadow", shadow);
+		display("Retrieved group shadow", shadow);
 
-		assertNotNull("No dummy account", shadow);
+		assertNotNull("No dummy group", shadow);
 
 		checkGroupPirates(shadow, result);
 
@@ -1754,8 +1753,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test210ModifyGroupReplace() throws Exception {
-		final String TEST_NAME = "test210ModifyGroupReplace";
+	public void test205ModifyGroupReplace() throws Exception {
+		final String TEST_NAME = "test205ModifyGroupReplace";
 		displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -1786,6 +1785,96 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
+	public void test210AddPrivilege() throws Exception {
+		final String TEST_NAME = "test210AddPrivilege";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		PrismObject<ShadowType> priv = prismContext.parseObject(new File(PRIVILEGE_PILLAGE_FILENAME));
+		priv.checkConsistence();
+
+		display("Adding priv", priv);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(priv, null, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("add object result", result);
+		assertSuccess("addObject has failed (result)", result);
+		assertEquals(PRIVILEGE_PILLAGE_OID, addedObjectOid);
+
+		priv.checkConsistence();
+
+		ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, result)
+				.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_PILLAGE_NAME, groupRepoType.getName());
+		assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+
+		ShadowType privProvisioningType = provisioningService.getObject(ShadowType.class,
+				PRIVILEGE_PILLAGE_OID, null, result).asObjectable();
+		display("priv from provisioning", privProvisioningType);
+		checkPrivPillage(privProvisioningType, result);
+
+		// Check if the group was created in the dummy resource
+
+		DummyPrivilege dummyPriv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNotNull("No dummy priv "+PRIVILEGE_PILLAGE_NAME, dummyPriv);
+
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
+				addedObjectOid, result);
+		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
+		display("Repository shadow", shadowFromRepo.dump());
+
+		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
+
+		checkConsistency(priv);
+	}
+	
+	@Test
+	public void test212GetPriv() throws Exception {
+		final String TEST_NAME = "test212GetPriv";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		// WHEN
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null,
+				result).asObjectable();
+
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+
+		display("Retrieved priv shadow", shadow);
+
+		assertNotNull("No dummy priv", shadow);
+
+		checkPrivPillage(shadow, result);
+
+		checkConsistency(shadow.asPrismObject());
+	}
+	
+	private void checkPrivPillage(ShadowType shadow, OperationResult result) {
+		checkEntitlementShadow(shadow, result, OBJECTCLAS_PRIVILEGE_LOCAL_NAME, true);
+		PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_PILLAGE_NAME, shadow.getName());
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
+		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+		assertEquals("Unexpected number of attributes", 2, attributes.size());
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+	}
+	
+	@Test
 	public void test220EntitleAccountWillPirates() throws Exception {
 		final String TEST_NAME = "test220EntitleAccountWillPirates";
 		displayTestTile(TEST_NAME);
@@ -1796,7 +1885,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, GROUP_PIRATES_OID, prismContext);
+		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
+				ProvisioningTestUtil.DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1847,11 +1937,9 @@ public class TestDummy extends AbstractDummyTest {
 		assertMember(group, getWillRepoIcfUid());
 	}
 	
-	// TODO: role
-	
 	@Test
-	public void test228DetitleAccountWillPirates() throws Exception {
-		final String TEST_NAME = "test228DetitleAccountWillPirates";
+	public void test223EntitleAccountWillPillage() throws Exception {
+		final String TEST_NAME = "test223EntitleAccountWillPillage";
 		displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -1860,7 +1948,95 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, GROUP_PIRATES_OID, prismContext);
+		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
+				ProvisioningTestUtil.DUMMY_ENTITLEMENT_PRIVILEGE_QNAME, PRIVILEGE_PILLAGE_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNotNull("Privilege object is gone!", priv);
+		
+		delta.checkConsistence();
+		
+		// Make sure that the groups is still there and will is a member
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertMember(group, getWillRepoIcfUid());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+	}
+	
+	/**
+	 * Reads the will accounts, checks that both entitlements are there.
+	 */
+	@Test
+	public void test224GetPillagingPirateWill() throws Exception {
+		final String TEST_NAME = "test224GetPillagingPirateWill";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		// WHEN
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+
+		// THEN
+		result.computeStatus();
+		display("Account", account);
+		
+		display(result);
+		assertSuccess(result);
+		
+		assertEntitlement(account, GROUP_PIRATES_OID);
+		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
+		
+		// Just make sure nothing has changed
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNotNull("Privilege object is gone!", priv);
+		
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertMember(group, getWillRepoIcfUid());
+	}
+		
+	// TODO: add account with entitlements
+	// TODO: delete accoutn with entitlements
+	
+	@Test
+	public void test225DetitleAccountWillPirates() throws Exception {
+		final String TEST_NAME = "test225DetitleAccountWillPirates";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, 
+				ProvisioningTestUtil.DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1877,12 +2053,103 @@ public class TestDummy extends AbstractDummyTest {
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
 		assertNoMember(group, getWillRepoIcfUid());
 		
+		// Make sure that account is still there and it has the privilege
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNotNull("Privilege object is gone!", priv);
+		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
 	
 	@Test
-	public void test229DeleteGroupPirates() throws Exception {
-		final String TEST_NAME = "test229DeleteGroupPirates";
+	public void test228DetitleAccountWillPillage() throws Exception {
+		final String TEST_NAME = "test228DetitleAccountWillPillage";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, 
+				ProvisioningTestUtil.DUMMY_ENTITLEMENT_PRIVILEGE_QNAME, PRIVILEGE_PILLAGE_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
+		delta.checkConsistence();
+		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		assertNoMember(group, getWillRepoIcfUid());
+		
+		// Make sure that account is still there and it has the privilege
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		assertTrue("Unexpected account privileges: "+accountProvileges, accountProvileges == null || accountProvileges.isEmpty());
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNotNull("Privilege object is gone!", priv);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+	}
+	
+	@Test
+	public void test238DeletePrivPillage() throws Exception {
+		final String TEST_NAME = "test238DeletePrivPillage";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		// WHEN
+		provisioningService.deleteObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display(result);
+		assertSuccess(result);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		try {
+			repositoryService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, result);
+			AssertJUnit.fail("Priv shadow is not gone (repo)");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		try {
+			provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, result);
+			AssertJUnit.fail("Priv shadow is not gone (provisioning)");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+
+		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		assertNull("Privilege object NOT is gone", priv);
+	}
+	
+	@Test
+	public void test239DeleteGroupPirates() throws Exception {
+		final String TEST_NAME = "test239DeleteGroupPirates";
 		displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -2397,13 +2664,17 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult) {
-		checkGroupShadow(shadow, parentResult, true);
+		checkEntitlementShadow(shadow, parentResult, SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME, true);
+	}
+	
+	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult, boolean fullShadow) {
+		checkEntitlementShadow(shadow, parentResult, SchemaTestConstants.ICF_GROUP_OBJECT_CLASS_LOCAL_NAME, fullShadow);
 	}
 
-	private void checkGroupShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
+	private void checkEntitlementShadow(ShadowType shadowType, OperationResult parentResult, String objectClassLocalName, boolean fullShadow) {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
 		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
-		IntegrationTestTools.checkGroupShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
+		IntegrationTestTools.checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, prismContext, parentResult);
 	}
 
 	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,

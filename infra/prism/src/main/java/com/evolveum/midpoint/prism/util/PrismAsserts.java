@@ -684,7 +684,7 @@ public class PrismAsserts {
 		}
 	}
 	
-	public static <T> void assertSets(String message, Collection<T> actualValues, T[] expectedValues) {
+	public static <T> void assertSets(String message, Collection<T> actualValues, T... expectedValues) {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message, expectedValues.length, actualValues.size());
 		for (T actualValue: actualValues) {

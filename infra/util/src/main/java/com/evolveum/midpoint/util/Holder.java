@@ -29,6 +29,11 @@ public class Holder<T> {
 
 	private T value;
 
+	public Holder() {
+		super();
+		this.value = null;
+	}
+	
 	public Holder(T value) {
 		super();
 		this.value = value;
@@ -40,6 +45,40 @@ public class Holder<T> {
 
 	public void setValue(T value) {
 		this.value = value;
+	}
+
+	public boolean isEmpty() {
+		return value == null;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Holder other = (Holder) obj;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Holder(" + value + ")";
 	}
 	
 }

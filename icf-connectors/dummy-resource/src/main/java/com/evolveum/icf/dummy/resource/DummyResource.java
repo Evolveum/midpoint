@@ -67,9 +67,11 @@ public class DummyResource {
 
 	private Map<String,DummyAccount> accounts;
 	private Map<String,DummyGroup> groups;
+	private Map<String,DummyPrivilege> privileges;
 	private List<ScriptHistoryEntry> scriptHistory;
 	private DummyObjectClass accountObjectClass;
 	private DummyObjectClass groupObjectClass;
+	private DummyObjectClass privilegeObjectClass;
 	private DummySyncStyle syncStyle;
 	private List<DummyDelta> deltas;
 	private int latestSyncToken;
@@ -90,9 +92,11 @@ public class DummyResource {
 	DummyResource() {
 		accounts = new ConcurrentHashMap<String, DummyAccount>();
 		groups = new ConcurrentHashMap<String, DummyGroup>();
+		privileges = new ConcurrentHashMap<String, DummyPrivilege>();
 		scriptHistory = new ArrayList<ScriptHistoryEntry>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
+		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas = new ArrayList<DummyDelta>();
 		latestSyncToken = 0;
@@ -104,9 +108,11 @@ public class DummyResource {
 	public void reset() {
 		accounts.clear();
 		groups.clear();
+		privileges.clear();
 		scriptHistory.clear();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
+		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas.clear();
 		latestSyncToken = 0;
@@ -198,6 +204,10 @@ public class DummyResource {
 	public DummyObjectClass getGroupObjectClass() {
 		return groupObjectClass;
 	}
+	
+	public DummyObjectClass getPrivilegeObjectClass() {
+		return privilegeObjectClass;
+	}
 
 	public Collection<DummyAccount> listAccounts() {
 		return accounts.values();
@@ -214,9 +224,17 @@ public class DummyResource {
 	public DummyGroup getGroupByName(String name) {
 		return getObject(groups, name);
 	}
+	
+	public DummyPrivilege getPrivilegeByName(String name) {
+		return getObject(privileges, name);
+	}
 
 	public Collection<DummyGroup> listGroups() {
 		return groups.values();
+	}
+	
+	public Collection<DummyPrivilege> listPrivileges() {
+		return privileges.values();
 	}
 	
 	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException {
@@ -292,6 +310,18 @@ public class DummyResource {
 		renameObject(DummyGroup.class, groups, oldName, newName);
 	}
 	
+	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException {
+		return addObject(privileges, newGroup);
+	}
+	
+	public void deletePrivilege(String id) throws ObjectDoesNotExistException {
+		deleteObject(DummyPrivilege.class, privileges, id);
+	}
+
+	public void renamePrivilege(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+		renameObject(DummyPrivilege.class, privileges, oldName, newName);
+	}
+	
 	void recordModify(DummyObject dObject) {
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
@@ -332,11 +362,13 @@ public class DummyResource {
 	 */
 	public void populateWithDefaultSchema() {
 		accountObjectClass.clear();
-		accountObjectClass.addAttributeDefinition("fullname", String.class, true, false);
-		accountObjectClass.addAttributeDefinition("description", String.class, false, false);
-		accountObjectClass.addAttributeDefinition("interests", String.class, false, true);
+		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_FULLNAME_NAME, String.class, true, false);
+		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_DESCRIPTION_NAME, String.class, false, false);
+		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERESTS_NAME, String.class, false, true);
+		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_PRIVILEGES_NAME, String.class, false, true);
 		groupObjectClass.clear();
 		groupObjectClass.addAttributeDefinition(DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
+		privilegeObjectClass.clear();
 	}
 
 	public DummySyncStyle getSyncStyle() {

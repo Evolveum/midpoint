@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2013 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -15,11 +15,10 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
 package com.evolveum.icf.dummy.resource;
 
-import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,54 +36,30 @@ import com.evolveum.midpoint.util.Dumpable;
  * @author Radovan Semancik
  *
  */
-public class DummyAccount extends DummyObject {
+public class DummyPrivilege extends DummyObject {
 	
-	public static final String ATTR_FULLNAME_NAME = "fullname";
-	public static final String ATTR_DESCRIPTION_NAME = "description";
-	public static final String ATTR_INTERESTS_NAME = "interests";
-	public static final String ATTR_PRIVILEGES_NAME = "privileges";
-	
-	private String password = null;
-
-	public DummyAccount() {
+	public DummyPrivilege() {
 		super();
 	}
 
-	public DummyAccount(String username) {
+	public DummyPrivilege(String username) {
 		super(username);
 	}
 		
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	
 	@Override
-	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException {
-		return resource.getAccountObjectClass();
+	protected DummyObjectClass getObjectClass() {
+		return resource.getGroupObjectClass();
 	}
 
 	@Override
 	public String getShortTypeName() {
-		return "account";
+		return "priv";
 	}
 
 	@Override
 	public String toStringContent() {
-		return super.toStringContent() + ", password=" + password; 
+		return super.toStringContent(); 
 	}
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
-	protected void extendDebugDump(StringBuilder sb, int indent) {
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "Password", password, indent + 1);
-	}
 	
 }

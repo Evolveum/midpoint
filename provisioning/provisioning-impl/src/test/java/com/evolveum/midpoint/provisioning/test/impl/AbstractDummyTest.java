@@ -105,6 +105,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static final String GROUP_PIRATES_FILENAME = TEST_DIR + "group-pirates.xml";
 	protected static final String GROUP_PIRATES_OID = "c0c010c0-d34d-b44f-f11d-3332eeee0000";
 	protected static final String GROUP_PIRATES_NAME = "pirates";
+	
+	protected static final String PRIVILEGE_PILLAGE_FILENAME = TEST_DIR + "privilege-pillage.xml";
+	protected static final String PRIVILEGE_PILLAGE_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0000";
+	protected static final String PRIVILEGE_PILLAGE_NAME = "pillage";
 
 	protected static final String FILENAME_ACCOUNT_SCRIPT = TEST_DIR + "account-script.xml";
 	protected static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
@@ -114,6 +118,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static final String FILENAME_SCRIPT_ADD = TEST_DIR + "script-add.xml";
 	
 	protected static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
+	
+	protected static final String OBJECTCLAS_PRIVILEGE_LOCAL_NAME = "CustomprivilegeObjectClass";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractDummyTest.class);
 	
