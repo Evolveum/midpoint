@@ -189,9 +189,9 @@ public class PageDashboard extends PageAdminHome {
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
         callableResult.setResult(result);
 
-        List<WorkItem> workItems = null;
         try {
-            workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(), true, 0, MAX_WORK_ITEMS, result);
+            List<WorkItem> workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(),
+                    true, 0, MAX_WORK_ITEMS, result);
             for (WorkItem workItem : workItems) {
                 list.add(new MyWorkItemDto(workItem));
             }

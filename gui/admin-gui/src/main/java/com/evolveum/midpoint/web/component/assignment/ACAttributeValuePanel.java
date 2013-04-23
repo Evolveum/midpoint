@@ -69,9 +69,13 @@ public class ACAttributeValuePanel extends SimplePanel<ACValueConstructionDto> {
     private void initPanel(Form form) {
         ACValueConstructionDto dto = getModel().getObject();
         PrismPropertyDefinition definition = dto.getAttribute().getDefinition();
+        boolean required = definition.getMinOccurs() > 0;
 
         InputPanel input = createTypedInputComponent(ID_INPUT, definition);
         for (FormComponent comp: input.getFormComponents()) {
+            comp.setLabel(new PropertyModel(dto.getAttribute(), ACAttributeDto.F_NAME));
+            comp.setRequired(required);
+
             comp.add(new AjaxFormValidatingBehavior(form, "onBlur"));
         }
 

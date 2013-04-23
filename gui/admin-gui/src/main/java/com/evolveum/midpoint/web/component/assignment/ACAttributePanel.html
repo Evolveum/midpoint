@@ -22,8 +22,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="attributeLabel" class="assignmentAttrLabel" style="display: inline-block;"/>
-    <div style="display: inline-block; margin-left: 30%;">
+    <div style="width: 200px; display: inline-block;">
+        <div wicket:id="attributeLabel" class="assignmentAttrLabel" style="display: inline-block;"/>
+        <span wicket:id="required" style="color: #f00; font-weight: bold;"
+              wicket:message="title:ACAttributePanel.required">*</span>
+        <span wicket:id="hasOutbound" style="color: #00f; font-weight: bold;"
+              wicket:message="title:ACAttributePanel.hasOutbound">*</span>
+    </div>
+    <div style="display: inline-block;">
 	    <div wicket:id="values">
 	        <div wicket:id="value" class="assignmentAttrValue" style="display: inline-block;" />
 	    </div>

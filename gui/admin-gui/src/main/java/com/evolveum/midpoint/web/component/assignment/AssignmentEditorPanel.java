@@ -413,6 +413,9 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 }
 
                 PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) attrDef;
+                if (propertyDef.isOperational() || propertyDef.isIgnored()) {
+                    continue;
+                }
                 attributes.add(ACAttributeDto.createACAttributeDto(propertyDef,
                         findOrCreateValueConstruction(propertyDef, attrConstructions), prismContext));
             }

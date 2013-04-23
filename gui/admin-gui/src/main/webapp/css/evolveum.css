@@ -912,7 +912,7 @@ div.tabPanel div.tab-row a:hover {
 
 .assignmentBlock .assignmentAttrLabel {
 	margin-top: 12px;
-    position: absolute;
+    /* position: absolute; */
 }
 
 .assignmentBlock .operationIcon {

@@ -28,6 +28,7 @@ import java.io.Serializable;
  */
 public class ACValueConstructionDto implements Serializable {
 
+    public static final String F_ATTRIBUTE = "attribute";
     public static final String F_VALUE = "value";
 
     private ACAttributeDto attribute;
