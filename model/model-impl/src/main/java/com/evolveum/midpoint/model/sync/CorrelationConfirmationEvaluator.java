@@ -27,6 +27,9 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
@@ -94,6 +97,7 @@ public class CorrelationConfirmationEvaluator {
 				// to null and the processing should be skipped
 				return null;
 			}
+			
 		} catch (SchemaException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
 					SchemaDebugUtil.prettyPrint(query));
@@ -113,7 +117,7 @@ public class CorrelationConfirmationEvaluator {
 			// query.setFilter(filter);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}",
-						new Object[] { currentShadow, SchemaDebugUtil.prettyPrint(query) });
+						new Object[] {q.dump() });
 			}
 			PagingType paging = new PagingType();
 			// ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class,
@@ -236,68 +240,96 @@ public class CorrelationConfirmationEvaluator {
 
 	private ObjectQuery updateFilterWithAccountValues(ShadowType currentShadow, ResourceType resource,
 			ObjectQuery query, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		LOGGER.trace("updateFilterWithAccountValues::begin");
+		
 		if (query.getFilter() == null) {
+			LOGGER.trace("No filter provivided, skipping updating filter");
 			return null;
 		}
+		
+		ObjectFilter filter = query.getFilter();
+		
+		LOGGER.trace("updateFilterWithAccountValues::begin");
 
-		try {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Transforming search filter from:\n{}", query.dump());
-			}
-
-			Element valueExpressionElement = query.getFilter().getExpression();
-			if (valueExpressionElement == null
-					&& (((PropertyValueFilter) query.getFilter()).getValues() == null || ((PropertyValueFilter) query
-							.getFilter()).getValues().isEmpty())) {
-				LOGGER.warn("No valueExpression in rule for {}", currentShadow);
-				return null;
-			}
-			ExpressionType valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
-					valueExpressionElement, ExpressionType.class);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
-			}
-						
-			PrismPropertyValue expressionResult = evaluateExpression(currentShadow, resource, valueExpression, query, shortDesc, result);
-			
-			if (expressionResult == null || expressionResult.isEmpty()) {
-				LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
-						valueExpression);
-				return null;
-			}
-			// TODO: log more context
-			LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
-					currentShadow, expressionResult });
-			if (query.getFilter() instanceof EqualsFilter) {
-				((EqualsFilter) query.getFilter()).setValue(expressionResult);
-				query.getFilter().setExpression(null);
-			}
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Transforming filter to:\n{}", query.getFilter().dump());
-			}
-		} catch (RuntimeException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-			throw new SystemException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
-		} catch (JAXBException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-			throw new SchemaException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
-		} catch (SchemaException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-			throw new SchemaException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
-		} catch (ObjectNotFoundException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-			throw new ObjectNotFoundException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
-		} catch (ExpressionEvaluationException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-			throw new ExpressionEvaluationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
-		}
-
+		evaluateFilterExpressions(filter, currentShadow, resource, shortDesc, result);
+		
 		LOGGER.trace("updateFilterWithAccountValues::end");
 		return query;
 	}
 
 	
+	private void evaluateFilterExpressions(ObjectFilter filter, ShadowType currentShadow, ResourceType resource, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		
+		if (filter instanceof NaryLogicalFilter){
+			List<ObjectFilter> conditions = ((NaryLogicalFilter) filter).getCondition();
+			
+			for (ObjectFilter condition : conditions){
+				evaluateFilterExpressions(condition, currentShadow, resource, shortDesc, result);
+			}
+			
+			return;
+		}
+		
+		Element valueExpressionElement = filter.getExpression();
+		if (valueExpressionElement == null
+				&& (((PropertyValueFilter) filter).getValues() == null || ((PropertyValueFilter) filter).getValues().isEmpty())) {
+			LOGGER.warn("No valueExpression in rule for {}", currentShadow);
+			return;
+		}
+		
+		ExpressionType valueExpression = null;
+		try {
+			valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
+					valueExpressionElement, ExpressionType.class);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
+			}
+		} catch (JAXBException ex) {
+			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
+			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
+		}
+			
+		
+		try {
+			PrismPropertyValue expressionResult = evaluateExpression(currentShadow, resource,
+					valueExpression, filter, shortDesc, result);
+
+			if (expressionResult == null || expressionResult.isEmpty()) {
+				LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
+						valueExpression);
+				return;
+			}
+			// TODO: log more context
+			LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
+					currentShadow, expressionResult });
+			if (filter instanceof EqualsFilter) {
+				((EqualsFilter) filter).setValue(expressionResult);
+				filter.setExpression(null);
+			}
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Transforming filter to:\n{}", filter.dump());
+			}
+		} catch (RuntimeException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+			throw new SystemException("Couldn't evaluate expression" + valueExpression + ": "
+					+ ex.getMessage(), ex);
+
+		} catch (SchemaException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+			throw new SchemaException("Couldn't evaluate expression" + valueExpression + ": "
+					+ ex.getMessage(), ex);
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+			throw new ObjectNotFoundException("Couldn't evaluate expression" + valueExpression + ": "
+					+ ex.getMessage(), ex);
+		} catch (ExpressionEvaluationException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+			throw new ExpressionEvaluationException("Couldn't evaluate expression" + valueExpression + ": "
+					+ ex.getMessage(), ex);
+		}
+
+	}
+
 	public static Map<QName, Object> getDefaultXPathVariables(UserType user,
 			ShadowType shadow, ResourceType resource) {
 		
@@ -318,14 +350,14 @@ public class CorrelationConfirmationEvaluator {
 	}
 	
 	private PrismPropertyValue evaluateExpression(ShadowType currentShadow,
-			ResourceType resource, ExpressionType valueExpression, ObjectQuery query, String shortDesc,
+			ResourceType resource, ExpressionType valueExpression, ObjectFilter filter, String shortDesc,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 	Map<QName, Object> variables = getDefaultXPathVariables(null, currentShadow, resource);
 		
 		//TODO rafactor after new query engine is implemented
 		ItemDefinition outputDefinition = null;
-		if (query.getFilter() instanceof ValueFilter){
-			outputDefinition = ((ValueFilter)query.getFilter()).getDefinition();
+		if (filter instanceof ValueFilter){
+			outputDefinition = ((ValueFilter)filter).getDefinition();
 		}
 		
 		if (outputDefinition == null){

@@ -62,6 +62,7 @@
             <class name="com.evolveum.midpoint.model.sync.SynchronizationSituationTest"/>
             <class name="com.evolveum.midpoint.model.sync.ActionManagerImplTest"/>
             <class name="com.evolveum.midpoint.model.sync.TestSynchronizationService"/>
+            <class name="com.evolveum.midpoint.model.sync.TestCorrelationConfiramtionEvaluator"/>
         </classes>
     </test>
     <test name="Lens" preserve-order="true" parallel="false" verbose="10">

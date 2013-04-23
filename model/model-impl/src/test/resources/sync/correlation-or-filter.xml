@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<q:query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
+
+ <q:or>
+  <q:equal>
+    <q:path>c:name</q:path>
+      <expression>
+        <script>
+          <language>http://www.w3.org/TR/xpath/</language>
+<!--           <code></code> -->
+          <code>
+if (substring($c:account/c:attributes/icfs:name, 0, 1) != 'X') then $c:account/c:attributes/icfs:name
+else
+  ThisIsSomeHowHackedToNeverHappen2330587969ThisIsSomeHowHackerToNeverHappen
+          </code>
+        </script>
+      </expression>
+     </q:equal>
+     <q:equal>
+       <q:path>c:employeeNumber</q:path>
+       <expression>
+         <script>
+           <language>http://www.w3.org/TR/xpath/</language>
+           <code>
+if (substring($c:account/c:attributes/icfs:name, 0, 1) != 'X') then $c:account/c:attributes/icfs:name
+else
+  ThisIsSomeHowHackedToNeverHappen2330587969ThisIsSomeHowHackerToNeverHappen
+           </code>
+         </script>
+       </expression>
+     </q:equal>
+   </q:or>
+</q:query>
