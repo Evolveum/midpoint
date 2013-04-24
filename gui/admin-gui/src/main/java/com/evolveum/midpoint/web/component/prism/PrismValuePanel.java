@@ -314,7 +314,7 @@ public class PrismValuePanel extends Panel {
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
             panel = new PasswordPanel(id, new PropertyModel<String>(model, baseExpression + ".clearValue"));
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-            panel = new ThreeStateCheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
+            panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
 

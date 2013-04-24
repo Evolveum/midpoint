@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -121,7 +121,7 @@ public class ACAttributeValuePanel extends SimplePanel<ACValueConstructionDto> {
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
             panel = new PasswordPanel(id, new PropertyModel<String>(getModel(), baseExpression + ".clearValue"));
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-            panel = new ThreeStateCheckPanel(id, new PropertyModel<Boolean>(getModel(), baseExpression));
+            panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(getModel(), baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<String>(id, new PropertyModel<String>(getModel(), baseExpression + ".orig"), String.class);
         } else {

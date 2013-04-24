@@ -24,9 +24,11 @@ div.objectForm .tableForm input[type='text'],
 div.objectForm .tableForm input[type='password'],
 div.objectForm .tableForm input[type='checkbox'],
 div.objectForm .tableForm textarea,
+div.objectForm .tableForm select,
 .assignmentBody input[type="text"],
 .assignmentBody input[type="password"],
-.assignmentBody textarea {
+.assignmentBody textarea,
+.assignmentBody select {
 	outline: none;
 	margin: 8px 0px 4px 10px;
 	font-size: 15px;

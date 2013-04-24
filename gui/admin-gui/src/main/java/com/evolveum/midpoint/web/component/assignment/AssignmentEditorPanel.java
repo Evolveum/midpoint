@@ -32,8 +32,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -249,9 +248,9 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         relation.setEnabled(false);
         body.add(relation);
 
-        ThreeStateCheckPanel enabled = new ThreeStateCheckPanel(ID_ENABLED,
+        TriStateComboPanel enabled = new TriStateComboPanel(ID_ENABLED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_ACTIVATION + ".enabled"));
-        enabled.setStyle("margin: 1px 0 0 10px;");
+//        enabled.setStyle("margin: 1px 0 0 10px;");
         body.add(enabled);
 
         DateTextField validFrom = DateTextField.forDatePattern(ID_VALID_FROM,
