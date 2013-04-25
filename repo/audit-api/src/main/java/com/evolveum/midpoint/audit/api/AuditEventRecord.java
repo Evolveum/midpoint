@@ -65,7 +65,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	
 	// initiator (subject, event "owner"): store OID, type(implicit?), name
 	private PrismObject<UserType> initiator;
-	
+
 	// (primary) target (object, the thing acted on): store OID, type, name
 	// OPTIONAL
 	private PrismObject<? extends ObjectType> target;
@@ -90,6 +90,10 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	private OperationResultStatus outcome;
 
 	// result (e.g. number of entries, returned object???)
+
+    private String parameter;
+
+    private String message;
 
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	
@@ -235,8 +239,24 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	public void setResult(OperationResult result) {
 		outcome = result.getStatus();
 	}
-	
-	public void checkConsistence() {
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getParameter() {
+        return parameter;
+    }
+
+    public void setParameter(String parameter) {
+        this.parameter = parameter;
+    }
+
+    public void checkConsistence() {
 		if (initiator != null) {
 			initiator.checkConsistence();
 		}
@@ -267,6 +287,8 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		clone.taskIdentifier = this.taskIdentifier;
 		clone.taskOID = this.taskOID;
 		clone.timestamp = this.timestamp;
+        clone.parameter = this.parameter;
+        clone.message = this.message;
 		return clone;
 	}
 
@@ -276,7 +298,8 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
 				+ ", T=" + formatObject(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
-				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + "]";
+				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + ", p=" + parameter
+                + ", m=" + message + "]";
 	}
 
 	private static String formatTimestamp(Long timestamp) {
@@ -317,6 +340,8 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Stage", eventStage, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Channel", channel, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Outcome", outcome, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
 		if (deltas == null || deltas.isEmpty()) {
 			sb.append(" none");

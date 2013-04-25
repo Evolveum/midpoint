@@ -64,6 +64,16 @@ public class RAuditEventRecord implements Serializable {
     private Set<RObjectDeltaOperation> deltas;
     private String channel;
     private ROperationResultStatus outcome;
+    private String parameter;
+    private String message;
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getParameter() {
+        return parameter;
+    }
 
     public String getChannel() {
         return channel;
@@ -141,6 +151,14 @@ public class RAuditEventRecord implements Serializable {
     @Column(name = "timestampValue")
     public Long getTimestamp() {
         return timestamp;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setParameter(String parameter) {
+        this.parameter = parameter;
     }
 
     public void setChannel(String channel) {
@@ -228,6 +246,8 @@ public class RAuditEventRecord implements Serializable {
             return false;
         if (taskOID != null ? !taskOID.equals(that.taskOID) : that.taskOID != null) return false;
         if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
+        if (parameter != null ? !parameter.equals(that.parameter) : that.parameter != null) return false;
+        if (message != null ? !message.equals(that.message) : that.message != null) return false;
 
         return true;
     }
@@ -248,6 +268,8 @@ public class RAuditEventRecord implements Serializable {
         result = 31 * result + (deltas != null ? deltas.hashCode() : 0);
         result = 31 * result + (channel != null ? channel.hashCode() : 0);
         result = 31 * result + (outcome != null ? outcome.hashCode() : 0);
+        result = 31 * result + (parameter != null ? parameter.hashCode() : 0);
+        result = 31 * result + (message != null ? message.hashCode() : 0);
         return result;
     }
 
@@ -265,6 +287,8 @@ public class RAuditEventRecord implements Serializable {
         repo.setSessionIdentifier(record.getSessionIdentifier());
         repo.setEventIdentifier(record.getEventIdentifier());
         repo.setHostIdentifier(record.getHostIdentifier());
+        repo.setParameter(record.getParameter());
+        repo.setMessage(record.getMessage());
         if (record.getOutcome() != null) {
             repo.setOutcome(RUtil.getRepoEnumValue(record.getOutcome().createStatusType(), ROperationResultStatus.class));
         }
