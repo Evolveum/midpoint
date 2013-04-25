@@ -62,11 +62,10 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
@@ -91,24 +90,23 @@ class EntitlementConverter {
 	public void postProcessEntitlementsRead(ConnectorInstance connector, ResourceType resourceType,
 			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
 		
-		Collection<ResourceEntitlementAssociationType> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
+		Collection<ResourceObjectAssociationType> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
 		if (entitlementAssociationDefs != null) {
 			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
 			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
 			
-			PrismContainerDefinition<ShadowEntitlementsType> entitlementsDef = resourceObject.getDefinition().findContainerDefinition(ShadowType.F_ENTITLEMENTS);
-			PrismContainerDefinition<ShadowAssociationType> associationDef = entitlementsDef.findContainerDefinition(ShadowEntitlementsType.F_ASSOCIATION);
+			PrismContainerDefinition<ShadowAssociationType> associationDef = resourceObject.getDefinition().findContainerDefinition(ShadowType.F_ASSOCIATION);
 			PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
 			
-			for (ResourceEntitlementAssociationType assocDefType: entitlementAssociationDefs) {
-				RefinedObjectClassDefinition entitlementDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getEntitlementIntent());
+			for (ResourceObjectAssociationType assocDefType: entitlementAssociationDefs) {
+				RefinedObjectClassDefinition entitlementDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getIntent());
 				if (entitlementDef == null) {
-					throw new SchemaException("No definition for entitlement intent '"+assocDefType.getEntitlementIntent()+"' in "+resourceType);
+					throw new SchemaException("No definition for entitlement intent '"+assocDefType.getIntent()+"' in "+resourceType);
 				}
-				ResourceEntitlementAssociationDirectionType direction = assocDefType.getDirection();
-				if (direction == ResourceEntitlementAssociationDirectionType.SUBJECT_TO_ENTITLEMENT) {
+				ResourceObjectAssociationDirectionType direction = assocDefType.getDirection();
+				if (direction == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
 					postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition, assocDefType, entitlementDef, attributesContainer, associationContainer, parentResult);					
-				} else if (direction == ResourceEntitlementAssociationDirectionType.ENTITLEMENT_TO_SUBJECT) {
+				} else if (direction == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 					postProcessEntitlementEntitlementToSubject(connector, resourceType, resourceObject, objectClassDefinition, assocDefType, entitlementDef, attributesContainer, associationContainer, parentResult);
 				} else {
 					throw new IllegalArgumentException("Unknown entitlement direction "+direction+" in association "+assocDefType+" in "+resourceType);
@@ -116,15 +114,13 @@ class EntitlementConverter {
 			}
 			
 			if (!associationContainer.isEmpty()) {
-				PrismContainer<ShadowEntitlementsType> entitlementsContainer = entitlementsDef.instantiate();
-				resourceObject.add(entitlementsContainer);
-				entitlementsContainer.add(associationContainer);
+				resourceObject.add(associationContainer);
 			}
 		}
 	}
 	
 	private <S extends ShadowType,T> void postProcessEntitlementSubjectToEntitlement(ResourceType resourceType, PrismObject<S> resourceObject, 
-			RefinedObjectClassDefinition objectClassDefinition, ResourceEntitlementAssociationType assocDefType,
+			RefinedObjectClassDefinition objectClassDefinition, ResourceObjectAssociationType assocDefType,
 			RefinedObjectClassDefinition entitlementDef,
 			ResourceAttributeContainer attributesContainer, PrismContainer<ShadowAssociationType> associationContainer,
 			OperationResult parentResult) throws SchemaException {
@@ -168,7 +164,7 @@ class EntitlementConverter {
 	
 	private <S extends ShadowType,T> void postProcessEntitlementEntitlementToSubject(ConnectorInstance connector, 
 			ResourceType resourceType, PrismObject<S> resourceObject, 
-			RefinedObjectClassDefinition objectClassDefinition, ResourceEntitlementAssociationType assocDefType,
+			RefinedObjectClassDefinition objectClassDefinition, ResourceObjectAssociationType assocDefType,
 			final RefinedObjectClassDefinition entitlementDef,
 			ResourceAttributeContainer attributesContainer, final PrismContainer<ShadowAssociationType> associationContainer,
 			OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
@@ -235,11 +231,7 @@ class EntitlementConverter {
 	/////////
 	
 	public void processEntitlementsAdd(ResourceType resource, PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-		PrismContainer<ShadowEntitlementsType> entitlementsContainer = shadow.findContainer(ShadowType.F_ENTITLEMENTS);
-		if (entitlementsContainer == null || entitlementsContainer.isEmpty()) {
-			return;
-		}
-		PrismContainer<ShadowAssociationType> associationContainer = entitlementsContainer.findContainer(ShadowEntitlementsType.F_ASSOCIATION);
+		PrismContainer<ShadowAssociationType> associationContainer = shadow.findContainer(ShadowType.F_ASSOCIATION);
 		if (associationContainer == null || associationContainer.isEmpty()) {
 			return;
 		}
@@ -254,11 +246,7 @@ class EntitlementConverter {
 			RefinedObjectClassDefinition objectClassDefinition,
 			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource) 
 					throws SchemaException {
-		PrismContainer<ShadowEntitlementsType> entitlementsContainer = shadow.findContainer(ShadowType.F_ENTITLEMENTS);
-		if (entitlementsContainer == null || entitlementsContainer.isEmpty()) {
-			return;
-		}
-		PrismContainer<ShadowAssociationType> associationContainer = entitlementsContainer.findContainer(ShadowEntitlementsType.F_ASSOCIATION);
+		PrismContainer<ShadowAssociationType> associationContainer = shadow.findContainer(ShadowType.F_ASSOCIATION);
 		if (associationContainer == null || associationContainer.isEmpty()) {
 			return;
 		}
@@ -316,15 +304,15 @@ class EntitlementConverter {
 			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resourceType, OperationResult parentResult) 
 					throws SchemaException, CommunicationException {
 
-		Collection<ResourceEntitlementAssociationType> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
+		Collection<ResourceObjectAssociationType> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
 		if (entitlementAssociationDefs == null || entitlementAssociationDefs.isEmpty()) {
 			// Nothing to do
 			return;
 		}
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-		for (ResourceEntitlementAssociationType assocDefType: objectClassDefinition.getEntitlementAssociations()) {
-			if (assocDefType.getDirection() != ResourceEntitlementAssociationDirectionType.ENTITLEMENT_TO_SUBJECT) {
+		for (ResourceObjectAssociationType assocDefType: objectClassDefinition.getEntitlementAssociations()) {
+			if (assocDefType.getDirection() != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 				// We can ignore these. They will die together with the object. No need to explicitly delete them.
 				continue;
 			}
@@ -332,9 +320,9 @@ class EntitlementConverter {
 			if (associationName == null) {
 				throw new SchemaException("No name in entitlement association "+assocDefType+" in "+resourceType);
 			}
-			final RefinedObjectClassDefinition entitlementOcDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getEntitlementIntent());
+			final RefinedObjectClassDefinition entitlementOcDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getIntent());
 			if (entitlementOcDef == null) {
-				throw new SchemaException("No definition for entitlement intent '"+assocDefType.getEntitlementIntent()+"' defined in entitlement association "+associationName+" in "+resourceType);
+				throw new SchemaException("No definition for entitlement intent '"+assocDefType.getIntent()+"' defined in entitlement association "+associationName+" in "+resourceType);
 			}
 			
 			final QName assocAttrName = assocDefType.getAssociationAttribute();
@@ -433,13 +421,13 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+associationCVal);
 		}
-		ResourceEntitlementAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
+		ResourceObjectAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
 		if (assocDefType == null) {
 			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
 		}
 		
-		ResourceEntitlementAssociationDirectionType direction = assocDefType.getDirection();
-		if (direction != ResourceEntitlementAssociationDirectionType.SUBJECT_TO_ENTITLEMENT) {
+		ResourceObjectAssociationDirectionType direction = assocDefType.getDirection();
+		if (direction != ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
 			// Process just this one direction. The other direction means modification of another object and
 			// therefore will be processed later
 			return;
@@ -503,18 +491,18 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+associationCVal);
 		}
-		ResourceEntitlementAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
+		ResourceObjectAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
 		if (assocDefType == null) {
 			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
 		}
 		
-		ResourceEntitlementAssociationDirectionType direction = assocDefType.getDirection();
-		if (direction != ResourceEntitlementAssociationDirectionType.ENTITLEMENT_TO_SUBJECT) {
+		ResourceObjectAssociationDirectionType direction = assocDefType.getDirection();
+		if (direction != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 			// Process just this one direction. The other direction was processed before
 			return;
 		}
 		
-		String entitlementIntent = assocDefType.getEntitlementIntent();
+		String entitlementIntent = assocDefType.getIntent();
 		if (entitlementIntent == null) {
 			throw new SchemaException("No entitlement intent specified in association "+associationCVal+" in "+resource);
 		}

@@ -68,7 +68,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	private Collection<? extends RefinedAttributeDefinition> secondaryIdentifiers;
 	private Collection<ResourceObjectPattern> protectedObjectPatterns;
 	private List<RefinedAttributeDefinition> attributeDefinitions;
-	private Collection<ResourceEntitlementAssociationType> entitlementAssociations = new ArrayList<ResourceEntitlementAssociationType>();
+	private Collection<ResourceObjectAssociationType> associations = new ArrayList<ResourceObjectAssociationType>();
 	
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
@@ -180,12 +180,30 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return new ArrayList<RefinedAttributeDefinition>();
 	}
 	
-	public Collection<ResourceEntitlementAssociationType> getEntitlementAssociations() {
-		return entitlementAssociations;
+	public Collection<ResourceObjectAssociationType> getAssociations() {
+		return associations;
 	}
 	
-	public ResourceEntitlementAssociationType findEntitlementAssociation(QName name) {
-		for (ResourceEntitlementAssociationType assocType: entitlementAssociations) {
+	public Collection<ResourceObjectAssociationType> getAssociations(ShadowKindType kind) {
+		Collection<ResourceObjectAssociationType> retAssoc = new ArrayList<ResourceObjectAssociationType>();
+		for (ResourceObjectAssociationType association: associations) {
+			if (kind == association.getKind()) {
+				retAssoc.add(association);
+			}
+		}
+		return retAssoc;
+	}
+
+	public void setAssociations(Collection<ResourceObjectAssociationType> associations) {
+		this.associations = associations;
+	}
+
+	public Collection<ResourceObjectAssociationType> getEntitlementAssociations() {
+		return getAssociations(ShadowKindType.ENTITLEMENT);
+	}
+	
+	public ResourceObjectAssociationType findEntitlementAssociation(QName name) {
+		for (ResourceObjectAssociationType assocType: getEntitlementAssociations()) {
 			if (assocType.getName().equals(name)) {
 				return assocType;
 			}
@@ -483,9 +501,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
             }
         }
         
-        // Entitlement associations
-        if (rOcDefType.getEntitlementAssociation() != null) {
-        	rOcDef.getEntitlementAssociations().addAll(rOcDefType.getEntitlementAssociation());
+        // Associations
+        if (rOcDefType.getAssociation() != null) {
+        	rOcDef.associations.addAll(rOcDefType.getAssociation());
         }
         
         parseProtected(rOcDef, rOcDefType);

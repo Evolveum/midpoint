@@ -119,16 +119,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -1175,13 +1175,12 @@ public abstract class ShadowCache {
 			
 		}
 		
-		// Entitlements
-		PrismContainer<ShadowEntitlementsType> resourceEntitlementsContainer = resourceShadow.findContainer(ShadowType.F_ENTITLEMENTS);
-		if (resourceEntitlementsContainer != null) {
+		// Associations
+		PrismContainer<ShadowAssociationType> resourceAssociationContainer = resourceShadow.findContainer(ShadowType.F_ASSOCIATION);
+		if (resourceAssociationContainer != null) {
 			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-			PrismContainer<ShadowEntitlementsType> resultEntitlementsContainer = resourceEntitlementsContainer.clone();
-			resultShadow.add(resultEntitlementsContainer);
-			PrismContainer<ShadowAssociationType> associationContainer = resultEntitlementsContainer.findContainer(ShadowEntitlementsType.F_ASSOCIATION);
+			PrismContainer<ShadowAssociationType> associationContainer = resourceAssociationContainer.clone();
+			resultShadow.add(associationContainer);
 			if (associationContainer != null) {
 				for (PrismContainerValue<ShadowAssociationType> associationCVal: associationContainer.getValues()) {
 					ResourceAttributeContainer identifierContainer = ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
@@ -1191,8 +1190,8 @@ public abstract class ShadowCache {
 					}
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
-					ResourceEntitlementAssociationType entitlementAssociationType = objectClassDefinition.findEntitlementAssociation(associationName);
-					String entitlementIntent = entitlementAssociationType.getEntitlementIntent();
+					ResourceObjectAssociationType entitlementAssociationType = objectClassDefinition.findEntitlementAssociation(associationName);
+					String entitlementIntent = entitlementAssociationType.getIntent();
 					RefinedObjectClassDefinition entitlementObjectClassDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, entitlementIntent);
 					
 					PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
@@ -1200,7 +1199,9 @@ public abstract class ShadowCache {
 						entitlementShadow = resouceObjectConverter.locateResourceObject(connector, resource, entitlementIdentifiers, entitlementObjectClassDef, parentResult); 
 					}
 					PrismObject<ShadowType> entitlementRepoShadow = lookupOrCreateShadowInRepository(connector, entitlementShadow, entitlementObjectClassDef, resource, parentResult);
-					shadowAssociationType.setOid(entitlementRepoShadow.getOid());
+					ObjectReferenceType shadowRefType = new ObjectReferenceType();
+					shadowRefType.setOid(entitlementRepoShadow.getOid());
+					shadowAssociationType.setShadowRef(shadowRefType);
 				}
 			}
 		}
@@ -1235,8 +1236,7 @@ public abstract class ShadowCache {
 		};
 		try {
 			shadow.accept(visitor , new ItemPath(
-				new NameItemPathSegment(ShadowType.F_ENTITLEMENTS),
-				new NameItemPathSegment(ShadowEntitlementsType.F_ASSOCIATION),
+				new NameItemPathSegment(ShadowType.F_ASSOCIATION),
 				IdItemPathSegment.WILDCARD), false);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
@@ -1274,8 +1274,7 @@ public abstract class ShadowCache {
 		};
 		try {
 			ItemDelta.accept(modifications, visitor , new ItemPath(
-				new NameItemPathSegment(ShadowType.F_ENTITLEMENTS),
-				new NameItemPathSegment(ShadowEntitlementsType.F_ASSOCIATION),
+				new NameItemPathSegment(ShadowType.F_ASSOCIATION),
 				IdItemPathSegment.WILDCARD), false);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
@@ -1300,12 +1299,12 @@ public abstract class ShadowCache {
 			return;
 		}
 		ShadowAssociationType associationType = association.asContainerable();
-		if (StringUtils.isEmpty(associationType.getOid())) {
+		if (associationType.getShadowRef() == null || StringUtils.isEmpty(associationType.getShadowRef().getOid())) {
 			throw new SchemaException("No identifiers and no OID specified in entitlements association "+association);
 		}
 		PrismObject<ShadowType> repoShadow;
 		try {
-			repoShadow = repositoryService.getObject(ShadowType.class, associationType.getOid(), result);
+			repoShadow = repositoryService.getObject(ShadowType.class, associationType.getShadowRef().getOid(), result);
 		} catch (ObjectNotFoundException e) {
 			throw new ObjectNotFoundException(e.getMessage()+" while resolving entitlement association OID in "+association, e);
 		}

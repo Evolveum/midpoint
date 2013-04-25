@@ -372,13 +372,14 @@
 					<ignore>true</ignore>
 				</limitations>
 			</attribute>
-			<entitlementAssociation>
+			<association>
             	<name>ri:group</name>
-            	<entitlementIntent>group</entitlementIntent>
-            	<direction>entitlementToSubject</direction>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMembers</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
-            </entitlementAssociation>
+            </association>
 			<protected>
 				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
 			</protected>

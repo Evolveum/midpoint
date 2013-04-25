@@ -111,11 +111,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptA
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -579,7 +578,7 @@ public class ResourceObjectConverter {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		
 		for (ItemDelta itemDelta : objectDeltas) {
-			if (new ItemPath(ShadowType.F_ENTITLEMENTS).equals(itemDelta.getParentPath())) {
+			if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
 				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
 						shadow, rSchema, resource);
@@ -914,7 +913,7 @@ public class ResourceObjectConverter {
 				if (activationOperation != null){
 					operations.add(activationOperation);
 				}
-			} else if (new ItemPath(ShadowType.F_ENTITLEMENTS).equals(itemDelta.getParentPath())) { 
+			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) { 
 				if (itemDelta instanceof ContainerDelta) {
 					entitlementConverter.collectEntitlementChange((ContainerDelta<ShadowAssociationType>)itemDelta, operations, objectClassDefinition, resource);
 				} else {

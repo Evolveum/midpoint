@@ -31,16 +31,14 @@
 		<icfs:name>lechuck</icfs:name>
 		<ri:fullname>LeChuck</ri:fullname>
 	</attributes>
-	<entitlements>
-		<association>
-			<name>ri:group</name>
-			<oid>c0c010c0-d34d-b44f-f11d-3332eeee0000</oid>
-		</association>
-		<association>
-			<name>ri:priv</name>
-			<oid>c0c010c0-d34d-b44f-f11d-3332eeff0000</oid>
-		</association>
-	</entitlements>
+	<association>
+		<name>ri:group</name>
+		<shadowRef oid="c0c010c0-d34d-b44f-f11d-3332eeee0000"/>
+	</association>
+	<association>
+		<name>ri:priv</name>
+		<shadowRef oid="c0c010c0-d34d-b44f-f11d-3332eeff0000"/>
+	</association>
 	<credentials>
 		<password>
 			<value>

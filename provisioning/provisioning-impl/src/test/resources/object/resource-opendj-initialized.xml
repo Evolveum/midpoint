@@ -199,14 +199,15 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
-            <entitlementAssociation>
+            <association>
             	<name>ri:group</name>
             	<displayName>LDAP Group Membership</displayName>
-            	<entitlementIntent>ldapGroup</entitlementIntent>
-            	<direction>entitlementToSubject</direction>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
-            </entitlementAssociation>
+            </association>
         </accountType>
         
         <entitlementType>

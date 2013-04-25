@@ -2546,7 +2546,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="dependency" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="unbounded"/>
-         	<xsd:element name="entitlementAssociation" type="tns:ResourceEntitlementAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+         	<xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
             <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
             <xsd:element name="protected" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
@@ -3093,7 +3093,7 @@
      	</xsd:sequence>
      </xsd:complexType>
      
-     <xsd:complexType name="ResourceEntitlementAssociationType">
+     <xsd:complexType name="ResourceObjectAssociationType">
      	<xsd:annotation>
      		<xsd:documentation>
      			Describes how entitlement is associated to the subject (e.g. account or other entitlement).
@@ -3109,8 +3109,9 @@
      	<xsd:sequence>
      		<xsd:element name="name" type="xsd:QName"></xsd:element>
      		<xsd:element ref="tns:displayName" minOccurs="0"/>
-     		<xsd:element name="entitlementIntent" type="xsd:string"></xsd:element>
-     		<xsd:element name="direction" type="tns:ResourceEntitlementAssociationDirectionType"></xsd:element>
+     		<xsd:element name="kind" type="tns:ShadowKindType"></xsd:element>
+     		<xsd:element name="intent" type="xsd:string" minOccurs="0"></xsd:element>
+     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"></xsd:element>
      		<xsd:element name="associationAttribute" type="xsd:QName"></xsd:element>
      		<xsd:element name="valueAttribute" type="xsd:QName"></xsd:element>
      		<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
@@ -3118,24 +3119,24 @@
      </xsd:complexType>
     
      
-     <xsd:simpleType name="ResourceEntitlementAssociationDirectionType">
+     <xsd:simpleType name="ResourceObjectAssociationDirectionType">
         <xsd:annotation>
             <xsd:documentation>
-                Direction of an entitlement association.
+                Direction of a resource object association.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="entitlementToSubject">
+            <xsd:enumeration value="objectToSubject">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ENTITLEMENT_TO_SUBJECT"/>
+                        <jaxb:typesafeEnumMember name="OBJECT_TO_SUBJECT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="subjectToEntitlement">
+            <xsd:enumeration value="subjectToObject">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUBJECT_TO_ENTITLEMENT"/>
+                        <jaxb:typesafeEnumMember name="SUBJECT_TO_OBJECT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -4579,7 +4580,7 @@
                     </xsd:element>
                     <xsd:element name="attributes" type="tns:ShadowAttributesType" minOccurs="0">
                     </xsd:element>
-                    <xsd:element name="entitlements" type="tns:ShadowEntitlementsType" minOccurs="0"/>
+                    <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4699,21 +4700,6 @@
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
-    <xsd:complexType name="ShadowEntitlementsType">
-    	<xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-	    <xsd:sequence>
-	        <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded"/>
-	    </xsd:sequence>
-	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
-    </xsd:complexType>
-    
     <xsd:complexType name="ShadowAssociationType">
     	<xsd:annotation>
             <xsd:documentation>
@@ -4725,7 +4711,7 @@
         </xsd:annotation>
 	    <xsd:sequence>
 	        <xsd:element name="name" type="xsd:QName"/>
-	        <xsd:element name="oid" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+	        <xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0" maxOccurs="1"/>
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>

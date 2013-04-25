@@ -67,8 +67,8 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowEntitlementsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -313,8 +313,10 @@ public class ProvisioningTestUtil {
 	public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
 		ShadowAssociationType association = new ShadowAssociationType();
 		association.setName(associationName);
-		association.setOid(groupOid);
-		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ENTITLEMENTS, ShadowEntitlementsType.F_ASSOCIATION);
+		ObjectReferenceType shadowRefType = new ObjectReferenceType();
+		shadowRefType.setOid(groupOid);
+		association.setShadowRef(shadowRefType);
+		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class, 
 				accountOid, entitlementAssociationPath, prismContext, association);
 		return delta;
@@ -323,8 +325,10 @@ public class ProvisioningTestUtil {
 	public static ObjectDelta<ShadowType> createDetitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
 		ShadowAssociationType association = new ShadowAssociationType();
 		association.setName(associationName);
-		association.setOid(groupOid);
-		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ENTITLEMENTS, ShadowEntitlementsType.F_ASSOCIATION);
+		ObjectReferenceType shadowRefType = new ObjectReferenceType();
+		shadowRefType.setOid(groupOid);
+		association.setShadowRef(shadowRefType);
+		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class, 
 				accountOid, entitlementAssociationPath, prismContext, association);
 		return delta;
