@@ -250,7 +250,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     @Test
     public void queryOrComposite() throws Exception {
         Session session = open();
-        Criteria main = session.createCriteria(RResourceObjectShadow.class, "r");
+        Criteria main = session.createCriteria(RShadow.class, "r");
 
         Criteria attributes = main.createCriteria("attributes", "a");
         Criteria stringAttr = attributes.createCriteria("strings", "s1x");
@@ -369,7 +369,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryAccountByAttributesAndResourceRef() throws Exception {
         LOGGER.info("===[{}]===", new Object[]{"queryAccountByAttributesAndResourceRef"});
         Session session = open();
-        Criteria main = session.createCriteria(RResourceObjectShadow.class, "r");
+        Criteria main = session.createCriteria(RShadow.class, "r");
 
         Criteria attributes = main.createCriteria("attributes", "a");
         Criteria stringAttr = attributes.createCriteria("strings", "s1x");

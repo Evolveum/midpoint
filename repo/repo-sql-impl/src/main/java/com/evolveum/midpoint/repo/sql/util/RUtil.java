@@ -238,7 +238,7 @@ public final class RUtil {
         return list;
     }
 
-    public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(RResourceObjectShadow owner,
+    public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(RShadow owner,
                                                                                    List<SynchronizationSituationDescriptionType> list) {
         Set<RSynchronizationSituationDescription> set = new HashSet<RSynchronizationSituationDescription>();
         if (list != null) {

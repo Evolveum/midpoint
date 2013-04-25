@@ -37,7 +37,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
-import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadow;
+import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -1070,12 +1070,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					+ " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
 			query.setString("oid", resourceOid);
 
-			List<RResourceObjectShadow> shadows = query.list();
+			List<RShadow> shadows = query.list();
 			LOGGER.trace("Query returned {} shadows, transforming to JAXB types.",
 					new Object[] { (shadows != null ? shadows.size() : 0) });
 
 			if (shadows != null) {
-				for (RResourceObjectShadow shadow : shadows) {
+				for (RShadow shadow : shadows) {
 					ShadowType jaxb = shadow.toJAXB(getPrismContext());
 					PrismObject<T> prismObject = jaxb.asPrismObject();
 					validateObjectType(prismObject, resourceObjectShadowType);

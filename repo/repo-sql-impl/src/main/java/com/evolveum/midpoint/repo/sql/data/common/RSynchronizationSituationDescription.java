@@ -18,7 +18,7 @@ import java.io.Serializable;
 @Table(name = "m_sync_situation_description")
 public class RSynchronizationSituationDescription implements Serializable {
 
-    private RResourceObjectShadow shadow;
+    private RShadow shadow;
     private String shadowOid;
     private Long shadowId;
     private String checksum;
@@ -34,7 +34,7 @@ public class RSynchronizationSituationDescription implements Serializable {
             @JoinColumn(name = "shadow_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "shadow_id", referencedColumnName = "id")
     })
-    public RResourceObjectShadow getShadow() {
+    public RShadow getShadow() {
         return shadow;
     }
 
@@ -103,7 +103,7 @@ public class RSynchronizationSituationDescription implements Serializable {
         recomputeChecksum();
     }
 
-    public void setShadow(RResourceObjectShadow shadow) {
+    public void setShadow(RShadow shadow) {
         this.shadow = shadow;
     }
 
@@ -159,7 +159,7 @@ public class RSynchronizationSituationDescription implements Serializable {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static RSynchronizationSituationDescription copyFromJAXB(RResourceObjectShadow owner,
+    public static RSynchronizationSituationDescription copyFromJAXB(RShadow owner,
                                                                     SynchronizationSituationDescriptionType jaxb) {
         Validate.notNull(owner, "Resource object shadow must not be null.");
         Validate.notNull(jaxb, "Synchronization situation description must not be null.");

@@ -52,15 +52,15 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_resource_shadow")
-@org.hibernate.annotations.Table(appliesTo = "m_resource_shadow",
-        indexes = {@Index(name = "iResourceObjectShadowEnabled", columnNames = "enabled"),
-                @Index(name = "iResourceShadowName", columnNames = "name_norm"),
+@Table(name = "m_shadow")
+@org.hibernate.annotations.Table(appliesTo = "m_shadow",
+        indexes = {@Index(name = "iShadowEnabled", columnNames = "enabled"),
+                @Index(name = "iShadowName", columnNames = "name_norm"),
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid")})
-@ForeignKey(name = "fk_resource_object_shadow")
-public class RResourceObjectShadow extends RObject {
+@ForeignKey(name = "fk_shadow")
+public class RShadow extends RObject {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadow.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
     private RPolyString name;
     private QName objectClass;
     private RActivation activation;
@@ -241,7 +241,7 @@ public class RResourceObjectShadow extends RObject {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RResourceObjectShadow that = (RResourceObjectShadow) o;
+        RShadow that = (RShadow) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
@@ -279,7 +279,7 @@ public class RResourceObjectShadow extends RObject {
         return result1;
     }
 
-    public static void copyToJAXB(RResourceObjectShadow repo, ShadowType jaxb,
+    public static void copyToJAXB(RShadow repo, ShadowType jaxb,
                                   PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
@@ -332,7 +332,7 @@ public class RResourceObjectShadow extends RObject {
         }
     }
 
-    public static void copyFromJAXB(ShadowType jaxb, RResourceObjectShadow repo,
+    public static void copyFromJAXB(ShadowType jaxb, RShadow repo,
                                     PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -391,7 +391,7 @@ public class RResourceObjectShadow extends RObject {
     public ShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ShadowType object = new ShadowType();
         RUtil.revive(object, prismContext);
-        RResourceObjectShadow.copyToJAXB(this, object, prismContext);
+        RShadow.copyToJAXB(this, object, prismContext);
 
         return object;
     }
