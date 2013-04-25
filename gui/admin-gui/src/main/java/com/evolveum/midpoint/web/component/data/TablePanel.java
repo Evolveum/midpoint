@@ -117,7 +117,8 @@ public class TablePanel<T> extends Panel {
             return;
         }
 
-        long page = ((paging.getOffset() + paging.getMaxSize()) / getDataTable().getItemsPerPage()) - 1;
+        long itemsPerPage = getDataTable().getItemsPerPage();
+        long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
         if (page < 0) {
             page = 0;
         }
