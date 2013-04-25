@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -34,10 +35,13 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,6 +52,9 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,6 +67,8 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(AddOverwriteTest.class);
     private static final String ORG_STRUCT_OBJECTS = "src/test/resources/orgstruct/org-monkey-island.xml";
     private static final String IMPORT_OVERWRITE = "src/test/resources/basic/import-overwrite.xml";
+
+    private static final String ORG_OID = "00000000-8888-6666-0000-100000000001";
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -111,5 +120,37 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, opResult);
         AssertJUnit.assertEquals(1, users.size());
         return users.get(0);
+    }
+
+
+    @Test(expectedExceptions = ObjectNotFoundException.class)
+    public void test090GetVersionNonExisting() throws Exception {
+        OperationResult result = new OperationResult("get version");
+        try {
+            repositoryService.getVersion(SystemConfigurationType.class, "989", result);
+            AssertJUnit.fail();
+        } finally {
+            result.recomputeStatus();
+            AssertJUnit.assertTrue(!result.isUnknown());
+        }
+    }
+
+    @Test
+    public void test091GetVersion() throws Exception {
+        OperationResult result = new OperationResult("get version");
+
+        String version = repositoryService.getVersion(OrgType.class, ORG_OID, result);
+        AssertJUnit.assertEquals("0", version);
+
+        PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
+        Collection deltas = new ArrayList();
+        deltas.add(PropertyDelta.createAddDelta(def, OrgType.F_ORG_TYPE, "asdf"));
+        repositoryService.modifyObject(OrgType.class, ORG_OID, deltas, result);
+
+        version = repositoryService.getVersion(OrgType.class, ORG_OID, result);
+        AssertJUnit.assertEquals("1", version);
+
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
     }
 }

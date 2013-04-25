@@ -32,13 +32,13 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -372,7 +372,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         readUser = repositoryService.getObject(UserType.class, oid, result);
         AssertJUnit.assertTrue("User was not modified correctly", user.diff(readUser).isEmpty());
-        
+
         SqlRepoTestUtil.assertVersionProgress(lastVersion, readUser.getVersion());
     }
 
@@ -544,7 +544,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         PropertyDelta syncTimestap = PropertyDelta.createModificationReplaceProperty(
-        		ShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterFirstModify.getDefinition(), timestamp);
+                ShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterFirstModify.getDefinition(), timestamp);
         syncSituationDeltas.add(syncTimestap);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, result);
@@ -557,7 +557,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(null, description.getSituation());
 
         LessFilter filter = LessFilter.createLessFilter(null, afterSecondModify.findItem(
-        		ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), timestamp, true);
+                ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), timestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, result);

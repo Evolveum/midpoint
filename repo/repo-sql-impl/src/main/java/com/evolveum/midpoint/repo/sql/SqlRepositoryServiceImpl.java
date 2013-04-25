@@ -1351,7 +1351,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     + " as o where o.id = 0 and o.oid = :oid");
             query.setString("oid", oid);
 
-            version = (String) query.uniqueResult();
+            Long versionLong = (Long) query.uniqueResult();
+            if (versionLong == null) {
+                throw new ObjectNotFoundException("Object '" + type.getSimpleName()
+                        + "' with oid '" + oid + "' was not found.");
+            }
+            version = versionLong.toString();
         } catch (RuntimeException ex) {
             handleGeneralRuntimeException(ex, session, result);
         } finally {
