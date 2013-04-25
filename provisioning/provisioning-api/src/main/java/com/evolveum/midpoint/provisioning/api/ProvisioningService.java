@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -245,12 +246,10 @@ public interface ProvisioningService {
 	 * 
 	 * @param query
 	 *            search query
-	 * @param paging
-	 *            paging specification to limit operation result (optional)
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
 	 * @param handler
 	 *            result handler
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
 	 * 
 	 * @throws IllegalArgumentException
 	 *             wrong object type

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -151,6 +152,30 @@ public interface RepositoryService {
 	 */
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
+	
+	/**
+	 * Returns object version for provided OID.
+	 * 
+	 * Must fail if object with the OID does not exists.
+	 * 
+	 * This is a supposed to be a very lightweight and cheap operation. It is used to support
+	 * efficient caching of expensive objects.
+	 * 
+	 * @param oid
+	 *            OID of the object to get
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return Object version
+	 * 
+	 * @throws ObjectNotFoundException
+	 *             requested object does not exist
+	 * @throws SchemaException
+	 *             error dealing with storage schema
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, etc.
+	 */
+	public <T extends ObjectType> String getVersion(Class<T> type,String oid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * <p>Add new object.</p>
@@ -195,7 +220,7 @@ public interface RepositoryService {
 	
 	/**
 	 * <p>Search for objects in the repository.</p>
-	 * <p>If no search criteria specified, list objects of specified type is returned.</p>
+	 * <p>If no search criteria specified, list of all objects of specified type is returned.</p>
 	 * <p>
 	 * Searches through all object types.
 	 * Returns a list of objects that match search criteria.
@@ -225,8 +250,64 @@ public interface RepositoryService {
 	
 	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
-
 	
+	/**
+	 * <p>Search for objects in the repository in an iterative fashion.</p>
+	 * <p>Searches through all object types. Calls a specified handler for each object found.
+	 * If no search criteria specified, list of all objects of specified type is returned.</p>
+	 * <p>
+	 * Searches through all object types.
+	 * Returns a list of objects that match search criteria.
+	 * </p><p>
+	 * Returns empty list if object type is correct but there are no objects of
+	 * that type. The ordering of the results is not significant and may be arbitrary
+	 * unless sorting in the paging is used.
+	 * </p><p>
+	 * Should fail if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * </p>
+	 * 
+	 * @param query
+	 *            search query
+	 * @param handler
+	 *            result handler
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return all objects of specified type that match search criteria (subject
+	 *         to paging)
+	 * 
+	 * @throws IllegalArgumentException
+	 *             wrong object type
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 */
+	
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, 
+			ResultHandler<T> handler, OperationResult parentResult)
+			throws SchemaException;
+
+	/**
+	 * <p>Returns the number of objects that match specified criteria.</p>
+	 * <p>If no search criteria specified, count of all objects of specified type is returned.</p>
+     * <p>
+	 * Should fail if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * </p>
+	 * 
+	 * @param query
+	 *            search query
+	 * @param paging
+	 *            paging specification to limit operation result (optional)
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return count of objects of specified type that match search criteria (subject
+	 *         to paging)
+	 * 
+	 * @throws IllegalArgumentException
+	 *             wrong object type
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 */
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
 		

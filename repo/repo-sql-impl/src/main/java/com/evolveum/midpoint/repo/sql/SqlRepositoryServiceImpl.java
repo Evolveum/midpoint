@@ -42,13 +42,13 @@ import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.*;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -59,6 +59,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -1304,5 +1305,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	public void repositorySelfTest(OperationResult parentResult) {
 		// TODO add some SQL-specific self-test methods
 		// No self-tests for now
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getVersion(java.lang.Class, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#searchObjectsIterative(java.lang.Class, com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+			ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
+		// TODO Auto-generated method stub
+		
 	}
 }

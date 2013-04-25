@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -175,9 +176,7 @@ public class RepositoryCache implements RepositoryService {
 			LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
 		PrismObject<T> object = repository.getObject(type, oid, parentResult);
-		if (cache != null) {
-			cache.put(oid, ((PrismObject<ObjectType>) object).clone());
-		}
+		cacheObject(cache, object);
 		return object;
 	}
 
@@ -201,21 +200,6 @@ public class RepositoryCache implements RepositoryService {
 		//getCache().put(oid,object);
 		return oid;
 	}
-
-//	@Override
-//	public <T extends ObjectType> List<PrismObject<T>> listObjects(Class<T> type, PagingType paging,
-//			OperationResult parentResult) {
-//		// Cannot satisfy from cache, pass down to repository
-//		List<PrismObject<T>> objects = repository.listObjects(type, paging, parentResult);
-//		Map<String, PrismObject<ObjectType>> cache = getCache();
-//		if (cache != null) {
-//			for (PrismObject<T> object : objects) {
-//				cache.put(object.getOid(), (PrismObject<ObjectType>) object);
-//			}
-//		}
-//		return objects;
-//	}
-
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException {
@@ -224,10 +208,27 @@ public class RepositoryCache implements RepositoryService {
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			for (PrismObject<T> object : objects) {
-				cache.put(object.getOid(), (PrismObject<ObjectType>) object);
+				cacheObject(cache, object);
 			}
 		}
 		return objects;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#searchObjectsIterative(java.lang.Class, com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+			final ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
+		final Map<String, PrismObject<ObjectType>> cache = getCache();
+		ResultHandler<T> myHandler = new ResultHandler<T>() {
+			@Override
+			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+				cacheObject(cache, object);
+				return handler.handle(object, parentResult);
+			}
+		};
+		repository.searchObjectsIterative(type, query, myHandler, parentResult);
 	}
 	
 	@Override
@@ -270,6 +271,15 @@ public class RepositoryCache implements RepositoryService {
             SchemaException {
 		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getVersion(java.lang.Class, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		return repository.getVersion(type, oid, parentResult);
+	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getRepositoryDiag()
@@ -286,4 +296,11 @@ public class RepositoryCache implements RepositoryService {
 	public void repositorySelfTest(OperationResult parentResult) {
 		repository.repositorySelfTest(parentResult);
 	}
+	
+	private <T extends ObjectType> void cacheObject(Map<String, PrismObject<ObjectType>> cache, PrismObject<T> object) {
+		if (cache != null) {
+			cache.put(object.getOid(), (PrismObject<ObjectType>) object.clone());
+		}
+	}
+
 }
