@@ -202,8 +202,9 @@
 	  </definition>
 	</schema>
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -386,12 +387,13 @@
 			<protected>
 				<icfs:name>uid=root,ou=Administrators,dc=example,dc=com</icfs:name>
 			</protected>
-		</accountType>
-		<entitlementType>
-        	<name>group</name>
+		</objectType>
+		<objectType>
+			<kind>entitlement</kind>
+        	<intent>group</intent>
         	<default>true</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
-        </entitlementType>
+        </objectType>
 	</schemaHandling>
 		<synchronization>
 		<enabled>true</enabled>

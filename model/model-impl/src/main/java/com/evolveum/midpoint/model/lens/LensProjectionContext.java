@@ -66,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -342,13 +342,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.squeezedAttributes = squeezedAttributes;
 	}
 	
-	public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
+	public ResourceObjectTypeDefinitionType getResourceAccountTypeDefinitionType() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return null;
 		}
 		if (isShadow()) {
-	        ResourceAccountTypeDefinitionType def = ResourceTypeUtil.getResourceAccountTypeDefinitionType(
-	        		resource, resourceShadowDiscriminator.getIntent());
+			ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(
+	        		resource, ShadowKindType.ACCOUNT, resourceShadowDiscriminator.getIntent());
 	        return def;
 		} else {
 			return null;
@@ -376,7 +376,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	public Collection<ShadowDiscriminatorType> getDependencies() {
 		if (dependencies == null) {
-			ResourceAccountTypeDefinitionType resourceAccountTypeDefinitionType = getResourceAccountTypeDefinitionType();
+			ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceAccountTypeDefinitionType();
 			if (resourceAccountTypeDefinitionType == null) {
 				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
 				dependencies = new ArrayList<ShadowDiscriminatorType>();

@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
@@ -441,7 +441,7 @@ public class TestParseResource {
 	    	assertFalse("Empty element list in definition element in schema (JAXB)", anyElements.isEmpty());
 			
 			assertNotNull("No schema handling (JAXB)", schemaHandling);
-			for(ResourceAccountTypeDefinitionType accountType: schemaHandling.getAccountType()) {
+			for(ResourceObjectTypeDefinitionType accountType: schemaHandling.getAccountType()) {
 				String name = accountType.getName();
 				assertNotNull("Account type without a name", name);
 				assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());

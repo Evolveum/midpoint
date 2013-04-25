@@ -143,7 +143,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -547,10 +547,17 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 	private void checkOpenDjSchemaHandling(ResourceType resource, String source) {
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-		for (ResourceAccountTypeDefinitionType accountType: schemaHandling.getAccountType()) {
-			String name = accountType.getName();
-			assertNotNull("Resource "+resource+" from "+source+" has an schemaHandlig account definition without a name", name);
-			assertNotNull("Account type "+name+" in "+resource+" from "+source+" does not have object class", accountType.getObjectClass());
+		for (ResourceObjectTypeDefinitionType resObjectTypeDef: schemaHandling.getObjectType()) {
+			if (resObjectTypeDef.getKind() == ShadowKindType.ACCOUNT) {
+				String name = resObjectTypeDef.getIntent();
+				assertNotNull("Resource "+resource+" from "+source+" has an schemaHandlig account definition without intent", name);
+				assertNotNull("Account type "+name+" in "+resource+" from "+source+" does not have object class", resObjectTypeDef.getObjectClass());
+			}
+			if (resObjectTypeDef.getKind() == ShadowKindType.ENTITLEMENT) {
+				String name = resObjectTypeDef.getIntent();
+				assertNotNull("Resource "+resource+" from "+source+" has an schemaHandlig entitlement definition without intent", name);
+				assertNotNull("Entitlement type "+name+" in "+resource+" from "+source+" does not have object class", resObjectTypeDef.getObjectClass());
+			}
 		}
 	}
 	

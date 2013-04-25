@@ -21,6 +21,8 @@ package com.evolveum.midpoint.common.refinery;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -43,8 +45,7 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceEntitlementTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
@@ -261,74 +262,63 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		
 		RefinedResourceSchema rSchema = new RefinedResourceSchema(resourceType, originalResourceSchema, prismContext);
 		
-		if (schemaHandling != null) {
-		
-			if (schemaHandling.getAccountType() != null && !schemaHandling.getAccountType().isEmpty()) {
-		
-				parseAccountTypesFromSchemaHandling(rSchema, resourceType, schemaHandling, prismContext, 
-						"definition of "+resourceType);
-				
-			} else {
-				parseAccountTypesFromSchema(rSchema, resourceType, prismContext, 
-						"definition of "+resourceType);
-			}
+		if (hasAnyObjectTypeDef(schemaHandling)) {
 			
-			if (schemaHandling.getEntitlementType() != null && !schemaHandling.getEntitlementType().isEmpty()) {
-				
-				parseEntitlementTypesFromSchemaHandling(rSchema, resourceType, schemaHandling, prismContext, 
-						"definition of "+resourceType);
-				
-			}
+			// Compatibility. Parsing DEPRECATED section
+			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
+					schemaHandling.getAccountType(), ShadowKindType.ACCOUNT, prismContext, "definition of "+resourceType);
 			
+			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
+					schemaHandling.getObjectType(), null, prismContext, "definition of "+resourceType);
+					
 		} else {
-			parseAccountTypesFromSchema(rSchema, resourceType, prismContext, 
+			parseObjectTypesFromSchema(rSchema, resourceType, prismContext, 
 					"definition of "+resourceType);
 		}
 		
 		return rSchema;
 	}
 
-	private static void parseAccountTypesFromSchemaHandling(RefinedResourceSchema rSchema, ResourceType resourceType,
-			SchemaHandlingType schemaHandling, PrismContext prismContext, String contextDescription) throws SchemaException {
-		
-		RefinedObjectClassDefinition rAccountDefDefault = null;
-		for (ResourceAccountTypeDefinitionType accountTypeDefType: schemaHandling.getAccountType()) {
-			String accountTypeName = accountTypeDefType.getName();
-			RefinedObjectClassDefinition rAccountDef = RefinedObjectClassDefinition.parse(accountTypeDefType, resourceType, rSchema, prismContext, "account type '"+accountTypeName+"', in "+contextDescription);
-			
-			if (rAccountDef.isDefault()) {
-				if (rAccountDefDefault == null) {
-					rAccountDefDefault = rAccountDef;
-				} else {
-					throw new SchemaException("More than one default account definitions ("+rAccountDefDefault+", "+rAccountDef+") in " + contextDescription);
-				}
-			}
-				
-			rSchema.add(rAccountDef);
-		}		
+	private static boolean hasAnyObjectTypeDef(SchemaHandlingType schemaHandling) {
+		if (schemaHandling == null) {
+			return false;
+		}
+		if (!schemaHandling.getAccountType().isEmpty()) {
+			return true;
+		}
+		if (!schemaHandling.getObjectType().isEmpty()) {
+			return true;
+		}
+		return false;
 	}
-	
-	private static void parseEntitlementTypesFromSchemaHandling(RefinedResourceSchema rSchema, ResourceType resourceType,
-			SchemaHandlingType schemaHandling, PrismContext prismContext, String contextDescription) throws SchemaException {
+
+	private static void parseObjectTypeDefsFromSchemaHandling(RefinedResourceSchema rSchema, ResourceType resourceType,
+			SchemaHandlingType schemaHandling, Collection<ResourceObjectTypeDefinitionType> resourceObjectTypeDefs, 
+			ShadowKindType impliedKind, PrismContext prismContext, String contextDescription) throws SchemaException {
 		
-		RefinedObjectClassDefinition rEntDefDefault = null;
-		for (ResourceEntitlementTypeDefinitionType entTypeDefType: schemaHandling.getEntitlementType()) {
-			String entTypeName = entTypeDefType.getName();
-			RefinedObjectClassDefinition rEntDef = RefinedObjectClassDefinition.parse(entTypeDefType, resourceType, rSchema, prismContext, "entitlement type '"+entTypeName+"', in "+contextDescription);
+		if (resourceObjectTypeDefs == null) {
+			return;
+		}
+		
+		Map<ShadowKindType, RefinedObjectClassDefinition> defaults = new HashMap<ShadowKindType, RefinedObjectClassDefinition>();
+		
+		for (ResourceObjectTypeDefinitionType accountTypeDefType: resourceObjectTypeDefs) {
+			RefinedObjectClassDefinition rOcDef = RefinedObjectClassDefinition.parse(accountTypeDefType, resourceType, rSchema, impliedKind, 
+					prismContext, contextDescription);
 			
-			if (rEntDef.isDefault()) {
-				if (rEntDefDefault == null) {
-					rEntDefDefault = rEntDef;
+			if (rOcDef.isDefault()) {
+				if (defaults.containsKey(rOcDef.getKind())) {
+					throw new SchemaException("More than one default "+rOcDef.getKind()+" definitions ("+defaults.get(rOcDef.getKind())+", "+rOcDef+") in " + contextDescription);
 				} else {
-					throw new SchemaException("More than one default entitlement definitions ("+rEntDefDefault+", "+rEntDef+") in " + contextDescription);
+					defaults.put(rOcDef.getKind(), rOcDef);
 				}
 			}
 				
-			rSchema.add(rEntDef);
+			rSchema.add(rOcDef);
 		}		
 	}
 
-	private static void parseAccountTypesFromSchema(RefinedResourceSchema rSchema, ResourceType resourceType,
+	private static void parseObjectTypesFromSchema(RefinedResourceSchema rSchema, ResourceType resourceType,
 			PrismContext prismContext, String contextDescription) throws SchemaException {
 
 		RefinedObjectClassDefinition rAccountDefDefault = null;

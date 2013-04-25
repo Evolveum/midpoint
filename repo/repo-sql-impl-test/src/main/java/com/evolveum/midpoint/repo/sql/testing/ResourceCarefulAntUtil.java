@@ -35,8 +35,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
@@ -104,7 +104,7 @@ public class ResourceCarefulAntUtil {
     private static SchemaHandlingType createNewSchemaHandling(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
     	PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(resourceFile);
     	SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
-    	ResourceAccountTypeDefinitionType accountType = schemaHandling.getAccountType().iterator().next();
+    	ResourceObjectTypeDefinitionType accountType = schemaHandling.getAccountType().iterator().next();
     	List<ResourceAttributeDefinitionType> attrDefs = accountType.getAttribute();
     	ResourceAttributeDefinitionType attributeDefinitionType = attrDefs.get(rnd.nextInt(attrDefs.size()));
     	attributeDefinitionType.setMaxOccurs(Integer.toString(iteration));

@@ -57,7 +57,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -269,7 +269,7 @@ public class AccountValuesProcessor {
 	}
 	
 	private int determineMaxIterations(LensProjectionContext<ShadowType> accountContext) {
-		ResourceAccountTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef != null) {
 			IterationSpecificationType iteration = accDef.getIteration();
 			if (iteration != null) {

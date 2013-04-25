@@ -43,9 +43,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
@@ -243,8 +244,8 @@ public class ResourceTypeUtil {
 		return false;
 	}
 
-	public static ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType(
-			ResourceType resource, String accountType) {
+	public static ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType (
+			ResourceType resource, ShadowKindType kind, String intent) {
 		if (resource == null) {
 			throw new IllegalArgumentException("The resource is null");
 		}
@@ -252,14 +253,26 @@ public class ResourceTypeUtil {
         if (schemaHandling == null || schemaHandling.getAccountType() == null) {
             return null;
         }
-		for (ResourceAccountTypeDefinitionType acct: schemaHandling.getAccountType()) {
-			if (accountType == null && acct.isDefault()) {
-				return acct;
-			}
-			if (acct.getName().equals(accountType)) {
-				return acct;
+        for (ResourceObjectTypeDefinitionType acct: schemaHandling.getObjectType()) {
+			if (acct.getKind() == kind) {
+				if (intent == null && acct.isDefault()) {
+					return acct;
+				}
+				if (acct.getName().equals(intent)) {
+					return acct;
+				}
 			}
 		}
+        if (kind == ShadowKindType.ACCOUNT) {
+			for (ResourceObjectTypeDefinitionType acct: schemaHandling.getAccountType()) {
+				if (intent == null && acct.isDefault()) {
+					return acct;
+				}
+				if (acct.getName().equals(intent)) {
+					return acct;
+				}
+			}
+        }
 		return null;
 	}
 

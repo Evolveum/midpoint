@@ -63,6 +63,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     private String description;
     private boolean isDefault;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
+    private ResourceObjectTypeDefinitionType schemaHandlingObjectTypeDefinitionType;
     private ResourceType resourceType;
     private Collection<? extends RefinedAttributeDefinition> identifiers;
 	private Collection<? extends RefinedAttributeDefinition> secondaryIdentifiers;
@@ -344,18 +345,27 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         }
         return false;
     }
+    
+    static RefinedObjectClassDefinition parse(ResourceObjectTypeDefinitionType entTypeDefType,
+			ResourceType resourceType, RefinedResourceSchema rSchema, ShadowKindType impliedKind, PrismContext prismContext,
+			String contextDescription) throws SchemaException {
+	
+    	ShadowKindType kind = entTypeDefType.getKind();
+    	if (kind == null) {
+    		kind = impliedKind;
+    	}
+    	String intent = entTypeDefType.getIntent();
+    	if (intent == null) {
+    		// Compatibility, DEPRECATED notation
+    		intent = entTypeDefType.getName();
+    	}
+		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType, 
+				resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
+		return rObjectClassDef;
+				
+	}
 
-    static RefinedObjectClassDefinition parse(ResourceAccountTypeDefinitionType accountTypeDefType,
-            ResourceType resourceType, RefinedResourceSchema rSchema,
-            PrismContext prismContext, String contextDescription) throws
-            SchemaException {
-
-    	RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(accountTypeDefType, resourceType, rSchema, 
-    			prismContext, ShadowKindType.ACCOUNT, "account", contextDescription);
-        return rObjectClassDef;
-    }
-
-	private static void parseProtected(RefinedObjectClassDefinition rAccountDef, ResourceObjectClassTypeDefinitionType accountTypeDefType) throws SchemaException {
+	private static void parseProtected(RefinedObjectClassDefinition rAccountDef, ResourceObjectTypeDefinitionType accountTypeDefType) throws SchemaException {
 		for (ResourceObjectPatternType protectedType: accountTypeDefType.getProtected()) {
 			ResourceObjectPattern protectedPattern = convertToPattern(protectedType, rAccountDef);
 			rAccountDef.getProtectedObjectPatterns().add(protectedPattern);
@@ -422,91 +432,84 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     }
 	
-	static RefinedObjectClassDefinition parse(ResourceEntitlementTypeDefinitionType entTypeDefType,
-			ResourceType resourceType, RefinedResourceSchema rSchema, PrismContext prismContext,
-			String contextDescription) throws SchemaException {
 	
-		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType, 
-				resourceType, rSchema, prismContext, ShadowKindType.ENTITLEMENT, "entitlement", contextDescription);
-		return rObjectClassDef;
-				
-	}
 	
-	private static RefinedObjectClassDefinition parseRefinedObjectClass(ResourceObjectClassTypeDefinitionType rOcDefType,
+	private static RefinedObjectClassDefinition parseRefinedObjectClass(ResourceObjectTypeDefinitionType schemaHandlingObjDefType,
 			ResourceType resourceType, RefinedResourceSchema rSchema, PrismContext prismContext,
-			ShadowKindType kind, String typeDesc, String contextDescription) throws SchemaException {
+			ShadowKindType kind, String intent, String typeDesc, String contextDescription) throws SchemaException {
 		
 		ObjectClassComplexTypeDefinition objectClassDef = null;
-        if (rOcDefType.getObjectClass() != null) {
-            QName objectClass = rOcDefType.getObjectClass();
+        if (schemaHandlingObjDefType.getObjectClass() != null) {
+            QName objectClass = schemaHandlingObjDefType.getObjectClass();
             objectClassDef = rSchema.getOriginalResourceSchema().findObjectClassDefinition(objectClass);
             if (objectClassDef == null) {
-                throw new SchemaException("Object class " + objectClass + " as specified in "+typeDesc+" type " + rOcDefType.getName() + " was not found in the resource schema of " + contextDescription);
+                throw new SchemaException("Object class " + objectClass + " as specified in "+typeDesc+" type " + schemaHandlingObjDefType.getName() + " was not found in the resource schema of " + contextDescription);
             }
         } else {
-            throw new SchemaException("Definition of "+typeDesc+" type " + rOcDefType.getName() + " does not have objectclass, in " + contextDescription);
+            throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getName() + " does not have objectclass, in " + contextDescription);
         }
         
         RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
         rOcDef.setKind(kind);
+        rOcDef.schemaHandlingObjectTypeDefinitionType = schemaHandlingObjDefType;
 
-        if (rOcDefType.getName() != null) {
-            rOcDef.setIntent(rOcDefType.getName());
+        if (intent != null) {
+            rOcDef.setIntent(intent);
         } else {
-            throw new SchemaException(StringUtils.capitalize(typeDesc)+" type definition does not have a name, in " + contextDescription);
+            throw new SchemaException(StringUtils.capitalize(typeDesc)+" type definition does not have intent, in " + contextDescription);
         }
         
-        if (rOcDefType.getDisplayName() != null) {
-            rOcDef.setDisplayName(rOcDefType.getDisplayName());
+        if (schemaHandlingObjDefType.getDisplayName() != null) {
+            rOcDef.setDisplayName(schemaHandlingObjDefType.getDisplayName());
         } else {
             if (objectClassDef.getDisplayName() != null) {
                 rOcDef.setDisplayName(objectClassDef.getDisplayName());
             }
         }
 
-        if (rOcDefType.getDescription() != null) {
-            rOcDef.setDescription(rOcDefType.getDescription());
+        if (schemaHandlingObjDefType.getDescription() != null) {
+            rOcDef.setDescription(schemaHandlingObjDefType.getDescription());
         }
 
-        if (rOcDefType.isDefault() != null) {
-            rOcDef.setDefault(rOcDefType.isDefault());
+        if (schemaHandlingObjDefType.isDefault() != null) {
+            rOcDef.setDefault(schemaHandlingObjDefType.isDefault());
         } else {
             rOcDef.setDefault(objectClassDef.isDefaultInAKind());
         }
 
         for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
             String attrContextDescription = road.getName() + ", in " + contextDescription;
-            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), rOcDefType,
+            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), schemaHandlingObjDefType,
             		typeDesc, attrContextDescription);
             // We MUST NOT skip ignored attribute definitions here. We must include them in the schema as
             // the shadows will still have that attributes and we will need their type definition to work
             // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
             RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef, 
-            		prismContext, "in "+typeDesc+" type " + rOcDefType.getName() + ", in " + contextDescription);
+            		prismContext, "in "+typeDesc+" type " + intent + ", in " + contextDescription);
             rOcDef.processIdentifiers(rAttrDef, objectClassDef);
 
             if (rOcDef.containsAttributeDefinition(rAttrDef.getName())) {
                 throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in "+typeDesc+" type " +
-                		rOcDefType.getName() + ", in " + contextDescription);
+                		intent + ", in " + contextDescription);
             }
             rOcDef.add(rAttrDef);
 
         }
 
         // Check for extra attribute definitions in the account type
-        for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
+        for (ResourceAttributeDefinitionType attrDefType : schemaHandlingObjDefType.getAttribute()) {
             if (!rOcDef.containsAttributeDefinition(attrDefType.getRef()) && !RefinedAttributeDefinition.isIgnored(attrDefType)) {
                 throw new SchemaException("Definition of attribute " + attrDefType.getRef() + " not found in object class " + objectClassDef.getTypeName() + " as defined in " + contextDescription);
             }
         }
         
         // Associations
-        if (rOcDefType.getAssociation() != null) {
-        	rOcDef.associations.addAll(rOcDefType.getAssociation());
+        if (schemaHandlingObjDefType.getAssociation() != null) {
+        	rOcDef.associations.addAll(schemaHandlingObjDefType.getAssociation());
         }
         
-        parseProtected(rOcDef, rOcDefType);
+        parseProtected(rOcDef, schemaHandlingObjDefType);
    
         return rOcDef;
 	}
@@ -528,7 +531,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
 	private static ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
-			ResourceObjectClassTypeDefinitionType rOcDefType, String typeDesc, String contextDescription) throws SchemaException {
+			ResourceObjectTypeDefinitionType rOcDefType, String typeDesc, String contextDescription) throws SchemaException {
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
@@ -597,27 +600,6 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return attrNames;
     }
 
-    private ResourceAccountTypeDefinitionType getAccountSchemaHandlingDefinition() {
-        if (resourceType.getSchemaHandling() == null) {
-            return null;
-        }
-        List<ResourceAccountTypeDefinitionType> types = resourceType.getSchemaHandling().getAccountType();
-        ResourceAccountTypeDefinitionType definition = null;
-        for (ResourceAccountTypeDefinitionType account : types) {
-            if (intent == null && account.isDefault()) {
-                definition = account;
-                break;
-            }
-
-            if (intent.equals(account.getName())) {
-                definition = account;
-                break;
-            }
-        }
-
-        return definition;
-    }
-
     public MappingType getCredentialsInbound() {
         
     	ResourcePasswordDefinitionType password = getPasswordDefinition();
@@ -662,11 +644,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 	
     private ResourcePasswordDefinitionType getPasswordDefinition(){
-    	ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
-        if (definition == null) {
+        if (schemaHandlingObjectTypeDefinitionType == null) {
             return null;
         }
-        ResourceCredentialsDefinitionType credentials = definition.getCredentials();
+        ResourceCredentialsDefinitionType credentials = schemaHandlingObjectTypeDefinitionType.getCredentials();
         if (credentials == null) {
             return null;
         }
@@ -696,12 +677,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
  
     
     private ResourceActivationEnableDefinitionType getActivationEnableDefinition(){
-    	ResourceAccountTypeDefinitionType definition = getAccountSchemaHandlingDefinition();
-        if (definition == null) {
+        if (schemaHandlingObjectTypeDefinitionType == null) {
             return null;
         }
 
-        ResourceActivationDefinitionType activation = definition.getActivation();
+        ResourceActivationDefinitionType activation = schemaHandlingObjectTypeDefinitionType.getActivation();
         if (activation == null) {
             return null;
         }

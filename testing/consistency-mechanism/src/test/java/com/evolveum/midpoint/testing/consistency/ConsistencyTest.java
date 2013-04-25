@@ -130,7 +130,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -547,7 +546,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
 		checkOpenDjSchema(resource, source);
 		assertNotNull("Resource from " + source + " has null schemahandling", resource.getSchemaHandling());
-		checkOpenDjSchemaHandling(resource, source);
 		assertNotNull("Resource from " + source + " has null capabilities", resource.getCapabilities());
 		if (!source.equals("repository")) {
 			// This is generated on the fly in provisioning
@@ -589,26 +587,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		}
 	}
 
-	private void checkOpenDjSchemaHandling(ResourceType resource, String source) {
-		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-		for (ResourceAccountTypeDefinitionType accountType : schemaHandling.getAccountType()) {
-			String name = accountType.getName();
-			assertNotNull("Resource " + resource + " from " + source
-					+ " has an schemaHandlig account definition without a name", name);
-			assertNotNull("Account type " + name + " in " + resource + " from " + source
-					+ " does not have object class", accountType.getObjectClass());
-		}
-	}
-
 	private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
 		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "credentials", 7, source);
 	}
-
-	// private void checkDerbyConfiguration(PrismObject<ResourceType> resource,
-	// String source) {
-	// checkOpenResourceConfiguration(resource, CONNECTOR_DBTABLE_NAMESPACE,
-	// "password", 10, source);
-	// }
 
 	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource,
 			String connectorNamespace, String credentialsPropertyName, int numConfigProps, String source) {

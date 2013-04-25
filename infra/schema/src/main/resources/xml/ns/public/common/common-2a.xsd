@@ -2499,15 +2499,21 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="accountType" type="tns:ResourceAccountTypeDefinitionType" minOccurs="0"
+        <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
                          maxOccurs="unbounded"/>
-            <xsd:element name="entitlementType" type="tns:ResourceEntitlementTypeDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded"/>
+            <xsd:element name="accountType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
+                         maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			DEPRECATED. Use objectType instead.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
 
-    <xsd:complexType name="ResourceObjectClassTypeDefinitionType" abstract="true">
+    <xsd:complexType name="ResourceObjectTypeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines a type from the resource schema (object class)
@@ -2516,7 +2522,15 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string"/>
+        	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
+        	<xsd:element name="intent" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			DEPRECATED. Use "intent" instead.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false">
@@ -2561,6 +2575,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of activation handling for this account type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="credentials" minOccurs="0" type="tns:ResourceCredentialsDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of credentials handling for this account type.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2665,43 +2686,6 @@
                 </xsd:annotation>
             </xsd:element>
     	</xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="ResourceAccountTypeDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Defines a type from the resource schema (object class)
-                that can be used for creating accounts.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-        	<xsd:extension base="tns:ResourceObjectClassTypeDefinitionType">
-		        <xsd:sequence>
-		            <xsd:element name="credentials" minOccurs="0" type="tns:ResourceCredentialsDefinitionType">
-		                <xsd:annotation>
-		                    <xsd:documentation>
-		                        Definition of credentials handling for this account type.
-		                    </xsd:documentation>
-		                </xsd:annotation>
-		            </xsd:element>
-		        </xsd:sequence>
-        	</xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ResourceEntitlementTypeDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Defines a type from the resource schema (object class)
-                that can be used for using entitlements.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-        	<xsd:extension base="tns:ResourceObjectClassTypeDefinitionType">
-		        <xsd:sequence>
-		        </xsd:sequence>        	
-        	</xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceAttributeDefinitionType">
