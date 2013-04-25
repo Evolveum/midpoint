@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -410,28 +411,24 @@ public class PageUsers extends PageAdminUsers {
             List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-            if (normalizer == null) {
-                normalizer = new PrismDefaultPolyStringNormalizer();
-            }
-
             String normalizedString = normalizer.normalize(dto.getSearchText());
 
             if (dto.isName()) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_NAME, normalizedString));
+                        UserType.F_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
 
             if (dto.isFamilyName()) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_FAMILY_NAME, normalizedString));
+                        UserType.F_FAMILY_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
             if (dto.isFullName()) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_FULL_NAME, normalizedString));
+                        UserType.F_FULL_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
             if (dto.isGivenName()) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_GIVEN_NAME, normalizedString));
+                        UserType.F_GIVEN_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
 
             if (filters.size() == 1) {

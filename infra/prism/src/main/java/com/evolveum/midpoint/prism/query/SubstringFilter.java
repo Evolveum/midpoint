@@ -37,10 +37,14 @@ public class SubstringFilter extends StringValueFilter {
 	}
 	
 	public static SubstringFilter createSubstring(Class clazz, PrismContext prismContext, QName propertyName, String value) {
-		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-		ItemDefinition itemDef = objDef.findItemDefinition(propertyName);
-		return new SubstringFilter(null, itemDef, value);
+		return createSubstring(clazz, prismContext, propertyName, null, value);
 	}
+
+    public static SubstringFilter createSubstring(Class clazz, PrismContext prismContext, QName propertyName, String matchingRule, String value) {
+        PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+        ItemDefinition itemDef = objDef.findItemDefinition(propertyName);
+        return new SubstringFilter(null, itemDef, matchingRule, value);
+    }
 
 	@Override
 	public SubstringFilter clone() {
