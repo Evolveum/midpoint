@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm">
+        <select wicket:id="resources"/>
+
+        <a style="margin: 0 10px;" wicket:id="listSyncDetails">List sync details</a>
+        <a wicket:id="export">Export accounts</a>
+
+        <table style="margin-top: 10px;" border="1" cellpadding="2" cellspacing="2">
+            <tr>
+                <td>TOTAL</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>DELETED</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>UNMATCHED</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>DISPUTED</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>LINKED</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>UNLINKED</td>
+                <td></td>
+            </tr>
+        </table>
+
+        <table style="margin-top: 10px;" border="1" cellpadding="2" cellspacing="2">
+            <thead>
+            <tr>
+                <th>oid</th>
+                <th>name</th>
+                <th>situation</th>
+                <th>timestamp</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th><span /></th>
+                <th><span /></th>
+                <th><span /></th>
+                <th><span /></th>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+</wicket:extend>
+</body>
+</html>

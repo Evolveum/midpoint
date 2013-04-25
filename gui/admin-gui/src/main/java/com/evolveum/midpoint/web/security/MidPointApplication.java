@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 import com.evolveum.midpoint.web.page.admin.help.PageSystem;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
+import com.evolveum.midpoint.web.page.admin.internal.PageAccounts;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
@@ -178,6 +179,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         mount(new MountedMapper("/admin/about/midPoint", PageAbout.class, encoder));
         mount(new MountedMapper("/admin/about/system", PageSystem.class, encoder));
+
+        mount(new MountedMapper("/admin/internal/accounts", PageAccounts.class, encoder));
 
         //todo design error pages...
         //error pages
