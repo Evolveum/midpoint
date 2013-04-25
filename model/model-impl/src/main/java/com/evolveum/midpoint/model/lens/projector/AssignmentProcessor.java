@@ -148,37 +148,37 @@ public class AssignmentProcessor {
     	
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
         AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(accountSynchronizationSettings);
-        if (globalAssignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
-        	
-            // No assignment enforcement. Skip the entire processing. Just "fake" the synchronization policy decisions.
-            
-        	LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
-
-            // We need to fake assignment processing a bit ...
-            for (LensProjectionContext<ShadowType> accCtx : context.getProjectionContexts()) {
-            	// mark all accounts as active, so they will be synchronized as expected
-                accCtx.setActive(true);
-                if (accCtx.getSynchronizationPolicyDecision() == null) {
-                	SynchronizationPolicyDecision syncIntent = null;
-                	if (accCtx.getSynchronizationIntent() != null) {
-                		syncIntent = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
-                	}
-                	if (syncIntent == null) {
-                    	// guess policy decision
-                    	if (accCtx.isAdd()) {
-                    		syncIntent = SynchronizationPolicyDecision.ADD;
-                    	} else if (accCtx.isDelete()) {
-                    		syncIntent = SynchronizationPolicyDecision.DELETE;
-                    	} else {
-                    		syncIntent = SynchronizationPolicyDecision.KEEP;
-                    	}
-                	}
-                	accCtx.setSynchronizationPolicyDecision(syncIntent);
-                }
-            }
-
-            return;
-        }
+//        if (globalAssignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
+//        	
+//            // No assignment enforcement. Skip the entire processing. Just "fake" the synchronization policy decisions.
+//            
+//        	LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
+//
+//            // We need to fake assignment processing a bit ...
+//            for (LensProjectionContext<ShadowType> accCtx : context.getProjectionContexts()) {
+//            	// mark all accounts as active, so they will be synchronized as expected
+//                accCtx.setActive(true);
+//                if (accCtx.getSynchronizationPolicyDecision() == null) {
+//                	SynchronizationPolicyDecision syncIntent = null;
+//                	if (accCtx.getSynchronizationIntent() != null) {
+//                		syncIntent = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
+//                	}
+//                	if (syncIntent == null) {
+//                    	// guess policy decision
+//                    	if (accCtx.isAdd()) {
+//                    		syncIntent = SynchronizationPolicyDecision.ADD;
+//                    	} else if (accCtx.isDelete()) {
+//                    		syncIntent = SynchronizationPolicyDecision.DELETE;
+//                    	} else {
+//                    		syncIntent = SynchronizationPolicyDecision.KEEP;
+//                    	}
+//                	}
+//                	accCtx.setSynchronizationPolicyDecision(syncIntent);
+//                }
+//            }
+//
+//            return;
+//        }
         
         // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
         // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
@@ -389,14 +389,24 @@ public class AssignmentProcessor {
                 	// The account should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
                 	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
-                	markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.ADD);
-                	accountSyncContext.setAssigned(true);
-                	accountSyncContext.setActive(true);
+                	//TODO: the same for relative decision
+					if (AssignmentPolicyEnforcementType.NONE == accountSyncContext
+							.getAssignmentPolicyEnforcementType()) {
+						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.IGNORE);
+					} else {
+						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.ADD);
+						accountSyncContext.setAssigned(true);
+						accountSyncContext.setActive(true);
+					}
                 } else {
                 	// The account existed before the change and should still exist
-	                accountSyncContext.setAssigned(true);
-	                accountSyncContext.setActive(true);
-	                markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.KEEP);
+                	if (AssignmentPolicyEnforcementType.NONE == accountSyncContext.getAssignmentPolicyEnforcementType()){
+                		chooseDesicionAccordingToDelta(accountSyncContext);
+					} else {
+						accountSyncContext.setAssigned(true);
+						accountSyncContext.setActive(true);
+						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.KEEP);
+					}
                 }
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
@@ -413,8 +423,13 @@ public class AssignmentProcessor {
             		LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
             	} else {
-            		LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
-            		markPolicyDecision(accountContext, SynchronizationPolicyDecision.ADD);
+					LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(
+							context, rat);
+					if (AssignmentPolicyEnforcementType.NONE == accountContext.getAssignmentPolicyEnforcementType()) {
+						chooseDesicionAccordingToDelta(accountContext);
+					} else {
+						markPolicyDecision(accountContext, SynchronizationPolicyDecision.ADD);
+					}
             	}
                 context.findProjectionContext(rat).setAssigned(true);
                 context.findProjectionContext(rat).setActive(true);
@@ -423,7 +438,7 @@ public class AssignmentProcessor {
             	if (accountExists(context,rat)) {
             		LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountContext.getAssignmentPolicyEnforcementType();
-            		// TODO: check for MARK and LEGALIZE enforcement policies
+            		// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
             		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL) {
 	                	accountContext.setAssigned(false);
 	                	accountContext.setActive(false);
@@ -431,6 +446,8 @@ public class AssignmentProcessor {
 	                    markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
             		} else {
             			if (accountContext.isDelete()) {
+            				accountContext.setAssigned(false);
+    	                	accountContext.setActive(false);
             				markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
             			} else {
             				markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
@@ -460,7 +477,8 @@ public class AssignmentProcessor {
 
         }
         
-        finishProplicyDecisions(context);
+        removeIgnoredContexts(context);
+        finishPolicyDecisions(context);
         
     }
     
@@ -523,7 +541,7 @@ public class AssignmentProcessor {
 	/**
 	 * Set policy decisions for the accounts that does not have it already
 	 */
-	private void finishProplicyDecisions(LensContext<UserType,ShadowType> context) throws PolicyViolationException {
+	private void finishPolicyDecisions(LensContext<UserType,ShadowType> context) throws PolicyViolationException {
 		for (LensProjectionContext<ShadowType> accountContext: context.getProjectionContexts()) {
 			if (accountContext.getSynchronizationPolicyDecision() != null) {
 				// already have decision
@@ -539,6 +557,7 @@ public class AssignmentProcessor {
 					return;
 				}
 			}
+			
 			if (accountContext.getSynchronizationIntent() != null) {
 				SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationIntent().toSynchronizationPolicyDecision();
 				if (policyDecision != null) {
@@ -555,6 +574,21 @@ public class AssignmentProcessor {
 				}
 			}
 			// TODO: other cases?
+			chooseDesicionAccordingToDelta(accountContext);
+			
+		}
+		
+	}
+
+	private <P extends ObjectType> void chooseDesicionAccordingToDelta(LensProjectionContext<P> accountContext) {
+		if (accountContext.getSynchronizationPolicyDecision() == null){
+			if (accountContext.isAdd()){
+				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.ADD);
+			} else if (accountContext.isDelete()){
+				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+			} else {
+				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+			}
 		}
 		
 	}
@@ -607,6 +641,9 @@ public class AssignmentProcessor {
 	public <F extends ObjectType, P extends ObjectType> void checkForAssignmentConflicts(LensContext<F,P> context, 
 			OperationResult result) throws PolicyViolationException {
 		for(LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()){
+				continue;
+			}
 			if (projectionContext.isAssigned()) {
 				ObjectDelta<P> projectionPrimaryDelta = projectionContext.getPrimaryDelta();
 				if (projectionPrimaryDelta != null) {
@@ -736,6 +773,19 @@ public class AssignmentProcessor {
 			if (roleB.getOid().equals(targetRef.getOid())) {
 				throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
 						", they cannot be assigned at the same time");
+			}
+		}
+	}
+	
+
+	public <F extends ObjectType, P extends ObjectType> void removeIgnoredContexts(LensContext<F, P> context) {
+		Collection<LensProjectionContext<P>> projectionContexts = context.getProjectionContexts();
+		Iterator<LensProjectionContext<P>> projectionIterator = projectionContexts.iterator();
+		while (projectionIterator.hasNext()) {
+			LensProjectionContext<P> projectionContext = projectionIterator.next();
+			
+			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+				projectionIterator.remove();
 			}
 		}
 	}

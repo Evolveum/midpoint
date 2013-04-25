@@ -55,8 +55,14 @@ public enum SynchronizationPolicyDecision {
 	 * not exist any more, resource does not exists any more, etc.
 	 * Such account link will be removed.
 	 */
-	BROKEN;
+	BROKEN,
 
+	/**
+	 * The account is not usable. Context was created, but the account will be skipped.
+	 * this is used only for evaluation assigment and the assigment policies
+	 */
+	IGNORE;
+	
     public SynchronizationPolicyDecisionType toSynchronizationPolicyDecisionType() {
         switch (this) {
             case ADD: return SynchronizationPolicyDecisionType.ADD;

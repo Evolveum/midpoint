@@ -1184,7 +1184,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTile(this, "test149ModifyUserJackDeleteAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackUnassignAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackDeleteAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();

@@ -374,7 +374,8 @@ public class ContextLoader {
 			}
 			LensProjectionContext<ShadowType> existingAccountContext = findAccountContext(oid, context);
 			if (existingAccountContext != null) {
-				// TODO: do we need to reload the account inside here?
+				// TODO: do we need to reload the account inside here? yes we need
+				
 				existingAccountContext.setFresh(true);
 				continue;
 			}
@@ -671,10 +672,15 @@ public class ContextLoader {
 		if (resourceOid == null) {
 			throw new SchemaException("The " + account + " has null resource reference OID");
 		}
-		String intent = ShadowUtil.getIntent(accountType);
-		LensProjectionContext<ShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, resourceOid,
-				intent, provisioningService, prismContext, result);
-		accountSyncContext.setOid(account.getOid());
+		
+		LensProjectionContext<ShadowType> accountSyncContext = context.findProjectionContextByOid(accountType.getOid());
+		
+		if (accountSyncContext == null) {
+			String intent = ShadowUtil.getIntent(accountType);
+			accountSyncContext = LensUtil.getOrCreateAccountContext(context, resourceOid, intent, provisioningService,
+					prismContext, result);
+			accountSyncContext.setOid(account.getOid());
+		}
 		return accountSyncContext;
 	}
 	
