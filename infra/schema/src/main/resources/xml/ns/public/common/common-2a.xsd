@@ -5829,6 +5829,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="cleanupPolicy" type="tns:CleanupPoliciesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration of cleanup intervals.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     
                 </xsd:sequence>
             </xsd:extension>
@@ -6566,6 +6573,29 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+	<xsd:complexType name="CleanupPoliciesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of cleanup intervals and policies for various midPoint subsystems.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="auditRecords" type="tns:CleanupPolicyType" minOccurs="0"/>
+            <xsd:element name="closedTasks" type="tns:CleanupPolicyType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="CleanupPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of cleanup intervals and policies for a specific subsystem or feature.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="maxAge" type="xsd:duration" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <!-- Things relevant to model context serialization - more precisely, those parts that are publicly visible
 (i.e. their java counterparts are - or could be - contained in model-api) -->

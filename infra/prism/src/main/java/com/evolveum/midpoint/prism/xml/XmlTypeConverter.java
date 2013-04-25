@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
@@ -141,6 +142,8 @@ public class XmlTypeConverter {
             return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
         	return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent);
+        } else if (Duration.class.isAssignableFrom(type)) {
+        	return (T) getDatatypeFactory().newDuration(stringContent);
         } else if (type.equals(PolyString.class)) {
         	return (T) new PolyString(stringContent);
         } else {
@@ -301,6 +304,8 @@ public class XmlTypeConverter {
             return xmlCal.toXMLFormat();
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
         	return ((XMLGregorianCalendar) val).toXMLFormat();
+        } else if (Duration.class.isAssignableFrom(type)) {
+        	return ((Duration) val).toString();
         } else {
             throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
         }

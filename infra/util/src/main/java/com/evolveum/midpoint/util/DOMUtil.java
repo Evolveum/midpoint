@@ -114,6 +114,8 @@ public class DOMUtil {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_DURATION = new QName(W3C_XML_SCHEMA_NS_URI, "duration",
+			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_BYTE = new QName(W3C_XML_SCHEMA_NS_URI, "byte",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName", NS_W3C_XML_SCHEMA_PREFIX);

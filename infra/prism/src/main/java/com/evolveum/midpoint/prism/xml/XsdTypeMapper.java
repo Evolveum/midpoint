@@ -20,32 +20,26 @@
  */
 package com.evolveum.midpoint.prism.xml;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.XMLConstants;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Maintains mapping of XSD types (qnames) and Java types (classes)
@@ -90,6 +84,8 @@ public class XsdTypeMapper {
         addMapping(byte[].class, DOMUtil.XSD_BASE64BINARY, true);
         addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
+        addMapping(Duration.class, DOMUtil.XSD_DURATION, true);
+        
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
         
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
