@@ -56,7 +56,8 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <intercept-url pattern="/login" access="permitAll"/>
         <intercept-url pattern="/**" access="isAuthenticated()"/>
 
-        <logout logout-url="/j_spring_security_logout" invalidate-session="true"/>
+        <logout logout-url="/j_spring_security_logout" invalidate-session="true"
+                success-handler-ref="logoutHandler"/>
 
         <session-management>
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
@@ -65,6 +66,7 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <form-login login-page="/login" default-target-url="/home" />
     </http>
 
+    <beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler" />
 
     <beans:bean id="midPointAuthenticationProvider"
                 class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">

@@ -88,7 +88,9 @@ public class LoggerAuditServiceImpl implements AuditService {
 				", TO=" + formatObject(record.getTargetOwner()) + 
 				", D=" + formatDeltaSummary(record.getDeltas()) + 
 				", ch=" + record.getChannel() +
-				", o=" + record.getOutcome();
+                ", o=" + record.getOutcome() +
+                ", p=" + record.getParameter() +
+                ", m=" + record.getMessage();
 	}
 	
 
