@@ -125,12 +125,15 @@ public interface RepositoryService {
     String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
+    @Deprecated
     String CLAIM_TASK = CLASS_NAME_WITH_DOT + "claimTask";
+    @Deprecated
     String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
     String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
+    String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
 
 	/**
 	 * Returns object for provided OID.

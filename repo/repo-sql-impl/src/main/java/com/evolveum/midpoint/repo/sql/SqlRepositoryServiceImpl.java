@@ -701,7 +701,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
-
 	}
 
 	private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
@@ -1311,19 +1310,68 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getVersion(java.lang.Class, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(oid, "Object oid must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.repo.api.RepositoryService#searchObjectsIterative(java.lang.Class, com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-			ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
-		// TODO Auto-generated method stub
-		
-	}
+        LOGGER.debug("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+
+        OperationResult subResult = parentResult.createSubresult(GET_VERSION);
+        subResult.addParam("type", type.getName());
+        subResult.addParam("oid", oid);
+
+        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(GET_VERSION);
+
+        final String operation = "getting version";
+        int attempt = 1;
+        try {
+            while (true) {
+                try {
+                    return getVersionAttempt(type, oid, subResult);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
+    }
+
+    private <T extends ObjectType> String getVersionAttempt(Class<T> type, String oid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        String version = null;
+        Session session = null;
+        try {
+            session = beginReadOnlyTransaction();
+            Query query = session.createQuery("select o.version from " + ClassMapper.getHQLType(type)
+                    + " as o where o.id = 0 and o.oid = :oid");
+            query.setString("oid", oid);
+
+            version = (String) query.uniqueResult();
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, result);
+        } finally {
+            cleanupSessionAndResult(session, result);
+        }
+
+        return version;
+    }
+
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.repo.api.RepositoryService#searchObjectsIterative(java.lang.Class,
+     * com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler,
+     * com.evolveum.midpoint.schema.result.OperationResult)
+     */
+    @Override
+    public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+                                                              ResultHandler<T> handler, OperationResult parentResult)
+            throws SchemaException {
+
+        //todo implement
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
 }

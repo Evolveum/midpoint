@@ -62,6 +62,13 @@ public class RSystemConfiguration extends RObject {
     private REmbeddedReference defaultUserTemplateRef;
     private String connectorFramework;
     private String notificationConfiguration;
+    private String cleanupPolicy;
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getCleanupPolicy() {
+        return cleanupPolicy;
+    }
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
@@ -157,6 +164,10 @@ public class RSystemConfiguration extends RObject {
         this.notificationConfiguration = notificationConfiguration;
     }
 
+    public void setCleanupPolicy(String cleanupPolicy) {
+        this.cleanupPolicy = cleanupPolicy;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -166,19 +177,27 @@ public class RSystemConfiguration extends RObject {
         RSystemConfiguration that = (RSystemConfiguration) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (connectorFramework != null ? !connectorFramework.equals(that.connectorFramework) : that.connectorFramework != null)
+        if (connectorFramework != null ? !connectorFramework.equals(that.connectorFramework) :
+                that.connectorFramework != null)
             return false;
-        if (defaultUserTemplateRef != null ? !defaultUserTemplateRef.equals(that.defaultUserTemplateRef) : that.defaultUserTemplateRef != null)
+        if (defaultUserTemplateRef != null ? !defaultUserTemplateRef.equals(that.defaultUserTemplateRef) :
+                that.defaultUserTemplateRef != null)
             return false;
-        if (globalPasswordPolicyRef != null ? !globalPasswordPolicyRef.equals(that.globalPasswordPolicyRef) : that.globalPasswordPolicyRef != null)
+        if (globalPasswordPolicyRef != null ? !globalPasswordPolicyRef.equals(that.globalPasswordPolicyRef) :
+                that.globalPasswordPolicyRef != null)
             return false;
-        if (globalAccountSynchronizationSettings != null ? !globalAccountSynchronizationSettings.equals(that.globalAccountSynchronizationSettings) : that.globalAccountSynchronizationSettings != null)
+        if (globalAccountSynchronizationSettings != null ?
+                !globalAccountSynchronizationSettings.equals(that.globalAccountSynchronizationSettings) :
+                that.globalAccountSynchronizationSettings != null)
             return false;
         if (orgRootRef != null ? !orgRootRef.equals(that.orgRootRef) : that.orgRootRef != null)
             return false;
         if (logging != null ? !logging.equals(that.logging) : that.logging != null) return false;
         if (modelHooks != null ? !modelHooks.equals(that.modelHooks) : that.modelHooks != null) return false;
-        if (notificationConfiguration != null ? !notificationConfiguration.equals(that.notificationConfiguration) : that.notificationConfiguration != null)
+        if (notificationConfiguration != null ? !notificationConfiguration.equals(that.notificationConfiguration)
+                : that.notificationConfiguration != null)
+            return false;
+        if (cleanupPolicy != null ? !cleanupPolicy.equals(that.cleanupPolicy) : that.cleanupPolicy != null)
             return false;
 
         return true;
@@ -188,13 +207,15 @@ public class RSystemConfiguration extends RObject {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (globalAccountSynchronizationSettings != null ? globalAccountSynchronizationSettings.hashCode() : 0);
+        result = 31 * result + (globalAccountSynchronizationSettings != null ?
+                globalAccountSynchronizationSettings.hashCode() : 0);
         result = 31 * result + (globalPasswordPolicyRef != null ? globalPasswordPolicyRef.hashCode() : 0);
         result = 31 * result + (orgRootRef != null ? orgRootRef.hashCode() : 0);
         result = 31 * result + (modelHooks != null ? modelHooks.hashCode() : 0);
         result = 31 * result + (notificationConfiguration != null ? notificationConfiguration.hashCode() : 0);
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
         result = 31 * result + (connectorFramework != null ? connectorFramework.hashCode() : 0);
+        result = 31 * result + (cleanupPolicy != null ? cleanupPolicy.hashCode() : 0);
         return result;
     }
 
@@ -217,18 +238,30 @@ public class RSystemConfiguration extends RObject {
         }
 
         try {
-            jaxb.setConnectorFramework(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_CONNECTOR_FRAMEWORK),
-                    repo.getConnectorFramework(), ConnectorFrameworkType.class, prismContext));
+            jaxb.setConnectorFramework(RUtil.toJAXB(SystemConfigurationType.class,
+                    new ItemPath(SystemConfigurationType.F_CONNECTOR_FRAMEWORK),
+                    repo.getConnectorFramework(),
+                    ConnectorFrameworkType.class, prismContext));
             jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(SystemConfigurationType.class,
                     new ItemPath(SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS),
                     repo.getGlobalAccountSynchronizationSettings(), AccountSynchronizationSettingsType.class,
                     prismContext));
-            jaxb.setLogging(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_LOGGING),
-                    repo.getLogging(), LoggingConfigurationType.class, prismContext));
-            jaxb.setModelHooks(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_MODEL_HOOKS),
-                    repo.getModelHooks(), ModelHooksType.class, prismContext));
-            jaxb.setNotificationConfiguration(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION),
-                    repo.getNotificationConfiguration(), NotificationConfigurationType.class, prismContext));
+            jaxb.setLogging(RUtil.toJAXB(SystemConfigurationType.class,
+                    new ItemPath(SystemConfigurationType.F_LOGGING),
+                    repo.getLogging(),
+                    LoggingConfigurationType.class, prismContext));
+            jaxb.setModelHooks(RUtil.toJAXB(SystemConfigurationType.class,
+                    new ItemPath(SystemConfigurationType.F_MODEL_HOOKS),
+                    repo.getModelHooks(),
+                    ModelHooksType.class, prismContext));
+            jaxb.setNotificationConfiguration(RUtil.toJAXB(SystemConfigurationType.class,
+                    new ItemPath(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION),
+                    repo.getNotificationConfiguration(),
+                    NotificationConfigurationType.class, prismContext));
+            jaxb.setCleanupPolicy(RUtil.toJAXB(SystemConfigurationType.class,
+                    new ItemPath(SystemConfigurationType.F_CLEANUP_POLICY),
+                    repo.getCleanupPolicy(),
+                    CleanupPoliciesType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -264,6 +297,8 @@ public class RSystemConfiguration extends RObject {
             repo.setLogging(RUtil.toRepo(jaxb.getLogging(), prismContext));
             repo.setModelHooks(RUtil.toRepo(jaxb.getModelHooks(), prismContext));
             repo.setNotificationConfiguration(RUtil.toRepo(jaxb.getNotificationConfiguration(), prismContext));
+
+            repo.setCleanupPolicy(RUtil.toRepo(jaxb.getCleanupPolicy(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

@@ -1004,58 +1004,71 @@
         </schema>
     </object>
 
-<!--  it's commented because it will be tested separatelly in the test -->
-<!--     <object xsi:type="SystemConfigurationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#"> -->
-<!--         <name>SystemConfiguration</name> -->
-<!--         <logging> -->
-<!--             <subSystemLogger> -->
-<!--                 <level>INFO</level> -->
-<!--                 <component>MODEL</component> -->
-<!--             </subSystemLogger> -->
-<!--             <subSystemLogger> -->
-<!--                 <level>INFO</level> -->
-<!--                 <component>PROVISIONING</component> -->
-<!--             </subSystemLogger> -->
-<!--             <subSystemLogger> -->
-<!--                 <level>INFO</level> -->
-<!--                 <component>REPOSITORY</component> -->
-<!--             </subSystemLogger> -->
-<!--             <subSystemLogger> -->
-<!--                 <level>INFO</level> -->
-<!--                 <component>WEB</component> -->
-<!--             </subSystemLogger> -->
-<!--             <subSystemLogger> -->
-<!--                 <level>INFO</level> -->
-<!--                 <component>TASKMANAGER</component> -->
-<!--             </subSystemLogger> -->
-<!--             <subSystemLogger> -->
-<!--                 <level>INFO</level> -->
-<!--                 <component>RESOURCEOBJECTCHANGELISTENER</component> -->
-<!--             </subSystemLogger> -->
-<!--             <subSystemLogger> -->
-<!--                 <level>INFO</level> -->
-<!--                 <component>ALL</component> -->
-<!--             </subSystemLogger> -->
-<!--             <classLogger> -->
-<!--                 <level>OFF</level> -->
-<!--                 <package>PROFILING</package> -->
-<!--             </classLogger> -->
-<!--             <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG"> -->
-<!--                 <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern> -->
-<!--                 <fileName>${catalina.base}/logs/idm.log</fileName> -->
-<!--                 <filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</filePattern> -->
-<!--                 <maxHistory>10</maxHistory> -->
-<!--                 <maxFileSize>100MB</maxFileSize> -->
-<!--                 <append>true</append> -->
-<!--             </appender> -->
-<!--             <rootLoggerAppender>IDM_LOG</rootLoggerAppender> -->
-<!--             <rootLoggerLevel>INFO</rootLoggerLevel> -->
-<!--             <auditing> -->
-<!--                 <enabled>false</enabled> -->
-<!--                 <details>false</details> -->
-<!--             </auditing> -->
-<!--         </logging> -->
-<!--     </object> -->
+     <object xsi:type="SystemConfigurationType"
+             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+             xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
+             xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+             xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+         <name>SystemConfiguration123</name>
+         <logging>
+             <subSystemLogger>
+                 <level>INFO</level>
+                 <component>MODEL</component>
+             </subSystemLogger>
+             <subSystemLogger>
+                 <level>INFO</level>
+                 <component>PROVISIONING</component>
+             </subSystemLogger>
+             <subSystemLogger>
+                 <level>INFO</level>
+                 <component>REPOSITORY</component>
+             </subSystemLogger>
+             <subSystemLogger>
+                 <level>INFO</level>
+                 <component>WEB</component>
+             </subSystemLogger>
+             <subSystemLogger>
+                 <level>INFO</level>
+                 <component>TASKMANAGER</component>
+             </subSystemLogger>
+             <subSystemLogger>
+                 <level>INFO</level>
+                 <component>RESOURCEOBJECTCHANGELISTENER</component>
+             </subSystemLogger>
+             <subSystemLogger>
+                 <level>INFO</level>
+                 <component>ALL</component>
+             </subSystemLogger>
+             <classLogger>
+                 <level>OFF</level>
+                 <package>PROFILING</package>
+             </classLogger>
+             <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG">
+                 <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+                 <fileName>${catalina.base}/logs/idm.log</fileName>
+                 <filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
+                 <maxHistory>10</maxHistory>
+                 <maxFileSize>100MB</maxFileSize>
+                 <append>true</append>
+             </appender>
+             <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
+             <rootLoggerLevel>INFO</rootLoggerLevel>
+             <auditing>
+                 <enabled>false</enabled>
+                 <details>false</details>
+             </auditing>
+         </logging>
+         <cleanupPolicy>
+             <auditRecords>
+                 <maxAge>P5Y2M10D</maxAge>
+             </auditRecords>
+             <closedTasks>
+                 <maxAge>P4Y1M9D</maxAge>
+             </closedTasks>
+         </cleanupPolicy>
+     </object>
 
     <object xsi:type="ConnectorHostType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>ICF Connector server on admachine:8759</name>
