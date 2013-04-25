@@ -602,10 +602,10 @@ public class ResourceManager {
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition
 							.findAttributeDefinition(attributeName);
 					if (attributeDefinition != null) {
-						if (ignore != null && ignore.booleanValue()) {
-							attributeDefinition.setIgnored(true);
-						} else {
+						if (ignore != null && !ignore.booleanValue()) {
 							attributeDefinition.setIgnored(false);
+						} else {
+							attributeDefinition.setIgnored(true);
 						}
 					} else {
 						// simulated activation attribute points to something
