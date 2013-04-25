@@ -792,12 +792,68 @@ public class ResourceObjectConverter {
 						enabled, objectClassDefinition);
 				return activationAttribute;
 			} else {
-				// Navive activation, nothing special to do
+				// Navive activation, need to check if there is not also change to simulated activation which may be in conflict
+				checkSimulatedActivation(objectChange, enabled, shadow, resource, objectClassDefinition);
 				return new PropertyModificationOperation(enabledPropertyDelta);
 			}
 
 		}
 		return null;
+	}
+	
+	private void checkSimulatedActivation(Collection<? extends ItemDelta> objectChange, Boolean enabled, ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException{
+		if (!ResourceTypeUtil.hasResourceConfiguredActivationCapability(resource)) {
+			//nothing to do, resource does not have simulated activation, so there can be no conflict, continue in processing
+			return;
+		}
+		
+		OperationResult result = new OperationResult("Modify activation attribute.");
+		
+		ResourceAttribute<?> activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
+		if (activationAttribute == null){
+			return;
+		}
+		
+		PropertyDelta simulatedActivationDelta = PropertyDelta.findPropertyDelta(objectChange, activationAttribute.getPath());
+		PrismProperty simulatedAcviationProperty = simulatedActivationDelta.getPropertyNew();
+		Collection realValues = simulatedAcviationProperty.getRealValues();
+		if (realValues.isEmpty()){
+			//nothing to do, no value for simulatedActivation
+			return;
+		}
+		
+		if (realValues.size() > 1){
+			throw new SchemaException("Found more than one value for simulated activation.");
+		}
+		
+		Object simluatedActivationValue = realValues.iterator().next();
+		boolean transformedValue = getTransformedValue(shadow, resource, simluatedActivationValue, result);
+		
+		if (transformedValue && enabled){
+			//this is ok, simulated value and also value for native capability resulted to the same vale
+		} else{
+			throw new SchemaException("Found conflicting change for activation. Simulated activation resulted to " + transformedValue +", but native activation resulted to " + enabled);
+		}
+		
+	}
+	
+	private boolean getTransformedValue(ShadowType shadow, ResourceType resource, Object simulatedValue, OperationResult result) throws SchemaException{
+		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
+		List<String> disableValues = enableDisable.getDisableValue();
+		for (String disable : disableValues){
+			if (disable.equals(simulatedValue)){
+				return false; 
+			}
+		}
+		
+		List<String> enableValues = enableDisable.getEnableValue();
+		for (String enable : enableValues){
+			if (enable.equals(simulatedValue)){
+				return true;
+			}
+		}
+		
+		throw new SchemaException("Could not map value for simulated activation: " + simulatedValue + " neither to enable nor disable values.");		
 	}
 	
 	private void checkActivationAttribute(ShadowType shadow, ResourceType resource,

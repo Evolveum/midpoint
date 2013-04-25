@@ -589,6 +589,7 @@ public class ResourceManager {
 				.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
 		if (activationCapability != null && activationCapability.getEnableDisable() != null) {
 			QName attributeName = activationCapability.getEnableDisable().getAttribute();
+			Boolean ignore = activationCapability.getEnableDisable().isIgnoreAttribute();
 			if (attributeName != null) {
 				// The attribute used for enable/disable simulation should be
 				// ignored in the schema
@@ -601,7 +602,11 @@ public class ResourceManager {
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition
 							.findAttributeDefinition(attributeName);
 					if (attributeDefinition != null) {
-						attributeDefinition.setIgnored(true);
+						if (ignore != null && ignore.booleanValue()) {
+							attributeDefinition.setIgnored(true);
+						} else {
+							attributeDefinition.setIgnored(false);
+						}
 					} else {
 						// simulated activation attribute points to something
 						// that

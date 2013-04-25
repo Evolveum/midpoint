@@ -228,6 +228,20 @@ public class ResourceTypeUtil {
 		}
 		return true;
 	}
+	
+	public static boolean hasResourceConfiguredActivationCapability(ResourceType resource) {
+		if (resource.getCapabilities() == null) {
+			return false;
+		}
+		if (resource.getCapabilities().getConfigured() != null) {
+			ActivationCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
+			if (configuredCapability != null) {
+				return true;
+			}
+			// No configured capability entry, fallback to native capability
+		}
+		return false;
+	}
 
 	public static ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType(
 			ResourceType resource, String accountType) {
