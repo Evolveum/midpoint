@@ -53,6 +53,8 @@ ul.messagesTop li, ul.tempMessagesTop li {
 
 ul.messagesTop ul li, ul.tempMessagesTop ul li {
 	padding: 1px 0px;
+    text-overflow: ellipsis;
+    overflow: auto;
 }
 
 ul.messagesTop .messages-details {
