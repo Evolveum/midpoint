@@ -2713,9 +2713,6 @@
                 This is supposed to be used in schemaHandling part and therefore
                 describe the decisions of the system administrator about the
                 way how that attribute is used in midPoint.
-
-                This is supposed to be used only in schemaHandling. It is not a reusable
-                data structure now (composition).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -3100,6 +3097,13 @@
      	<xsd:annotation>
      		<xsd:documentation>
      			Describes how entitlement is associated to the subject (e.g. account or other entitlement).
+     			
+     			Description of the entitlement handling details, such as display name,
+                read/write access and so on.
+
+                This is supposed to be used in schemaHandling part and in assignments/inducements
+                and therefore it describes the decisions of the system administrator about the
+                way how entitlements are used in midPoint.
      		</xsd:documentation>
      	</xsd:annotation>
      	<xsd:sequence>
@@ -3112,6 +3116,7 @@
      		<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
      	</xsd:sequence>
      </xsd:complexType>
+    
      
      <xsd:simpleType name="ResourceEntitlementAssociationDirectionType">
         <xsd:annotation>
@@ -5271,7 +5276,7 @@
             <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Account attribute values implied by this role.
+                        Resource object attribute values implied by this role.
                         When the role is assigned the attributes specified
                         below should be assigned values specified below.
                     </xsd:documentation>
