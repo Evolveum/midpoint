@@ -76,8 +76,9 @@
 	
 	<schemaHandling>
         
-    	<accountType>
-            <name>default</name>
+    	<objectType>
+    		<kind>account</kind>
+            <intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
@@ -94,13 +95,14 @@
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
-        </accountType>
+        </objectType>
         
-        <entitlementType>
-            <name>ldapGroup</name>
+        <objectType>
+        	<kind>entitlement</kind>
+            <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:GroupObjectClass</objectClass>
-        </entitlementType>
+        </objectType>
                 
 	</schemaHandling>
 	
