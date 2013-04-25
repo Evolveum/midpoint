@@ -259,7 +259,11 @@ function setupFunc() {
 	hideBusysign();
 
     Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attributes, jqXHR, errorThrown, textStatus) {
-        showBusysign();
+        // This dropClickEvent(attributes) is here because of selectable data table checkbox.
+        // That checkbox trigger showBusysign but then event dropped in precondition and busy sign will not be hidden.
+        if (!dropClickEvent(attributes)) {
+            showBusysign();
+        }
     });
     Wicket.Event.subscribe('/ajax/call/after', function(jqEvent, attributes, jqXHR, errorThrown, textStatus) {
         hideBusysign();
