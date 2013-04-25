@@ -28,6 +28,8 @@ import java.io.Serializable;
  */
 public class SelectableBean<T extends Serializable> extends Selectable {
 
+    public static final String F_VALUE = "value";
+
     private T value;
 
     public SelectableBean() {
