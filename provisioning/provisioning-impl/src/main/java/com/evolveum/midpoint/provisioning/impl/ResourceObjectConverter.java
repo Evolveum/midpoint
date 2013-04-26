@@ -1059,8 +1059,11 @@ public class ResourceObjectConverter {
 		// TODO: make this optional
 		// Remove the attribute which is the source of simulated activation. If we leave it there then we
 		// will have two ways to set activation.
-		if (activationProperty != null) {
-			attributesContainer.remove(activationProperty);
+		if (activationCapability.getEnableDisable().isIgnoreAttribute() == null
+				|| activationCapability.getEnableDisable().isIgnoreAttribute().booleanValue()) {
+			if (activationProperty != null) {
+				attributesContainer.remove(activationProperty);
+			}
 		}
 		
 		return activation;
