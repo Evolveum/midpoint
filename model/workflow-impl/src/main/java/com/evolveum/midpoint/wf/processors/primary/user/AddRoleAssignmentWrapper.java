@@ -214,14 +214,16 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
             instruction.setSimple(false);
 
-            instruction.setTaskName(new PolyStringType("Workflow for approving adding " + roleName + " to " + userName));
+            instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+            String andExecuting = instruction.isExecuteImmediately() ? "and executing " : "";
+            instruction.setTaskName(new PolyStringType("Workflow for approving " + andExecuting + "adding " + roleName + " to " + userName));
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_NAME, "Adding " + roleName + " to " + userName);
 
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
 
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_ADDITIONAL_DATA, roleType);
-            instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+
 
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
             instruction.setDelta(delta);

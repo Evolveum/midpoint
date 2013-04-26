@@ -264,6 +264,16 @@ public class ProcessInstanceController {
 
             // passive tasks can be 'let go' at this point
             if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+
+                // similar code for passive tasks is in WfProcessShadowTaskHandler
+                // todo fix this
+                OperationResult taskResult = task.getResult();
+                if (result.isUnknown()) {
+                    result.computeStatus();
+                }
+                taskResult.recordStatus(result.getStatus(), result.getMessage(), result.getCause());
+                task.setResultImmediate(taskResult, result);
+
                 task.finishHandler(result);
 
                 // if the task was not closed ... (i.e. if there are other handler(s) on the stack)
@@ -334,25 +344,6 @@ public class ProcessInstanceController {
              */
 
             boolean recordStatus = true;
-//            String details = "";
-//
-//            if (event != null && pid != null) {
-//                PrimaryApprovalProcessWrapper wrapper = wfCore.findProcessWrapper(variables, pid, parentResult);
-//                if (wrapper != null) {
-//                    details = wrapper.getProcessSpecificDetailsForTask(pid, variables);
-//
-//                    String lastDetails = getLastDetails(task);
-//				    if (lastDetails != null) {
-//                        if (LOGGER.isTraceEnabled()) {
-//                            LOGGER.trace("currentDetails = " + details);
-//                            LOGGER.trace("lastDetails = " + lastDetails);
-//                        }
-//					    if (lastDetails.equals(details)) {
-//						    recordStatus = false;
-//					    }
-//				    }
-//			    }
-//            }
 
             if (recordStatus) {
 
@@ -363,34 +354,12 @@ public class ProcessInstanceController {
                     wfTaskUtil.addWfStatus(task, statusTsDt);
                 }
 
+
                 /*
                  * (5) Add Last Details information.
                  */
 
-//                PrismProperty wfLastDetailsProperty = wfLastDetailsPropertyDefinition.instantiate();
-//                PrismPropertyValue<String> newValue = new PrismPropertyValue<String>(details);
-//                wfLastDetailsProperty.setValue(newValue);
-//                task.setExtensionProperty(wfLastDetailsProperty);
-
-				/*
-				 * (6) Create an operationResult sub-result with the status line and details from wrapper
-				 */
-                OperationResult or = task.getResult();
-
-//				String ordump = or == null ? null : or.dump();
-//				LOGGER.info("-------------------------------------------------------------------");
-//				LOGGER.info("Original operation result: " + ordump);
-
-                if (or == null)
-                    or = new OperationResult("Task");
-
-                OperationResult sub = or.createSubresult(statusDt);
-//				sub.recordStatus(OperationResultStatus.SUCCESS, details);
-
-//				LOGGER.info("-------------------------------------------------------------------");
-//				LOGGER.info("Setting new operation result: " + or.dump());
-
-                task.setResult(or);
+                wfTaskUtil.setLastDetails(task, status);
             }
 
 
@@ -427,13 +396,7 @@ public class ProcessInstanceController {
         StringBuffer sb = new StringBuffer();
         boolean first = true;
 
-//		if (event.getAnswer() != null)
-//			sb.append("[answer from workflow: " + event.getAnswer() + "] ");
-
         Map<String,Object> variables = getVariablesSorted(event);
-//		for (WfProcessVariable var : event.getVariables())
-//			if (!var.getName().startsWith("midpoint"))
-//				variables.put(var.getName(), var.getValue());
 
         for (Map.Entry<String,Object> entry: variables.entrySet()) {
             if (!first)

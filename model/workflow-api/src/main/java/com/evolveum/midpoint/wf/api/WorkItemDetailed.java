@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -45,6 +46,7 @@ public class WorkItemDetailed extends WorkItem {
     private PrismObject<? extends ObjectType> requestSpecificData;    // data whose format is specific to the request (e.g. reason, ...)
     private PrismObject<? extends ObjectType> trackingData;           // general tracking data, e.g. IDs of related objects in activiti
     private PrismObject<? extends ObjectType> additionalData;         // additional data, e.g. the description of the role to be added
+    private ObjectDelta objectDelta;                                  // delta to be approved; generally, objectNew = objectOld + objectDelta
 
     public PrismObject<? extends ObjectType> getAdditionalData() {
         return additionalData;
@@ -94,4 +96,11 @@ public class WorkItemDetailed extends WorkItem {
         this.trackingData = trackingData;
     }
 
+    public ObjectDelta getObjectDelta() {
+        return objectDelta;
+    }
+
+    public void setObjectDelta(ObjectDelta objectDelta) {
+        this.objectDelta = objectDelta;
+    }
 }

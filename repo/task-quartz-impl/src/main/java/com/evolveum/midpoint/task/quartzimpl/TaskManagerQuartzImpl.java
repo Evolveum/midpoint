@@ -774,19 +774,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public List<String> getAllTaskCategories() {
 
-        List<String> retval = new ArrayList<String>();
+        Set<String> categories = new HashSet<String>();
         for (TaskHandler h : handlers.values()) {
             List<String> cat = h.getCategoryNames();
             if (cat != null) {
-                retval.addAll(cat);
+                categories.addAll(cat);
             } else {
                 String catName = h.getCategoryName(null);
                 if (catName != null) {
-                    retval.add(catName);
+                    categories.add(catName);
                 }
             }
         }
-        return retval;
+        return new ArrayList<String>(categories);
     }
 
     @Override

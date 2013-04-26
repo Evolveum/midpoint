@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -83,6 +84,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
     @Autowired
     transient ModelService model;
+    @Autowired
+    transient ModelInteractionService modelInteractionService;
     @Autowired
     transient PrismContext prismContext;
     @Autowired
@@ -253,6 +256,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public WorkflowService getWorkflowService() {
         return workflowService;
+    }
+
+    public ModelInteractionService getModelInteractionService() {
+        return modelInteractionService;
     }
 
     private static class ResourceFileFilter implements FilenameFilter {

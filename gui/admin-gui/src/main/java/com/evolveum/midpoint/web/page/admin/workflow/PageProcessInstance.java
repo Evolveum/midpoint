@@ -25,9 +25,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import org.apache.wicket.RestartResponseException;
@@ -60,7 +63,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
     public static final String PARAM_PROCESS_INSTANCE_BACK_ALL = "PageProcessInstancesAll";
     private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadProcessInstance";
 
-    private static final String ID_DETAILS = "details";
+    private static final String ID_PROCESS_INSTANCE_PANEL = "processInstancePanel";
 
     private IModel<ProcessInstanceDto> model;
 
@@ -72,8 +75,6 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
     public PageProcessInstance(final PageParameters parameters) {
 
-//        System.out.println("Received page parameters (constructor): ");
-//        dumpParameters(parameters);
         this.parameters = parameters;
 
         model = new LoadableModel<ProcessInstanceDto>(false) {
@@ -90,9 +91,6 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
     private ProcessInstanceDto loadProcessInstance() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
-
-//        System.out.println("Received page parameters (loadProcessInstance): ");
-//        dumpParameters(parameters);
 
         StringValue back = parameters.get(PARAM_PROCESS_INSTANCE_BACK);
 		try {
@@ -113,58 +111,16 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
 	}
 
-//    private void dumpParameters(PageParameters parameters) {
-//        for (PageParameters.NamedPair np : parameters.getAllNamed()) {
-//            System.out.println(" - " + np.getKey() + " = " + np.getValue());
-//        }
-//    }
-
     private void initLayout(String detailsPanelClassName) {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
-		initMainInfo(mainForm, detailsPanelClassName);
+        ProcessInstancePanel processInstancePanel = new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, model, detailsPanelClassName);
+        mainForm.add(processInstancePanel);
 
 		initButtons(mainForm);
 	}
 
-	private void initMainInfo(Form mainForm, String detailsPanelClassName) {
-        Label name = new Label("name", new PropertyModel(model, "name"));
-        mainForm.add(name);
-
-		Label pid = new Label("pid", new PropertyModel(model, "instanceId"));
-		mainForm.add(pid);
-
-        Label started = new Label("started", new PropertyModel(model, "startedTime"));
-        mainForm.add(started);
-
-        Label finished = new Label("finished", new PropertyModel(model, "finishedTime"));
-        mainForm.add(finished);
-
-        Throwable problem = null;
-        try {
-            Class<? extends Panel> panelClass = (Class<? extends Panel>) Class.forName(detailsPanelClassName);
-            Panel detailsPanel = panelClass.getConstructor(String.class, IModel.class).newInstance(ID_DETAILS, model);
-            mainForm.add(detailsPanel);
-        } catch (ClassNotFoundException e) {
-            problem = e;
-        } catch (InvocationTargetException e) {
-            problem = e;
-        } catch (InstantiationException e) {
-            problem = e;
-        } catch (NoSuchMethodException e) {
-            problem = e;
-        } catch (IllegalAccessException e) {
-            problem = e;
-        } catch (RuntimeException e) {
-            problem = e;
-        }
-
-        if (problem != null) {
-            Label problemLabel = new Label(ID_DETAILS, "Details cannot be shown because of the following exception: " + problem.getMessage() + ". Please see the log for more details");
-            mainForm.add(problemLabel);
-        }
-	}
 
 	private void initButtons(final Form mainForm) {
 		AjaxLinkButton backButton = new AjaxLinkButton("backButton",

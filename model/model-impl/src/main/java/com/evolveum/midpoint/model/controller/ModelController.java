@@ -29,6 +29,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1026,4 +1027,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 		RepositoryCache.exit();
 		result.cleanupResult();
 	}
+
+    @Override
+    public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext) throws SchemaException {
+        return LensContext.fromJaxb(wrappedContext, prismContext);
+    }
 }

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
@@ -220,6 +221,15 @@ public abstract class PageBase extends WebPage {
     public StringResourceModel createStringResource(Enum e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
         return createStringResource(resourceKey);
+    }
+
+    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {
+        return new StringResourceModel(resourceKey, component, new Model<String>(), resourceKey, objects);
+    }
+
+    public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
+        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
+        return createStringResourceStatic(component, resourceKey);
     }
 
     public Task createSimpleTask(String operation, PrismObject<UserType> owner) {

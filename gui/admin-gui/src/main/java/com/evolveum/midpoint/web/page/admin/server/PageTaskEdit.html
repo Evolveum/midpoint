@@ -27,19 +27,27 @@
         <table>
             <tr>
                 <td width="350px"><wicket:message key="pageTaskEdit.name"/></td>
-                <td><input type="text" wicket:id="name"/></td>
+                <td><input type="text" wicket:id="name"/><span wicket:id="nameLabel"/></td>
             </tr>
             <tr>
                 <td><wicket:message key="pageTaskEdit.oid"/></td>
                 <td><span wicket:id="oid"/></td>
             </tr>
             <tr>
+                <td><wicket:message key="pageTaskEdit.identifier"/></td>
+                <td><span wicket:id="identifier"/></td>
+            </tr>
+            <tr>
                 <td><wicket:message key="pageTaskEdit.category"/></td>
                 <td><span wicket:id="category"/></td>
             </tr>
             <tr>
-                <td><wicket:message key="pageTaskEdit.uri"/></td>
-                <td><span wicket:id="uri"/></td>
+                <td><wicket:message key="pageTaskEdit.parent"/></td>
+                <td><span wicket:id="parent"/></td>
+            </tr>
+            <tr wicket:id="handlerUriList">
+                <td><wicket:message key="pageTaskEdit.handlerUri"/></td>
+                <td><span wicket:id="handlerUri"/></td>
             </tr>
             <tr>
                 <td><wicket:message key="pageTaskEdit.execution"/></td>
@@ -126,10 +134,19 @@
                 <td><select wicket:id="threadStop"/></td>
             </tr>
         </table>
-        
+
+        <h2><span wicket:id="subtasksLabel" /></h2>
+        <div wicket:id="subtasksPanel"/>
+
+        <h2><span wicket:id="workflowInformationLabel" /></h2>
+        <div wicket:id="workflowInformationPanel"/>
+
+        <h2><span wicket:id="modelOperationStatusLabel" /></h2>
+        <div wicket:id="modelOperationStatusPanel"/>
+
         <h2><wicket:message key="pageTaskEdit.opResult"/></h2>
         <div wicket:id="operationResult"/>
-        
+
         <div class="operatingFormButtons">
             <a wicket:id="backButton"/>
             <a wicket:id="saveButton"/>

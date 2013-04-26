@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -76,11 +77,17 @@ public class MiscDataUtil {
         return object;
     }
 
-    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
-        String deltaXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
+    public ObjectDelta getObjectDelta(Map<String, Object> variables, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
+        StringHolder deltaXml = (StringHolder) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
         Validate.notNull(deltaXml, "There's no delta in process variables");
-        ObjectDeltaType objectDeltaType = prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml, ObjectDeltaType.class);
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+        ObjectDeltaType objectDeltaType = prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
+        return DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+    }
+
+    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDelta delta, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
+        if (delta == null) {
+            delta = getObjectDelta(variables, prismContext, result);
+        }
 
         PrismObject<? extends ObjectType> objectAfter = objectBefore.clone();
         delta.applyTo(objectAfter);
@@ -97,7 +104,7 @@ public class MiscDataUtil {
 
     public void resolveAssignmentTargetReferences(PrismObject<? extends UserType> object, OperationResult result) {
         for (AssignmentType assignmentType : object.asObjectable().getAssignment()) {
-            if (assignmentType.getTarget() == null) {
+            if (assignmentType.getTarget() == null && assignmentType.getTargetRef() != null) {
                 PrismObject<? extends ObjectType> target = null;
                 try {
                     target = repositoryService.getObject(ObjectType.class, assignmentType.getTargetRef().getOid(), result);

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -59,9 +59,6 @@ public class ModelOperationTaskHandler implements TaskHandler {
     private static final String DOT_CLASS = ModelOperationTaskHandler.class.getName() + ".";
 
     public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-2";
-    public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-2";
-    public static final QName MODEL_CONTEXT_PROPERTY = new QName(MODEL_CONTEXT_NS, "modelContext");
-    public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
 
     @Autowired(required = true)
 	private TaskManager taskManager;
@@ -78,7 +75,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<Boolean> skipProperty = task.getExtension(SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
+        PrismProperty<Boolean> skipProperty = task.getExtension(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
 
         if (skipProperty != null && skipProperty.getRealValue() == Boolean.TRUE) {
 
@@ -90,9 +87,9 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
         } else {
 
-            PrismProperty<LensContextType> contextTypeProperty = task.getExtension(MODEL_CONTEXT_PROPERTY);
+            PrismProperty<LensContextType> contextTypeProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
             if (contextTypeProperty == null) {
-                throw new SystemException("There's no model context property in task " + task + " (" + MODEL_CONTEXT_PROPERTY + ")");
+                throw new SystemException("There's no model context property in task " + task + " (" + SchemaConstants.MODEL_CONTEXT_PROPERTY + ")");
             }
 
             LensContext context = null;

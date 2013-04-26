@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
@@ -34,6 +35,8 @@ import java.util.List;
  * @author mederly
  */
 public class ProcessInstanceDto extends Selectable {
+
+    public static final String F_WATCHING_TASK_OID = "watchingTaskOid";
 
     ProcessInstance processInstance;
 
@@ -108,5 +111,9 @@ public class ProcessInstanceDto extends Selectable {
 
     public boolean isFinished() {
         return processInstance.isFinished();
+    }
+
+    public String getWatchingTaskOid() {
+        return (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
     }
 }

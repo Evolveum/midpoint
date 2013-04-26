@@ -144,4 +144,9 @@ public abstract class SchemaConstants {
 	public static final QName ICF_CONNECTOR_POOL_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
 
+    // OTHER (temporary? [mederly])
+
+    public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-2";
+    public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
+    public static final QName MODEL_CONTEXT_PROPERTY = new QName(MODEL_CONTEXT_NS, "modelContext");
 }

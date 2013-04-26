@@ -24,26 +24,7 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <table>
-            <tr>
-                <td><wicket:message key="pageProcessInstance.name"/></td>
-                <td><b><span wicket:id="name"/></b></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageProcessInstance.pid"/></td>
-                <td><b><span wicket:id="pid"/></b></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageProcessInstance.started"/></td>
-                <td><b><span wicket:id="started"/></b></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageProcessInstance.finished"/></td>
-                <td><b><span wicket:id="finished"/></b></td>
-            </tr>
-        </table>
-
-        <div wicket:id="details"/>
+        <div wicket:id="processInstancePanel"/>
        	
         <div class="operatingFormButtons">
             <a wicket:id="backButton"/>

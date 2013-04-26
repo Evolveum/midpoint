@@ -32,9 +32,11 @@ public class ExecuteChangeOptionsDto implements Serializable {
 
     public static final String F_FORCE = "force";
     public static final String F_RECONCILE = "reconcile";
+    public static final String F_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
 
     private boolean force;
     private boolean reconcile;
+    private boolean executeAfterAllApprovals = true;
 
     public boolean isForce() {
         return force;
@@ -52,10 +54,19 @@ public class ExecuteChangeOptionsDto implements Serializable {
         this.reconcile = reconcile;
     }
 
+    public boolean isExecuteAfterAllApprovals() {
+        return executeAfterAllApprovals;
+    }
+
+    public void setExecuteAfterAllApprovals(boolean executeAfterAllApprovals) {
+        this.executeAfterAllApprovals = executeAfterAllApprovals;
+    }
+
     public ModelExecuteOptions createOptions() {
         ModelExecuteOptions options = new ModelExecuteOptions();
         options.setForce(isForce());
         options.setReconcile(isReconcile());
+        options.setExecuteImmediatelyAfterApproval(!isExecuteAfterAllApprovals());
 
         return options;
     }

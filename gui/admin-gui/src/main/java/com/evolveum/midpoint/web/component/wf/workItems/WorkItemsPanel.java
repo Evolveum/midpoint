@@ -22,13 +22,18 @@
 package com.evolveum.midpoint.web.component.wf.workItems;
 
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,17 +46,34 @@ public class WorkItemsPanel extends SimplePanel<List<WorkItemDto>> {
 
     private static final String ID_WORK_ITEMS_TABLE = "workItemsTable";
 
-    // todo options to select which columns will be shown
     public WorkItemsPanel(String id, IModel<List<WorkItemDto>> model) {
         super(id, model);
+        initLayoutLocal(true);
     }
 
-    @Override
-    protected void initLayout() {
+    public WorkItemsPanel(String id, IModel<List<WorkItemDto>> model, boolean showAssigned) {
+        super(id, model);
+        initLayoutLocal(showAssigned);
+    }
+
+    // this is called locally in order to take showAssigned into account
+    private void initLayoutLocal(boolean showAssigned) {
         List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
-        columns.add(new PropertyColumn(createStringResource("ItemApprovalPanel.name"), WorkItemDto.F_NAME));
-        columns.add(new PropertyColumn(createStringResource("ItemApprovalPanel.assigned"), WorkItemDto.F_OWNER_OR_CANDIDATES));
-        columns.add(new PropertyColumn(createStringResource("ItemApprovalPanel.created"), WorkItemDto.F_CREATED));
+        columns.add(new LinkColumn<WorkItemDto>(createStringResource("WorkItemsPanel.name"), MyWorkItemDto.F_NAME, MyWorkItemDto.F_NAME) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
+                WorkItemDto workItemDto = rowModel.getObject();
+                PageParameters parameters = new PageParameters();
+                parameters.add(PageWorkItem.PARAM_TASK_ID, workItemDto.getWorkItem().getTaskId());
+                setResponsePage(new PageWorkItem(parameters));
+            }
+        });
+
+        if (showAssigned) {
+            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_OWNER_OR_CANDIDATES));
+        }
+        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
         TablePanel accountsTable = new TablePanel<WorkItemDto>(ID_WORK_ITEMS_TABLE, provider, columns);

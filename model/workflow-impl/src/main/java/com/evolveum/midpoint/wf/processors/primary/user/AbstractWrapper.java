@@ -21,6 +21,7 @@ import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.wf.processes.general.Constants;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
@@ -125,7 +126,7 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
 
     public void setDeltaProcessVariable(StartProcessInstruction instruction, ObjectDelta delta) {
         try {
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA, DeltaConvertor.toObjectDeltaTypeXml(delta));
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
         } catch(JAXBException e) {
             throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
         } catch (SchemaException e) {

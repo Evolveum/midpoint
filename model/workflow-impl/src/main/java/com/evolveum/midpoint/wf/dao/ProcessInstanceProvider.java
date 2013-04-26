@@ -131,7 +131,7 @@ public class ProcessInstanceProvider {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_PROCESS_INSTANCE_BY_TASK_ID);
         result.addParam("taskId", taskId);
         Task task = activitiEngineDataHelper.getTaskById(taskId, result);
-        return getProcessInstanceByInstanceIdInternal(task.getProcessInstanceId(), false, false, result);       // false = no work items
+        return getProcessInstanceByInstanceIdInternal(task.getProcessInstanceId(), false, true, result);       // true = load also work items
     }
 
     public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {

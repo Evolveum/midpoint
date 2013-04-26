@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.async.CallableResult;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wf.workItems.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
@@ -175,12 +177,18 @@ public class PageDashboard extends PageAdminHome {
         add(personalInfo);
     }
 
-    private CallableResult<List<MyWorkItemDto>> loadWorkItems() {
+    private CallableResult<List<WorkItemDto>> loadWorkItems() {
+
         LOGGER.debug("Loading work items.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
-        List<MyWorkItemDto> list = new ArrayList<MyWorkItemDto>();
+        List<WorkItemDto> list = new ArrayList<WorkItemDto>();
         callableResult.setValue(list);
+
+        if (!getWorkflowService().isEnabled()) {
+            return callableResult;
+        }
+
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
             return callableResult;
@@ -193,7 +201,7 @@ public class PageDashboard extends PageAdminHome {
             List<WorkItem> workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(),
                     true, 0, MAX_WORK_ITEMS, result);
             for (WorkItem workItem : workItems) {
-                list.add(new MyWorkItemDto(workItem));
+                list.add(new WorkItemDto(workItem));
             }
         } catch (WorkflowException e) {
             result.recordFatalError("Couldn't get list of work items.", e);
@@ -208,16 +216,16 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initMyWorkItems() {
-        AsyncDashboardPanel<Object, List<MyWorkItemDto>> workItems =
-                new AsyncDashboardPanel<Object, List<MyWorkItemDto>>(ID_WORK_ITEMS,
+        AsyncDashboardPanel<Object, List<WorkItemDto>> workItems =
+                new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS,
                         createStringResource("PageDashboard.workItems")) {
 
                     @Override
-                    protected Callable<CallableResult<List<MyWorkItemDto>>> createCallable(IModel callableParameterModel) {
-                        return new Callable<CallableResult<List<MyWorkItemDto>>>() {
+                    protected Callable<CallableResult<List<WorkItemDto>>> createCallable(IModel callableParameterModel) {
+                        return new Callable<CallableResult<List<WorkItemDto>>>() {
 
                             @Override
-                            public CallableResult<List<MyWorkItemDto>> call() throws Exception {
+                            public CallableResult<List<WorkItemDto>> call() throws Exception {
                                 return loadWorkItems();
                             }
                         };
@@ -225,10 +233,16 @@ public class PageDashboard extends PageAdminHome {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new MyWorkItemsPanel(markupId,
-                                new PropertyModel<List<MyWorkItemDto>>(getModel(), CallableResult.F_VALUE));
+                        return new WorkItemsPanel(markupId, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE), false);
                     }
                 };
+
+        workItems.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getWorkflowService().isEnabled();
+            }
+        });
         add(workItems);
     }
 

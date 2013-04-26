@@ -19,39 +19,47 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.home.component;
+package com.evolveum.midpoint.web.component.wf.history;
 
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author lazyman
+ * @author mederly
  */
-public class MyWorkItemsPanel extends SimplePanel<List<MyWorkItemDto>> {
+public class WfHistoryPanel extends SimplePanel<List<WfHistoryEventDto>> {
 
-    private static final String ID_WORK_ITEMS_TABLE = "workItemsTable";
+    private static final String ID_HISTORY_TABLE = "historyTable";
 
-    public MyWorkItemsPanel(String id, IModel<List<MyWorkItemDto>> model) {
+    public WfHistoryPanel(String id, IModel<List<WfHistoryEventDto>> model) {
         super(id, model);
     }
 
     @Override
     protected void initLayout() {
-        List<IColumn<MyWorkItemDto, String>> columns = new ArrayList<IColumn<MyWorkItemDto, String>>();
-        columns.add(new PropertyColumn(createStringResource("MyWorkItemsPanel.name"), MyWorkItemDto.F_NAME));
-        columns.add(new PropertyColumn(createStringResource("MyWorkItemsPanel.created"), MyWorkItemDto.F_CREATED));
+
+        List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
+        columns.add(new PropertyColumn(createStringResource("WfHistoryPanel.label.timestamp"), WfHistoryEventDto.F_TIMESTAMP_FORMATTED));
+        columns.add(new PropertyColumn(createStringResource("WfHistoryPanel.label.event"), WfHistoryEventDto.F_EVENT));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        TablePanel accountsTable = new TablePanel<MyWorkItemDto>(ID_WORK_ITEMS_TABLE, provider, columns);
-        add(accountsTable);
+        add(new TablePanel<WorkItemDto>(ID_HISTORY_TABLE, provider, columns));
     }
 }

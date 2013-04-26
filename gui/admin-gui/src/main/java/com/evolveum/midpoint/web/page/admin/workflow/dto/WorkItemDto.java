@@ -24,6 +24,8 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.api.WorkItem;
 
+import java.text.DateFormat;
+
 /**
  * @author lazyman
  */
@@ -56,8 +58,12 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getCreated() {
-        //todo use date format
-        return workItem.getCreateTime() != null ? workItem.getCreateTime().toString() : null;
+        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT);
+        if (workItem.getCreateTime() != null) {
+            return dateFormat.format(workItem.getCreateTime());
+        } else {
+            return null;
+        }
     }
 
     public String getOwnerOrCandidates() {

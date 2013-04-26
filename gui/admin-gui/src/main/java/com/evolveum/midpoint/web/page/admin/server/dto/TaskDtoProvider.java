@@ -80,7 +80,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             List<Task> tasks = manager.searchTasks(query, info, result);
 
             for (Task task : tasks) {
-                getAvailableData().add(new TaskDto(task, info, manager));
+                getAvailableData().add(new TaskDto(task, info, manager, getModelInteractionService()));
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Unhandled exception when listing tasks", ex);

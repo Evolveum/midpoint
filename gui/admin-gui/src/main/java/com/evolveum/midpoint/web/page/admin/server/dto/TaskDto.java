@@ -22,28 +22,46 @@
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
+import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.wf.history.WfHistoryEventDto;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import com.evolveum.midpoint.wf.api.Constants;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -54,11 +72,28 @@ public class TaskDto extends Selectable {
     public static final String OPERATION_NEW = CLASS_DOT + "new";
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
+    public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
+    public static final String F_SUBTASKS = "subtasks";
+    public static final String F_NAME = "name";
+    public static final String F_CATEGORY = "category";
+    public static final String F_PARENT_TASK_NAME = "parentTaskName";
+    public static final String F_PARENT_TASK_OID = "parentTaskOid";
+    public static final String F_WORKFLOW_LAST_DETAILS = "workflowLastDetails";
+    public static final String F_WORKFLOW_DELTAS_IN = "workflowDeltasIn";
+    public static final String F_WORKFLOW_DELTAS_OUT = "workflowDeltasOut";
+    public static final String F_IDENTIFIER = "identifier";
+    public static final String F_HANDLER_URI_LIST = "handlerUriList";
+    public static final String F_WORKFLOW_HISTORY = "workflowHistory";
+    public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
 
     private String oid;
+    private String identifier;
     private String name;
     private String category;
-    private String uri;
+    private List<String> handlerUriList;
+    private String parentTaskName;
+    private String parentTaskOid;
+
     private boolean recurring;
     private boolean bound;
     private Integer interval;
@@ -73,21 +108,32 @@ public class TaskDto extends Selectable {
     private TaskDtoExecutionStatus execution;
     private String executingAt;
     private List<OperationResult> opResult;
+    private OperationResult taskOperationResult;
     private OperationResultStatus status;
+
+    private ModelOperationStatusDto modelOperationStatusDto;
 
     private ObjectReferenceType objectRef;
     private ObjectTypes objectRefType;
     private String objectRefName;
 
-    //helpers, won't be probably shown
+    private List<TaskDto> subtasks = new ArrayList<TaskDto>();
+
     private Long lastRunStartTimestampLong;
     private Long lastRunFinishTimestampLong;
     private Long nextRunStartTimeLong;
     private Long completionTimestampLong;
     private TaskBinding binding;
     private TaskRecurrence recurrence;
+    private boolean workflowShadowTask;
+    private String workflowProcessInstanceId;
+    private boolean workflowProcessInstanceFinished;
+    private String workflowLastDetails;
 
-    public TaskDto(Task task, ClusterStatusInformation clusterStatusInfo, TaskManager taskManager) {
+    private List<DeltaDto> workflowDeltasIn, workflowDeltasOut;
+    private List<WfHistoryEventDto> workflowHistory;
+
+    public TaskDto(Task task, ClusterStatusInformation clusterStatusInfo, TaskManager taskManager, ModelInteractionService modelInteractionService) throws SchemaException, ObjectNotFoundException {
         Validate.notNull(task, "Task must not be null.");
         Validate.notNull(clusterStatusInfo, "Cluster status info must not be null.");
         Validate.notNull(taskManager, "Task manager must not be null.");
@@ -95,9 +141,23 @@ public class TaskDto extends Selectable {
         OperationResult thisOpResult = new OperationResult(OPERATION_NEW);
 
         oid = task.getOid();
+        identifier = task.getTaskIdentifier();
         name = WebMiscUtil.getOrigStringFromPoly(task.getName());
         category = task.getCategory();
-        uri = task.getHandlerUri();
+
+        handlerUriList = new ArrayList<String>();
+        if (task.getHandlerUri() != null) {
+            handlerUriList.add(task.getHandlerUri());
+        } else {
+            handlerUriList.add("-");        // todo separate presentation from model
+        }
+        if (task.getOtherHandlersUriStack() != null) {
+            List<UriStackEntry> stack = task.getOtherHandlersUriStack().getUriStackEntry();
+            for (int i = stack.size()-1; i >= 0; i--) {
+                handlerUriList.add(stack.get(i).getHandlerUri());
+            }
+        }
+
         recurring = task.isCycle();
         bound = task.isTightlyBound();
         
@@ -156,6 +216,7 @@ public class TaskDto extends Selectable {
         this.recurrence = task.getRecurrenceStatus();
 
         opResult = new ArrayList<OperationResult>();
+        taskOperationResult = task.getResult();
         
         OperationResult result = task.getResult();
         if (result != null) {
@@ -164,7 +225,100 @@ public class TaskDto extends Selectable {
             opResult.add(result);
             opResult.addAll(result.getSubresults());
         }
+
+        PrismContext prismContext = task.getTaskPrismObject().getPrismContext();
+        PrismProperty<LensContextType> modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
+        if (modelContextProperty != null) {
+            Object value = modelContextProperty.getRealValue();
+            if (value instanceof Element || value instanceof JAXBElement) {
+                try {
+                    value = prismContext.getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
+                } catch (SchemaException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
+                    // todo report to result
+                }
+            }
+            if (value != null) {
+                if (!(value instanceof LensContextType)) {
+                    throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
+                }
+                try {
+                    ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value);
+                    modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
+                } catch (SchemaException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
+                    // todo report to result
+                }
+            }
+        }
+
+        // todo do this through WfTaskUtil
+        PrismProperty<String> wfProcessInstanceId = task.getExtension(Constants.WFPROCESSID_PROPERTY_NAME);
+        if (wfProcessInstanceId != null) {
+
+            workflowShadowTask = true;
+            workflowProcessInstanceId = wfProcessInstanceId.getRealValue();
+        } else {
+            workflowShadowTask = false;
+        }
+
+        PrismProperty<Boolean> finished = task.getExtension(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
+        workflowProcessInstanceFinished = finished != null && finished.getRealValue() == Boolean.TRUE;
+
+        PrismProperty<String> lastDetails = task.getExtension(Constants.WFLAST_DETAILS_PROPERTY_NAME);
+        if (lastDetails != null) {
+            workflowLastDetails = lastDetails.getRealValue();
+        }
+
+        workflowDeltasIn = retrieveDeltasToProcess(task);
+        workflowDeltasOut = retrieveResultingDeltas(task);
+        workflowHistory = prepareWorkflowHistory(task);
+
+        Task parent = task.getParentTask(result);
+        if (parent != null) {
+            parentTaskName = parent.getName() != null ? parent.getName().getOrig() : "(unnamed)";       // todo i18n
+            parentTaskOid = parent.getOid();
+        }
     }
+
+    private List<WfHistoryEventDto> prepareWorkflowHistory(Task task) {
+        List<WfHistoryEventDto> retval = new ArrayList<WfHistoryEventDto>();
+        PrismProperty<String> wfStatus = task.getExtension(Constants.WFSTATUS_PROPERTY_NAME);
+        if (wfStatus != null) {
+            for (String entry : wfStatus.getRealValues()) {
+                retval.add(new WfHistoryEventDto(entry));
+            }
+            Collections.sort(retval);
+        }
+        return retval;
+    }
+
+    private List<DeltaDto> retrieveDeltasToProcess(Task task) throws SchemaException {
+
+        List<DeltaDto> retval = new ArrayList<DeltaDto>();
+
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtension(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+        if (deltaTypePrismProperty != null) {
+            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
+                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, task.getTaskPrismObject().getPrismContext())));
+            }
+        }
+        return retval;
+    }
+
+    public List<DeltaDto> retrieveResultingDeltas(Task task) throws SchemaException {
+
+        List<DeltaDto> retval = new ArrayList<DeltaDto>();
+
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtension(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
+        if (deltaTypePrismProperty != null) {
+            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
+                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, task.getTaskPrismObject().getPrismContext())));
+            }
+        }
+        return retval;
+    }
+
 
     public String getCategory() {
         return category;
@@ -174,15 +328,15 @@ public class TaskDto extends Selectable {
         this.category = category;
     }
 
-    public String getUri() {
-		return uri;
-	}
-    
-    public void setUri(String uri) {
-		this.uri = uri;
-	}
+    public List<String> getHandlerUriList() {
+        return handlerUriList;
+    }
 
-	public boolean getBound() {
+    public void setHandlerUriList(List<String> handlerUriList) {
+        this.handlerUriList = handlerUriList;
+    }
+
+    public boolean getBound() {
 		return bound;
 	}
 	
@@ -291,6 +445,14 @@ public class TaskDto extends Selectable {
     
     public void setOid(String oid) {
         this.oid = oid;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
     public Long getNextRunStartTimeLong() {
@@ -432,5 +594,65 @@ public class TaskDto extends Selectable {
 
     public void setCompletionTimestampLong(Long completionTimestampLong) {
         this.completionTimestampLong = completionTimestampLong;
+    }
+
+    public ModelOperationStatusDto getModelOperationStatus() {
+        return modelOperationStatusDto;
+    }
+
+    public void addChildTaskDto(TaskDto taskDto) {
+        subtasks.add(taskDto);
+    }
+
+    public List<TaskDto> getSubtasks() {
+        return subtasks;
+    }
+
+    public boolean isWorkflowShadowTask() {
+        return workflowShadowTask;
+    }
+
+    public void setWorkflowShadowTask(boolean workflowShadowTask) {
+        this.workflowShadowTask = workflowShadowTask;
+    }
+
+    public String getWorkflowProcessInstanceId() {
+        return workflowProcessInstanceId;
+    }
+
+    public boolean isWorkflowProcessInstanceFinished() {
+        return workflowProcessInstanceFinished;
+    }
+
+    public void setWorkflowProcessInstanceId(String workflowProcessInstanceId) {
+        this.workflowProcessInstanceId = workflowProcessInstanceId;
+    }
+
+    public void setWorkflowProcessInstanceFinished(boolean workflowProcessInstanceFinished) {
+        this.workflowProcessInstanceFinished = workflowProcessInstanceFinished;
+    }
+
+    public String getWorkflowLastDetails() {
+        return workflowLastDetails;
+    }
+
+    public List<DeltaDto> getWorkflowDeltasIn() {
+        return workflowDeltasIn;
+    }
+
+    public List<DeltaDto> getWorkflowDeltasOut() {
+        return workflowDeltasOut;
+    }
+
+    public String getParentTaskName() {
+        return parentTaskName;
+    }
+
+    public String getParentTaskOid() {
+        return parentTaskOid;
+    }
+
+    public OperationResult getTaskOperationResult() {
+        return taskOperationResult;
     }
 }

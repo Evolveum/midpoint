@@ -74,7 +74,7 @@ public interface ChangeProcessor {
      *
      * @param event
      * @param task
-     * @param result
+     * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
     void finishProcess(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;

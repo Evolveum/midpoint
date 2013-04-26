@@ -112,6 +112,8 @@ public class WfProcessShadowTaskHandler implements TaskHandler {
             LOGGER.info("Workflow management is not currently enabled, skipping the task run.");
         }
 
+        TaskRunResult result = new TaskRunResult();
+
         TaskRunResultStatus runResultStatus;
         if (wfTaskUtil.isProcessInstanceFinished(task)) {
             runResultStatus = TaskRunResultStatus.FINISHED_HANDLER;
@@ -119,9 +121,8 @@ public class WfProcessShadowTaskHandler implements TaskHandler {
             runResultStatus = TaskRunResultStatus.FINISHED;             // finished means this run has finished, not the whole task
         }
 
-		TaskRunResult result = new TaskRunResult();
+        result.setOperationResult(task.getResult());            // todo fix this
 		result.setRunResultStatus(runResultStatus);
-        result.setOperationResult(task.getResult());
 		return result;
 	}
 

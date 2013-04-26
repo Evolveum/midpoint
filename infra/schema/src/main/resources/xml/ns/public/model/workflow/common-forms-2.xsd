@@ -82,7 +82,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="timeInterval" type="xsd:string">
+                    <xsd:element name="timeInterval" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayName>Time interval</a:displayName>
@@ -91,7 +91,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="requesterComment" type="xsd:string">
+                    <xsd:element name="requesterComment" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayName>Requester's comment</a:displayName>
@@ -100,7 +100,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="comment" type="xsd:string">
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayName>Your comment</a:displayName>
@@ -138,7 +138,7 @@
                     <xsd:element name="processInstanceId" type="xsd:string">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:displayName>Activiti process instance identifier</a:displayName>
+                                <a:displayName>Process instance ID</a:displayName>
                                 <a:displayOrder>110</a:displayOrder>
                                 <a:access>read</a:access>
                             </xsd:appinfo>
@@ -147,7 +147,7 @@
                     <xsd:element name="executionId" type="xsd:string">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:displayName>Activiti process execution identifier</a:displayName>
+                                <a:displayName>Process execution ID</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:access>read</a:access>
                             </xsd:appinfo>
@@ -181,7 +181,7 @@
                     <xsd:element name="processDefinitionKey" type="xsd:string">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:displayName>Activiti process definition key (name)</a:displayName>
+                                <a:displayName>Process definition key</a:displayName>
                                 <a:displayOrder>160</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -189,7 +189,7 @@
                     <xsd:element name="processDefinitionId" type="xsd:string">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:displayName>Activiti process definition identifier</a:displayName>
+                                <a:displayName>Process definition ID</a:displayName>
                                 <a:displayOrder>170</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -197,7 +197,7 @@
                     <xsd:element name="shadowTaskOid" type="xsd:string">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:displayName>Corresponding (shadow) task for this process instance</a:displayName>
+                                <a:displayName>Related midPoint task</a:displayName>
                                 <a:displayOrder>200</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>

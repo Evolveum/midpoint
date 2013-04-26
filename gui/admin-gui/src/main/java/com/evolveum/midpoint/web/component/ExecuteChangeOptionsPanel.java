@@ -33,6 +33,7 @@ public class ExecuteChangeOptionsPanel  extends SimplePanel<ExecuteChangeOptions
 
     private static final String ID_FORCE = "force";
     private static final String ID_RECONCILE = "reconcile";
+    private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
 
     public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model) {
         super(id, model);
@@ -47,5 +48,9 @@ public class ExecuteChangeOptionsPanel  extends SimplePanel<ExecuteChangeOptions
         CheckBox reconcile = new CheckBox(ID_RECONCILE,
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE));
         add(reconcile);
+
+        CheckBox executeAfterAllApprovals = new CheckBox(ID_EXECUTE_AFTER_ALL_APPROVALS,
+                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS));
+        add(executeAfterAllApprovals);
     }
 }

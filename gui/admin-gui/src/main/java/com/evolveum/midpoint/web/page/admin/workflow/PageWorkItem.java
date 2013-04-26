@@ -33,6 +33,9 @@ import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.model.delta.ContainerValuePanel;
+import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
+import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
@@ -48,14 +51,14 @@ import com.evolveum.midpoint.wf.api.WorkItemDetailed;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.*;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.text.SimpleDateFormat;
@@ -73,8 +76,29 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private static final String ID_ACCORDION = "accordion";
     private static final String ID_ADDITIONAL_INFO = "additionalInfo";
+    private static final String ID_DELTA_PANEL = "deltaPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
+    private static final String ID_DELTA_ACCORDION = "deltaAccordion";
+    private static final String ID_DELTA_INFO = "deltaInfo";
+
+    private static final String ID_REQUESTER_ACCORDION = "requesterAccordion";
+    private static final String ID_REQUESTER_ACCORDION_INFO = "requesterAccordionInfo";
+    private static final String ID_REQUESTER_PANEL = "requesterPanel";
+    private static final String ID_OBJECT_OLD_ACCORDION = "objectOldAccordion";
+    private static final String ID_OBJECT_OLD_ACCORDION_INFO = "objectOldAccordionInfo";
+    private static final String ID_OBJECT_OLD_PANEL = "objectOldPanel";
+    private static final String ID_OBJECT_NEW_ACCORDION = "objectNewAccordion";
+    private static final String ID_OBJECT_NEW_ACCORDION_INFO = "objectNewAccordionInfo";
+    private static final String ID_OBJECT_NEW_PANEL = "objectNewPanel";
+    private static final String ID_ADDITIONAL_DATA_ACCORDION = "additionalDataAccordion";
+    private static final String ID_ADDITIONAL_DATA_ACCORDION_INFO = "additionalDataAccordionInfo";
+    private static final String ID_ADDITIONAL_DATA_PANEL = "additionalDataPanel";
+    private static final String ID_PROCESS_INSTANCE_ACCORDION = "processInstanceAccordion";
+    private static final String ID_PROCESS_INSTANCE_ACCORDION_INFO = "processInstanceAccordionInfo";
+    private static final String ID_PROCESS_INSTANCE_PANEL = "processInstancePanel";
+
+    private PageParameters parameters;
 
     private IModel<WorkItemDetailedDto> workItemDtoModel;
 
@@ -85,8 +109,16 @@ public class PageWorkItem extends PageAdminWorkItems {
     private IModel<ObjectWrapper> additionalDataModel;
     private IModel<ObjectWrapper> trackingDataModel;
     private IModel<ProcessInstanceDto> processInstanceDtoModel;
+    private IModel<DeltaDto> deltaModel;
 
     public PageWorkItem() {
+        this(new PageParameters());
+    }
+
+    public PageWorkItem(PageParameters parameters) {
+
+        this.parameters = parameters;
+
         requesterModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
@@ -141,6 +173,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 return loadProcessInstanceDto();
             }
         };
+        deltaModel = new PropertyModel<DeltaDto>(workItemDtoModel, WorkItemDetailedDto.F_DELTA);
 
         initLayout();
     }
@@ -268,7 +301,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemDetailed workItem = null;
         try {
             WorkflowService wfm = getWorkflowService();
-            workItem = wfm.getWorkItemDetailsByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
+            workItem = wfm.getWorkItemDetailsByTaskId(parameters.get(PARAM_TASK_ID).toString(), result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
@@ -288,7 +321,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         ProcessInstance processInstance;
         try {
             WorkflowService wfm = getWorkflowService();
-            processInstance = wfm.getProcessInstanceByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
+            processInstance = wfm.getProcessInstanceByTaskId(parameters.get(PARAM_TASK_ID).toString(), result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get process instance for work item.", ex);
@@ -436,11 +469,66 @@ public class PageWorkItem extends PageAdminWorkItems {
         };
         additionalInfo.getBodyContainer().add(trackingDataForm);
 
+        Accordion deltaAccordion = new Accordion(ID_DELTA_ACCORDION);
+        deltaAccordion.setOutputMarkupId(true);
+        deltaAccordion.setMultipleSelect(true);
+        deltaAccordion.setExpanded(false);
+        additionalInfo.getBodyContainer().add(deltaAccordion);
+
+        AccordionItem deltaInfo = new AccordionItem(ID_DELTA_INFO, new ResourceModel("pageWorkItem.delta"));
+        deltaInfo.setOutputMarkupId(true);
+        deltaAccordion.getBodyContainer().add(deltaInfo);
+
+        DeltaPanel deltaPanel = new DeltaPanel(ID_DELTA_PANEL, deltaModel);
+        deltaInfo.getBodyContainer().add(deltaPanel);
+
+        additionalInfo.getBodyContainer().add(createObjectAccordion(ID_REQUESTER_ACCORDION, ID_REQUESTER_ACCORDION_INFO, ID_REQUESTER_PANEL, "pageWorkItem.accordionLabel.requester", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_REQUESTER)));
+        additionalInfo.getBodyContainer().add(createObjectAccordion(ID_OBJECT_OLD_ACCORDION, ID_OBJECT_OLD_ACCORDION_INFO, ID_OBJECT_OLD_PANEL, "pageWorkItem.accordionLabel.objectOld", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_OLD)));
+        additionalInfo.getBodyContainer().add(createObjectAccordion(ID_OBJECT_NEW_ACCORDION, ID_OBJECT_NEW_ACCORDION_INFO, ID_OBJECT_NEW_PANEL, "pageWorkItem.accordionLabel.objectNew", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_NEW)));
+        additionalInfo.getBodyContainer().add(createObjectAccordion(ID_ADDITIONAL_DATA_ACCORDION, ID_ADDITIONAL_DATA_ACCORDION_INFO, ID_ADDITIONAL_DATA_PANEL, "pageWorkItem.accordionLabel.additionalData", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_ADDITIONAL_DATA)));
+
+        String detailsPageClassName = getWorkflowService().getProcessInstanceDetailsPanelName(processInstanceDtoModel.getObject().getProcessInstance());
+
+        additionalInfo.getBodyContainer().add(createAccordion(ID_PROCESS_INSTANCE_ACCORDION,
+                ID_PROCESS_INSTANCE_ACCORDION_INFO,
+                "pageWorkItem.accordionLabel.processInstance",
+                new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, processInstanceDtoModel, detailsPageClassName)));
         initButtons(mainForm);
+    }
+
+    private Component createAccordion(String idAccordion, String idAccordionInfo, String key, Panel panel) {
+        Accordion accordion = new Accordion(idAccordion);
+        accordion.setOutputMarkupId(true);
+        accordion.setMultipleSelect(true);
+        accordion.setExpanded(false);
+
+        AccordionItem info = new AccordionItem(idAccordionInfo, new ResourceModel(key));
+        info.setOutputMarkupId(true);
+        accordion.getBodyContainer().add(info);
+
+        info.getBodyContainer().add(panel);
+        return accordion;
+    }
+
+    private Component createObjectAccordion(String idAccordion, String idAccordionInfo, String idPanel, String key, IModel model) {
+        Accordion accordion = new Accordion(idAccordion);
+        accordion.setOutputMarkupId(true);
+        accordion.setMultipleSelect(true);
+        accordion.setExpanded(false);
+
+        AccordionItem info = new AccordionItem(idAccordionInfo, new ResourceModel(key));
+        info.setOutputMarkupId(true);
+        accordion.getBodyContainer().add(info);
+
+        ContainerValuePanel panel = new ContainerValuePanel(idPanel, model);
+        info.getBodyContainer().add(panel);
+        return accordion;
     }
 
 
     private void initButtons(Form mainForm) {
+
+        // todo authorization
 
         AjaxSubmitLinkButton approve = new AjaxSubmitLinkButton("approve",
                 createStringResource("pageWorkItem.button.approve")) {
