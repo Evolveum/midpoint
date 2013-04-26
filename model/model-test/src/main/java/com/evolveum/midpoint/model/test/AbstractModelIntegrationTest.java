@@ -113,6 +113,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -666,14 +667,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected PrismObject<ShadowType> getAccount(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		return getAccount(accountOid, false);
+		return getAccount(accountOid, false, true);
 	}
 	
 	protected PrismObject<ShadowType> getAccountNoFetch(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		return getAccount(accountOid, true);
+		return getAccount(accountOid, true, true);
 	}
 	
-	protected PrismObject<ShadowType> getAccount(String accountOid, boolean noFetch) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected PrismObject<ShadowType> getAccount(String accountOid, boolean noFetch, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getAccount");
         OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> opts = null;
@@ -684,7 +685,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, opts , task, result);
 		result.computeStatus();
-		IntegrationTestTools.assertSuccess("getObject(Account) result not success", result);
+		if (assertSuccess) {
+			IntegrationTestTools.assertSuccess("getObject(Account) result not success", result);
+		}
 		return account;
 	}
 	
@@ -732,8 +735,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         for (ObjectReferenceType accountRefType: userType.getLinkRef()) {
         	String accountOid = accountRefType.getOid();
 	        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-	        PrismObject<ShadowType> account = getAccountNoFetch(accountOid);
+	        // Do not assert success yet. This may not be the right account.
+	        PrismObject<ShadowType> account = getAccount(accountOid, true, false);
 	        if (resourceOid.equals(account.asObjectable().getResourceRef().getOid())) {
+	        	OperationResultType fetchResult = account.asObjectable().getFetchResult();
+	        	IntegrationTestTools.assertSuccess("Failed to fetch account "+account, fetchResult);
 	        	return accountOid;
 	        }
         }

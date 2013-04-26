@@ -115,7 +115,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
-        assertImportedUserByOid(USER_BARBOSSA_OID, RESOURCE_OPENDJ_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
@@ -173,7 +173,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
-        assertImportedUserByOid(USER_BARBOSSA_OID, RESOURCE_OPENDJ_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
         
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
         // Guybrushes fullname should be corrected back to real fullname
@@ -222,7 +222,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
         assertAccounts(user, resourceOids.length);
         for (String resourceOid: resourceOids) {
-        	assertAccount(user, resourceOid);	
+        	assertAccount(user, resourceOid);
         }
         assertEnabled(user);
 	}

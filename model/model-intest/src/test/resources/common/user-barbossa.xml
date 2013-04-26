@@ -76,8 +76,6 @@
 		</accountConstruction>
 	</assignment>
     
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
-
     <fullName>Hector Barbossa</fullName>
     <givenName>Hector</givenName>
     <familyName>Barbossa</familyName>
