@@ -20,38 +20,6 @@
  */
 
 
-//if returns false drop click event on column
-/**
- * Method provides checks for full row click support - it decides which events should be dropped - we
- * want to stop event bubbling when user clicks for example on input event (then row shouldn't change
- * it's row selected status)
- *
- * @param attrs
- * @return {boolean} true if event should be dropped
- */
-function dropClickEvent(attrs) {
-    var evt = attrs.event;
-
-    //if clicked on <tr>
-    if (evt.target == evt.currentTarget) {
-        return false;
-    }
-    //if clicked on <td> which is a child of <tr>
-    if (evt.target.parentNode == evt.currentTarget) {
-        return false;
-    }
-
-    //we drop event if it input or link
-    var targetElement = evt.target.nodeName.toLowerCase();
-    var isInput = (targetElement == 'input' || targetElement == 'select' || targetElement == 'option');
-    var isLink = (targetElement == 'a');
-    if (isInput || isLink) {
-        return true;
-    }
-
-    return false;
-}
-
 /*
  * this probably can be deleted [lazyman]
  *
