@@ -565,9 +565,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
         // Do not clone parent so the cloned item can be safely placed to
         // another item
         clone.parent = null;
+        clone.userData = MiscUtil.cloneMap(this.userData);
     }
     
-    public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
+	public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
     	Collection<T> clones = new ArrayList<T>(items.size());
     	for (T item: items) {
     		clones.add((T)item.clone());

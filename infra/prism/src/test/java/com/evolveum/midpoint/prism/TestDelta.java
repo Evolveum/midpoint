@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -27,11 +28,13 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -492,8 +495,8 @@ public class TestDelta {
     }
 	
 	@Test
-    public void testAddAssignmentSameNullId() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentSameNullId ]===\n");
+    public void testAddAssignmentSameNullIdApplyToObject() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentSameNullIdApplyToObject ]===\n");
 		// GIVEN
 		
 		// User
@@ -518,6 +521,353 @@ public class TestDelta {
         PrismContainer<AssignmentType> assignment = user.findContainer(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment", assignment);
         assertEquals("Unexpected number of assignment values", 1, assignment.size());
+    }
+	
+	@Test
+    public void testAddAssignmentSameNullIdSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentSameNullIdSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	// The value id is null
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	// The value id is null
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 1, valuesToAdd.size());
+        assertEquals("Wrong value to add", assignmentValue1, valuesToAdd.iterator().next());
+    }
+	
+	@Test
+    public void testAddAssignmentDifferentNullIdSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentDifferentNullIdSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	// The value id is null
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	// The value id is null
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 2, valuesToAdd.size());
+        assertTrue("Value "+assignmentValue1+" missing ", valuesToAdd.contains(assignmentValue1));
+        assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
+    }
+	
+	@Test
+    public void testAddAssignmentDifferentFirstIdSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentDifferentFirstIdSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	// The value id is null    	
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 2, valuesToAdd.size());
+        assertTrue("Value "+assignmentValue1+" missing ", valuesToAdd.contains(assignmentValue1));
+        assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
+    }
+	
+	@Test
+    public void testAddAssignmentDifferentSecondIdSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentDifferentSecondIdSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	// The value id is null
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 2, valuesToAdd.size());
+        assertTrue("Value "+assignmentValue1+" missing ", valuesToAdd.contains(assignmentValue1));
+        assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
+    }
+	
+	@Test
+    public void testAddAssignmentDifferentTwoIdsSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentDifferentTwoIdsSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 2, valuesToAdd.size());
+        assertTrue("Value "+assignmentValue1+" missing ", valuesToAdd.contains(assignmentValue1));
+        assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
+    }
+	
+	@Test
+    public void testAddAssignmentDifferentIdSameSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentDifferentIdConflictSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 1, valuesToAdd.size());
+        assertTrue("Value "+assignmentValue1+" missing ", valuesToAdd.contains(assignmentValue1));
+    }
+	
+	// MID-1296
+	@Test(enabled=false)
+    public void testAddAssignmentDifferentIdConflictSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentDifferentIdConflictSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        AssertJUnit.fail("Unexpected success");
+    }
+	
+	@Test
+    public void testAddDeltaAddAssignmentDifferentNoIdSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddDeltaAddAssignmentDifferentNoIdSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+		PrismObject<UserType> user = createUser();
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createAddDelta(user);
+		
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	// null container ID
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 2, valuesToAdd.size());
+        PrismContainer<AssignmentType> user1AssignmentCont = user.findContainer(UserType.F_ASSIGNMENT);
+        for (PrismContainerValue<AssignmentType> cval: user1AssignmentCont.getValues()) {
+        	assertTrue("Value "+cval+" missing ", valuesToAdd.contains(cval));
+        }
+        assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
+    }
+	
+	@Test
+    public void testAddDeltaNoAssignmentAddAssignmentDifferentNoIdSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddDeltaNoAssignmentAddAssignmentDifferentNoIdSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+		PrismObject<UserType> user = createUserNoAssignment();
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createAddDelta(user);
+		
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	// null container ID
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 1, valuesToAdd.size());
+        assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
+    }
+	
+	@Test
+    public void testAddDeltaNoAssignmentAddAssignmentDifferentIdSwallow() throws Exception {
+		System.out.println("\n\n===[ testAddDeltaNoAssignmentAddAssignmentDifferentIdSwallow ]===\n");
+		// GIVEN
+		
+		//Delta 1
+		PrismObject<UserType> user = createUserNoAssignment();
+		ObjectDelta<UserType> userDelta1 = ObjectDelta.createAddDelta(user);
+		
+		//Delta 2
+    	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	containerDelta2.addValueToAdd(assignmentValue2);
+    	
+		// WHEN
+        userDelta1.swallow(containerDelta2);
+        
+        // THEN
+        System.out.println("Delta after swallow:");
+        System.out.println(userDelta1.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
+        ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment delta", containerDeltaAfter);
+        PrismAsserts.assertNoDelete(containerDeltaAfter);
+        PrismAsserts.assertNoReplace(containerDeltaAfter);
+        Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
+        assertEquals("Unexpected number of values to add", 1, valuesToAdd.size());
+        assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
     }
 	
 	/**
@@ -798,6 +1148,18 @@ public class TestDelta {
 	
 
 	private PrismObject<UserType> createUser() throws SchemaException {
+
+		PrismObject<UserType> user = createUserNoAssignment();
+		
+		PrismContainer<AssignmentType> assignment = user.findOrCreateContainer(UserType.F_ASSIGNMENT);
+    	PrismContainerValue<AssignmentType> assignmentValue = assignment.createNewValue();
+    	assignmentValue.setId(123L);
+    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	
+    	return user;
+	}
+	
+	private PrismObject<UserType> createUserNoAssignment() throws SchemaException {
 		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
 		PrismObject<UserType> user = userDef.instantiate();
@@ -805,12 +1167,7 @@ public class TestDelta {
 		user.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("foo"));
 		PrismProperty<PolyString> anamesProp = user.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
 		anamesProp.addRealValue(PrismTestUtil.createPolyString("foobar"));
-		
-		PrismContainer<AssignmentType> assignment = user.findOrCreateContainer(UserType.F_ASSIGNMENT);
-    	PrismContainerValue<AssignmentType> assignmentValue = assignment.createNewValue();
-    	assignmentValue.setId(123L);
-    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
-    	
+		    	
     	return user;
 	}
 

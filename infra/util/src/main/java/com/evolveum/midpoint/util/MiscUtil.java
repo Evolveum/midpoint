@@ -31,9 +31,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -304,6 +307,20 @@ public class MiscUtil {
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Shallow clone
+	 */
+	public static <K,V> Map<K,V> cloneMap(Map<K, V> orig) {
+		if (orig == null) {
+			return null;
+		}
+		Map<K,V> clone = new HashMap<K, V>();
+		for (Entry<K, V> origEntry: orig.entrySet()) {
+			clone.put(origEntry.getKey(), origEntry.getValue());
+		}
+		return clone;
 	}
 
 }
