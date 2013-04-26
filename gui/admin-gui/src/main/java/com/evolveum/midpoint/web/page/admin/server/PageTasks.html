@@ -34,12 +34,10 @@
         </div>
 
         <div wicket:id="optionContent">
-            <div>
-                <wicket:message key="pageTasks.state"/>
-                &nbsp;
+            <div style="margin-bottom: 10px;">
+                <span><wicket:message key="pageTasks.state"/></span>
                 <select wicket:id="state"/>
-                <wicket:message key="pageTasks.category"/>
-                &nbsp;
+                <span style="margin-left: 10px;"><wicket:message key="pageTasks.category"/></span>
                 <select wicket:id="category"/>
             </div>
             <div wicket:id="taskTable"/>
