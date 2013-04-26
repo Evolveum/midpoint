@@ -165,7 +165,9 @@ CREATE TABLE m_audit_event (
   eventType         NUMBER(10, 0),
   hostIdentifier    VARCHAR2(255 CHAR),
   initiator         CLOB,
+  message           VARCHAR2(255 CHAR),
   outcome           NUMBER(10, 0),
+  parameter         VARCHAR2(255 CHAR),
   sessionIdentifier VARCHAR2(255 CHAR),
   target            CLOB,
   targetOwner       CLOB,
@@ -416,7 +418,17 @@ CREATE TABLE m_resource (
   UNIQUE (name_norm)
 ) INITRANS 30;
 
-CREATE TABLE m_resource_shadow (
+CREATE TABLE m_role (
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
+  roleType  VARCHAR2(255 CHAR),
+  id        NUMBER(19, 0)     NOT NULL,
+  oid       VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+) INITRANS 30;
+
+CREATE TABLE m_shadow (
   enabled                       NUMBER(1, 0),
   validFrom                     TIMESTAMP,
   validTo                       TIMESTAMP,
@@ -446,16 +458,6 @@ CREATE TABLE m_resource_shadow (
   PRIMARY KEY (id, oid)
 ) INITRANS 30;
 
-CREATE TABLE m_role (
-  name_norm VARCHAR2(255 CHAR),
-  name_orig VARCHAR2(255 CHAR),
-  roleType  VARCHAR2(255 CHAR),
-  id        NUMBER(19, 0)     NOT NULL,
-  oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-) INITRANS 30;
-
 CREATE TABLE m_sync_situation_description (
   checksum       VARCHAR2(32 CHAR) NOT NULL,
   shadow_id      NUMBER(19, 0)     NOT NULL,
@@ -467,6 +469,7 @@ CREATE TABLE m_sync_situation_description (
 ) INITRANS 30;
 
 CREATE TABLE m_system_configuration (
+  cleanupPolicy                  CLOB,
   connectorFramework             CLOB,
   d22_description                CLOB,
   defaultUserTemplateRef_filter  CLOB,
@@ -616,7 +619,7 @@ REFERENCES m_focus;
 ALTER TABLE m_account_shadow
 ADD CONSTRAINT fk_account_shadow
 FOREIGN KEY (id, oid)
-REFERENCES m_resource_shadow;
+REFERENCES m_shadow;
 
 ALTER TABLE m_any_clob
 ADD CONSTRAINT fk_any_clob
@@ -786,26 +789,26 @@ ADD CONSTRAINT fk_resource
 FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
-CREATE INDEX iResourceObjectShadowEnabled ON m_resource_shadow (enabled) INITRANS 30;
-
-CREATE INDEX iShadowResourceRef ON m_resource_shadow (resourceRef_targetOid) INITRANS 30;
-
-CREATE INDEX iResourceShadowName ON m_resource_shadow (name_norm) INITRANS 30;
-
-ALTER TABLE m_resource_shadow
-ADD CONSTRAINT fk_resource_object_shadow
-FOREIGN KEY (id, oid)
-REFERENCES m_object;
-
 ALTER TABLE m_role
 ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role;
 
+CREATE INDEX iShadowEnabled ON m_shadow (enabled) INITRANS 30;
+
+CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid) INITRANS 30;
+
+CREATE INDEX iShadowName ON m_shadow (name_norm) INITRANS 30;
+
+ALTER TABLE m_shadow
+ADD CONSTRAINT fk_shadow
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
 ALTER TABLE m_sync_situation_description
 ADD CONSTRAINT fk_shadow_sync_situation
 FOREIGN KEY (shadow_id, shadow_oid)
-REFERENCES m_resource_shadow;
+REFERENCES m_shadow;
 
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT fk_system_configuration

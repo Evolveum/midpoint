@@ -207,7 +207,9 @@ CREATE TABLE m_audit_event (
   eventType         INTEGER,
   hostIdentifier    VARCHAR(255),
   initiator         LONGTEXT,
+  message           VARCHAR(255),
   outcome           INTEGER,
+  parameter         VARCHAR(255),
   sessionIdentifier VARCHAR(255),
   target            LONGTEXT,
   targetOwner       LONGTEXT,
@@ -518,7 +520,20 @@ CREATE TABLE m_resource (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
-CREATE TABLE m_resource_shadow (
+CREATE TABLE m_role (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  roleType  VARCHAR(255),
+  id        BIGINT      NOT NULL,
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
+CREATE TABLE m_shadow (
   enabled                       BIT,
   validFrom                     DATETIME(6),
   validTo                       DATETIME(6),
@@ -551,19 +566,6 @@ CREATE TABLE m_resource_shadow (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
-CREATE TABLE m_role (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  roleType  VARCHAR(255),
-  id        BIGINT      NOT NULL,
-  oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_general_ci
-  ENGINE = InnoDB;
-
 CREATE TABLE m_sync_situation_description (
   checksum       VARCHAR(32) NOT NULL,
   shadow_id      BIGINT      NOT NULL,
@@ -578,6 +580,7 @@ CREATE TABLE m_sync_situation_description (
   ENGINE = InnoDB;
 
 CREATE TABLE m_system_configuration (
+  cleanupPolicy                  LONGTEXT,
   connectorFramework             LONGTEXT,
   d22_description                LONGTEXT,
   defaultUserTemplateRef_filter  LONGTEXT,
@@ -753,7 +756,7 @@ ALTER TABLE m_account_shadow
 ADD INDEX fk_account_shadow (id, oid),
 ADD CONSTRAINT fk_account_shadow
 FOREIGN KEY (id, oid)
-REFERENCES m_resource_shadow (id, oid);
+REFERENCES m_shadow (id, oid);
 
 ALTER TABLE m_any_clob
 ADD INDEX fk_any_clob (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType),
@@ -953,29 +956,29 @@ ADD CONSTRAINT fk_resource
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
 
-CREATE INDEX iResourceObjectShadowEnabled ON m_resource_shadow (enabled);
-
-CREATE INDEX iShadowResourceRef ON m_resource_shadow (resourceRef_targetOid);
-
-CREATE INDEX iResourceShadowName ON m_resource_shadow (name_norm);
-
-ALTER TABLE m_resource_shadow
-ADD INDEX fk_resource_object_shadow (id, oid),
-ADD CONSTRAINT fk_resource_object_shadow
-FOREIGN KEY (id, oid)
-REFERENCES m_object (id, oid);
-
 ALTER TABLE m_role
 ADD INDEX fk_role (id, oid),
 ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role (id, oid);
 
+CREATE INDEX iShadowEnabled ON m_shadow (enabled);
+
+CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
+
+CREATE INDEX iShadowName ON m_shadow (name_norm);
+
+ALTER TABLE m_shadow
+ADD INDEX fk_shadow (id, oid),
+ADD CONSTRAINT fk_shadow
+FOREIGN KEY (id, oid)
+REFERENCES m_object (id, oid);
+
 ALTER TABLE m_sync_situation_description
 ADD INDEX fk_shadow_sync_situation (shadow_id, shadow_oid),
 ADD CONSTRAINT fk_shadow_sync_situation
 FOREIGN KEY (shadow_id, shadow_oid)
-REFERENCES m_resource_shadow (id, oid);
+REFERENCES m_shadow (id, oid);
 
 ALTER TABLE m_system_configuration
 ADD INDEX fk_system_configuration (id, oid),
