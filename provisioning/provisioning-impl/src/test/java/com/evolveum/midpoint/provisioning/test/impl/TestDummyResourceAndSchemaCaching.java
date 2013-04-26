@@ -92,7 +92,10 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 	private CachingMetadataType lastCachingMetadata;
 	private long lastConnectorSchemaFetchCount = 0;
 	private long lastConnectorInitializationCount = 0;
+	private long lastResourceSchemaParseCount = 0;
 	private CachingStatistics lastResourceCacheStats;
+	private ResourceSchema lastResourceSchema;
+	private RefinedResourceSchema lastRefinedResourceSchema;
 	
 	@Test
 	public void test010GetResource() throws Exception {
@@ -106,6 +109,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// The monitor is static, not part of spring context, it will not be cleared
 		rememberConnectorSchemaFetchCount();
 		rememberConnectorInitializationCount();
+		rememberResourceSchemaParseCount();
 		rememberResourceCacheStats();
 		
 		// Check that there is no schema before test (pre-condition)
@@ -127,8 +131,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		rememberSchemaMetadata(resourceProvisioning);
 		
-		assertConnectorSchemaFetch(1);
-		assertConnectorInitializationCount(1);
+		assertConnectorSchemaFetchIncrement(1);
+		assertConnectorInitializationCountIncrement(1);
+		assertResourceSchemaParseCountIncrement(1);
 				
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_OID, result);
@@ -137,8 +142,12 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceRepoAfter);
 		
 		display("Resource cache", InternalMonitor.getResourceCacheStats());
-		assertResourceCacheHits(0);
-		assertResourceCacheMisses(1);
+		assertResourceCacheHitsIncrement(0);
+		assertResourceCacheMissesIncrement(1);
+		
+		rememberResourceSchema(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
+		rememberRefinedResourceSchema(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		assertResourceSchemaParseCountIncrement(0);
 		
 		// Just refresh the resource used by other tests. This one has a complete schema.
 		resourceType = resourceProvisioning.asObjectable();
@@ -156,22 +165,53 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 
 		// THEN
-		display("Resource", resource);
+		display("Resource(1)", resource);
 		result.computeStatus();
 		assertSuccess(result);
 
-		assertHasSchema(resourceProvisioning, "provisioning resource");
+		assertHasSchema(resourceProvisioning, "provisioning resource(1)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetch(0);
-		assertConnectorInitializationCount(0);
+		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+		assertResourceSchemaParseCountIncrement(0);
 		
 		assertVersion(resourceProvisioning, resourceType.getVersion());
 		
-		display("Resource cache", InternalMonitor.getResourceCacheStats());
-		assertResourceCacheHits(1);
-		assertResourceCacheMisses(0);
+		display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+		assertResourceCacheHitsIncrement(1);
+		assertResourceCacheMissesIncrement(0);
+		
+		assertResourceSchemaUnchanged(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
+		assertRefinedResourceSchemaUnchanged(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		assertResourceSchemaParseCountIncrement(0);
+		
+		// WHEN
+		resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+
+		// THEN
+		display("Resource(2)", resource);
+		result.computeStatus();
+		assertSuccess(result);
+
+		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
+		assertSchemaMetadataUnchanged(resourceProvisioning);
+		
+		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+		
+		assertVersion(resourceProvisioning, resourceType.getVersion());
+		
+		display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+		assertResourceCacheHitsIncrement(1);
+		assertResourceCacheMissesIncrement(0);
+		
+		assertResourceSchemaUnchanged(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
+		assertRefinedResourceSchemaUnchanged(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		assertResourceSchemaParseCountIncrement(0);
 	}
+	
+	
 	
 	private <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {
 		assertEquals("Wrong version of "+object, expectedVersion, object.asObjectable().getVersion());
@@ -199,7 +239,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		lastConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
 	}
 
-	private void assertConnectorSchemaFetch(int expectedIncrement) {
+	private void assertConnectorSchemaFetchIncrement(int expectedIncrement) {
 		long currentConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
 		long actualIncrement = currentConnectorSchemaFetchCount - lastConnectorSchemaFetchCount;
 		assertEquals("Unexpected increment in connector schema fetch count", (long)expectedIncrement, actualIncrement);
@@ -210,22 +250,33 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		lastConnectorInitializationCount  = InternalMonitor.getConnectorInitializationCount();
 	}
 
-	private void assertConnectorInitializationCount(int expectedIncrement) {
+	private void assertConnectorInitializationCountIncrement(int expectedIncrement) {
 		long currentConnectorInitializationCount = InternalMonitor.getConnectorInitializationCount();
 		long actualIncrement = currentConnectorInitializationCount - lastConnectorInitializationCount;
 		assertEquals("Unexpected increment in connector initialization count", (long)expectedIncrement, actualIncrement);
 		lastConnectorInitializationCount = currentConnectorInitializationCount;
 	}
 	
+	private void rememberResourceSchemaParseCount() {
+		lastResourceSchemaParseCount  = InternalMonitor.getResourceSchemaParseCount();
+	}
+
+	private void assertResourceSchemaParseCountIncrement(int expectedIncrement) {
+		long currentResourceSchemaParseCount = InternalMonitor.getResourceSchemaParseCount();
+		long actualIncrement = currentResourceSchemaParseCount - lastResourceSchemaParseCount;
+		assertEquals("Unexpected increment in resource schema parse count", (long)expectedIncrement, actualIncrement);
+		lastResourceSchemaParseCount = currentResourceSchemaParseCount;
+	}
+	
 	private void rememberResourceCacheStats() {
 		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
 	}
 	
-	private void assertResourceCacheHits(int expectedIncrement) {
+	private void assertResourceCacheHitsIncrement(int expectedIncrement) {
 		assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
 	}
 	
-	private void assertResourceCacheMisses(int expectedIncrement) {
+	private void assertResourceCacheMissesIncrement(int expectedIncrement) {
 		assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
 	}
 	
@@ -239,6 +290,26 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
 		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
 		lastStats.setMisses(currentStats.getMisses());
+	}
+	
+	private void rememberResourceSchema(ResourceSchema resourceSchema) {
+		lastResourceSchema = resourceSchema;
+	}
+	
+	private void assertResourceSchemaUnchanged(ResourceSchema currentResourceSchema) {
+		// We really want == there. We want to make sure that this is actually the same instance and that
+		// it was properly cached
+		assertTrue("Resource schema has changed", lastResourceSchema == currentResourceSchema);
+	}
+	
+	private void rememberRefinedResourceSchema(RefinedResourceSchema rResourceSchema) {
+		lastRefinedResourceSchema = rResourceSchema;
+	}
+	
+	private void assertRefinedResourceSchemaUnchanged(RefinedResourceSchema currentRefinedResourceSchema) {
+		// We really want == there. We want to make sure that this is actually the same instance and that
+		// it was properly cached
+		assertTrue("Refined resource schema has changed", lastRefinedResourceSchema == currentRefinedResourceSchema);
 	}
 
 	private void assertHasSchema(PrismObject<ResourceType> resource, String desc) throws SchemaException {
@@ -263,246 +334,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertNotNull("No schema after parsing in "+desc, parsedSchema);
 	}
 
-//	@Test
-//	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException,
-//			ConfigurationException, SecurityViolationException {
-//		displayTestTile("test004Configuration");
-//		// GIVEN
-//		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-//				+ ".test004Configuration");
-//
-//		// WHEN
-//		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
-//		resourceType = resource.asObjectable();
-//		
-//		// THEN
-//		result.computeStatus();
-//		display("getObject result", result);
-//		assertSuccess(result);
-//
-//		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-//		assertNotNull("No configuration container", configurationContainer);
-//		PrismContainerDefinition confContDef = configurationContainer.getDefinition();
-//		assertNotNull("No configuration container definition", confContDef);
-//		PrismContainer confingurationPropertiesContainer = configurationContainer
-//				.findContainer(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-//		assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-//		PrismContainerDefinition confPropsDef = confingurationPropertiesContainer.getDefinition();
-//		assertNotNull("No configuration properties container definition", confPropsDef);
-//		List<PrismProperty<?>> configurationProperties = confingurationPropertiesContainer.getValue().getItems();
-//		assertFalse("No configuration properties", configurationProperties.isEmpty());
-//		for (PrismProperty<?> confProp : configurationProperties) {
-//			PrismPropertyDefinition confPropDef = confProp.getDefinition();
-//			assertNotNull("No definition for configuration property " + confProp, confPropDef);
-//			assertFalse("Configuration property " + confProp + " is raw", confProp.isRaw());
-//		}
-//		
-//		// The useless configuration variables should be reflected to the resource now
-//		assertEquals("Wrong useless string", "Shiver me timbers!", dummyResource.getUselessString());
-//		assertEquals("Wrong guarded useless string", "Dead men tell no tales", dummyResource.getUselessGuardedString());
-//		
-//		resource.checkConsistence();
-//	}
-//
-//	@Test
-//	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
-//			ConfigurationException {
-//		displayTestTile("test005ParsedSchema");
-//		// GIVEN
-//
-//		// THEN
-//		// The returned type should have the schema pre-parsed
-//		assertNotNull(RefinedResourceSchema.hasParsedSchema(resourceType));
-//
-//		// Also test if the utility method returns the same thing
-//		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
-//
-//		display("Parsed resource schema", returnedSchema);
-//
-//		// Check whether it is reusing the existing schema and not parsing it
-//		// all over again
-//		// Not equals() but == ... we want to really know if exactly the same
-//		// object instance is returned
-//		assertTrue("Broken caching",
-//				returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
-//
-//		assertSchemaSanity(returnedSchema, resourceType);
-//
-//	}
-//
-//	@Test
-//	public void test006RefinedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
-//			ConfigurationException {
-//		displayTestTile("test006RefinedSchema");
-//		// GIVEN
-//
-//		// WHEN
-//		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, prismContext);
-//		display("Refined schema", refinedSchema);
-//
-//		// Check whether it is reusing the existing schema and not parsing it
-//		// all over again
-//		// Not equals() but == ... we want to really know if exactly the same
-//		// object instance is returned
-//		assertTrue("Broken caching",
-//				refinedSchema == RefinedResourceSchema.getRefinedSchema(resourceType, prismContext));
-//
-//		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-//		assertNotNull("Account definition is missing", accountDef);
-//		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
-//		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
-//		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
-//		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
-//		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-//		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
-//
-//		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-//		assertEquals(1, uidDef.getMaxOccurs());
-//		assertEquals(0, uidDef.getMinOccurs());
-//		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-//		assertFalse("UID has create", uidDef.canCreate());
-//		assertFalse("UID has update", uidDef.canUpdate());
-//		assertTrue("No UID read", uidDef.canRead());
-//		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
-//
-//		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-//		assertEquals(1, nameDef.getMaxOccurs());
-//		assertEquals(1, nameDef.getMinOccurs());
-//		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-//		assertTrue("No NAME create", nameDef.canCreate());
-//		assertTrue("No NAME update", nameDef.canUpdate());
-//		assertTrue("No NAME read", nameDef.canRead());
-//		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
-//
-//		RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
-//		assertNotNull("No definition for fullname", fullnameDef);
-//		assertEquals(1, fullnameDef.getMaxOccurs());
-//		assertEquals(1, fullnameDef.getMinOccurs());
-//		assertTrue("No fullname create", fullnameDef.canCreate());
-//		assertTrue("No fullname update", fullnameDef.canUpdate());
-//		assertTrue("No fullname read", fullnameDef.canRead());
-//
-//		assertNull("The _PASSSWORD_ attribute sneaked into schema",
-//				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
-//
-//	}
-//
-//	@Test
-//	public void test006Capabilities() throws Exception {
-//		displayTestTile("test006Capabilities");
-//
-//		// GIVEN
-//		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-//				+ ".test006Capabilities");
-//
-//		// WHEN
-//		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result)
-//				.asObjectable();
-//
-//		// THEN
-//		result.computeStatus();
-//		display("getObject result", result);
-//		assertSuccess(result);
-//
-//		// Check native capabilities
-//		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-//		display("Native capabilities", PrismTestUtil.marshalWrap(nativeCapabilities));
-//		display("Resource", resourceType);
-//		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-//		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-//		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				CredentialsCapabilityType.class);
-//		assertNotNull("password native capability not present", capCred.getPassword());
-//		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				ActivationCapabilityType.class);
-//		assertNotNull("native activation capability not present", capAct);
-//		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
-//		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				TestConnectionCapabilityType.class);
-//		assertNotNull("native test capability not present", capTest);
-//		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				ScriptCapabilityType.class);
-//		assertNotNull("native script capability not present", capScript);
-//		assertNotNull("No host in native script capability", capScript.getHost());
-//		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
-//		// TODO: better look inside
-//		
-//		capabilitiesCachingMetadataType = resourceType.getCapabilities().getCachingMetadata();
-//		assertNotNull("No capabilities caching metadata", capabilitiesCachingMetadataType);
-//		assertNotNull("No capabilities caching metadata timestamp", capabilitiesCachingMetadataType.getRetrievalTimestamp());
-//		assertNotNull("No capabilities caching metadata serial number", capabilitiesCachingMetadataType.getSerialNumber());
-//
-//		// Check effective capabilites
-//		capCred = ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class);
-//		assertNotNull("password capability not found", capCred.getPassword());
-//		// Although connector does not support activation, the resource
-//		// specifies a way how to simulate it.
-//		// Therefore the following should succeed
-//		capAct = ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class);
-//		assertNotNull("activation capability not found", capCred.getPassword());
-//
-//		List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
-//		for (Object capability : effectiveCapabilities) {
-//			System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : "
-//					+ capability);
-//		}
-//	}
-//	
-//	/**
-//	 * Check if the cached native capabilities were properly stored in the repo 
-//	 */
-//	@Test
-//	public void test007CapabilitiesRepo() throws Exception {
-//		displayTestTile("test007CapabilitiesRepo");
-//
-//		// GIVEN
-//		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-//				+ ".test007CapabilitiesRepo");
-//
-//		// WHEN
-//		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);;
-//
-//		// THEN
-//		result.computeStatus();
-//		display("getObject result", result);
-//		assertSuccess(result);
-//
-//		// Check native capabilities
-//		ResourceType resourceType = resource.asObjectable();
-//		CapabilitiesType capabilitiesType = resourceType.getCapabilities();
-//		assertNotNull("No capabilities in repo, the capabilities were not cached", capabilitiesType);
-//		CapabilityCollectionType nativeCapabilities = capabilitiesType.getNative();
-//		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
-//		System.out.println("resource: " + resourceType.asPrismObject().dump());
-//		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-//		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-//		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				CredentialsCapabilityType.class);
-//		assertNotNull("password native capability not present", capCred.getPassword());
-//		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				ActivationCapabilityType.class);
-//		assertNotNull("native activation capability not present", capAct);
-//		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
-//		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				TestConnectionCapabilityType.class);
-//		assertNotNull("native test capability not present", capTest);
-//		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
-//				ScriptCapabilityType.class);
-//		assertNotNull("native script capability not present", capScript);
-//		assertNotNull("No host in native script capability", capScript.getHost());
-//		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
-//		// TODO: better look inside
-//
-//		CachingMetadataType repoCapabilitiesCachingMetadataType = capabilitiesType.getCachingMetadata();
-//		assertNotNull("No repo capabilities caching metadata", repoCapabilitiesCachingMetadataType);
-//		assertNotNull("No repo capabilities caching metadata timestamp", repoCapabilitiesCachingMetadataType.getRetrievalTimestamp());
-//		assertNotNull("No repo capabilities caching metadata serial number", repoCapabilitiesCachingMetadataType.getSerialNumber());
-//		assertEquals("Repo capabilities caching metadata timestamp does not match previously returned value", 
-//				capabilitiesCachingMetadataType.getRetrievalTimestamp(), repoCapabilitiesCachingMetadataType.getRetrievalTimestamp());
-//		assertEquals("Repo capabilities caching metadata serial does not match previously returned value", 
-//				capabilitiesCachingMetadataType.getSerialNumber(), repoCapabilitiesCachingMetadataType.getSerialNumber());
-//
-//	}
+
 //
 //	@Test
 //	public void test010ResourceAndConnectorCaching() throws Exception {
