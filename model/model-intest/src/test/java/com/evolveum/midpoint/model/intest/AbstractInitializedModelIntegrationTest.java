@@ -129,6 +129,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
+		if (!openDJController.isRunning()) {
+			initResult.muteLastSubresultError();
+		}
 				
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendDummySchema();

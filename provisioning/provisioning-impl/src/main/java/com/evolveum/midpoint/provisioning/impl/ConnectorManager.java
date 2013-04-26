@@ -89,7 +89,7 @@ public class ConnectorManager {
 
 	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorManager.ConfiguredConnectorInstanceEntry>();
 
-	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, boolean forceFresh, OperationResult result)
+	public ConnectorInstance getConfiguredConnectorInstance(PrismObject<ResourceType> resource, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		String resourceOid = resource.getOid();
 		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
@@ -98,7 +98,7 @@ public class ConnectorManager {
 			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(resourceOid);
 
 			if (!forceFresh && configuredConnectorInstanceEntry.connectorOid.equals(connectorOid)
-					&& configuredConnectorInstanceEntry.configuration.equivalent(resource.asPrismObject()
+					&& configuredConnectorInstanceEntry.configuration.equivalent(resource
 							.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION))) {
 
 				// We found entry that matches
@@ -129,36 +129,37 @@ public class ConnectorManager {
 		// .. and cache it
 		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
 		cacheEntry.connectorOid = connectorOid;
-		cacheEntry.configuration = resource.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		cacheEntry.configuration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		cacheEntry.connectorInstance = configuredConnectorInstance;
 		connectorInstanceCache.put(resourceOid, cacheEntry);
 
 		return configuredConnectorInstance;
 	}
 
-	private ConnectorInstance createConfiguredConnectorInstance(ResourceType resource, OperationResult result)
+	private ConnectorInstance createConfiguredConnectorInstance(PrismObject<ResourceType> resource, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ResourceType resourceType = resource.asObjectable();
 		
-		InternalMonitor.recordConnectorInitialization();
-		
-		ConnectorType connectorType = getConnectorType(resource, result);
+		ConnectorType connectorType = getConnectorType(resourceType, result);
 		ConnectorInstance connector = null;
 		try {
 
 			connector = connectorFactory.createConnectorInstance(connectorType,
-					ResourceTypeUtil.getResourceNamespace(resource));
+					ResourceTypeUtil.getResourceNamespace(resourceType));
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 		try {
-			connector.configure(resource.getConnectorConfiguration().asPrismContainerValue(), result);
+			connector.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
 			
-			ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(resource);
+			ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
 			
 			connector.initialize(resourceSchema, capabilities, result);
+			
+			InternalMonitor.recordConnectorInitialization();
 			
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
@@ -176,25 +177,25 @@ public class ConnectorManager {
 		// If it happens often, it may be an
 		// indication of a problem. Therefore it is good for admin to see it.
 		LOGGER.info("Creted new connector instance for {}: {} v{}", 
-				new Object[]{resource, connectorType.getConnectorType(), connectorType.getConnectorVersion()});
+				new Object[]{resourceType, connectorType.getConnectorType(), connectorType.getConnectorVersion()});
 
 		return connector;
 	}
 
-	public ConnectorType getConnectorType(ResourceType resource, OperationResult result)
+	public ConnectorType getConnectorType(ResourceType resourceType, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		ConnectorType connectorType = resource.getConnector();
-		if (resource.getConnector() == null) {
-			if (resource.getConnectorRef() == null || resource.getConnectorRef().getOid() == null) {
+		ConnectorType connectorType = resourceType.getConnector();
+		if (resourceType.getConnector() == null) {
+			if (resourceType.getConnectorRef() == null || resourceType.getConnectorRef().getOid() == null) {
 				result.recordFatalError("Connector reference missing in the resource "
-						+ ObjectTypeUtil.toShortString(resource));
+						+ resourceType);
 				throw new ObjectNotFoundException("Connector reference missing in the resource "
-						+ ObjectTypeUtil.toShortString(resource));
+						+ resourceType);
 			}
-			String connOid = resource.getConnectorRef().getOid();
+			String connOid = resourceType.getConnectorRef().getOid();
 			PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, result);
 			connectorType = connectorPrism.asObjectable();
-			resource.setConnector(connectorType);
+			resourceType.setConnector(connectorType);
 		}
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
 			// We need to resolve the connector host

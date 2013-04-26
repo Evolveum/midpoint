@@ -155,6 +155,7 @@ public class ProvisioningTestUtil {
 	}
 	
 	public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+		assertNotNull("No resource schema in "+resourceType, resourceSchema);
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition for "+objectClassQname+" in resource schema", accountDefinition);

@@ -384,6 +384,10 @@ public class OpenDJController extends AbstractResourceController {
 			LOGGER.warn("Attempt to stop OpenDJ server that is already stopped.");
 		}
 	}
+	
+	public boolean isRunning() {
+		return EmbeddedUtils.isRunning();
+	}
 
 	/**
 	 * Copy a directory and its contents.

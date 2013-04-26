@@ -539,7 +539,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test010ResourceAndConnectorCaching");
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resourceType, false, result);
+				resource, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -590,7 +590,7 @@ public class TestDummy extends AbstractDummyTest {
 		// to make sure that the
 		// configured connector is properly cached
 		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
-				resourceTypeAgain, false, result);
+				resourceAgain, false, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
@@ -604,7 +604,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Test connection should also refresh the connector by itself. So check if it has been refreshed
 		
 		ConnectorInstance configuredConnectorInstanceAfterTest = connectorManager.getConfiguredConnectorInstance(
-				resourceTypeAgain, false, result);
+				resourceAgain, false, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
 		assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
 	}
@@ -617,7 +617,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test011ResourceAndConnectorCachingForceFresh");
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resourceType, false, result);
+				resource, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -648,7 +648,7 @@ public class TestDummy extends AbstractDummyTest {
 		// to make sure that the configured connector is properly refreshed
 		// forceFresh = true
 		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
-				resourceTypeAgain, true, result);
+				resourceAgain, true, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
 		assertFalse("Connector instance was not refreshed", configuredConnectorInstance == configuredConnectorInstanceAgain);
 

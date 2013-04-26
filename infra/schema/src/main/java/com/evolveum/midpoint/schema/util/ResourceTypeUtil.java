@@ -62,6 +62,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
  */
 public class ResourceTypeUtil {
 
+	public static String getConnectorOid(PrismObject<ResourceType> resource) {
+		return getConnectorOid(resource.asObjectable());
+	}
+	
 	public static String getConnectorOid(ResourceType resource) {
 		if (resource.getConnectorRef() != null) {
 			return resource.getConnectorRef().getOid();

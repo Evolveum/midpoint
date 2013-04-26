@@ -852,13 +852,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		testResult.addParam("resourceOid", resourceOid);
 		testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		ResourceType resourceType = null;
+		PrismObject<ResourceType> resource = null;
 		
 		try {
-			PrismObject<ResourceType> resource = getRepoObject(ResourceType.class, resourceOid, testResult);
-
-			resourceType = resource.asObjectable();
-			resourceManager.testConnection(resourceType, testResult);
+			resource = getRepoObject(ResourceType.class, resourceOid, testResult);
+			resourceManager.testConnection(resource, testResult);
 
 //		} catch (ObjectNotFoundException ex) {
 //			throw new ObjectNotFoundException("Object with OID " + resourceOid + " not found");
@@ -867,7 +865,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		testResult.computeStatus("Test resource has failed");
 
-		LOGGER.trace("Finished testing {}, result: {} ", ObjectTypeUtil.toShortString(resourceType),
+		LOGGER.trace("Finished testing {}, result: {} ", resource,
 				testResult.getStatus());
 		return testResult;
 	}

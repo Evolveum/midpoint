@@ -261,7 +261,7 @@ public abstract class ShadowCache {
 			}
 			
 			resourceShadow = resouceObjectConverter.getResourceObject(connector, resource, identifiers, objectClassDefinition, parentResult);
-			resourceTypeManager.modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
+			resourceTypeManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
 			try {
 				boolean compensate = GetOperationOptions.isDoNotDiscovery(options)? false : true;
@@ -530,7 +530,7 @@ public abstract class ShadowCache {
 			}
 			LOGGER.trace("Object deleted from repository successfully.");
 			parentResult.recordSuccess();
-			resourceTypeManager.modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
+			resourceTypeManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
 		}
 	}
 
@@ -856,7 +856,7 @@ public abstract class ShadowCache {
 	
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		return connectorManager.getConfiguredConnectorInstance(resource, false, parentResult);
+		return connectorManager.getConfiguredConnectorInstance(resource.asPrismObject(), false, parentResult);
 	}
 	
 	///////////////////////////////////////////////////////////////////////////

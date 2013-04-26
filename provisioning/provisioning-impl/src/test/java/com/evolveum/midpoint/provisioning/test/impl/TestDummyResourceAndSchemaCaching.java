@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -89,6 +90,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 	
 	private CachingMetadataType lastCachingMetadata;
 	private long lastConnectorSchemaFetchCount = 0;
+	private long lastConnectorInitializationCount = 0;
 	
 	@Test
 	public void test010GetResource() throws Exception {
@@ -98,13 +100,18 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
 		
+		// Some connector initialization and other things might happen in previous tests.
+		// The monitor is static, not part of spring context, it will not be cleared
 		rememberConnectorSchemaFetchCount();
+		rememberConnectorInitializationCount();
 		
 		// Check that there is no schema before test (pre-condition)
-		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result)
-				.asObjectable();
+		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		ResourceType resourceTypeBefore = resourceBefore.asObjectable();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
+		
+		assertVersion(resourceBefore, "0");
 
 		// WHEN
 		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
@@ -118,6 +125,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		rememberSchemaMetadata(resourceProvisioning);
 		
 		assertConnectorSchemaFetch(1);
+		assertConnectorInitializationCount(1);
 				
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_OID, result);
@@ -129,7 +137,35 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		resourceType = resourceProvisioning.asObjectable();
 	}
 	
+	@Test
+	public void test011GetResourceAgain() throws Exception {
+		final String TEST_NAME = "test011GetResourceAgain";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
+				+ "." + TEST_NAME);
+		
+		// WHEN
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+
+		// THEN
+		display("Resource", resource);
+		result.computeStatus();
+		assertSuccess(result);
+
+		assertHasSchema(resourceProvisioning, "provisioning resource");
+		assertSchemaMetadataUnchanged(resourceProvisioning);
+		
+		assertConnectorSchemaFetch(0);
+		assertConnectorInitializationCount(0);
+		
+		assertVersion(resourceProvisioning, resourceType.getVersion());		
+	}
 	
+	private <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {
+		assertEquals("Wrong version of "+object, expectedVersion, object.asObjectable().getVersion());
+	}
+
 	private CachingMetadataType getSchemaCachingMetadata(PrismObject<ResourceType> resource) {
 		ResourceType resourceType = resource.asObjectable();
 		XmlSchemaType xmlSchemaTypeAfter = resourceType.getSchema();
@@ -159,6 +195,16 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		lastConnectorSchemaFetchCount = currentConnectorSchemaFetchCount;
 	}
 
+	private void rememberConnectorInitializationCount() {
+		lastConnectorInitializationCount  = InternalMonitor.getConnectorInitializationCount();
+	}
+
+	private void assertConnectorInitializationCount(int expectedIncrement) {
+		long currentConnectorInitializationCount = InternalMonitor.getConnectorInitializationCount();
+		long actualIncrement = currentConnectorInitializationCount - lastConnectorInitializationCount;
+		assertEquals("Unexpected increment in connector initialization count", (long)expectedIncrement, actualIncrement);
+		lastConnectorInitializationCount = currentConnectorInitializationCount;
+	}
 	
 	private void assertHasSchema(PrismObject<ResourceType> resource, String desc) throws SchemaException {
 		ResourceType resourceType = resource.asObjectable();
@@ -181,8 +227,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resource.toString(), prismContext);
 		assertNotNull("No schema after parsing in "+desc, parsedSchema);
 	}
-	
-	
 
 //	@Test
 //	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException,
