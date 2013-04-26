@@ -15,6 +15,7 @@ DETERMINISTIC
     DELETE FROM m_any_date;
     DELETE FROM m_any_long;
     DELETE FROM m_any_string;
+    DELETE FROM m_any_poly_string;
     DELETE FROM m_any_reference;
     DELETE FROM m_any;
 
