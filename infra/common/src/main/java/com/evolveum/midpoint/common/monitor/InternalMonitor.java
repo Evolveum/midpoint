@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2013 [name of copyright owner]
  */
-package com.evolveum.midpoint.common;
+package com.evolveum.midpoint.common.monitor;
 
 /**
  * Simple monitoring object. It records the count of expensive operations
@@ -33,12 +33,14 @@ public class InternalMonitor {
 	private static long resourceSchemaParseCount = 0;
 	private static long connectorInitializationCount = 0;
 	private static long connectorSchemaFetchCount = 0;
+	private static CachingStatistics resourceCacheStats = new CachingStatistics();
+	private static CachingStatistics connectorCacheStats = new CachingStatistics();
 	
 	public static long getResourceSchemaParseCount() {
 		return resourceSchemaParseCount;
 	}
 	
-	public static void recordResourceSchemaParse() {
+	public synchronized static void recordResourceSchemaParse() {
 		resourceSchemaParseCount++;
 	}
 	
@@ -46,7 +48,7 @@ public class InternalMonitor {
 		return connectorInitializationCount;
 	}
 	
-	public static void recordConnectorInitialization() {
+	public synchronized static void recordConnectorInitialization() {
 		connectorInitializationCount++;
 	}
 	
@@ -54,8 +56,16 @@ public class InternalMonitor {
 		return connectorSchemaFetchCount;
 	}
 	
-	public static void recordConnectorSchemaFetch() {
+	public synchronized static void recordConnectorSchemaFetch() {
 		connectorSchemaFetchCount++;
+	}
+
+	public static CachingStatistics getResourceCacheStats() {
+		return resourceCacheStats;
+	}
+
+	public static CachingStatistics getConnectorCacheStats() {
+		return connectorCacheStats;
 	}
 
 }

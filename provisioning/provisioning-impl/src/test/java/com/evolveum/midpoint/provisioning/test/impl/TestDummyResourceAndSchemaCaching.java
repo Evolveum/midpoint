@@ -26,7 +26,8 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.InternalMonitor;
+import com.evolveum.midpoint.common.monitor.CachingStatistics;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -91,6 +92,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 	private CachingMetadataType lastCachingMetadata;
 	private long lastConnectorSchemaFetchCount = 0;
 	private long lastConnectorInitializationCount = 0;
+	private CachingStatistics lastResourceCacheStats;
 	
 	@Test
 	public void test010GetResource() throws Exception {
@@ -104,6 +106,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// The monitor is static, not part of spring context, it will not be cleared
 		rememberConnectorSchemaFetchCount();
 		rememberConnectorInitializationCount();
+		rememberResourceCacheStats();
 		
 		// Check that there is no schema before test (pre-condition)
 		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
@@ -133,6 +136,10 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertSchemaMetadataUnchanged(resourceRepoAfter);
 		
+		display("Resource cache", InternalMonitor.getResourceCacheStats());
+		assertResourceCacheHits(0);
+		assertResourceCacheMisses(1);
+		
 		// Just refresh the resource used by other tests. This one has a complete schema.
 		resourceType = resourceProvisioning.asObjectable();
 	}
@@ -159,7 +166,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertConnectorSchemaFetch(0);
 		assertConnectorInitializationCount(0);
 		
-		assertVersion(resourceProvisioning, resourceType.getVersion());		
+		assertVersion(resourceProvisioning, resourceType.getVersion());
+		
+		display("Resource cache", InternalMonitor.getResourceCacheStats());
+		assertResourceCacheHits(1);
+		assertResourceCacheMisses(0);
 	}
 	
 	private <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {
@@ -206,6 +217,30 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		lastConnectorInitializationCount = currentConnectorInitializationCount;
 	}
 	
+	private void rememberResourceCacheStats() {
+		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
+	}
+	
+	private void assertResourceCacheHits(int expectedIncrement) {
+		assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
+	}
+	
+	private void assertResourceCacheMisses(int expectedIncrement) {
+		assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
+	}
+	
+	private void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
+		long actualIncrement = currentStats.getHits() - lastStats.getHits();
+		assertEquals("Unexpected increment in "+desc+" hit count", (long)expectedIncrement, actualIncrement);
+		lastStats.setHits(currentStats.getHits());
+	}
+
+	private void assertCacheMisses(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
+		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
+		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
+		lastStats.setMisses(currentStats.getMisses());
+	}
+
 	private void assertHasSchema(PrismObject<ResourceType> resource, String desc) throws SchemaException {
 		ResourceType resourceType = resource.asObjectable();
 		display("Resource "+desc, resourceType);

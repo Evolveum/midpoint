@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.InternalMonitor;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
