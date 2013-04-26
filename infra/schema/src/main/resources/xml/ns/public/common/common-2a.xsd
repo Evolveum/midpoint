@@ -5875,6 +5875,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="legalize" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>   
         </xsd:sequence>
     </xsd:complexType>
 

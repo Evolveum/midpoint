@@ -416,6 +416,28 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
 		return globalAssignmentPolicyEnforcement;
 	}
+	
+	public boolean isLegalize(){
+		ResourceType resource = getResource();
+		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = null;
+		if (resource != null){
+			globalAccountSynchronizationSettings = resource.getAccountSynchronizationSettings();
+		} 
+		
+		if (globalAccountSynchronizationSettings == null) {
+			globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
+		}
+		
+		if (globalAccountSynchronizationSettings == null){
+			return false;
+		}
+		
+		if (globalAccountSynchronizationSettings.isLegalize() == null){
+			return false;
+		}
+		
+		return globalAccountSynchronizationSettings.isLegalize();
+	}
 
 	/**
      * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).

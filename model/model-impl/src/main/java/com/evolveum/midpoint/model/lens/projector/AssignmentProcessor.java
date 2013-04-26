@@ -53,6 +53,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -401,7 +402,7 @@ public class AssignmentProcessor {
                 } else {
                 	// The account existed before the change and should still exist
                 	if (AssignmentPolicyEnforcementType.NONE == accountSyncContext.getAssignmentPolicyEnforcementType()){
-                		chooseDesicionAccordingToDelta(accountSyncContext);
+                		chooseDesicionAccordingToDelta(accountSyncContext, context);
 					} else {
 						accountSyncContext.setAssigned(true);
 						accountSyncContext.setActive(true);
@@ -426,7 +427,7 @@ public class AssignmentProcessor {
 					LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(
 							context, rat);
 					if (AssignmentPolicyEnforcementType.NONE == accountContext.getAssignmentPolicyEnforcementType()) {
-						chooseDesicionAccordingToDelta(accountContext);
+						chooseDesicionAccordingToDelta(accountContext, context);
 					} else {
 						markPolicyDecision(accountContext, SynchronizationPolicyDecision.ADD);
 					}
@@ -540,13 +541,16 @@ public class AssignmentProcessor {
 
 	/**
 	 * Set policy decisions for the accounts that does not have it already
+	 * @throws SchemaException 
 	 */
-	private void finishPolicyDecisions(LensContext<UserType,ShadowType> context) throws PolicyViolationException {
+	private void finishPolicyDecisions(LensContext<UserType,ShadowType> context) throws PolicyViolationException, SchemaException {
 		for (LensProjectionContext<ShadowType> accountContext: context.getProjectionContexts()) {
 			if (accountContext.getSynchronizationPolicyDecision() != null) {
 				// already have decision
 				continue;
 			}
+			
+			chooseDesicionAccordingToDelta(accountContext, context);
 			AssignmentPolicyEnforcementType enforcementType = accountContext.getAssignmentPolicyEnforcementType();
 			if (enforcementType == AssignmentPolicyEnforcementType.FULL && !accountContext.isAssigned()) {
 				if (accountContext.isAdd()) {
@@ -574,20 +578,42 @@ public class AssignmentProcessor {
 				}
 			}
 			// TODO: other cases?
-			chooseDesicionAccordingToDelta(accountContext);
+//			chooseDesicionAccordingToDelta(accountContext, context);
 			
 		}
 		
+		
+		
 	}
 
-	private <P extends ObjectType> void chooseDesicionAccordingToDelta(LensProjectionContext<P> accountContext) {
+	private <F extends ObjectType, P extends ObjectType, T extends ObjectType> void chooseDesicionAccordingToDelta(LensProjectionContext<T> accountContext, LensContext<F,P> context) throws SchemaException {
+	
 		if (accountContext.getSynchronizationPolicyDecision() == null){
 			if (accountContext.isAdd()){
 				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.ADD);
+				if (accountContext.isLegalize()){
+//					ContainerDelta assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
+					AssignmentType assignmet = new AssignmentType();
+					assignmet.setTargetRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
+//					assignmentDelta.addValueToAdd(assignmet.asPrismContainerValue());
+					ObjectDelta assignmentDelta = ObjectDelta.createModificationAddContainer(UserType.class, context.getFocusContext().getOid(), UserType.F_ASSIGNMENT, prismContext, assignmet.asPrismContainerValue());
+					context.getFocusContext().addSecondaryDelta(assignmentDelta);
+					
+				}
 			} else if (accountContext.isDelete()){
 				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 			} else {
 				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+				if (accountContext.isLegalize()){
+//					ContainerDelta assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
+					AssignmentType assignmet = new AssignmentType();
+					assignmet.setTargetRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
+//					assignmentDelta.addValueToAdd(assignmet.asPrismContainerValue());
+					ObjectDelta assignmentDelta = ObjectDelta.createModificationAddContainer(UserType.class, context.getFocusContext().getOid(), UserType.F_ASSIGNMENT, prismContext, assignmet.asPrismContainerValue());
+					context.getFocusContext().setSecondaryDelta(assignmentDelta, context.getExecutionWave());//addSecondaryDelta(assignmentDelta);
+					accountContext.setAssigned(true);
+					
+				}
 			}
 		}
 		

@@ -33,8 +33,10 @@ import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -47,6 +49,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -479,6 +483,79 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 //        assertNull(propertyDeltaL.getValuesToAdd());
 
     }
+	
+	@Test
+	 public void test032ModifyUserLegalizeAccount() throws Exception {
+	        displayTestTile(this, "test032ModifyUserLegalizeAccount");
+
+	        // GIVEN
+	        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test032ModifyUserLegalizeAccount");
+
+	        addObjectFromFile(USER_LARGO_FILENAME, UserType.class, result);
+	        
+	        LensContext<UserType, ShadowType> context = createUserAccountContext();
+	        fillContextWithUser(context, USER_LARGO_OID, result);
+	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, result);
+//	        addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME);
+//	        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
+	        context.recompute();
+	        
+	        AccountSynchronizationSettingsType accountSynchronizationSettings = new AccountSynchronizationSettingsType();
+	        accountSynchronizationSettings.setLegalize(Boolean.TRUE);
+	        accountSynchronizationSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
+	        context.setAccountSynchronizationSettings(accountSynchronizationSettings);
+	        
+	        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, true);
+
+	        display("Input context", context);
+
+	        assertUserModificationSanity(context);
+
+	        // WHEN
+	        assignmentProcessor.processAssignmentsAccounts(context, result);
+	        context.recompute();
+	        // THEN
+	        display("Output context", context);
+	        display("outbound processor result", result);
+//			assertSuccess("Outbound processor failed (result)", result);
+
+//	        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+	        assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
+	        assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
+	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.", ContainerDelta.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(), UserType.F_ASSIGNMENT));
+	        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+
+//	        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+//	        assertEquals(1, accountContexts.size());
+//	        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+//	        assertNull(accContext.getPrimaryDelta());
+//
+//	        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+//	        assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
+//	        
+//	        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+//	        
+//	        assignmentProcessor.processAssignmentsAccountValues(accContext, result);
+//	        
+//	        PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple =
+//	        	accContext.getAccountConstructionDeltaSetTriple();
+//	        
+//	        PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
+//	        PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
+//	        assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
+//	        
+//	        AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
+//	                        
+//	        assertNoZeroAttributeValues(zeroAccountConstruction, 
+//	        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+//	        assertPlusAttributeValues(zeroAccountConstruction, 
+//	        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Tortuga");
+//	        assertMinusAttributeValues(zeroAccountConstruction, 
+//	        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
+//	        
+//	        deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, true);
+	                   
+	    }
 	
 	private <T> void assertPlusAttributeValues(AccountConstruction accountConstruction, QName attrName, T... expectedValue) {
         Mapping<? extends PrismPropertyValue<?>> vc = accountConstruction.getAttributeConstruction(attrName);

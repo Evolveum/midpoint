@@ -1136,7 +1136,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         breakAssignmentDelta(deltas);
                 
         //change resource assigment policy to be positive..if they are not applied by projector, the test will fail
-        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE);
+        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, false);
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
 		
@@ -1172,7 +1172,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionSuccess();
         
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
-        deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE);
+        deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, false);
 	}
 
 	/**

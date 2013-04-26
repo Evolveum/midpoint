@@ -319,18 +319,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         applySyncSettings(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, syncSettings);
 	}
 	
-	protected void assumeResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
+	protected void assumeResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
 		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
+        syncSettings.setLegalize(Boolean.valueOf(legalize));
 		applySyncSettings(ResourceType.class, oid, ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS, syncSettings);
 	}
 	
-	protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
+	protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
 		PrismObjectDefinition<ResourceType> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(ResourceType.class);
 
 		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
+        syncSettings.setLegalize(Boolean.valueOf(legalize));
 		ItemDelta deleteAssigmentEnforcement = PropertyDelta
 				.createModificationDeleteProperty(new ItemPath(ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS),
 						objectDefinition.findPropertyDefinition(ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS), syncSettings);
