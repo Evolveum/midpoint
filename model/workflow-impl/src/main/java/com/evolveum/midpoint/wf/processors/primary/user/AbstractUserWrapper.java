@@ -17,20 +17,12 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Pavol
+ * @author mederly
  */
 public abstract class AbstractUserWrapper extends AbstractWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractUserWrapper.class);
 
-    String getUserName(ModelContext<?,?> modelContext) {
-        ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
-        UserType newUser = fc.getObjectNew() != null ? fc.getObjectNew().asObjectable() : null;
-
-        Validate.notNull(newUser);
-        Validate.notNull(newUser.getName());
-        return newUser.getName().getOrig();
-    }
-
+    // getUserName moved to MiscDataUtil
 
 }

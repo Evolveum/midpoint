@@ -73,60 +73,54 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
         TaskRunResultStatus status = TaskRunResultStatus.FINISHED;
 
-        if (wfConfiguration.isEnabled()) {
+        try {
 
-            try {
+            OperationResult result = task.getResult();
 
-                OperationResult result = task.getResult();
+            List<Task> children = task.listSubtasks(result);
 
-                List<Task> children = task.listSubtasks(result);
+            LensContext rootContext = (LensContext) wfTaskUtil.retrieveModelContext(task, result);
 
-                LensContext rootContext = (LensContext) wfTaskUtil.retrieveModelContext(task, result);
+            boolean changed = false;
+            for (Task child : children) {
 
-                boolean changed = false;
-                for (Task child : children) {
-
-                    if (child.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
-                        throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getExecutionStatus());
-                    }
-
-                    if (wfTaskUtil.hasModelContext(child)) {
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Child task {} has model context present - skipping fetching deltas from it.");
-                        }
-                    } else {
-                        List<ObjectDelta<Objectable>> deltas = wfTaskUtil.retrieveResultingDeltas(child);
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Task {} returned {} deltas", child, deltas.size());
-                        }
-                        for (ObjectDelta delta : deltas) {
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Adding delta from task {} to root model context; delta = {}", child, delta.debugDump(0));
-                            }
-                            rootContext.getFocusContext().addPrimaryDelta(delta);
-                            changed = true;
-                        }
-                    }
+                if (child.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+                    throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getExecutionStatus());
                 }
 
-                if (changed) {
-                    wfTaskUtil.storeModelContext(task, rootContext);
-                    task.savePendingModifications(result);
+                if (wfTaskUtil.hasModelContext(child)) {
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Child task {} has model context present - skipping fetching deltas from it.");
+                    }
+                } else {
+                    List<ObjectDelta<Objectable>> deltas = wfTaskUtil.retrieveResultingDeltas(child);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Task {} returned {} deltas", child, deltas.size());
+                    }
+                    for (ObjectDelta delta : deltas) {
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Adding delta from task {} to root model context; delta = {}", child, delta.debugDump(0));
+                        }
+                        rootContext.getFocusContext().addPrimaryDelta(delta);
+                        changed = true;
+                    }
                 }
-
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks due to schema exception", e);
-                status = TaskRunResultStatus.PERMANENT_ERROR;
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
-                status = TaskRunResultStatus.PERMANENT_ERROR;
-            } catch (ObjectAlreadyExistsException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
-                status = TaskRunResultStatus.PERMANENT_ERROR;
             }
 
-        } else {
-            LOGGER.info("Workflows are disabled, skipping " + WfPrepareRootOperationTaskHandler.class + " run.");
+            if (changed) {
+                wfTaskUtil.storeModelContext(task, rootContext);
+                task.savePendingModifications(result);
+            }
+
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks due to schema exception", e);
+            status = TaskRunResultStatus.PERMANENT_ERROR;
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            status = TaskRunResultStatus.PERMANENT_ERROR;
+        } catch (ObjectAlreadyExistsException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            status = TaskRunResultStatus.PERMANENT_ERROR;
         }
 
 		TaskRunResult runResult = new TaskRunResult();

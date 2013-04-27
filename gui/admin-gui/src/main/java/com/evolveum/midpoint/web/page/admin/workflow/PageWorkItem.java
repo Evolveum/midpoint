@@ -52,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -99,6 +100,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String ID_PROCESS_INSTANCE_PANEL = "processInstancePanel";
 
     private PageParameters parameters;
+    private Page previousPage;      // where to return
 
     private IModel<WorkItemDetailedDto> workItemDtoModel;
 
@@ -112,12 +114,13 @@ public class PageWorkItem extends PageAdminWorkItems {
     private IModel<DeltaDto> deltaModel;
 
     public PageWorkItem() {
-        this(new PageParameters());
+        this(new PageParameters(), null);
     }
 
-    public PageWorkItem(PageParameters parameters) {
+    public PageWorkItem(PageParameters parameters, Page previousPage) {
 
         this.parameters = parameters;
+        this.previousPage = previousPage;
 
         requesterModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
@@ -310,7 +313,11 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         if (!result.isSuccess()) {
             showResultInSession(result);
-            throw new RestartResponseException(PageWorkItems.class);
+            if (previousPage != null) {
+                throw new RestartResponseException(previousPage);
+            } else {
+                throw new RestartResponseException(PageWorkItems.class);
+            }
         }
 
         return new WorkItemDetailedDto(workItem);
@@ -593,7 +600,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        setResponsePage(PageWorkItems.class);
+        goBack();
     }
 
     private void savePerformed(AjaxRequestTarget target, boolean decision) {
@@ -619,8 +626,17 @@ public class PageWorkItem extends PageAdminWorkItems {
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
+            goBack();
+        }
+    }
+
+    private void goBack() {
+        if (previousPage != null) {
+            setResponsePage(previousPage);
+        } else {
             setResponsePage(PageWorkItems.class);
         }
     }
+
 
 }

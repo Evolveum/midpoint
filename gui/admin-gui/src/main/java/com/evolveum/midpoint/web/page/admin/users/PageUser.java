@@ -21,25 +21,62 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.component.ExecuteChangeOptionsPanel;
+import com.evolveum.midpoint.web.component.accordion.Accordion;
+import com.evolveum.midpoint.web.component.accordion.AccordionItem;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.component.AccountOperationButtons;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
 import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
+import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -54,74 +91,11 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.HeaderStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -156,6 +130,8 @@ public class PageUser extends PageAdminUsers {
 	private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
 	private static final String ID_ASSIGNMENT_LIST = "assignmentList";
 	private static final String ID_ASSIGNMENTS = "assignments";
+    private static final String ID_TASK_TABLE = "taskTable";
+    private static final String ID_TASKS = "tasks";
 	private static final String ID_USER_FORM = "userForm";
 	private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
@@ -174,7 +150,9 @@ public class PageUser extends PageAdminUsers {
                 }
             };
 
-	// it should be sent from submit. If the user is on the preview page and
+    private TaskDtoProvider taskDtoProvider;
+
+    // it should be sent from submit. If the user is on the preview page and
 	// than he wants to get back to the edit page, the object delta is set, so
 	// we don't loose any changes
 	// private ObjectDelta objectDelta;
@@ -205,7 +183,8 @@ public class PageUser extends PageAdminUsers {
                 return loadAssignments();
             }
         };
-        initLayout();
+
+        initLayout(null);
     }
 
 	public PageUser(final Collection<ObjectDelta<? extends ObjectType>> deltas, final String oid) {
@@ -233,7 +212,7 @@ public class PageUser extends PageAdminUsers {
 
 		};
 
-		initLayout();
+		initLayout(oid);
 	}
 
 	private ObjectWrapper loadUserAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas, String oid) {
@@ -456,7 +435,8 @@ public class PageUser extends PageAdminUsers {
 		return wrapper;
 	}
 
-	private void initLayout() {
+    // userOid may or may not be known at this time (depending on what constructor is used)
+	private void initLayout(String userOid) {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
@@ -509,7 +489,26 @@ public class PageUser extends PageAdminUsers {
 		accordion.getBodyContainer().add(assignments);
 
 		initAssignments(assignments);
-		initButtons(mainForm);
+
+        AccordionItem tasks = new AccordionItem(ID_TASKS, new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return getString("pageUser.tasks", taskDtoProvider.size());
+            }
+        });
+        tasks.setOutputMarkupId(true);
+        tasks.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return taskDtoProvider.size() > 0;
+            }
+        });
+        accordion.getBodyContainer().add(tasks);
+
+        initTasks(tasks, userOid);
+
+        initButtons(mainForm);
 
 		initResourceModal();
 		initAssignableModal();
@@ -796,6 +795,55 @@ public class PageUser extends PageAdminUsers {
 
 		assignments.getBodyContainer().add(assignmentList);
 	}
+
+    private void initTasks(AccordionItem tasks, String userOid) {
+
+        List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
+        taskDtoProvider = new TaskDtoProvider(PageUser.this, TaskDtoProviderOptions.minimalOptions());
+        taskDtoProvider.setQuery(createTaskQuery(userOid));
+        TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                StringValue oidValue = getPageParameters().get(PARAM_USER_ID);
+//                System.out.println("PARAM_USER_ID = " + oidValue);
+                taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
+            }
+        };
+        taskTable.setOutputMarkupId(true);
+
+        tasks.getBodyContainer().add(taskTable);
+    }
+
+    private ObjectQuery createTaskQuery(String oid) {
+
+//        System.out.println("createTaskQuery called with oid = " + oid);
+        List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+
+        if (oid == null) {
+            oid = "non-existent";      // TODO !!!!!!!!!!!!!!!!!!!!
+        }
+        try {
+            filters.add(RefFilter.createReferenceEqual(TaskType.class, TaskType.F_OBJECT_REF, getPrismContext(), oid));
+            filters.add(NotFilter.createNot(EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED)));
+            filters.add(EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null));
+        } catch (SchemaException e) {
+            throw new SystemException("Unexpected SchemaException when creating task filter", e);
+        }
+
+        return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
+    }
+
+    private List<IColumn<TaskDto, String>> initTaskColumns() {
+        List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
+
+        columns.add(PageTasks.createTaskNameColumn(this, "pageUser.task.name"));
+        columns.add(PageTasks.createTaskCategoryColumn(this, "pageUser.task.category"));
+        columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageUser.task.execution"));
+        columns.add(PageTasks.createTaskResultStatusColumn(this, "pageUser.task.status"));
+        return columns;
+    }
+
 
 	private void initButtons(Form mainForm) {
 		AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save", ButtonType.POSITIVE,

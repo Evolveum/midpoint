@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
+import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -57,10 +58,6 @@ public class PageProcessInstance extends PageAdminWorkItems {
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
     public static final String PARAM_PROCESS_INSTANCE_ID = "processInstanceId";
     public static final String PARAM_PROCESS_INSTANCE_FINISHED = "processInstanceFinished";     // boolean value
-    public static final String PARAM_PROCESS_INSTANCE_BACK = "processInstanceBack";
-    public static final String PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY = "PageProcessInstancesRequestedBy";
-    public static final String PARAM_PROCESS_INSTANCE_BACK_REQUESTED_FOR = "PageProcessInstancesRequestedFor";
-    public static final String PARAM_PROCESS_INSTANCE_BACK_ALL = "PageProcessInstancesAll";
     private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadProcessInstance";
 
     private static final String ID_PROCESS_INSTANCE_PANEL = "processInstancePanel";
@@ -68,14 +65,16 @@ public class PageProcessInstance extends PageAdminWorkItems {
     private IModel<ProcessInstanceDto> model;
 
     private PageParameters parameters;
+    private Page previousPage;
 
     public PageProcessInstance() {
-        this(new PageParameters());
+        this(new PageParameters(), null);
     }
 
-    public PageProcessInstance(final PageParameters parameters) {
+    public PageProcessInstance(final PageParameters parameters, Page previousPage) {
 
         this.parameters = parameters;
+        this.previousPage = previousPage;
 
         model = new LoadableModel<ProcessInstanceDto>(false) {
 
@@ -92,7 +91,6 @@ public class PageProcessInstance extends PageAdminWorkItems {
     private ProcessInstanceDto loadProcessInstance() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 
-        StringValue back = parameters.get(PARAM_PROCESS_INSTANCE_BACK);
 		try {
             StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
@@ -106,7 +104,11 @@ public class PageProcessInstance extends PageAdminWorkItems {
             if (!result.isSuccess()) {
                 showResultInSession(result);
             }
-            throw new RestartResponseException(backPage(back.toString()));
+            if (previousPage != null) {
+                throw new RestartResponseException(previousPage);
+            } else {
+                throw new RestartResponseException(PageProcessInstancesAll.class);
+            }
         }
 
 	}
@@ -128,21 +130,14 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				setResponsePage(backPage(parameters.get(PARAM_PROCESS_INSTANCE_BACK).toString()));
+                if (previousPage != null) {
+                    setResponsePage(previousPage);
+                } else {
+				    setResponsePage(PageProcessInstancesAll.class);
+                }
 			}
 		};
 		mainForm.add(backButton);
 	}
-
-    private Class backPage(String backValue) {
-        if (PARAM_PROCESS_INSTANCE_BACK_ALL.equals(backValue)) {
-            return PageProcessInstancesAll.class;
-        } else if (PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY.equals(backValue)) {
-            return PageProcessInstancesRequestedBy.class;
-        } else {
-            return PageProcessInstancesRequestedFor.class;
-        }
-    }
-
 
 }

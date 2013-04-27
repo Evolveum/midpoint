@@ -48,8 +48,15 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
     private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
 
-    public TaskDtoProvider(Component component) {
+    private TaskDtoProviderOptions options;
+
+    public TaskDtoProvider(Component component, TaskDtoProviderOptions options) {
         super(component);
+        this.options = options;
+    }
+
+    public TaskDtoProvider(Component component) {
+        this(component, TaskDtoProviderOptions.fullOptions());
     }
 
     @Override
@@ -76,11 +83,16 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
         	query.setPaging(paging);
         	
             TaskManager manager = getTaskManager();
-            ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result);
+            ClusterStatusInformation info =
+                    options.isUseClusterInformation() ?
+                            manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result) :
+                            new ClusterStatusInformation();
+
             List<Task> tasks = manager.searchTasks(query, info, result);
 
             for (Task task : tasks) {
-                getAvailableData().add(new TaskDto(task, info, manager, getModelInteractionService()));
+                TaskDto taskDto = new TaskDto(task, info, manager, getModelInteractionService(), options);
+                getAvailableData().add(taskDto);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Unhandled exception when listing tasks", ex);

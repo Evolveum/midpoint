@@ -296,6 +296,8 @@ public interface Task extends Dumpable {
 	
 	// TODO: provide "persistent version" of this method
 	public void setObjectRef(ObjectReferenceType objectRef);
+
+    public void setObjectTransient(PrismObject object);
 	
 	/**
 	 * Returns OID of the object that the task is associated with.
@@ -604,4 +606,7 @@ public interface Task extends Dumpable {
     void pushWaitForTasksHandlerUri();
 
     Long getCompletionTimestamp();
+
+    void setObjectRefImmediate(ObjectReferenceType value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 }

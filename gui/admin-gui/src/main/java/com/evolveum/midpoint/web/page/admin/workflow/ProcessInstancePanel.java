@@ -48,7 +48,7 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
-                    setResponsePage(PageTaskEdit.class, parameters);
+                    setResponsePage(new PageTaskEdit(parameters, this.getPage()));
                 }
             }
         };

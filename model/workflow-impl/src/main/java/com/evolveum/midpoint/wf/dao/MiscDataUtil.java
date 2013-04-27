@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.wf.dao;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -116,6 +118,16 @@ public class MiscDataUtil {
                 }
             }
         }
+    }
+
+    public static String getObjectName(ModelContext<? extends ObjectType,?> modelContext) {
+        ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
+        PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
+        if (prism == null) {
+            throw new IllegalStateException("No object (new or old) in model context");
+        }
+        ObjectType object = prism.asObjectable();
+        return object.getName() != null ? object.getName().getOrig() : null;
     }
 
 }

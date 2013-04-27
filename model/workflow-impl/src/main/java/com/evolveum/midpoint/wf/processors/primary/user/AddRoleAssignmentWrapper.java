@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.dao.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
@@ -188,7 +189,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
 
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
-        String userName = getUserName(modelContext);
+        String userName = MiscDataUtil.getObjectName(modelContext);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
 

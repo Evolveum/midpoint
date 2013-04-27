@@ -106,7 +106,7 @@ public class ProcessInstanceController {
             LOGGER.trace("prepareChildTask starting; task = " + task);
         }
 
-        checkTaskCleanness(task);
+        checkTaskCleanness(task, false);
 
         wfTaskUtil.setTaskNameIfEmpty(task, instruction.getTaskName());
         setDefaultTaskOwnerIfEmpty(task, result);
@@ -126,12 +126,12 @@ public class ProcessInstanceController {
         }
     }
 
-    private void checkTaskCleanness(Task task) {
+    private void checkTaskCleanness(Task task, boolean noHandlers) {
         if (!task.isTransient()) {
             throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
         }
 
-        if (task.getHandlerUri() != null) {
+        if (noHandlers && task.getHandlerUri() != null) {
             throw new IllegalStateException("Workflow-related task should have no handler URI at this moment; task = " + task + ", existing handler URI = " + task.getHandlerUri());
         }
     }

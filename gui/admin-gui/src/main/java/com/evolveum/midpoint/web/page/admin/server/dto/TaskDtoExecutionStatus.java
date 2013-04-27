@@ -32,6 +32,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
  */
 public enum TaskDtoExecutionStatus {
 
+    RUNNING_OR_RUNNABLE,
     RUNNING,
     RUNNABLE,
     WAITING,

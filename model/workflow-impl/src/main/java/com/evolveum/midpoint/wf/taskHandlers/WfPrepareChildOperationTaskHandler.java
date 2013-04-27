@@ -60,72 +60,66 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
         TaskRunResult.TaskRunResultStatus status = TaskRunResult.TaskRunResultStatus.FINISHED;
 
-        if (wfConfiguration.isEnabled()) {
+        LOGGER.trace("WfPrepareChildOperationTaskHandler starting... task = {}", task);
 
-            LOGGER.trace("WfPrepareChildOperationTaskHandler starting... task = {}", task);
+        try {
 
-            try {
+            OperationResult result = task.getResult();
 
-                OperationResult result = task.getResult();
-
-                ModelContext modelContext = wfTaskUtil.retrieveModelContext(task, result);
-                if (modelContext == null) {
-                    throw new IllegalStateException("There's no model context in child task; task = " + task);
-                }
-
-                // prepare deltaOut to be used
-
-                List<ObjectDelta<Objectable>> deltasOut = wfTaskUtil.retrieveResultingDeltas(task);
-                if (LOGGER.isTraceEnabled()) { dumpDeltaOut(deltasOut); }
-                ObjectDelta deltaOut = ObjectDelta.summarize(deltasOut);
-
-                if (deltaOut == null || deltaOut.isEmpty()) {
-
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("There's no primary delta in focus context; task = " + task + ", model context = " + modelContext.debugDump());
-                        LOGGER.trace("We'll set skip model context processing property.");
-                    }
-
-                    wfTaskUtil.setSkipModelContextProcessingProperty(task, true, result);
-
-                } else {
-
-                    setOidIfNeeded(deltaOut, task, result);         // fixes OID in deltaOut, if necessary
-
-                    if (deltaOut.getOid() == null || deltaOut.getOid().equals(PrimaryChangeProcessor.UNKNOWN_OID)) {
-                        throw new IllegalStateException("Null or unknown OID in deltaOut: " + deltaOut.getOid());
-                    }
-
-                    // place deltaOut into model context
-
-                    ObjectDelta primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
-                    if (primaryDelta == null || !primaryDelta.isModify()) {
-                        throw new IllegalStateException("Object delta in model context in task " + task + " should have been empty or of MODIFY type, but it isn't; it is " + primaryDelta.debugDump());
-                    }
-
-                    modelContext.getFocusContext().setPrimaryDelta(deltaOut);
-
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Resulting model context to be stored into task {}:\n{}", task, modelContext.debugDump(0));
-                    }
-                    wfTaskUtil.storeModelContext(task, modelContext);
-                }
-
-                task.savePendingModifications(result);
-
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't prepare child model context due to schema exception", e);
-                status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
-                status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-            } catch (ObjectAlreadyExistsException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
-                status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+            ModelContext modelContext = wfTaskUtil.retrieveModelContext(task, result);
+            if (modelContext == null) {
+                throw new IllegalStateException("There's no model context in child task; task = " + task);
             }
 
-        } else {
-            LOGGER.info("Workflows are disabled, skipping " + WfPrepareChildOperationTaskHandler.class + " run.");
+            // prepare deltaOut to be used
+
+            List<ObjectDelta<Objectable>> deltasOut = wfTaskUtil.retrieveResultingDeltas(task);
+            if (LOGGER.isTraceEnabled()) { dumpDeltaOut(deltasOut); }
+            ObjectDelta deltaOut = ObjectDelta.summarize(deltasOut);
+
+            if (deltaOut == null || deltaOut.isEmpty()) {
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("There's no primary delta in focus context; task = " + task + ", model context = " + modelContext.debugDump());
+                    LOGGER.trace("We'll set skip model context processing property.");
+                }
+
+                wfTaskUtil.setSkipModelContextProcessingProperty(task, true, result);
+
+            } else {
+
+                setOidIfNeeded(deltaOut, task, result);         // fixes OID in deltaOut, if necessary
+
+                if (deltaOut.getOid() == null || deltaOut.getOid().equals(PrimaryChangeProcessor.UNKNOWN_OID)) {
+                    throw new IllegalStateException("Null or unknown OID in deltaOut: " + deltaOut.getOid());
+                }
+
+                // place deltaOut into model context
+
+                ObjectDelta primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
+                if (primaryDelta == null || !primaryDelta.isModify()) {
+                    throw new IllegalStateException("Object delta in model context in task " + task + " should have been empty or of MODIFY type, but it isn't; it is " + primaryDelta.debugDump());
+                }
+
+                modelContext.getFocusContext().setPrimaryDelta(deltaOut);
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Resulting model context to be stored into task {}:\n{}", task, modelContext.debugDump(0));
+                }
+                wfTaskUtil.storeModelContext(task, modelContext);
+            }
+
+            task.savePendingModifications(result);
+
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't prepare child model context due to schema exception", e);
+            status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
+            status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+        } catch (ObjectAlreadyExistsException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
+            status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
         }
 
         TaskRunResult runResult = new TaskRunResult();

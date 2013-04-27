@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -120,14 +121,16 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static boolean edit = false;
 
     private PageParameters parameters;
+    private Page previousPage;                  // where to go on 'Back' button click
 
     public PageTaskEdit() {
-        this(new PageParameters());
+        this(new PageParameters(), null);
     }
 
-    public PageTaskEdit(PageParameters parameters) {
+    public PageTaskEdit(PageParameters parameters, Page previousPage) {
 
         this.parameters = parameters;
+        this.previousPage = previousPage;
 
 		model = new LoadableModel<TaskDto>(false) {
 
@@ -177,14 +180,18 @@ public class PageTaskEdit extends PageAdminTasks {
 			if (!result.isSuccess()) {
 				showResultInSession(result);
 			}
-			throw new RestartResponseException(PageTasks.class);
+            if (previousPage != null) {
+			    throw new RestartResponseException(previousPage);
+            } else {
+                throw new RestartResponseException(PageTasks.class);
+            }
 		}
 		return taskDto;
 	}
 
     private TaskDto prepareTaskDto(Task task, ClusterStatusInformation info, TaskManager manager, ModelInteractionService modelInteractionService, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        TaskDto taskDto = new TaskDto(task, info, manager, modelInteractionService);
+        TaskDto taskDto = new TaskDto(task, info, manager, modelInteractionService, TaskDtoProviderOptions.fullOptions());
 
         for (Task child : task.listSubtasks(result)) {
             taskDto.addChildTaskDto(prepareTaskDto(child, info, manager, modelInteractionService, result));
@@ -322,7 +329,7 @@ public class PageTaskEdit extends PageAdminTasks {
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
-                    setResponsePage(new PageTaskEdit(parameters));
+                    setResponsePage(new PageTaskEdit(parameters, PageTaskEdit.this));
                 }
             }
         };
@@ -636,7 +643,11 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				edit = false;
-				setResponsePage(PageTasks.class);
+				if (previousPage == null) {
+                    setResponsePage(PageTasks.class);
+                } else {
+                    setResponsePage(previousPage);
+                }
 			}
 		};
 		mainForm.add(backButton);

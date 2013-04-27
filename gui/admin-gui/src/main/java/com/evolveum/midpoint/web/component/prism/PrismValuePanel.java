@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -305,6 +306,11 @@ public class PrismValuePanel extends Panel {
         //fixing MID-1230, will be improved with some kind of annotation or something like that
         //now it works only in description
         if (ObjectType.F_DESCRIPTION.equals(definition.getName())) {
+            return new TextAreaPanel(id, new PropertyModel(model, baseExpression));
+        }
+
+        // the same for requester and approver comments in workflows [mederly] - this is really ugly, as it is specific to each approval form
+        if (RoleApprovalFormType.F_REQUESTER_COMMENT.equals(definition.getName()) || RoleApprovalFormType.F_COMMENT.equals(definition.getName())) {
             return new TextAreaPanel(id, new PropertyModel(model, baseExpression));
         }
 

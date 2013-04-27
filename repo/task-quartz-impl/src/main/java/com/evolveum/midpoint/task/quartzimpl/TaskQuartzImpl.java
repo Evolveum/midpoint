@@ -1258,24 +1258,34 @@ public class TaskQuartzImpl implements Task {
 //		channelProperty.setRealValue(channelUri);
 //	}
 	
-	@Override
-	public ObjectReferenceType getObjectRef() {
-		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
-		if (objectRef == null) {
-			return null;
-		}
-		ObjectReferenceType objRefType = new ObjectReferenceType();
-		objRefType.setOid(objectRef.getOid());
-		objRefType.setType(objectRef.getValue().getTargetType());
-		return objRefType;
-	}
-	
 	/*
 	 * Object
 	 */
-	
-	@Override
-	public void setObjectRef(ObjectReferenceType objectRefType) {
+
+    @Override
+    public ObjectReferenceType getObjectRef() {
+        PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
+        if (objectRef == null) {
+            return null;
+        }
+        ObjectReferenceType objRefType = new ObjectReferenceType();
+        objRefType.setOid(objectRef.getOid());
+        objRefType.setType(objectRef.getValue().getTargetType());
+        return objRefType;
+    }
+
+    @Override
+    public void setObjectRef(ObjectReferenceType value) {
+        processModificationBatched(setObjectRefAndPrepareDelta(value));
+    }
+
+    @Override
+    public void setObjectRefImmediate(ObjectReferenceType value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        processModificationNow(setObjectRefAndPrepareDelta(value), parentResult);
+    }
+
+    public void setObjectRefTransient(ObjectReferenceType objectRefType) {
 		PrismReference objectRef;
 		try {
 			objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
@@ -1286,8 +1296,19 @@ public class TaskQuartzImpl implements Task {
 		objectRef.getValue().setOid(objectRefType.getOid());
 		objectRef.getValue().setTargetType(objectRefType.getType());
 	}
-	
-	@Override
+
+    private ReferenceDelta setObjectRefAndPrepareDelta(ObjectReferenceType value) {
+        setObjectRefTransient(value);
+
+        PrismReferenceValue prismReferenceValue = new PrismReferenceValue();
+        prismReferenceValue.setOid(value.getOid());
+        prismReferenceValue.setTargetType(value.getType());
+
+        return isPersistent() ? ReferenceDelta.createModificationReplace(TaskType.F_OBJECT_REF,
+                taskManager.getTaskObjectDefinition(), prismReferenceValue) : null;
+    }
+
+    @Override
 	public String getObjectOid() {
 		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
 		if (objectRef == null) {
@@ -1331,8 +1352,9 @@ public class TaskQuartzImpl implements Task {
 			throw ex;
 		}
 	}
-	
-	private void setObjectTransient(PrismObject object) {
+
+    @Override
+	public void setObjectTransient(PrismObject object) {
 		if (object == null) {
 			PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
 			if (objectRef != null) {

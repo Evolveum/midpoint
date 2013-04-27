@@ -266,20 +266,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         PageParameters parameters = new PageParameters();
         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, pid);
         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
-        if (requestedBy) {
-            parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY);
-        } else if (requestedFor) {
-            parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_REQUESTED_FOR);
-        } else {
-            parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_ALL);
-        }
-
-//        System.out.println("Sending page parameters: ");
-//        for (PageParameters.NamedPair np : parameters.getAllNamed()) {
-//            System.out.println(" - " + np.getKey() + " = " + np.getValue());
-//        }
-        //setResponsePage(PageProcessInstance.class, parameters);       // does not work
-        setResponsePage(new PageProcessInstance(parameters));
+        setResponsePage(new PageProcessInstance(parameters, this));
     }
 
     private void stopProcessInstancesPerformed(AjaxRequestTarget target) {

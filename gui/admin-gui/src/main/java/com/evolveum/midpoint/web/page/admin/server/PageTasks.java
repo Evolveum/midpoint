@@ -166,7 +166,13 @@ public class PageTasks extends PageAdminTasks {
         showSubtasks.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel(), showSubtasks.getModel()));
 
         List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-        TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this);
+
+        TaskDtoProviderOptions options = TaskDtoProviderOptions.fullOptions();
+        options.setGetTaskParent(false);
+        options.setRetrieveModelContext(false);
+        options.setResolveOwnerRef(false);
+        TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
+
         provider.setQuery(createTaskQuery(null, null, false));      // show only root tasks
         TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>("taskTable", provider,
                 taskColumns);
@@ -324,7 +330,7 @@ public class PageTasks extends PageAdminTasks {
             private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
-                component.setResponsePage(new PageTaskEdit(parameters));
+                component.setResponsePage(new PageTaskEdit(parameters, component.getPage()));
             }
 
         };
@@ -385,8 +391,7 @@ public class PageTasks extends PageAdminTasks {
                         PageParameters parameters = new PageParameters();
                         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, task.getWorkflowProcessInstanceId());
                         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, task.isWorkflowProcessInstanceFinished());
-                        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_ALL);
-                        component.setResponsePage(new PageProcessInstance(parameters));
+                        component.setResponsePage(new PageProcessInstance(parameters, component.getPage()));
                     }
                 }
 
@@ -750,25 +755,6 @@ public class PageTasks extends PageAdminTasks {
 
     private void nodeDetailsPerformed(AjaxRequestTarget target, String oid) {
 
-//        OperationResult test = new OperationResult("test");
-//        OperationResult sub1 = test.createSubresult("sub1-success");
-//        OperationResult sub2 = test.createSubresult("sub2-warning");
-//        OperationResult sub3 = test.createSubresult("sub3-partial-error");
-//        OperationResult sub31 = sub3.createSubresult("sub31-success");
-//        OperationResult sub32 = sub3.createSubresult("sub32-success");
-//
-//        test.recordSuccess();
-//        sub1.recordSuccess();
-//        sub2.recordWarning("Warning");
-//        sub3.recordPartialError("Partial Error");
-//        sub31.recordSuccess();
-//        sub32.recordSuccess();
-//
-////        test.recomputeStatus();
-//
-//        showResult(test);
-//
-//        target.add(getFeedbackPanel());
     }
 
     private void deleteTasksPerformed(AjaxRequestTarget target) {

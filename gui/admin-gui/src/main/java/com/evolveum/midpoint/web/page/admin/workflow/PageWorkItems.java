@@ -241,7 +241,7 @@ public class PageWorkItems extends PageAdminWorkItems {
     private void itemDetailsPerformed(AjaxRequestTarget target, String taskid) {
         PageParameters parameters = new PageParameters();
         parameters.add(PageWorkItem.PARAM_TASK_ID, taskid);
-        setResponsePage(new PageWorkItem(parameters));
+        setResponsePage(new PageWorkItem(parameters, this));
     }
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {

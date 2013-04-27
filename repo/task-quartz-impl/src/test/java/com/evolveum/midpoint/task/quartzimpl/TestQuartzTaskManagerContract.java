@@ -450,6 +450,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         //task.setRequesteeRef(requestee);      does not work
         task.setRequesteeOid(requestee.getOid());
 
+        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+        objectReferenceType.setType(UserType.COMPLEX_TYPE);
+        String objectOid = "some-oid...";
+        objectReferenceType.setOid(objectOid);
+        task.setObjectRef(objectReferenceType);
+
         logger.trace("Saving modifications...");
 
         task.savePendingModifications(result);
@@ -493,6 +499,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
         AssertJUnit.assertEquals("RequesteeOid was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeOid());
+
+        AssertJUnit.assertEquals("ObjectRef OID was not stored/retrieved correctly", objectReferenceType.getOid(), task001.getObjectRef().getOid());
+        AssertJUnit.assertEquals("ObjectRef ObjectType was not stored/retrieved correctly", objectReferenceType.getType(), task001.getObjectRef().getType());
 
         // now pop the handlers
 

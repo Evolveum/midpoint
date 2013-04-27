@@ -68,8 +68,7 @@ public class WorkflowInformationPanel extends SimplePanel<TaskDto> {
                 PageParameters parameters = new PageParameters();
                 parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, pid);
                 parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
-                parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_ALL);
-                WorkflowInformationPanel.this.setResponsePage(new PageProcessInstance(parameters));
+                WorkflowInformationPanel.this.setResponsePage(new PageProcessInstance(parameters, WorkflowInformationPanel.this.getPage()));
             }
         });
 

@@ -133,7 +133,7 @@ public class TaskDto extends Selectable {
     private List<DeltaDto> workflowDeltasIn, workflowDeltasOut;
     private List<WfHistoryEventDto> workflowHistory;
 
-    public TaskDto(Task task, ClusterStatusInformation clusterStatusInfo, TaskManager taskManager, ModelInteractionService modelInteractionService) throws SchemaException, ObjectNotFoundException {
+    public TaskDto(Task task, ClusterStatusInformation clusterStatusInfo, TaskManager taskManager, ModelInteractionService modelInteractionService, TaskDtoProviderOptions options) throws SchemaException, ObjectNotFoundException {
         Validate.notNull(task, "Task must not be null.");
         Validate.notNull(clusterStatusInfo, "Cluster status info must not be null.");
         Validate.notNull(taskManager, "Task manager must not be null.");
@@ -186,22 +186,31 @@ public class TaskDto extends Selectable {
         	runUntilNodeDown = false;
         }
 
-        Node n = clusterStatusInfo.findNodeInfoForTask(oid);
+        Node n = null;
+        if (options.isUseClusterInformation()) {
+            n = clusterStatusInfo.findNodeInfoForTask(oid);
+        }
         this.executingAt = n != null ? n.getNodeIdentifier() : null;
 
         rawExecutionStatus = task.getExecutionStatus();
         execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, n != null);
+        if (!options.isUseClusterInformation() && execution == TaskDtoExecutionStatus.RUNNABLE) {
+            execution = TaskDtoExecutionStatus.RUNNING_OR_RUNNABLE;
+        }
+
         lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
         lastRunStartTimestampLong = task.getLastRunStartTimestamp();
         completionTimestampLong = task.getCompletionTimestamp();
-        nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
+        if (options.isGetNextRunStartTime()) {
+            nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
+        }
 
         this.objectRef = task.getObjectRef();
         if (this.objectRef != null && task.getObjectRef().getType() != null) {
             this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(task.getObjectRef().getType());
         }
 
-        if (this.objectRef != null) {
+        if (options.isResolveObjectRef() && this.objectRef != null) {
             try {
                 PrismObject<? extends ObjectType> o = task.getObject(ObjectType.class, thisOpResult);
                 this.objectRefName = WebMiscUtil.getName(o);
@@ -226,28 +235,30 @@ public class TaskDto extends Selectable {
             opResult.addAll(result.getSubresults());
         }
 
-        PrismContext prismContext = task.getTaskPrismObject().getPrismContext();
-        PrismProperty<LensContextType> modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
-        if (modelContextProperty != null) {
-            Object value = modelContextProperty.getRealValue();
-            if (value instanceof Element || value instanceof JAXBElement) {
-                try {
-                    value = prismContext.getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
-                    // todo report to result
+        if (options.isRetrieveModelContext()) {
+            PrismContext prismContext = task.getTaskPrismObject().getPrismContext();
+            PrismProperty<LensContextType> modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
+            if (modelContextProperty != null) {
+                Object value = modelContextProperty.getRealValue();
+                if (value instanceof Element || value instanceof JAXBElement) {
+                    try {
+                        value = prismContext.getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
+                    } catch (SchemaException e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
+                        // todo report to result
+                    }
                 }
-            }
-            if (value != null) {
-                if (!(value instanceof LensContextType)) {
-                    throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
-                }
-                try {
-                    ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value);
-                    modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
-                    // todo report to result
+                if (value != null) {
+                    if (!(value instanceof LensContextType)) {
+                        throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
+                    }
+                    try {
+                        ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value);
+                        modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
+                    } catch (SchemaException e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
+                        // todo report to result
+                    }
                 }
             }
         }
@@ -274,10 +285,12 @@ public class TaskDto extends Selectable {
         workflowDeltasOut = retrieveResultingDeltas(task);
         workflowHistory = prepareWorkflowHistory(task);
 
-        Task parent = task.getParentTask(result);
-        if (parent != null) {
-            parentTaskName = parent.getName() != null ? parent.getName().getOrig() : "(unnamed)";       // todo i18n
-            parentTaskOid = parent.getOid();
+        if (options.isGetTaskParent()) {
+            Task parent = task.getParentTask(result);
+            if (parent != null) {
+                parentTaskName = parent.getName() != null ? parent.getName().getOrig() : "(unnamed)";       // todo i18n
+                parentTaskOid = parent.getOid();
+            }
         }
     }
 

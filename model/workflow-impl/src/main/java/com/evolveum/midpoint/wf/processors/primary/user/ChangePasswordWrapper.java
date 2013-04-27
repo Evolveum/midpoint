@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.dao.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
@@ -115,7 +116,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
 
     private StartProcessInstructionForPrimaryStage createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task task, OperationResult result) {
 
-        String userName = getUserName(modelContext);
+        String userName = MiscDataUtil.getObjectName(modelContext);
         String objectOid = getObjectOid(modelContext);
         PrismObject<UserType> requester = getRequester(task, result);
 

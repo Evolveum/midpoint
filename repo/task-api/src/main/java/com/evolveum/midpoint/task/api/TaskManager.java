@@ -521,4 +521,6 @@ public interface TaskManager {
     Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     void pauseTask(Task task, TaskWaitingReason reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    List<Task> listTasksRelatedToObject(String oid, ClusterStatusInformation clusterStatusInformation, boolean withClosed, boolean withSubtasks, OperationResult result) throws SchemaException;
 }

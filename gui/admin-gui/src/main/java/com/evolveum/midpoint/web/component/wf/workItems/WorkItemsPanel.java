@@ -66,7 +66,7 @@ public class WorkItemsPanel extends SimplePanel<List<WorkItemDto>> {
                 WorkItemDto workItemDto = rowModel.getObject();
                 PageParameters parameters = new PageParameters();
                 parameters.add(PageWorkItem.PARAM_TASK_ID, workItemDto.getWorkItem().getTaskId());
-                setResponsePage(new PageWorkItem(parameters));
+                setResponsePage(new PageWorkItem(parameters, WorkItemsPanel.this.getPage()));
             }
         });
 

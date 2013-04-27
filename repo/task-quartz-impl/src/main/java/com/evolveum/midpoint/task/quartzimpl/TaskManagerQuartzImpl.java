@@ -32,12 +32,14 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskWaitingReasonType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -49,9 +51,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -66,8 +65,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -96,7 +93,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     private static final String DOT_INTERFACE = TaskManager.class.getName() + ".";
-    private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";;
+    private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_INTERFACE + "suspendTasks";
     private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_INTERFACE + "deactivateServiceThreads";
 
@@ -710,6 +707,26 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         LOGGER.trace("searchNodes returning " + retval);
         result.computeStatus();
         return retval;
+    }
+
+    @Override
+    public List<Task> listTasksRelatedToObject(String oid, ClusterStatusInformation clusterStatusInformation, boolean withClosed, boolean withSubtasks, OperationResult result) throws SchemaException {
+        ObjectQuery query = new ObjectQuery();
+        List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+
+        PrismPropertyDefinition oidDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ObjectReferenceType.F_OID);
+        PrismPropertyValue<String> oidValue = oidDefinition.instantiate().getValue();
+        oidValue.setValue(oid);
+        filters.add(EqualsFilter.createEqual(new ItemPath(TaskType.F_OBJECT_REF, ObjectReferenceType.F_OID), oidDefinition, oidValue));
+
+        if (!withClosed) {
+
+        }
+
+        if (!withSubtasks) {
+
+        }
+        return searchTasks(query, clusterStatusInformation, result);
     }
 
    
