@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.admin.internal.PageAccounts;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
@@ -157,7 +158,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
 
         mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
-        mount(new MountedMapper("/admin/resourceWizard", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID)));
+        mount(new MountedMapper("/admin/resourceEdit", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID)));
+        mount(new MountedMapper("/admin/resourceWizard", PageResourceWizard.class, new OnePageParameterEncoder(PageResourceWizard.PARAM_RESOURCE_ID)));
         mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
         mount(new MountedMapper("/admin/resources/account", PageAccount.class, new OnePageParameterEncoder(PageAccount.PARAM_ACCOUNT_ID)));
         mount(new MountedMapper("/admin/resources/content/accounts", PageContentAccounts.class, new OnePageParameterEncoder(PageContentAccounts.PARAM_RESOURCE_ID)));
@@ -176,6 +178,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config/import", PageImportObject.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
         mount(new MountedMapper("/admin/config/system", PageSystemConfiguration.class, encoder));
+        //for testing purposes only, access forbidden in ctx-security.xml
         mount(new MountedMapper("/admin/config/test", PageTest.class, encoder));
 
         mount(new MountedMapper("/admin/reports", PageReports.class, encoder));

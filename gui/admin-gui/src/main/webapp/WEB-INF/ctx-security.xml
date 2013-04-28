@@ -42,11 +42,11 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
     <http create-session="never" auto-config="true" use-expressions="true">
         <!-- pages not finished yet -->
-        <!--<intercept-url pattern="/admin/resourceEdit" access="denyAll"/>-->
-        <!--<intercept-url pattern="/admin/dashboard" access="denyAll"/>-->
-        <!--<intercept-url pattern="/admin/myPasswords" access="denyAll"/>-->
-        <!--<intercept-url pattern="/admin/config/system" access="denyAll"/>-->
+        <intercept-url pattern="/admin/resourceWizard" access="denyAll"/>
         <intercept-url pattern="/admin/users/bulk" access="denyAll"/>
+        <intercept-url pattern="/admin/resources/content/entitlements" access="denyAll"/>
+        <intercept-url pattern="/admin/config/test" access="denyAll"/>
+        <!--<intercept-url pattern="/admin/config/system" access="denyAll"/>-->
 
         <!-- todo move reports to WEB-INF or even better probably to midpoint.home folder -->
         <intercept-url pattern="/reports/**" access="denyAll"/>

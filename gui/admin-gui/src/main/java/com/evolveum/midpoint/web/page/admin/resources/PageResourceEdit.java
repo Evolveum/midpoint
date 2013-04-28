@@ -22,55 +22,53 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxButton;
-import org.apache.wicket.extensions.wizard.WizardModel;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.string.StringValue;
 
 /**
  * @author lazyman
  */
 public class PageResourceEdit extends PageAdminResources {
 
-    private static final String ID_WIZARD = "wizard";
-    private IModel<ResourceType> model;
+    private static final String DOT_CLASS = PageResourceEdit.class.getName() + ".";
+    private static final String OPERATION_SAVE_RESOURCE = DOT_CLASS + "saveResource";
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_EDIT = "edit";
+    private static final String ID_ACE_EDITOR = "aceEditor";
+    private static final String ID_SAVE_BUTTON = "saveButton";
+    private static final String ID_BACK_BUTTON = "backButton";
+
+    private IModel<ObjectViewDto> model;
 
     public PageResourceEdit() {
-        model = new LoadableModel<ResourceType>(false) {
+        model = new LoadableModel<ObjectViewDto>(false) {
 
             @Override
-            protected ResourceType load() {
-                try {
-                    if (!isEditingResource()) {
-                        ResourceType resource = new ResourceType();
-                        PageResourceEdit.this.getPrismContext().adopt(resource);
-
-                        return resource;
-                    }
-
-                    PrismObject<ResourceType> resource = loadResource(null);
-                    return resource.asObjectable();
-                } catch (Exception ex) {
-                    //todo error handling
-                    ex.printStackTrace();
-                }
-
-                return null;
+            protected ObjectViewDto load() {
+                return loadResource();
             }
         };
-
         initLayout();
     }
 
@@ -80,52 +78,150 @@ public class PageResourceEdit extends PageAdminResources {
 
             @Override
             protected String load() {
-                if (!isEditingResource()) {
+                if (!isEditing()) {
                     return PageResourceEdit.super.createPageTitleModel().getObject();
                 }
 
-                return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null).getString();
+                String name = model.getObject().getName();
+                return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null, null, name).getString();
             }
         };
     }
 
+    private ObjectViewDto loadResource() {
+        if (!isEditing()) {
+            return new ObjectViewDto();
+        }
+
+        ObjectViewDto dto;
+        try {
+            PrismObject<ResourceType> resource = loadResource(null);
+            PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+            String xml = domProcessor.serializeObjectToString(resource);
+
+            dto = new ObjectViewDto(resource.getOid(), WebMiscUtil.getName(resource), resource, xml);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
+            throw new RestartResponseException(PageResources.class);
+        }
+
+        return dto;
+    }
+
     private void initLayout() {
-        WizardModel wizardModel = new WizardModel();
-        wizardModel.add(new NameStep(model));
-        wizardModel.add(new ConfigurationStep(model));
-        wizardModel.add(new SchemaStep(model));
-        wizardModel.add(new SchemaHandlingStep());
-        wizardModel.add(new CapabilityStep());
-        wizardModel.add(new SynchronizationStep());
+        Form mainForm = new Form(ID_MAIN_FORM);
+        add(mainForm);
 
-        ResourceWizard wizard = new ResourceWizard(ID_WIZARD, wizardModel);
-        add(wizard);
-
-        //todo remove
-        final AceEditor editor = new AceEditor("editor", new AbstractReadOnlyModel<Object>() {
+        final IModel<Boolean> editable = new LoadableModel<Boolean>(false) {
 
             @Override
-            public Object getObject() {
-                try {
-                    PrismDomProcessor domProcessor = PageResourceEdit.this.getPrismContext().getPrismDomProcessor();
-                    return domProcessor.serializeObjectToString(model.getObject().asPrismObject());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                return "error";
+            protected Boolean load() {
+                return !isEditing();
+            }
+        };
+        mainForm.add(new AjaxCheckBox(ID_EDIT, editable) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                editPerformed(target, editable.getObject());
             }
         });
-        editor.setReadonly(true);
-        editor.setOutputMarkupId(true);
-        add(editor);
-        AjaxLinkButton reload = new AjaxLinkButton("reload", new Model<String>("reload")) {
+        AceEditor<String> editor = new AceEditor<String>(ID_ACE_EDITOR, new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        editor.setReadonly(new LoadableModel<Boolean>(false) {
+
+            @Override
+            protected Boolean load() {
+                return isEditing();
+            }
+        });
+        mainForm.add(editor);
+
+        initButtons(mainForm);
+    }
+
+    private void initButtons(final Form mainForm) {
+        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton(ID_SAVE_BUTTON, ButtonType.POSITIVE,
+                createStringResource("PageBase.button.save")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                savePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(saveButton);
+
+        AjaxLinkButton backButton = new AjaxLinkButton(ID_BACK_BUTTON, createStringResource("PageBase.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.add(editor);
-                target.appendJavaScript(editor.createJavascriptEditableRefresh());
+                setResponsePage(PageResources.class);
             }
         };
-        add(reload);
+        mainForm.add(backButton);
+    }
+
+    private boolean isEditing() {
+        StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
+        if (resourceOid == null || StringUtils.isEmpty(resourceOid.toString())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void editPerformed(AjaxRequestTarget target, boolean editable) {
+        AceEditor editor = (AceEditor) get(createComponentPath(ID_MAIN_FORM, ID_ACE_EDITOR));
+
+        editor.setReadonly(!editable);
+        target.appendJavaScript(editor.createJavascriptEditableRefresh());
+    }
+
+    private void savePerformed(AjaxRequestTarget target) {
+        ObjectViewDto dto = model.getObject();
+        if (StringUtils.isEmpty(dto.getXml())) {
+            error(getString("pageResourceEdit.message.emptyXml"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
+        try {
+            Task task = createSimpleTask(OPERATION_SAVE_RESOURCE);
+            if (!isEditing()) {
+                //we're adding new resource
+                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+                PrismObject<ResourceType> newResource = domProcessor.parseObject(dto.getXml(), ResourceType.class);
+
+                ObjectDelta delta = ObjectDelta.createAddDelta(newResource);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            } else {
+                //we're editing existing resource
+                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+                PrismObject<ResourceType> oldResource = dto.getObject();
+                PrismObject<ResourceType> newResource = domProcessor.parseObject(dto.getXml(), ResourceType.class);
+
+                ObjectDelta<ResourceType> delta = oldResource.diff(newResource);
+
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            }
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
+            result.recordFatalError("Couldn't save resource.", ex);
+        }
+
+        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResultInSession(result);
+            setResponsePage(PageResources.class);
+        } else {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
     }
 }

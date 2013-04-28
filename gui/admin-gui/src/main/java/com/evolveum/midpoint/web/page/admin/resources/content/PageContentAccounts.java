@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -29,24 +28,13 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -66,8 +54,8 @@ import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
@@ -75,12 +63,11 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerCh
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -94,12 +81,9 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -109,6 +93,7 @@ import java.util.List;
 public class PageContentAccounts extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);
+
     private static final String DOT_CLASS = PageContentAccounts.class.getName() + ".";
     private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
     private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
@@ -122,6 +107,10 @@ public class PageContentAccounts extends PageAdminResources {
 
             @Override
             protected PrismObject<ResourceType> load() {
+                if (!isResourceOidAvailable()) {
+                    getSession().error(getString("pageContentAccounts.message.resourceOidNotDefined"));
+                    throw new RestartResponseException(PageResources.class);
+                }
                 return loadResource(null);
             }
         };
@@ -179,7 +168,7 @@ public class PageContentAccounts extends PageAdminResources {
 
     private void initButtons(Form mainForm) {
         AjaxLinkButton removeOwner = new AjaxLinkButton("removeOwner", ButtonType.NEGATIVE,
-               createStringResource("pageContentAccounts.button.removeOwner")) {
+                createStringResource("pageContentAccounts.button.removeOwner")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -375,7 +364,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
-    	ObjectQuery query = createQuery();
+        ObjectQuery query = createQuery();
 
         TablePanel panel = getTable();
         DataTable table = panel.getDataTable();
@@ -394,7 +383,7 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         try {
-        	ObjectQuery query = null;//new ObjectQuery();
+            ObjectQuery query = null;//new ObjectQuery();
 //            Document document = DOMUtil.getDocument();
 
             List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
@@ -402,7 +391,7 @@ public class PageContentAccounts extends PageAdminResources {
             PrismObject<ResourceType> resource = resourceModel.getObject();
 //            query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), def.getTypeName(), getPrismContext());
             if (dto.isIdentifiers()) {
-                
+
                 List<ResourceAttributeDefinition> identifiers = new ArrayList<ResourceAttributeDefinition>();
                 if (def.getIdentifiers() != null) {
                     identifiers.addAll(def.getIdentifiers());
@@ -417,22 +406,22 @@ public class PageContentAccounts extends PageAdminResources {
                 }
             }
 
-			if (dto.isName()) {
-				List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<ResourceAttributeDefinition>();
-				if (def.getSecondaryIdentifiers() != null) {
-					secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
-				}
-				for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
-					conditions.add(SubstringFilter.createSubstring(new ItemPath(ShadowType.F_ATTRIBUTES),
-							attrDef, dto.getSearchText()));
-				}
-			}
+            if (dto.isName()) {
+                List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<ResourceAttributeDefinition>();
+                if (def.getSecondaryIdentifiers() != null) {
+                    secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
+                }
+                for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
+                    conditions.add(SubstringFilter.createSubstring(new ItemPath(ShadowType.F_ATTRIBUTES),
+                            attrDef, dto.getSearchText()));
+                }
+            }
 
             if (!conditions.isEmpty()) {
                 if (conditions.size() > 1) {
-                	query = ObjectQuery.createObjectQuery(OrFilter.createOr(conditions)); 
+                    query = ObjectQuery.createObjectQuery(OrFilter.createOr(conditions));
                 } else {
-                	query = ObjectQuery.createObjectQuery(conditions.get(0));
+                    query = ObjectQuery.createObjectQuery(conditions.get(0));
                 }
             }
 
@@ -531,18 +520,18 @@ public class PageContentAccounts extends PageAdminResources {
                         UserType.F_LINK_REF, getPrismContext(), refValue));
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             }
-            
+
             if (user != null) {
-            	ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
+                ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 //                deltas.add(delta);
                 delta.setOid(user.getOid());
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
                 refValue.setTargetType(dto.getAccountType());
                 delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
                         UserType.F_LINK_REF, getPrismContext(), refValue));
-                
+
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-                
+
             }
 
 //            if (!deltas.isEmpty()) {

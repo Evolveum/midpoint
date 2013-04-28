@@ -24,20 +24,11 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 	<wicket:extend>
-        <form wicket:id="mainForm">
-            <p>
-                <input type="checkbox" wicket:id="edit" /><wicket:message key="pageResourceEdit.edit"/>
-            </p>
+        <div wicket:id="wizard" />
 
-            <div id="aceEditorContainer">
-                <textarea wicket:id="aceEditor"></textarea>
-            </div>
-
-            <div class="operatingFormButtons">
-                <a wicket:id="backButton" />
-                <a wicket:id="saveButton"/>
-            </div>
-        </form>
+        <hr/>
+        <a wicket:id="reload"/>
+        <textarea wicket:id="editor"/>
 	</wicket:extend>
 </body>
 </html>

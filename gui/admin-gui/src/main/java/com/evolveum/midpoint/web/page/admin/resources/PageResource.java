@@ -24,7 +24,6 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -43,9 +42,9 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -61,7 +60,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -76,6 +74,7 @@ import java.util.List;
 public class PageResource extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
+
     private static final String DOT_CLASS = PageResource.class.getName() + ".";
     private static final String OPERATION_IMPORT_FROM_RESOURCE = DOT_CLASS + "importFromResource";
     private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
@@ -94,6 +93,11 @@ public class PageResource extends PageAdminResources {
     }
 
     private ResourceDto loadResourceDto() {
+        if (!isResourceOidAvailable()) {
+            getSession().error(getString("pageResource.message.oidNotDefined"));
+            throw new RestartResponseException(PageResources.class);
+        }
+
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
 
@@ -119,15 +123,13 @@ public class PageResource extends PageAdminResources {
         initConnectorDetails(mainForm);
         createCapabilitiesList(mainForm);
 
-        AjaxLink<String> link = new AjaxLink<String>("seeDebug",
-                createStringResource("pageResource.seeDebug")) {
+        AjaxLink<String> link = new AjaxLink<String>("editResource") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageDebugView.PARAM_OBJECT_ID, model.getObject().getOid());
-                getSession().setAttribute("requestPage", getPage());
-                setResponsePage(PageDebugView.class, parameters);
+                parameters.add(PageResourceEdit.PARAM_RESOURCE_ID, model.getObject().getOid());
+                setResponsePage(PageResourceEdit.class, parameters);
             }
         };
         mainForm.add(link);
@@ -330,7 +332,7 @@ public class PageResource extends PageAdminResources {
 
         WebMarkupContainer connectors = (WebMarkupContainer) get("mainForm:connectors");
         target.add(connectors);
-        
+
         if (!result.isSuccess()) {
             showResult(result);
             target.add(getFeedbackPanel());
@@ -353,7 +355,7 @@ public class PageResource extends PageAdminResources {
         }
 
         result.computeStatus();
-        
+
         showResult(result);
         target.add(getFeedbackPanel());
     }

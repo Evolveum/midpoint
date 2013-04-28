@@ -27,18 +27,17 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -87,7 +86,7 @@ public class PageAdminResources extends PageAdmin {
 
             @Override
             public boolean isEnabled() {
-                return !isEditingResource() && !(getPage() instanceof PageResourceEdit);
+                return !isResourceEditEditing() && !(getPage() instanceof PageResourceEdit);
             }
         };
     }
@@ -97,15 +96,25 @@ public class PageAdminResources extends PageAdmin {
 
             @Override
             public String getObject() {
-                String key = isEditingResource() ? "pageAdminResources.editResource" : "pageAdminResources.newResource";
+                String key = isResourceEditEditing() ? "pageAdminResources.editResource" : "pageAdminResources.newResource";
                 return PageAdminResources.this.getString(key);
             }
         };
     }
 
-    protected boolean isEditingResource() {
-        StringValue resourceOid = getPageParameters().get(PageResourceEdit.PARAM_RESOURCE_ID);
+    private boolean isResourceEditEditing() {
+        StringValue resourceOid = getPageParameters().get(PageAdminResources.PARAM_RESOURCE_ID);
         return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
+    }
+
+    protected boolean isResourceOidAvailable() {
+        StringValue resourceOid = getPageParameters().get(PageAdminResources.PARAM_RESOURCE_ID);
+        return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
+    }
+
+    protected String getResourceOid() {
+        StringValue resourceOid = getPageParameters().get(PageAdminResources.PARAM_RESOURCE_ID);
+        return resourceOid != null ? resourceOid.toString() : null;
     }
 
     protected PrismObject<ResourceType> loadResource(Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -114,24 +123,20 @@ public class PageAdminResources extends PageAdmin {
 
         try {
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
-            StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
-            LOGGER.trace("getObject(resorce) oid={}, options={}", resourceOid.toString(), options);
-            resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), options, task, result);
+            LOGGER.trace("getObject(resource) oid={}, options={}", getResourceOid(), options);
+            resource = getModelService().getObject(ResourceType.class, getResourceOid(), options, task, result);
             result.recomputeStatus();
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("getObject(resorce) result\n:{}", result.dump());
+                LOGGER.trace("getObject(resource) result\n:{}", result.dump());
             }
 
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't get resource.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't get resource", ex);
+            result.recordFatalError("Couldn't get resource, reason: " + ex.getMessage(), ex);
         }
 
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
-        if (resource == null) {
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
             getSession().error(getString("pageAdminResources.message.cantLoadResource"));
 
             if (!result.isSuccess()) {
