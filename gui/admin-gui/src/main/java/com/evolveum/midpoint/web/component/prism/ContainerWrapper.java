@@ -144,6 +144,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                     definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
                             .toResourceAttributeContainerDefinition();
+
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Refined account def:\n{}", definition.dump());
                     }

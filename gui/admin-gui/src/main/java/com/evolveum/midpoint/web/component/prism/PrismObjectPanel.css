@@ -332,3 +332,7 @@ div.objectFormHeader.modified {
     background-color: #d4bbf9;
 }
 
+div.objectFormHeader.protected {
+    background-color: #ffe055;
+}
+

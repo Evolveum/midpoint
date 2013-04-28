@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -81,6 +82,10 @@ public class PrismObjectPanel extends Panel {
             @Override
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
+                if (wrapper.isProtectedAccount()) {
+                    return "protected";
+                }
+
                 return wrapper.getHeaderStatus().name().toLowerCase();
             }
         };
@@ -110,6 +115,18 @@ public class PrismObjectPanel extends Panel {
                 return isShowHeader();
             }
         });
+
+        Image shield = new Image("shield", new PackageResourceReference(ImgResources.class, ImgResources.SHIELD));
+        shield.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = model.getObject();
+                return wrapper.isProtectedAccount();
+            }
+        });
+        headerPanel.add(shield);
+
         Label header = new Label("header", createDisplayName(model));
         header.add(new AttributeAppender("class", createHeaderNameClassModel(model), " "));
         header.add(createHeaderOnClickBehaviour(model));

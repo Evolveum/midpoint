@@ -49,6 +49,8 @@ public class ImgResources {
     public static final String PRIMARY_VALUE = "PrimaryValue.png";
     public static final String SECONDARY_VALUE = "SecondaryValue.png";
 
+    public static final String SHIELD = "shield.png";
+
     public static PackageResourceReference createReference(String value) {
         return new PackageResourceReference(ImgResources.class, value);
     }

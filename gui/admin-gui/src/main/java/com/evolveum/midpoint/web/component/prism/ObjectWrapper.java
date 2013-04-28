@@ -82,6 +82,7 @@ public class ObjectWrapper implements Serializable {
             ObjectType.F_EXTENSION);
 
     private OperationResult result;
+    private boolean protectedAccount;
 
     public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
@@ -639,7 +640,20 @@ public class ObjectWrapper implements Serializable {
 		return builder.toString();
 	}
 
-	private static class PathSizeComparator implements Comparator<ContainerWrapper> {
+    public boolean isProtectedAccount() {
+        if (object == null || !(ShadowType.class.isAssignableFrom(object.getCompileTimeClass()))) {
+            return false;
+        }
+
+        PrismProperty<Boolean> protectedObject = object.findProperty(ShadowType.F_PROTECTED_OBJECT);
+        if (protectedObject == null) {
+            return false;
+        }
+
+        return protectedObject.getRealValue() != null ? protectedObject.getRealValue() : false;
+    }
+
+    private static class PathSizeComparator implements Comparator<ContainerWrapper> {
 
 		@Override
 		public int compare(ContainerWrapper c1, ContainerWrapper c2) {
@@ -659,6 +673,9 @@ public class ObjectWrapper implements Serializable {
     }
 
     public boolean isReadonly() {
+        if (isProtectedAccount()) {
+            return true;
+        }
         return readonly;
     }
 
