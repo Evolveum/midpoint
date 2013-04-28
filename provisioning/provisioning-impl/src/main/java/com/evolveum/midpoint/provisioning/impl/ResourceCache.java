@@ -68,13 +68,13 @@ public class ResourceCache {
 		
 		PrismObject<ResourceType> cachedResource = cache.get(oid);
 		if (cachedResource == null) {
-			cache.put(oid, resource);
+			cache.put(oid, resource.clone());
 		} else {
 			if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
 				// We already have equivalent resource, nothing to do
 				return;
 			} else {
-				cache.put(oid, resource);
+				cache.put(oid, resource.clone());
 			}
 		}
 	}
@@ -104,7 +104,7 @@ public class ResourceCache {
 			return null;
 		}
 		
-		return cachedResource;
+		return cachedResource.clone();
 	}
 
 }

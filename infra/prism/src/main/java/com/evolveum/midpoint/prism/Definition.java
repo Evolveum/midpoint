@@ -197,6 +197,8 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	
 	abstract void revive(PrismContext prismContext);
 	
+	public abstract Definition clone(); 
+	
 	protected void copyDefinitionData(Definition clone) {
 		clone.defaultName = this.defaultName;
 		clone.ignored = this.ignored;

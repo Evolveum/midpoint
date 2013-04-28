@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -215,7 +216,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	
 	protected void copyValues(PrismPropertyValue clone) {
 		super.copyValues(clone);
-		clone.value = this.value;
+		clone.value = CloneUtil.clone(this.value);
 		clone.rawElement = this.rawElement;
 	}
 	
