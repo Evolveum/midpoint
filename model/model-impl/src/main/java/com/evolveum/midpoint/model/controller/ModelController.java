@@ -226,14 +226,21 @@ public class ModelController implements ModelService, ModelInteractionService {
 			object = objectResolver.getObject(clazz, oid, rootOptions, result).asPrismObject();
 
 			resolve(object, options, task, result);
-			
+		} catch (SchemaException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
 		} finally {
 			RepositoryCache.exit();
-			result.cleanupResult();
 		}
+		
+		result.cleanupResult();
 		validateObject(object, rootOptions, result);
 		return object;
 	}
+	
 
 	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -1032,4 +1039,5 @@ public class ModelController implements ModelService, ModelInteractionService {
     public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext) throws SchemaException {
         return LensContext.fromJaxb(wrappedContext, prismContext);
     }
+
 }

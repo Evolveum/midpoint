@@ -220,10 +220,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
 
     /**
-     * Means as a short-hand for setting just a value for single-valued
-     * attributes.
+     * Means as a short-hand for setting just a value for single-valued attributes.
      * Will remove all existing values.
-     * TODO
      */
     public void setValue(PrismPropertyValue<T> value) {
     	getValues().clear();
@@ -241,6 +239,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
 
     public void addValue(PrismPropertyValue<T> pValueToAdd) {
+    	if (!isRaw()) {
+    		pValueToAdd.checkValue();
+    	}
     	Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
     		PrismPropertyValue<T> pValue = iterator.next();

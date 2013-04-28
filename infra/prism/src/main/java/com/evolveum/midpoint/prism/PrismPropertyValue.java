@@ -188,6 +188,26 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		return new ElementPrismPropertyImpl<T>(this);
 	}
 	
+	void checkValue() {
+		if (isRaw()) {
+			// Cannot really check raw values
+			return;
+		}
+		if (value == null) {
+			throw new IllegalArgumentException("Null value in "+this);
+		}
+		Class<? extends Object> valueClass = value.getClass();
+		if (value instanceof Serializable) {
+			// This is OK
+			return;
+		}
+		if (valueClass.isPrimitive()) {
+			// This is OK
+			return;
+		}
+		throw new IllegalArgumentException("Unsupported value "+value+" ("+valueClass+") in "+this);
+	}
+	
     @Override
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
     	ItemPath myPath = getPath();

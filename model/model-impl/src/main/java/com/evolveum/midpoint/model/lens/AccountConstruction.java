@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
+ * 
  * @author semancik
  *
  */

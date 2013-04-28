@@ -679,9 +679,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	protected void copyValues(LensProjectionContext<O> clone, LensContext lensContext) {
 		super.copyValues(clone, lensContext);
-		if (this.accountConstructionDeltaSetTriple != null) {
-			clone.accountConstructionDeltaSetTriple = this.accountConstructionDeltaSetTriple.clone();
-		}
+		// do NOT clone transient values such as accountConstructionDeltaSetTriple
+		// these are not meant to be cloned and they are also not directly clonnable
 		clone.dependencies = this.dependencies;
 		clone.doReconciliation = this.doReconciliation;
 		clone.fullShadow = this.fullShadow;
