@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -92,6 +93,8 @@ public abstract class PageBase extends WebPage {
     private TaskManager taskManager;
     @SpringBean(name = "workflowService")
     private WorkflowService workflowService;
+    @SpringBean(name = "midpointConfiguration")
+    private MidpointConfiguration midpointConfiguration;
 
     public PageBase() {
         Injector.get().inject(this);
@@ -325,5 +328,9 @@ public abstract class PageBase extends WebPage {
     @Deprecated
     public String getBuildNumber() {
         return getString("pageBase.unknownBuildNumber");
+    }
+
+    public MidpointConfiguration getMidpointConfiguration() {
+        return midpointConfiguration;
     }
 }

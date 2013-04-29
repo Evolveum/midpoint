@@ -60,6 +60,8 @@ public class ApplicationHomeSetup {
                 midpointHomeDir + "/idm-legacy",
                 midpointHomeDir + "/log",
                 midpointHomeDir + "/schema",
+                midpointHomeDir + "/import",
+                midpointHomeDir + "/export"
         };
 
         for (String directory : directories) {
