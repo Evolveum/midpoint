@@ -77,6 +77,9 @@ public class ResourceController {
 			case FATAL_ERROR:
 			case PARTIAL_ERROR:
 				status = ResourceStatus.ERROR;
+                break;
+            default:
+                status = ResourceStatus.NOT_TESTED;
 		}
 		return status;
 	}
