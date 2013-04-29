@@ -5913,26 +5913,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="mark">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Mark violations
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MARK"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="legalize">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Legalize all existing accounts by creating missing assignments.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="LEGALIZE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="full">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5940,6 +5920,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="relative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Relative enforcement
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELATIVE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -149,37 +149,6 @@ public class AssignmentProcessor {
     	
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
         AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(accountSynchronizationSettings);
-//        if (globalAssignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
-//        	
-//            // No assignment enforcement. Skip the entire processing. Just "fake" the synchronization policy decisions.
-//            
-//        	LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
-//
-//            // We need to fake assignment processing a bit ...
-//            for (LensProjectionContext<ShadowType> accCtx : context.getProjectionContexts()) {
-//            	// mark all accounts as active, so they will be synchronized as expected
-//                accCtx.setActive(true);
-//                if (accCtx.getSynchronizationPolicyDecision() == null) {
-//                	SynchronizationPolicyDecision syncIntent = null;
-//                	if (accCtx.getSynchronizationIntent() != null) {
-//                		syncIntent = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
-//                	}
-//                	if (syncIntent == null) {
-//                    	// guess policy decision
-//                    	if (accCtx.isAdd()) {
-//                    		syncIntent = SynchronizationPolicyDecision.ADD;
-//                    	} else if (accCtx.isDelete()) {
-//                    		syncIntent = SynchronizationPolicyDecision.DELETE;
-//                    	} else {
-//                    		syncIntent = SynchronizationPolicyDecision.KEEP;
-//                    	}
-//                	}
-//                	accCtx.setSynchronizationPolicyDecision(syncIntent);
-//                }
-//            }
-//
-//            return;
-//        }
         
         // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
         // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
@@ -392,7 +361,7 @@ public class AssignmentProcessor {
                 	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
                 	//TODO: the same for relative decision
 					if (AssignmentPolicyEnforcementType.NONE == accountSyncContext
-							.getAssignmentPolicyEnforcementType()) {
+							.getAssignmentPolicyEnforcementType() || AssignmentPolicyEnforcementType.RELATIVE == accountSyncContext.getAssignmentPolicyEnforcementType()) {
 						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.IGNORE);
 					} else {
 						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.ADD);
@@ -440,7 +409,7 @@ public class AssignmentProcessor {
             		LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
             		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountContext.getAssignmentPolicyEnforcementType();
             		// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
-            		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL) {
+            		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL || assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
 	                	accountContext.setAssigned(false);
 	                	accountContext.setActive(false);
 	                    // Account removed
