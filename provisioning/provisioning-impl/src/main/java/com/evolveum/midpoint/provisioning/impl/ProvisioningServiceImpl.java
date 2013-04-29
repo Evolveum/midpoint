@@ -120,14 +120,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return shadowCacheFactory.getShadowCache(mode);
 	}
 
-	public ResourceManager getResourceTypeManager() {
-		return resourceManager;
-	}
-
-	public void setResourceTypeManager(ResourceManager resourceTypeManager) {
-		this.resourceManager = resourceTypeManager;
-	}
-
 	/**
 	 * Get the value of repositoryService.
 	 * 
@@ -164,79 +156,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-		PrismObject<T> repositoryObject = getRepoObject(type, oid, result);
 		
 		PrismObject<T> resultingObject = null;
 
-		if (GetOperationOptions.isNoFetch(options) || GetOperationOptions.isRaw(options)) {
+		if (ResourceType.class.isAssignableFrom(type)) {
+			// We need to handle resource specially. This is usually cached and we do not want to get the repository
+			// object if it is in the cache.
 			
-			// We have what we came for here. We have already got it from the repo.
-			// Except if that is a shadow then we want to apply definition before returning it.
-			
-			if (repositoryObject.canRepresent(ShadowType.class)) {
-				try {
-					applyDefinition((PrismObject<ShadowType>)repositoryObject, result);
-				} catch (SchemaException e) {
-					if (GetOperationOptions.isRaw(options)) {
-						// This is (almost) OK in raw. We want to get whatever is available, even if it violates
-						// the schema
-						logWarning(LOGGER, result, "Repository object "+repositoryObject+" violates the schema: " + e.getMessage() + ". Reason: ", e);
-					} else {
-						recordFatalError(LOGGER, result, "Repository object "+repositoryObject+" violates the schema: " + e.getMessage() + ". Reason: ", e);
-						throw e;
-					}
-				} catch (ObjectNotFoundException e) {
-					if (GetOperationOptions.isRaw(options)){
-						logWarning(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
-					} else{
-					recordFatalError(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
-					throw e;
-					}
-				} catch (CommunicationException e) {
-					recordFatalError(LOGGER, result, "Resource defined is shadow is not available: "+ e.getMessage(), e);
-					throw e;
-				} catch (ConfigurationException e) {
-					recordFatalError(LOGGER, result, "Could not apply definition to shadow, problem with configuration: "+ e.getMessage(), e);
-					throw e;
-				}
-			}
-			
-			resultingObject = repositoryObject;
-			
-		} else if (repositoryObject.canRepresent(ShadowType.class)) {
-			// TODO: optimization needed: avoid multiple "gets" of the same
-			// object
-
-			try {
-
-				resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow(oid,
-						(PrismObject<ShadowType>) (repositoryObject), options, result);
-
-			} catch (ObjectNotFoundException e) {
-				recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-				throw e;
-			} catch (CommunicationException e) {
-				recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-				throw e;
-			} catch (SchemaException e) {
-				recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-				throw e;
-			} catch (ConfigurationException e) {
-				recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-				throw e;
-			} catch (SecurityViolationException e) {
-				recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-				throw e;
-			}
-			
-
-		} else if (repositoryObject.canRepresent(ResourceType.class)) {
 			// Make sure that the object is complete, e.g. there is a (fresh)
 			// schema
 			try {
-				resultingObject = (PrismObject<T>) getResourceTypeManager().getResource(
-						(PrismObject<ResourceType>) repositoryObject, result);
+				resultingObject = (PrismObject<T>) resourceManager.getResource(
+						oid, result);
 			} catch (ObjectNotFoundException ex) {
 				recordFatalError(LOGGER, result, "Resource object not found", ex);
 				throw ex;
@@ -250,15 +181,84 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				recordFatalError(LOGGER, result, "Bad resource configuration", ex);
 				throw ex;
 			}
+			
 		} else {
-			resultingObject = repositoryObject;
+			// Not resource
+		
+			PrismObject<T> repositoryObject = getRepoObject(type, oid, result);
+		
+			if (GetOperationOptions.isNoFetch(options) || GetOperationOptions.isRaw(options)) {
+			
+				// We have what we came for here. We have already got it from the repo.
+				// Except if that is a shadow then we want to apply definition before returning it.
+				
+				if (repositoryObject.canRepresent(ShadowType.class)) {
+					try {
+						applyDefinition((PrismObject<ShadowType>)repositoryObject, result);
+					} catch (SchemaException e) {
+						if (GetOperationOptions.isRaw(options)) {
+							// This is (almost) OK in raw. We want to get whatever is available, even if it violates
+							// the schema
+							logWarning(LOGGER, result, "Repository object "+repositoryObject+" violates the schema: " + e.getMessage() + ". Reason: ", e);
+						} else {
+							recordFatalError(LOGGER, result, "Repository object "+repositoryObject+" violates the schema: " + e.getMessage() + ". Reason: ", e);
+							throw e;
+						}
+					} catch (ObjectNotFoundException e) {
+						if (GetOperationOptions.isRaw(options)){
+							logWarning(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
+						} else{
+						recordFatalError(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
+						throw e;
+						}
+					} catch (CommunicationException e) {
+						recordFatalError(LOGGER, result, "Resource defined is shadow is not available: "+ e.getMessage(), e);
+						throw e;
+					} catch (ConfigurationException e) {
+						recordFatalError(LOGGER, result, "Could not apply definition to shadow, problem with configuration: "+ e.getMessage(), e);
+						throw e;
+					}
+				}
+				
+				resultingObject = repositoryObject;
+				
+			} else if (repositoryObject.canRepresent(ShadowType.class)) {
+				// TODO: optimization needed: avoid multiple "gets" of the same
+				// object
+	
+				try {
+	
+					resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow(oid,
+							(PrismObject<ShadowType>) (repositoryObject), options, result);
+	
+				} catch (ObjectNotFoundException e) {
+					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					throw e;
+				} catch (CommunicationException e) {
+					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					throw e;
+				} catch (SchemaException e) {
+					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					throw e;
+				} catch (ConfigurationException e) {
+					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					throw e;
+				} catch (SecurityViolationException e) {
+					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					throw e;
+				}
+				
+	
+			} else {
+				resultingObject = repositoryObject;
+			}
 		}
 		
 		result.computeStatus();
-		repositoryObject.asObjectable().setFetchResult(result.createOperationResultType());
+		resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 		result.cleanupResult();
 		
-		validateObject(repositoryObject);
+		validateObject(resultingObject);
 		
 		return resultingObject;
 
@@ -591,7 +591,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				try {
 
-					PrismObject<ResourceType> completeResource = getResourceTypeManager().getResource(repoResource,
+					PrismObject<ResourceType> completeResource = resourceManager.getResource(repoResource,
 							objResult);
 					newObjListType.add((PrismObject<T>) completeResource);
 					// TODO: what do to with objResult??

@@ -90,7 +90,10 @@ public class ResourceCache {
 	}
 
 	public synchronized PrismObject<ResourceType> get(PrismObject<ResourceType> resource) throws SchemaException {
-		String oid = resource.getOid();
+		return get(resource.getOid(), resource.getVersion());
+	}
+	
+	public synchronized PrismObject<ResourceType> get(String oid, String version) throws SchemaException {
 		if (oid == null) {
 			return null;
 		}
@@ -100,7 +103,7 @@ public class ResourceCache {
 			return null;
 		}
 
-		if (!compareVersion(resource.getVersion(), cachedResource.getVersion())) {
+		if (!compareVersion(version, cachedResource.getVersion())) {
 			return null;
 		}
 		

@@ -92,6 +92,28 @@ public class ResourceManager {
 			InternalMonitor.getResourceCacheStats().recordHit();
 			return cachedResource;
 		}
+		
+		return putToCache(repositoryObject, parentResult);
+	}
+	
+	public PrismObject<ResourceType> getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
+		InternalMonitor.getResourceCacheStats().recordRequest();
+		
+		String version = repositoryService.getVersion(ResourceType.class, oid, parentResult);
+		PrismObject<ResourceType> cachedResource = resourceCache.get(oid, version);
+		if (cachedResource != null) {
+			InternalMonitor.getResourceCacheStats().recordHit();
+			return cachedResource;
+		}
+		
+		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, parentResult);
+		
+		return putToCache(repositoryObject, parentResult);
+	}
+
+	
+	private PrismObject<ResourceType> putToCache(PrismObject<ResourceType> repositoryObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		
 		PrismObject<ResourceType> completedResource = completeResource(repositoryObject, null, false, parentResult);
 		
 
@@ -114,13 +136,7 @@ public class ResourceManager {
 		InternalMonitor.getResourceCacheStats().recordMiss();
 		return completedResource;
 	}
-	
-	public PrismObject<ResourceType> getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
-//		ResourceType cachedResource = resourceCache.get(oid, version);
-		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, parentResult);
-		return getResource(repositoryObject, parentResult);
-	}
-	
+		
 	/**
 	 * Make sure that the resource is complete.
 	 * 
