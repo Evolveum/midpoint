@@ -100,7 +100,8 @@ function initTable(){
 		$(this).parents("tr:first").find("td").css(cssAddedValue);
 	});
 	
-	
+
+    /*
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
 //			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
@@ -131,6 +132,7 @@ function initTable(){
 //			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
 		}
 	});
+	*/
 
 /*
 	function checkAllChecked(parent) {
@@ -154,7 +156,7 @@ function initTable(){
 	}
 */
 	
-	
+	             /*
 	$(".sortedTable table tbody tr").mouseenter(function(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#c6e9c6");
@@ -183,6 +185,7 @@ function initTable(){
 			$(this).find("td").css("border-color","#F2F2F2");
 		}
 	})
+	*/
 //        .find(".tableCheckbox").find("input[type='checkbox']").click(function(){
 //		checkAllChecked($(this).parents(".sortedTable"));
 //	});

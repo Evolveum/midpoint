@@ -90,7 +90,10 @@ function init() {
 	}).mouseleave(function(){
 		hideFormHelpContainer();
 	});
-	
+
+    /*
+    // not very good solution, css in javascript.
+    // also what if there are more checkboxes in row.
 	$(".submitTable tbody tr").mouseenter(function(){
 		if($(this).find("input[type='checkbox']").is(":checked")){
 			$(this).find("td").css("background", "#c6e9c6");
@@ -106,6 +109,7 @@ function init() {
 			$(this).find("td").css("border-color","#F2F2F2");
 		}
 	});
+	*/
 	
 	var el = $('.searchPanel');
     el.focus(function(e) {
