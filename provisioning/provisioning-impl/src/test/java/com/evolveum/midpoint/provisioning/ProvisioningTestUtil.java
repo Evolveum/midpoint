@@ -109,6 +109,10 @@ public class ProvisioningTestUtil {
 
 	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "priv";
 	public static final QName DUMMY_ENTITLEMENT_PRIVILEGE_QNAME = new QName(RESOURCE_DUMMY_NS, DUMMY_ENTITLEMENT_PRIVILEGE_NAME);
+
+	public static final String CONNECTOR_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
+	public static final String CONNECTOR_DUMMY_USELESS_STRING_NAME = "uselessString";
+	public static final QName CONNECTOR_DUMMY_USELESS_STRING_QNAME = new QName(CONNECTOR_DUMMY_NS, CONNECTOR_DUMMY_USELESS_STRING_NAME);
 	
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
