@@ -103,6 +103,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private ExpressionFactory expressionFactory;
 	private Map<QName,Object> variables = new HashMap<QName,Object>();
 	private String contextDescription;
+	private String mappingContextDescription = null;
 	private MappingType mappingType;
 	private ObjectResolver objectResolver = null;
 	private Source<?> defaultSource = null;
@@ -199,6 +200,19 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	public void setContextDescription(String contextDescription) {
 		this.contextDescription = contextDescription;
 	}
+	
+	public String getMappingContextDescription() {
+		if (mappingContextDescription == null) {
+			StringBuilder sb = new StringBuilder("mapping ");
+			if (mappingType.getName() != null) {
+				sb.append("'").append(mappingType.getName()).append("' ");
+			}
+			sb.append(" in ");
+			sb.append(contextDescription);
+			mappingContextDescription  = sb.toString();
+		}
+		return mappingContextDescription;
+	}
 
 	public void setRootNode(ObjectReferenceType objectRef) {
 		addVariableDefinition(null,(Object)objectRef);
@@ -222,7 +236,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		} else if (varDef.getValue() != null) {
 			addVariableDefinition(varDef.getName(),varDef.getValue());
 		} else {
-			LOGGER.warn("Empty definition of variable {} in expression {}, ignoring it",varDef.getName(),contextDescription);
+			LOGGER.warn("Empty definition of variable {} in {}, ignoring it",varDef.getName(),getMappingContextDescription());
 		}
 		
 	}
@@ -267,7 +281,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	
 	private void addVariableDefinition(QName name, Object value) {
 		if (variables.containsKey(name)) {
-			LOGGER.warn("Duplicate definition of variable {} in expression {}, ignoring it",name,contextDescription);
+			LOGGER.warn("Duplicate definition of variable {} in {}, ignoring it",name,getMappingContextDescription());
 			return;
 		}
 		variables.put(name, value);
@@ -359,7 +373,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		parseTarget();
 
 		if (outputDefinition == null) {
-			throw new IllegalArgumentException("No output definition, cannot evaluate construction "+contextDescription);
+			throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
 		}
 		
 		evaluateCondition(result);
@@ -430,17 +444,17 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private <X extends PrismValue> Source<X> parseSource(MappingSourceDeclarationType sourceType, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Element pathElement = sourceType.getPath();
 		if (pathElement == null) {
-			throw new SchemaException("No path in source definition in "+contextDescription);
+			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
 		}
 		ItemPath path = new XPathHolder(pathElement).toPropertyPath();
 		if (path.isEmpty()) {
-			throw new SchemaException("Empty source path in "+contextDescription);
+			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
 		QName name = sourceType.getName();
 		if (name == null) {
 			name = ItemPath.getName(path.last());
 		}
-		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "source definition in "+contextDescription, result);
+		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), result);
 		Item<X> itemOld = null;
 		ItemDelta<X> delta = null;
 		Item<X> itemNew = null;
@@ -470,12 +484,12 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		} else {
 			Element pathElement = targetType.getPath();
 			if (pathElement == null) {
-				throw new SchemaException("No path in target definition in "+contextDescription);
+				throw new SchemaException("No path in target definition in "+getMappingContextDescription());
 			}
 			ItemPath path = new XPathHolder(pathElement).toPropertyPath();
-			outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+contextDescription);
+			outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+getMappingContextDescription());
 			if (outputDefinition == null) {
-				throw new SchemaException("No target item that would conform to the path "+path+" in "+getContextDescription());
+				throw new SchemaException("No target item that would conform to the path "+path+" in "+getMappingContextDescription());
 			}
 
 			// Make the path relative if needed
@@ -555,8 +569,8 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, null, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
 		Expression<PrismValue> expression = expressionFactory.makeExpression(conditionExpressionType, 
-				conditionOutput, "condition in "+contextDescription, result);
-		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "condition in "+contextDescription, result);
+				conditionOutput, "condition in "+getMappingContextDescription(), result);
+		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "condition in "+getMappingContextDescription(), result);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		conditionOutputTriple = expression.evaluate(params);
 	}
@@ -568,8 +582,8 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			expressionType = mappingType.getExpression();
 		}
 		Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
-				"expression in "+contextDescription, result);
-		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "expression in "+contextDescription, result);
+				"expression in "+getMappingContextDescription(), result);
+		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "expression in "+getMappingContextDescription(), result);
 		params.setRegress(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		outputTriple = expression.evaluate(params);

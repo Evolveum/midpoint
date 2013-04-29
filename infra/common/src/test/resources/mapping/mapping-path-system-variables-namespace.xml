@@ -21,6 +21,7 @@
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <name>patlama</name>
 	<source>
 		<path>$c:user/c:name</path>
 	</source>
