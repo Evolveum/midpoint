@@ -3891,6 +3891,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="allowEmptyValues" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="code" type="tns:ScriptExpressionCodeType">
                 <xsd:annotation>
                     <xsd:documentation>

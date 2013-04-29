@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
@@ -45,11 +46,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Library of standard midPoint functions. These functions are made available to all
@@ -127,6 +130,74 @@ public class BasicExpressionFunctions {
 		return polyString.getNorm();
 	}
 
+	/**
+	 * Converts whatever it gets to a string. But it does it in a sensitive way.
+	 * E.g. it tries to detect collections and returns the first element (if there is only one). 
+	 * Never returns null. Returns empty string instead. 
+	 */
+	public String stringify(Object whatever) {
+		
+		if (whatever == null) {
+			return "";
+		}
+		
+		if (whatever instanceof Collection) {
+			Collection collection = (Collection)whatever;
+			if (collection.isEmpty()) {
+				return "";
+			}
+			if (collection.size() > 1) {
+				throw new IllegalArgumentException("Cannot stringify collection because it has "+collection.size()+" values");
+			}
+			whatever = collection.iterator().next();
+		}
+		
+		Class<? extends Object> whateverClass = whatever.getClass();
+		if (whateverClass.isArray()) {
+			Object[] array = (Object[])whatever;
+			if (array.length == 0) {
+				return "";
+			}
+			if (array.length > 1) {
+				throw new IllegalArgumentException("Cannot stringify array because it has "+array.length+" values");
+			}
+			whatever = array[0];
+		}
+		
+		if (whatever == null) {
+			return "";
+		}
+		
+		if (whatever instanceof String) {
+			return (String)whatever;
+		}
+		
+		if (whatever instanceof PolyString) {
+			return ((PolyString)whatever).getOrig();
+		}
+
+		if (whatever instanceof PolyStringType) {
+			return ((PolyStringType)whatever).getOrig();
+		}
+		
+		if (whatever instanceof Element) {
+			Element element = (Element)whatever;
+			Element origElement = DOMUtil.getChildElement(element, PolyString.F_ORIG);
+			if (origElement != null) {
+				// This is most likely a PolyStringType
+				return origElement.getTextContent();
+			} else {
+				return element.getTextContent();
+			}
+		}
+		
+		if (whatever instanceof Node) {
+			return ((Node)whatever).getTextContent();
+		}
+
+		throw new IllegalArgumentException("Cannot stringify "+whatever+" ("+whateverClass+")");
+//		return whatever.toString();
+	}
 	
 	
 	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {

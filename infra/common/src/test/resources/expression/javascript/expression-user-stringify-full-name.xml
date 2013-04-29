@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
+	<code>
+		basic.stringify(user.getFullName());
+	</code>
+</script>

@@ -187,6 +187,15 @@ public abstract class AbstractScriptTest {
     			createUserScriptVariables(),
     	    	"Black Pearl");
     }
+    
+    @Test
+    public void testUserExtensionStringifyFullName() throws Exception {
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-user-stringify-full-name.xml", 
+    			"testUserExtensionStringifyFullName", 
+    			createUserScriptVariables(),
+    	    	"Jack Sparrow");
+    }
 
     // TODO: user + multivalue (organizationalUnit)
     // TODO: user + polystring

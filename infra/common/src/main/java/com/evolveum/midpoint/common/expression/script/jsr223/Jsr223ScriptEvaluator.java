@@ -100,6 +100,11 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		}
 		String codeString = codeElement.getTextContent();
 		
+		boolean allowEmptyValues = false;
+		if (expressionType.isAllowEmptyValues() != null) {
+			allowEmptyValues = expressionType.isAllowEmptyValues();
+		}
+		
 		Object evalRawResult;
 		try {
 			evalRawResult = scriptEngine.eval(codeString, bindings);
@@ -115,15 +120,19 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		if (evalRawResult instanceof Collection) {
 			for(Object evalRawResultElement : (Collection)evalRawResult) {
 				T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, contextDescription);
-				PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
-				pvals.add(pval);
+				if (allowEmptyValues || !isEmpty(evalResult)) {
+					PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
+					pvals.add(pval);
+				}
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
 			pvals.addAll(PrismPropertyValue.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
 			T evalResult = convertScalarResult(javaReturnType, evalRawResult, contextDescription);
-			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
-			pvals.add(pval);
+			if (allowEmptyValues || !isEmpty(evalResult)) {
+				PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
+				pvals.add(pval);
+			}
 		}
 		
 //		ScriptExpressionReturnTypeType definedReturnType = expressionType.getReturnType();
@@ -188,6 +197,19 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			return (T) polyStringType;
 		}
 		throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
+	}
+	
+	private <T> boolean isEmpty(T val) {
+		if (val == null) {
+			return true;
+		}
+		if (val instanceof String && ((String)val).isEmpty()) {
+			return true;
+		}
+		if (val instanceof PolyString && ((PolyString)val).isEmpty()) {
+			return true;
+		}
+		return false;
 	}
 	
 	private Bindings convertToBindings(ScriptVariables variables, ObjectResolver objectResolver, 

@@ -99,6 +99,10 @@ public class BasicExpressionFunctionsXPath {
 	public String norm(String orig) {
 		return functions.norm(orig);
 	}
+	
+	public String stringify(Object whatever) {
+		return functions.stringify(whatever);
+	}
 		
 	public String determineLdapSingleAttributeValue(Element dn, String attributeName, Element valueElement) throws NamingException {
 		// Trivial case: the value is a single element therefore it has a single value.
