@@ -27,7 +27,9 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -98,7 +100,11 @@ public class ScriptExpression {
 			String contextDescription, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
+		
 		try {
+			context.setupThreadLocal();
+			
 			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(expressionType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, result);
 			
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
@@ -116,6 +122,8 @@ public class ScriptExpression {
 		} catch (RuntimeException ex) {
 			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
+		} finally {
+			context.cleanupThreadLocal();
 		}
 	}
 
@@ -158,5 +166,17 @@ public class ScriptExpression {
 	private String formatCode() {
         return DOMUtil.serializeDOMToString(expressionType.getCode());
     }
+	
+	public ItemPath parsePath(String path) {
+		if (path == null) {
+			return null;
+		}
+		Element codeElement = expressionType.getCode();
+		XPathHolder xPathHolder = new XPathHolder(path, codeElement);
+		if (xPathHolder == null) {
+			return null;
+		}
+		return xPathHolder.toItemPath();
+	}
 
 }

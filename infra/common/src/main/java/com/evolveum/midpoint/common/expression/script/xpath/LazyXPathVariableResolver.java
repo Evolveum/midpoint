@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -180,12 +181,14 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        }
 	        
 	        // DEBUG hack
-	//        System.out.println("VAR "+variableName+" - "+variableValue.getClass().getName()+":");
-	//        if (variableValue instanceof Node) {
-	//        	System.out.println(DOMUtil.serializeDOMToString((Node)variableValue));
-	//        } else {
-	//        	System.out.println(DebugUtil.prettyPrint(variableValue));
-	//        }
+//	        if (LOGGER.isDebugEnabled()) {
+//		        LOGGER.trace("VAR "+variableName+" - "+variableValue.getClass().getName()+":");
+//		        if (variableValue instanceof Node) {
+//		        	LOGGER.trace(DOMUtil.serializeDOMToString((Node)variableValue));
+//		        } else {
+//		        	LOGGER.trace(PrettyPrinter.prettyPrint(variableValue));
+//		        }
+//	        }
 	        
 	        return variableValue;
 	        

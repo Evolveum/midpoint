@@ -20,9 +20,11 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -43,6 +45,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -75,6 +79,9 @@ public abstract class AbstractScriptTest {
 	private static final String NS_Y = "http://example.com/yyy";
 	protected static File BASE_TEST_DIR = new File("src/test/resources/expression");
     protected static File OBJECTS_DIR = new File("src/test/resources/objects");
+    protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    
+    public static final Trace LOGGER = TraceManager.getTrace(AbstractScriptTest.class);
 
     protected ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
@@ -134,7 +141,7 @@ public abstract class AbstractScriptTest {
     			ScriptVariables.create(
 						new QName(NS_X, "foo"), "Captain",
 						new QName(NS_Y, "jack"), 
-							MiscSchemaUtil.createObjectReference("c0c010c0-d34d-b33f-f00d-111111111111", UserType.COMPLEX_TYPE)
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
 				), 
     			"Captain jack");
     }
@@ -147,22 +154,53 @@ public abstract class AbstractScriptTest {
     			ScriptVariables.create(
 						new QName(NS_X, "foo"), "Captain",
 						new QName(NS_Y, "jack"), 
-							MiscSchemaUtil.createObjectReference("c0c010c0-d34d-b33f-f00d-111111111111", UserType.COMPLEX_TYPE)
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
 				),
     			"Captain Jack Sparrow");
     }
 
+    // Using similar settings that will be used with mapping and SYSTEM VARIABLES
+    
     @Test
-    public void testSystemVariables() throws Exception {
+    public void testUserGivenName() throws Exception {
 		evaluateAndAssertStringScalarExpresssion(
-				"expression-system-variables.xml", 
-    			"testSystemVariables", 
-    			ScriptVariables.create(SchemaConstants.C_USER, 
-    	    			MiscSchemaUtil.createObjectReference("c0c010c0-d34d-b33f-f00d-111111111111", UserType.COMPLEX_TYPE)),
+				"expression-user-given-name.xml", 
+    			"testUserGivenName", 
+    			createUserScriptVariables(),
     	    	"Jack");
     }
-
+    
     @Test
+    public void testUserExtensionShip() throws Exception {
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-user-extension-ship.xml", 
+    			"testUserExtensionShip", 
+    			createUserScriptVariables(),
+    	    	"Black Pearl");
+    }
+    
+    @Test
+    public void testUserExtensionShipPath() throws Exception {
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-user-extension-ship-path.xml", 
+    			"testUserExtensionShipPath", 
+    			createUserScriptVariables(),
+    	    	"Black Pearl");
+    }
+
+    // TODO: user + multivalue (organizationalUnit)
+    // TODO: user + polystring
+    // TODO: user + numeric
+    // TODO: user + no property value
+    
+	private ScriptVariables createUserScriptVariables() {
+		return ScriptVariables.create(SchemaConstants.C_USER, 
+    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE));
+	}
+	
+	// TODO: shadow + attributes
+
+	@Test
     public void testRootNode() throws Exception {
     	if (!supportsRootNode()) {
     		return;
@@ -172,7 +210,7 @@ public abstract class AbstractScriptTest {
 				"expression-root-node.xml", 
     			"testRootNode", 
     			ScriptVariables.create(null, 
-    	    			MiscSchemaUtil.createObjectReference("c0c010c0-d34d-b33f-f00d-111111111111", UserType.COMPLEX_TYPE)),
+    	    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)),
     	    	"Black Pearl");
     }
 
@@ -183,7 +221,7 @@ public abstract class AbstractScriptTest {
     			"testExpressionList", 
     			ScriptVariables.create(
 						new QName(NS_Y, "jack"), 
-							MiscSchemaUtil.createObjectReference("c0c010c0-d34d-b33f-f00d-111111111111", UserType.COMPLEX_TYPE)
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
 				),
     			"Leaders", "Followers");		
     }
@@ -241,6 +279,7 @@ public abstract class AbstractScriptTest {
 	private void evaluateAndAssertStringScalarExpresssion(String fileName, String testName, ScriptVariables variables, String expectedValue) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
 		List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
 		PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
+		assertNotNull("Expression "+testName+" resulted in null value (expected '"+expectedValue+"')", expressionResult);
 		assertEquals("Expression "+testName+" resulted in wrong value", expectedValue, expressionResult.getValue());
 	}
 
@@ -260,6 +299,7 @@ public abstract class AbstractScriptTest {
     
 	private void displayTestTitle(String testName) {
 		System.out.println("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
+		LOGGER.info("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
 	}
 
 }

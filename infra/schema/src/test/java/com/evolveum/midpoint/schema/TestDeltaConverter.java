@@ -276,7 +276,7 @@ public class TestDeltaConverter {
     	ItemDeltaType mod1 = modifications.iterator().next();
     	assertEquals("Wrong mod type", ModificationTypeType.REPLACE, mod1.getModificationType());
     	XPathHolder xpath = new XPathHolder(mod1.getPath());
-    	assertEquals("Wrong path", path.allExceptLast(), xpath.toPropertyPath());
+    	assertEquals("Wrong path", path.allExceptLast(), xpath.toItemPath());
     	List<Object> valueElements = mod1.getValue().getAny();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)valueElements.iterator().next();
@@ -312,7 +312,7 @@ public class TestDeltaConverter {
     	ItemDeltaType mod1 = modifications.iterator().next();
     	assertEquals("Wrong mod type", ModificationTypeType.REPLACE, mod1.getModificationType());
     	XPathHolder xpath = new XPathHolder(mod1.getPath());
-    	assertTrue("Wrong path: "+xpath, xpath.toPropertyPath().isEmpty());
+    	assertTrue("Wrong path: "+xpath, xpath.toItemPath().isEmpty());
     	List<Object> valueElements = mod1.getValue().getAny();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	Element valueElement = (Element)valueElements.iterator().next();

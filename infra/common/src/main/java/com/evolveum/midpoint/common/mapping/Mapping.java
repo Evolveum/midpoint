@@ -33,7 +33,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
@@ -446,7 +446,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		if (pathElement == null) {
 			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
 		}
-		ItemPath path = new XPathHolder(pathElement).toPropertyPath();
+		ItemPath path = new XPathHolder(pathElement).toItemPath();
 		if (path.isEmpty()) {
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
@@ -486,7 +486,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			if (pathElement == null) {
 				throw new SchemaException("No path in target definition in "+getMappingContextDescription());
 			}
-			ItemPath path = new XPathHolder(pathElement).toPropertyPath();
+			ItemPath path = new XPathHolder(pathElement).toItemPath();
 			outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+getMappingContextDescription());
 			if (outputDefinition == null) {
 				throw new SchemaException("No target item that would conform to the path "+path+" in "+getMappingContextDescription());
@@ -570,7 +570,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, null, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
 		Expression<PrismValue> expression = expressionFactory.makeExpression(conditionExpressionType, 
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
-		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "condition in "+getMappingContextDescription(), result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "condition in "+getMappingContextDescription(), result);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		conditionOutputTriple = expression.evaluate(params);
 	}
@@ -583,7 +583,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
 				"expression in "+getMappingContextDescription(), result);
-		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "expression in "+getMappingContextDescription(), result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "expression in "+getMappingContextDescription(), result);
 		params.setRegress(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		outputTriple = expression.evaluate(params);

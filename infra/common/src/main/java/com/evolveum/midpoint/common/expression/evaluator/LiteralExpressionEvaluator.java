@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.prism.Item;
@@ -68,7 +68,7 @@ public class LiteralExpressionEvaluator<V extends PrismValue> implements Express
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		return outputTriple.clone();

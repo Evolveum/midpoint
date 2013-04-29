@@ -31,7 +31,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
@@ -85,7 +85,7 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 
 		ItemDeltaItem<?> resolveContext = null;

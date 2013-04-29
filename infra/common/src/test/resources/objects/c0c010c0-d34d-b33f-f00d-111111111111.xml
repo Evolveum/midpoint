@@ -23,13 +23,13 @@
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+   xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
     <name>jack</name>
     <!-- Description is a string as opposed to name which is PolyString. We use description instead of
          name in tests where we need string. -->
     <description>jack</description>
     <extension>
-        <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
+        <ext:ship xsi:type="xsd:string">Black Pearl</ext:ship>
     </extension>
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>

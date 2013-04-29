@@ -262,7 +262,7 @@ public class DeltaConvertor {
     public static <V extends PrismValue> ItemDelta<V> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef) throws
             SchemaException {
     	XPathHolder xpath = new XPathHolder(propMod.getPath());
-        ItemPath parentPath = xpath.toPropertyPath();
+        ItemPath parentPath = xpath.toItemPath();
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in item delta (path: " + parentPath + ") while creating a property delta");
         }

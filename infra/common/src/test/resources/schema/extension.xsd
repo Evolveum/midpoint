@@ -82,6 +82,8 @@
 			<xsd:element ref="tns:integerType" minOccurs="0"/>
 			<xsd:element ref="tns:longType" minOccurs="0"/>
 			<xsd:element ref="tns:dateType" minOccurs="0"/>
+			
+			<xsd:element name="ship" type="xsd:string" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 

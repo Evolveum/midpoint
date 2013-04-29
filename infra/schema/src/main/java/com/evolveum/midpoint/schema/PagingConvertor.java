@@ -21,7 +21,7 @@ public class PagingConvertor {
 		QName orderBy = null;
 		if (pagingType.getOrderBy() != null){
 			XPathHolder xpath = new XPathHolder(pagingType.getOrderBy());
-			orderBy = ItemPath.getName(xpath.toPropertyPath().first());
+			orderBy = ItemPath.getName(xpath.toItemPath().first());
 		}
 		
 		return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(), orderBy, toOrderDirection(pagingType.getOrderDirection()));

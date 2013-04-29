@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -64,26 +65,32 @@ import java.util.List;
  * @author Radovan Semancik
  */
 public class ObjectTypeUtil {
-
-    public static List<String> extractOids(List<? extends ObjectType> objects,
-                                           List<? extends ObjectReferenceType> refs) {
-
-        List<String> oids = new ArrayList<String>();
-
-        if (objects != null) {
-            for (ObjectType object : objects) {
-                oids.add(object.getOid());
-            }
-        }
-
-        if (refs != null) {
-            for (ObjectReferenceType ref : refs) {
-                oids.add(ref.getOid());
-            }
-        }
-
-        return oids;
-    }
+	
+	/**
+	 * Never returns null. Returns empty collection instead.
+	 */
+	public static <T> Collection<T> getExtensionPropertyValuesNotNull(ObjectType objectType, QName propertyQname) {
+		Collection<T> values = getExtensionPropertyValues(objectType, propertyQname);
+		if (values == null) {
+			return new ArrayList<T>(0);
+		} else {
+			return values;
+		}
+	}
+	
+	public static <T> Collection<T> getExtensionPropertyValues(ObjectType objectType, QName propertyQname) {
+		PrismObject<? extends ObjectType> object = objectType.asPrismObject();
+		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+		if (extensionContainer == null) {
+			return null;
+		}
+		PrismProperty<T> property = extensionContainer.findProperty(propertyQname);
+		if (property == null) {
+			return null;
+		}
+		return property.getRealValues();
+	}
+    
 
     public static ObjectReferenceType findRef(String oid, List<ObjectReferenceType> refs) {
         for (ObjectReferenceType ref : refs) {
@@ -92,105 +99,6 @@ public class ObjectTypeUtil {
             }
         }
         return null;
-    }
-
-    @Deprecated
-    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType, XPathHolder xpathType, Object element) {
-        ItemDeltaType change = new ItemDeltaType();
-        change.setValue(new ItemDeltaType.Value());
-        change.setModificationType(changeType);
-        if (xpathType == null) {
-            // Default XPath is empty XPath, which means "."
-            xpathType = new XPathHolder();
-        }
-        change.setPath(xpathType.toElement(SchemaConstants.NS_C, "path"));
-        change.getValue().getAny().add(element);
-
-        return change;
-    }
-
-    @Deprecated
-    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
-    		XPathHolder xpath, QName propertyName, Object value) {
-        Collection<Object> values = new ArrayList<Object>(1);
-        values.add(value);
-        return createPropertyModificationType(changeType, xpath, propertyName, values);
-    }
-
-    @Deprecated
-    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
-    		XPathHolder xpath, PrismProperty property) {
-        return createPropertyModificationType(changeType, xpath, property.getName(), property.getValues());
-    }
-
-    @Deprecated
-    public static ItemDeltaType createPropertyModificationType(ModificationTypeType changeType,
-    		XPathHolder xpath, QName propertyName, Collection<Object> values) {
-
-        ItemDeltaType propertyChange = new ItemDeltaType();
-        propertyChange.setModificationType(changeType);
-
-        Document doc = DOMUtil.getDocument();
-
-        if (xpath == null) {
-            // Default XPath is empty XPath, which means "."
-            xpath = new XPathHolder();
-        }
-
-        if (propertyName.getPrefix() == null) {
-            // If the prefix was not specified, generate a random prefix
-            // to avoid collisions with standard "nsXX" prefixes
-            String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(propertyName.getNamespaceURI());
-            propertyName = new QName(propertyName.getNamespaceURI(), propertyName.getLocalPart(), prefix);
-        }
-
-        propertyChange.setPath(xpath.toElement(SchemaConstants.NS_C, "path", doc));
-
-        ItemDeltaType.Value jaxbValue = new ItemDeltaType.Value();
-        if (values != null) {
-            for (Object value : values) {
-                if (value == null) {
-                    // Empty value, that means empty element set. Nothing to do.
-                    // This may be used e.g. for deleting all values (replacing by empty
-                    // value)
-                } else if (XmlTypeConverter.canConvert(value.getClass())) {
-                    try {
-                        Object e = XmlTypeConverter.toXsdElement(value, propertyName, doc);
-                        jaxbValue.getAny().add(e);
-                    } catch (SchemaException ex) {
-                        throw new SystemException("Unexpected JAXB problem while converting " + propertyName + " : "
-                                + ex.getMessage(), ex);
-                    }
-                } else if (value instanceof Element) {
-                    // This may not be needed any more
-                    jaxbValue.getAny().add((Element) value);
-                } else {
-                    throw new IllegalArgumentException("Unsupported value type " + value.getClass().getName());
-                }
-            }
-        }
-
-        propertyChange.setValue(jaxbValue);
-
-        return propertyChange;
-    }
-
-    @Deprecated
-    public static ObjectModificationType createModificationReplaceProperty(String oid, QName propertyName,
-                                                                           Object propertyValue) {
-        return createModificationReplaceProperty(oid, null, propertyName, propertyValue);
-    }
-
-    @Deprecated
-    public static ObjectModificationType createModificationReplaceProperty(String oid, XPathHolder xpath, QName propertyName,
-                                                                           Object propertyValue) {
-        ObjectModificationType modification = new ObjectModificationType();
-        modification.setOid(oid);
-        List<ItemDeltaType> propertyModifications = modification.getModification();
-        ItemDeltaType propertyModification = createPropertyModificationType(ModificationTypeType.REPLACE,
-        		xpath, propertyName, propertyValue);
-        propertyModifications.add(propertyModification);
-        return modification;
     }
 
     public static String toShortString(ObjectType object) {
@@ -290,29 +198,6 @@ public class ObjectTypeUtil {
     }
 
 
-//    /**
-//     * @param extension
-//     * @return
-//     */
-//    public static String dump(Extension extension) {
-//        if (extension == null) {
-//            return "null";
-//        }
-//        StringBuilder sb = new StringBuilder();
-//        for (Object e : extension.getAny()) {
-//            try {
-//                sb.append(JAXBUtil.serializeElementToString(e));
-//            } catch (JAXBException e1) {
-//                sb.append("[Unexpected exception: ");
-//                sb.append(e1);
-//                sb.append("]: ");
-//                sb.append(e);
-//            }
-//            sb.append("\n");
-//        }
-//        return sb.toString();
-//    }
-
     /**
      * Returns the &lt;xsd:schema&gt; element from the XmlSchemaType.
      */
@@ -355,21 +240,6 @@ public class ObjectTypeUtil {
 		definitionProperty.setRealValue(definitionElement);
 	}
 
-    
-//    /**
-//     * common-2 namespace is assumed
-//     * single value and "replace" modification are assumed
-//     */
-//    public static <T> T getPropertyNewValue(ObjectModificationType objectChange, String pathSegment,
-//                                            String propertyName, Class<T> propertyClass) throws SchemaException {
-////		XPathSegment xpathSegment = new XPathSegment(new QName(SchemaConstants.NS_C,pathSegment));
-////		List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
-////		segmentlist.add(xpathSegment);
-////		XPathHolder xpath = new XPathHolder(segmentlist);
-//        XPathHolder xpath = createXPathHolder(new QName(SchemaConstants.NS_C, pathSegment));
-//        return getPropertyNewValue(objectChange, xpath, new QName(SchemaConstants.NS_C, propertyName), propertyClass);
-//    }
-
     public static XPathHolder createXPathHolder(QName property) {
         XPathSegment xpathSegment = new XPathSegment(property);
         List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
@@ -377,81 +247,6 @@ public class ObjectTypeUtil {
         XPathHolder xpath = new XPathHolder(segmentlist);
         return xpath;
     }
-
-//    /**
-//     * single value and "replace" modification are assumed
-//     */
-//    public static <T> T getPropertyNewValue(ObjectModificationType objectChange, XPathHolder path,
-//                                            QName propertyName, Class<T> propertyClass) throws SchemaException {
-//        PropertyModificationType propertyModification = getPropertyModification(objectChange, path, propertyName);
-//        if (propertyModification == null) {
-//            return null;
-//        }
-//        if (!propertyModification.getModificationType().equals(PropertyModificationTypeType.replace) &&  
-//        		!propertyModification.getModificationType().equals(PropertyModificationTypeType.add)) {
-//        	// The "add" above is not entirely correct. TODO: fix it once we switch to deltas 
-//            throw new IllegalStateException("Encoutered modify type " + propertyModification.getModificationType() + " while expecting " + PropertyModificationTypeType.replace + " during modification of property " + propertyName);
-//        }
-//        List<Object> valueElements = propertyModification.getValue().getAny();
-//        if (valueElements.size() > 1) {
-//            throw new IllegalStateException("Multiple values during modification of property " + propertyName + " while expeting just a single value");
-//        }
-//        return XmlTypeConverter.toJavaValue(valueElements.get(0), propertyClass);
-//    }
-
-//    public static PropertyModificationType getPropertyModification(ObjectModificationType objectChange, XPathHolder path,
-//                                                                   QName propertyName) {
-//        List<PropertyModificationType> propertyModifications = objectChange.getPropertyModification();
-//        for (PropertyModificationType propertyModification : propertyModifications) {
-//            XPathHolder propertyPath = new XPathHolder(propertyModification.getPath());
-//            if (!path.equals(propertyPath)) {
-//                if (propertyPath.isBelow(path)) {
-//                    // this is an UGLY HACK
-//                    // TODO: explain
-//                    List<XPathSegment> tail = propertyPath.getTail(path);
-//                    if (tail.isEmpty()) {
-//                        continue;
-//                    }
-//                    XPathSegment propSegment = tail.get(0);
-//                    if (!propertyName.equals(propSegment.getQName())) {
-//                        continue;
-//                    }
-//                    PropertyModificationType newPropertyMod = new PropertyModificationType();
-//                    Document doc = DOMUtil.getDocument();
-//                    newPropertyMod.setPath(path.toElement(SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc));
-//                    newPropertyMod.setModificationType(propertyModification.getModificationType());
-//                    Element rootElement = DOMUtil.createElement(doc, propertyName);
-//                    Element currentElement = rootElement;
-//                    for (int i = 1; i < tail.size(); i++) {
-//                        XPathSegment xPathSegment = tail.get(i);
-//                        Element newElement = DOMUtil.createElement(doc, xPathSegment.getQName());
-//                        currentElement.appendChild(newElement);
-//                        currentElement = newElement;
-//                    }
-//                    for (Object valueJaxbElement : propertyModification.getValue().getAny()) {
-//                        Element valueDomElement;
-//                        try {
-//                            valueDomElement = JAXBUtil.toDomElement(valueJaxbElement, doc, true, true, false);
-//                        } catch (JAXBException e) {
-//                            throw new IllegalStateException("Cannot convert element " + valueJaxbElement + " to DOM");
-//                        }
-//                        currentElement.appendChild(valueDomElement);
-//                    }
-//                    Value value = new Value();
-//                    value.getAny().add(rootElement);
-//                    newPropertyMod.setValue(value);
-//                    return newPropertyMod;
-//                } else {
-//                    continue;
-//                }
-//            }
-//            if (!propertyName.equals(getElementName(propertyModification))) {
-//                continue;
-//            }
-//            return propertyModification;
-//        }
-//        return null;
-//    }
 
     public static boolean isModificationOf(ItemDeltaType modification, QName elementName) {
         return isModificationOf(modification, elementName, null);
@@ -493,5 +288,6 @@ public class ObjectTypeUtil {
     		throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
     	}
     }
+
 
 }

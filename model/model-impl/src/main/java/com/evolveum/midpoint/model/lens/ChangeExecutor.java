@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.lens;
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -848,7 +848,7 @@ public class ChangeExecutor {
     	Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, result);
     	
     	
-    	ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
+    	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
 		if (outputTriple == null) {
 			return;

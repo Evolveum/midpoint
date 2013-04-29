@@ -414,7 +414,7 @@ public class XPathHolder {
 		return Collections.unmodifiableList(segments);
 	}
 
-    public ItemPath toPropertyPath() {
+    public ItemPath toItemPath() {
         List<XPathSegment> xsegments = toSegments();
         List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>(xsegments.size());
         for (XPathSegment segment : xsegments) {

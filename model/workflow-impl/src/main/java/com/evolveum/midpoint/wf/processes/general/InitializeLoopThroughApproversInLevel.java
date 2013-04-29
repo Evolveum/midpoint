@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.wf.processes.general;
 
 import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -132,7 +132,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
         PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, approverOidName, DOMUtil.XSD_STRING, prismContext);
         Expression<PrismValue> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
-        ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, getDefaultVariables(execution), "approverExpression", result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, getDefaultVariables(execution), "approverExpression", result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
         List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
@@ -157,7 +157,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
-        ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, getDefaultVariables(execution), "automatic approval expression", result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, getDefaultVariables(execution), "automatic approval expression", result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();

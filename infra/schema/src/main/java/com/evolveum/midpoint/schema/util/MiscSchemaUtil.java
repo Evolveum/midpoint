@@ -131,7 +131,7 @@ public class MiscSchemaUtil {
 		Collection<ItemPath> itemPathList = new ArrayList<ItemPath>(resolve.getProperty().size());
 		for (Element itemXPathElement: resolve.getProperty()) {
 			XPathHolder itemXPath = new XPathHolder(itemXPathElement);
-			itemPathList.add(itemXPath.toPropertyPath());
+			itemPathList.add(itemXPath.toItemPath());
 		}
 		return itemPathList;
 	}
@@ -172,7 +172,7 @@ public class MiscSchemaUtil {
 			return null;
 		}
 		XPathHolder itemXPath = new XPathHolder(selectorType.getPath());
-		return new ObjectSelector(itemXPath.toPropertyPath());
+		return new ObjectSelector(itemXPath.toItemPath());
 	}
 	
     /**

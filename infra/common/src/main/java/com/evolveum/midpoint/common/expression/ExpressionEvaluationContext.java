@@ -35,7 +35,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * @author semancik
  *
  */
-public class ExpressionEvaluationParameters {
+public class ExpressionEvaluationContext {
 
 	private Collection<Source<?>> sources;
 	private Map<QName, Object> variables;
@@ -44,7 +44,7 @@ public class ExpressionEvaluationParameters {
 	private String contextDescription;
 	private OperationResult result;
 	
-	public ExpressionEvaluationParameters(Collection<Source<?>> sources,
+	public ExpressionEvaluationContext(Collection<Source<?>> sources,
 			Map<QName, Object> variables, String contextDescription,
 			OperationResult result) {
 		super();
@@ -102,8 +102,8 @@ public class ExpressionEvaluationParameters {
 		this.result = result;
 	}
 	
-	public ExpressionEvaluationParameters shallowClone() {
-		ExpressionEvaluationParameters clone = new ExpressionEvaluationParameters(sources, variables, contextDescription, result);
+	public ExpressionEvaluationContext shallowClone() {
+		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, result);
 		clone.regress = this.regress;
 		clone.stringPolicyResolver = this.stringPolicyResolver;
 		return clone;

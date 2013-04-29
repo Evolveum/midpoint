@@ -43,7 +43,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface ExpressionEvaluator<V extends PrismValue> {
 
-	PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters parameters) 
+	PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext parameters) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
 
 }

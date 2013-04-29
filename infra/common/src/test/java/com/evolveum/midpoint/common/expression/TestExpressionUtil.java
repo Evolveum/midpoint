@@ -240,7 +240,7 @@ public class TestExpressionUtil {
 				stringPath + "</path>";
 		Document doc = DOMUtil.parseDocument(xml);
 		Element element = DOMUtil.getFirstChildElement(doc);
-		return new XPathHolder(element).toPropertyPath();
+		return new XPathHolder(element).toItemPath();
 		
 	}
 

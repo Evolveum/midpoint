@@ -507,7 +507,7 @@ public class QueryConvertor {
 	private static ItemPath getPath(Element filter) {
 		Element path = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_PATH);
 		XPathHolder xpath = new XPathHolder((Element) path);
-		return xpath.toPropertyPath();
+		return xpath.toItemPath();
 	}
 
 	private static List<Element> getValues(Node filter) {

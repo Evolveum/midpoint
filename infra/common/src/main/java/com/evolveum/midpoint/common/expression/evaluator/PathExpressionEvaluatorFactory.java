@@ -79,7 +79,7 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
         }
         
         XPathHolder xpath = new XPathHolder((Element)evaluatorElementObject);
-        ItemPath path = xpath.toPropertyPath();
+        ItemPath path = xpath.toItemPath();
         
         return new PathExpressionEvaluator(path, objectResolver, outputDefinition, prismContext);
         

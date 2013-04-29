@@ -140,7 +140,7 @@ public class Expression<V extends PrismValue> {
 		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription, result);
 	}
 	
-	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters parameters) throws SchemaException,
+	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext parameters) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		try {
@@ -148,7 +148,7 @@ public class Expression<V extends PrismValue> {
 			Map<QName, Object> processedVariables = processInnerVariables(parameters.getVariables(), parameters.getContextDescription(),
 					parameters.getResult());
 			
-			ExpressionEvaluationParameters processedParameters = parameters.shallowClone();
+			ExpressionEvaluationContext processedParameters = parameters.shallowClone();
 			processedParameters.setVariables(processedVariables);
 			
 			for (ExpressionEvaluator<?> evaluator: evaluators) {

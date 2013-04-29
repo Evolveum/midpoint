@@ -30,16 +30,25 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
@@ -117,6 +126,51 @@ public class BasicExpressionFunctions {
 		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
 		return polyString.getNorm();
 	}
+
+	
+	
+	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
+		return getExtensionPropertyValues(object, new javax.xml.namespace.QName(namespace, localPart));
+	}
+	
+	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, groovy.xml.QName propertyQname) {
+		return getExtensionPropertyValues(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
+	}
+	
+	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, javax.xml.namespace.QName propertyQname) {
+		return ObjectTypeUtil.getExtensionPropertyValuesNotNull(object, propertyQname);
+	}
+	
+
+	public <T> T getExtensionPropertyValue(ObjectType object, String namespace, String localPart) throws SchemaException {
+		return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
+	}
+	
+	public <T> T getExtensionPropertyValue(ObjectType object, groovy.xml.QName propertyQname) throws SchemaException {
+		return getExtensionPropertyValue(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
+	}
+	
+	public <T> T getExtensionPropertyValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
+		Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(object, propertyQname);
+		return toSingle(values, "a multi-valued extension property "+propertyQname);
+	}
+	
+	public <T> T getPropertyValue(ObjectType object, String path) throws SchemaException {
+		Collection<T> values = getPropertyValues(object, path);
+		return toSingle(values, "a multi-valued property "+path);
+	}
+	
+	public <T> Collection<T> getPropertyValues(ObjectType object, String path) {
+		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+		ScriptExpression scriptExpression = scriptContext.getScriptExpression();
+		ItemPath itemPath = scriptExpression.parsePath(path);
+		PrismProperty property = object.asPrismObject().findProperty(itemPath);
+		if (property == null) {
+			return new ArrayList<T>(0);
+		}
+		return property.getRealValues();
+	}
+	
 	
 	public Collection<Object> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
 		return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
@@ -207,6 +261,26 @@ public class BasicExpressionFunctions {
 		
 		// Fallback. No values in DN. Just return the first alphabetically-wise value.
 		return Collections.min(stringValues);
+	}
+	
+	public <T> T toSingle(Collection<T> values) throws SchemaException {
+		if (values == null || values.isEmpty()) {
+			return null;
+		} else if (values.size() > 1) {
+			throw new SchemaException("Attempt to get single value from a multi-valued property");
+		} else {
+			return values.iterator().next();
+		}
+	}
+	
+	private <T> T toSingle(Collection<T> values, String contextDesc) throws SchemaException {
+		if (values == null || values.isEmpty()) {
+			return null;
+		} else if (values.size() > 1) {
+			throw new SchemaException("Attempt to get single value from " + contextDesc);
+		} else {
+			return values.iterator().next();
+		}
 	}
 	
 }

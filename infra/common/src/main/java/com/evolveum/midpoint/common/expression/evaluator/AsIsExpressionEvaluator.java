@@ -25,7 +25,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
@@ -67,7 +67,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
         
     	if (params.getSources().isEmpty()) {

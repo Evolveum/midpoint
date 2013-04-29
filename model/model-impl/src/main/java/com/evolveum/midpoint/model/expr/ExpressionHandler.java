@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
@@ -113,7 +113,7 @@ public class ExpressionHandler {
 		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, result);
 
-		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
 		if (outputTriple == null) {
 			return null;
@@ -144,7 +144,7 @@ public class ExpressionHandler {
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
 				outputDefinition, shortDesc, result);
 
-		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(params);
 		Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {

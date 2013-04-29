@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -55,6 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionRet
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,33 +87,34 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 		
         PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
-    
+        	    
         if (scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.ABSOLUTE) {
         	
-        	outputTriple = evaluateAbsoluteExpression(params.getSources(), params.getVariables(), params.getContextDescription(), params.getResult());
+        	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context.getContextDescription(), context.getResult());
         
         } else if (scriptType.getRelativityMode() == null || scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.RELATIVE) {
         	
-        	if (params.getSources() == null || params.getSources().isEmpty()) {
+        	if (context.getSources() == null || context.getSources().isEmpty()) {
         		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
-        		outputTriple = evaluateAbsoluteExpression(null, params.getVariables(), params.getContextDescription(), params.getResult());
+        		outputTriple = evaluateAbsoluteExpression(null, context.getVariables(), context.getContextDescription(), context.getResult());
         	} else {
-        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(params.getSources());
-        		outputTriple = evaluateRelativeExpression(sourceTriples, params.getVariables(), params.isRegress(), 
-        				params.getContextDescription(), params.getResult());
+        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources());
+        		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isRegress(), 
+        				context.getContextDescription(), context.getResult());
         	}
         	
         } else {
         	throw new IllegalArgumentException("Unknown relativity mode "+scriptType.getRelativityMode());
         }
+	        
         
         return outputTriple;        
     }
-
+	
 	private List<SourceTriple<? extends PrismValue>> processSources(Collection<Source<? extends PrismValue>> sources) {
 		List<SourceTriple<? extends PrismValue>> sourceTriples = 
 			new ArrayList<SourceTriple<? extends PrismValue>>(sources == null ? 0 : sources.size());
@@ -343,6 +347,18 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 			sb.append("; ");
 		}
 		return sb.toString();
-	}	
+	}
+	
+	public ItemPath parsePath(String path) {
+		if (path == null) {
+			return null;
+		}
+		Element codeElement = scriptType.getCode();
+		XPathHolder xPathHolder = new XPathHolder(path, codeElement);
+		if (xPathHolder == null) {
+			return null;
+		}
+		return xPathHolder.toItemPath();
+	}
 	
 }
