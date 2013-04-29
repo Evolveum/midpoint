@@ -239,9 +239,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
 
     public void addValue(PrismPropertyValue<T> pValueToAdd) {
-    	if (!isRaw()) {
-    		pValueToAdd.checkValue();
-    	}
+    	pValueToAdd.checkValue();
     	Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
     		PrismPropertyValue<T> pValue = iterator.next();
