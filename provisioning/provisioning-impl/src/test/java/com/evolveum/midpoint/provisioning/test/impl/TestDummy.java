@@ -39,6 +39,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -246,16 +247,25 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test003Connection");
+		
+		// Some connector initialization and other things might happen in previous tests.
+		// The monitor is static, not part of spring context, it will not be cleared
+		rememberConnectorSchemaFetchCount();
+		rememberConnectorInitializationCount();
+		rememberResourceSchemaParseCount();
+		rememberResourceCacheStats();
+		
 		// Check that there is no schema before test (pre-condition)
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result)
-				.asObjectable();
-		assertNotNull("No connector ref", resourceBefore.getConnectorRef());
-		assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
+		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		ResourceType resourceTypeBefore = resourceBefore.asObjectable();
+		rememberResourceVersion(resourceBefore.getVersion());
+		assertNotNull("No connector ref", resourceTypeBefore.getConnectorRef());
+		assertNotNull("No connector ref OID", resourceTypeBefore.getConnectorRef().getOid());
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class,
-				resourceBefore.getConnectorRef().getOid(), result).asObjectable();
+				resourceTypeBefore.getConnectorRef().getOid(), result).asObjectable();
 		assertNotNull(connector);
-		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+		XmlSchemaType xmlSchemaTypeBefore = resourceTypeBefore.getSchema();
+		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
@@ -284,10 +294,17 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceBefore.toString(), prismContext);
+		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceTypeBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 
 		// schema will be checked in next test
+		
+		assertConnectorSchemaFetchIncrement(1);
+		assertConnectorInitializationCountIncrement(1);
+		assertResourceSchemaParseCountIncrement(1);
+		// One increment for availablity status, the other for schema
+		assertResourceVersionIncrement(resourceRepoAfter, 2);
+	
 	}
 
 	@Test
@@ -307,6 +324,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("getObject result", result);
 		assertSuccess(result);
 
+		// There may be one parse. Previous test have changed the resource version
+		// Schema for this version will not be re-parsed until getObject is tried
+		assertResourceSchemaParseCountIncrement(1);
+		assertResourceCacheMissesIncrement(1);
+		
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No configuration container", configurationContainer);
 		PrismContainerDefinition confContDef = configurationContainer.getDefinition();
@@ -329,6 +351,11 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong guarded useless string", "Dead men tell no tales", dummyResource.getUselessGuardedString());
 		
 		resource.checkConsistence();
+		
+		rememberSchemaMetadata(resource);
+		rememberConnectorInstance(resource);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -354,7 +381,9 @@ public class TestDummy extends AbstractDummyTest {
 				returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
 
 		assertSchemaSanity(returnedSchema, resourceType);
-
+		
+		rememberResourceSchema(returnedSchema);
+		assertSteadyResource();
 	}
 
 	@Test
@@ -411,20 +440,23 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
-
+		
+		rememberRefinedResourceSchema(refinedSchema);
+		assertSteadyResource();
 	}
 
 	@Test
-	public void test006Capabilities() throws Exception {
-		displayTestTile("test006Capabilities");
+	public void test007Capabilities() throws Exception {
+		final String TEST_NAME = "test007Capabilities";
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test006Capabilities");
+				+ "." + TEST_NAME);
 
 		// WHEN
-		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result)
-				.asObjectable();
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		ResourceType resourceType = resource.asObjectable();
 
 		// THEN
 		result.computeStatus();
@@ -473,18 +505,21 @@ public class TestDummy extends AbstractDummyTest {
 			System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : "
 					+ capability);
 		}
+		
+		assertSteadyResource();
 	}
 	
 	/**
 	 * Check if the cached native capabilities were properly stored in the repo 
 	 */
 	@Test
-	public void test007CapabilitiesRepo() throws Exception {
-		displayTestTile("test007CapabilitiesRepo");
+	public void test008CapabilitiesRepo() throws Exception {
+		final String TEST_NAME = "test008CapabilitiesRepo";
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test007CapabilitiesRepo");
+				+ "." + TEST_NAME);
 
 		// WHEN
 		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);;
@@ -529,6 +564,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Repo capabilities caching metadata serial does not match previously returned value", 
 				capabilitiesCachingMetadataType.getSerialNumber(), repoCapabilitiesCachingMetadataType.getSerialNumber());
 
+		assertSteadyResource();
 	}
 
 	@Test
@@ -607,6 +643,8 @@ public class TestDummy extends AbstractDummyTest {
 				resourceAgain, false, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
 		assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -614,7 +652,7 @@ public class TestDummy extends AbstractDummyTest {
 		displayTestTile("test011ResourceAndConnectorCachingForceFresh");
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test011ResourceAndConnectorCachingForceFresh");
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resource, false, result);
@@ -658,6 +696,11 @@ public class TestDummy extends AbstractDummyTest {
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
 		assertSuccess("Connector test failed", testResult);
+		
+		assertConnectorInitializationCountIncrement(1);
+		rememberConnectorInstance(configuredConnectorInstanceAgain);
+		
+		assertSteadyResource();
 	}
 
 	
@@ -683,6 +726,8 @@ public class TestDummy extends AbstractDummyTest {
 		account.checkConsistence(true, true);
 		ShadowUtil.checkConsistence(account, TEST_NAME);
 		assertSuccess("applyDefinition(account) result", result);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -708,6 +753,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		delta.checkConsistence(true, true, true);
 		assertSuccess("applyDefinition(add delta) result", result);
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -736,6 +783,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		resource.checkConsistence(true, true);
 		assertSuccess("applyDefinition(resource) result", result);
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -765,6 +814,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		delta.checkConsistence(true, true, true);
 		assertSuccess("applyDefinition(add delta) result", result);
+		
+		assertSteadyResource();
 	}
 
 	// The account must exist to test this with modify delta. So we postpone the
@@ -834,6 +885,7 @@ public class TestDummy extends AbstractDummyTest {
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
 		checkConsistency(account);
+		assertSteadyResource();
 	}
 
 	@Test
@@ -890,6 +942,8 @@ public class TestDummy extends AbstractDummyTest {
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
 		checkConsistency(account.asPrismObject());
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -916,6 +970,8 @@ public class TestDummy extends AbstractDummyTest {
 		checkAccountWill(shadow, result);
 
 		checkConsistency(shadow.asPrismObject());
+		
+		assertSteadyResource();
 	}
 
 	private void checkAccountWill(ShadowType shadow, OperationResult result) {
@@ -954,6 +1010,8 @@ public class TestDummy extends AbstractDummyTest {
 		checkAccountShadow(shadow, result, false);
 
 		checkConsistency(shadow.asPrismObject());
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -979,6 +1037,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		accountDelta.checkConsistence(true, true, true);
 		assertSuccess("applyDefinition(modify delta) result", result);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1040,6 +1100,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		checkConsistency(foundObjects);
 		assertProtected(foundObjects, 1);
+		
+		assertSteadyResource();
 	}
 
 	private <T extends ShadowType> void assertProtected(List<PrismObject<T>> shadows, int expectedNumberOfProtectedShadows) {
@@ -1079,6 +1141,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertFalse("No shadows found", allShadows.isEmpty());
 		assertEquals("Wrong number of results", 4, allShadows.size());
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1107,6 +1171,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		checkConsistency(allShadows);
 		assertProtected(allShadows, 1);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1130,6 +1196,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Found " + count + " shadows");
 
 		assertEquals("Wrong number of results", 4, count);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1152,6 +1220,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertFalse("No resources found", allResources.isEmpty());
 		assertEquals("Wrong number of results", 1, allResources.size());
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1172,6 +1242,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("Counted " + count + " resources");
 
 		assertEquals("Wrong count", 1, count);
+		
+		assertSteadyResource();
 	}
 
 	
@@ -1219,6 +1291,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertFalse(dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1263,6 +1337,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue(dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1294,6 +1370,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1325,6 +1403,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -1356,6 +1436,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1387,6 +1469,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 	
 	/**
@@ -1422,6 +1506,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 	
 	/**
@@ -1452,7 +1538,9 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
 		assertNull("Title attribute sneaked in", titleAttribute);
 		
-		accountWill.checkConsistence();		
+		accountWill.checkConsistence();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1505,6 +1593,8 @@ public class TestDummy extends AbstractDummyTest {
 		afterScript.addArgSingle("which", "this");
 		afterScript.addArgSingle("when", "now");
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+		
+		assertSteadyResource();
 	}
 
 	// MID-1113
@@ -1549,6 +1639,8 @@ public class TestDummy extends AbstractDummyTest {
 		ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("Still here");
 		afterScript.addArgMulti("status", "dead", "alive");
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+		
+		assertSteadyResource();
 	}
 	
 	/**
@@ -1593,6 +1685,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong password", "3lizab3th123", dummyAccount.getPassword());
 		
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -1628,6 +1722,8 @@ public class TestDummy extends AbstractDummyTest {
 		beforeScript.addArgMulti("what", "cruel");
 		ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("R.I.P.");
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1683,6 +1779,8 @@ public class TestDummy extends AbstractDummyTest {
 		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
 
 		checkConsistency(group);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -1709,6 +1807,8 @@ public class TestDummy extends AbstractDummyTest {
 		checkGroupPirates(shadow, result);
 
 		checkConsistency(shadow.asPrismObject());
+		
+		assertSteadyResource();
 	}
 
 	private void checkGroupPirates(ShadowType shadow, OperationResult result) {
@@ -1750,6 +1850,8 @@ public class TestDummy extends AbstractDummyTest {
 		checkGroupShadow(shadow, result, false);
 
 		checkConsistency(shadow.asPrismObject());
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -1782,6 +1884,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyAttributeValues(group, ProvisioningTestUtil.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty pirates");
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -1835,6 +1938,7 @@ public class TestDummy extends AbstractDummyTest {
 		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
 
 		checkConsistency(priv);
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -1861,6 +1965,8 @@ public class TestDummy extends AbstractDummyTest {
 		checkPrivPillage(shadow, result);
 
 		checkConsistency(shadow.asPrismObject());
+		
+		assertSteadyResource();
 	}
 	
 	private void checkPrivPillage(ShadowType shadow, OperationResult result) {
@@ -1904,6 +2010,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertMember(group, getWillRepoIcfUid());
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 	
 	/**
@@ -1935,6 +2043,8 @@ public class TestDummy extends AbstractDummyTest {
 		// Just make sure nothing has changed
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
 		assertMember(group, getWillRepoIcfUid());
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -1978,6 +2088,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertMember(group, getWillRepoIcfUid());
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
 	}
 	
 	/**
@@ -2019,11 +2131,10 @@ public class TestDummy extends AbstractDummyTest {
 		
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
 		assertMember(group, getWillRepoIcfUid());
+		
+		assertSteadyResource();
 	}
 		
-	// TODO: add account with entitlements
-	// TODO: delete accoutn with entitlements
-	
 	@Test
 	public void test225DetitleAccountWillPirates() throws Exception {
 		final String TEST_NAME = "test225DetitleAccountWillPirates";
@@ -2064,6 +2175,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Privilege object is gone!", priv);
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -2106,6 +2218,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Privilege object is gone!", priv);
 		
 		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
 	}
 	
 	/**
@@ -2179,6 +2292,8 @@ public class TestDummy extends AbstractDummyTest {
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
 		checkConsistency(account);
+		
+		assertSteadyResource();
 	}
 	
 	/**
@@ -2229,7 +2344,9 @@ public class TestDummy extends AbstractDummyTest {
 			AssertJUnit.fail("Shadow (provisioning) is not gone");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
-		}		
+		}
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -2269,6 +2386,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
 		assertNull("Privilege object NOT is gone", priv);
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -2308,6 +2427,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		DummyGroup dummyAccount = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
 		assertNull("Dummy group '"+GROUP_PIRATES_NAME+"' is not gone from dummy resource", dummyAccount);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2351,6 +2472,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifyFailureOnly();
 
 //		checkConsistency();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2370,6 +2493,8 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		assertSuccess(result);
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2408,6 +2533,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifyFailureOnly();
 
 //		checkConsistency();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2437,6 +2564,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifyFailureOnly();
 
 //		checkConsistency();
+		
+		assertSteadyResource();
 	}
 
 	static Task syncTokenTask = null;
@@ -2469,6 +2598,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNoNotifyChange();
 
 		checkAllShadows();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2525,6 +2656,8 @@ public class TestDummy extends AbstractDummyTest {
 				fullnameAttribute.getRealValue());
 
 		checkAllShadows();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2594,6 +2727,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		
 		checkAllShadows();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2656,6 +2791,8 @@ public class TestDummy extends AbstractDummyTest {
 		// TODO: check the shadow
 
 		checkAllShadows();
+		
+		assertSteadyResource();
 	}
 	
 	@Test
@@ -2720,6 +2857,8 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		checkAllShadows();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2751,6 +2890,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNoNotifyChange();
 
 		checkAllShadows();
+		
+		assertSteadyResource();
 	}
 
 	@Test
@@ -2775,6 +2916,8 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result (expected failure)", result);
 		assertFailure(result);
+		
+		assertSteadyResource();
 	}
 	
 	private void checkAccountShadow(ShadowType shadow, OperationResult parentResult) {

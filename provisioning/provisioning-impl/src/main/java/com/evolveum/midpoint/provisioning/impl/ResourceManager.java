@@ -115,7 +115,6 @@ public class ResourceManager {
 	private PrismObject<ResourceType> putToCache(PrismObject<ResourceType> repositoryObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
 		PrismObject<ResourceType> completedResource = completeResource(repositoryObject, null, false, parentResult);
-		
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Putting resource in cache:\n{}", completedResource.dump());
@@ -279,6 +278,7 @@ public class ResourceManager {
 		try {
 			// make sure it has parsed resource and refined schema. We are going to cache
 			// it, so we want to cache it with the parsed schemas
+			RefinedResourceSchema.getResourceSchema(newResource, prismContext);
 			RefinedResourceSchema.getRefinedSchema(newResource);
 			
 		} catch (SchemaException e) {
@@ -585,7 +585,7 @@ public class ResourceManager {
 		// generate the resource schema - until we have full schema caching
 		// capability.
 		try {
-			completeResource(resource, schema, true, schemaResult);
+			resource = completeResource(resource, schema, true, schemaResult);
 		} catch (ObjectNotFoundException e) {
 			schemaResult.recordFatalError(
 					"Object not found (unexpected error, probably a bug): " + e.getMessage(), e);
