@@ -450,7 +450,11 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         PrismObject target = null;
         try {
             Task task = getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE);
-            target = getPageBase().getModelService().getObject(ObjectType.class, ref.getOid(), null, task,
+            Class type = ObjectType.class;
+            if (ref.getType() != null){
+            	type = getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
+            }
+            target = getPageBase().getModelService().getObject(type, ref.getOid(), null, task,
                     subResult);
             subResult.recordSuccess();
         } catch (Exception ex) {

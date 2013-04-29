@@ -771,7 +771,11 @@ public class PageUser extends PageAdminUsers {
 		PrismObject target = null;
 		try {
 			Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
-			target = getModelService().getObject(ObjectType.class, ref.getOid(), null, task, subResult);
+			Class type = ObjectType.class;
+			if (ref.getType() != null){
+			 type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
+			} 
+			target = getModelService().getObject(type, ref.getOid(), null, task, subResult);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);

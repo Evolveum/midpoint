@@ -592,30 +592,36 @@ public class AssignmentProcessor {
 			if (accountContext.isAdd()){
 				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.ADD);
 				if (accountContext.isLegalize()){
-//					ContainerDelta assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
-					AssignmentType assignmet = new AssignmentType();
-					assignmet.setTargetRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
-//					assignmentDelta.addValueToAdd(assignmet.asPrismContainerValue());
-					ObjectDelta assignmentDelta = ObjectDelta.createModificationAddContainer(UserType.class, context.getFocusContext().getOid(), UserType.F_ASSIGNMENT, prismContext, assignmet.asPrismContainerValue());
-					context.getFocusContext().addSecondaryDelta(assignmentDelta);
-					
+					createAssignmentDelta(context, accountContext);
+					accountContext.setAssigned(true);
+					accountContext.setActive(true);
 				}
 			} else if (accountContext.isDelete()){
 				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 			} else {
 				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
 				if (accountContext.isLegalize()){
-//					ContainerDelta assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
-					AssignmentType assignmet = new AssignmentType();
-					assignmet.setTargetRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
-//					assignmentDelta.addValueToAdd(assignmet.asPrismContainerValue());
-					ObjectDelta assignmentDelta = ObjectDelta.createModificationAddContainer(UserType.class, context.getFocusContext().getOid(), UserType.F_ASSIGNMENT, prismContext, assignmet.asPrismContainerValue());
-					context.getFocusContext().setSecondaryDelta(assignmentDelta, context.getExecutionWave());//addSecondaryDelta(assignmentDelta);
+					createAssignmentDelta(context, accountContext);
 					accountContext.setAssigned(true);
+					accountContext.setActive(true);
 					
 				}
 			}
 		}
+		
+	}
+
+	private <F extends ObjectType, P extends ObjectType, T extends ObjectType> void createAssignmentDelta(LensContext<F, P> context, LensProjectionContext<T> accountContext) throws SchemaException{
+		ContainerDelta assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
+		AssignmentType assignmet = new AssignmentType();
+		ConstructionType constructionType = new ConstructionType();
+		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
+		assignmet.setAccountConstruction(constructionType);
+		assignmentDelta.addValueToAdd(assignmet.asPrismContainerValue());
+		assignmentDelta.applyDefinition(prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(UserType.class)
+				.findContainerDefinition(UserType.F_ASSIGNMENT));
+		context.getFocusContext().swallowToProjectionWaveSecondaryDelta(assignmentDelta);//, context.getProjectionWave());//addSecondaryDelta(assignmentDelta);
 		
 	}
 
