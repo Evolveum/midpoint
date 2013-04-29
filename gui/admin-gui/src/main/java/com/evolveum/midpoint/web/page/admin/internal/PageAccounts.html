@@ -30,41 +30,46 @@
         <a style="margin: 0 5px;" wicket:id="export">Export accounts</a>
         <a wicket:id="clearExport">Clear export folder</a>
 
-        <div>Files</div>
-        <div wicket:id="filesContainer">
+        <div wicket:id="filesContainer" style="margin-bottom: 15px; margin-top: 10px;">
             <span wicket:id="files">
                 <a style="margin: 3px;" wicket:id="file"><span wicket:id="fileName"/></a>
             </span>
         </div>
 
-        <table style="margin: 10px 0;" border="1" cellpadding="2" cellspacing="2">
+        <table style="margin: 10px;" cellpadding="3" cellspacing="3" wicket:id="totals">
             <tr>
                 <td>TOTAL</td>
-                <td></td>
+                <td><span wicket:id="total"/></td>
             </tr>
             <tr>
                 <td>DELETED</td>
-                <td></td>
+                <td><span wicket:id="deleted"/></td>
             </tr>
             <tr>
                 <td>UNMATCHED</td>
-                <td></td>
+                <td><span wicket:id="unmatched"/></td>
             </tr>
             <tr>
                 <td>DISPUTED</td>
-                <td></td>
+                <td><span wicket:id="disputed"/></td>
             </tr>
             <tr>
                 <td>LINKED</td>
-                <td></td>
+                <td><span wicket:id="linked"/></td>
             </tr>
             <tr>
                 <td>UNLINKED</td>
-                <td></td>
+                <td><span wicket:id="unlinked"/></td>
+            </tr>
+            <tr>
+                <td>NOTHING</td>
+                <td><span wicket:id="nothing"/></td>
             </tr>
         </table>
 
-        <div wicket:id="accounts"/>
+        <div wicket:id="accountsContainer">
+            <div wicket:id="accounts"/>
+        </div>
     </form>
 </wicket:extend>
 </body>

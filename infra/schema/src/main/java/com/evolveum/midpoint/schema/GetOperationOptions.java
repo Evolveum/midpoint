@@ -20,11 +20,13 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class GetOperationOptions {
+public class GetOperationOptions implements Serializable {
 	
 	/**
 	 * Resolve the object reference. This only makes sense with a (path-based) selector.

@@ -27,7 +27,9 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.internal.dto.ResourceItemDto;
@@ -46,6 +49,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -81,6 +85,7 @@ public class PageAccounts extends PageAdmin {
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_EXPORT = DOT_CLASS + "export";
+    private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_RESOURCES = "resources";
@@ -92,10 +97,26 @@ public class PageAccounts extends PageAdmin {
     private static final String ID_FILES = "files";
     private static final String ID_FILE = "file";
     private static final String ID_FILE_NAME = "fileName";
+    private static final String ID_TOTALS = "totals";
+    private static final String ID_TOTAL = "total";
+    private static final String ID_DELETED = "deleted";
+    private static final String ID_UNMATCHED = "unmatched";
+    private static final String ID_DISPUTED = "disputed";
+    private static final String ID_LINKED = "linked";
+    private static final String ID_UNLINKED = "unlinked";
+    private static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";
+    private static final String ID_NOTHING = "nothing";
 
     private IModel<List<ResourceItemDto>> resourcesModel;
 
     private IModel<ResourceItemDto> resourceModel = new Model<ResourceItemDto>();
+    private LoadableModel<Integer> totalModel;
+    private LoadableModel<Integer> deletedModel;
+    private LoadableModel<Integer> unmatchedModel;
+    private LoadableModel<Integer> disputedModel;
+    private LoadableModel<Integer> linkedModel;
+    private LoadableModel<Integer> unlinkedModel;
+    private LoadableModel<Integer> nothingModel;
 
     private File downloadFile;
 
@@ -136,6 +157,7 @@ public class PageAccounts extends PageAdmin {
         form.add(resources);
 
         initLinks(form);
+        initTotals(form);
 
         final AjaxDownloadBehaviorFromFile ajaxDownloadBehavior = new AjaxDownloadBehaviorFromFile(true) {
 
@@ -168,12 +190,105 @@ public class PageAccounts extends PageAdmin {
         files.setRenderBodyOnly(true);
         filesContainer.add(files);
 
+        WebMarkupContainer accountsContainer = new WebMarkupContainer(ID_ACCOUNTS_CONTAINER);
+        accountsContainer.setOutputMarkupId(true);
+        form.add(accountsContainer);
+
         ObjectDataProvider provider = new ObjectDataProvider(this, ShadowType.class);
         provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, createAccountsColumns());
-        accounts.setOutputMarkupId(true);
+        accounts.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return resourceModel.getObject() != null;
+            }
+        });
         accounts.setItemsPerPage(50);
-        form.add(accounts);
+        accountsContainer.add(accounts);
+    }
+
+    private void initTotals(Form form) {
+        WebMarkupContainer totals = new WebMarkupContainer(ID_TOTALS);
+        totals.setOutputMarkupId(true);
+
+        totalModel = createTotalModel();
+        deletedModel = createTotalsModel(SynchronizationSituationType.DELETED);
+        unmatchedModel = createTotalsModel(SynchronizationSituationType.UNMATCHED);
+        disputedModel = createTotalsModel(SynchronizationSituationType.DISPUTED);
+        linkedModel = createTotalsModel(SynchronizationSituationType.LINKED);
+        unlinkedModel = createTotalsModel(SynchronizationSituationType.UNLINKED);
+        nothingModel = createTotalsModel(null);
+
+        totals.add(new Label(ID_TOTAL, totalModel));
+        totals.add(new Label(ID_DELETED, deletedModel));
+        totals.add(new Label(ID_UNMATCHED, unmatchedModel));
+        totals.add(new Label(ID_DISPUTED, disputedModel));
+        totals.add(new Label(ID_LINKED, linkedModel));
+        totals.add(new Label(ID_UNLINKED, unlinkedModel));
+        totals.add(new Label(ID_NOTHING, nothingModel));
+
+        form.add(totals);
+    }
+
+    private LoadableModel<Integer> createTotalModel() {
+        return new LoadableModel<Integer>(false) {
+
+            @Override
+            protected Integer load() {
+                int total = 0;
+
+                total += deletedModel.getObject();
+                total += unmatchedModel.getObject();
+                total += disputedModel.getObject();
+                total += linkedModel.getObject();
+                total += unlinkedModel.getObject();
+                total += nothingModel.getObject();
+
+                return total;
+            }
+        };
+    }
+
+    private void refreshSyncTotalsModels() {
+        totalModel.reset();
+        deletedModel.reset();
+        unmatchedModel.reset();
+        disputedModel.reset();
+        linkedModel.reset();
+        unlinkedModel.reset();
+        nothingModel.reset();
+    }
+
+    private LoadableModel<Integer> createTotalsModel(final SynchronizationSituationType situation) {
+        return new LoadableModel<Integer>(false) {
+
+            @Override
+            protected Integer load() {
+                ObjectFilter resourceFilter = createResourceQueryFilter();
+                if (resourceFilter == null) {
+                    return 0;
+                }
+
+                Collection<SelectorOptions<GetOperationOptions>> options =
+                        SelectorOptions.createCollection(GetOperationOptions.createRaw());
+                Task task = createSimpleTask(OPERATION_GET_TOTALS);
+                OperationResult result = new OperationResult(OPERATION_GET_TOTALS);
+                try {
+                    EqualsFilter situationFilter = EqualsFilter.createEqual(ShadowType.class,
+                            getPrismContext(), ShadowType.F_SYNCHRONIZATION_SITUATION, situation);
+
+                    AndFilter andFilter = AndFilter.createAnd(resourceFilter, situationFilter);
+                    ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
+
+                    return getModelService().countObjects(ShadowType.class, query, options, task, result);
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't count shadows", ex);
+                }
+
+                return 0;
+            }
+        };
     }
 
     private IModel<List<String>> createFilesModel() {
@@ -207,7 +322,7 @@ public class PageAccounts extends PageAdmin {
                     return new ArrayList<String>();
                 }
 
-                List<String> list =  Arrays.asList(filesArray);
+                List<String> list = Arrays.asList(filesArray);
                 Collections.sort(list);
 
                 return list;
@@ -347,12 +462,15 @@ public class PageAccounts extends PageAdmin {
     }
 
     private void listSyncDetailsPerformed(AjaxRequestTarget target) {
-        TablePanel table = (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS));
+        refreshSyncTotalsModels();
+
+        TablePanel table = (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS_CONTAINER, ID_ACCOUNTS));
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
         provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
         table.getDataTable().setCurrentPage(0);
 
-        target.add(table, getFeedbackPanel());
+        target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS_CONTAINER)),
+                get(createComponentPath(ID_MAIN_FORM, ID_TOTALS)), getFeedbackPanel());
     }
 
     private void exportPerformed(AjaxRequestTarget target) {
