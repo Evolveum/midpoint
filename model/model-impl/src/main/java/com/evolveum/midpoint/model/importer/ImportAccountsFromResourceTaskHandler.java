@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -342,8 +343,12 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         runResult.setProgress(handler.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
-        LOGGER.info("Finished import from resource {}, importing object class {}. Processed {} objects, {} errors",
-                new Object[]{resource, rObjectClass.getTypeName(), handler.getProgress(), handler.getErrors()});
+        String finishMessage = "Finished import from resource " + resource + ". ";
+        String statistics = "Processed " + handler.getProgress() + " objects of type " + rObjectClass.getTypeName() + ", got " + handler.getErrors() + " errors.";
+
+        opResult.createSubresult(OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE_STATISTICS).recordStatus(OperationResultStatus.SUCCESS, statistics);
+
+        LOGGER.info(finishMessage + statistics);
         LOGGER.trace("Import from resource run finished (task {}, run result {})", task, runResult);
 
         return runResult;

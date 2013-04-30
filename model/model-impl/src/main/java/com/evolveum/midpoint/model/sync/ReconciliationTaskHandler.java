@@ -278,8 +278,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			return runResult;
 		}
 		
-		
-
 		opResult.computeStatus("Reconciliation run has failed");
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
@@ -316,6 +314,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, searchResult);
 
 		opResult.computeStatus();
+
+        result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation.statistics").recordStatus(OperationResultStatus.SUCCESS, "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)");
 	}
 	
 	private void performShadowReconciliation(final PrismObject<ResourceType> resource, Long freshnessInterval, final Task task, OperationResult result) throws SchemaException {
@@ -359,6 +359,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		LOGGER.debug("Shadow reconciliation finished, processed {} shadows for {}, result: {}", 
 				new Object[]{countHolder.getValue(), resource, opResult.getStatus()});
+
+        result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation.statistics").recordStatus(OperationResultStatus.SUCCESS, "Processed " + countHolder.getValue() + " shadow(s)");
 	}
 	
 	private void reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {

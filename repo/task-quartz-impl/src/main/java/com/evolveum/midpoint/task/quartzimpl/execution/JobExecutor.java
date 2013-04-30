@@ -223,16 +223,12 @@ public class JobExecutor implements InterruptableJob {
 			recordCycleRunStart(executionResult);
             runResult = executeHandler(handler);        // exceptions thrown by handler are handled in this method
 
-            task.refresh(executionResult);
-
-//            if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-//                LOGGER.info("Task not in the RUNNABLE state, exiting the execution routing. State = {}, Task = {}", task.getExecutionStatus(), task);
-//                break;
-//            }
-
             // we should record finish-related information before dealing with (potential) task closure/restart
             // so we place this method call before the following block
             recordCycleRunFinish(runResult, executionResult);
+
+            // should be after recordCycleRunFinish, e.g. not to overwrite task result
+            task.refresh(executionResult);
 
             // let us treat various exit situations here...
 

@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.sync;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -200,6 +201,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
+
+        int changesProcessed;
 		
 		try {
 			
@@ -208,7 +211,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// This will detect the changes and notify model about them.
 			// It will use extension of task to store synchronization state
 			
-			progress += provisioningService.synchronize(resourceOid, rObjectClass.getTypeName(), task, opResult);
+			changesProcessed = provisioningService.synchronize(resourceOid, rObjectClass.getTypeName(), task, opResult);
+            progress += changesProcessed;
 			
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Live Sync: Resource does not exist, OID: {}",resourceOid);
@@ -258,7 +262,10 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		}
 		
 		opResult.computeStatus("Live sync run has failed");
-		// This "run" is finished. But the task goes on ...
+
+        opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS).recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + changesProcessed);
+
+        // This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
 		LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", resourceOid);
