@@ -50,6 +50,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -92,6 +93,7 @@ class DomToSchemaProcessor {
 	private PrismContext prismContext;
 	private XSSchemaSet xsSchemaSet;
 	private String shortDescription;
+	private boolean isRuntime = false;
 	
 	public EntityResolver getEntityResolver() {
 		return entityResolver;
@@ -131,6 +133,14 @@ class DomToSchemaProcessor {
 
 	public void setShortDescription(String shortDescription) {
 		this.shortDescription = shortDescription;
+	}
+	
+	public boolean isRuntime() {
+		return isRuntime;
+	}
+
+	public void setRuntime(boolean isRuntime) {
+		this.isRuntime = isRuntime;
 	}
 
 	/**
@@ -265,6 +275,7 @@ class DomToSchemaProcessor {
 				complexType.getAnnotation());
 		
 		if (defFromComplexType != null) {
+			markRuntime(defFromComplexType);
 			schema.getDefinitions().add(defFromComplexType);
 		}
 		
@@ -312,6 +323,8 @@ class DomToSchemaProcessor {
 				ctd.setExtensionForType(extensionType);
 			}
 		}
+		
+		markRuntime(ctd);
 		
 		QName superType = determineSupertype(complexType);
 		if (superType != null) {
@@ -740,6 +753,8 @@ class DomToSchemaProcessor {
 			setMultiplicity(pcd, elementParticle, elementDecl.getAnnotation(), topLevel);
 		}
 		
+		markRuntime(pcd);
+		
 		parseItemDefinitionAnnotations(pcd, complexTypeAnnotation);
 		parseItemDefinitionAnnotations(pcd, elementDecl.getAnnotation());
 		if (elementParticle != null) {
@@ -790,6 +805,8 @@ class DomToSchemaProcessor {
 				}
 			}
 		}
+		
+		markRuntime(propDef);
 		
 		Element indexableElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_INDEXED);
 		if (indexableElement != null) {
@@ -889,6 +906,10 @@ class DomToSchemaProcessor {
 		return false;
 	}
 
-
+	private void markRuntime(Definition def) {
+		if (isRuntime) {
+			def.setRuntimeSchema(true);
+		}
+	}
 	
 }

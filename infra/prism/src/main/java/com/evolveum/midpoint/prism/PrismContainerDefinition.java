@@ -60,13 +60,6 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     
     protected ComplexTypeDefinition complexTypeDefinition;
     protected Class<V> compileTimeClass;
- 
-    /**
-     * This means that the property container is not defined by fixed (compile-time) schema.
-     * This in fact means that we need to use getAny in a JAXB types. It does not influence the
-     * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
-     */
-    protected boolean isRuntimeSchema;
 
     /**
      * The constructors should be used only occasionally (if used at all).
@@ -290,14 +283,6 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
             }
         }
         return props;
-    }
-    
-    public boolean isRuntimeSchema() {
-        return isRuntimeSchema;
-    }
-
-    public void setRuntimeSchema(boolean isRuntimeSchema) {
-        this.isRuntimeSchema = isRuntimeSchema;
     }
 
     /**

@@ -217,7 +217,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		display("Serialized XSD connector schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 		
 		// Try to re-parse
-		PrismSchema reparsedConnectorSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), "schema fetched from "+cc, PrismTestUtil.getPrismContext());
+		PrismSchema reparsedConnectorSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from "+cc, PrismTestUtil.getPrismContext());
 		ProvisioningTestUtil.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed");
 		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedConnectorSchema.getDefinitions().size());		
 	}

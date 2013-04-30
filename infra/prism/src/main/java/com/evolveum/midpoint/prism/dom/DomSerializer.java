@@ -207,58 +207,6 @@ public class DomSerializer {
 		}
 	}
 
-	private void serialize(PrismReferenceValue value, Element parentElement) throws SchemaException {
-		if (serializeCompositeObjects && value.getObject() != null) {
-			serializeObject(value, parentElement);
-		} else {
-			serializeRef(value, parentElement);
-		}
-	}
-	
-	private void serializeRef(PrismReferenceValue value, Element parentElement) throws SchemaException {
-		Itemable parent = value.getParent();
-		Element element = createElement(parent.getName());
-		parentElement.appendChild(element);
-		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
-		if (value.getRelation() != null) {
-			QName relation = value.getRelation();
-			relation = getNamespacePrefixMapper().setQNamePrefixExplicit(relation);
-			try {
-				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME, relation);
-			} catch (IllegalArgumentException e) {
-				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
-			}
-		}
-		if (value.getTargetType() != null) {
-			// Make the namespace prefix explicit due to JAXB bug
-			QName targetType = value.getTargetType();
-			targetType = getNamespacePrefixMapper().setQNamePrefixExplicit(targetType);
-			try {
-				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, targetType);
-			} catch (IllegalArgumentException e) {
-				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
-			}
-		}
-		if (value.getDescription() != null) {
-			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
-					PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
-			Document doc = element.getOwnerDocument();
-			Element descriptionElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
-			element.appendChild(descriptionElement);
-			descriptionElement.setTextContent(value.getDescription());
-		}
-		if (value.getFilter() != null) {
-			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
-					PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
-			Document doc = element.getOwnerDocument();
-			Element filterElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
-			element.appendChild(filterElement);
-			Element adoptedElement = (Element)doc.adoptNode(value.getFilter().cloneNode(true));
-			filterElement.appendChild(adoptedElement);
-		}
-		
-	}
-
 	private void serializeObject(PrismReferenceValue value, Element parentElement) throws SchemaException {
 		Itemable parent = value.getParent();
 		PrismReferenceDefinition definition = (PrismReferenceDefinition) parent.getDefinition();
@@ -330,7 +278,7 @@ public class DomSerializer {
 			if (!item.equals(pval.getParent())) {
 				throw new IllegalArgumentException("The parent for value "+pval+" of item "+item+" is incorrect");
 			}
-			serialize(pval, parentElement);
+			serializeReferenceValue(pval, parentElement);
 		}
 		for (PrismReferenceValue pval: item.getValues()) {
 			if (pval.getObject() != null) {
@@ -339,8 +287,65 @@ public class DomSerializer {
 			if (!item.equals(pval.getParent())) {
 				throw new IllegalArgumentException("The parent for value "+pval+" of item "+item+" is incorrect");
 			}
-			serialize(pval, parentElement);
+			serializeReferenceValue(pval, parentElement);
 		}
+	}
+	
+	private void serializeReferenceValue(PrismReferenceValue value, Element parentElement) throws SchemaException {
+		boolean isComposite = false;
+		if (value.getParent() != null && value.getParent().getDefinition() != null) {
+			PrismReferenceDefinition definition = (PrismReferenceDefinition) value.getParent().getDefinition();
+			isComposite = definition.isComposite();
+		}
+		if ((serializeCompositeObjects || isComposite) && value.getObject() != null) {
+			serializeObject(value, parentElement);
+		} else {
+			serializeRef(value, parentElement);
+		}
+	}
+	
+	private void serializeRef(PrismReferenceValue value, Element parentElement) throws SchemaException {
+		Itemable parent = value.getParent();
+		Element element = createElement(parent.getName());
+		parentElement.appendChild(element);
+		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
+		if (value.getRelation() != null) {
+			QName relation = value.getRelation();
+			relation = getNamespacePrefixMapper().setQNamePrefixExplicit(relation);
+			try {
+				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME, relation);
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
+			}
+		}
+		if (value.getTargetType() != null) {
+			// Make the namespace prefix explicit due to JAXB bug
+			QName targetType = value.getTargetType();
+			targetType = getNamespacePrefixMapper().setQNamePrefixExplicit(targetType);
+			try {
+				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, targetType);
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
+			}
+		}
+		if (value.getDescription() != null) {
+			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
+					PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
+			Document doc = element.getOwnerDocument();
+			Element descriptionElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
+			element.appendChild(descriptionElement);
+			descriptionElement.setTextContent(value.getDescription());
+		}
+		if (value.getFilter() != null) {
+			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
+					PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
+			Document doc = element.getOwnerDocument();
+			Element filterElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
+			element.appendChild(filterElement);
+			Element adoptedElement = (Element)doc.adoptNode(value.getFilter().cloneNode(true));
+			filterElement.appendChild(adoptedElement);
+		}
+		
 	}
 
 	void serialize(PrismValue pval, Element parentElement) throws SchemaException {
@@ -352,7 +357,7 @@ public class DomSerializer {
 		} else if (pval instanceof PrismPropertyValue) {
 			serialize((PrismPropertyValue)pval, parentElement);
 		} else if (pval instanceof PrismReferenceValue) {
-			serialize((PrismReferenceValue)pval, parentElement);
+			serializeReferenceValue((PrismReferenceValue)pval, parentElement);
 		} else {
 			throw new IllegalArgumentException("Unknown value type "+pval);
 		}

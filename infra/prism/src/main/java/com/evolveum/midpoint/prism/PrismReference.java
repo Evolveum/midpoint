@@ -231,20 +231,38 @@ public class PrismReference extends Item<PrismReferenceValue> {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName())).append(" = ");
+        PrismReferenceDefinition definition = getDefinition();
+        boolean isComposite = false;
+        if (definition != null) {
+        	isComposite = definition.isComposite();
+        }
+        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName()));
         if (getValues() == null) {
-            sb.append("null");
+            sb.append(" = null");
         } else {
-            sb.append("[ ");
-            for (Object value : getValues()) {
-                sb.append(PrettyPrinter.prettyPrint(value));
-                sb.append(", ");
-            }
-            sb.append(" ]");
+        	if (isComposite) {
+        		// Longer output for composite references, we want to see embedded object
+        		if (definition != null) {
+                    sb.append(" def,composite");
+                }
+        		// Display the full object
+        		for (PrismReferenceValue value : getValues()) {
+        			sb.append("\n");
+	                sb.append(value.debugDump(indent + 1, true));
+	            }
+        	} else {
+	            sb.append(" = [ ");
+	            for (PrismReferenceValue value : getValues()) {
+	                sb.append(PrettyPrinter.prettyPrint(value));
+	                sb.append(", ");
+	            }
+	            sb.append(" ]");
+	            if (definition != null) {
+	                sb.append(" def");
+	            }
+        	}
         }
-        if (getDefinition() != null) {
-            sb.append(" def");
-        }
+        
         return sb.toString();
     }
 

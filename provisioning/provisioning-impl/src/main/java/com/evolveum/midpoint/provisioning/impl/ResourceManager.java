@@ -813,7 +813,7 @@ public class ResourceManager {
         	return;
         }
 		try {
-			connectorSchema = PrismSchema.parse(connectorSchemaElement, "schema for " + connector, prismContext);
+			connectorSchema = PrismSchema.parse(connectorSchemaElement, true, "schema for " + connector, prismContext);
 		} catch (SchemaException e) {
 			objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
 			return;

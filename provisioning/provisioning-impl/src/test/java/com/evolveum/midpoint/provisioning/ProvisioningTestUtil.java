@@ -126,7 +126,7 @@ public class ProvisioningTestUtil {
 		// Try to parse the schema
 		PrismSchema schema = null;
 		try {
-			schema = PrismSchema.parse(xsdElement, "schema of "+conn, prismContext);
+			schema = PrismSchema.parse(xsdElement, true, "schema of "+conn, prismContext);
 		} catch (SchemaException e) {
 			throw new SchemaException("Error parsing schema of "+conn+": "+e.getMessage(),e);
 		}

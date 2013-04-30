@@ -67,6 +67,14 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected String displayName;
 	protected Integer displayOrder;
 	protected String help;
+	
+	/**
+     * This means that the property container is not defined by fixed (compile-time) schema.
+     * This in fact means that we need to use getAny in a JAXB types. It does not influence the
+     * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
+     */
+    protected boolean isRuntimeSchema;
+    
 	protected transient PrismContext prismContext;
 
 	// TODO: annotations
@@ -182,6 +190,14 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	public void setHelp(String help) {
 		this.help = help;
 	}
+	
+	public boolean isRuntimeSchema() {
+        return isRuntimeSchema;
+    }
+
+    public void setRuntimeSchema(boolean isRuntimeSchema) {
+        this.isRuntimeSchema = isRuntimeSchema;
+    }
 	
 	public PrismContext getPrismContext() {
 		return prismContext;

@@ -263,9 +263,66 @@ public class TestPrismParsing {
 		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}
 	
-//  Cannot be tested here, as the JAXB classes are not properly generated. It is tested in "schema" component now.
-//	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
-//	}
+
+	@Test
+	public void testMeleeContext() throws SchemaException, SAXException, IOException {
+		System.out.println("===[ testMeleeContext ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+		PrismContainer<Containerable> meleeContextContainer = userJack.findOrCreateContainer(new ItemPath(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT));
+		PrismReference opponentRef = meleeContextContainer.findOrCreateReference(EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT);
+		PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+		// Cosmetics to make sure the equivalence assert below works
+		userBarbossa.setName(EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT);
+		PrismReferenceValue opponentRefValue = new PrismReferenceValue();
+		opponentRefValue.setObject(userBarbossa);
+		opponentRef.add(opponentRefValue);
+		
+		System.out.println("User jack:");
+		System.out.println(userJack.dump());
+		
+		// WHEN
+		Element elementJack = prismContext.getPrismDomProcessor().serializeToDom(userJack);
+		
+		// THEN
+		System.out.println("Serialized user jack:");
+		System.out.println(DOMUtil.serializeDOMToString(elementJack));
+		
+		// TODO: see that there is really the serialized barbossa
+		
+		// WHEN
+		PrismObject<UserType> reparsedUserJack = prismContext.parseObject(elementJack);
+		
+		// THEN
+		System.out.println("Re-parsed user jack:");
+		System.out.println(reparsedUserJack.dump());
+		
+		PrismReference reparsedOpponentRef = reparsedUserJack.findReference(new ItemPath(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT));
+		assertNotNull("No opponent ref (reparsed)", reparsedOpponentRef);
+		PrismReferenceValue reparsedOpponentRefValue = reparsedOpponentRef.getValue();
+		assertNotNull("No opponent ref value (reparsed)", reparsedOpponentRefValue);
+		PrismObject<UserType> reparsedUserBarbossa = reparsedOpponentRefValue.getObject();
+		assertNotNull("No object in opponent ref value (reparsed)", reparsedUserBarbossa);
+		
+		PrismAsserts.assertEquivalent("User barbossa", userBarbossa, reparsedUserBarbossa);
+		
+		// Make the original user jack suitable for comparison.
+		// Some of the accountRef information is (intentionally) lost in re-parsing therefore erase it before comparing
+		PrismReference jackAccountRef = userJack.findReference(UserType.F_ACCOUNT_REF);
+		for (PrismReferenceValue accRefVal: jackAccountRef.getValues()) {
+			String oid = accRefVal.getOid();
+			QName targetType = accRefVal.getTargetType();
+			accRefVal.setObject(null);
+			accRefVal.setOid(oid);
+			accRefVal.setTargetType(targetType);
+		}
+		
+		PrismAsserts.assertEquivalent("User jack", userJack, reparsedUserJack);
+		
+	}
 	
 	private void assertUserBar(PrismObject<UserType> user) throws SchemaException {
 		user.checkConsistence();

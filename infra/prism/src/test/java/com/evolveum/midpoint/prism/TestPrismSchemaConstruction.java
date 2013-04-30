@@ -137,7 +137,7 @@ public class TestPrismSchemaConstruction {
 		assertPrefix(PrismConstants.PREFIX_NS_ANNOTATION, displayNameElement);
 		
 		// re-parse
-		PrismSchema reparsedSchema = PrismSchema.parse(xsdElement, "serialized schema", ctx);
+		PrismSchema reparsedSchema = PrismSchema.parse(xsdElement, true, "serialized schema", ctx);
 		System.out.println("Re-parsed schema");
 		System.out.println(reparsedSchema.dump());
 		assertSchema(reparsedSchema);

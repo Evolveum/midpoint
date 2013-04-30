@@ -137,19 +137,19 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	
 	
 	// TODO: cleanup this chaos
-	public static PrismSchema parse(Element element, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getSchemaRegistry(), new PrismSchema(prismContext), shortDescription, prismContext);
+	public static PrismSchema parse(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
+		return parse(element, prismContext.getSchemaRegistry(), new PrismSchema(prismContext), isRuntime, shortDescription, prismContext);
 	}
 	
-	public static PrismSchema parse(Element element, EntityResolver resolver, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, resolver, new PrismSchema(prismContext), shortDescription, prismContext);
+	public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
+		return parse(element, resolver, new PrismSchema(prismContext), isRuntime, shortDescription, prismContext);
 	}
 	
-	protected static PrismSchema parse(Element element, PrismSchema schema, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getSchemaRegistry(), schema, shortDescription, prismContext);
+	protected static PrismSchema parse(Element element, PrismSchema schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
+		return parse(element, prismContext.getSchemaRegistry(), schema, isRuntime, shortDescription, prismContext);
 	}
 	
-	protected static PrismSchema parse(Element element, EntityResolver resolver, PrismSchema schema, String shortDescription, PrismContext prismContext) throws SchemaException {
+	protected static PrismSchema parse(Element element, EntityResolver resolver, PrismSchema schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema element must not be null in "+shortDescription);
 		}
@@ -158,6 +158,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		processor.setEntityResolver(resolver);
 		processor.setPrismContext(prismContext);
 		processor.setShortDescription(shortDescription);
+		processor.setRuntime(isRuntime);
 		return processor.parseDom(schema, element);
 	}
 

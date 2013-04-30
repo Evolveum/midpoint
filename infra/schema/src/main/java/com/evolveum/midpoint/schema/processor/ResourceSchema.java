@@ -50,7 +50,7 @@ public class ResourceSchema extends PrismSchema {
 	
 	public static ResourceSchema parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
 		// TODO: make sure correct parser plugins are used
-		return (ResourceSchema) PrismSchema.parse(element, new ResourceSchema(prismContext), shortDesc, prismContext);
+		return (ResourceSchema) PrismSchema.parse(element, new ResourceSchema(prismContext), true, shortDesc, prismContext);
 	}
 	
 	public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {

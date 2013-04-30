@@ -68,6 +68,7 @@ public class UserType
 	public final static QName F_ACTIVATION = new QName(NS_FOO, "activation");
 	public final static QName F_ASSIGNMENT = new QName(NS_FOO, "assignment");
 	public final static QName F_LOCALITY = new QName(NS_FOO, "locality");
+	public final static QName F_ACCOUNT_REF = new QName(NS_FOO, "accountRef");
 
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)

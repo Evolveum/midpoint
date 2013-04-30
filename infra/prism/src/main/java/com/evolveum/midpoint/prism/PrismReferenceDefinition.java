@@ -139,4 +139,13 @@ public class PrismReferenceDefinition extends ItemDefinition {
     protected String getDebugDumpClassName() {
         return "PRD";
     }
+
+	@Override
+	protected void extendToString(StringBuilder sb) {
+		super.extendToString(sb);
+		if (isComposite) {
+			sb.append(",composite");
+		}
+	}
+    
 }

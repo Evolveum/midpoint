@@ -121,7 +121,7 @@ public class SchemaProcessorTest {
 		
 		Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
 		
-		PrismSchema newSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), "serialized schema", PrismTestUtil.getPrismContext());
+		PrismSchema newSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), true, "serialized schema", PrismTestUtil.getPrismContext());
 
 		System.out.println("Generic schema after parsing from XSD: ");
 		System.out.println(newSchema.dump());

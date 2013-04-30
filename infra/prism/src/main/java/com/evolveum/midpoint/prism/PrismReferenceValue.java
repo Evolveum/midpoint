@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -397,11 +398,17 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 
     @Override
     public String debugDump(int indent) {
+        return debugDump(indent, false);
+    }
+    
+    public String debugDump(int indent, boolean expandObject) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append(toString());
+        if (expandObject && object != null) {
+        	sb.append("\n");
+        	sb.append(object.debugDump(indent + 1));
+        }
 
         return sb.toString();
     }

@@ -108,7 +108,7 @@
           		</xsd:appinfo>
           	</xsd:annotation>
           </xsd:element>
-          <xsd:element name="opponentRef" type="foo:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+          <xsd:element name="opponentRef" type="foo:ObjectReferenceType" minOccurs="0">
           	<xsd:annotation>
           		<xsd:appinfo>
           			<a:objectReferenceTargetType>foo:UserType</a:objectReferenceTargetType>
@@ -118,6 +118,12 @@
           </xsd:element>
     	</xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="meleeContext" type="tns:MeleeContextType"/>
+    <xsd:element name="meleeContext" type="tns:MeleeContextType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:maxOccurs>1</a:maxOccurs>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>

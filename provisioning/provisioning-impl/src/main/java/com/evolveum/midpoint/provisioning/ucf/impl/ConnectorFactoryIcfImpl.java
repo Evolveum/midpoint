@@ -249,7 +249,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		if (xsdElement == null) {
 			return null;
 		}
-		PrismSchema connectorSchema = PrismSchema.parse(xsdElement, connectorType.toString(), prismContext);
+		PrismSchema connectorSchema = PrismSchema.parse(xsdElement, true, connectorType.toString(), prismContext);
 		return connectorSchema;
 	}
 

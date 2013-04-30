@@ -195,7 +195,7 @@ public class TestDummy extends AbstractDummyTest {
 			assertNotNull("No schema", connectorXsdSchemaElement);
 
 			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(connectorXsdSchemaElement, "connector schema " + conn, prismContext);
+			PrismSchema schema = PrismSchema.parse(connectorXsdSchemaElement, true, "connector schema " + conn, prismContext);
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
 

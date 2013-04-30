@@ -328,8 +328,8 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		String namespace = schemaDescription.getNamespace();
 		
 		Element domElement = schemaDescription.getDomElement();
-		PrismSchema schema = PrismSchema.parse(domElement, this, schemaDescription.getSourceDescription(), getPrismContext());
-		//Schema schema = Schema.parse(domElement);
+		boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
+		PrismSchema schema = PrismSchema.parse(domElement, this, isRuntime, schemaDescription.getSourceDescription(), getPrismContext());
 		if (namespace == null) {
 			namespace = schema.getNamespace();
 		}

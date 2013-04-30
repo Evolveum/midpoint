@@ -592,21 +592,16 @@ public class PrismAsserts {
 		assertEquals(toPrism(fileNewXml), objectable.asPrismObject());
     }
 	
-	public static void assertEquals(File fileNewXml, PrismObject<?> actual) throws SchemaException {
-		assertEquals(toPrism(fileNewXml), actual);
+	public static <O extends Objectable> void assertEquals(File fileNewXml, PrismObject<O> actual) throws SchemaException {
+		PrismObject<O> expected = toPrism(fileNewXml);
+		assertEquals(expected, actual);
     }
 
-	public static void assertEquals(PrismObject<?> prism1, PrismObject<?> prism2) {
-		if (prism1 == null) {
-			fail("Left prism is null");
-		}
-		if (prism2 == null) {
-			fail("Right prism is null");
-		}
+	public static <O extends Objectable> void assertEquals(PrismObject<O> prism1, PrismObject<O> prism2) {
 		assertEquals(null, prism1, prism2);
 	}
 	
-	public static void assertEquals(String message, PrismObject expected, PrismObject actual) {
+	public static <O extends Objectable> void assertEquals(String message, PrismObject<O> expected, PrismObject<O> actual) {
 		if (expected == null && actual == null) {
 			return;
 		}
@@ -632,11 +627,12 @@ public class PrismAsserts {
 		});
 		assert false: message + ": " + suffix;
 	}
-	public static void assertEquivalent(String message, File expectedFile, PrismObject actual) throws SchemaException {
-		assertEquivalent(message, toPrism(expectedFile), actual);
+	public static <O extends Objectable> void assertEquivalent(String message, File expectedFile, PrismObject<O> actual) throws SchemaException {
+		PrismObject<O> expected = toPrism(expectedFile);
+		assertEquivalent(message, expected, actual);
 	}
 	
-	public static void assertEquivalent(String message, PrismObject expected, PrismObject actual) {
+	public static <O extends Objectable> void assertEquivalent(String message, PrismObject<O> expected, PrismObject<O> actual) {
 		if (expected == null && actual == null) {
 			return;
 		}
@@ -652,7 +648,7 @@ public class PrismAsserts {
 		if (message == null) {
 			message = "Prism object not equal";
 		}
-		ObjectDelta delta = expected.diff(actual);
+		ObjectDelta<O> delta = expected.diff(actual);
 		String suffix = "the difference: "+delta;
 		if (delta.isEmpty()) {
 			suffix += ": Empty delta. This is not expected. Somethig has got quite wrong here.";
@@ -701,20 +697,20 @@ public class PrismAsserts {
 		}
 	}
 	
-	private static PrismObject<?> toPrism(String objectString) throws SchemaException {
+	private static <O extends Objectable> PrismObject<O> toPrism(String objectString) throws SchemaException {
 		return getDomProcessor().parseObject(objectString);
 	}
 
-	private static PrismObject<?> toPrism(File objectFile) throws SchemaException {
+	private static <O extends Objectable> PrismObject<O> toPrism(File objectFile) throws SchemaException {
 		return getDomProcessor().parseObject(objectFile);
 	}
 	
-	private static PrismObject<?> toPrism(Node domNode) throws SchemaException {
+	private static <O extends Objectable> PrismObject<O> toPrism(Node domNode) throws SchemaException {
 		return getDomProcessor().parseObject(domNode);
 	}
 
 
-	private static PrismObject<?> elementToPrism(Object element) throws SchemaException {
+	private static <O extends Objectable> PrismObject<O> elementToPrism(Object element) throws SchemaException {
 		if (element instanceof Node) {
 			return toPrism((Node)element);
 		} else if (element instanceof JAXBElement<?>) {

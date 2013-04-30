@@ -245,7 +245,8 @@ public class TestPrismContext {
 		assertFalse("Element "+EXTENSION_INT_TYPE_ELEMENT+" is ignored", intTypeDef.isIgnored());
 		
 		PrismContainerDefinition meleeContextDefinition = schemaRegistry.findContainerDefinitionByElementName(EXTENSION_MELEE_CONTEXT_ELEMENT);
-		PrismAsserts.assertDefinition(meleeContextDefinition, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_TYPE_QNAME, 0, -1);
+		PrismAsserts.assertDefinition(meleeContextDefinition, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_TYPE_QNAME, 0, 1);
+		assertTrue("Melee context container is NOT marked as runtime", meleeContextDefinition.isRuntimeSchema());
 		PrismReferenceDefinition opponentRefDef = meleeContextDefinition.findReferenceDefinition(EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT);
 		assertTrue("opponentRef definition is NOT composite", opponentRefDef.isComposite());
 	}

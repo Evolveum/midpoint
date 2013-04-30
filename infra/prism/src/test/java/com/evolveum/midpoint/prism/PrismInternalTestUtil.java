@@ -69,6 +69,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String USER_JACK_DESCRIPTION = "This must be the best pirate the world has ever seen";
 	public static final String USER_JACK_POLYNAME_ORIG = "Džek Sperou";
 	public static final String USER_JACK_POLYNAME_NORM = "dzek sperou";
+	
+	// User: barbossa
+	public static final File USER_BARBOSSA_FILE = new File(COMMON_DIR_PATH, "user-barbossa.xml");
 
 	// Namespaces
 	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
@@ -139,6 +142,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName EXTENSION_MELEE_CONTEXT_ELEMENT = new QName(NS_EXTENSION, "meleeContext");
 	public static final QName EXTENSION_MELEE_CONTEXT_TYPE_QNAME = new QName(NS_EXTENSION, "MeleeContextType");
 	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT = new QName(NS_EXTENSION, "opponentRef");
+	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT = new QName(NS_EXTENSION, "opponent");
 	
 	// These are NOT in the extension.xsd but are used as dynamic elements
 	public static final QName EXTENSION_BAR_ELEMENT = new QName(NS_EXTENSION, "bar");
