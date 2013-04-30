@@ -21,7 +21,10 @@
 
 
 /*
+ * @DEPRECATED
+ *
  * this probably can be deleted [lazyman]
+ * there is only stuff for preview page, and it will be disabled.
  *
  * 1/ checkboxes are handled through wicket
  * 2/ user preview table stuff should not be here (I don't even know if it's still used)

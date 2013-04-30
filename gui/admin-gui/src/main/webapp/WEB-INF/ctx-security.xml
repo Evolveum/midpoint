@@ -47,6 +47,7 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <intercept-url pattern="/admin/resources/content/entitlements" access="denyAll"/>
         <intercept-url pattern="/admin/config/test" access="denyAll"/>
         <intercept-url pattern="/admin/config/system" access="denyAll"/>
+        <intercept-url pattern="/admin/userPreview" access="denyAll"/>
 
         <!-- todo move reports to WEB-INF or even better probably to midpoint.home folder -->
         <intercept-url pattern="/reports/**" access="denyAll"/>

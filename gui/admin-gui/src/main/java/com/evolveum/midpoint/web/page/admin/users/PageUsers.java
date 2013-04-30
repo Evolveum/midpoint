@@ -471,42 +471,42 @@ public class PageUsers extends PageAdminUsers {
         if (!isAnythingSelected(users, target)) {
             return;
         }
-        // When delete one user -> submit page
-        if (users.size() == 1) {
-            Task task = createSimpleTask(PageUsers.class.getName() + "sendToSubmit");
-            OperationResult result = task.getResult();
-            SelectableBean<UserType> bean = users.get(0);
-
-            UserType user = bean.getValue();
-            ModelContext changes = null;
-            ObjectDelta delta = null;
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-
-            ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
-            try {
-                delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
-                deltas.add(delta);
-                ModelExecuteOptions options = executeOptions.createOptions();
-                changes = getModelInteractionService().previewChanges(deltas, options, task, result);
-            } catch (Exception ex) {
-                result.recordFatalError("Couldn't send user to submit.", ex);
-                LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
-            }
-
-            if (result.isError()) {
-                showResult(result);
-                target.add(getFeedbackPanel());
-            } else {
-                PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta,
-                        null, executeOptions);
-                setResponsePage(pageUserPreview);
-            }
-
-        } else {
+// disabling user preview MID-1300
+//        // When delete one user -> submit page
+//        if (users.size() == 1) {
+//            Task task = createSimpleTask(PageUsers.class.getName() + "sendToSubmit");
+//            OperationResult result = task.getResult();
+//            SelectableBean<UserType> bean = users.get(0);
+//
+//            UserType user = bean.getValue();
+//            ModelContext changes = null;
+//            ObjectDelta delta = null;
+//            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+//
+//            ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+//            try {
+//                delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
+//                deltas.add(delta);
+//                ModelExecuteOptions options = executeOptions.createOptions();
+//                changes = getModelInteractionService().previewChanges(deltas, options, task, result);
+//            } catch (Exception ex) {
+//                result.recordFatalError("Couldn't send user to submit.", ex);
+//                LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
+//            }
+//
+//            if (result.isError()) {
+//                showResult(result);
+//                target.add(getFeedbackPanel());
+//            } else {
+//                PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta,
+//                        null, executeOptions);
+//                setResponsePage(pageUserPreview);
+//            }
+//
+//        } else {
             ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
             dialog.show(target);
-        }
-
+//        }
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {

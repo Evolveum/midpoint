@@ -865,20 +865,21 @@ public class PageUser extends PageAdminUsers {
 		};
 		mainForm.add(save);
 
-		AjaxSubmitLinkButton submit = new AjaxSubmitLinkButton("submit", ButtonType.POSITIVE,
-				createStringResource("pageUser.button.submit")) {
-
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				previewSavePerformed(target);
-			}
-
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
-		mainForm.add(submit);
+        // disabling user preview MID-1300
+//		AjaxSubmitLinkButton submit = new AjaxSubmitLinkButton("submit", ButtonType.POSITIVE,
+//				createStringResource("pageUser.button.submit")) {
+//
+//			@Override
+//			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+//				previewSavePerformed(target);
+//			}
+//
+//			@Override
+//			protected void onError(AjaxRequestTarget target, Form<?> form) {
+//				target.add(getFeedbackPanel());
+//			}
+//		};
+//		mainForm.add(submit);
 
 		AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageUser.button.back")) {
 
