@@ -21,9 +21,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -53,6 +50,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
 	private static final long serialVersionUID = 2427488779612517600L;
 	private QName targetTypeName;
 	private QName compositeObjectElementName;
+	private boolean isComposite = false;
 
 	public PrismReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
 		super(name, defaultName, typeName, prismContext);
@@ -83,6 +81,14 @@ public class PrismReferenceDefinition extends ItemDefinition {
 		this.compositeObjectElementName = compositeObjectElementName;
 	}
 	
+	public boolean isComposite() {
+		return isComposite;
+	}
+
+	public void setComposite(boolean isComposite) {
+		this.isComposite = isComposite;
+	}
+
 	@Override
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
 		if (!clazz.isAssignableFrom(this.getClass())) {
@@ -123,6 +129,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
     	super.copyDefinitionData(clone);
     	clone.targetTypeName = this.targetTypeName;
     	clone.compositeObjectElementName = this.compositeObjectElementName;
+    	clone.isComposite = this.isComposite;
     }
 
 	/**

@@ -471,6 +471,10 @@ class DomToSchemaProcessor {
 			definition.setTargetTypeName(targetType);
 		}
 		setMultiplicity(definition, elementParticle, annotation, false);
+		Boolean composite = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_COMPOSITE);
+		if (composite != null) {
+			definition.setComposite(composite);
+		}
 		return definition;
 	}
 

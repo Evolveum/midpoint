@@ -159,6 +159,15 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="composite" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks composite reference. Composite references do not refer to the target
+                object by OID but rather contain the entire target object forming a composition.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="extension" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>

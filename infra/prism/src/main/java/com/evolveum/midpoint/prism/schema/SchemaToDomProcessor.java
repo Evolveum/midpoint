@@ -332,6 +332,9 @@ public class SchemaToDomProcessor {
 		annotation.appendChild(appinfo);
 
 		addAnnotation(A_OBJECT_REFERENCE, definition.getName(), appinfo);
+		if (definition.isComposite()) {
+			addAnnotation(A_COMPOSITE, definition.isComposite(), appinfo);
+		}
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		definitionFactory.addExtraReferenceAnnotations(definition, appinfo, this);

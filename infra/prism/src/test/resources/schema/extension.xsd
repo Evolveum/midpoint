@@ -27,9 +27,12 @@
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+				schemaLocation="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"/>
 
     <xsd:element name="stringType" type="xsd:string"/>
     
@@ -89,5 +92,32 @@
     		<xsd:element name="edges" type="xsd:int" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="MeleeContextType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="weaponsDrawn" type="xsd:int" minOccurs="0"/>
+    		<xsd:element name="opponent" type="foo:UserType" minOccurs="0">
+          	<xsd:annotation>
+          		<xsd:appinfo>
+          			<a:objectReference>tns:opponentRef</a:objectReference>
+          		</xsd:appinfo>
+          	</xsd:annotation>
+          </xsd:element>
+          <xsd:element name="opponentRef" type="foo:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+          	<xsd:annotation>
+          		<xsd:appinfo>
+          			<a:objectReferenceTargetType>foo:UserType</a:objectReferenceTargetType>
+          			<a:composite>true</a:composite>
+          		</xsd:appinfo>
+          	</xsd:annotation>
+          </xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="meleeContext" type="tns:MeleeContextType"/>
 
 </xsd:schema>

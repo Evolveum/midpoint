@@ -136,6 +136,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
 	public static final QName EXTENSION_INDEXED_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "indexedString");
 	public static final QName EXTENSION_BLADE_TYPE_QNAME = new QName(NS_EXTENSION, "BladeType");
+	public static final QName EXTENSION_MELEE_CONTEXT_ELEMENT = new QName(NS_EXTENSION, "meleeContext");
+	public static final QName EXTENSION_MELEE_CONTEXT_TYPE_QNAME = new QName(NS_EXTENSION, "MeleeContextType");
+	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT = new QName(NS_EXTENSION, "opponentRef");
 	
 	// These are NOT in the extension.xsd but are used as dynamic elements
 	public static final QName EXTENSION_BAR_ELEMENT = new QName(NS_EXTENSION, "bar");
