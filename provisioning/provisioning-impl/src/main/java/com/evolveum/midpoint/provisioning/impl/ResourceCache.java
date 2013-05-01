@@ -110,4 +110,8 @@ public class ResourceCache {
 		return cachedResource.clone();
 	}
 
+	public void remove(String oid) {
+		cache.remove(oid);
+	}
+
 }

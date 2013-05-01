@@ -493,6 +493,38 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertConnectorConfigChanged();
 	}
 	
+	@Test
+	public void test900DeleteResource() throws Exception {
+		final String TEST_NAME = "test900DeleteResource";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+				
+		// WHEN
+		provisioningService.deleteObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		
+		try {
+			repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+			AssertJUnit.fail("Resource not gone from repo");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		try {
+			provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+			AssertJUnit.fail("Resource not gone from provisioning");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+	}
+	
 	private PropertyDelta<String> createUselessStringDelta(String newVal) {
 		PropertyDelta<String> uselessStringDelta = PropertyDelta.createModificationReplaceProperty(
 				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 

@@ -818,6 +818,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw e;
 			}
 
+		} else if (object.canRepresent(ResourceType.class)) {
+			
+			resourceManager.deleteResource(oid, options, task, result);
+			
 		} else {
 
 			try {
