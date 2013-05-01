@@ -172,6 +172,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 }
             } catch (Exception ex) {
                 LOGGER.error("Exception occurred", ex);
+                throw ex;
             }
         }
 
