@@ -298,7 +298,7 @@ This resource definition contains also definition to enable synchronization.
 
 	</resource>
 
-    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
         <name>Default User Template2</name>
 
         <description>
@@ -333,7 +333,7 @@ This resource definition contains also definition to enable synchronization.
 			</target>
 		</mapping>
 
-    </userTemplate>
+    </objectTemplate>
     <task oid="91919191-76e0-59e2-8787-3d4f02d3ffff">
         <name>Synchronization: DBTable</name>
         <description>

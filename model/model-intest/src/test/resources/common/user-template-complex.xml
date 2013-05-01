@@ -18,7 +18,7 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
-<userTemplate oid="10000000-0000-0000-0000-000000000222"
+<objectTemplate oid="10000000-0000-0000-0000-000000000222"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
@@ -193,4 +193,4 @@
     	</target>
     </mapping>
 
-</userTemplate>
+</objectTemplate>

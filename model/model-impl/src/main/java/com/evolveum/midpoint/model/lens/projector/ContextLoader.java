@@ -71,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -297,7 +297,7 @@ public class ContextLoader {
 			if (defaultUserTemplateRef == null) {
 				LOGGER.trace("No default user template");
 			} else {
-				PrismObject<UserTemplateType> defaultUserTemplate = cacheRepositoryService.getObject(UserTemplateType.class, defaultUserTemplateRef.getOid(), result);
+				PrismObject<ObjectTemplateType> defaultUserTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, defaultUserTemplateRef.getOid(), result);
 			    context.setUserTemplate(defaultUserTemplate.asObjectable());
 			}
 		}

@@ -52,7 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -63,7 +63,7 @@ public class AddUserAction extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(AddUserAction.class);
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate, 
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate, 
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
     			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);
@@ -139,7 +139,7 @@ public class AddUserAction extends BaseAction {
         return userOid;
     }
 
-    private UserTemplateType getUserTemplate(OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private ObjectTemplateType getUserTemplate(OperationResult result) throws ObjectNotFoundException, SchemaException {
         Element templateRef = getParameterElement(new QName(SchemaConstants.NS_C, "userTemplateRef"));
         if (templateRef == null) {
             return null;
@@ -150,6 +150,6 @@ public class AddUserAction extends BaseAction {
             return null;
         }
 
-        return getModel().getObjectResolver().getObject(UserTemplateType.class, oid, null, result);
+        return getModel().getObjectResolver().getObject(ObjectTemplateType.class, oid, null, result);
     }
 }

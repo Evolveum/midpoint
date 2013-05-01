@@ -371,7 +371,7 @@ to "false". The only way of resetting the flag is to change user's password.
 			</objectSynchronization>
         </synchronization>
     </resource>
-    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
         <name>Default User Template2</name>
 
         <description>
@@ -406,7 +406,7 @@ to "false". The only way of resetting the flag is to change user's password.
 			</target>
 		</mapping>
 
-    </userTemplate>
+    </objectTemplate>
 
     <task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
         <name>Synchronization: Active Directory</name>

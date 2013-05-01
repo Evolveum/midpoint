@@ -650,7 +650,7 @@
     </resource>
 
 
-    <userTemplate>
+    <objectTemplate>
         <name>Default User Template</name>
         <description>
             User Template Object.
@@ -691,9 +691,9 @@
             <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
             <type>default</type>
         </accountConstruction>
-    </userTemplate>
+    </objectTemplate>
 
-    <userTemplate>
+    <objectTemplate>
         <name>Default User Template2</name>
 
         <description>
@@ -724,7 +724,7 @@
             	<path>fullName</path>
             </target>
         </mapping>
-    </userTemplate>
+    </objectTemplate>
 
     <genericObject oid="9999">
 

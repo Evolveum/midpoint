@@ -67,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -132,7 +132,7 @@ public class UserPolicyProcessor {
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
-		UserTemplateType userTemplate = context.getUserTemplate();
+		ObjectTemplateType userTemplate = context.getUserTemplate();
 
 		if (userTemplate == null) {
 			// No applicable template
@@ -185,7 +185,7 @@ public class UserPolicyProcessor {
 	}
 
 	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, ShadowType> context, 
-			MappingType mappingType, UserTemplateType userTemplate, ObjectDeltaObject<UserType> userOdo, 
+			MappingType mappingType, ObjectTemplateType userTemplate, ObjectDeltaObject<UserType> userOdo, 
 			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap, OperationResult result) 
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
@@ -207,7 +207,7 @@ public class UserPolicyProcessor {
 		
 	}
 	
-	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, ShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
+	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, ShadowType> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
 			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"user template mapping in " + userTemplate

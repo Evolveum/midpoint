@@ -48,7 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -59,7 +59,7 @@ public class DeleteUserAction extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(DeleteUserAction.class);
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate,
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
             OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);

@@ -63,7 +63,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	private Class<F> focusClass;
 	private Class<P> projectionClass;
 
-	transient private UserTemplateType userTemplate;
+	transient private ObjectTemplateType userTemplate;
 	transient private AccountSynchronizationSettingsType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
 
@@ -209,11 +209,11 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return projectionContext;
 	}
 	
-	public UserTemplateType getUserTemplate() {
+	public ObjectTemplateType getUserTemplate() {
 		return userTemplate;
 	}
 
-	public void setUserTemplate(UserTemplateType userTemplate) {
+	public void setUserTemplate(ObjectTemplateType userTemplate) {
 		this.userTemplate = userTemplate;
 	}
 

@@ -52,8 +52,8 @@ public enum ObjectTypes {
     USER("schema.objectTypes.user", SchemaConstants.C_USER_TYPE, SchemaConstants.C_USER, UserType.class,
             false),
 
-    USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.C_USER_TEMPLATE_TYPE,
-            SchemaConstants.C_USER_TEMPLATE, UserTemplateType.class, false),
+    OBJECT_TEMPLATE("schema.objectTypes.objectTemplate", SchemaConstants.C_OBJECT_TEMPLATE_TYPE,
+            SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, false),
 
     SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration",
             SchemaConstants.C_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.C_SYSTEM_CONFIGURATION,

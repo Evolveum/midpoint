@@ -72,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -425,7 +425,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        addObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, UserTemplateType.class, result);
+        addObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, ObjectTemplateType.class, result);
         assumeUserTemplate(USER_TEMPLATE_SYNC_OID, resourceDummyGreen.asObjectable(), result);
         
         rememberTimeBeforeSync();
@@ -654,7 +654,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	
 	private void assumeUserTemplate(String templateOid, ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		SynchronizationType resourceSync = resource.getSynchronization();
-        resourceSync.getObjectSynchronization().get(0).setObjectTemplateRef(ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.USER_TEMPLATE));
+        resourceSync.getObjectSynchronization().get(0).setObjectTemplateRef(ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE));
           
         Collection<? extends ItemDelta> refDelta = PropertyDelta.createModificationReplacePropertyCollection(ResourceType.F_SYNCHRONIZATION, resource.asPrismObject().getDefinition(), resourceSync);
         repositoryService.modifyObject(ResourceType.class, resource.getOid(), refDelta, result);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
+<!-- Copyright (c) 2013 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
 <!-- of the Common Development and Distribution License      -->
@@ -16,8 +16,7 @@
 <!-- with the fields enclosed by brackets [] replaced by     -->
 <!-- your own identifying information:                       -->
 <!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2011 lazyman					     -->
+<!-- Portions Copyrighted 2013 [name of copyright owner]     -->
 <!--                                                         -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000002"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'

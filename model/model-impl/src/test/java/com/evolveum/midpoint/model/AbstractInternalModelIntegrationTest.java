@@ -76,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -186,7 +186,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		userAdministrator = addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		
 		// User Templates
-		addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
+		addObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
 
 		// Connectors
 		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);

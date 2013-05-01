@@ -556,7 +556,7 @@ object.
 
     </resource>
 
-    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
+    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
 
         <name>Default User Template</name>
 
@@ -606,9 +606,9 @@ object.
 
         </accountConstruction>
 
-    </userTemplate>
+    </objectTemplate>
 
-    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
         <name>Default User Template2</name>
 
         <description>
@@ -643,7 +643,7 @@ object.
 			</target>
 		</mapping>
 
-    </userTemplate>
+    </objectTemplate>
 
 
     <task oid="91919192-76e0-59e2-86d6-3d4f02d3ffff">

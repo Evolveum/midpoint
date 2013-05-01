@@ -70,8 +70,8 @@ public abstract class SchemaConstants {
 	public static final QName C_RESULT = new QName(NS_C, "result");
 	public static final QName C_USER = new QName(NS_C, "user");
 	public static final QName C_REQUESTER = new QName(NS_C, "requester");
-	public static final QName C_USER_TEMPLATE = new QName(NS_C, "userTemplate");
-	public static final QName C_USER_TEMPLATE_TYPE = new QName(NS_C, "UserTemplateType");
+	public static final QName C_OBJECT_TEMPLATE = new QName(NS_C, "objectTemplate");
+	public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
 	public static final QName C_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
 	public static final QName C_GENERIC_OBJECT = new QName(NS_C, "genericObject");
 	public static final QName C_ACCOUNT = new QName(NS_C, "account");

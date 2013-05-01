@@ -33,8 +33,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 
 import java.util.List;
 
@@ -56,7 +56,7 @@ public interface Action {
     String ACTION_MODIFY_PASSWORD = Action.class.getName() + ".modifyPassword";
 
 
-    String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate,
+    String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
     		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 

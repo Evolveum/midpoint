@@ -28,7 +28,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 
 /**
  * @author lazyman
@@ -38,7 +38,7 @@ public class ModifyPasswordAction extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(ModifyPasswordAction.class);
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate, 
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate, 
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task,
             OperationResult result) {
 

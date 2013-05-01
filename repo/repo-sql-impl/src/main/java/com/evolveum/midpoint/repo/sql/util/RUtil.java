@@ -38,6 +38,8 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -86,6 +88,8 @@ public final class RUtil {
     public static final String SQL_REPO_OBJECT = "sqlRepoObject";
     public static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
     public static final QName CUSTOM_OBJECTS = new QName(NS_SQL_REPO, SQL_REPO_OBJECTS);
+    
+    private static final Trace LOGGER = TraceManager.getTrace(RUtil.class);
 
     private RUtil() {
     }
@@ -127,6 +131,9 @@ public final class RUtil {
         } else if (Objectable.class.isAssignableFrom(clazz)) {
             if (root == null) {
                 return null;
+            }
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Parsing:\n{}", DOMUtil.serializeDOMToString(root));
             }
             PrismObject object = domProcessor.parseObject(root);
             return (T) object.asObjectable();

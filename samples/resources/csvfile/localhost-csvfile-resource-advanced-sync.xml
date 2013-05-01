@@ -302,7 +302,7 @@ object.
 	</stringPolicy>
 </valuePolicy>
 
-<userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222333">
+<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222333">
         <name>User Template CSV sync</name>
 
         <description>
@@ -337,7 +337,7 @@ object.
 			</target>
 		</mapping>
 
-    </userTemplate>	
+    </objectTemplate>	
     <task oid="91919191-76e0-59e2-8888-3d4f02d3ffff">
         <name>Synchronization: CSV File</name>
         <description>

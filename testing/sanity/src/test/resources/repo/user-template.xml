@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111"
+<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -65,4 +65,4 @@
 			<!-- <c:type>user</c:type>  -->
 		</accountConstruction>
 
-	</userTemplate>
+	</objectTemplate>

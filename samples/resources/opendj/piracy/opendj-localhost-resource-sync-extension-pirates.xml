@@ -506,7 +506,7 @@ This resource definition contains also definition to enable synchronization.
     <!-- User Template Object.
           This object is used when creating a new account, to set it up as needed.
      -->
-    <userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
+    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
         <name>Default User Template</name>
         <!-- Property construction.
              Defines how properties of user object are set up.
@@ -542,5 +542,5 @@ This resource definition contains also definition to enable synchronization.
             <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
             <intent>default</intent>
         </accountConstruction>
-    </userTemplate>
+    </objectTemplate>
 </objects>

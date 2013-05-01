@@ -54,7 +54,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -113,7 +113,7 @@ public class ModifyUserAction extends BaseAction {
     }
 
     @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, UserTemplateType userTemplate,
+    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate,
             SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
             OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);
@@ -179,7 +179,7 @@ public class ModifyUserAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, ShadowType> createSyncContext(UserType user, ResourceType resource, UserTemplateType userTemplate, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private LensContext<UserType, ShadowType> createSyncContext(UserType user, ResourceType resource, ObjectTemplateType userTemplate, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(

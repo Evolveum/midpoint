@@ -152,7 +152,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
@@ -362,7 +362,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
         addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
-        addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
+        addObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
         addObjectFromFile(ROLE_SAILOR_FILENAME, RoleType.class, initResult);
         addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
         addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);

@@ -5270,9 +5270,10 @@
     </xsd:complexType>
 
 
-    <xsd:complexType name="UserTemplateType">
+    <xsd:complexType name="ObjectTemplateType">
         <xsd:annotation>
             <xsd:documentation>
+            	TODO: update
                 The user template used to create new users. It
                 contains fixed values or expressions that can set-up
                 a new user obejct. It is used only during user creation in the
@@ -5328,7 +5329,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="userTemplate" type="tns:UserTemplateType" substitutionGroup="c:object"/>
+    <xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
+    <xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="OrgType">
         <xsd:annotation>
@@ -5745,7 +5747,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="defaultUserTemplate" type="tns:UserTemplateType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="defaultUserTemplate" type="tns:ObjectTemplateType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 User template that will be used "universally" in all situations regarding user internal
@@ -5768,7 +5770,7 @@
                                 TODO: better documentation
                             </xsd:documentation>
                             <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:UserTemplateType</a:objectReferenceTargetType>
+                    			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

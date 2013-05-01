@@ -27,6 +27,8 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.model.migrator.Migrator;
+import com.evolveum.midpoint.model.migrator.TypedPrismObject;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -93,6 +95,8 @@ public class ObjectImporter {
     private PrismContext prismContext;
     @Autowired(required = true)
     private TaskManager taskManager;
+    
+    private Migrator migrator = new Migrator();
 
     public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult,
                               final RepositoryService repository) {
@@ -116,12 +120,15 @@ public class ObjectImporter {
                             new Object[]{prismObjectObjectable, message});
                     return EventResult.skipObject(message);
                 }
-                ObjectType objectType = (ObjectType)objectable;
                 PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
                 
                 if (LOGGER.isTraceEnabled()) {
                 	LOGGER.trace("IMPORTING object:\n{}", object.dump());
                 }
+                
+                TypedPrismObject<? extends ObjectType> originalTypedObject =  new TypedPrismObject(object.getCompileTimeClass(), object);
+				TypedPrismObject<? extends ObjectType> migratedTypedObject = migrator.migrate(originalTypedObject);
+				object = migratedTypedObject.getObject();
                 
                 Utils.resolveReferences(object, repository, 
                 		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), prismContext, objectResult);

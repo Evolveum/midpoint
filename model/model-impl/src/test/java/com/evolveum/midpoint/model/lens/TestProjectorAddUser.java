@@ -109,8 +109,8 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 	public void addUserWithSimpleTemplate() throws Exception {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(LensTestConstants.USER_DRAKE_FILENAME));
 		UserType userType = user.asObjectable();
-		PrismObject<UserTemplateType> userTemplate = PrismTestUtil.parseObject(new File(AbstractInternalModelIntegrationTest.USER_TEMPLATE_FILENAME));
-		UserTemplateType userTemplateType = userTemplate.asObjectable();
+		PrismObject<ObjectTemplateType> userTemplate = PrismTestUtil.parseObject(new File(AbstractInternalModelIntegrationTest.USER_TEMPLATE_FILENAME));
+		ObjectTemplateType userTemplateType = userTemplate.asObjectable();
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(AbstractInternalModelIntegrationTest.RESOURCE_DUMMY_FILENAME));
 		ResourceType resourceType = resource.asObjectable();
 

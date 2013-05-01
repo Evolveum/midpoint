@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2013 [name of copyright owner]     -->
 <!--                                                         -->
 
-<userTemplate oid="84769304-7776-11e2-b582-001e8c717e5b"
+<objectTemplate oid="84769304-7776-11e2-b582-001e8c717e5b"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
@@ -119,4 +119,4 @@
     	</target>
     </mapping>
     
-</userTemplate>
+</objectTemplate>

@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 lazyman					     -->
 <!--                                                         -->
-<userTemplate oid="10000000-0000-0000-0000-000000000002"
+<objectTemplate oid="10000000-0000-0000-0000-000000000002"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
@@ -44,4 +44,4 @@
     		<path>fullName</path>
     	</target>
     </mapping>
-</userTemplate>
+</objectTemplate>
