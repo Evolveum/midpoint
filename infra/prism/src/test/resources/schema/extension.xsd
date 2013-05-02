@@ -53,6 +53,8 @@
     <xsd:element name="longType" type="xsd:long"/>
 
     <xsd:element name="dateType" type="xsd:dateTime"/>
+    
+    <xsd:element name="durationType" type="xsd:duration"/>
 
     <xsd:element name="locations" type="tns:LocationsType"/>
     

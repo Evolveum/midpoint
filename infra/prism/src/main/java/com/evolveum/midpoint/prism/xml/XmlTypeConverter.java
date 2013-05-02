@@ -44,6 +44,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -132,6 +133,8 @@ public class XmlTypeConverter {
             return (T) Double.valueOf(stringContent);
         } else if (type.equals(BigInteger.class)) {
             return (T) new BigInteger(stringContent);
+        } else if (type.equals(BigDecimal.class)) {
+            return (T) new BigDecimal(stringContent);
         } else if (type.equals(byte[].class)) {
             byte[] decodedData = Base64.decodeBase64(stringContent);
             return (T) decodedData;
@@ -299,6 +302,10 @@ public class XmlTypeConverter {
             } else {
                 return XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE;
             }
+        } else if (type.equals(BigInteger.class)) {
+            return ((BigInteger) val).toString();
+        } else if (type.equals(BigDecimal.class)) {
+            return ((BigDecimal) val).toString();
         } else if (type.equals(GregorianCalendar.class)) {
             XMLGregorianCalendar xmlCal = createXMLGregorianCalendar((GregorianCalendar) val);
             return xmlCal.toXMLFormat();
@@ -450,6 +457,18 @@ public class XmlTypeConverter {
 
     public static long toMillis(XMLGregorianCalendar xmlCal) {
         return xmlCal.toGregorianCalendar().getTimeInMillis();
+    }
+    
+    public static Duration createDuration(long durationInMilliSeconds) {
+    	return getDatatypeFactory().newDuration(durationInMilliSeconds);
+    }
+    
+    public static Duration createDuration(String lexicalRepresentation) {
+    	return getDatatypeFactory().newDuration(lexicalRepresentation);
+    }
+
+    public static Duration createDuration(boolean isPositive, int years, int months, int days, int hours, int minutes, int seconds) {
+    	return getDatatypeFactory().newDuration(isPositive, years, months, days, hours, minutes, seconds);
     }
     
     /**

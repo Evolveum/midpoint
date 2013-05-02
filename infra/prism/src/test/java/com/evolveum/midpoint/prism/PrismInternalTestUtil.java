@@ -70,8 +70,11 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String USER_JACK_POLYNAME_ORIG = "Džek Sperou";
 	public static final String USER_JACK_POLYNAME_NORM = "dzek sperou";
 	
-	// User: barbossa
+	// User: barbossa (very simple user)
 	public static final File USER_BARBOSSA_FILE = new File(COMMON_DIR_PATH, "user-barbossa.xml");
+	
+	// User: will (has all the extensions)
+	public static final File USER_WILL_FILE = new File(COMMON_DIR_PATH, "user-will.xml");
 
 	// Namespaces
 	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
@@ -135,7 +138,14 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	// extension.xsd
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
 	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");
+	public static final QName EXTENSION_DOUBLE_TYPE_ELEMENT = new QName(NS_EXTENSION, "doubleType");
 	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
+	public static final QName EXTENSION_INTEGER_TYPE_ELEMENT = new QName(NS_EXTENSION, "integerType");
+	public static final QName EXTENSION_LONG_TYPE_ELEMENT = new QName(NS_EXTENSION, "longType");
+	public static final QName EXTENSION_DATE_TYPE_ELEMENT = new QName(NS_EXTENSION, "dateType");
+	public static final QName EXTENSION_DURATION_TYPE_ELEMENT = new QName(NS_EXTENSION, "durationType");
+	public static final QName EXTENSION_LOCATIONS_ELEMENT = new QName(NS_EXTENSION, "locations");
+	public static final QName EXTENSION_LOCATIONS_TYPE_QNAME = new QName(NS_EXTENSION, "LocationsType");
 	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
 	public static final QName EXTENSION_INDEXED_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "indexedString");
 	public static final QName EXTENSION_BLADE_TYPE_QNAME = new QName(NS_EXTENSION, "BladeType");
