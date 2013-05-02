@@ -38,7 +38,7 @@ AS
     DELETE FROM m_shadow;
     DELETE FROM m_task_dependent;
     DELETE FROM m_task;
-    DELETE FROM m_user_template;
+    DELETE FROM m_object_template;
     DELETE FROM m_password_policy;
     DELETE FROM m_resource;
     DELETE FROM m_user_employee_type;
