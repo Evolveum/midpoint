@@ -37,7 +37,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -170,11 +170,11 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         repositoryService.addObject(resource, null, opResult);
 
         opResult.computeStatus();
-        IntegrationTestTools.assertSuccess(opResult);
+        AssertJUnit.assertTrue(opResult.isSuccess());
 
         PrismObject<ResourceType> resourceAfterAdd = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
-        IntegrationTestTools.assertOid(resourceAfterAdd, RESOURCE_OPENDJ_OID);
-        IntegrationTestTools.assertVersion(resourceAfterAdd, 0);
+        MidPointAsserts.assertOid(resourceAfterAdd, RESOURCE_OPENDJ_OID);
+        MidPointAsserts.assertVersion(resourceAfterAdd, 0);
         
         // Precondition
         assertNotNull("no schema", resourceAfterAdd.asObjectable().getSchema());
@@ -188,11 +188,11 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         
         // THEN
         opResult.computeStatus();
-        IntegrationTestTools.assertSuccess(opResult);
+        AssertJUnit.assertTrue(opResult.isSuccess());
         
         PrismObject<ResourceType> resourceAfterOverwrite = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
-        IntegrationTestTools.assertOid(resourceAfterOverwrite, RESOURCE_OPENDJ_OID);
-        IntegrationTestTools.assertVersion(resourceAfterOverwrite, 1);
+        MidPointAsserts.assertOid(resourceAfterOverwrite, RESOURCE_OPENDJ_OID);
+        MidPointAsserts.assertVersion(resourceAfterOverwrite, 1);
         
         assertNull("schema not gone", resourceAfterOverwrite.asObjectable().getSchema());
         assertNull("capabilities not gone", resourceAfterOverwrite.asObjectable().getCapabilities());

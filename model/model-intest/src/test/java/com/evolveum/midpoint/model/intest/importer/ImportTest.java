@@ -42,6 +42,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -463,7 +464,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		IntegrationTestTools.assertNoRepoCache();
 		
-		IntegrationTestTools.assertVersionIncrease(importedRepoResource, repoResource);
+		MidPointAsserts.assertVersionIncrease(importedRepoResource, repoResource);
 		
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 		display("Reimported resource (model)", resource);
@@ -472,7 +473,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		assertResource(resource, false);
 		
-		IntegrationTestTools.assertVersionIncrease(importedResource, resource);
+		MidPointAsserts.assertVersionIncrease(importedResource, resource);
 		
 		ResourceType resourceType = resource.asObjectable();
 		assertNull("Synchronization not gone", resourceType.getSynchronization());
