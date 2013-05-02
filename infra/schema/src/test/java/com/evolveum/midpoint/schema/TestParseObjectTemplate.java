@@ -79,51 +79,64 @@ public class TestParseObjectTemplate {
 	
 	@Test
 	public void testParseObjectTemplateFile() throws SchemaException {
-		System.out.println("===[ testParseObjectTemplateFile ]===");
-
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
-		// WHEN
-		PrismObject<ObjectTemplateType> object = prismContext.parseObject(OBJECT_TEMPLATE_FILE);
-		
-		// THEN
-		System.out.println("Parsed object template:");
-		System.out.println(object.dump());
-		
-		assertObjectTemplate(object, "objectTemplate");
+		roundTrip("testParseObjectTemplateFile", OBJECT_TEMPLATE_FILE, 
+				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
 	}
 	
 	@Test
 	public void testParseUserTemplateFile() throws SchemaException {
-		System.out.println("===[ testParseUserTemplateFile ]===");
+		roundTrip("testParseUserTemplateFile", USER_TEMPLATE_FILE, 
+				new QName(SchemaConstantsGenerated.NS_COMMON, "userTemplate"));
+	}
+	
+	private void roundTrip(final String TEST_NAME, File file, QName elementName) throws SchemaException {
+		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<ObjectTemplateType> object = prismContext.parseObject(USER_TEMPLATE_FILE);
+		PrismObject<ObjectTemplateType> object = prismContext.parseObject(file);
 		
 		// THEN
-		System.out.println("Parsed object template:");
+		System.out.println("Parsed object:");
 		System.out.println(object.dump());
 		
-		assertObjectTemplate(object, "userTemplate");
+		assertObjectTemplate(object, elementName);
+		
+		// WHEN
+		Element domObject = prismContext.getPrismDomProcessor().serializeToDom(object);
+		
+		// THEN
+		System.out.println("Serialized object:");
+		System.out.println(DOMUtil.serializeDOMToString(domObject));
+		
+		assertSerializedObject(domObject, elementName);
+		
+		// WHEN
+		PrismObject<ObjectTemplateType> reparsedObject = prismContext.parseObject(domObject);
+		
+		// THEN
+		System.out.println("Re-parsed object:");
+		System.out.println(reparsedObject.dump());
+		
+		assertObjectTemplate(reparsedObject, elementName);
 	}
 
-	private void assertObjectTemplate(PrismObject<ObjectTemplateType> object, String elementName) {
+	private void assertObjectTemplate(PrismObject<ObjectTemplateType> object, QName elementName) {
 		object.checkConsistence();
 		assertObjectTemplatePrism(object, elementName);
 	}
 
-	private void assertObjectTemplatePrism(PrismObject<ObjectTemplateType> object, String elementName) {
+	private void assertObjectTemplatePrism(PrismObject<ObjectTemplateType> object, QName elementName) {
 		
 		assertEquals("Wrong oid", "10000000-0000-0000-0000-000000000002", object.getOid());
-		PrismObjectDefinition<ObjectTemplateType> usedDefinition = object.getDefinition();
-		assertNotNull("No object definition", usedDefinition);
-		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, elementName),
+		PrismObjectDefinition<ObjectTemplateType> objectDefinition = object.getDefinition();
+		assertNotNull("No object definition", objectDefinition);
+		PrismAsserts.assertObjectDefinition(objectDefinition, elementName,
 				ObjectTemplateType.COMPLEX_TYPE, ObjectTemplateType.class);
 		assertEquals("Wrong class", ObjectTemplateType.class, object.getCompileTimeClass());
+		assertEquals("Wrong object item name", elementName, object.getName());
 		ObjectTemplateType objectType = object.asObjectable();
 		assertNotNull("asObjectable resulted in null", objectType);
 		
@@ -133,6 +146,13 @@ public class TestParseObjectTemplate {
 		assertPropertyDefinition(object, "mapping", MappingType.COMPLEX_TYPE, 0, -1);
 		
 	}
+	
+	
+	private void assertSerializedObject(Element domObject, QName elementName) {
+		assertEquals("Wrong top-level element name", elementName, DOMUtil.getQName(domObject));
+		// TODO
+	}
+
 	
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

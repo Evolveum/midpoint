@@ -157,8 +157,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
 		result.addParam("file", filePath);
-		LOGGER.trace("addObjectFromFile: {}", filePath);
+		LOGGER.debug("addObjectFromFile: {}", filePath);
 		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
+		LOGGER.trace("Adding object:\n{}", object.dump());
 		addObject(type, object, "from file "+filePath, result);
 		result.recordSuccess();
 		return object;
