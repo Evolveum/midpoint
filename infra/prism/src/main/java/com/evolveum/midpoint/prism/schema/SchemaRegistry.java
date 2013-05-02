@@ -210,6 +210,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 
 	public SchemaDescription loadPrismSchemaFileDescription(File file) throws FileNotFoundException, SchemaException {
+		 if (!(file.getName().matches(".*\\.xsd$"))){
+         	LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
+         	return null;
+         }
 		SchemaDescription desc = SchemaDescription.parseFile(file);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
