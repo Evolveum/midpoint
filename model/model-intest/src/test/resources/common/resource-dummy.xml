@@ -50,6 +50,9 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance. -->
 			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+			<icfi:uselessGuardedString>
+				<clearValue>whatever</clearValue>
+			</icfi:uselessGuardedString>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -116,8 +119,9 @@
 	</schema>
 
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -309,7 +313,7 @@
                 </password>
             </credentials>
             
-		</accountType>
+		</objectType>
 		
 	</schemaHandling>
 	

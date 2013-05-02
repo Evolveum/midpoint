@@ -76,20 +76,7 @@ public class RepositoryCache implements RepositoryService {
     }
 	
 	private static Map<String,PrismObject<ObjectType>> getCache() {
-		// Don't instantiate unless the count in non-zero.
-		// Otherwise side-effects may happen (e.g. exit() never
-		// called will mean that the cache is not destroyed)
-		Integer count = cacheCount.get();
-		if (count == null || count == 0) {
-			return null;
-		}
-		Map<String,PrismObject<ObjectType>> inst = cacheInstance.get();
-		if (inst == null) {
-			LOGGER.trace("Cache: creating for thread {}",Thread.currentThread().getName());
-			inst = new HashMap<String, PrismObject<ObjectType>>();
-			cacheInstance.set(inst);
-		}
-		return inst;
+		return cacheInstance.get();
 	}
 	
 	public static void init() {
@@ -112,6 +99,7 @@ public class RepositoryCache implements RepositoryService {
 		Integer count = cacheCount.get();
 		LOGGER.trace("Cache: ENTER for thread {}, {}",Thread.currentThread().getName(), count);
 		if (inst == null) {
+			LOGGER.trace("Cache: creating for thread {}",Thread.currentThread().getName());
 			inst = new HashMap<String, PrismObject<ObjectType>>();
 			cacheInstance.set(inst);
 		}
@@ -194,10 +182,14 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = repository.addObject(object, options, parentResult);
-		// DON't cache it here. The object may not have proper "JAXB" form, e.g. some pieces may be
+		Map<String, PrismObject<ObjectType>> cache = getCache();
+		// DON't cache the object here. The object may not have proper "JAXB" form, e.g. some pieces may be
 		// DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
 		// is acceptable.
-		//getCache().put(oid,object);
+		if (cache != null) {
+			// Invalidate the cache entry if it happens to be there
+			cache.remove(oid);
+		}
 		return oid;
 	}
 	

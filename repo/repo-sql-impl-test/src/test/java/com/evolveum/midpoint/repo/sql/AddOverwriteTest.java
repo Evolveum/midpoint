@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -34,6 +37,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,6 +45,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -67,6 +72,8 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(AddOverwriteTest.class);
     private static final String ORG_STRUCT_OBJECTS = "src/test/resources/orgstruct/org-monkey-island.xml";
     private static final String IMPORT_OVERWRITE = "src/test/resources/basic/import-overwrite.xml";
+    private static final File RESOURCE_OPENDJ_FILE = new File("src/test/resources/basic/resource-opendj.xml");
+    private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 
     private static final String ORG_OID = "00000000-8888-6666-0000-100000000001";
 
@@ -152,5 +159,42 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
+    }
+    
+    @Test
+    public void addWithOverwriteResource() throws Exception {
+    	// GIVEN
+        PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(RESOURCE_OPENDJ_FILE);
+        OperationResult opResult = new OperationResult("Import resource");
+        
+        repositoryService.addObject(resource, null, opResult);
+
+        opResult.computeStatus();
+        IntegrationTestTools.assertSuccess(opResult);
+
+        PrismObject<ResourceType> resourceAfterAdd = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
+        IntegrationTestTools.assertOid(resourceAfterAdd, RESOURCE_OPENDJ_OID);
+        IntegrationTestTools.assertVersion(resourceAfterAdd, 0);
+        
+        // Precondition
+        assertNotNull("no schema", resourceAfterAdd.asObjectable().getSchema());
+        assertNotNull("no capabilities", resourceAfterAdd.asObjectable().getCapabilities());
+
+        resource.asObjectable().setSchema(null);
+        resource.asObjectable().setCapabilities(null);
+        
+        // WHEN
+        repositoryService.addObject(resource, RepoAddOptions.createOverwrite(), opResult);
+        
+        // THEN
+        opResult.computeStatus();
+        IntegrationTestTools.assertSuccess(opResult);
+        
+        PrismObject<ResourceType> resourceAfterOverwrite = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
+        IntegrationTestTools.assertOid(resourceAfterOverwrite, RESOURCE_OPENDJ_OID);
+        IntegrationTestTools.assertVersion(resourceAfterOverwrite, 1);
+        
+        assertNull("schema not gone", resourceAfterOverwrite.asObjectable().getSchema());
+        assertNull("capabilities not gone", resourceAfterOverwrite.asObjectable().getCapabilities());
     }
 }

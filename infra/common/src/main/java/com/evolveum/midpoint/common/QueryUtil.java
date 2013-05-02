@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -243,6 +244,10 @@ public class QueryUtil {
 	
 	public static ObjectQuery createNameQuery(ObjectType object) throws SchemaException {
 		return createNameQuery(object.getName(), object.asPrismObject().getPrismContext());
+	}
+	
+	public static <O extends ObjectType> ObjectQuery createNameQuery(PrismObject<O> object) throws SchemaException {
+		return createNameQuery(object.asObjectable().getName(), object.getPrismContext());
 	}
 
     public static QueryType createQuery(Element filter) {

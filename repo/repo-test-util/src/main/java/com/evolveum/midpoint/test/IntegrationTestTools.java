@@ -937,5 +937,31 @@ public class IntegrationTestTools {
 			display("Script", script);
 		}
 	}
+    
+    public static <O extends ObjectType> void assertVersionIncrease(PrismObject<O> objectOld, PrismObject<O> objectNew) {
+		Long versionOld = parseVersion(objectOld);
+		Long versionNew = parseVersion(objectNew);
+		assertTrue("Version not increased (from "+versionOld+" to "+versionNew+")", versionOld < versionNew);
+	}
+
+    public static <O extends ObjectType> Long parseVersion(PrismObject<O> object) {
+		String version = object.getVersion();
+		if (version == null) {
+			return null;
+		}
+		return Long.valueOf(version);
+	}
+
+	public static <O extends ObjectType> void assertVersion(PrismObject<O> object, int expectedVersion) {
+		assertVersion(object, Integer.toString(expectedVersion));
+	}
+	
+	public static <O extends ObjectType> void assertVersion(PrismObject<O> object, String expectedVersion) {
+		assertEquals("Wrong version for "+object, expectedVersion, object.getVersion());
+	}
+	
+	public static <O extends ObjectType> void assertOid(PrismObject<O> object, String expectedOid) {
+		assertEquals("Wrong OID for "+object, expectedOid, object.getOid());
+	}
 
 }

@@ -84,6 +84,11 @@ public class Migrator {
 		SchemaHandlingType migratedSchemaHandling = migratedResourceType.getSchemaHandling();
 		for (ResourceObjectTypeDefinitionType accountType: origSchemaHandling.getAccountType()) {
 			accountType.setKind(ShadowKindType.ACCOUNT);
+			String intent = accountType.getName();
+			if (intent != null) {
+				accountType.setIntent(intent);
+				accountType.setName(null);
+			}
 			migratedSchemaHandling.getObjectType().add(accountType);
 		}
 		origSchemaHandling.getAccountType().clear();

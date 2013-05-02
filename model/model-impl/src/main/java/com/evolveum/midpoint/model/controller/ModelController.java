@@ -903,7 +903,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 			OperationResult parentResult) {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
-		objectImporter.importObjects(input, options, task, result, cacheRepositoryService);
+		result.addParam("options", options);
+		objectImporter.importObjects(input, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Import result:\n{}", result.dump());
 		}

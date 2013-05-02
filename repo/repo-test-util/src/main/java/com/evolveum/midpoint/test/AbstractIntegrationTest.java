@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -263,7 +264,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
 
-		EqualsFilter equal = EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, connectorType);
+		EqualsFilter equal = EqualsFilter.createEqual(ConnectorType.class, prismContext, ConnectorType.F_CONNECTOR_TYPE, connectorType);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
 		if (connectors.size() != 1) {
@@ -272,7 +273,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		return connectors.get(0);
 	}
-
+	
 	protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
 			throws SchemaException {
 
@@ -282,7 +283,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
 		if (connectors.size() != 1) {
-			throw new IllegalStateException("Cannot find connector type " + connectorType + ", got "
+			throw new IllegalStateException("Cannot find connector type " + connectorType + ", version "+connectorVersion+", got "
 					+ connectors);
 		}
 		return connectors.get(0);
@@ -375,6 +376,5 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.computeStatus();
 		assertSuccess("Aplying sync settings failed (result)", result);
 	}
-
 
 }

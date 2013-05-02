@@ -20,8 +20,11 @@
  */
 package com.evolveum.midpoint.model.intest.importer;
 
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
+import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -78,7 +82,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
-public class ImportTest extends AbstractTestNGSpringContextTests {
+public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 
 	private static final String TEST_FILE_DIRECTORY = "src/test/resources/importer/";
 	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
@@ -89,19 +93,19 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FOLDER_COMMON, "connector-dbtable.xml");
 	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
 	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
-	private static final File IMPORT_RESOURCE_FILE = new File(TEST_FOLDER_COMMON, "resource-derby.xml");
-	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 	
 	private static final File IMPORT_TASK_FILE = new File(TEST_FILE_DIRECTORY, "import-task.xml");
 	private static final String TASK1_OID = "00000000-0000-0000-0000-123450000001";
 	private static final String TASK1_OWNER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	
-	@Autowired(required = true)
-	ModelService modelService;
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
-	@Autowired(required = true)
-	private TaskManager taskManager;
+	private static final File RESOURCE_DUMMY_CHANGED_FILE = new File(TEST_FILE_DIRECTORY, "resource-dummy-changed.xml");;
+	
+	private DummyResource dummyResource;
+	private DummyResourceContoller dummyResourceCtl;
+	
+	private PrismObject<ConnectorType> dummyConnector;
+	private PrismObject<ResourceType> importedResource;
+	private PrismObject<ResourceType> importedRepoResource;
 	
 	private static String guybrushOid;
 	private static String hermanOid;
@@ -110,6 +114,19 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+	}
+	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		LOGGER.trace("initSystem");
+		super.initSystem(initTask, initResult);
+		
+		// Just initialize the resource, do NOT import resource definition
+		dummyResourceCtl = DummyResourceContoller.create(null);
+		dummyResourceCtl.extendDummySchema();
+		dummyResource = dummyResourceCtl.getDummyResource();
+		
+		dummyConnector = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, initResult);
 	}
 
 	/**
@@ -121,7 +138,6 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		displayTestTile(this,"test000Integrity");
 		assertNotNull(modelService);
 		assertNotNull(repositoryService);
-
 	}
 
 	@Test
@@ -149,51 +165,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
 	}
 
-	@Test
-	public void test002ImportResource() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		displayTestTile(this,"test002ImportResource");
-		// GIVEN
-		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportTest.class.getName() + "test002ImportResource");
-		FileInputStream stream = new FileInputStream(IMPORT_RESOURCE_FILE);
-
-		// WHEN
-		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
-
-		// THEN
-		result.computeStatus();
-		display("Result after good import", result);
-		assertSuccess("Import of "+IMPORT_RESOURCE_FILE+" has failed (result)", result, 2);
-
-		// Check import with fixed OID
-		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
-		ResourceType resourceType = resource.asObjectable();
-		assertNotNull(resourceType);
-		display("Imported resource",resourceType);
-		PrismAsserts.assertEqualsPolyString("Wrong resource name", "Embedded Test Derby", resourceType.getName());
-//		assertEquals("Embedded Test Derby", resourceType.getName());
-		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", 
-				ResourceTypeUtil.getResourceNamespace(resourceType));
-		assertEquals(CONNECOTR_LDAP_OID,resourceType.getConnectorRef().getOid());
-		
-		// The password in the resource configuration should be encrypted after import
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-		PrismContainer<Containerable> configurationPropertiesContainer = 
-			configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
-		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
-		PrismProperty<Object> passwordProperty = configurationPropertiesContainer.findProperty(new QName(CONNECTOR_NAMESPACE, "password"));
-		// The resource was pulled from the repository. Therefore it does not have the right schema here. We should proceed with caution
-		// and inspect the DOM elements there
-		assertNotNull("No password property in configuration properties", passwordProperty);
-		PrismPropertyValue<Object> passwordPVal = passwordProperty.getValue();
-		Object passwordRawElement = passwordPVal.getRawElement();
-		if (!(passwordRawElement instanceof Element)) {
-			AssertJUnit.fail("Expected password value of type "+Element.class+" but got "+passwordRawElement.getClass());
-		}
-		Element passwordDomElement = (Element)passwordRawElement;
-		assertTrue("Password was not encrypted (clearValue)",passwordDomElement.getElementsByTagNameNS(SchemaConstants.NS_C, "clearValue").getLength()==0);
-        assertTrue("Password was not encrypted (no EncryptedData)",passwordDomElement.getElementsByTagNameNS(DOMUtil.NS_XML_ENC,"EncryptedData").getLength()==1);		
-	}
+	
 	
 	@Test
 	public void test003ImportUsers() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
@@ -298,7 +270,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		// list all users
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
 		// Three old users, one new
-		assertEquals(4,users.size());
+		assertEquals(5,users.size());
 		
 		for (PrismObject<UserType> user : users) {
 			UserType userType = user.asObjectable();
@@ -355,7 +327,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		// list all users
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
 		// Three old users, one new
-		assertEquals(4,users.size());
+		assertEquals(5,users.size());
 		
 		for (PrismObject<UserType> user : users) {
 			UserType userType = user.asObjectable();
@@ -387,11 +359,12 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void test007ImportTask() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		displayTestTile(this, "test007ImportTask");
+	public void test020ImportTask() throws Exception {
+		final String TEST_NAME = "test020ImportTask";
+		displayTestTile(this, TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportTest.class.getName() + "test007ImportTask");
+		Task task = taskManager.createTaskInstance(ImportTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		FileInputStream stream = new FileInputStream(IMPORT_TASK_FILE);
 		
 		// well, let's check whether task owner really exists
@@ -417,6 +390,126 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
         PrismProperty<Integer> delayProp = task1.getExtension(new QName(NoOpTaskHandler.EXT_SCHEMA_URI, "delay"));
         assertEquals("xsi:type'd property has incorrect type", Integer.class, delayProp.getValues().get(0).getValue().getClass());
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
+	}
+	
+	@Test
+	public void test030ImportResource() throws Exception {
+		final String TEST_NAME = "test030ImportResource";
+		displayTestTile(this,TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(ImportTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		FileInputStream stream = new FileInputStream(new File(RESOURCE_DUMMY_FILENAME));
+		
+		IntegrationTestTools.assertNoRepoCache();
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after import", result);
+		assertSuccess("Import of "+RESOURCE_DUMMY_FILENAME+" has failed (result)", result, 2);
+
+		IntegrationTestTools.assertNoRepoCache();
+		
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		display("Imported resource (repo)", importedRepoResource);
+		IntegrationTestTools.assertNoRepoCache();
+		assertResource(importedRepoResource, true);
+		
+		importedResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+		display("Imported resource (model)", importedResource);
+		IntegrationTestTools.assertNoRepoCache();
+		assertResource(importedResource, false);
+		
+		ResourceType importedResourceType = importedResource.asObjectable();
+		assertNotNull("No synchronization", importedResourceType.getSynchronization());
+		
+		// Read it from repo again. The read from model triggers schema fetch which increases version
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		display("Imported resource (repo2)", importedRepoResource);
+		IntegrationTestTools.assertNoRepoCache();
+		assertResource(importedRepoResource, true);
+	}
+	
+	@Test
+	public void test031ReimportResource() throws Exception {
+		final String TEST_NAME = "test031ReimportResource";
+		displayTestTile(this,TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(ImportTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		FileInputStream stream = new FileInputStream(RESOURCE_DUMMY_CHANGED_FILE);
+		
+		ImportOptionsType options = getDefaultImportOptions();
+		options.setOverwrite(true);
+		
+		IntegrationTestTools.assertNoRepoCache();
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, options, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after import", result);
+		assertSuccess("Import of "+RESOURCE_DUMMY_CHANGED_FILE+" has failed (result)", result, 2);
+		
+		IntegrationTestTools.assertNoRepoCache();
+
+		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		display("Reimported resource (repo)", repoResource);
+		assertResource(repoResource, true);
+		
+		IntegrationTestTools.assertNoRepoCache();
+		
+		IntegrationTestTools.assertVersionIncrease(importedRepoResource, repoResource);
+		
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+		display("Reimported resource (model)", resource);
+		
+		IntegrationTestTools.assertNoRepoCache();
+		
+		assertResource(resource, false);
+		
+		IntegrationTestTools.assertVersionIncrease(importedResource, resource);
+		
+		ResourceType resourceType = resource.asObjectable();
+		assertNull("Synchronization not gone", resourceType.getSynchronization());
+	}
+	
+	private void assertResource(PrismObject<ResourceType> resource, boolean fromRepo) {
+		ResourceType resourceType = resource.asObjectable();
+		assertNotNull(resourceType);
+		PrismAsserts.assertEqualsPolyString("Wrong resource name", "Dummy Resource", resourceType.getName());
+		assertEquals(RESOURCE_DUMMY_NAMESPACE, ResourceTypeUtil.getResourceNamespace(resourceType));
+		assertEquals(dummyConnector.getOid(), resourceType.getConnectorRef().getOid());
+		
+		// The password in the resource configuration should be encrypted after import
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		PrismContainer<Containerable> configurationPropertiesContainer = 
+			configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
+		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
+		PrismProperty<ProtectedStringType> guardedProperty = configurationPropertiesContainer.findProperty(
+				new QName(CONNECTOR_DUMMY_NAMESPACE, "uselessGuardedString"));
+		// The resource was pulled from the repository. Therefore it does not have the right schema here. We should proceed with caution
+		// and inspect the DOM elements there
+		assertNotNull("No uselessGuardedString property in configuration properties", guardedProperty);
+		PrismPropertyValue<ProtectedStringType> guardedPVal = guardedProperty.getValue();
+		
+		if (fromRepo) {
+			Object passwordRawElement = guardedPVal.getRawElement();
+			if (!(passwordRawElement instanceof Element)) {
+				AssertJUnit.fail("Expected password value of type "+Element.class+" but got "+passwordRawElement.getClass());
+			}
+			Element passwordDomElement = (Element)passwordRawElement;
+			assertTrue("uselessGuardedString was not encrypted (clearValue)",passwordDomElement.getElementsByTagNameNS(SchemaConstants.NS_C, "clearValue").getLength()==0);
+	        assertTrue("uselessGuardedString was not encrypted (no EncryptedData)",passwordDomElement.getElementsByTagNameNS(DOMUtil.NS_XML_ENC,"EncryptedData").getLength()==1);
+		} else {
+			ProtectedStringType psType = guardedPVal.getValue();
+			assertNull("uselessGuardedString was not encrypted (clearValue)", psType.getClearValue());
+			assertNotNull("uselessGuardedString was not encrypted (no EncryptedData)", psType.getEncryptedData());
+		}
 	}
 
 }

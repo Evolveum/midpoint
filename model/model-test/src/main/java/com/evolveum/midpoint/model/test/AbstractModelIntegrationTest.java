@@ -138,6 +138,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
 			
 	protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
+	protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
+	protected static final String CONNECTOR_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 	
 	protected static final ItemPath ACTIVATION_ENABLED_PATH = new ItemPath(UserType.F_ACTIVATION, 
 			ActivationType.F_ENABLED);

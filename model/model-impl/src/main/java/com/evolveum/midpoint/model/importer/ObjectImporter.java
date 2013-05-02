@@ -60,6 +60,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -95,11 +96,13 @@ public class ObjectImporter {
     private PrismContext prismContext;
     @Autowired(required = true)
     private TaskManager taskManager;
+    @Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repository;
     
     private Migrator migrator = new Migrator();
 
-    public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult,
-                              final RepositoryService repository) {
+    public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult) {
 
         EventHandler handler = new EventHandler() {
 
@@ -171,7 +174,7 @@ public class ObjectImporter {
                 
                 try {
 
-                    importObjectToRepository(object, options, repository, objectResult);
+                    importObjectToRepository(object, options, objectResult);
 
                     LOGGER.info("Imported object {}", object);
 
@@ -223,17 +226,27 @@ public class ObjectImporter {
 
     }
 
-    private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, RepositoryService repository,
+    private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options,
                                           OperationResult objectResult) throws SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
+        if (BooleanUtils.isTrue(options.isKeepOid()) && object.getOid() == null) {
+			// Try to check if there is existing object with the same type and name
+        	ObjectQuery query = QueryUtil.createNameQuery(object);
+        	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, result);
+        	if (foundObjects.size() == 1) {
+        		String oid = foundObjects.iterator().next().getOid();
+        		object.setOid(oid);
+        	}
+        }
+        
         try {
 
             RepoAddOptions repoOptions = new RepoAddOptions();
             repoOptions.setOverwrite(BooleanUtils.isTrue(options.isOverwrite()));
             
-			String oid = repository.addObject(object, repoOptions, result);
+			String oid = addObject(object, repoOptions, result);
 			
             if (object.canRepresent(TaskType.class)) {
             	taskManager.onTaskCreate(oid, result);
@@ -241,54 +254,66 @@ public class ObjectImporter {
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {            
-            result.recordFatalError("Object already exists: "+e.getMessage(), e);
-            throw e;
-            
-            
+        	if (BooleanUtils.isTrue(options.isOverwrite() && 
+        		BooleanUtils.isNotTrue(options.isKeepOid()) && 
+        		object.getOid() == null)) {
+     	 	 	// This is overwrite, without keep oid, therefore we do not have conflict on OID
+        		// this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
+        		result.muteLastSubresultError();
+        		ObjectQuery query = QueryUtil.createNameQuery(object);
+            	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, result);
+            	if (foundObjects.size() == 1) {
+            		PrismObject<T> foundObject = foundObjects.iterator().next();
+            		String deletedOid = deleteObject(foundObject, repository, result);
+         	 	 	if (deletedOid != null) {
+         	 	 		if (object.canRepresent(TaskType.class)) {
+         	 	 			taskManager.onTaskDelete(deletedOid, result);
+         	 	 		}
+         	 	 		if (BooleanUtils.isTrue(options.isKeepOid())) {
+         	 	 			object.setOid(deletedOid);
+         	 	 		}
+         	 	 		repository.addObject(object, null, result);
+	         	 	 	if (object.canRepresent(TaskType.class)) {
+	         	 	 		taskManager.onTaskCreate(object.getOid(), result);
+	         	 	 	}
+	         	 	 	result.recordSuccess();
+         	 	 	} else {
+         	 	 		// cannot delete, throw original exception
+                        result.recordFatalError("Object already exists, cannot overwrite", e);
+                        throw e;
+         	 	 	}
+            	} else {
+            		// Cannot locate conflicting object
+            		String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjects.size()+" objects with same name exist";
+            		result.recordFatalError(message, e);
+                 	throw new ObjectAlreadyExistsException(message, e);
+            	}
+        	} else {
+        		result.recordFatalError(e);
+             	throw e;
+        	}
         } catch (SchemaException ex){
         	result.computeStatus();
         	throw ex;
         }
     }
 
+    private <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions repoOptions, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+    	return repository.addObject(object, repoOptions, parentResult);
+    }
 
     /**
      * @return OID of the deleted object or null (if nothing was deleted)
      */
     private <T extends ObjectType> String deleteObject(PrismObject<T> object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
-        if (!StringUtils.isBlank(object.getOid())) {
-            // The conflict is either UID or we should not proceed as we could delete wrong object
-            try {
-                repository.deleteObject(object.getCompileTimeClass(), object.getOid(), objectResult);
-            } catch (ObjectNotFoundException e) {
-                // Cannot delete. The conflicting thing was obviously not OID. Just throw the original exception
-                return null;
-            }
-            // deleted
-            return object.getOid();
-        } else {
-            // The conflict was obviously name. As we have no explicit OID in the object to import
-            // it is pretty safe to try to delete the conflicting object
-            // look for an object by name and type and delete it
-//            QueryType query = QueryUtil.createNameQuery(object.asObjectable());
-			ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(object.getCompileTimeClass(),
-					prismContext, ObjectType.F_NAME, object.asObjectable().getName()));
-			
-            List<PrismObject<? extends ObjectType>> objects = (List) repository.searchObjects(object.getCompileTimeClass(),
-            		query, objectResult);
-            if (objects.size() != 1) {
-                // too few or too much results, not safe to delete
-                return null;
-            }
-            String oidToDelete = objects.get(0).getOid();
-            try {
-                repository.deleteObject(object.getCompileTimeClass(), oidToDelete, objectResult);
-            } catch (ObjectNotFoundException e) {
-                // Cannot delete. Some strange conflict ...
-                return null;
-            }
-            return oidToDelete;
+        try {
+            repository.deleteObject(object.getCompileTimeClass(), object.getOid(), objectResult);
+        } catch (ObjectNotFoundException e) {
+            // Cannot delete. The conflicting thing was obviously not OID. Just throw the original exception
+            return null;
         }
+        // deleted
+        return object.getOid();
     }
 
     protected <T extends ObjectType> void validateWithDynamicSchemas(PrismObject<T> object, Element objectElement,

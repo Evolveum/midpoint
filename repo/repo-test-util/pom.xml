@@ -57,11 +57,6 @@
 			<artifactId>audit-api</artifactId>
 			<version>2.2-SNAPSHOT</version>
 		</dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl-test</artifactId>
-            <version>2.2-SNAPSHOT</version>
-        </dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
