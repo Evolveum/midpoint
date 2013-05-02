@@ -62,6 +62,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private IModel<ObjectViewDto> model;
     private AceEditor<String> editor;
     private final IModel<Boolean> encrypt = new Model<Boolean>(true);
+    private final IModel<Boolean> validateSchema = new Model<Boolean>(false);
 
     public PageDebugView() {
         model = new LoadableModel<ObjectViewDto>(false) {
@@ -137,6 +138,14 @@ public class PageDebugView extends PageAdminConfiguration {
 			protected void onUpdate(AjaxRequestTarget target) {
 			}
         });
+        
+        mainForm.add(new AjaxCheckBox("validateSchema", validateSchema) {
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+			}
+        });
+        
         mainForm.add(new AjaxCheckBox("edit", editable) {
 
             @Override
@@ -229,7 +238,7 @@ public class PageDebugView extends PageAdminConfiguration {
 			};
 			Validator validator = new Validator(getPrismContext(), handler );
             validator.setVerbose(true);
-            validator.setValidateSchema(true);
+            validator.setValidateSchema(validateSchema.getObject());
             String newXmlString = editor.getModel().getObject();
             validator.validateObject(newXmlString, result);
             
