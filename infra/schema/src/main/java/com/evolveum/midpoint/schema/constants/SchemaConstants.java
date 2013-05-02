@@ -134,6 +134,9 @@ public abstract class SchemaConstants {
 
 	public static final String INTENT_DEFAULT = "default";
 
+	public static final String NS_SYNCHRONIZATION = NS_MODEL +"/synchronization/extension-2";
+	public static final QName DRY_RUN = new QName(NS_SYNCHRONIZATION, "dryRun");
+	
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)

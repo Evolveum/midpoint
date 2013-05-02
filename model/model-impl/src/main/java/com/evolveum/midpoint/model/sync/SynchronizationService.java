@@ -24,6 +24,7 @@ package com.evolveum.midpoint.model.sync;
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -39,8 +40,11 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -50,6 +54,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -57,6 +62,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -131,6 +137,31 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			SynchronizationSituation situation = checkSituation(change, subResult);
 			LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
 
+			if (task.getExtension() != null){
+				PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.DRY_RUN);
+				if (item != null && !item.isEmpty()){
+					if (item.getValues().size() > 1){
+						throw new SchemaException("Unexpected number of values for option 'dry run'.");
+					}
+					
+					Boolean dryRun = item.getValues().iterator().next().getValue();
+					if (dryRun != null && dryRun.booleanValue()){
+						PrismObject object = null;
+						if (change.getCurrentShadow() != null){
+							object = change.getCurrentShadow();
+						} else if (change.getOldShadow() != null){
+							object = change.getOldShadow();
+						}
+						
+						Collection modifications = MiscUtil.createCollection(SynchronizationSituationUtil
+								.createSynchronizationTimestampDelta(object), SynchronizationSituationUtil
+								.createSynchronizationSituationDelta(object, situation.getSituation()));
+						repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
+						return;
+					}
+				}
+			}
+			
 			notifyChange(change, situation, resource, task, subResult);
 
 			subResult.computeStatus();
