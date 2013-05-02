@@ -88,7 +88,7 @@ public final class RUtil {
     public static final String SQL_REPO_OBJECT = "sqlRepoObject";
     public static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
     public static final QName CUSTOM_OBJECTS = new QName(NS_SQL_REPO, SQL_REPO_OBJECTS);
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(RUtil.class);
 
     private RUtil() {
@@ -133,7 +133,7 @@ public final class RUtil {
                 return null;
             }
             if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("Parsing:\n{}", DOMUtil.serializeDOMToString(root));
+                LOGGER.trace("Parsing:\n{}", DOMUtil.serializeDOMToString(root));
             }
             PrismObject object = domProcessor.parseObject(root);
             return (T) object.asObjectable();
@@ -468,19 +468,19 @@ public final class RUtil {
         return DigestUtils.md5Hex(builder.toString());
     }
 
-    public static <T extends SchemaEnum> T getRepoEnumValue(Enum e, Class<T> type) {
-        if (e == null) {
+    public static <T extends SchemaEnum> T getRepoEnumValue(Object object, Class<T> type) {
+        if (object == null) {
             return null;
         }
         Object[] values = type.getEnumConstants();
         for (Object value : values) {
             T schemaEnum = (T) value;
-            if (schemaEnum.getSchemaValue().equals(e)) {
+            if (schemaEnum.getSchemaValue().equals(object)) {
                 return schemaEnum;
             }
         }
 
-        throw new IllegalArgumentException("Unknown schema enum value '" + e.name()
-                + "' of type '" + e.getClass() + "'.");
+        throw new IllegalArgumentException("Unknown value '" + object
+                + "' of type '" + object.getClass() + "', can't translate to '" + type + "'.");
     }
 }

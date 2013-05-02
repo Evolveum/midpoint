@@ -362,6 +362,9 @@ public class RAnyConverter {
             } else if (DOMUtil.XSD_INTEGER.equals(rValue.getType())) {
                 return new BigInteger((String) value);
             }
+        } else if (rValue instanceof RAnyPolyString) {
+            RAnyPolyString poly = (RAnyPolyString) rValue;
+            return new PolyString(poly.getValue(), poly.getNorm());
         }
 
         LOGGER.trace("Couldn't create real value of type '{}' from '{}'",

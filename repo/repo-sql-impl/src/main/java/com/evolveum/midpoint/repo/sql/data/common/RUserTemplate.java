@@ -23,8 +23,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
@@ -43,6 +45,12 @@ public class RUserTemplate extends RObject {
     private RPolyString name;
     private String propertyConstruction;
     private String accountConstruction;
+    private RObjectTemplateType type;
+
+    @Enumerated(EnumType.ORDINAL)
+    public RObjectTemplateType getType() {
+        return type;
+    }
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
@@ -56,6 +64,10 @@ public class RUserTemplate extends RObject {
     @Column(nullable = true)
     public String getPropertyConstruction() {
         return propertyConstruction;
+    }
+
+    public void setType(RObjectTemplateType type) {
+        this.type = type;
     }
 
     @Embedded
@@ -88,6 +100,9 @@ public class RUserTemplate extends RObject {
             return false;
         if (propertyConstruction != null ? !propertyConstruction.equals(that.propertyConstruction) : that.propertyConstruction != null)
             return false;
+        if (type != null ? !type.equals(that.type) : that.type != null)
+            return false;
+
 
         return true;
     }
@@ -98,12 +113,16 @@ public class RUserTemplate extends RObject {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (propertyConstruction != null ? propertyConstruction.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 
     public static void copyToJAXB(RUserTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
+
+        //set name c:userTemplate or c:objectTemplate
+        jaxb.asPrismObject().setName(repo.getType().getSchemaValue());
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         try {
@@ -125,16 +144,25 @@ public class RUserTemplate extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getName(), RObjectTemplateType.class));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         try {
             if (!jaxb.getAccountConstruction().isEmpty()) {
                 ObjectTemplateType template = new ObjectTemplateType();
+                // template needs name for serialization, in here it doesn't matter if it's objectTemplate
+                // or userTemplate, it's only wrapper for data
+                template.asPrismObject().setName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
+
                 template.getAccountConstruction().addAll(jaxb.getAccountConstruction());
                 repo.setAccountConstruction(RUtil.toRepo(template, prismContext));
             }
 
             if (!jaxb.getMapping().isEmpty()) {
                 ObjectTemplateType template = new ObjectTemplateType();
+                // template needs name for serialization, in here it doesn't matter if it's objectTemplate
+                // or userTemplate, it's only wrapper for data
+                template.asPrismObject().setName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
+
                 template.getMapping().addAll(jaxb.getMapping());
                 repo.setPropertyConstruction(RUtil.toRepo(template, prismContext));
             }
