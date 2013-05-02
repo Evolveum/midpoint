@@ -314,6 +314,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         OperationResult subResult = result.createSubresult(ADD_OBJECT);
         subResult.addParam("object", object);
+        subResult.addParam("options", options);
 
         final String operation = "adding";
         int attempt = 1;

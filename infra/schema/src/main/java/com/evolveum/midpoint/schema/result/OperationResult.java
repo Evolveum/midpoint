@@ -1192,20 +1192,6 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			sb.append(count);
 		}
 		sb.append("\n");
-		if (cause != null) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
-			sb.append("[cause]");
-			sb.append(cause.getClass().getSimpleName());
-			sb.append(":");
-			sb.append(cause.getMessage());
-			sb.append("\n");
-			if (printStackTrace) {
-				dumpStackTrace(sb, cause.getStackTrace(), indent + 4);
-				dumpInnerCauses(sb, cause.getCause(), indent + 3);
-			}
-		}
 
 		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
 			for (int i = 0; i < indent + 2; i++) {
@@ -1247,6 +1233,21 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			sb.append("[d]");
 			sb.append(line);
 			sb.append("\n");
+		}
+		
+		if (cause != null) {
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[cause]");
+			sb.append(cause.getClass().getSimpleName());
+			sb.append(":");
+			sb.append(cause.getMessage());
+			sb.append("\n");
+			if (printStackTrace) {
+				dumpStackTrace(sb, cause.getStackTrace(), indent + 4);
+				dumpInnerCauses(sb, cause.getCause(), indent + 3);
+			}
 		}
 
 		for (OperationResult sub : getSubresults()) {

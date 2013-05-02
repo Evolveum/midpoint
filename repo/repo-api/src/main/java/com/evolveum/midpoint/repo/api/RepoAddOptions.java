@@ -20,11 +20,14 @@
  */
 package com.evolveum.midpoint.repo.api;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class RepoAddOptions {
+public class RepoAddOptions implements Serializable {	
+	private static final long serialVersionUID = -6243926109579064467L;
 	
 	private boolean overwrite = false;
 
@@ -40,6 +43,11 @@ public class RepoAddOptions {
 		RepoAddOptions opts = new RepoAddOptions();
 		opts.setOverwrite(true);
 		return opts;
+	}
+
+	@Override
+	public String toString() {
+		return "RepoAddOptions(overwrite=" + overwrite + ")";
 	}
 
 }
