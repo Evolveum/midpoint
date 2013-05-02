@@ -1,4 +1,5 @@
 -- INITRANS added because we use serializable transactions http://docs.oracle.com/cd/B14117_01/appdev.101/b10795/adfns_sq.htm#1025374
+-- replace ");" with ") INITRANS 30;"
 
 CREATE TABLE m_abstract_role (
   approvalExpression    CLOB,
@@ -320,6 +321,18 @@ CREATE TABLE m_object (
   PRIMARY KEY (id, oid)
 ) INITRANS 30;
 
+CREATE TABLE m_object_template (
+  accountConstruction  CLOB,
+  name_norm            VARCHAR2(255 CHAR),
+  name_orig            VARCHAR2(255 CHAR),
+  propertyConstruction CLOB,
+  type                 NUMBER(10, 0),
+  id                   NUMBER(19, 0)     NOT NULL,
+  oid                  VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+) INITRANS 30;
+
 CREATE TABLE m_operation_result (
   owner_oid        VARCHAR2(36 CHAR) NOT NULL,
   owner_id         NUMBER(19, 0)     NOT NULL,
@@ -598,17 +611,6 @@ CREATE TABLE m_user_organizational_unit (
   orig     VARCHAR2(255 CHAR)
 ) INITRANS 30;
 
-CREATE TABLE m_user_template (
-  accountConstruction  CLOB,
-  name_norm            VARCHAR2(255 CHAR),
-  name_orig            VARCHAR2(255 CHAR),
-  propertyConstruction CLOB,
-  id                   NUMBER(19, 0)     NOT NULL,
-  oid                  VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-) INITRANS 30;
-
 CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
 
 ALTER TABLE m_abstract_role
@@ -745,6 +747,11 @@ ADD CONSTRAINT fk_object
 FOREIGN KEY (id, oid)
 REFERENCES m_container;
 
+ALTER TABLE m_object_template
+ADD CONSTRAINT fk_object_template
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
 ALTER TABLE m_operation_result
 ADD CONSTRAINT fk_result_owner
 FOREIGN KEY (owner_id, owner_oid)
@@ -864,10 +871,5 @@ ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_id, user_oid)
 REFERENCES m_user;
-
-ALTER TABLE m_user_template
-ADD CONSTRAINT fk_user_template
-FOREIGN KEY (id, oid)
-REFERENCES m_object;
 
 CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;

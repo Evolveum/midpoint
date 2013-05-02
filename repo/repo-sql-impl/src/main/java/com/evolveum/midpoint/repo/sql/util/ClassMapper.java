@@ -56,7 +56,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.SYSTEM_CONFIGURATION, RContainerType.SYSTEM_CONFIGURATION);
         types.put(ObjectTypes.TASK, RContainerType.TASK);
         types.put(ObjectTypes.USER, RContainerType.USER);
-        types.put(ObjectTypes.OBJECT_TEMPLATE, RContainerType.USER_TEMPLATE);
+        types.put(ObjectTypes.OBJECT_TEMPLATE, RContainerType.OBJECT_TEMPLATE);
         types.put(ObjectTypes.NODE, RContainerType.NODE);
         types.put(ObjectTypes.ORG, RContainerType.ORG);
         types.put(ObjectTypes.ABSTRACT_ROLE, RContainerType.ABSTRACT_ROLE);

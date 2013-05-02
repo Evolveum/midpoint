@@ -318,6 +318,18 @@ CREATE TABLE m_object (
   PRIMARY KEY (id, oid)
 );
 
+CREATE TABLE m_object_template (
+  accountConstruction  CLOB,
+  name_norm            VARCHAR(255),
+  name_orig            VARCHAR(255),
+  propertyConstruction CLOB,
+  type                 INTEGER,
+  id                   BIGINT      NOT NULL,
+  oid                  VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
 CREATE TABLE m_operation_result (
   owner_oid        VARCHAR(36) NOT NULL,
   owner_id         BIGINT      NOT NULL,
@@ -596,17 +608,6 @@ CREATE TABLE m_user_organizational_unit (
   orig     VARCHAR(255)
 );
 
-CREATE TABLE m_user_template (
-  accountConstruction  CLOB,
-  name_norm            VARCHAR(255),
-  name_orig            VARCHAR(255),
-  propertyConstruction CLOB,
-  id                   BIGINT      NOT NULL,
-  oid                  VARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-);
-
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 ALTER TABLE m_abstract_role
@@ -743,6 +744,11 @@ ADD CONSTRAINT fk_object
 FOREIGN KEY (id, oid)
 REFERENCES m_container;
 
+ALTER TABLE m_object_template
+ADD CONSTRAINT fk_object_template
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
 ALTER TABLE m_operation_result
 ADD CONSTRAINT fk_result_owner
 FOREIGN KEY (owner_id, owner_oid)
@@ -862,10 +868,5 @@ ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_id, user_oid)
 REFERENCES m_user;
-
-ALTER TABLE m_user_template
-ADD CONSTRAINT fk_user_template
-FOREIGN KEY (id, oid)
-REFERENCES m_object;
 
 CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;

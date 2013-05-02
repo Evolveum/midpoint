@@ -401,6 +401,21 @@ CREATE TABLE m_object (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
+CREATE TABLE m_object_template (
+  accountConstruction  LONGTEXT,
+  name_norm            VARCHAR(255),
+  name_orig            VARCHAR(255),
+  propertyConstruction LONGTEXT,
+  type                 INTEGER,
+  id                   BIGINT      NOT NULL,
+  oid                  VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
 CREATE TABLE m_operation_result (
   owner_oid        VARCHAR(36) NOT NULL,
   owner_id         BIGINT      NOT NULL,
@@ -730,20 +745,6 @@ CREATE TABLE m_user_organizational_unit (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
-CREATE TABLE m_user_template (
-  accountConstruction  LONGTEXT,
-  name_norm            VARCHAR(255),
-  name_orig            VARCHAR(255),
-  propertyConstruction LONGTEXT,
-  id                   BIGINT      NOT NULL,
-  oid                  VARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_general_ci
-  ENGINE = InnoDB;
-
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 ALTER TABLE m_abstract_role
@@ -904,6 +905,12 @@ ADD CONSTRAINT fk_object
 FOREIGN KEY (id, oid)
 REFERENCES m_container (id, oid);
 
+ALTER TABLE m_object_template
+ADD INDEX fk_object_template (id, oid),
+ADD CONSTRAINT fk_object_template
+FOREIGN KEY (id, oid)
+REFERENCES m_object (id, oid);
+
 ALTER TABLE m_operation_result
 ADD INDEX fk_result_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_result_owner
@@ -1041,12 +1048,6 @@ ADD INDEX fk_user_org_unit (user_id, user_oid),
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_id, user_oid)
 REFERENCES m_user (id, oid);
-
-ALTER TABLE m_user_template
-ADD INDEX fk_user_template (id, oid),
-ADD CONSTRAINT fk_user_template
-FOREIGN KEY (id, oid)
-REFERENCES m_object (id, oid);
 
 CREATE TABLE hibernate_sequence (
   next_val BIGINT

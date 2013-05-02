@@ -42,7 +42,7 @@ public enum RContainerType {
     SYSTEM_CONFIGURATION(RSystemConfiguration.class),
     TASK(RTask.class),
     USER(RUser.class),
-    USER_TEMPLATE(RUserTemplate.class),
+    OBJECT_TEMPLATE(RObjectTemplate.class),
     NODE(RNode.class),
     ORG(ROrg.class),
     ABSTRACT_ROLE(RAbstractRole.class),

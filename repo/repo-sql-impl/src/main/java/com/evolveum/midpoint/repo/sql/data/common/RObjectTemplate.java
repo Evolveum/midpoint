@@ -38,9 +38,9 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@ForeignKey(name = "fk_user_template")
+@ForeignKey(name = "fk_object_template")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-public class RUserTemplate extends RObject {
+public class RObjectTemplate extends RObject {
 
     private RPolyString name;
     private String propertyConstruction;
@@ -93,7 +93,7 @@ public class RUserTemplate extends RObject {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RUserTemplate that = (RUserTemplate) o;
+        RObjectTemplate that = (RObjectTemplate) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
@@ -117,7 +117,7 @@ public class RUserTemplate extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RUserTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RObjectTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
@@ -140,7 +140,7 @@ public class RUserTemplate extends RObject {
         }
     }
 
-    public static void copyFromJAXB(ObjectTemplateType jaxb, RUserTemplate repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -175,7 +175,7 @@ public class RUserTemplate extends RObject {
     public ObjectTemplateType toJAXB(PrismContext prismContext) throws DtoTranslationException {
         ObjectTemplateType object = new ObjectTemplateType();
         RUtil.revive(object, prismContext);
-        RUserTemplate.copyToJAXB(this, object, prismContext);
+        RObjectTemplate.copyToJAXB(this, object, prismContext);
 
         return object;
     }
