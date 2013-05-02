@@ -36,6 +36,7 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
 
 	private boolean addAntiCache;
 	private String contentType = "text";
+    private boolean removeFile = true;
 
 	public AjaxDownloadBehaviorFromFile() {
 		this(true);
@@ -69,7 +70,9 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
 					@Override
 					public void respond(IRequestCycle requestCycle) {
 						super.respond(requestCycle);
-						Files.remove(file);
+                        if (removeFile) {
+						    Files.remove(file);
+                        }
 					}
 				}.setFileName(file.getName()).setContentDisposition(ContentDisposition.ATTACHMENT)
 						.setCacheDuration(Duration.ONE_SECOND));
@@ -79,6 +82,9 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
 		this.contentType = contentType;
 	}
 
+    public void setRemoveFile(boolean removeFile) {
+        this.removeFile = removeFile;
+    }
 
-	protected abstract File initFile();
+    protected abstract File initFile();
 }

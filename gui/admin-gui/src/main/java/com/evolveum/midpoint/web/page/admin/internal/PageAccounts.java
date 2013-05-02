@@ -108,6 +108,7 @@ public class PageAccounts extends PageAdmin {
     private static final String ID_NOTHING = "nothing";
 
     private IModel<List<ResourceItemDto>> resourcesModel;
+    private LoadableModel<List<String>> filesModel;
 
     private IModel<ResourceItemDto> resourceModel = new Model<ResourceItemDto>();
     private LoadableModel<Integer> totalModel;
@@ -166,13 +167,15 @@ public class PageAccounts extends PageAdmin {
                 return downloadFile;
             }
         };
+        ajaxDownloadBehavior.setRemoveFile(false);
         form.add(ajaxDownloadBehavior);
 
         WebMarkupContainer filesContainer = new WebMarkupContainer(ID_FILES_CONTAINER);
         filesContainer.setOutputMarkupId(true);
         form.add(filesContainer);
 
-        ListView<String> files = new ListView<String>(ID_FILES, createFilesModel()) {
+        filesModel = createFilesModel();
+        ListView<String> files = new ListView<String>(ID_FILES, filesModel) {
 
             @Override
             protected void populateItem(final ListItem<String> item) {
@@ -291,8 +294,8 @@ public class PageAccounts extends PageAdmin {
         };
     }
 
-    private IModel<List<String>> createFilesModel() {
-        return new LoadableModel<List<String>>() {
+    private LoadableModel<List<String>> createFilesModel() {
+        return new LoadableModel<List<String>>(false) {
 
             @Override
             protected List<String> load() {
@@ -505,6 +508,7 @@ public class PageAccounts extends PageAdmin {
             IOUtils.closeQuietly(writer);
         }
 
+        filesModel.reset();
         target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_FILES_CONTAINER)));
     }
 
@@ -514,7 +518,6 @@ public class PageAccounts extends PageAdmin {
         MidpointConfiguration config = getMidpointConfiguration();
         File file = new File(config.getMidpointHome() + "/export/" + fileName);
         file.createNewFile();
-        System.out.println(file.getAbsolutePath());
 
         return new OutputStreamWriter(new FileOutputStream(file), "utf-8");
     }
@@ -565,6 +568,7 @@ public class PageAccounts extends PageAdmin {
             error("Couldn't delete export files, reason: " + ex.getMessage());
         }
 
+        filesModel.reset();
         target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_FILES_CONTAINER)));
     }
 

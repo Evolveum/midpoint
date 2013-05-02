@@ -140,12 +140,12 @@ public class PageAdminResources extends PageAdmin {
         }
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            getSession().error(getString("pageAdminResources.message.cantLoadResource"));
-
-            if (!result.isSuccess()) {
-                showResultInSession(result);
+            if (resource != null) {
+                showResult(result);
+            } else {
+                getSession().error(getString("pageAdminResources.message.cantLoadResource"));
+                throw new RestartResponseException(PageResources.class);
             }
-            throw new RestartResponseException(PageResources.class);
         }
 
         return resource;
