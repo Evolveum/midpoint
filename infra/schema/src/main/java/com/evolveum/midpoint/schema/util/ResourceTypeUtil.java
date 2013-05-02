@@ -262,7 +262,10 @@ public class ResourceTypeUtil {
 				if (intent == null && acct.isDefault()) {
 					return acct;
 				}
-				if (acct.getName().equals(intent)) {
+				if (acct.getIntent() != null && acct.getIntent().equals(intent)) {
+					return acct;
+				}
+				if (acct.getName() != null && acct.getName().equals(intent)) {
 					return acct;
 				}
 			}
