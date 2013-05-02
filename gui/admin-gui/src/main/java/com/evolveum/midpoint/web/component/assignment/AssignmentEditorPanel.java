@@ -539,7 +539,11 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
 
                     Collection<SelectorOptions<GetOperationOptions>> options =
                             SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-                    PrismObject object = model.getObject(ObjectType.class, oid, options, task, result);
+                    Class type = ObjectType.class;
+                    if (refValue.getTargetType() != null){
+                    	type = getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(refValue.getTargetType());
+                    }
+                    PrismObject object = model.getObject(type, oid, options, task, result);
 
                     return WebMiscUtil.getName(object);
                 } catch (Exception ex) {

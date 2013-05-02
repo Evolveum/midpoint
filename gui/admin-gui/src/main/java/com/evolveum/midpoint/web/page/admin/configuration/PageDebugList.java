@@ -232,7 +232,7 @@ public class PageDebugList extends PageAdminConfiguration {
         content.getBodyContainer().addOrReplace(table);
     }
 
-    private List<IColumn> initColumns(Class<? extends ObjectType> type) {
+    private List<IColumn> initColumns(final Class<? extends ObjectType> type) {
         List<IColumn> columns = new ArrayList<IColumn>();
 
         IColumn column = new CheckBoxHeaderColumn<ObjectType>();
@@ -244,7 +244,7 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<DebugObjectItem> rowModel) {
                 DebugObjectItem object = rowModel.getObject();
-                objectEditPerformed(target, object.getOid());
+                objectEditPerformed(target, object.getOid(), type);
             }
         };
         columns.add(column);
@@ -444,9 +444,10 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add(table);
     }
 
-    private void objectEditPerformed(AjaxRequestTarget target, String oid) {
+    private void objectEditPerformed(AjaxRequestTarget target, String oid, Class<? extends ObjectType> type) {
         PageParameters parameters = new PageParameters();
         parameters.add(PageDebugView.PARAM_OBJECT_ID, oid);
+        parameters.add(PageDebugView.PARAM_OBJECT_TYPE, type.getSimpleName());
         setResponsePage(PageDebugView.class, parameters);
     }
 

@@ -2,6 +2,8 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
@@ -13,6 +15,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,6 +58,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugView.class);
 
     public static final String PARAM_OBJECT_ID = "objectId";
+    public static final String PARAM_OBJECT_TYPE = "objectType";
     private IModel<ObjectViewDto> model;
     private AceEditor<String> editor;
     private final IModel<Boolean> encrypt = new Model<Boolean>(true);
@@ -87,7 +91,12 @@ public class PageDebugView extends PageAdminConfiguration {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 			// FIXME: ObjectType.class will not work well here. We need more specific type.
             //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
-            PrismObject<ObjectType> object = getModelService().getObject(ObjectType.class, objectOid.toString(), options, task, result);
+            Class type = ObjectType.class;
+            StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
+            if (objectType != null && StringUtils.isNotBlank(objectType.toString())){
+            	type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
+            }
+            PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
             
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
