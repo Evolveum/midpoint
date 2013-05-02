@@ -149,7 +149,7 @@ public class RAuthorization extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setId(RUtil.getStringFromLong(repo.getId()));
+        jaxb.setId(repo.getId());
         jaxb.setDescription(repo.getDescription());
         if (repo.getDecision() != null) {
             jaxb.setDecision(repo.getDecision().getSchemaValue());
@@ -167,7 +167,7 @@ public class RAuthorization extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         repo.setOid(parent.getOid());
-        repo.setId(RUtil.getLongContainerIdFromString(jaxb.getId()));
+        repo.setId(jaxb.getId());
         repo.setDescription(jaxb.getDescription());
 
         repo.setDecision(RUtil.getRepoEnumValue(jaxb.getDecision(), RAuthorizationDecision.class));

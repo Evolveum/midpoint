@@ -160,7 +160,7 @@ public class RExclusion extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setDescription(repo.getDescription());
-        jaxb.setId(RUtil.getStringFromLong(repo.getId()));
+        jaxb.setId(repo.getId());
         if (repo.getPolicy() != null) {
             jaxb.setPolicy(repo.getPolicy().getSchemaValue());
         }
@@ -176,7 +176,7 @@ public class RExclusion extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         repo.setOid(parent.getOid());
-        repo.setId(RUtil.getLongContainerIdFromString(jaxb.getId()));
+        repo.setId(jaxb.getId());
 
         repo.setDescription(jaxb.getDescription());
         repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));

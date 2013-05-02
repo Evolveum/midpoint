@@ -47,6 +47,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.ScrollableResultsIterator;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -410,7 +411,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 modifications = delta.getModifications();
 
                 //we found existing object which will be overwritten, therefore we increment version
-                rObject.setVersion(rObject.getVersion() + 1);
+                Long version = RUtil.getLongFromString(oldObject.getVersion());
+                version = (version == null) ? 0L : ++version;
+
+                rObject.setVersion(version);
             } catch (ObjectNotFoundException ex) {
                 //it's ok that object was not found, therefore we won't be overwriting it
             }

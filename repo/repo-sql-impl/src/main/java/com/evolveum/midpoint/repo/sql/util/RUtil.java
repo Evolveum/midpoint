@@ -339,12 +339,12 @@ public final class RUtil {
         return ref;
     }
 
-    public static Long getLongContainerIdFromString(Long val) throws DtoTranslationException {
-        return val;
-    }
+    public static Long getLongFromString(String val) {
+        if (val == null || !val.matches("[0-9]+")) {
+            return null;
+        }
 
-    public static Long getStringFromLong(Long id) {
-        return id;
+        return Long.parseLong(val);
     }
 
     /**
