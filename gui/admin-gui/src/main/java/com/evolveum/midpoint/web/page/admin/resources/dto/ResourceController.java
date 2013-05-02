@@ -33,91 +33,92 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusT
  * @author mserbak
  */
 public class ResourceController {
-	public static void updateResourceState(ResourceState state, OperationResult result) {
-		Validate.notNull(result, "Operation result must not be null.");
-		
-		List<OperationResult> subResults = result.getSubresults();
-		state.setConConnection(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_CONNECTION,
-				subResults));
-		state.setConfValidation(getStatusFromResultType(ConnectorTestOperation.CONFIGURATION_VALIDATION,
-				subResults));
-		state.setConInitialization(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_INITIALIZATION,
-				subResults));
-		state.setConSanity(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SANITY, subResults));
-		state.setConSchema(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SCHEMA, subResults));
-	}
-	
-	private static ResourceStatus getStatusFromResultType(ConnectorTestOperation operation,
-			List<OperationResult> results) {
-		ResourceStatus status = ResourceStatus.NOT_TESTED;
 
-		OperationResult resultFound = null;
-		for (OperationResult result : results) {
-			try {
-				if (operation.getOperation().equals(result.getOperation())) {
-					resultFound = result;
-					break;
-				}
-			} catch (IllegalArgumentException ex) {
-				//result.recordFatalError("Result operation name " + result.getOperation() + " returned from test connection is not type of " + ConnectorTestOperation.class + ".", ex);
-			}
-		}
+    public static void updateResourceState(ResourceState state, OperationResult result) {
+        Validate.notNull(result, "Operation result must not be null.");
 
-		if (resultFound == null) {
-			return status;
-		}
+        List<OperationResult> subResults = result.getSubresults();
+        state.setConConnection(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_CONNECTION,
+                subResults));
+        state.setConfValidation(getStatusFromResultType(ConnectorTestOperation.CONFIGURATION_VALIDATION,
+                subResults));
+        state.setConInitialization(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_INITIALIZATION,
+                subResults));
+        state.setConSanity(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SANITY, subResults));
+        state.setConSchema(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SCHEMA, subResults));
+    }
 
-		switch (resultFound.getStatus()) {
-			case SUCCESS:
-				status = ResourceStatus.SUCCESS;
-				break;
-			case WARNING:
-				status = ResourceStatus.WARNING;
-				break;
-			case FATAL_ERROR:
-			case PARTIAL_ERROR:
-				status = ResourceStatus.ERROR;
+    private static ResourceStatus getStatusFromResultType(ConnectorTestOperation operation,
+                                                          List<OperationResult> results) {
+        ResourceStatus status = ResourceStatus.NOT_TESTED;
+
+        OperationResult resultFound = null;
+        for (OperationResult result : results) {
+            try {
+                if (operation.getOperation().equals(result.getOperation())) {
+                    resultFound = result;
+                    break;
+                }
+            } catch (IllegalArgumentException ex) {
+                //result.recordFatalError("Result operation name " + result.getOperation() + " returned from test connection is not type of " + ConnectorTestOperation.class + ".", ex);
+            }
+        }
+
+        if (resultFound == null) {
+            return status;
+        }
+
+        switch (resultFound.getStatus()) {
+            case SUCCESS:
+                status = ResourceStatus.SUCCESS;
+                break;
+            case WARNING:
+                status = ResourceStatus.WARNING;
+                break;
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                status = ResourceStatus.ERROR;
                 break;
             default:
                 status = ResourceStatus.NOT_TESTED;
-		}
-		return status;
-	}
-	
-	public static void updateLastAvailabilityState(ResourceState state, AvailabilityStatusType lastAvailabilityStatus) {
-		ResourceStatus lastAvailability = ResourceStatus.NOT_TESTED;
-		
-		if(lastAvailabilityStatus == null) {
-			if(state.getOverall().equals(ResourceStatus.SUCCESS)) {
-				lastAvailability = ResourceStatus.UP;
-			} else if (state.getOverall().equals(ResourceStatus.ERROR)){
-				lastAvailability = ResourceStatus.DOWN;
-			}
-			state.setLastAvailability(lastAvailability);
-			return;
-		}
-		
-		if (state.getOverall().equals(ResourceStatus.SUCCESS)
-				&& !lastAvailabilityStatus.equals(AvailabilityStatusType.UP)) {
-			lastAvailability = ResourceStatus.UP;
-		} else if (state.getOverall().equals(ResourceStatus.ERROR)
-				&& !lastAvailabilityStatus.equals(AvailabilityStatusType.DOWN)) {
-			lastAvailability = ResourceStatus.DOWN;
-		}
-		
-		if(!lastAvailability.equals(ResourceStatus.NOT_TESTED)) {
-			state.setLastAvailability(lastAvailability);
-			return;
-		}
-		
-		switch (lastAvailabilityStatus) {
-			case UP:
-				lastAvailability = ResourceStatus.UP;
-				break;
-			case DOWN:
-				lastAvailability = ResourceStatus.DOWN;
-				break;
-		}
-		state.setLastAvailability(lastAvailability);
-	}
+        }
+        return status;
+    }
+
+    public static void updateLastAvailabilityState(ResourceState state, AvailabilityStatusType lastAvailabilityStatus) {
+        ResourceStatus lastAvailability = ResourceStatus.NOT_TESTED;
+
+        if (lastAvailabilityStatus == null) {
+            if (state.getOverall().equals(ResourceStatus.SUCCESS)) {
+                lastAvailability = ResourceStatus.SUCCESS;
+            } else if (state.getOverall().equals(ResourceStatus.ERROR)) {
+                lastAvailability = ResourceStatus.ERROR;
+            }
+            state.setLastAvailability(lastAvailability);
+            return;
+        }
+
+        if (state.getOverall().equals(ResourceStatus.SUCCESS)
+                && !lastAvailabilityStatus.equals(AvailabilityStatusType.UP)) {
+            lastAvailability = ResourceStatus.SUCCESS;
+        } else if (state.getOverall().equals(ResourceStatus.ERROR)
+                && !lastAvailabilityStatus.equals(AvailabilityStatusType.DOWN)) {
+            lastAvailability = ResourceStatus.ERROR;
+        }
+
+        if (!lastAvailability.equals(ResourceStatus.NOT_TESTED)) {
+            state.setLastAvailability(lastAvailability);
+            return;
+        }
+
+        switch (lastAvailabilityStatus) {
+            case UP:
+                lastAvailability = ResourceStatus.SUCCESS;
+                break;
+            case DOWN:
+                lastAvailability = ResourceStatus.ERROR;
+                break;
+        }
+        state.setLastAvailability(lastAvailability);
+    }
 }

@@ -31,11 +31,7 @@ public enum ResourceStatus {
 
     ERROR("exclamation.png"),
 
-    NOT_TESTED("help.png"),
-    
-    UP("accept.png"),
-    
-    DOWN("exclamation.png");
+    NOT_TESTED("help.png");
 
     private String icon;
 

@@ -60,15 +60,6 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
 
         OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
         try {
-//            SortParam sortParam = getSort();
-//            OrderDirectionType order;
-//            if (sortParam.isAscending()) {
-//                order = OrderDirectionType.ASCENDING;
-//            } else {
-//                order = OrderDirectionType.DESCENDING;
-//            }
-//
-//            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
         	ObjectPaging paging = createPaging(first, count);
             ObjectQuery query = getQuery();
             if (query == null){
