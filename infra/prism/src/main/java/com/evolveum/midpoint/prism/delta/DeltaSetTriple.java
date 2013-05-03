@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * The triple of values (added, unchanged, deleted) that represents difference between two collections of values.
@@ -371,5 +372,38 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable,
 			}
 		}
 	}
+	
+	public String toHumanReadableString() {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		first = toHumanReadableString(sb, "added", plusSet, first);
+		first = toHumanReadableString(sb, "removed", minusSet, first);
+		first = toHumanReadableString(sb, "unchanged", zeroSet, first);
+		return sb.toString();
+	}
+
+	private boolean toHumanReadableString(StringBuilder sb, String label, Collection<T> set, boolean first) {
+		if (set.isEmpty()) {
+			return first;
+		}
+		if (!first) {
+			sb.append("; ");
+		}
+		sb.append(label).append(": ");
+		Iterator<T> iterator = set.iterator();
+		while (iterator.hasNext()) {
+			T item = iterator.next();
+			toHumanReadableString(sb, item);
+			if (iterator.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		return false;
+	}
+
+	protected void toHumanReadableString(StringBuilder sb, T item) {
+		sb.append(item);
+	}
+
 
 }

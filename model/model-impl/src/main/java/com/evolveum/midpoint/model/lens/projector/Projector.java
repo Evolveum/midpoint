@@ -207,33 +207,34 @@ public class Projector {
 	        if (consistencyChecks) context.checkConsistence();
 	        
 	        result.recordSuccess();
+	        result.cleanupResult();
 	        
 		} catch (SchemaException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (PolicyViolationException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (CommunicationException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (ConfigurationException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (SecurityViolationException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			throw e;
 		} catch (RuntimeException e) {
-			result.recordFatalError(e);
+			recordFatalError(e, result);
 			// This should not normally happen unless there is something really bad or there is a bug.
 			// Make sure that it is logged.
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
@@ -241,7 +242,12 @@ public class Projector {
 		}
 		
 	}
-	
+
+	private void recordFatalError(Exception e, OperationResult result) {
+		result.recordFatalError(e);
+		result.cleanupResult(e);
+	}
+
 	public <F extends ObjectType, P extends ObjectType> void sortAccountsToWaves(LensContext<F,P> context) throws PolicyViolationException {
 		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 			determineAccountWave(context, projectionContext);

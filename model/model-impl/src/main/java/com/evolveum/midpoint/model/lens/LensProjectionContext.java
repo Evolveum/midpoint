@@ -779,7 +779,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
 			while (iterator.hasNext()) {
 				ResourceAttribute<?> id = iterator.next();
-				sb.append(id.getHumanReadableDump());
+				sb.append(id.toHumanReadableString());
 				if (iterator.hasNext()) {
 					sb.append(",");
 				}

@@ -65,8 +65,11 @@ public class Source<V extends PrismValue> extends ItemDeltaItem<V> {
 
 	@Override
 	public String toString() {
-		return "Source(" + PrettyPrinter.prettyPrint(name) + ": old=" + itemOld + ", delta=" + delta + ", new=" + itemNew
-				+ ")";
+		return "Source(" + shortDebugDump() + ")";
+	}
+	
+	public String shortDebugDump() {
+		return PrettyPrinter.prettyPrint(name) + ": old=" + itemOld + ", delta=" + delta + ", new=" + itemNew;
 	}
 	
 }

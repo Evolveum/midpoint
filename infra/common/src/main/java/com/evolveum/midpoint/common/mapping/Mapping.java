@@ -71,6 +71,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -121,6 +122,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private ObjectType originObject = null;
 	private FilterManager<Filter> filterManager;
 	private StringPolicyResolver stringPolicyResolver;
+	
+	// This is single-use only. Once evaluated it is not used any more
+	// it is remembered only for tracing purposes.
+	private Expression<PrismValue> expression;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
 	
@@ -368,32 +373,113 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return applicableChannels.contains(channelUri);
 	}
 
-	public void evaluate(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {		
-		sources = parseSources(result);
-		parseTarget();
-
-		if (outputDefinition == null) {
-			throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
+	public void evaluate(OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		
+		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
+		
+		try {
+			sources = parseSources(result);
+			parseTarget();
+	
+			if (outputDefinition == null) {
+				throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
+			}
+			
+			evaluateCondition(result);
+			
+			boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
+			boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
+			
+			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
+			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
+			
+			if (!conditionResultOld && !conditionResultNew) {
+				traceSuccess(conditionResultOld, conditionResultNew);
+				return;
+			}
+			// TODO: input filter
+			evaluateExpression(result, conditionResultOld, conditionResultNew);
+			fixDefinition();
+			recomputeValues();
+			setOrigin();
+			// TODO: output filter
+			
+			result.recordSuccess();
+			traceSuccess(conditionResultOld, conditionResultNew);
+			
+		} catch (ExpressionEvaluationException e) {
+			result.recordFatalError(e);
+			traceFailure(e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			traceFailure(e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			traceFailure(e);
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			traceFailure(e);
+			throw e;
 		}
-		
-		evaluateCondition(result);
-		
-		boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
-		boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
-		
-		boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
-		boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
-		
-		if (!conditionResultOld && !conditionResultNew) {
-			// TODO: tracing
+	}
+	
+	private void traceSuccess(boolean conditionResultOld, boolean conditionResultNew) {
+		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
-		// TODO: input filter
-		evaluateExpression(result, conditionResultOld, conditionResultNew);
-		fixDefinition();
-		recomputeValues();
-		setOrigin();
-		// TODO: output filter
+		StringBuilder sb = new StringBuilder();
+		sb.append("Mapping trace:\n");
+		appendTraceHeader(sb);
+		sb.append("\nCondition: ").append(conditionResultOld).append(" -> ").append(conditionResultNew);
+		sb.append("\nResult: ");
+		if (outputTriple == null) {
+			sb.append("null");
+		} else {
+			sb.append(outputTriple.toHumanReadableString());
+		}
+		appendTraceFooter(sb);
+		LOGGER.trace(sb.toString());
+	}
+	
+	private void traceFailure(Exception e) {
+		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("Mapping failure:\n");
+		appendTraceHeader(sb);
+		sb.append("\nERROR: ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
+		appendTraceFooter(sb);
+		LOGGER.trace(sb.toString());
+	}
+
+	private void appendTraceHeader(StringBuilder sb) {
+		sb.append("---[ MAPPING ");
+		if (mappingType.getName() != null) {
+			sb.append("'").append(mappingType.getName()).append("' ");
+		}
+		sb.append(" in ");
+		sb.append(contextDescription);
+		sb.append("]---------------------------");
+		for (Source<?> source: sources) {
+			sb.append("\nSource: ");
+			sb.append(source.shortDebugDump());
+		}
+		sb.append("\nTarget: ").append(MiscUtil.toString(outputDefinition));
+		sb.append("\nExpression: ");
+		if (expression == null) {
+			sb.append("null");
+		} else {
+			sb.append(expression.shortDebugDump());
+		}
+	}
+
+	private void appendTraceFooter(StringBuilder sb) {
+		sb.append("\n------------------------------------------------------");
 	}
 	
 	private boolean computeConditionResult(Collection<PrismPropertyValue<Boolean>> booleanPropertyValues) {
@@ -581,7 +667,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
-		Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
+		expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
 				"expression in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "expression in "+getMappingContextDescription(), result);
 		params.setRegress(!conditionResultNew);

@@ -74,5 +74,13 @@ public class LiteralExpressionEvaluator<V extends PrismValue> implements Express
 		return outputTriple.clone();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+	 */
+	@Override
+	public String shortDebugDump() {
+		return "literal: "+outputTriple;
+	}
+
 
 }

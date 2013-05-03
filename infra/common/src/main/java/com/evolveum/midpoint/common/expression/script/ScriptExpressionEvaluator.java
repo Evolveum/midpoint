@@ -360,5 +360,13 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		}
 		return xPathHolder.toItemPath();
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+	 */
+	@Override
+	public String shortDebugDump() {
+		return "script: "+scriptExpression.toString();
+	}
 	
 }

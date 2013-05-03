@@ -86,4 +86,12 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
         return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, source.getResidualPath(), prismContext);
     }
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+	 */
+	@Override
+	public String shortDebugDump() {
+		return "asIs";
+	}
+
 }

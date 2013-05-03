@@ -208,5 +208,29 @@ public class Expression<V extends PrismValue> {
 		return newVariables;
 	}
 
+	@Override
+	public String toString() {
+		return "Expression(expressionType=" + expressionType + ", outputDefinition=" + outputDefinition
+				+ ": " + shortDebugDump() + ")";
+	}
+
+	public String shortDebugDump() {
+		if (evaluators == null) {
+			return "null evaluators";
+		}
+		if (evaluators.isEmpty()) {
+			return "[]";
+		}
+		if (evaluators.size() == 1) {
+			return evaluators.iterator().next().shortDebugDump();
+		}
+		StringBuilder sb = new StringBuilder("[");
+		for (ExpressionEvaluator<V> evaluator: evaluators) {
+			sb.append(evaluator.shortDebugDump());
+			sb.append(",");
+		}
+		sb.append("]");
+		return sb.toString();
+	}
 	
 }

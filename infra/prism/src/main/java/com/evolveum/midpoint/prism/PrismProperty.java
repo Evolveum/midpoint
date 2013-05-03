@@ -486,7 +486,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         return sb.toString();
     }
     
-    public String getHumanReadableDump() {
+    public String toHumanReadableString() {
     	StringBuilder sb = new StringBuilder();
     	sb.append(PrettyPrinter.prettyPrint(getName())).append(" = ");
     	if (getValues() == null) {
@@ -496,7 +496,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
             Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
             while(iterator.hasNext()) {
             	PrismPropertyValue<T> value = iterator.next();
-                sb.append(value.getHumanReadableDump());
+                sb.append(value.toHumanReadableString());
                 if (iterator.hasNext()) {
                 	sb.append(", ");
                 }

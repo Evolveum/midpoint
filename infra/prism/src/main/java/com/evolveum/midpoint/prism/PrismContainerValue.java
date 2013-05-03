@@ -1148,4 +1148,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		return equalsRealValue(otherValue);
 	}
 
+	@Override
+	public String toHumanReadableString() {
+		return "id="+id+": "+items.size()+" items";
+	}
+
 }

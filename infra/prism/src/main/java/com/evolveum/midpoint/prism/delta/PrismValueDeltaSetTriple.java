@@ -220,4 +220,11 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
     	return "PVDeltaSetTriple";
     }
 
+	@Override
+	protected void toHumanReadableString(StringBuilder sb, V item) {
+		sb.append(item.toHumanReadableString());
+	}
+	
+	
+
 }

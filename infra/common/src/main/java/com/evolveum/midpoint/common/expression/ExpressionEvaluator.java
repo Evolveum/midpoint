@@ -45,5 +45,7 @@ public interface ExpressionEvaluator<V extends PrismValue> {
 
 	PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext parameters) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
+	
+	String shortDebugDump();
 
 }

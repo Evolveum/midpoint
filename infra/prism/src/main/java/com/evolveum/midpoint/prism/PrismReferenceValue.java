@@ -440,5 +440,13 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	public boolean match(PrismValue otherValue) {
 		return equalsRealValue(otherValue);
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.prism.PrismValue#getHumanReadableDump()
+	 */
+	@Override
+	public String toHumanReadableString() {
+		return "oid="+oid;
+	}
     
 }

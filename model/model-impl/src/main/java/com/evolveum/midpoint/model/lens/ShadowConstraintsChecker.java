@@ -188,8 +188,8 @@ public class ShadowConstraintsChecker {
 			return true;
 		}
 		if (foundObjects.size() > 1) {
-			LOGGER.trace("Found more than one object with attribute "+identifier.getHumanReadableDump());
-			message("Found more than one object with attribute "+identifier.getHumanReadableDump());
+			LOGGER.trace("Found more than one object with attribute "+identifier.toHumanReadableString());
+			message("Found more than one object with attribute "+identifier.toHumanReadableString());
 			return false;
 		} 
 //		PrismProperty<Boolean> isDead = foundObjects.get(0).findProperty(AccountShadowType.F_DEAD);
@@ -203,10 +203,10 @@ public class ShadowConstraintsChecker {
 		boolean match = foundObjects.get(0).getOid().equals(oid);
 		if (!match) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Found conflicting existing object with attribute " + identifier.getHumanReadableDump() + ":\n"
+				LOGGER.trace("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ":\n"
 						+ foundObjects.get(0).dump());
 			}
-			message("Found conflicting existing object with attribute " + identifier.getHumanReadableDump() + ": "
+			message("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ": "
 					+ foundObjects.get(0));
 
 			LensProjectionContext<ShadowType> foundContext = context.findProjectionContextByOid(foundObjects

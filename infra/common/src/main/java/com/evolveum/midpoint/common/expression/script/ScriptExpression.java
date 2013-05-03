@@ -129,8 +129,8 @@ public class ScriptExpression {
 
     private void traceExpressionSuccess(ScriptVariables variables, String shortDesc, Object returnValue) {
         if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("Expression trace:\n"+
-            		"---[ EXPRESSION {}]---------------------------\n"+
+        	LOGGER.trace("Script expression trace:\n"+
+            		"---[ SCRIPT expression {}]---------------------------\n"+
             		"Language: {}\n"+
             		"Variables:\n{}\n"+
             		"Code:\n{}\n"+
@@ -144,8 +144,8 @@ public class ScriptExpression {
     private void traceExpressionFailure(ScriptVariables variables, String shortDesc, Exception exception) {
         LOGGER.error("Expression error: {}", exception.getMessage(), exception);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Expression trace:\n"+
-            		"---[ EXPRESSION {}]---------------------------\n"+
+            LOGGER.trace("Script expression failure:\n"+
+            		"---[ SCRIPT expression {}]---------------------------\n"+
             		"Language: {}\n"+
             		"Variables:\n{}\n"+
             		"Code:\n{}\n"+

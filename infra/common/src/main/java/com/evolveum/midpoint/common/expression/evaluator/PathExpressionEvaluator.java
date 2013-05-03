@@ -152,5 +152,13 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, prismContext);
     }
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+	 */
+	@Override
+	public String shortDebugDump() {
+		return "path: "+path;
+	}
+
 
 }

@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
@@ -158,6 +159,24 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 		}
 		
 		return ItemDelta.toDeltaSetTriple(output, null);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+	 */
+	@Override
+	public String shortDebugDump() {
+		if (elementStringPolicy != null) {
+			return "generate: "+toHumanReadableString(elementStringPolicy);
+		}
+		return "generate";
+	}
+
+	private String toHumanReadableString(StringPolicyType stringPolicy) {
+		if (stringPolicy.getDescription() != null) {
+			return "StringPolicy: "+StringUtils.abbreviate(stringPolicy.getDescription(), 60);
+		}
+		return "StringPolicy";
 	}
 
 }

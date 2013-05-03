@@ -322,5 +322,12 @@ public class MiscUtil {
 		}
 		return clone;
 	}
+	
+	public static String toString(Object o) {
+		if (o == null) {
+			return "null";
+		}
+		return o.toString();
+	}
 
 }

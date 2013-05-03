@@ -316,4 +316,10 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 
 	public abstract boolean match(PrismValue otherValue);
 	
+	/**
+	 * Returns a short (one-line) representation of the real value stored in this object.
+	 * The value is returned without any decorations or type demarcations (such as PPV, PRV, etc.)
+	 */
+	public abstract String toHumanReadableString();
+	
 }

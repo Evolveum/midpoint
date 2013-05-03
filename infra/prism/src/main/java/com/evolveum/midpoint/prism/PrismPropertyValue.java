@@ -495,7 +495,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         }
 	}
 
-	public Object getHumanReadableDump() {
+	@Override
+	public String toHumanReadableString() {
 		return PrettyPrinter.prettyPrint(value);
 	}
 
