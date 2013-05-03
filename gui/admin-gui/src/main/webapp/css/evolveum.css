@@ -104,7 +104,7 @@ input:focus, .button:focus, select:focus, option:focus {
 	position: relative;
 	left: 0px;
 	margin-top: 155px;
-	min-width: 1200px;
+	min-width: 1366px;
 	height: auto;
 	margin-bottom: 70px;
 }
@@ -144,7 +144,7 @@ input:focus, .button:focus, select:focus, option:focus {
   	bottom: 0px;
     text-align: center;
     width: 100%;
-    min-width: 1200px;
+    min-width: 1366px;
    	background-color: #333333;
     box-shadow: 0 -2px 3px 0 rgba(0, 0, 0, 0.4);
     height: 35px;
