@@ -394,6 +394,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 			
 			if (!conditionResultOld && !conditionResultNew) {
+				result.recordSuccess();
 				traceSuccess(conditionResultOld, conditionResultNew);
 				return;
 			}
