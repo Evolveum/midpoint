@@ -21,20 +21,20 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.Collection;
-
-import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -54,8 +54,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -208,6 +208,7 @@ public class PageResourceEdit extends PageAdminResources {
                 //we're adding new resource
                 PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
                 PrismObject<ResourceType> newResource = domProcessor.parseObject(dto.getXml(), ResourceType.class);
+                updateConnectorRef(newResource, task, result);
 
                 ObjectDelta delta = ObjectDelta.createAddDelta(newResource);
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
@@ -216,6 +217,7 @@ public class PageResourceEdit extends PageAdminResources {
                 PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
                 PrismObject<ResourceType> oldResource = dto.getObject();
                 PrismObject<ResourceType> newResource = domProcessor.parseObject(dto.getXml(), ResourceType.class);
+                updateConnectorRef(newResource, task, result);
 
                 ObjectDelta<ResourceType> delta = oldResource.diff(newResource);
 
@@ -235,5 +237,48 @@ public class PageResourceEdit extends PageAdminResources {
             showResult(result);
             target.add(getFeedbackPanel());
         }
+    }
+
+    /**
+     * Method which attempts to resolve connector reference filter to actual connector (if necessary).
+     *
+     * @param resource {@link PrismObject} resource
+     */
+    private void updateConnectorRef(PrismObject<ResourceType> resource, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException {
+        if (resource == null) {
+            return;
+        }
+
+        PrismReference resourceRef = resource.findReference(ResourceType.F_CONNECTOR_REF);
+        if (resourceRef == null || resourceRef.getValue() == null) {
+            return;
+        }
+
+        PrismReferenceValue refValue = resourceRef.getValue();
+        if (StringUtils.isNotEmpty(refValue.getOid())) {
+            return;
+        }
+
+        if (refValue.getFilter() == null) {
+            return;
+        }
+
+        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ConnectorType.class);
+        ObjectFilter filter = QueryConvertor.parseFilter(objDef, refValue.getFilter());
+
+        List<PrismObject<ConnectorType>> connectors = getModelService().searchObjects(ConnectorType.class,
+                ObjectQuery.createObjectQuery(filter), null, task, result);
+        if (connectors.size() != 1) {
+            return;
+        }
+
+        PrismObject<ConnectorType> connector = connectors.get(0);
+        refValue.setOid(connector.getOid());
+        refValue.setTargetType(ConnectorType.COMPLEX_TYPE);
+
+        refValue.setFilter(null);
     }
 }
