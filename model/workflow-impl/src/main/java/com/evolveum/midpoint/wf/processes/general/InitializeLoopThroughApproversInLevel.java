@@ -131,7 +131,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
         PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, approverOidName, DOMUtil.XSD_STRING, prismContext);
-        Expression<PrismValue> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
+        Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, getDefaultVariables(execution), "approverExpression", result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
@@ -156,7 +156,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
+        Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, getDefaultVariables(execution), "automatic approval expression", result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 

@@ -41,7 +41,9 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -140,37 +142,86 @@ public class Expression<V extends PrismValue> {
 		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription, result);
 	}
 	
-	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext parameters) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
+		
+		Map<QName, Object> processedVariables = null;
 		
 		try {
 		
-			Map<QName, Object> processedVariables = processInnerVariables(parameters.getVariables(), parameters.getContextDescription(),
-					parameters.getResult());
+			processedVariables = processInnerVariables(context.getVariables(), context.getContextDescription(),
+					context.getResult());
 			
-			ExpressionEvaluationContext processedParameters = parameters.shallowClone();
+			ExpressionEvaluationContext processedParameters = context.shallowClone();
 			processedParameters.setVariables(processedVariables);
 			
 			for (ExpressionEvaluator<?> evaluator: evaluators) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(processedParameters);
 				if (outputTriple != null) {
+					traceSuccess(context, processedVariables, outputTriple);
 					return outputTriple;
 				}
 			}
+			traceSuccess(context, processedVariables, null);
 			return null;
 		} catch (SchemaException ex) {
-			LOGGER.trace("Script exception:"+ex.getMessage(), ex);
+			traceFailure(context, processedVariables, ex);
 			throw ex;
 		} catch (ExpressionEvaluationException ex) {
-			LOGGER.trace("Script exception:"+ex.getMessage(), ex);
+			traceFailure(context, processedVariables, ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.trace("Script exception:"+ex.getMessage(), ex);
+			traceFailure(context, processedVariables, ex);
 			throw ex;
 		} catch (RuntimeException ex) {
-			LOGGER.error("Script runtime exception:"+ex.getMessage(), ex);
+			traceFailure(context, processedVariables, ex);
 			throw ex;
 		}
+	}
+	
+	private void traceSuccess(ExpressionEvaluationContext context, Map<QName, Object> processedVariables, PrismValueDeltaSetTriple<V> outputTriple) {
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("Mapping trace:\n");
+		appendTraceHeader(sb, context, processedVariables);
+		sb.append("\nResult: ");
+		if (outputTriple == null) {
+			sb.append("null");
+		} else {
+			sb.append(outputTriple.toHumanReadableString());
+		}
+		appendTraceFooter(sb);
+		LOGGER.trace(sb.toString());
+	}
+	
+	private void traceFailure(ExpressionEvaluationContext context, Map<QName, Object> processedVariables, Exception e) {
+		LOGGER.error("Error evaluating expression in {}: {}", new Object[]{context.getContextDescription(), e.getMessage(), e});
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("Expression failure:\n");
+		appendTraceHeader(sb, context, processedVariables);
+		sb.append("\nERROR: ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
+		appendTraceFooter(sb);
+		LOGGER.trace(sb.toString());
+	}
+
+	private void appendTraceHeader(StringBuilder sb, ExpressionEvaluationContext context, Map<QName, Object> processedVariables) {
+		sb.append("---[ EXPRESSION in ");
+		sb.append(context.getContextDescription());
+		sb.append("]---------------------------");
+		sb.append("\nVariables:");
+		DebugUtil.debugDumpMapMultiLine(sb, processedVariables, 1);
+		sb.append("\nOutput definition: ").append(MiscUtil.toString(outputDefinition));
+		sb.append("\nEvaluators: ");
+		sb.append(shortDebugDump());
+	}
+	
+	private void appendTraceFooter(StringBuilder sb) {
+		sb.append("\n------------------------------------------------------");
 	}
 
 	private Map<QName, Object> processInnerVariables(Map<QName, Object> variables, String contextDescription,

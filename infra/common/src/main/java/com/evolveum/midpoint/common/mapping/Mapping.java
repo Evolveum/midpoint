@@ -125,7 +125,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
-	private Expression<PrismValue> expression;
+	private Expression<V> expression;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
 	
@@ -654,7 +654,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			return;
 		}
 		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, null, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
-		Expression<PrismValue> expression = expressionFactory.makeExpression(conditionExpressionType, 
+		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(conditionExpressionType, 
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "condition in "+getMappingContextDescription(), result);
 		params.setStringPolicyResolver(stringPolicyResolver);
