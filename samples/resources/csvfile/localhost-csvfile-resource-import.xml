@@ -185,7 +185,7 @@ This definition is tailored for import from the CSV File.
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
 	            </reaction>
 			</objectSynchronization>
         </synchronization>
