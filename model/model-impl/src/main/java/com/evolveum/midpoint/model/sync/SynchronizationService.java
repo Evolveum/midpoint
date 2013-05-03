@@ -157,6 +157,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 								.createSynchronizationTimestampDelta(object), SynchronizationSituationUtil
 								.createSynchronizationSituationDelta(object, situation.getSituation()));
 						repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
+						subResult.recordSuccess();
 						return;
 					}
 				}
