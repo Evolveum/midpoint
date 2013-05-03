@@ -378,11 +378,11 @@ public class PageAccounts extends PageAdmin {
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.oid"),
                 SelectableBean.F_VALUE + ".oid"));
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.name"),
-                SelectableBean.F_VALUE + ".name"));
+                ShadowType.F_NAME.getLocalPart(), SelectableBean.F_VALUE + ".name"));
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.synchronizationSituation"),
-                SelectableBean.F_VALUE + ".synchronizationSituation"));
+                ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart(), SelectableBean.F_VALUE + ".synchronizationSituation"));
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.synchronizationTimestamp"),
-                SelectableBean.F_VALUE + ".synchronizationTimestamp"));
+                ShadowType.F_SYNCHRONIZATION_TIMESTAMP.getLocalPart(), SelectableBean.F_VALUE + ".synchronizationTimestamp"));
 
         return columns;
     }

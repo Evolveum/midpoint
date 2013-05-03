@@ -267,7 +267,7 @@ public class PageMyPasswords extends PageAdminHome {
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-            for (PasswordAccountDto accDto : dto.getAccounts()) {
+            for (PasswordAccountDto accDto : accounts) {
                 PrismObjectDefinition objDef = accDto.isMidpoint() ?
                         registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                         registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
