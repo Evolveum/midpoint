@@ -77,11 +77,13 @@ public class AddUserAction extends BaseAction {
             UserType user = getUser(userOid, subResult);
             if (user == null) {
                 //set user template to context from action configuration
-				if (userTemplate != null) {
-					context.setUserTemplate(userTemplate);
-				} else {
-					context.setUserTemplate(getUserTemplate(subResult));
-				}
+            	ObjectTemplateType ot = getUserTemplate(subResult);
+            	if (ot != null){
+            		context.setUserTemplate(ot);
+            	} else{
+            		context.setUserTemplate(userTemplate);
+            	}
+				
                 if (context.getUserTemplate() != null) {
                     LOGGER.debug("Using user template {}", context.getUserTemplate().getName());
                 } else {
