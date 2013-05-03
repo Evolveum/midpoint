@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.model.sync;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -35,12 +36,15 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -198,6 +202,8 @@ public class RecomputeTaskHandler implements TaskHandler {
 //		PagingType paging = new PagingType();
 		
 		int offset = 0;
+		int progress = 0;
+		int errors = 0;
 		while (true) {
 			ObjectPaging paging = ObjectPaging.createPaging(offset, SEARCH_MAX_SIZE);
 			ObjectQuery q = ObjectQuery.createObjectQuery(paging);
@@ -208,14 +214,24 @@ public class RecomputeTaskHandler implements TaskHandler {
 				break;
 			}
 			for (PrismObject<UserType> user : users) {
-				OperationResult subResult = result.createSubresult(OperationConstants.RECOMPUTE_USER);
+				OperationResult subResult = result.createMinorSubresult(OperationConstants.RECOMPUTE_USER);
 				subResult.addContext(OperationResult.CONTEXT_OBJECT, user);
 				recomputeUser(user, task, subResult);
 				subResult.computeStatus();
+				if (subResult.isFatalError()){
+					errors++;
+				}
+				progress++;
 			}
 			offset += SEARCH_MAX_SIZE;
 		}
 		
+		result.computeStatus();
+		result.cleanupResult();
+		
+	    String statistics = "Processed " + progress + " users, got " + errors + " errors.";
+
+        result.createSubresult(OperationConstants.RECOMPUTE_STATISTICS).recordStatus(OperationResultStatus.SUCCESS, statistics);
 		// TODO: result
 		
 	}
@@ -233,9 +249,12 @@ public class RecomputeTaskHandler implements TaskHandler {
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 		syncContext.setDoReconciliationForAllProjections(true);
 		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
-
+		try{
 		clockwork.run(syncContext, task, result);
-
+		} catch(Exception ex){
+			result.recordFatalError("Failed to recompute user "+user+". Reason: "+ ex.getMessage(), ex);
+			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_RESULT, user.getDefinition(), result);
+		}
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 		
 		// TODO: process result

@@ -1947,6 +1947,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="result" type="tns:OperationResultType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User's result for the operation. e.g. set by recompute status.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>

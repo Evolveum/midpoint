@@ -34,6 +34,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+
 import java.util.List;
 import java.util.Set;
 
@@ -76,7 +77,14 @@ public class RUser extends RFocus {
     private RPolyString nickName;
     private String preferredLanguage;
     private Set<RPolyString> organization;
+    private ROperationResult result;
 
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public ROperationResult getResult() {
+        return result;
+    }
+    
     @ElementCollection
     @ForeignKey(name = "fk_user_organization")
     @CollectionTable(name = "m_user_organization", joinColumns = {
@@ -286,6 +294,10 @@ public class RUser extends RFocus {
     public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
     }
+    
+    public void setResult(ROperationResult result) {
+        this.result = result;
+    }
 
 
     @Override
@@ -386,6 +398,13 @@ public class RUser extends RFocus {
             RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
             repo.setCredentials(credentials);
         }
+        
+        if (jaxb.getResult() != null) {
+            ROperationResult result = new ROperationResult();
+            result.setOwner(repo);
+            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
+            repo.setResult(result);
+        }
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
@@ -438,6 +457,10 @@ public class RUser extends RFocus {
         units = RUtil.safeSetPolyToList(repo.getOrganization());
         if (!units.isEmpty()) {
             jaxb.getOrganization().addAll(units);
+        }
+        
+        if (repo.getResult() != null) {
+            jaxb.setResult(repo.getResult().toJAXB(prismContext));
         }
     }
 

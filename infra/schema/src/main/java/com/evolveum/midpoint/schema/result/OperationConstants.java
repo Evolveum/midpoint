@@ -34,6 +34,8 @@ public class OperationConstants {
 	public static final String RECONCILE_ACCOUNT = PREFIX + ".reconciliation.account";
 	public static final String RECOMPUTE = PREFIX + ".recompute";
 	public static final String RECOMPUTE_USER = PREFIX + ".recompute.user";
+	public static final String RECOMPUTE_STATISTICS = PREFIX + ".recompute.statistics";
+	
 	
 	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";
     public static final String IMPORT_ACCOUNTS_FROM_RESOURCE_STATISTICS = PREFIX + ".import.accountsFromResource.statistics";
