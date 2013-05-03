@@ -254,7 +254,7 @@ public class ResourceTypeUtil {
 			throw new IllegalArgumentException("The resource is null");
 		}
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-        if (schemaHandling == null || schemaHandling.getAccountType() == null) {
+        if (schemaHandling == null) {
             return null;
         }
         for (ResourceObjectTypeDefinitionType acct: schemaHandling.getObjectType()) {

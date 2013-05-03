@@ -267,8 +267,9 @@ object.
    
 	
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -434,7 +435,7 @@ object.
 		<protected>
                 <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
             </protected>
-		</accountType>
+		</objectType>
 	</schemaHandling>
 
 

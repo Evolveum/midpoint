@@ -104,7 +104,7 @@ public class ResourceCarefulAntUtil {
     private static SchemaHandlingType createNewSchemaHandling(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
     	PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(resourceFile);
     	SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
-    	ResourceObjectTypeDefinitionType accountType = schemaHandling.getAccountType().iterator().next();
+    	ResourceObjectTypeDefinitionType accountType = schemaHandling.getObjectType().iterator().next();
     	List<ResourceAttributeDefinitionType> attrDefs = accountType.getAttribute();
     	ResourceAttributeDefinitionType attributeDefinitionType = attrDefs.get(rnd.nextInt(attrDefs.size()));
     	attributeDefinitionType.setMaxOccurs(Integer.toString(iteration));
