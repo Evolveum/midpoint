@@ -33,11 +33,11 @@
     bottom:0;
 }
 
-div.objectForm .tableForm input[type='text'],
-div.objectForm .tableForm input[type='password'],
-div.objectForm .tableForm input[type='checkbox'],
-div.objectForm .tableForm textarea,
-div.objectForm .tableForm select,
+div.objectForm .tableForm .tableFormBody input[type='text'],
+div.objectForm .tableForm .tableFormBody input[type='password'],
+div.objectForm .tableForm .tableFormBody input[type='checkbox'],
+div.objectForm .tableForm .tableFormBody textarea,
+div.objectForm .tableForm .tableFormBody select,
 .assignmentBody input[type="text"],
 .assignmentBody input[type="password"],
 .assignmentBody textarea,
