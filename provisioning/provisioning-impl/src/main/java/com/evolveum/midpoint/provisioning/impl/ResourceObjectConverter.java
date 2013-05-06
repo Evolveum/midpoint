@@ -1038,7 +1038,7 @@ public class ResourceObjectConverter {
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 
 		ResourceAttribute<?> activationProperty = attributesContainer.findAttribute(activationCapability
-				.getEnableDisable().getAttribute());
+				.getStatus().getAttribute());
 		// LOGGER.trace("activation property: {}", activationProperty.dump());
 		// if (activationProperty == null) {
 		// LOGGER.debug("No simulated activation attribute was defined for the account.");
@@ -1053,15 +1053,15 @@ public class ResourceObjectConverter {
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
 		LOGGER.trace(
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
-				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getStatus().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
 						activation == null ? "null" : activation.getAdministrativeStatus() });
 		
 		// TODO: make this optional
 		// Remove the attribute which is the source of simulated activation. If we leave it there then we
 		// will have two ways to set activation.
-		if (activationCapability.getEnableDisable().isIgnoreAttribute() == null
-				|| activationCapability.getEnableDisable().isIgnoreAttribute().booleanValue()) {
+		if (activationCapability.getStatus().isIgnoreAttribute() == null
+				|| activationCapability.getStatus().isIgnoreAttribute().booleanValue()) {
 			if (activationProperty != null) {
 				attributesContainer.remove(activationProperty);
 			}
@@ -1076,12 +1076,12 @@ public class ResourceObjectConverter {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
-		QName enableDisableAttribute = activationCapability.getEnableDisable().getAttribute();
+		QName enableDisableAttribute = activationCapability.getStatus().getAttribute();
 		List<Object> values = ShadowUtil.getAttributeValues(shadow, enableDisableAttribute);
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
 		LOGGER.trace(
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
-				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
+				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getStatus().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
 						activation == null ? "null" : activation.getAdministrativeStatus() });
 		return activation;
@@ -1096,8 +1096,8 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
-		List<String> disableValues = activationCapability.getEnableDisable().getDisableValue();
-		List<String> enableValues = activationCapability.getEnableDisable().getEnableValue();
+		List<String> disableValues = activationCapability.getStatus().getDisableValue();
+		List<String> enableValues = activationCapability.getStatus().getEnableValue();
 
 		ActivationType activationType = new ActivationType();
 
@@ -1162,7 +1162,7 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
-		ActivationStatusCapabilityType capActStatus = activationCapability.getEnableDisable();
+		ActivationStatusCapabilityType capActStatus = activationCapability.getStatus();
 		if (capActStatus == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ " does not have native or simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");

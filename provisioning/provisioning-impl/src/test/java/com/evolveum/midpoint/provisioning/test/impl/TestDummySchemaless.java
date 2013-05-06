@@ -352,7 +352,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
 		assertNotNull("native activation capability not present", capAct);
-		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
+		assertNotNull("native activation status capability not present", capAct.getStatus());
 		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);

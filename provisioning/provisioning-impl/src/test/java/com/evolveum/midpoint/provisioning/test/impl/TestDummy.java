@@ -476,7 +476,7 @@ public class TestDummy extends AbstractDummyTest {
 		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
 		assertNotNull("native activation capability not present", capAct);
-		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
+		assertNotNull("native activation status capability not present", capAct.getStatus());
 		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
@@ -545,7 +545,7 @@ public class TestDummy extends AbstractDummyTest {
 		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
 		assertNotNull("native activation capability not present", capAct);
-		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
+		assertNotNull("native activation status capability not present", capAct.getStatus());
 		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
@@ -1289,7 +1289,7 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-		assertFalse(dummyAccount.isEnabled());
+		assertFalse("Dummy account "+ACCOUNT_WILL_USERNAME+" is enabled, expected disabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -1335,7 +1335,7 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-		assertTrue(dummyAccount.isEnabled());
+		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		

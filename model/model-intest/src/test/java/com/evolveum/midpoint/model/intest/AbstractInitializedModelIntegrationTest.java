@@ -193,6 +193,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// User Templates
 		addObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
 		addObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, ObjectTemplateType.class, initResult);
+		addObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, ObjectTemplateType.class, initResult);
 
 		// Accounts
 		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, ShadowType.class, initResult);

@@ -825,16 +825,17 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_DISABLE_SIMULATED_OID, addedObjectOid);
-		
 
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-				new File("src/test/resources/impl/disable-account-simulated.xml"), ObjectModificationType.class);
+				new File(REQUEST_DISABLE_ACCOUNT_SIMULATED_FILENAME), ObjectModificationType.class);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 
+		// WHEN
 		provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
 				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 		
+		// THEN
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_DISABLE_SIMULATED_OID, null, result).asObjectable();
 		
@@ -853,7 +854,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("LDAP account", response);
 		
 		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
-		assertNotNull(disabled);
+		assertNotNull("no ds-pwp-account-disabled attribute in account "+uid, disabled);
 
         System.out.println("ds-pwp-account-disabled after change: " + disabled);
 

@@ -24,47 +24,9 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'>
     <name>Complex User Template</name>
-    <mapping>
-    	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
-    	<source>
-    		<path>$user/givenName</path>
-    	</source>
-    	<source>
-    		<path>$user/familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>$user/fullName</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null</code>
-    		</script>  
-    	</condition>
-    </mapping>
     
-    <!-- Unconditional automatic assignment of Blue Dummy resource -->
-    <mapping>
-    	<expression>
-            <value>
-            	<assignment>
-					<accountConstruction>
-						<resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
-					</accountConstruction>
-				</assignment>
-            </value>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
-    </mapping>
-    
+    <includeRef oid="10000000-0000-0000-0000-000000000223"/>
+        
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>
     	<authoritative>true</authoritative>

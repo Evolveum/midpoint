@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -43,6 +45,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -91,6 +94,9 @@ public class UserPolicyProcessor {
 
 	@Autowired(required = true)
 	private PasswordPolicyProcessor passwordPolicyProcessor;
+	
+	@Autowired(required = true)
+	private ModelObjectResolver modelObjectResolver;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -150,15 +156,12 @@ public class UserPolicyProcessor {
 		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
 			= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
 		
-		for (MappingType mappingType : userTemplate.getMapping()) {
-			collectTripleFromMapping(context, mappingType, userTemplate, userOdo, outputTripleMap, result);
-		}
+		collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap, userTemplate.toString(), result);		
 		
 		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
 			ItemPath itemPath = entry.getKey();
 			DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
 			
-			// TODO
 			ItemDelta<? extends PrismValue> apropriItemDelta = null;
 			
 			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
@@ -184,12 +187,46 @@ public class UserPolicyProcessor {
 
 	}
 
+	private void collectTripleFromTemplate(LensContext<UserType, ShadowType> context,
+			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
+			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+			String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		Collection<MappingType> mappings = objectTemplateType.getMapping();
+		collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, outputTripleMap, contextDesc, result);
+	}
+	
+	
+	private void collectTripleFromMappings(Collection<MappingType> mappings, LensContext<UserType, ShadowType> context,
+			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
+			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+			String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
+		// Process includes
+		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+			PrismObject<ObjectTemplateType> includeObject = includeRef.asReferenceValue().getObject();
+			if (includeObject == null) {
+				ObjectTemplateType includeObjectType = modelObjectResolver.resolve(includeRef, ObjectTemplateType.class, "include reference in "+objectTemplateType + " in " + contextDesc, result);
+				includeObject = includeObjectType.asPrismObject();
+				// Store resolved object for future use (e.g. next waves).
+				includeRef.asReferenceValue().setObject(includeObject);
+			}
+			ObjectTemplateType includeObjectType = includeObject.asObjectable();
+			collectTripleFromTemplate(context, includeObjectType, userOdo, outputTripleMap, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, result);
+		}
+		
+		// Process own mappings
+		for (MappingType mappingType : mappings) {
+			collectTripleFromMapping(context, mappingType, objectTemplateType, userOdo, outputTripleMap, contextDesc, result);
+		}
+	}
+
 	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, ShadowType> context, 
 			MappingType mappingType, ObjectTemplateType userTemplate, ObjectDeltaObject<UserType> userOdo, 
-			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap, OperationResult result) 
+			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap, 
+			String contextDesc, OperationResult result) 
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
-		Mapping<V> mapping = evaluateMapping(context, mappingType, userTemplate, userOdo, result);
+		Mapping<V> mapping = evaluateMapping(context, mappingType, userTemplate, userOdo, contextDesc, result);
 		if (mapping == null) {
 			return;
 		}
@@ -208,9 +245,9 @@ public class UserPolicyProcessor {
 	}
 	
 	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, ShadowType> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
-			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			ObjectDeltaObject<UserType> userOdo, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
-				"user template mapping in " + userTemplate
+				"object template mapping in " + contextDesc
 				+ " while processing user " + userOdo.getAnyObject());
 		
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
