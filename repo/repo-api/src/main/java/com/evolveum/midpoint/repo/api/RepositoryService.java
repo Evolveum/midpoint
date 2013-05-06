@@ -453,16 +453,9 @@ public interface RepositoryService {
     public void repositorySelfTest(OperationResult parentResult);
     
     /**
-     * Clean up audit records that are older than specified. 
-     * 
-     * @param maxAge records older that maxAge will be deleted.
-     */
-    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult);
-    
-    /**
      * Clean up closed tasks that are older than specified. 
      * 
-     * @param maxAge closed tasks older that maxAge will be deleted.
+     * @param policy Tasks will be deleted based on this policy.
      */
     public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult);
 }

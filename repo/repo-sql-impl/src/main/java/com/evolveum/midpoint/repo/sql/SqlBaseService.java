@@ -21,23 +21,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.hibernate.PessimisticLockException;
-import org.hibernate.QueryTimeoutException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.exception.GenericJDBCException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 
+import javax.xml.datatype.Duration;
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.Iterator;
 
 /**
  * @author lazyman
@@ -90,7 +94,7 @@ public class SqlBaseService {
             throw ex;
         }
 
-        double waitTimeInterval = LOCKING_TIMEOUT_STEP * Math.pow(2, attempt > LOCKING_EXP_THRESHOLD ? LOCKING_EXP_THRESHOLD : (attempt-1));
+        double waitTimeInterval = LOCKING_TIMEOUT_STEP * Math.pow(2, attempt > LOCKING_EXP_THRESHOLD ? LOCKING_EXP_THRESHOLD : (attempt - 1));
         long waitTime = Math.round(Math.random() * waitTimeInterval);
 
         if (LOGGER.isTraceEnabled()) {
@@ -99,8 +103,8 @@ public class SqlBaseService {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
-                + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
-                attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
+                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
+                    attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
         }
 
         if (attempt >= LOCKING_MAX_ATTEMPTS) {
@@ -205,16 +209,18 @@ public class SqlBaseService {
         rollbackTransaction(session, ex, message, result, fatal);
     }
 
-    protected void rollbackTransaction(Session session, Exception ex, String message, OperationResult result, boolean fatal) {
+    protected void rollbackTransaction(Session session, Exception ex, String message, OperationResult result,
+                                       boolean fatal) {
         if (StringUtils.isEmpty(message) && ex != null) {
             message = ex.getMessage();
         }
 
-        if (result != null && fatal) {      // non-fatal errors will NOT be put into OperationResult, not to confuse the user
+        // non-fatal errors will NOT be put into OperationResult, not to confuse the user
+        if (result != null && fatal) {
             result.recordFatalError(message, ex);
         }
 
-    	if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
+        if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
             return;
         }
 
@@ -236,7 +242,9 @@ public class SqlBaseService {
 
         if (isExceptionRelatedToSerialization(ex)) {
             rollbackTransaction(session, ex, result, false);
-            throw ex;       // this exception will be caught and processed in logOperationAttempt, so it's safe to pass any RuntimeException here
+            // this exception will be caught and processed in logOperationAttempt,
+            // so it's safe to pass any RuntimeException here
+            throw ex;
         } else {
             rollbackTransaction(session, ex, result, true);
             if (ex instanceof SystemException) {
@@ -253,5 +261,37 @@ public class SqlBaseService {
         boolean fatal = !isExceptionRelatedToSerialization(ex);
         rollbackTransaction(session, ex, result, fatal);
         throw new SystemException(ex.getMessage(), ex);
+    }
+
+    protected void cleanup(Class entity, CleanupPolicyType policy, OperationResult result) {
+        Validate.notNull(policy, "Cleanup policy must not be null.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+
+    }
+
+    private void cleanupAttempt(Class entity, CleanupPolicyType policy, OperationResult result) {
+         if (policy.getMaxAge() == null) {
+            return;
+        }
+
+        Duration duration = policy.getMaxAge();
+        if (duration.getSign() > 0) {
+            duration = duration.negate();
+        }
+        long minValue = duration.getTimeInMillis(new Date());
+
+//        Iterator<AuditEventRecord> iterator = records.iterator();
+//        while (iterator.hasNext()) {
+//            AuditEventRecord record = iterator.next();
+//            Long timestamp = record.getTimestamp();
+//            if (timestamp == null) {
+//                continue;
+//            }
+//
+//            if (timestamp < minValue) {
+//                iterator.remove();
+//            }
+//        }
     }
 }

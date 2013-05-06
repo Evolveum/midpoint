@@ -24,10 +24,13 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.Session;
@@ -87,5 +90,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } finally {
             cleanupSessionAndResult(session, null);
         }
+    }
+
+    @Override
+    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+        cleanup(RAuditEventRecord.class, policy, parentResult);
     }
 }

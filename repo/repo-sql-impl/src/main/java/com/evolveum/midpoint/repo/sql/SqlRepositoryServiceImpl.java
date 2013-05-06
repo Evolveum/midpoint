@@ -35,10 +35,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
-import com.evolveum.midpoint.repo.sql.data.common.RShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -1381,7 +1378,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("query", query);
 
         SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("searchObjectsIterative");
+        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
 
         final String operation = "searching iterative";
         int attempt = 1;
@@ -1460,18 +1457,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-
-        // TODO TODO TODO impelment
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
     public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
-        // TODO TODO TODO impelment
-        throw new UnsupportedOperationException("Not implemented yet");
-
+        cleanup(RTask.class, policy, parentResult);
     }
-
-
 }

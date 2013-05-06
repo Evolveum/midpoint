@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,8 +65,13 @@ public class LoggerAuditServiceImpl implements AuditService {
 	public void audit(AuditEventRecord record, Task task) {
 		recordRecord(record);
 	}
-	
-	private void recordRecord(AuditEventRecord record) {
+
+    @Override
+    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+        //nothing to cleanup
+    }
+
+    private void recordRecord(AuditEventRecord record) {
 		// FIXME: hardcoded auditing to a system log
 		if (AUDIT_LOGGER.isInfoEnabled()) {
 			AUDIT_LOGGER.info("{}",toSummary(record));

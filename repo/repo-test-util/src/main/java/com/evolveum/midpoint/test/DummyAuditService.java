@@ -22,11 +22,10 @@ package com.evolveum.midpoint.test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import net.sf.saxon.tree.wrapper.SiblingCountingNode;
 
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +43,9 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.datatype.Duration;
 
 /**
  * Dummy audit service that only remembers the audit messages in runtime.
@@ -70,7 +72,36 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		records.add(record.clone());
 	}
 
-	public List<AuditEventRecord> getRecords() {
+    @Override
+    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+        Validate.notNull(policy, "Cleanup policy must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        if (policy.getMaxAge() == null) {
+            return;
+        }
+
+        Duration duration = policy.getMaxAge();
+        if (duration.getSign() > 0) {
+            duration = duration.negate();
+        }
+        long minValue = duration.getTimeInMillis(new Date());
+
+        Iterator<AuditEventRecord> iterator = records.iterator();
+        while (iterator.hasNext()) {
+            AuditEventRecord record = iterator.next();
+            Long timestamp = record.getTimestamp();
+            if (timestamp == null) {
+                continue;
+            }
+
+            if (timestamp < minValue) {
+                iterator.remove();
+            }
+        }
+    }
+
+    public List<AuditEventRecord> getRecords() {
 		return records;
 	}
 	

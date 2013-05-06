@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +43,9 @@ public class CleanUpTaskHandler implements TaskHandler{
 	
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
+
+    @Autowired(required=true)
+    private AuditService auditService;
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
@@ -95,7 +99,7 @@ public class CleanUpTaskHandler implements TaskHandler{
 		CleanupPolicyType auditCleanupPolicy = cleanupPolicies.getAuditRecords();
 		if (auditCleanupPolicy != null) {
 			try {
-				repositoryService.cleanupAudit(auditCleanupPolicy, opResult);
+				auditService.cleanupAudit(auditCleanupPolicy, opResult);
 			} catch (Exception ex) {
 				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);

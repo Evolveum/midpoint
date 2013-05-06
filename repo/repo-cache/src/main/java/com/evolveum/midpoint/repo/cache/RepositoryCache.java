@@ -299,14 +299,7 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-		repository.cleanupAudit(policy, parentResult);
-		
-	}
-
-	@Override
 	public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
 		repository.cleanupTasks(policy, parentResult);
 	}
-
 }

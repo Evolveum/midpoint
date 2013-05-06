@@ -24,11 +24,13 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,6 +58,16 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
         for (AuditService service : services) {
             service.audit(record, task);
+        }
+    }
+
+    @Override
+    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+        Validate.notNull(policy, "Cleanup policy must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        for (AuditService service : services) {
+            service.cleanupAudit(policy, parentResult);
         }
     }
 
