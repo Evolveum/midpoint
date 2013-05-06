@@ -335,7 +335,7 @@
 				<script>
 					<!-- Note: We cannot test for account name as name is only assigned in provisioning -->
 					<code>
-					'account: ' + account?.getActivation()?.isEnabled()
+					'account: ' + account?.getActivation()?.getAdministrativeStatus()
 					</code>
 				</script> 
 				<name>acc</name>

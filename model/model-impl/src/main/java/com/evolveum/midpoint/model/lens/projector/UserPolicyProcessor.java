@@ -191,15 +191,6 @@ public class UserPolicyProcessor {
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
 			String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		Collection<MappingType> mappings = objectTemplateType.getMapping();
-		collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, outputTripleMap, contextDesc, result);
-	}
-	
-	
-	private void collectTripleFromMappings(Collection<MappingType> mappings, LensContext<UserType, ShadowType> context,
-			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
-			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
-			String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		// Process includes
 		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
@@ -210,11 +201,22 @@ public class UserPolicyProcessor {
 				// Store resolved object for future use (e.g. next waves).
 				includeRef.asReferenceValue().setObject(includeObject);
 			}
+			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
 			collectTripleFromTemplate(context, includeObjectType, userOdo, outputTripleMap, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, result);
 		}
 		
 		// Process own mappings
+		Collection<MappingType> mappings = objectTemplateType.getMapping();
+		collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, outputTripleMap, contextDesc, result);
+	}
+	
+	
+	private void collectTripleFromMappings(Collection<MappingType> mappings, LensContext<UserType, ShadowType> context,
+			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
+			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+			String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
 		for (MappingType mappingType : mappings) {
 			collectTripleFromMapping(context, mappingType, objectTemplateType, userOdo, outputTripleMap, contextDesc, result);
 		}
