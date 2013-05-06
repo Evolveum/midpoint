@@ -32,7 +32,7 @@
     <locality>Jamaica</locality>
 
 	<activation>
-		<enabled>true</enabled>
+		<administrativeStatus>enabled</administrativeStatus>
 	</activation>
 
     <credentials>

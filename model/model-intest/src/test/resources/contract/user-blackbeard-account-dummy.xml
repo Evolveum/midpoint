@@ -35,7 +35,7 @@
             <ri:fullname>Edward Teach</ri:fullname>
         </attributes>
         <activation>
-            <enabled>true</enabled>
+            <administrativeStatus>enabled</administrativeStatus>
         </activation>
     </link>
 

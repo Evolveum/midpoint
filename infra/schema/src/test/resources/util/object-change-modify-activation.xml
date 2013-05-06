@@ -27,7 +27,7 @@
 		    <propertyModification modificationType="replace">
 	        <xp4133:path xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xp4133="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">idmdn:activation</xp4133:path>
 	        <value>
-	            <enabled>true</enabled>
+	            <administrativeStatus>enabled</administrativeStatus>
 	        </value>
 	    </propertyModification>
 	</objectModification>

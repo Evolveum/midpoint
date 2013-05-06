@@ -34,7 +34,7 @@
     <familyName>Threepwood</familyName>
     <locality>Melee Island</locality>
 	<activation>
-		<enabled>true</enabled>
+		<administrativeStatus>enabled</administrativeStatus>
 	</activation>
 	
 <!--     <credentials> -->

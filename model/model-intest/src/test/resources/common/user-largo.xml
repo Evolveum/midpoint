@@ -31,7 +31,7 @@
     <familyName>LaGrande</familyName>
 	<employeeType>PIRATE</employeeType>
 	<activation>
-		<enabled>true</enabled>
+		<administrativeStatus>enabled</administrativeStatus>
 	</activation>
 	 <credentials>
         <password>

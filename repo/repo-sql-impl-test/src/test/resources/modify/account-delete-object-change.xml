@@ -66,6 +66,6 @@
         <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen664="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
     </attributes>
     <activation>
-        <enabled>true</enabled>
+        <administrativeStatus>enabled</administrativeStatus>
     </activation>
 </object>

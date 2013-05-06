@@ -37,7 +37,7 @@
             <ri:uid>hbarbossa</ri:uid>
         </attributes>
         <activation>
-            <enabled>true</enabled>
+            <administrativeStatus>enabled</administrativeStatus>
         </activation>
         <synchronizationSituation>linked</synchronizationSituation>
         <synchronizationSituationDescription>

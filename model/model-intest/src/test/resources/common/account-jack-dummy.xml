@@ -33,6 +33,6 @@
 		<ri:weapon>rum</ri:weapon>
 	</attributes>
 	<activation>
-		<enabled>true</enabled>
+		<administrativeStatus>enabled</administrativeStatus>
 	</activation>
 </account>

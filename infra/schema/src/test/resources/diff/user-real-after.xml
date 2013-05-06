@@ -52,6 +52,6 @@
         <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
-        <enabled>false</enabled>
+        <administrativeStatus>disabled</administrativeStatus>
     </activation>
 </object>

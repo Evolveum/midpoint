@@ -62,7 +62,7 @@
         </password>
     </credentials>
     <activation>
-        <enabled>true</enabled>
+        <administrativeStatus>enabled</administrativeStatus>
     </activation>
     <extension>
         <loot:weapon xmlns:loot="http://example.com/p">gun</loot:weapon>

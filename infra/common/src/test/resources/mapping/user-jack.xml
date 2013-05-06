@@ -74,7 +74,7 @@
         <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
-        <enabled>true</enabled>
+        <administrativeStatus>enabled</administrativeStatus>
     </activation>
     
     <assignment id="111">

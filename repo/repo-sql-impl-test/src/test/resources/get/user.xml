@@ -54,7 +54,7 @@
                       xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
         </attributes>
         <activation>
-            <enabled>true</enabled>
+            <administrativeStatus>enabled</administrativeStatus>
         </activation>
     </object>
 </objects>

@@ -103,7 +103,7 @@
             <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
         </credentials>
         <activation>
-            <enabled>true</enabled>
+            <administrativeStatus>enabled</administrativeStatus>
         </activation>
     </object>
 
@@ -142,7 +142,7 @@
             <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
         </credentials>
         <activation>
-            <enabled>true</enabled>
+            <administrativeStatus>enabled</administrativeStatus>
         </activation>
     </object>
 

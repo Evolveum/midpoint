@@ -40,7 +40,7 @@
       <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
    <activation>
-      <enabled>true</enabled>
+      <administrativeStatus>enabled</administrativeStatus>
    </activation>
 </user>
 	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -81,7 +81,7 @@
       <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
    <activation>
-      <enabled>true</enabled>
+      <administrativeStatus>enabled</administrativeStatus>
    </activation>
 </user>
 	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -122,7 +122,7 @@
       <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
    <activation>
-      <enabled>true</enabled>
+      <administrativeStatus>enabled</administrativeStatus>
    </activation>
 </user>
 

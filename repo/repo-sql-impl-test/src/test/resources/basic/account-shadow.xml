@@ -34,6 +34,6 @@
             <icfs:name>uid=hbarbossa,ou=people,dc=example,dc=com</icfs:name>
         </attributes>
         <activation>
-            <enabled>true</enabled>
+            <administrativeStatus>enabled</administrativeStatus>
         </activation>
 </account>

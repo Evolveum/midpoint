@@ -28,7 +28,7 @@
 	<familyName>Administrator</familyName>
 	<emailAddress>administrator@evolveum.com</emailAddress>
 	<activation>
-		<enabled>true</enabled>
+		<administrativeStatus>enabled</administrativeStatus>
 	</activation>
 	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 		<password>
