@@ -118,6 +118,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -132,6 +133,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -143,7 +145,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEnableDisableCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
@@ -676,10 +678,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (enableAttributeInfo != null) {
 			ActivationCapabilityType capAct = new ActivationCapabilityType();
-			ActivationEnableDisableCapabilityType capEnableDisable = new ActivationEnableDisableCapabilityType();
-			capAct.setEnableDisable(capEnableDisable);
+			ActivationStatusCapabilityType capActStatus = new ActivationStatusCapabilityType();
+			capAct.setStatus(capActStatus);
 			if (!enableAttributeInfo.isReturnedByDefault()) {
-				capEnableDisable.setReturnedByDefault(false);
+				capActStatus.setReturnedByDefault(false);
 			}
 			capabilities.add(capabilityObjectFactory.createActivation(capAct));
 		}
@@ -919,7 +921,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	
 	private boolean enabledReturnedByDefault() {
 		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
-		return CapabilityUtil.isEnabledReturnedByDefault(capability);
+		return CapabilityUtil.isActivationStatusReturnedByDefault(capability);
 	}
 
 
@@ -961,8 +963,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						guardedPassword));
 			}
 			
-			if (objectType.getActivation() != null && objectType.getActivation().isEnabled() != null){
-				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, objectType.getActivation().isEnabled().booleanValue()));
+			if (ActivationUtil.hasAdministrativeActivation(objectType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(objectType)));
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -1913,8 +1915,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
 				ActivationType activationType = ShadowUtil
 						.getOrCreateActivation(shadow);
-				activationType.setEnabled(enabled);
-				LOGGER.trace("Converted enabled: {}", enabled);
+				ActivationStatusType activationStatusType;
+				if (enabled) {
+					activationStatusType = ActivationStatusType.ENABLED;
+				} else {
+					activationStatusType = ActivationStatusType.DISABLED;
+				}
+				activationType.setAdministrativeStatus(activationStatusType);
+				activationType.setEffectiveStatus(activationStatusType);
+				LOGGER.trace("Converted enabled: {}", activationStatusType);
 				continue;
 			}
 
@@ -2040,10 +2049,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Collection<PropertyDelta<?>> activationDeltas) throws SchemaException {
 
 		for (PropertyDelta<?> propDelta : activationDeltas) {
-			if (propDelta.getName().equals(ActivationType.F_ENABLED)) {
+			if (propDelta.getName().equals(ActivationType.F_ADMINISTRATIVE_STATUS)) {
+				ActivationStatusType status = propDelta.getPropertyNew().getValue(ActivationStatusType.class).getValue();
 				// Not entirely correct, TODO: refactor later
-				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, propDelta
-						.getPropertyNew().getValue(Boolean.class).getValue()));
+				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, status == ActivationStatusType.ENABLED));
 			} else {
 				throw new SchemaException("Got unknown activation attribute delta " + propDelta.getName());
 			}

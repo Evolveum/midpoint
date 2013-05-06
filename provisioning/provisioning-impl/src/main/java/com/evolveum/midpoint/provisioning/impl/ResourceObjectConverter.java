@@ -102,6 +102,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
@@ -119,7 +120,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEnableDisableCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 
 /**
@@ -281,7 +282,7 @@ public class ResourceObjectConverter {
 		
 		// Activation/enabled
 		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
-		if (CapabilityUtil.isEnabledReturnedByDefault(activationCapabilityType)) {
+		if (CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
 			// There resource is capable of returning enable flag but it does not do it by default
 			AttributeFetchStrategyType enableFetchStrategy = objectClassDefinition.getActivationEnableFetchStrategy();
 			if (enableFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
@@ -774,25 +775,25 @@ public class ResourceObjectConverter {
 			ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 
-		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
 		if (enabledPropertyDelta == null) {
 			return null;
 		}
-		Boolean enabled = enabledPropertyDelta.getPropertyNew().getRealValue();
-		LOGGER.trace("Find activation change to: {}", enabled);
+		ActivationStatusType status = enabledPropertyDelta.getPropertyNew().getRealValue();
+		LOGGER.trace("Find activation change to: {}", status);
 
-		if (enabled != null) {
+		if (status != null) {
 
 			LOGGER.trace("enabled not null.");
 			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 				// Try to simulate activation capability
 				PropertyModificationOperation activationAttribute = convertToActivationAttribute(shadow, resource,
-						enabled, objectClassDefinition);
+						status, objectClassDefinition);
 				return activationAttribute;
 			} else {
 				// Navive activation, need to check if there is not also change to simulated activation which may be in conflict
-				checkSimulatedActivation(objectChange, enabled, shadow, resource, objectClassDefinition);
+				checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
 				return new PropertyModificationOperation(enabledPropertyDelta);
 			}
 
@@ -800,7 +801,7 @@ public class ResourceObjectConverter {
 		return null;
 	}
 	
-	private void checkSimulatedActivation(Collection<? extends ItemDelta> objectChange, Boolean enabled, ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException{
+	private void checkSimulatedActivation(Collection<? extends ItemDelta> objectChange, ActivationStatusType status, ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException{
 		if (!ResourceTypeUtil.hasResourceConfiguredActivationCapability(resource)) {
 			//nothing to do, resource does not have simulated activation, so there can be no conflict, continue in processing
 			return;
@@ -828,24 +829,24 @@ public class ResourceObjectConverter {
 		Object simluatedActivationValue = realValues.iterator().next();
 		boolean transformedValue = getTransformedValue(shadow, resource, simluatedActivationValue, result);
 		
-		if (transformedValue && enabled){
+		if (transformedValue && status == ActivationStatusType.ENABLED){
 			//this is ok, simulated value and also value for native capability resulted to the same vale
 		} else{
-			throw new SchemaException("Found conflicting change for activation. Simulated activation resulted to " + transformedValue +", but native activation resulted to " + enabled);
+			throw new SchemaException("Found conflicting change for activation. Simulated activation resulted to " + transformedValue +", but native activation resulted to " + status);
 		}
 		
 	}
 	
 	private boolean getTransformedValue(ShadowType shadow, ResourceType resource, Object simulatedValue, OperationResult result) throws SchemaException{
-		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
-		List<String> disableValues = enableDisable.getDisableValue();
+		ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(shadow, resource, result);
+		List<String> disableValues = capActStatus.getDisableValue();
 		for (String disable : disableValues){
 			if (disable.equals(simulatedValue)){
 				return false; 
 			}
 		}
 		
-		List<String> enableValues = enableDisable.getEnableValue();
+		List<String> enableValues = capActStatus.getEnableValue();
 		for (String enable : enableValues){
 			if (enable.equals(simulatedValue)){
 				return true;
@@ -858,22 +859,22 @@ public class ResourceObjectConverter {
 	private void checkActivationAttribute(ShadowType shadow, ResourceType resource,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		OperationResult result = new OperationResult("Checking activation attribute in the new shadow.");
-		if (shadow.getActivation() != null && shadow.getActivation().isEnabled() != null) {
+		if (shadow.getActivation() != null && shadow.getActivation().getAdministrativeStatus() != null) {
 			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-				ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(
+				ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(
 						shadow, resource, result);
-				if (enableDisable == null) {
+				if (capActStatus == null) {
 					throw new SchemaException("Attempt to change activation/enabled on "+resource+" that has neither native" +
 							" nor simulated activation capability");
 				}
 				ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
 						objectClassDefinition, result);
-				boolean enabled = shadow.getActivation().isEnabled().booleanValue();
+				ActivationStatusType status = shadow.getActivation().getAdministrativeStatus();
 				PrismPropertyValue activationValue = null;
-				if (enabled) {
-					activationValue = new PrismPropertyValue(getEnableValue(enableDisable));
+				if (status == ActivationStatusType.ENABLED) {
+					activationValue = new PrismPropertyValue(getEnableValue(capActStatus));
 				} else {
-					activationValue = new PrismPropertyValue(getDisableValue(enableDisable));
+					activationValue = new PrismPropertyValue(getDisableValue(capActStatus));
 				}
 				activationSimulateAttribute.add(activationValue);
 
@@ -995,7 +996,7 @@ public class ResourceObjectConverter {
 		if (resourceObjectType.getActivation() != null || ResourceTypeUtil.hasActivationCapability(resourceType)) {
 			ActivationType activationType = completeActivation(resourceObject, resourceType, parentResult);
 			LOGGER.trace("Determined activation: {}",
-					activationType == null ? "null activationType" : activationType.isEnabled());
+					activationType == null ? "null activationType" : activationType.getAdministrativeStatus());
 			resourceObjectType.setActivation(activationType);
 		} else {
 			resourceObjectType.setActivation(null);
@@ -1054,7 +1055,7 @@ public class ResourceObjectConverter {
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
 				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
-						activation == null ? "null" : activation.isEnabled() });
+						activation == null ? "null" : activation.getAdministrativeStatus() });
 		
 		// TODO: make this optional
 		// Remove the attribute which is the source of simulated activation. If we leave it there then we
@@ -1082,7 +1083,7 @@ public class ResourceObjectConverter {
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
 				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
-						activation == null ? "null" : activation.isEnabled() });
+						activation == null ? "null" : activation.getAdministrativeStatus() });
 		return activation;
 	}
 
@@ -1103,12 +1104,12 @@ public class ResourceObjectConverter {
 		if (MiscUtil.isNoValue(activationValues)) {
 
 			if (MiscUtil.hasNoValue(disableValues)) {
-				activationType.setEnabled(false);
+				activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
 				return activationType;
 			}
 
 			if (MiscUtil.hasNoValue(enableValues)) {
-				activationType.setEnabled(true);
+				activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
 				return activationType;
 			}
 
@@ -1135,14 +1136,14 @@ public class ResourceObjectConverter {
 
 			for (String disable : disableValues) {
 				if (disable.equals(String.valueOf(disableObj))) {
-					activationType.setEnabled(false);
+					activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
 					return activationType;
 				}
 			}
 
 			for (String enable : enableValues) {
 				if ("".equals(enable) || enable.equals(String.valueOf(disableObj))) {
-					activationType.setEnabled(true);
+					activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
 					return activationType;
 				}
 			}
@@ -1151,39 +1152,39 @@ public class ResourceObjectConverter {
 		return null;
 	}
 	
-	private ActivationEnableDisableCapabilityType getEnableDisableFromSimulatedActivation(ShadowType shadow, ResourceType resource, OperationResult result){
+	private ActivationStatusCapabilityType getActivationStatusFromSimulatedActivation(ShadowType shadow, ResourceType resource, OperationResult result){
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
-					+ " does not have native or simulated activation capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+					+ " does not have native or simulated activation capability. Processing of activation for account "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
 
-		ActivationEnableDisableCapabilityType enableDisable = activationCapability.getEnableDisable();
-		if (enableDisable == null) {
+		ActivationStatusCapabilityType capActStatus = activationCapability.getEnableDisable();
+		if (capActStatus == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
-					+ " does not have native or simulated activation/enableDisable capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+					+ " does not have native or simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
-		return enableDisable;
+		return capActStatus;
 
 	}
 	
 	private ResourceAttribute<?> getSimulatedActivationAttribute(ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result){
 		
-		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
-		if (enableDisable == null){
+		ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(shadow, resource, result);
+		if (capActStatus == null){
 			return null;
 		}
-		QName enableAttributeName = enableDisable.getAttribute();
+		QName enableAttributeName = capActStatus.getAttribute();
 		LOGGER.trace("Simulated attribute name: {}", enableAttributeName);
 		if (enableAttributeName == null) {
 			result.recordWarning("Resource "
 							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation/enableDisable capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+							+ " does not have attribute specification for simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1203,7 +1204,7 @@ public class ResourceObjectConverter {
 	}
 
 	private PropertyModificationOperation convertToActivationAttribute(ShadowType shadow, ResourceType resource,
-			Boolean enabled, ObjectClassComplexTypeDefinition objectClassDefinition)
+			ActivationStatusType status, ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 		OperationResult result = new OperationResult("Modify activation attribute.");
 
@@ -1212,21 +1213,21 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
-		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
-		if (enableDisable == null){
+		ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(shadow, resource, result);
+		if (capActStatus == null){
 			return null;
 		}
 		
 		PropertyDelta<?> enableAttributeDelta = null;
 		
-		if (enabled) {
-			String enableValue = getEnableValue(enableDisable);
+		if (status == ActivationStatusType.ENABLED) {
+			String enableValue = getEnableValue(capActStatus);
 			LOGGER.trace("enable attribute delta: {}", enableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
 					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), enableValue);
 //			enableAttributeDelta.setValueToReplace(enableValue);
 		} else {
-			String disableValue = getDisableValue(enableDisable);
+			String disableValue = getDisableValue(capActStatus);
 			LOGGER.trace("enable attribute delta: {}", disableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
 					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), disableValue);
@@ -1238,15 +1239,15 @@ public class ResourceObjectConverter {
 		return attributeChange;
 	}
 	
-	private String getDisableValue(ActivationEnableDisableCapabilityType enableDisable){
+	private String getDisableValue(ActivationStatusCapabilityType capActStatus){
 		//TODO some checks
-		String disableValue = enableDisable.getDisableValue().iterator().next();
+		String disableValue = capActStatus.getDisableValue().iterator().next();
 		return disableValue;
 //		return new PrismPropertyValue(disableValue);
 	}
 	
-	private String getEnableValue(ActivationEnableDisableCapabilityType enableDisable){
-		List<String> enableValues = enableDisable.getEnableValue();
+	private String getEnableValue(ActivationStatusCapabilityType capActStatus){
+		List<String> enableValues = capActStatus.getEnableValue();
 
 		Iterator<String> i = enableValues.iterator();
 		String enableValue = i.next();

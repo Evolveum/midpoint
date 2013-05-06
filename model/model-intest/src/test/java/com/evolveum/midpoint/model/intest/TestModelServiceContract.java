@@ -2027,8 +2027,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Note: We cannot test for account name as name is only assigned in provisioning
 		String accountEnabled = null;
 		if (account != null && account.asObjectable().getActivation() != null 
-				&& account.asObjectable().getActivation().isEnabled() != null) {
-			accountEnabled = account.asObjectable().getActivation().isEnabled().toString();
+				&& account.asObjectable().getActivation().getAdministrativeStatus() != null) {
+			accountEnabled = account.asObjectable().getActivation().getAdministrativeStatus().toString();
 		}
 		script.addArgSingle("acc", "account: "+accountEnabled);
 

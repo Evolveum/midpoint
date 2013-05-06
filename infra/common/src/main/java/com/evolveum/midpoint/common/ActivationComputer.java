@@ -60,14 +60,14 @@ public class ActivationComputer {
 			// Explicit administrative status overrides everything 
 			return administrativeStatus;
 		}
-		if (activationType.isEnabled() != null) {
-			// DEPRECATED legacy property
-			if (activationType.isEnabled()) {
-				return ActivationStatusType.ENABLED;
-			} else {
-				return ActivationStatusType.DISABLED;
-			}
-		}
+//		if (activationType.isEnabled() != null) {
+//			// DEPRECATED legacy property
+//			if (activationType.isEnabled()) {
+//				return ActivationStatusType.ENABLED;
+//			} else {
+//				return ActivationStatusType.DISABLED;
+//			}
+//		}
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (validityStatus == null) {
 			// No administrative status, no validity. Defaults to disabled.
@@ -106,13 +106,13 @@ public class ActivationComputer {
 		if (administrativeStatus != null) {
 			// Explicit administrative status overrides everything 
 			effectiveStatus = administrativeStatus;
-		} else if (activationType.isEnabled() != null) {
-			// DEPRECATED legacy property
-			if (activationType.isEnabled()) {
-				effectiveStatus = ActivationStatusType.ENABLED;
-			} else {
-				effectiveStatus = ActivationStatusType.DISABLED;
-			}
+//		} else if (activationType.isEnabled() != null) {
+//			// DEPRECATED legacy property
+//			if (activationType.isEnabled()) {
+//				effectiveStatus = ActivationStatusType.ENABLED;
+//			} else {
+//				effectiveStatus = ActivationStatusType.DISABLED;
+//			}
 		}
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (effectiveStatus == null) {
@@ -135,4 +135,19 @@ public class ActivationComputer {
 		activationType.setValidityStatus(validityStatus);
 	}
 
+	public boolean isActive(ActivationType activationType) {
+		if (activationType == null) {
+			return false;
+		}
+		ActivationStatusType effectiveStatus = activationType.getEffectiveStatus();
+		if (effectiveStatus == null) {
+			computeEffective(activationType);
+			effectiveStatus = activationType.getEffectiveStatus();
+		}
+		if (effectiveStatus == null) {
+			return false;
+		}
+		return effectiveStatus == ActivationStatusType.ENABLED;
+	}
+	
 }

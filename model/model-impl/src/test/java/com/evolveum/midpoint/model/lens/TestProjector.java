@@ -74,6 +74,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -470,8 +471,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context,
-        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED),
-        		false);
+        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        		ActivationStatusType.DISABLED);
         context.recompute();
 
         display("Input context", context);
@@ -497,9 +498,9 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PropertyDelta<Boolean> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, 
-        		ActivationType.F_ENABLED));
-        PrismAsserts.assertReplace(enabledDelta, false);
+        PropertyDelta<ActivationStatusType> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, 
+        		ActivationType.F_ADMINISTRATIVE_STATUS));
+        PrismAsserts.assertReplace(enabledDelta, ActivationStatusType.DISABLED);
         PrismAsserts.assertOrigin(enabledDelta, OriginType.OUTBOUND);
     }
 	

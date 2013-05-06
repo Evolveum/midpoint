@@ -108,6 +108,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -141,8 +142,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
 	protected static final String CONNECTOR_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 	
-	protected static final ItemPath ACTIVATION_ENABLED_PATH = new ItemPath(UserType.F_ACTIVATION, 
-			ActivationType.F_ENABLED);
+	protected static final ItemPath ACTIVATION_ADMINISTRATIVE_STATUS_PATH = new ItemPath(UserType.F_ACTIVATION, 
+			ActivationType.F_ADMINISTRATIVE_STATUS);
 	
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -327,11 +328,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertEnabled(PrismObject<UserType> user) {
-		PrismProperty<Boolean> enabledProperty = user.findProperty(ACTIVATION_ENABLED_PATH);
-		assert enabledProperty != null : "No 'enabled' property in "+user;
-		Boolean enabled = enabledProperty.getRealValue();
-		assert enabled != null : "'enabled' property is null in "+user;
-		assert enabled : "'enabled' property is false in "+user;
+		PrismProperty<ActivationStatusType> statusProperty = user.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
+		assert statusProperty != null : "No status property in "+user;
+		ActivationStatusType status = statusProperty.getRealValue();
+		assert status != null : "status property is null in "+user;
+		assert status == ActivationStatusType.ENABLED : "status property is "+status+" in "+user+", expected ENABLED";
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {

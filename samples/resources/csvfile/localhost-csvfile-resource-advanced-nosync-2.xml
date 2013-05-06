@@ -247,11 +247,11 @@ else {
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
 			<configured>
 				<cap:activation>
-					<cap:enableDisable>
+					<cap:status>
 						<cap:attribute>ri:disabled</cap:attribute>
 						<cap:enableValue>false</cap:enableValue>
 						<cap:disableValue>true</cap:disableValue>
-					</cap:enableDisable>
+					</cap:status>
 				</cap:activation>
 			</configured>
 		</capabilities>

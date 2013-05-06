@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -45,6 +46,7 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
 	private static final long serialVersionUID = 8299738301872077768L;
     private UserType user;
     private Collection<Authorization> authorizations = new ArrayList<Authorization>();
+    private ActivationStatusType effectiveActivationStatus;
 
     public MidPointPrincipal(UserType user) {
         Validate.notNull(user, "User must not be null.");
@@ -108,34 +110,7 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
 	 */
 	@Override
 	public boolean isEnabled() {
-		CredentialsType credentials = user.getCredentials();
-        if (credentials == null || credentials.getPassword() == null){ 
-        	return false;
-        }
-        
-        if (user.getActivation() == null) {
-            return false;
-        }
-
-        ActivationType activation = user.getActivation();
-        long time = System.currentTimeMillis();
-        if (activation.getValidFrom() != null) {
-            long from = MiscUtil.asDate(activation.getValidFrom()).getTime();
-            if (time < from) {
-                return false;
-            }
-        }
-        if (activation.getValidTo() != null) {
-            long to = MiscUtil.asDate(activation.getValidTo()).getTime();
-            if (to > time) {
-                return false;
-            }
-        }
-        if (activation.isEnabled() == null) {
-            return false;
-        }
-        
-        return activation.isEnabled();
+		return effectiveActivationStatus == ActivationStatusType.ENABLED;
 	}
 
 	public UserType getUser() {

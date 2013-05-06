@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.model.UserComputer;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
@@ -70,6 +71,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private MappingFactory valueConstructionFactory;
     
     @Autowired(required = true)
+    private UserComputer userComputer;
+    
+    @Autowired(required = true)
     private PrismContext prismContext;
 
     @Override
@@ -112,8 +116,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (list.size() == 0 || list.size() > 1) {
             return null;
         }
+        
+        PrismObject<UserType> user = list.get(0);
+        userComputer.recompute(user);
 
-        MidPointPrincipal principal = new MidPointPrincipal(list.get(0).asObjectable());
+        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
         addAuthorizations(principal);
         return principal;
     }

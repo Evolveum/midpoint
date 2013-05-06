@@ -37,6 +37,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.FilterInvocation;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -48,6 +49,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class AuthorizationEvaluator implements AccessDecisionManager {
 	
 	private static final String WILDCARD = "*";
+	
+	private ActivationComputer activationComputer;
+
+	public ActivationComputer getActivationComputer() {
+		return activationComputer;
+	}
+
+	public void setActivationComputer(ActivationComputer activationComputer) {
+		this.activationComputer = activationComputer;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.security.access.AccessDecisionManager#decide(org.springframework.security.core.Authentication, java.lang.Object, java.util.Collection)
@@ -155,8 +166,7 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 
 	private boolean isActive(MidPointPrincipal principal) {
 		UserType userType = principal.getUser();
-		return (userType.getActivation() != null && userType.getActivation().isEnabled() != null && 
-    			userType.getActivation().isEnabled());
+		return activationComputer.isActive(userType.getActivation());
 	}
 
 	private boolean appliesTo(Authorization authorization, String action) {

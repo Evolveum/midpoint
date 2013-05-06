@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -144,7 +145,7 @@ public class TestMappingStatic {
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
     			"mapping-value-boolean-true.xml",
     			"testValue",
-    			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED));				// target    	
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS));				// target    	
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, Boolean.TRUE);
     	PrismAsserts.assertTripleNoPlus(outputTriple);
@@ -157,7 +158,7 @@ public class TestMappingStatic {
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
     			"mapping-value-boolean-false.xml",
     			"testValue",
-    			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED));				// target    	
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS));				// target    	
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, Boolean.FALSE);
     	PrismAsserts.assertTripleNoPlus(outputTriple);

@@ -94,7 +94,14 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:CapabilityType">
 				<xsd:sequence>
-					<xsd:element name="enableDisable" type="tns:ActivationEnableDisableCapabilityType" minOccurs="0">
+					<xsd:element name="enableDisable" type="tns:ActivationStatusCapabilityType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								DEPRECATED. Does not work any more. Use "status" instead.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="status" type="tns:ActivationStatusCapabilityType" minOccurs="0">
 					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
@@ -103,10 +110,10 @@
 	
 	<xsd:element name="activation" type="tns:ActivationCapabilityType"/>
 	
-	<xsd:complexType name="ActivationEnableDisableCapabilityType">
+	<xsd:complexType name="ActivationStatusCapabilityType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Describes capability to enable and disable account.
+				Describes capability to provide activation status (e.g. account enable and disable).
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>

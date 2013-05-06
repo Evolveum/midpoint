@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -215,8 +216,8 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context,
-        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED),
-        		false);
+        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        		ActivationStatusType.DISABLED);
         context.recompute();
 
         display("Input context", context);
@@ -243,8 +244,8 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
-        		new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
-        		false);
+        		new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        		ActivationStatusType.DISABLED);
                 
     }
 	

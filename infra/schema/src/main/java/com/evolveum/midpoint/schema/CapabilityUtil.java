@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEnableDisableCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory;
@@ -149,17 +149,17 @@ public class CapabilityUtil {
 		return password.isReturnedByDefault();
 	}
 	
-	public static boolean isEnabledReturnedByDefault(ActivationCapabilityType capability) {
+	public static boolean isActivationStatusReturnedByDefault(ActivationCapabilityType capability) {
 		if (capability == null) {
 			return false;
 		}
-		ActivationEnableDisableCapabilityType enaCap = capability.getEnableDisable();
-		if (enaCap == null) {
+		ActivationStatusCapabilityType statusCap = capability.getStatus();
+		if (statusCap == null) {
 			return false;
 		}
-		if (enaCap.isReturnedByDefault() == null) {
+		if (statusCap.isReturnedByDefault() == null) {
 			return true;
 		}
-		return enaCap.isReturnedByDefault();
+		return statusCap.isReturnedByDefault();
 	}
 }

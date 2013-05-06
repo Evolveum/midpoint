@@ -72,6 +72,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -1175,9 +1176,9 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         ObjectDelta<ShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_OID, 
-        		resourceDummy, ACTIVATION_ENABLED_PATH, false);
+        		resourceDummy, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
         ObjectDelta<ShadowType> accountDeltaBlue = createModifyAccountShadowReplaceDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, 
-        		resourceDummyBlue, ACTIVATION_ENABLED_PATH, false);
+        		resourceDummyBlue, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaBlue);
 		display("Input deltas: ", deltas);
                 
@@ -1210,7 +1211,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ObjectDelta<ShadowType> accountPrimaryDelta = accContextDefault.getPrimaryDelta();
 		assertNotNull("No account primary delta (default)", accountPrimaryDelta);
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
-		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, ACTIVATION_ENABLED_PATH, false);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, false);
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContextDefault.getSecondaryDelta();
         assertNull("Unexpected account secondary delta (default)", accountSecondaryDelta);
@@ -1223,7 +1224,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ObjectDelta<ShadowType> accountPrimaryDeltaBlue = accContextBlue.getPrimaryDelta();
 		assertNotNull("No account primary delta (blue)", accountPrimaryDeltaBlue);
 		PrismAsserts.assertModifications(accountPrimaryDeltaBlue, 1);
-		PrismAsserts.assertPropertyReplace(accountPrimaryDeltaBlue, ACTIVATION_ENABLED_PATH, false);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDeltaBlue, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, false);
 		
         ObjectDelta<ShadowType> accountSecondaryDeltaBlue = accContextBlue.getSecondaryDelta();
         assertNull("Unexpected account secondary delta (blue)", accountSecondaryDeltaBlue);

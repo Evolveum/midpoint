@@ -295,7 +295,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertNotAssignedRole(jack, ROLE_R2_OID);
                 assertAssignedRole(jack, ROLE_R3_OID);
                 assertAssignedRole(jack, ROLE_R4_OID);
-                assertFalse("activation has not been changed to false", jack.asObjectable().getActivation().isEnabled());
+                assertEquals("activation has not been changed", ActivationStatusType.DISABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
             }
 
             @Override
@@ -332,7 +332,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertNotAssignedRole(jack, ROLE_R2_OID);
                 assertNotAssignedRole(jack, ROLE_R3_OID);
                 assertAssignedRole(jack, ROLE_R4_OID);
-                assertTrue("activation has not been changed to true", jack.asObjectable().getActivation().isEnabled());
+                assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
             }
 
             @Override
@@ -342,7 +342,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertNotAssignedRole(jack, ROLE_R2_OID);
                 assertAssignedRole(jack, ROLE_R3_OID);
                 assertAssignedRole(jack, ROLE_R4_OID);
-                assertTrue("activation has not been changed to true", jack.asObjectable().getActivation().isEnabled());
+                assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
             }
 
             @Override

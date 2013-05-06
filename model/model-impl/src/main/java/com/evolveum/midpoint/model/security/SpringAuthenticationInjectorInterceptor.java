@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -127,8 +128,8 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 UserType userType = principal.getUser();
                 if (userType.getCredentials() != null && userType.getCredentials().isAllowedIdmAdminGuiAccess() != null) {
                 	// Legacy authorization mechanism. DEPRECATED. TODO: remove
-                	if (userType.getActivation() == null || userType.getActivation().isEnabled() == null || 
-                			!userType.getActivation().isEnabled()) {
+                	if (userType.getActivation() == null || userType.getActivation().getEffectiveStatus() == null || 
+                			userType.getActivation().getEffectiveStatus() != ActivationStatusType.ENABLED) {
                 		throw new Fault(
                 				new WSSecurityException("User is disabled (LEGACY)"));
                 	}

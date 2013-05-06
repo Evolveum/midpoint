@@ -393,7 +393,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// WHEN
 
 		Set<Operation> changes = new HashSet<Operation>();
-		changes.add(createActivationChange(false));
+		changes.add(createActivationChange(ActivationStatusType.DISABLED));
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
@@ -446,12 +446,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		return attributeModification;
 	}
 
-	private PropertyModificationOperation createActivationChange(boolean b) {
+	private PropertyModificationOperation createActivationChange(ActivationStatusType status) {
 		PrismObjectDefinition<ShadowType> shadowDefinition = getShadowDefinition(ShadowType.class);
-		PropertyDelta delta = PropertyDelta.createDelta(
-				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
+		PropertyDelta<ActivationStatusType> delta = PropertyDelta.createDelta(
+				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 				shadowDefinition);
-		delta.setValueToReplace(new PrismPropertyValue(b));
+		delta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(status));
 		return new PropertyModificationOperation(delta);
 	}
 

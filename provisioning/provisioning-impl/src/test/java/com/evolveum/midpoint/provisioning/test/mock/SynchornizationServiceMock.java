@@ -110,8 +110,8 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 				if (change.getCurrentShadow().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
 					ShadowType account = change.getCurrentShadow().asObjectable();
 					assertNotNull("Current shadow does not have activation", account.getActivation());
-					assertNotNull("Current shadow activation/enabled is null", account.getActivation()
-							.isEnabled());
+					assertNotNull("Current shadow activation status is null", account.getActivation()
+							.getAdministrativeStatus());
 				} else {
 					// We don't support other types now
 					AssertJUnit.fail("Unexpected kind of shadow " + change.getCurrentShadow().asObjectable().getKind());

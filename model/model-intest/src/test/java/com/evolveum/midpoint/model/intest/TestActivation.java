@@ -87,6 +87,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
@@ -144,7 +145,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, false);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 		
 		// THEN
 		result.computeStatus();
@@ -167,7 +168,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, true);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
 		// THEN
 		result.computeStatus();
@@ -229,7 +230,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, false);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 		
 		// THEN
 		result.computeStatus();
@@ -253,7 +254,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, true);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
 		// THEN
 		result.computeStatus();
@@ -281,7 +282,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		// WHEN
-        modifyAccountShadowReplace(accountOid, ACTIVATION_ENABLED_PATH, task, result, false);
+        modifyAccountShadowReplace(accountOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 		
 		// THEN
 		result.computeStatus();
@@ -308,7 +309,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, true);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
 		// THEN
 		result.computeStatus();
@@ -335,9 +336,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, true);
+        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
-        		ACTIVATION_ENABLED_PATH, false);        
+        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         
@@ -407,10 +408,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 
-        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, false);
+        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
         
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy, 
-        		ACTIVATION_ENABLED_PATH, true);        
+        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         
@@ -440,9 +441,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         ObjectDelta<ShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(accountOid, 
-        		resourceDummy, ACTIVATION_ENABLED_PATH, true);
+        		resourceDummy, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
         ObjectDelta<ShadowType> accountDeltaRed = createModifyAccountShadowReplaceDelta(accountRedOid, 
-        		resourceDummyRed, ACTIVATION_ENABLED_PATH, true);
+        		resourceDummyRed, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaRed);
 		
 		// WHEN
@@ -488,11 +489,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	private void assertDisabled(PrismObject<UserType> user) {
-		PrismProperty<Boolean> enabledProperty = user.findProperty(ACTIVATION_ENABLED_PATH);
-		assert enabledProperty != null : "No enabled property in "+user;
-		Boolean enabled = enabledProperty.getRealValue();
-		assert enabled != null : "No enabled property is null in "+user;
-		assert !enabled : "Enabled property is true in "+user;
+		PrismProperty<ActivationStatusType> statusProperty = user.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
+		assert statusProperty != null : "No status property in "+user;
+		ActivationStatusType status = statusProperty.getRealValue();
+		assert status != null : "No status property is null in "+user;
+		assert status != ActivationStatusType.ENABLED : "status property is "+status+" in "+user;
 	}
 	
 }

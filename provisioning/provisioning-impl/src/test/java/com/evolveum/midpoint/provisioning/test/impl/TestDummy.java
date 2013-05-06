@@ -94,6 +94,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
@@ -2967,8 +2968,8 @@ public class TestDummy extends AbstractDummyTest {
 								ShadowUtil.getSingleStringAttributeValue(shadow,
 										new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
 						assertNotNull("no activation", shadow.getActivation());
-						assertNotNull("no activation/enabled", shadow.getActivation().isEnabled());
-						assertTrue("not enabled", shadow.getActivation().isEnabled());
+						assertNotNull("no activation status", shadow.getActivation().getAdministrativeStatus());
+						assertEquals("not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
 					}
 	
 					assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, RefinedAttributeDefinition.class);

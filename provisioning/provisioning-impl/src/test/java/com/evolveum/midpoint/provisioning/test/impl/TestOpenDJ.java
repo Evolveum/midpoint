@@ -102,6 +102,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
@@ -786,8 +787,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));
                 assertNotNull("Missing activation", shadow.getActivation());
-                assertNotNull("Missing activation/enabled", shadow.getActivation().isEnabled());
-                assertTrue("Not enabled", shadow.getActivation().isEnabled());
+                assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
+                assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
                 return true;
             }
         };

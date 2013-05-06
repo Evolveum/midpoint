@@ -167,13 +167,13 @@
 <!--       <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
             <configured>
 				<cap:activation>
-					<cap:enableDisable>
+					<cap:status>
 						<cap:attribute>ri:emptype</cap:attribute>
 						<cap:enableValue>FTE</cap:enableValue>
 						<cap:enableValue>PTE</cap:enableValue>
 						<cap:disableValue>RETIRED</cap:disableValue>
 						<cap:disableValue>FIRED</cap:disableValue>
-					</cap:enableDisable>
+					</cap:status>
 				</cap:activation>
 			</configured>
         </capabilities> -->

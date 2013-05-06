@@ -136,7 +136,7 @@
 	            <cap:password/>
 	        </cap:credentials>
 	        <cap:activation>
-	            <cap:enableDisable/>
+	            <cap:status/>
 	        </cap:activation>
     	</native>
 	</capabilities>

@@ -83,9 +83,9 @@ public class ActivationProcessor {
 
     public void processActivationUser(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         ObjectDelta<UserType> userDelta = context.getFocusContext().getDelta();
-        PropertyDelta<Boolean> userEnabledValueDelta = null;
+        PropertyDelta<ActivationStatusType> userActivationStatusDelta = null;
         if (userDelta != null) {
-        	userEnabledValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+        	userActivationStatusDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         }
 
         PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
@@ -97,7 +97,7 @@ public class ActivationProcessor {
 
         PrismObjectDefinition<ShadowType> accountDefinition = 
         	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        PrismPropertyDefinition accountEnabledPropertyDefinition = 
+        PrismPropertyDefinition accountActivationStatusPropertyDefinition = 
         	accountDefinition.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
@@ -109,13 +109,13 @@ public class ActivationProcessor {
         }
 
         ObjectDelta<ShadowType> accountDelta = accCtx.getDelta();
-        PropertyDelta<Boolean> accountEnabledValueDelta = null;
+        PropertyDelta<ActivationStatusType> accountActivationStatusDelta = null;
         if (accountDelta != null) {
-        	accountEnabledValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+        	accountActivationStatusDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         }
         if (accCtx.isAdd()) {
             // adding new account, synchronize activation regardless whether the user activation was changed or not.
-        } else if (userEnabledValueDelta != null) {
+        } else if (userActivationStatusDelta != null) {
             // user activation was changed. synchronize it regardless of the account change.
         } else {
             LOGGER.trace("No change in activation and the account is not added, skipping activation processing for account " + rat);
@@ -143,7 +143,7 @@ public class ActivationProcessor {
             return;
         }
         
-        Mapping<PrismPropertyValue<Boolean>> enabledMapping =
+        Mapping<PrismPropertyValue<ActivationStatusType>> enabledMapping =
         	valueConstructionFactory.createMapping(outbound, 
         		"outbound activation mapping in account type " + rat);
 
@@ -151,13 +151,13 @@ public class ActivationProcessor {
         	return;
         }
         
-        enabledMapping.setDefaultTargetDefinition(accountEnabledPropertyDefinition);
-        ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
+        enabledMapping.setDefaultTargetDefinition(accountActivationStatusPropertyDefinition);
+        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+        Source<PrismPropertyValue<ActivationStatusType>> source = new Source<PrismPropertyValue<ActivationStatusType>>(sourceIdi, ExpressionConstants.VAR_INPUT);
 		enabledMapping.setDefaultSource(source);
 		
 		if (enabledMapping.getStrength() != MappingStrengthType.STRONG) {
-        	if (accountEnabledValueDelta != null && !accountEnabledValueDelta.isEmpty()) {
+        	if (accountActivationStatusDelta != null && !accountActivationStatusDelta.isEmpty()) {
         		return;
         	}
         }
@@ -165,7 +165,7 @@ public class ActivationProcessor {
         enabledMapping.setOriginType(OriginType.OUTBOUND);
         enabledMapping.setOriginObject(accCtx.getResource());
         enabledMapping.evaluate(result);
-        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledMapping.getOutput();
+        PrismProperty<ActivationStatusType> accountEnabledNew = (PrismProperty<ActivationStatusType>) enabledMapping.getOutput();
         if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
             LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
             return;

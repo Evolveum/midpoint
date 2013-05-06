@@ -239,11 +239,11 @@
       </native>
 		<configured>
 			<cap:activation>
-				<cap:enableDisable>
+				<cap:status>
 					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
 					<cap:enableValue/>
 					<cap:disableValue>true</cap:disableValue>
-				</cap:enableDisable>
+				</cap:status>
 			</cap:activation>
 			<!-- 
 			<cap:credentials>

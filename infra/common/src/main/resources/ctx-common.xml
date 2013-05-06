@@ -29,5 +29,14 @@
 	<bean id="matchingRuleRegistry" class="com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory" 
     	factory-method="createRegistry">
     </bean>
+    
+    <bean id="clock" class="com.evolveum.midpoint.common.Clock">
+    </bean>
+    
+    <bean id="activationComputer" class="com.evolveum.midpoint.common.ActivationComputer">
+    	<property name="clock">
+            <ref bean="clock"/>
+        </property>
+    </bean>
 
 </beans>
