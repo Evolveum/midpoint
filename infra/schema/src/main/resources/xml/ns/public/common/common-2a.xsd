@@ -4762,6 +4762,24 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="assigned" type="xsd:boolean" minOccurs="0" default="false">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Set to true if the object is "legally" assigned, i.e. if there is a valid
+                    			assignment for this object. It shows the value from the last recompute of
+                    			the object.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="exists" type="xsd:boolean" minOccurs="0" default="false">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Set to true if the object is known to exist on the resource.
+                    			There may be shadows for objects that do not exist yet (e.g. create operations in progress)
+                    			or shadows for objects that we known nothing about yet.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="attributes" type="tns:ShadowAttributesType" minOccurs="0">
                     </xsd:element>
                     <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded"/>
@@ -5473,6 +5491,17 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
+                	<xsd:element name="includeRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Included template. All the mappings of the included template are processed as if they
+                				were directly placed in this template.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
                     <xsd:element name="mapping" type="tns:MappingType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
