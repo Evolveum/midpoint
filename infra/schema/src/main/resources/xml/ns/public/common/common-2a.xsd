@@ -2184,29 +2184,61 @@
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
+                    	DEPRECATED. Use administrativeStatus instead.
+                    
                         Flag that indicates if the described concept is active.
 
                         true => active, enabled
                         flase => inactive, disabled
 
                         This defines the "administrative state", i.e. the administrator's decision.
-                        If set, this flag overrides any other constraints in the activation type.
-                        E.g. if this is set to true and the object is not yet valid (according to
-                        validFrom below), the user should be considered active. If set to false the
-                        user should be considered inactive regardless of other settings.
-
-                        Therefore this flag does NOT define an actual state of
-                        the object. It is a kind of "manual override".
-
-                        If this flag is not present then the other constraints in the activation type
-                        should be considered.
-
-                        If not present and there are no other constraints in the activation type or if there
-                        is no activation type at all then the values is assumed to be true, i.e. that the
-                        described concept is active (enabled).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>Enabled</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="administrativeStatus" type="tns:ActivationStatus" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This defines the "administrative state", i.e. the administrator's decision.
+                        If set, this property overrides any other constraints in the activation type.
+                        E.g. if this is set to "enabled" and the object is not yet valid (according to
+                        validFrom below), the user should be considered active. If set to "disabled" the
+                        user should be considered inactive regardless of other settings.
+
+                        Therefore this property does NOT define an actual state of
+                        the object. It is a kind of "manual override".
+
+                        If this property is not present then the other constraints in the activation type
+                        should be considered.
+
+                        If not present and there are no other constraints in the activation type or if there
+                        is no activation type at all then the values is assumed to be "disabled", i.e. that the
+                        described concept is inactive.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Administrative Status</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="effectiveStatus" type="tns:ActivationStatus" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This defines the "effective state", i.e. the result of combining several
+                        activation settings (administrative status, validity dates, etc.).
+                        
+                        This holds the result of a computation, therefore it is kind of VIRTUAL property
+                        that is recomputed every time. It SHOULD NOT be set directly but it rather should be
+                        computed from the values of other activation properties. Therefore it is considered
+                        READ ONLY for the high-level code. It may be stored in the repository but in that
+                        case it has only an informational value (the effective activation status at the time
+                        the object was last updated).
+
+                        If this property is not present then the computation haven't taken place yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Effective Status</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2232,9 +2264,155 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="validityStatus" type="tns:TimeIntervalStatus" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This property holds the result of vality period computation with respect to the current
+                        date and time. E.g. it specifies whether the entity is before the validity period,
+                        in the validity perion or after validity period.
+                        
+                        This holds the result of a computation, therefore it is kind of VIRTUAL property
+                        that is recomputed every time. It SHOULD NOT be set directly but it rather should be
+                        computed from the values of validity timestamps and current time. Therefore it is considered
+                        READ ONLY for the high-level code. It may be stored in the repository but in that
+                        case it has only an informational value (the effective activation status at the time
+                        the object was last updated).
+
+                        If this property is not present then the computation haven't taken place yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Effective Status</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="ActivationStatus">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that indicates the activation status of a particular entity.
+                The activation status detemines whether the entity is active (enabled)
+                or inactive (disabled, archived, etc.). Please see documentation of individual
+                enumaration values for more details.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enabled">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The entitity is active.
+                		
+                		It is enabled and fully operational.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="disabled">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The entitity is inactive.
+                		
+                		It has beed disabled, haven't reaced the activation period, etc.
+                		This is used to idicate that the entity is TEMPORARILY inactive
+                		and there is an intent to enabled the entity later.
+                		
+                		usualy used for an employee on parental leave, sabatical, temporarily disabled
+                		account for security reasons, etc.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="archived">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The entitity is inactive.
+                		
+                		It is no longer active and there are no plans to ever re-activate it.
+                		This is a PERMANENT state of deactivation.
+                		
+                		This state is used to keep the user record or accoutn around for archival purposes.
+                		E.g. some systems require that the account exists to maintain referential consistency
+                		of historical data, audit records, etc. It may also be used to "blocks" the user or account
+                		identifier to avoid their reuse. 
+                		
+                		usualy used for retired employees and similar cases. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHIVED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="absent">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The entitity is inactive and it does not exist.
+                		
+                		This is kind of "virtual" state. It should not be stored in the repository
+                		or be used by the GUI. It is used to mark the decision to remove the user record
+                		or account after the computation is complete. It is therefore mostly used in
+                		expressions and mappings. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ABSENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="TimeIntervalStatus">
+        <xsd:annotation>
+            <xsd:documentation>
+                Holds the result of time interval computation with respect to the current
+                date and time. E.g. it specifies whether the entity is before the interval,
+                in the interval or after the interval.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="before">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Current time and date is before the interval.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BEFORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="in">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Current time and date is in the interval.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="after">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Current time and date is after the interval. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AFTER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ResourceType">
         <xsd:annotation>
