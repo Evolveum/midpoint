@@ -122,7 +122,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
 			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, shadow.getResource(), delta, task, result);
 			changeNotificationDispatcher.notifySuccess(operationDescritpion, task, result);
-			return null;
+			return shadow;
 		case MODIFY:
 			LOGGER.trace("Starting discovery to find out if the account should exist or not.");
 			OperationResult handleErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));

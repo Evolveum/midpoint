@@ -129,7 +129,7 @@ public class GenericErrorHandler extends ErrorHandler{
 		case DELETE:
 			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);
 			result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
-			return null;
+			return shadow;
 		default:
 			result.recordFatalError("Can't process "
 					+ ObjectTypeUtil.toShortString(shadow) + ": "+ex.getMessage(), ex);
