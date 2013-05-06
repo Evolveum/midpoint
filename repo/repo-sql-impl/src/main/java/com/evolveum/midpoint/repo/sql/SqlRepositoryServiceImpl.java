@@ -504,8 +504,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // query.
         List<ROrgClosure> results = query.list();
         for (ROrgClosure o : results) {
-            LOGGER.trace("adding {}\t{}\t{}", new Object[]{o.getAncestor().getOid(),
-                    o.getDescendant().getOid(), o.getDepth() + 1});                        //todo remove
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("adding {}\t{}\t{}", new Object[]{o.getAncestorOid(), o.getDescendantOid(), o.getDepth() + 1});
+            }
             session.save(new ROrgClosure(o.getAncestor(), newDescendant, o.getDepth() + 1));
         }
     }
@@ -877,7 +878,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                         + orgRefDValue);
                     }
 
-                    PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
                     RObject rObjectToModify = createDataObjectFromJAXB(orgType);
                     if (orgType.getClass().isAssignableFrom(OrgType.class)) {
 
@@ -946,10 +946,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         List<ROrgClosure> orgClosure = criteria.list();
         for (ROrgClosure o : orgClosure) {
-            LOGGER.trace(
-                    "deleting from hierarchy: A: {} D:{} depth:{}",
-                    new Object[]{o.getAncestor().toJAXB(getPrismContext()),
-                            o.getDescendant().toJAXB(getPrismContext()), o.getDepth()});
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+                        new Object[]{o.getAncestorOid(), o.getDescendantOid(), o.getDepth()});
+            }
             session.delete(o);
         }
 
@@ -977,10 +977,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         List<ROrgClosure> orgClosure = criteria.list();
         for (ROrgClosure o : orgClosure) {
-            LOGGER.trace(
-                    "deleting from hierarchy: A: {} D:{} depth:{}",
-                    new Object[]{o.getAncestor().toJAXB(getPrismContext()),
-                            o.getDescendant().toJAXB(getPrismContext()), o.getDepth()});
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+                        new Object[]{o.getAncestorOid(), o.getDescendantOid(), o.getDepth()});
+            }
             session.delete(o);
         }
 
@@ -1459,19 +1459,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-	@Override
-	public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-		
-		// TODO TODO TODO impelment
-		throw new UnsupportedOperationException("Not implemented yet");
-	}
+    @Override
+    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
 
-	@Override
-	public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
-		// TODO TODO TODO impelment
-		throw new UnsupportedOperationException("Not implemented yet");
-		
-	}
+        // TODO TODO TODO impelment
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
+        // TODO TODO TODO impelment
+        throw new UnsupportedOperationException("Not implemented yet");
+
+    }
 
 
 }

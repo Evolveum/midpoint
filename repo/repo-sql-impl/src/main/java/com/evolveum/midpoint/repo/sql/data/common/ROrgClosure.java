@@ -1,12 +1,9 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.io.Serializable;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
+import java.io.Serializable;
 
 /**
  * @author lazyman
@@ -15,97 +12,153 @@ import org.hibernate.annotations.Index;
 @Table(name = "m_org_closure")
 public class ROrgClosure implements Serializable {
 
+    private Long id;
 
-	private Long id;
-	private RObject ancestor;
-	private RObject descendant;
-	private int depth;
+    private RObject ancestor;
+    private String ancestorOid;
+    private Long ancestorId;
 
-	public ROrgClosure() {
+    private RObject descendant;
+    private String descendantOid;
+    private Long descendantId;
 
-	}
+    private int depth;
 
-	public ROrgClosure(RObject ancestor, RObject descendant, int depth) {
-		this.ancestor = ancestor;
-		this.descendant = descendant;
-		this.depth = depth;
-	}
+    public ROrgClosure() {
+    }
 
-	@Id
-	@GeneratedValue
-	public Long getId() {
-		return id;
-	}
+    public ROrgClosure(String ancestorOid, String descendantOid, int depth) {
+        if (ancestorOid != null) {
+            this.ancestorOid = ancestorOid;
+            this.ancestorId = 0L;
+        }
+        if (descendantOid != null) {
+            this.descendantOid = descendantOid;
+            this.descendantId = 0L;
+        }
+        this.depth = depth;
+    }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public ROrgClosure(RObject ancestor, RObject descendant, int depth) {
+        this.ancestor = ancestor;
+        this.descendant = descendant;
+        this.depth = depth;
+    }
 
+    @Id
+    @GeneratedValue
+    public Long getId() {
+        return id;
+    }
 
-	@Index(name = "iAncestor")
-	@ManyToOne(fetch = FetchType.LAZY, optional=true)
-	@JoinColumns({ @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid"),
-			@JoinColumn(name = "ancestor_id", referencedColumnName = "id") })
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "ancestor_id", referencedColumnName = "id")})
     @ForeignKey(name = "fk_ancestor")
-	public RObject getAncestor() {
-		return ancestor;
-	}
+    public RObject getAncestor() {
+        return ancestor;
+    }
 
-	public void setAncestor(RObject ancestor) {
-		this.ancestor = ancestor;
-	}
+    @Column(name = "ancestor_id", insertable = false, updatable = false)
+    public Long getAncestorId() {
+        if (ancestorId == null && ancestor != null) {
+            ancestorId = ancestor.getId();
+        }
+        return ancestorId;
+    }
 
-	@Index(name = "iDescendant")
-	@ManyToOne(fetch = FetchType.LAZY, optional=true)
-	@JoinColumns({ @JoinColumn(name = "descendant_oid", referencedColumnName = "oid"),
-		@JoinColumn(name = "descendant_id", referencedColumnName = "id") })
+    @Column(name = "ancestor_oid", length = 36, insertable = false, updatable = false)
+    public String getAncestorOid() {
+        if (ancestorOid == null && ancestor.getOid() != null) {
+            ancestorOid = ancestor.getOid();
+        }
+        return ancestorOid;
+    }
+
+    public void setAncestor(RObject ancestor) {
+        this.ancestor = ancestor;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "descendant_id", referencedColumnName = "id")})
     @ForeignKey(name = "fk_descendant")
-	public RObject getDescendant() {
-		return descendant;
-	}
+    public RObject getDescendant() {
+        return descendant;
+    }
 
-	public void setDescendant(RObject descendant) {
-		this.descendant = descendant;
-	}
+    @Column(name = "descendant_id", insertable = false, updatable = false)
+    public Long getDescendantId() {
+        if (descendantId == null && descendant != null) {
+            descendantId = descendant.getId();
+        }
+        return descendantId;
+    }
+
+    @Column(name = "descendant_oid", length = 36, insertable = false, updatable = false)
+    public String getDescendantOid() {
+        if (descendantOid == null && descendant.getOid() != null) {
+            descendantOid = descendant.getOid();
+        }
+        return descendantOid;
+    }
+
+    public void setDescendant(RObject descendant) {
+        this.descendant = descendant;
+    }
 
     @Column(name = "depthValue")
-	public int getDepth() {
-		return depth;
-	}
+    public int getDepth() {
+        return depth;
+    }
 
 
-	public void setDepth(int depth) {
-		this.depth = depth;
-	}
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = ancestor != null ? ancestor.hashCode() : 0;
-		result = 31 * result + (descendant != null ? descendant.hashCode() : 0);
-		result = 31 * result + depth;
-//		result = 31 * result + ((id == null) ? 0 : id.hashCode());
-		return result;
-	}
+    public void setAncestorId(Long ancestorId) {
+        this.ancestorId = ancestorId;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null || getClass() != obj.getClass())
-			return false;
+    public void setAncestorOid(String ancestorOid) {
+        this.ancestorOid = ancestorOid;
+    }
 
-		ROrgClosure that = (ROrgClosure) obj;
+    public void setDescendantId(Long descendantId) {
+        this.descendantId = descendantId;
+    }
 
-		if (depth != that.depth)
-			return false;
+    public void setDescendantOid(String descendantOid) {
+        this.descendantOid = descendantOid;
+    }
 
-		if (ancestor != null ? !ancestor.equals(that.ancestor) : that.ancestor != null)
-			return false;
-		if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null)
-			return false;
-//		if (id != null ? !id.equals(that.id) : that.id != null)
-//			return false;
+    @Override
+    public int hashCode() {
+        int result = depth;
+        return result;
+    }
 
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+
+        ROrgClosure that = (ROrgClosure) obj;
+
+        if (depth != that.depth)
+            return false;
+        if (ancestor != null ? !ancestor.equals(that.ancestor) : that.ancestor != null)
+            return false;
+        if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null)
+            return false;
+
+        return true;
+    }
 }
