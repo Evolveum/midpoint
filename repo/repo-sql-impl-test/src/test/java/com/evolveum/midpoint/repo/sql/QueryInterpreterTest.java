@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
@@ -203,7 +204,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
-        main.add(Restrictions.eq("activation.enabled", true));
+        main.add(Restrictions.eq("activation.administrativeStatus", RActivationStatus.ENABLED));
 
         String expected = HibernateToSqlTranslator.toSql(main);
         String real = getInterpretedQuery(session, UserType.class,

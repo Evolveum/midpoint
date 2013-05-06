@@ -24,7 +24,7 @@
 	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
 	<equal>
-		<path>c:activation/c:enabled</path>
-		<value>true</value>
+		<path>c:activation/c:administrativeStatus</path>
+		<value>enabled</value>
 	</equal>
 </query>
