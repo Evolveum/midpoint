@@ -198,7 +198,7 @@ public class ModifyUserAction extends BaseAction {
             return context;
         }
 
-        PrismProperty enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PrismProperty enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         LOGGER.trace("User activation defined, activation property found {}", enable);
 
         PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);

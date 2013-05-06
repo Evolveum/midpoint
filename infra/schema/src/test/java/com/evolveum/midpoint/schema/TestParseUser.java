@@ -233,10 +233,10 @@ public class TestParseUser {
 //		assertNull("Extension ID", extensionValue.getId());
 		
 		ItemPath admStatusPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-		PrismProperty admStatusProperty1 = user.findProperty(admStatusPath);
+		PrismProperty<ActivationStatusType> admStatusProperty1 = user.findProperty(admStatusPath);
 		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);
-		PrismAsserts.assertPropertyValue(admStatusProperty1, true);
+		PrismAsserts.assertPropertyValue(admStatusProperty1, ActivationStatusType.ENABLED);
 		
 //		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
 //		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);

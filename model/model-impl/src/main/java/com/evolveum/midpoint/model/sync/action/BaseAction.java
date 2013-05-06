@@ -253,7 +253,7 @@ public abstract class BaseAction implements Action {
             return;
         }
 
-        PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         LOGGER.trace("Account activation defined, activation property found {}", enable);
 
         ObjectDelta<ShadowType> accDelta = accContext.getSecondaryDelta();
@@ -420,9 +420,9 @@ public abstract class BaseAction implements Action {
         LOGGER.trace("Updating activation for {}, activation decision {}, old value was {}",
                 new Object[]{objectDelta.getClass().getSimpleName(), activationDecision, oldValue});
 
-        PropertyDelta delta = objectDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PropertyDelta delta = objectDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         if (delta == null) {
-            delta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, ShadowType.class,
+            delta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ShadowType.class,
             		getPrismContext());
             objectDelta.addModification(delta);
         }

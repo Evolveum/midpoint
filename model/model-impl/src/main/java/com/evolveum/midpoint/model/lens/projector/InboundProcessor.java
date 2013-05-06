@@ -204,7 +204,7 @@ public class InboundProcessor {
         }
         processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
         		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
-        processSpecialPropertyInbound(accountDefinition.getActivationInbound(), SchemaConstants.PATH_ACTIVATION_ENABLE,
+        processSpecialPropertyInbound(accountDefinition.getActivationInbound(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
         		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
     }
 

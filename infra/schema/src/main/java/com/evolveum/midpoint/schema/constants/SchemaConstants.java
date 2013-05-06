@@ -89,7 +89,7 @@ public abstract class SchemaConstants {
 	public static final QName C_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
 	public static final QName C_CREDENTIALS = new QName(NS_C, "credentials");
 	public static final QName C_ACTIVATION = new QName(NS_C, "activation");
-	public static final QName C_ACTIVATION_ENABLED = new QName(NS_C, "enabled");
+	public static final QName C_ACTIVATION_ADMINISTRATIVE_STATUS = new QName(NS_C, "administrativeStatus");
 	public static final QName C_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
 	public static final QName C_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C,
@@ -109,7 +109,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_VALUE);
 	public static final ItemPath PATH_ACTIVATION = new ItemPath(C_ACTIVATION);
-	public static final ItemPath PATH_ACTIVATION_ENABLE = new ItemPath(C_ACTIVATION, C_ACTIVATION_ENABLED);
+	public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = new ItemPath(C_ACTIVATION, C_ACTIVATION_ADMINISTRATIVE_STATUS);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";

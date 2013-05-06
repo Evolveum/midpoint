@@ -1499,7 +1499,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		modifications.add(fullNameDelta);
 		
 		PrismPropertyValue enabledUserAction = new PrismPropertyValue(true, OriginType.USER_ACTION, null);
-		PropertyDelta enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition());
+		PropertyDelta enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
 		enabledDelta.addValueToAdd(enabledUserAction);
 		modifications.add(enabledDelta);
 //		delta = PropertyDelta.createModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition(), true);
@@ -1531,7 +1531,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		newModifications.add(givenNameDeltaNew);
 		
 		PrismPropertyValue enabledOutboundAction = new PrismPropertyValue(true, OriginType.USER_ACTION, null);
-		PropertyDelta enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition());
+		PropertyDelta enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);
 		
