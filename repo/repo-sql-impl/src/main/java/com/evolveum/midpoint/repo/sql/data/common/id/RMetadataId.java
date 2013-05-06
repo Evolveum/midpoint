@@ -46,4 +46,24 @@ public class RMetadataId implements Serializable {
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RMetadataId that = (RMetadataId) o;
+
+        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
+        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ownerOid != null ? ownerOid.hashCode() : 0;
+        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
+        return result;
+    }
 }
