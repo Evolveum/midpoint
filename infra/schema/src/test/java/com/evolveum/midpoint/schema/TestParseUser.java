@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
@@ -231,11 +232,11 @@ public class TestParseUser {
 //		assertTrue("Extension parent", extensionValue.getParent() == extension);
 //		assertNull("Extension ID", extensionValue.getId());
 		
-		ItemPath enabledPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
-		PrismProperty enabledProperty1 = user.findProperty(enabledPath);
-		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), ActivationType.F_ENABLED, DOMUtil.XSD_BOOLEAN, 0, 1);
-		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
-		PrismAsserts.assertPropertyValue(enabledProperty1, true);
+		ItemPath admStatusPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+		PrismProperty admStatusProperty1 = user.findProperty(admStatusPath);
+		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
+		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);
+		PrismAsserts.assertPropertyValue(admStatusProperty1, true);
 		
 //		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
 //		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
@@ -294,7 +295,7 @@ public class TestParseUser {
 
 		ActivationType activation = userType.getActivation();
 		assertNotNull("No activation", activation);
-		assertEquals("User not enabled", Boolean.TRUE, activation.isEnabled());
+		assertEquals("User not enabled", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
 		
 		List<ObjectReferenceType> accountRefs = userType.getLinkRef();
 		assertNotNull("No accountRef list", accountRefs);

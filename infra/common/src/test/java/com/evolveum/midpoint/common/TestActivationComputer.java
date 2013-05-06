@@ -35,9 +35,9 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 
 /**
  * @author semancik
@@ -65,13 +65,13 @@ public class TestActivationComputer {
         // GIVEN
     	Clock clock = createClock(YEAR_START);
     	ActivationComputer activationComputer = createActivationComputer(clock); 
-    	ActivationType activationType = createActivationType(ActivationStatus.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
+    	ActivationType activationType = createActivationType(ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatus effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
     	
     	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatus.ENABLED, effectiveStatus);
+    	assertEquals("Unexpected effective status", ActivationStatusType.ENABLED, effectiveStatus);
     }
     
     @Test
@@ -81,13 +81,13 @@ public class TestActivationComputer {
         // GIVEN
     	Clock clock = createClock(SUMMER_SOLSTICE);
     	ActivationComputer activationComputer = createActivationComputer(clock); 
-    	ActivationType activationType = createActivationType(ActivationStatus.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
+    	ActivationType activationType = createActivationType(ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatus effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
     	
     	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatus.DISABLED, effectiveStatus);
+    	assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
     
     @Test
@@ -97,13 +97,13 @@ public class TestActivationComputer {
         // GIVEN
     	Clock clock = createClock(SUMMER_SOLSTICE);
     	ActivationComputer activationComputer = createActivationComputer(clock); 
-    	ActivationType activationType = createActivationType(ActivationStatus.ARCHIVED, SPRING_EQUINOX, AUTUMN_EQUINOX);
+    	ActivationType activationType = createActivationType(ActivationStatusType.ARCHIVED, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatus effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
     	
     	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatus.ARCHIVED, effectiveStatus);
+    	assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
     }
     
     @Test
@@ -116,10 +116,10 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(null, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatus effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
     	
     	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatus.DISABLED, effectiveStatus);
+    	assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
     
     @Test
@@ -132,10 +132,10 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(null, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatus effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
     	
     	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatus.ENABLED, effectiveStatus);
+    	assertEquals("Unexpected effective status", ActivationStatusType.ENABLED, effectiveStatus);
     }
     
     @Test
@@ -148,77 +148,77 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(null, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatus effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
     	
     	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatus.DISABLED, effectiveStatus);
+    	assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
     
     @Test
     public void testComputeAdministrativeEnabledBefore() throws Exception {
     	testCompute("testComputeAdministrativeEnabledBefore", YEAR_START, 
-    			ActivationStatus.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.ENABLED, TimeIntervalStatus.BEFORE);
+    			ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
+    			ActivationStatusType.ENABLED, TimeIntervalStatusType.BEFORE);
     }
     
     @Test
     public void testComputeAdministrativeEnabledIn() throws Exception {
     	testCompute("testComputeAdministrativeEnabledIn", SUMMER_SOLSTICE, 
-    			ActivationStatus.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.ENABLED, TimeIntervalStatus.IN);
+    			ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
+    			ActivationStatusType.ENABLED, TimeIntervalStatusType.IN);
     }
     
     @Test
     public void testComputeAdministrativeEnabledAfter() throws Exception {
     	testCompute("testComputeAdministrativeEnabledBefore", WINTER_SOLSTICE, 
-    			ActivationStatus.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.ENABLED, TimeIntervalStatus.AFTER);
+    			ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
+    			ActivationStatusType.ENABLED, TimeIntervalStatusType.AFTER);
     }
     
     @Test
     public void testComputeAdministrativeArchivedBefore() throws Exception {
     	testCompute("testComputeAdministrativeArchivedBefore", YEAR_START, 
-    			ActivationStatus.ARCHIVED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.ARCHIVED, TimeIntervalStatus.BEFORE);
+    			ActivationStatusType.ARCHIVED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
+    			ActivationStatusType.ARCHIVED, TimeIntervalStatusType.BEFORE);
     }
     
     @Test
     public void testComputeAdministrativeDisabledIn() throws Exception {
     	testCompute("testComputeAdministrativeDisabledIn", SUMMER_SOLSTICE, 
-    			ActivationStatus.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.DISABLED, TimeIntervalStatus.IN);
+    			ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
+    			ActivationStatusType.DISABLED, TimeIntervalStatusType.IN);
     }
     
     @Test
     public void testComputeAdministrativeAbsentAfter() throws Exception {
     	testCompute("testComputeAdministrativeEnabledBefore", WINTER_SOLSTICE, 
-    			ActivationStatus.ABSENT, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.ABSENT, TimeIntervalStatus.AFTER);
+    			ActivationStatusType.ABSENT, SPRING_EQUINOX, AUTUMN_EQUINOX, 
+    			ActivationStatusType.ABSENT, TimeIntervalStatusType.AFTER);
     }
     
     @Test
     public void testComputeBefore() throws Exception {
     	testCompute("testComputeAdministrativeEnabledBefore", YEAR_START, 
     			null, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.DISABLED, TimeIntervalStatus.BEFORE);
+    			ActivationStatusType.DISABLED, TimeIntervalStatusType.BEFORE);
     }
     
     @Test
     public void testComputeIn() throws Exception {
     	testCompute("testComputeAdministrativeEnabledIn", SUMMER_SOLSTICE, 
     			null, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.ENABLED, TimeIntervalStatus.IN);
+    			ActivationStatusType.ENABLED, TimeIntervalStatusType.IN);
     }
     
     @Test
     public void testComputeAfter() throws Exception {
     	testCompute("testComputeAdministrativeEnabledBefore", WINTER_SOLSTICE, 
     			null, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatus.DISABLED, TimeIntervalStatus.AFTER);
+    			ActivationStatusType.DISABLED, TimeIntervalStatusType.AFTER);
     }
     
-    void testCompute(final String TEST_NAME, XMLGregorianCalendar now, ActivationStatus administrativeStatus, XMLGregorianCalendar validFrom,
-			XMLGregorianCalendar validTo, ActivationStatus expectedEffective, TimeIntervalStatus expectedValidity) {
+    void testCompute(final String TEST_NAME, XMLGregorianCalendar now, ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom,
+			XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) {
     	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
     	
         // GIVEN
@@ -245,7 +245,7 @@ public class TestActivationComputer {
 		return clock;
 	}
 
-	private ActivationType createActivationType(ActivationStatus administrativeStatus, XMLGregorianCalendar validFrom,
+	private ActivationType createActivationType(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom,
 			XMLGregorianCalendar validTo) {
 		ActivationType activationType = new ActivationType();
 		activationType.setAdministrativeStatus(administrativeStatus);

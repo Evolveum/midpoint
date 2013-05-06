@@ -67,7 +67,7 @@
 	</assignment>
 
 	<activation>
-		<administrativeStatus>disabled</administrativeStatus>
+		<enabled>false</enabled>
 	</activation>
 <!--     
     <credentials>

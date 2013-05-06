@@ -2198,7 +2198,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="administrativeStatus" type="tns:ActivationStatus" minOccurs="0">
+            <xsd:element name="administrativeStatus" type="tns:ActivationStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         This defines the "administrative state", i.e. the administrator's decision.
@@ -2222,7 +2222,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="effectiveStatus" type="tns:ActivationStatus" minOccurs="0">
+            <xsd:element name="effectiveStatus" type="tns:ActivationStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         This defines the "effective state", i.e. the result of combining several
@@ -2264,7 +2264,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="validityStatus" type="tns:TimeIntervalStatus" minOccurs="0">
+            <xsd:element name="validityStatus" type="tns:TimeIntervalStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         This property holds the result of vality period computation with respect to the current
@@ -2289,7 +2289,7 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
-    <xsd:simpleType name="ActivationStatus">
+    <xsd:simpleType name="ActivationStatusType">
         <xsd:annotation>
             <xsd:documentation>
                 An enumeration that indicates the activation status of a particular entity.
@@ -2369,7 +2369,7 @@
              </xsd:restriction>
     </xsd:simpleType>
     
-    <xsd:simpleType name="TimeIntervalStatus">
+    <xsd:simpleType name="TimeIntervalStatusType">
         <xsd:annotation>
             <xsd:documentation>
                 Holds the result of time interval computation with respect to the current

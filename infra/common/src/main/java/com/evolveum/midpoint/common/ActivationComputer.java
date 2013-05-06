@@ -22,9 +22,9 @@ package com.evolveum.midpoint.common;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 
 /**
  * @author semancik
@@ -54,8 +54,8 @@ public class ActivationComputer {
 		this.clock = clock;
 	}
 	
-	public ActivationStatus getEffectiveStatus(ActivationType activationType) {
-		ActivationStatus administrativeStatus = activationType.getAdministrativeStatus();
+	public ActivationStatusType getEffectiveStatus(ActivationType activationType) {
+		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
 			// Explicit administrative status overrides everything 
 			return administrativeStatus;
@@ -63,70 +63,70 @@ public class ActivationComputer {
 		if (activationType.isEnabled() != null) {
 			// DEPRECATED legacy property
 			if (activationType.isEnabled()) {
-				return ActivationStatus.ENABLED;
+				return ActivationStatusType.ENABLED;
 			} else {
-				return ActivationStatus.DISABLED;
+				return ActivationStatusType.DISABLED;
 			}
 		}
-		TimeIntervalStatus validityStatus = getValidityStatus(activationType);
+		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (validityStatus == null) {
 			// No administrative status, no validity. Defaults to disabled.
-			return ActivationStatus.DISABLED;
+			return ActivationStatusType.DISABLED;
 		}
 		switch (validityStatus) {
 			case AFTER:
 			case BEFORE:
-				return ActivationStatus.DISABLED;
+				return ActivationStatusType.DISABLED;
 			case IN:
-				return ActivationStatus.ENABLED;
+				return ActivationStatusType.ENABLED;
 		}
 		// This should not happen
 		return null;
 	}
 	
-	public TimeIntervalStatus getValidityStatus(ActivationType activationType) {
+	public TimeIntervalStatusType getValidityStatus(ActivationType activationType) {
 		XMLGregorianCalendar validFrom = activationType.getValidFrom();
 		XMLGregorianCalendar validTo = activationType.getValidTo();
 		if (validFrom == null && validTo == null) {
 			return null;
 		}
-		TimeIntervalStatus status = TimeIntervalStatus.IN;
+		TimeIntervalStatusType status = TimeIntervalStatusType.IN;
 		if (validFrom != null && clock.isFuture(validFrom)) {
-			status = TimeIntervalStatus.BEFORE;
+			status = TimeIntervalStatusType.BEFORE;
 		}
 		if (validTo != null && clock.isPast(validTo)) {
-			status = TimeIntervalStatus.AFTER;
+			status = TimeIntervalStatusType.AFTER;
 		}
 		return status;
 	}
 	
 	public void computeEffective(ActivationType activationType) {
-		ActivationStatus effectiveStatus = null;
-		ActivationStatus administrativeStatus = activationType.getAdministrativeStatus();
+		ActivationStatusType effectiveStatus = null;
+		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
 			// Explicit administrative status overrides everything 
 			effectiveStatus = administrativeStatus;
 		} else if (activationType.isEnabled() != null) {
 			// DEPRECATED legacy property
 			if (activationType.isEnabled()) {
-				effectiveStatus = ActivationStatus.ENABLED;
+				effectiveStatus = ActivationStatusType.ENABLED;
 			} else {
-				effectiveStatus = ActivationStatus.DISABLED;
+				effectiveStatus = ActivationStatusType.DISABLED;
 			}
 		}
-		TimeIntervalStatus validityStatus = getValidityStatus(activationType);
+		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (effectiveStatus == null) {
 			if (validityStatus == null) {
 				// No administrative status, no validity. Defaults to disabled.
-				effectiveStatus = ActivationStatus.DISABLED;
+				effectiveStatus = ActivationStatusType.DISABLED;
 			} else {
 				switch (validityStatus) {
 					case AFTER:
 					case BEFORE:
-						effectiveStatus = ActivationStatus.DISABLED;
+						effectiveStatus = ActivationStatusType.DISABLED;
 						break;
 					case IN:
-						effectiveStatus = ActivationStatus.ENABLED;
+						effectiveStatus = ActivationStatusType.ENABLED;
 						break;
 				}
 			}
