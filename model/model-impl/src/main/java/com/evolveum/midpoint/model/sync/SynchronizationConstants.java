@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.sync;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.importer.ImportConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
  * @author semancik
@@ -30,8 +31,9 @@ import com.evolveum.midpoint.model.importer.ImportConstants;
  */
 public class SynchronizationConstants {
 	
-	public static final String SYNC_URI_PREFIX = "http://midpoint.evolveum.com/model/synchronization";
-	public static final String SYNC_EXTENSION_SCHEMA = SYNC_URI_PREFIX + "/extension-2";
+	public static final String NS_SYNCHRONIZATION = SchemaConstants.NS_MODEL +"/synchronization";
+	public static final String SYNC_EXTENSION_SCHEMA = NS_SYNCHRONIZATION + "/extension-2";
 	public static final QName FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(SYNC_EXTENSION_SCHEMA, "freshnessInterval");
+	public static final QName DRY_RUN = new QName(SYNC_EXTENSION_SCHEMA, "dryRun");
 
 }
