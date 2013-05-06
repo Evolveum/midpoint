@@ -24,15 +24,23 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RIncludeRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -46,6 +54,18 @@ public class RObjectTemplate extends RObject {
     private String propertyConstruction;
     private String accountConstruction;
     private RObjectTemplateType type;
+    private Set<RObjectReference> includeRef;
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RIncludeRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getIncludeRef() {
+        if (includeRef == null) {
+            includeRef = new HashSet<RObjectReference>();
+        }
+        return includeRef;
+    }
 
     @Enumerated(EnumType.ORDINAL)
     public RObjectTemplateType getType() {
@@ -75,6 +95,10 @@ public class RObjectTemplate extends RObject {
         return name;
     }
 
+    public void setIncludeRef(Set<RObjectReference> includeRef) {
+        this.includeRef = includeRef;
+    }
+
     public void setName(RPolyString name) {
         this.name = name;
     }
@@ -102,6 +126,8 @@ public class RObjectTemplate extends RObject {
             return false;
         if (type != null ? !type.equals(that.type) : that.type != null)
             return false;
+        if (includeRef != null ? !includeRef.equals(that.includeRef) : that.includeRef != null)
+            return false;
 
 
         return true;
@@ -125,6 +151,12 @@ public class RObjectTemplate extends RObject {
         jaxb.asPrismObject().setName(repo.getType().getSchemaValue());
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
+
+        List includeRef = RUtil.safeSetReferencesToList(repo.getIncludeRef(), prismContext);
+        if (!includeRef.isEmpty()) {
+            jaxb.getIncludeRef().addAll(includeRef);
+        }
+
         try {
             if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
                 ObjectTemplateType holder = RUtil.toJAXB(repo.getAccountConstruction(), ObjectTemplateType.class, prismContext);
@@ -146,6 +178,9 @@ public class RObjectTemplate extends RObject {
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getName(), RObjectTemplateType.class));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+
+        repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
+                jaxb.getIncludeRef(), prismContext, repo, RReferenceOwner.INCLUDE));
         try {
             if (!jaxb.getAccountConstruction().isEmpty()) {
                 ObjectTemplateType template = new ObjectTemplateType();

@@ -54,7 +54,7 @@ import java.util.Set;
 @Entity
 @Table(name = "m_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
-        indexes = {@Index(name = "iShadowEnabled", columnNames = "enabled"),
+        indexes = {@Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iShadowName", columnNames = "name_norm"),
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid")})
 @ForeignKey(name = "fk_shadow")
@@ -77,6 +77,16 @@ public class RShadow extends RObject {
     private RAnyContainer attributes;
     private XMLGregorianCalendar synchronizationTimestamp;
     private RShadowKind kind;
+    private Boolean assigned;
+    private Boolean exists;
+
+    public Boolean isAssigned() {
+        return assigned;
+    }
+
+    public Boolean isExists() {
+        return exists;
+    }
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
@@ -159,6 +169,10 @@ public class RShadow extends RObject {
         return synchronizationSituation;
     }
 
+    public Boolean isDead() {
+        return dead;
+    }
+
     public String getIntent() {
         return intent;
     }
@@ -222,12 +236,16 @@ public class RShadow extends RObject {
         this.synchronizationSituation = synchronizationSituation;
     }
 
-    public Boolean isDead() {
-        return dead;
-    }
-
     public void setDead(Boolean dead) {
         this.dead = dead;
+    }
+
+    public void setAssigned(Boolean assigned) {
+        this.assigned = assigned;
+    }
+
+    public void setExists(Boolean exists) {
+        this.exists = exists;
     }
 
     public void setSynchronizationSituationDescription(
@@ -259,6 +277,8 @@ public class RShadow extends RObject {
         if (synchronizationSituationDescription != null ? !synchronizationSituationDescription.equals(that.synchronizationSituationDescription) : that.synchronizationSituationDescription != null)
             return false;
         if (kind != null ? !kind.equals(that.kind) : that.kind != null) return false;
+        if (assigned != null ? !assigned.equals(that.assigned) : that.assigned != null) return false;
+        if (exists != null ? !exists.equals(that.exists) : that.exists != null) return false;
 
         return true;
     }
@@ -276,6 +296,9 @@ public class RShadow extends RObject {
         result1 = 31 * result1 + (synchronizationSituation != null ? synchronizationSituation.hashCode() : 0);
         result1 = 31 * result1 + (synchronizationSituationDescription != null ? synchronizationSituationDescription.hashCode() : 0);
         result1 = 31 * result1 + (kind != null ? kind.hashCode() : 0);
+        result1 = 31 * result1 + (assigned != null ? assigned.hashCode() : 0);
+        result1 = 31 * result1 + (exists != null ? exists.hashCode() : 0);
+
         return result1;
     }
 
@@ -307,6 +330,8 @@ public class RShadow extends RObject {
             jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSchemaValue());
         }
 
+        jaxb.setAssigned(repo.isAssigned());
+        jaxb.setExists(repo.isExists());
         jaxb.setDead(repo.isDead());
         if (repo.getKind() != null) {
             jaxb.setKind(repo.getKind().getSchemaValue());
@@ -364,6 +389,8 @@ public class RShadow extends RObject {
         repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), prismContext));
 
         repo.setAttemptNumber(jaxb.getAttemptNumber());
+        repo.setExists(jaxb.isExists());
+        repo.setAssigned(jaxb.isAssigned());
         repo.setDead(jaxb.isDead());
         repo.setFailedOperationType(RUtil.getRepoEnumValue(jaxb.getFailedOperationType(), RFailedOperationType.class));
 

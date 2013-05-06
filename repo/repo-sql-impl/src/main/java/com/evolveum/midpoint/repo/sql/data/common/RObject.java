@@ -157,6 +157,8 @@ public abstract class RObject extends RContainer {
             return false;
         if (ancestors != null ? !ancestors.equals(rObject.ancestors) : rObject.ancestors != null)
             return false;
+        if (parentOrgRef != null ? !parentOrgRef.equals(rObject.parentOrgRef) : rObject.parentOrgRef != null)
+            return false;
 
         return true;
     }
