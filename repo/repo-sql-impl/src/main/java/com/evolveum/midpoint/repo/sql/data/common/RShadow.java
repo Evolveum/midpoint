@@ -84,6 +84,7 @@ public class RShadow extends RObject {
         return assigned;
     }
 
+    @Column(name = "exist")
     public Boolean isExists() {
         return exists;
     }
@@ -220,7 +221,7 @@ public class RShadow extends RObject {
     public void setAttributes(RAnyContainer attributes) {
         this.attributes = attributes;
         if (this.attributes != null) {
-            this.attributes.setOwnerType(RContainerType.RESOURCE_OBJECT_SHADOW);
+            this.attributes.setOwnerType(RContainerType.SHADOW);
         }
     }
 

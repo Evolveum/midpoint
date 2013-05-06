@@ -37,7 +37,7 @@ public enum RContainerType {
     OBJECT(RObject.class),
     PASSWORD_POLICY(RPasswordPolicy.class),
     RESOURCE(RResource.class),
-    RESOURCE_OBJECT_SHADOW(RShadow.class),
+    SHADOW(RShadow.class),
     ROLE(RRole.class),
     SYSTEM_CONFIGURATION(RSystemConfiguration.class),
     TASK(RTask.class),

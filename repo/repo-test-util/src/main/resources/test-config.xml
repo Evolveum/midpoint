@@ -30,6 +30,9 @@
             <asServer>true</asServer>
             <!--<baseDir>target</baseDir>-->
             <dropIfExists>true</dropIfExists>
+
+            <performanceStatisticsLevel>10</performanceStatisticsLevel>
+            <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
         </repository>
         <audit>
             <auditService>

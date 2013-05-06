@@ -144,10 +144,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 LOGGER.trace("Getting object " + oid + " without locking for update");
             }
         }
-        //todo why is there fixed RObject.class [lazyman]
-        RObject object = (RObject) session.get(RObject.class, new RContainerId(0L, oid), lockOptions);
-        LOGGER.trace("Got it.");
 
+        RObject object = (RObject) session.get(ClassMapper.getHQLTypeClass(type), new RContainerId(oid), lockOptions);
+        LOGGER.trace("Got it.");
         if (object == null) {
             throwObjectNotFoundException(type, oid);
         }
