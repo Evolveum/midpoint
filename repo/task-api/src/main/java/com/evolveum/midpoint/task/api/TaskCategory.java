@@ -38,4 +38,5 @@ public class TaskCategory {
     public static final String USER_RECOMPUTATION = "UserRecomputation";
     public static final String RECONCILIATION = "Reconciliation";
     public static final String WORKFLOW = "Workflow";
+    public static final String CLEANUP = "CleanUp";
 }

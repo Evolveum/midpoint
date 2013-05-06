@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -79,6 +80,8 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
+
+import javax.xml.datatype.Duration;
 
 /**
  * @author lazyman
@@ -1456,4 +1459,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
         }
     }
+
+	@Override
+	public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+		
+		// TODO TODO TODO impelment
+		throw new UnsupportedOperationException("Not implemented yet");
+	}
+
+	@Override
+	public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
+		// TODO TODO TODO impelment
+		throw new UnsupportedOperationException("Not implemented yet");
+		
+	}
+
+
 }

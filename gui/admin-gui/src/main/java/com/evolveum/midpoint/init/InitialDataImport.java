@@ -62,7 +62,7 @@ public class InitialDataImport {
     private static final String OPERATION_INITIAL_OBJECTS_IMPORT = DOT_CLASS + "initialObjectsImport";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
 
-    private final String[] FILES_FOR_IMPORT = new String[]{"globalPasswordPolicy.xml", "systemConfiguration.xml", "admin.xml"};
+    private final String[] FILES_FOR_IMPORT = new String[]{"globalPasswordPolicy.xml", "systemConfiguration.xml", "admin.xml", "task-cleanup.xml"};
     @Autowired(required = true)
     private transient PrismContext prismContext;
     private ModelService model;

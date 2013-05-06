@@ -35,6 +35,7 @@ public class OperationConstants {
 	public static final String RECOMPUTE = PREFIX + ".recompute";
 	public static final String RECOMPUTE_USER = PREFIX + ".recompute.user";
 	public static final String RECOMPUTE_STATISTICS = PREFIX + ".recompute.statistics";
+	public static final String CLEANUP = PREFIX + ".cleanup";
 	
 	
 	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";

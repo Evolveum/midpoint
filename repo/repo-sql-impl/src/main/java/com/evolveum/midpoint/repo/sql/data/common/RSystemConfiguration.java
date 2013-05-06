@@ -56,7 +56,7 @@ public class RSystemConfiguration extends RObject {
     private RPolyString name;
     private String globalAccountSynchronizationSettings;
     private REmbeddedReference globalPasswordPolicyRef;
-    private Set<RObjectReference> orgRootRef;
+//    private Set<RObjectReference> orgRootRef;
     private String modelHooks;
     private String logging;
     private REmbeddedReference defaultUserTemplateRef;
@@ -82,16 +82,16 @@ public class RSystemConfiguration extends RObject {
         return globalPasswordPolicyRef;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + ROrgRootRef.DISCRIMINATOR)
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getOrgRootRef() {
-        if (orgRootRef == null) {
-            orgRootRef = new HashSet<RObjectReference>();
-        }
-        return orgRootRef;
-    }
+//    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + ROrgRootRef.DISCRIMINATOR)
+//    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+//    @ForeignKey(name = "none")
+//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    public Set<RObjectReference> getOrgRootRef() {
+//        if (orgRootRef == null) {
+//            orgRootRef = new HashSet<RObjectReference>();
+//        }
+//        return orgRootRef;
+//    }
 
     @Embedded
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -148,9 +148,9 @@ public class RSystemConfiguration extends RObject {
         this.globalPasswordPolicyRef = globalPasswordPolicyRef;
     }
 
-    public void setOrgRootRef(Set<RObjectReference> orgRootRef) {
-        this.orgRootRef = orgRootRef;
-    }
+//    public void setOrgRootRef(Set<RObjectReference> orgRootRef) {
+//        this.orgRootRef = orgRootRef;
+//    }
 
     public void setLogging(String logging) {
         this.logging = logging;
@@ -190,8 +190,8 @@ public class RSystemConfiguration extends RObject {
                 !globalAccountSynchronizationSettings.equals(that.globalAccountSynchronizationSettings) :
                 that.globalAccountSynchronizationSettings != null)
             return false;
-        if (orgRootRef != null ? !orgRootRef.equals(that.orgRootRef) : that.orgRootRef != null)
-            return false;
+//        if (orgRootRef != null ? !orgRootRef.equals(that.orgRootRef) : that.orgRootRef != null)
+//            return false;
         if (logging != null ? !logging.equals(that.logging) : that.logging != null) return false;
         if (modelHooks != null ? !modelHooks.equals(that.modelHooks) : that.modelHooks != null) return false;
         if (notificationConfiguration != null ? !notificationConfiguration.equals(that.notificationConfiguration)
@@ -210,7 +210,7 @@ public class RSystemConfiguration extends RObject {
         result = 31 * result + (globalAccountSynchronizationSettings != null ?
                 globalAccountSynchronizationSettings.hashCode() : 0);
         result = 31 * result + (globalPasswordPolicyRef != null ? globalPasswordPolicyRef.hashCode() : 0);
-        result = 31 * result + (orgRootRef != null ? orgRootRef.hashCode() : 0);
+//        result = 31 * result + (orgRootRef != null ? orgRootRef.hashCode() : 0);
         result = 31 * result + (modelHooks != null ? modelHooks.hashCode() : 0);
         result = 31 * result + (notificationConfiguration != null ? notificationConfiguration.hashCode() : 0);
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
@@ -231,11 +231,11 @@ public class RSystemConfiguration extends RObject {
         if (repo.getGlobalPasswordPolicyRef() != null) {
             jaxb.setGlobalPasswordPolicyRef(repo.getGlobalPasswordPolicyRef().toJAXB(prismContext));
         }
-
-        List orgRefs = RUtil.safeSetReferencesToList(repo.getOrgRootRef(), prismContext);
-        if (!orgRefs.isEmpty()) {
-            jaxb.getOrgRootRef().addAll(orgRefs);
-        }
+//
+//        List orgRefs = RUtil.safeSetReferencesToList(repo.getOrgRootRef(), prismContext);
+//        if (!orgRefs.isEmpty()) {
+//            jaxb.getOrgRootRef().addAll(orgRefs);
+//        }
 
         try {
             jaxb.setConnectorFramework(RUtil.toJAXB(SystemConfigurationType.class,
@@ -286,11 +286,11 @@ public class RSystemConfiguration extends RObject {
 
         repo.setGlobalPasswordPolicyRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getGlobalPasswordPolicyRef(), prismContext));
 
-        if (jaxb.getOrgRoot() != null) {
-            LOGGER.warn("Root organization from system configuration type won't be saved. It should be " +
-                    "translated to root organization reference.");
-        }
-        repo.getOrgRootRef().addAll(RUtil.safeListReferenceToSet(jaxb.getOrgRootRef(), prismContext, repo, RReferenceOwner.SYSTEM_CONFIGURATION_ORG_ROOT));
+//        if (jaxb.getOrgRoot() != null) {
+//            LOGGER.warn("Root organization from system configuration type won't be saved. It should be " +
+//                    "translated to root organization reference.");
+//        }
+//        repo.getOrgRootRef().addAll(RUtil.safeListReferenceToSet(jaxb.getOrgRootRef(), prismContext, repo, RReferenceOwner.SYSTEM_CONFIGURATION_ORG_ROOT));
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));
             repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings(), prismContext));

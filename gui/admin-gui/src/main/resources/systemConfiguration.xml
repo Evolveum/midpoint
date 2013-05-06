@@ -49,4 +49,12 @@
         <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
     </logging>
+    <cleanupPolicy>
+    	<auditRecords>
+    		<maxAge>P3M</maxAge>
+    	</auditRecords>
+    	<closedTasks>
+    		<maxAge>P1M</maxAge>
+    	</closedTasks>
+    </cleanupPolicy>
 </systemConfiguration>

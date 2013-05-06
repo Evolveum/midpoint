@@ -5998,30 +5998,30 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="orgRoot" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                A root of an organizational hierarchy.
-                                Note: more than one root may be specified. These may be used e.g. to specify
-                                several different "views" of the organizational structure.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:orgRootRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="orgRootRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                A root of an organizational hierarchy.
-                                Note: more than one root may be specified. These may be used e.g. to specify
-                                several different "views" of the organizational structure.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
+<!--                     <xsd:element name="orgRoot" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded"> -->
+<!--                         <xsd:annotation> -->
+<!--                             <xsd:documentation> -->
+<!--                                 A root of an organizational hierarchy. -->
+<!--                                 Note: more than one root may be specified. These may be used e.g. to specify -->
+<!--                                 several different "views" of the organizational structure. -->
+<!--                             </xsd:documentation> -->
+<!--                             <xsd:appinfo> -->
+<!--                     			<a:objectReference>tns:orgRootRef</a:objectReference> -->
+<!--                     		</xsd:appinfo> -->
+<!--                         </xsd:annotation> -->
+<!--                     </xsd:element> -->
+<!--                     <xsd:element name="orgRootRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"> -->
+<!--                         <xsd:annotation> -->
+<!--                             <xsd:documentation> -->
+<!--                                 A root of an organizational hierarchy. -->
+<!--                                 Note: more than one root may be specified. These may be used e.g. to specify -->
+<!--                                 several different "views" of the organizational structure. -->
+<!--                             </xsd:documentation> -->
+<!--                             <xsd:appinfo> -->
+<!--                     			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType> -->
+<!--                     		</xsd:appinfo> -->
+<!--                         </xsd:annotation> -->
+<!--                     </xsd:element> -->
                     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

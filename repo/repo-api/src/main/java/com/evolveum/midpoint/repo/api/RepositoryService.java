@@ -23,6 +23,8 @@ package com.evolveum.midpoint.repo.api;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.Duration;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -448,4 +451,18 @@ public interface RepositoryService {
 	 * without changing the result structure. It must not throw an exception in this case.
 	 */
     public void repositorySelfTest(OperationResult parentResult);
+    
+    /**
+     * Clean up audit records that are older than specified. 
+     * 
+     * @param maxAge records older that maxAge will be deleted.
+     */
+    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult);
+    
+    /**
+     * Clean up closed tasks that are older than specified. 
+     * 
+     * @param maxAge closed tasks older that maxAge will be deleted.
+     */
+    public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult);
 }

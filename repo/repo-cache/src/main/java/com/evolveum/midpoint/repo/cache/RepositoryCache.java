@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.datatype.Duration;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -293,6 +296,17 @@ public class RepositoryCache implements RepositoryService {
 		if (cache != null) {
 			cache.put(object.getOid(), (PrismObject<ObjectType>) object.clone());
 		}
+	}
+
+	@Override
+	public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+		repository.cleanupAudit(policy, parentResult);
+		
+	}
+
+	@Override
+	public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
+		repository.cleanupTasks(policy, parentResult);
 	}
 
 }
