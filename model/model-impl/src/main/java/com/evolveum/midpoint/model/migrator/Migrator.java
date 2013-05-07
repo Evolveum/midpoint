@@ -27,6 +27,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeD
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -55,6 +58,10 @@ public class Migrator {
 		if (AbstractRoleType.class.isAssignableFrom(origType)) {
 			PrismObject<AbstractRoleType> out = migrateAbstractRole((PrismObject<AbstractRoleType>) original.getObject());
 			return (TypedPrismObject<O>) new TypedPrismObject<AbstractRoleType>((Class<AbstractRoleType>) origType, out);
+		}
+		if (UserType.class.isAssignableFrom(origType)) {
+			PrismObject<UserType> out = migrateUser((PrismObject<UserType>) original.getObject());
+			return (TypedPrismObject<O>) new TypedPrismObject<UserType>((Class<UserType>) origType, out);
 		}
 		return (TypedPrismObject<O>) original;
 	}
@@ -125,6 +132,26 @@ public class Migrator {
 			}
 		}
 		
+		return migrated;
+	}
+	
+	private PrismObject<UserType> migrateUser(PrismObject<UserType> orig) {
+		UserType origUserType = orig.asObjectable();
+		ActivationType origActivation = origUserType.getActivation();
+		if (origActivation == null || origActivation.isEnabled() == null) {
+			return orig;
+		}
+		PrismObject<UserType> migrated = orig.clone();
+		UserType migratedUserType = migrated.asObjectable();
+		ActivationType activationType = migratedUserType.getActivation();
+		if (activationType.getAdministrativeStatus() == null) {
+			if (activationType.isEnabled()) {
+				activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
+			} else {
+				activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
+			}
+		}
+		activationType.setEnabled(null);
 		return migrated;
 	}
 
