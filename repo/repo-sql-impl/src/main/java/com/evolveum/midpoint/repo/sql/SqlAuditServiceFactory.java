@@ -75,6 +75,6 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
 
     @Override
     public AuditService getAuditService() throws AuditServiceFactoryException {
-        return new SqlAuditServiceImpl();
+        return new SqlAuditServiceImpl(repositoryFactory);
     }
 }

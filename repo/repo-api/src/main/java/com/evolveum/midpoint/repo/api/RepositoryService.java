@@ -138,6 +138,7 @@ public interface RepositoryService {
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
     String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchObjectsIterative";
+    String CLEANUP_TASKS = CLASS_NAME_WITH_DOT + "cleanupTasks";
 
 	/**
 	 * Returns object for provided OID.

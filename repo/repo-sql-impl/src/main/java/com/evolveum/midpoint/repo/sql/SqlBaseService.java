@@ -21,8 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.PessimisticLockException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.LockAcquisitionException;
@@ -41,7 +44,6 @@ import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureExcep
 import javax.xml.datatype.Duration;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.Iterator;
 
 /**
  * @author lazyman
@@ -61,6 +63,20 @@ public class SqlBaseService {
     private PrismContext prismContext;
     @Autowired(required = true)
     private SessionFactory sessionFactory;
+
+    private SqlRepositoryFactory repositoryFactory;
+
+    public SqlBaseService(SqlRepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
+    }
+
+    public SqlRepositoryConfiguration getConfiguration() {
+        return repositoryFactory.getSqlConfiguration();
+    }
+
+    public SqlPerformanceMonitor getPerformanceMonitor() {
+        return repositoryFactory.getPerformanceMonitor();
+    }
 
     public PrismContext getPrismContext() {
         return prismContext;
@@ -263,15 +279,33 @@ public class SqlBaseService {
         throw new SystemException(ex.getMessage(), ex);
     }
 
-    protected void cleanup(Class entity, CleanupPolicyType policy, OperationResult result) {
+    protected void cleanup(Class entity, CleanupPolicyType policy, OperationResult subResult) {
         Validate.notNull(policy, "Cleanup policy must not be null.");
-        Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(subResult, "Operation result must not be null.");
 
+        final String operation = "deleting";
+        int attempt = 1;
 
+        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("deleteObject");
+
+        try {
+            while (true) {
+                try {
+                    cleanupAttempt(entity, policy, subResult);
+                    return;
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
     }
 
-    private void cleanupAttempt(Class entity, CleanupPolicyType policy, OperationResult result) {
-         if (policy.getMaxAge() == null) {
+    private void cleanupAttempt(Class entity, CleanupPolicyType policy, OperationResult subResult) {
+        if (policy.getMaxAge() == null) {
             return;
         }
 
@@ -281,17 +315,34 @@ public class SqlBaseService {
         }
         long minValue = duration.getTimeInMillis(new Date());
 
-//        Iterator<AuditEventRecord> iterator = records.iterator();
-//        while (iterator.hasNext()) {
-//            AuditEventRecord record = iterator.next();
-//            Long timestamp = record.getTimestamp();
-//            if (timestamp == null) {
-//                continue;
-//            }
-//
-//            if (timestamp < minValue) {
-//                iterator.remove();
-//            }
-//        }
+        Session session = null;
+        try {
+            session = beginTransaction();
+
+            String name;
+            Query query;
+            if (RAuditEventRecord.class.equals(entity)) {
+                name = "audit records";
+
+                query = session.createQuery("delete from RAuditEventRecord as a where a.timestamp < :timestamp");
+                query.setLong("timestamp", minValue);
+            } else if (RTask.class.equals(entity)) {
+                name = "tasks";
+
+                query = session.createQuery("delete from RTask as t where t.completionTimestamp < :timestamp");
+                query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(new Date(minValue)));
+            } else {
+                throw new SystemException("Unknown cleanup entity type '" + entity + "'.");
+            }
+
+            int count = query.executeUpdate();
+            LOGGER.info("Cleanup in {} performed, {} records deleted.", new Object[]{name, count});
+
+            session.getTransaction().commit();
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, subResult);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
     }
 }

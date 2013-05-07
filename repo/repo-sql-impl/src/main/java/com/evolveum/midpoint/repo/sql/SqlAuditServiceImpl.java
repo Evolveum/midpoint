@@ -48,6 +48,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Autowired(required = true)
     private SessionFactory sessionFactory;
 
+    public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
+        super(repositoryFactory);
+    }
+
     public SessionFactory getSessionFactory() {
         return sessionFactory;
     }

@@ -78,8 +78,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
 
-import javax.xml.datatype.Duration;
-
 /**
  * @author lazyman
  */
@@ -97,10 +95,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
     private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
-    private SqlRepositoryFactory repositoryFactory;
-
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
-        this.repositoryFactory = repositoryFactory;
+        super(repositoryFactory);
     }
 
     private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid, boolean lockForUpdate)
@@ -111,10 +107,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LockOptions lockOptions = new LockOptions();
         if (lockForUpdate) {
-            if (repositoryFactory.getSqlConfiguration().isLockForUpdateViaHibernate()) {
+            if (getConfiguration().isLockForUpdateViaHibernate()) {
                 lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
                 lockedForUpdateViaHibernate = true;
-            } else if (repositoryFactory.getSqlConfiguration().isLockForUpdateViaSql()) {
+            } else if (getConfiguration().isLockForUpdateViaSql()) {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
                 }
@@ -174,7 +170,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("getObject");
 
         try {
@@ -227,7 +223,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private Session beginReadOnlyTransaction() {
-        return beginTransaction(repositoryFactory.getSqlConfiguration().isUseReadOnlyTransactions());
+        return beginTransaction(getConfiguration().isUseReadOnlyTransactions());
     }
 
     @Override
@@ -522,7 +518,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("deleteObject");
 
         try {
@@ -683,7 +679,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("query", query);
         // subResult.addParam("paging", paging);
 
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("searchObjects");
 
         final String operation = "searching";
@@ -778,7 +774,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final String operation = "modifying";
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("modifyObject");
 
         try {
@@ -1032,7 +1028,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final String operation = "listing resource object shadows";
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("listResourceObjectShadow");
 
         try {
@@ -1176,7 +1172,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         diag.setImplementationShortName(IMPLEMENTATION_SHORT_NAME);
         diag.setImplementationDescription(IMPLEMENTATION_DESCRIPTION);
 
-        SqlRepositoryConfiguration config = repositoryFactory.getSqlConfiguration();
+        SqlRepositoryConfiguration config = getConfiguration();
 
         //todo improve, find and use real values (which are used by sessionFactory) MID-1219
         diag.setDriverShortName(config.getDriverClassName());
@@ -1313,7 +1309,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(GET_VERSION);
 
         final String operation = "getting version";
@@ -1377,7 +1373,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
 
         final String operation = "searching iterative";
@@ -1458,6 +1454,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
-        cleanup(RTask.class, policy, parentResult);
+        OperationResult subResult = parentResult.createSubresult(CLEANUP_TASKS);
+        cleanup(RTask.class, policy, subResult);
     }
 }
