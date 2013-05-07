@@ -121,6 +121,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
@@ -865,8 +866,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				OpenDJController.getAttributeValue(entry, "carLicense"));
 
 		assertNotNull("Activation is null", modelShadow.getActivation());
-		assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().isEnabled());
-		assertTrue("The account is not enabled in the shadow", modelShadow.getActivation().isEnabled());
+		assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().getAdministrativeStatus());
+		assertEquals("The account is not enabled in the shadow", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
 
 		displayTestTile("test013prepareOpenDjWithAccounts - add second account");
 
@@ -1498,12 +1499,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PropertyDelta fullNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), user.getDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
-		PrismPropertyValue enabledUserAction = new PrismPropertyValue(true, OriginType.USER_ACTION, null);
-		PropertyDelta enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
+		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PropertyDelta<ActivationStatusType> enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
 		enabledDelta.addValueToAdd(enabledUserAction);
 		modifications.add(enabledDelta);
-//		delta = PropertyDelta.createModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition(), true);
-//		modifications.add(delta);
 		
 		ObjectDelta objectDelta = ObjectDelta.createModifyDelta(USER_JACK2_OID, modifications, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(objectDelta);
@@ -1530,8 +1529,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), user.getDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
-		PrismPropertyValue enabledOutboundAction = new PrismPropertyValue(true, OriginType.USER_ACTION, null);
-		PropertyDelta enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
+		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PropertyDelta<ActivationStatusType> enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);
 		
