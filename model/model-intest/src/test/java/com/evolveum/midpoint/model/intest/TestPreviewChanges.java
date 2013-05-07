@@ -1211,7 +1211,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ObjectDelta<ShadowType> accountPrimaryDelta = accContextDefault.getPrimaryDelta();
 		assertNotNull("No account primary delta (default)", accountPrimaryDelta);
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
-		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, false);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContextDefault.getSecondaryDelta();
         assertNull("Unexpected account secondary delta (default)", accountSecondaryDelta);
@@ -1224,7 +1224,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ObjectDelta<ShadowType> accountPrimaryDeltaBlue = accContextBlue.getPrimaryDelta();
 		assertNotNull("No account primary delta (blue)", accountPrimaryDeltaBlue);
 		PrismAsserts.assertModifications(accountPrimaryDeltaBlue, 1);
-		PrismAsserts.assertPropertyReplace(accountPrimaryDeltaBlue, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, false);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDeltaBlue, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		
         ObjectDelta<ShadowType> accountSecondaryDeltaBlue = accContextBlue.getSecondaryDelta();
         assertNull("Unexpected account secondary delta (blue)", accountSecondaryDeltaBlue);
