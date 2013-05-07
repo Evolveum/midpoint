@@ -110,8 +110,44 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
 	 */
 	@Override
 	public boolean isEnabled() {
+        if (effectiveActivationStatus == null) {
+            effectiveActivationStatus = createEffectiveActivationStatus();
+        }
 		return effectiveActivationStatus == ActivationStatusType.ENABLED;
 	}
+
+    private ActivationStatusType createEffectiveActivationStatus() {
+        //todo improve
+
+        CredentialsType credentials = user.getCredentials();
+        if (credentials == null || credentials.getPassword() == null){
+            return ActivationStatusType.DISABLED;
+        }
+
+        if (user.getActivation() == null) {
+            return ActivationStatusType.DISABLED;
+        }
+
+        ActivationType activation = user.getActivation();
+        long time = System.currentTimeMillis();
+        if (activation.getValidFrom() != null) {
+            long from = MiscUtil.asDate(activation.getValidFrom()).getTime();
+            if (time < from) {
+                return ActivationStatusType.DISABLED;
+            }
+        }
+        if (activation.getValidTo() != null) {
+            long to = MiscUtil.asDate(activation.getValidTo()).getTime();
+            if (to > time) {
+                return ActivationStatusType.DISABLED;
+            }
+        }
+        if (activation.getAdministrativeStatus() == null) {
+            return ActivationStatusType.DISABLED;
+        }
+
+        return activation.getAdministrativeStatus();
+    }
 
 	public UserType getUser() {
         return user;
