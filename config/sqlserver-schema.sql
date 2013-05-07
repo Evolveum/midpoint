@@ -118,9 +118,11 @@ CREATE TABLE m_any_string (
 
 CREATE TABLE m_assignment (
   accountConstruction         NVARCHAR(MAX),
-  enabled                     BIT,
+  administrativeStatus        INT,
+  effectiveStatus             INT,
   validFrom                   DATETIME2,
   validTo                     DATETIME2,
+  validityStatus              INT,
   assignmentOwner             INT,
   description                 NVARCHAR(MAX),
   owner_id                    BIGINT       NOT NULL,
@@ -319,13 +321,13 @@ CREATE TABLE m_object (
 );
 
 CREATE TABLE m_object_template (
-  accountConstruction  NVARCHAR(MAX),
-  name_norm            NVARCHAR(255),
-  name_orig            NVARCHAR(255),
-  propertyConstruction NVARCHAR(MAX),
-  type                 INT,
-  id                   BIGINT       NOT NULL,
-  oid                  NVARCHAR(36) NOT NULL,
+  accountConstruction NVARCHAR(MAX),
+  mapping             NVARCHAR(MAX),
+  name_norm           NVARCHAR(255),
+  name_orig           NVARCHAR(255),
+  type                INT,
+  id                  BIGINT       NOT NULL,
+  oid                 NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
@@ -362,9 +364,9 @@ CREATE TABLE m_org (
 
 CREATE TABLE m_org_closure (
   id             BIGINT NOT NULL,
-  depthValue     INT,
   ancestor_id    BIGINT,
   ancestor_oid   NVARCHAR(36),
+  depthValue     INT,
   descendant_id  BIGINT,
   descendant_oid NVARCHAR(36),
   PRIMARY KEY (id)
@@ -439,11 +441,15 @@ CREATE TABLE m_role (
 );
 
 CREATE TABLE m_shadow (
-  enabled                       BIT,
+  administrativeStatus          INT,
+  effectiveStatus               INT,
   validFrom                     DATETIME2,
   validTo                       DATETIME2,
+  validityStatus                INT,
+  assigned                      BIT,
   attemptNumber                 INT,
   dead                          BIT,
+  exist                         BIT,
   failedOperationType           INT,
   intent                        NVARCHAR(255),
   kind                          INT,
@@ -550,9 +556,11 @@ CREATE TABLE m_task_dependent (
 );
 
 CREATE TABLE m_user (
-  enabled                  BIT,
+  administrativeStatus     INT,
+  effectiveStatus          INT,
   validFrom                DATETIME2,
   validTo                  DATETIME2,
+  validityStatus           INT,
   additionalName_norm      NVARCHAR(255),
   additionalName_orig      NVARCHAR(255),
   costCenter               NVARCHAR(255),
@@ -660,7 +668,7 @@ ADD CONSTRAINT fk_any_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
 REFERENCES m_any;
 
-CREATE INDEX iAssignmentEnabled ON m_assignment (enabled);
+CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment
@@ -759,10 +767,6 @@ ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role;
 
-CREATE INDEX iDescendant ON m_org_closure (descendant_oid, descendant_id);
-
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid, ancestor_id);
-
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_descendant
 FOREIGN KEY (descendant_id, descendant_oid)
@@ -798,9 +802,9 @@ ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role;
 
-CREATE INDEX iShadowEnabled ON m_shadow (enabled);
-
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
+
+CREATE INDEX iShadowAdministrative ON m_shadow (administrativeStatus);
 
 CREATE INDEX iShadowName ON m_shadow (name_norm);
 
@@ -847,7 +851,7 @@ CREATE INDEX iAdditionalName ON m_user (additionalName_norm);
 
 CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_norm);
 
-CREATE INDEX iUserEnabled ON m_user (enabled);
+CREATE INDEX iUserAdministrative ON m_user (administrativeStatus);
 
 ALTER TABLE m_user
 ADD CONSTRAINT fk_user

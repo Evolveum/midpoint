@@ -121,9 +121,11 @@ CREATE TABLE m_any_string (
 
 CREATE TABLE m_assignment (
   accountConstruction         CLOB,
-  enabled                     NUMBER(1, 0),
+  administrativeStatus        NUMBER(10, 0),
+  effectiveStatus             NUMBER(10, 0),
   validFrom                   TIMESTAMP,
   validTo                     TIMESTAMP,
+  validityStatus              NUMBER(10, 0),
   assignmentOwner             NUMBER(10, 0),
   description                 CLOB,
   owner_id                    NUMBER(19, 0)     NOT NULL,
@@ -322,13 +324,13 @@ CREATE TABLE m_object (
 ) INITRANS 30;
 
 CREATE TABLE m_object_template (
-  accountConstruction  CLOB,
-  name_norm            VARCHAR2(255 CHAR),
-  name_orig            VARCHAR2(255 CHAR),
-  propertyConstruction CLOB,
-  type                 NUMBER(10, 0),
-  id                   NUMBER(19, 0)     NOT NULL,
-  oid                  VARCHAR2(36 CHAR) NOT NULL,
+  accountConstruction CLOB,
+  mapping             CLOB,
+  name_norm           VARCHAR2(255 CHAR),
+  name_orig           VARCHAR2(255 CHAR),
+  type                NUMBER(10, 0),
+  id                  NUMBER(19, 0)     NOT NULL,
+  oid                 VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 ) INITRANS 30;
@@ -365,9 +367,9 @@ CREATE TABLE m_org (
 
 CREATE TABLE m_org_closure (
   id             NUMBER(19, 0) NOT NULL,
-  depthValue     NUMBER(10, 0),
   ancestor_id    NUMBER(19, 0),
   ancestor_oid   VARCHAR2(36 CHAR),
+  depthValue     NUMBER(10, 0),
   descendant_id  NUMBER(19, 0),
   descendant_oid VARCHAR2(36 CHAR),
   PRIMARY KEY (id)
@@ -442,11 +444,15 @@ CREATE TABLE m_role (
 ) INITRANS 30;
 
 CREATE TABLE m_shadow (
-  enabled                       NUMBER(1, 0),
+  administrativeStatus          NUMBER(10, 0),
+  effectiveStatus               NUMBER(10, 0),
   validFrom                     TIMESTAMP,
   validTo                       TIMESTAMP,
+  validityStatus                NUMBER(10, 0),
+  assigned                      NUMBER(1, 0),
   attemptNumber                 NUMBER(10, 0),
   dead                          NUMBER(1, 0),
+  exist                         NUMBER(1, 0),
   failedOperationType           NUMBER(10, 0),
   intent                        VARCHAR2(255 CHAR),
   kind                          NUMBER(10, 0),
@@ -553,9 +559,11 @@ CREATE TABLE m_task_dependent (
 ) INITRANS 30;
 
 CREATE TABLE m_user (
-  enabled                  NUMBER(1, 0),
+  administrativeStatus     NUMBER(10, 0),
+  effectiveStatus          NUMBER(10, 0),
   validFrom                TIMESTAMP,
   validTo                  TIMESTAMP,
+  validityStatus           NUMBER(10, 0),
   additionalName_norm      VARCHAR2(255 CHAR),
   additionalName_orig      VARCHAR2(255 CHAR),
   costCenter               VARCHAR2(255 CHAR),
@@ -663,7 +671,7 @@ ADD CONSTRAINT fk_any_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
 REFERENCES m_any;
 
-CREATE INDEX iAssignmentEnabled ON m_assignment (enabled) INITRANS 30;
+CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) INITRANS 30;
 
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment
@@ -762,10 +770,6 @@ ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role;
 
-CREATE INDEX iDescendant ON m_org_closure (descendant_oid, descendant_id) INITRANS 30;
-
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid, ancestor_id) INITRANS 30;
-
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_descendant
 FOREIGN KEY (descendant_id, descendant_oid)
@@ -801,9 +805,9 @@ ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role;
 
-CREATE INDEX iShadowEnabled ON m_shadow (enabled) INITRANS 30;
-
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid) INITRANS 30;
+
+CREATE INDEX iShadowAdministrative ON m_shadow (administrativeStatus) INITRANS 30;
 
 CREATE INDEX iShadowName ON m_shadow (name_norm) INITRANS 30;
 
@@ -850,7 +854,7 @@ CREATE INDEX iAdditionalName ON m_user (additionalName_norm) INITRANS 30;
 
 CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_norm) INITRANS 30;
 
-CREATE INDEX iUserEnabled ON m_user (enabled) INITRANS 30;
+CREATE INDEX iUserAdministrative ON m_user (administrativeStatus) INITRANS 30;
 
 ALTER TABLE m_user
 ADD CONSTRAINT fk_user

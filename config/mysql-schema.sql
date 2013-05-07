@@ -156,9 +156,11 @@ CREATE TABLE m_any_string (
 
 CREATE TABLE m_assignment (
   accountConstruction         LONGTEXT,
-  enabled                     BIT,
+  administrativeStatus        INTEGER,
+  effectiveStatus             INTEGER,
   validFrom                   DATETIME(6),
   validTo                     DATETIME(6),
+  validityStatus              INTEGER,
   assignmentOwner             INTEGER,
   description                 LONGTEXT,
   owner_id                    BIGINT      NOT NULL,
@@ -402,13 +404,13 @@ CREATE TABLE m_object (
   ENGINE = InnoDB;
 
 CREATE TABLE m_object_template (
-  accountConstruction  LONGTEXT,
-  name_norm            VARCHAR(255),
-  name_orig            VARCHAR(255),
-  propertyConstruction LONGTEXT,
-  type                 INTEGER,
-  id                   BIGINT      NOT NULL,
-  oid                  VARCHAR(36) NOT NULL,
+  accountConstruction LONGTEXT,
+  mapping             LONGTEXT,
+  name_norm           VARCHAR(255),
+  name_orig           VARCHAR(255),
+  type                INTEGER,
+  id                  BIGINT      NOT NULL,
+  oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
@@ -454,9 +456,9 @@ CREATE TABLE m_org (
 
 CREATE TABLE m_org_closure (
   id             BIGINT NOT NULL,
-  depthValue     INTEGER,
   ancestor_id    BIGINT,
   ancestor_oid   VARCHAR(36),
+  depthValue     INTEGER,
   descendant_id  BIGINT,
   descendant_oid VARCHAR(36),
   PRIMARY KEY (id)
@@ -549,11 +551,15 @@ CREATE TABLE m_role (
   ENGINE = InnoDB;
 
 CREATE TABLE m_shadow (
-  enabled                       BIT,
+  administrativeStatus          INTEGER,
+  effectiveStatus               INTEGER,
   validFrom                     DATETIME(6),
   validTo                       DATETIME(6),
+  validityStatus                INTEGER,
+  assigned                      BIT,
   attemptNumber                 INTEGER,
   dead                          BIT,
+  exist                         BIT,
   failedOperationType           INTEGER,
   intent                        VARCHAR(255),
   kind                          INTEGER,
@@ -675,9 +681,11 @@ CREATE TABLE m_task_dependent (
   ENGINE = InnoDB;
 
 CREATE TABLE m_user (
-  enabled                  BIT,
+  administrativeStatus     INTEGER,
+  effectiveStatus          INTEGER,
   validFrom                DATETIME(6),
   validTo                  DATETIME(6),
+  validityStatus           INTEGER,
   additionalName_norm      VARCHAR(255),
   additionalName_orig      VARCHAR(255),
   costCenter               VARCHAR(255),
@@ -805,7 +813,7 @@ ADD CONSTRAINT fk_any_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
 REFERENCES m_any (owner_id, owner_oid, ownerType);
 
-CREATE INDEX iAssignmentEnabled ON m_assignment (enabled);
+CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 ALTER TABLE m_assignment
 ADD INDEX fk_assignment (id, oid),
@@ -923,10 +931,6 @@ ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role (id, oid);
 
-CREATE INDEX iDescendant ON m_org_closure (descendant_oid, descendant_id);
-
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid, ancestor_id);
-
 ALTER TABLE m_org_closure
 ADD INDEX fk_descendant (descendant_id, descendant_oid),
 ADD CONSTRAINT fk_descendant
@@ -969,9 +973,9 @@ ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role (id, oid);
 
-CREATE INDEX iShadowEnabled ON m_shadow (enabled);
-
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
+
+CREATE INDEX iShadowAdministrative ON m_shadow (administrativeStatus);
 
 CREATE INDEX iShadowName ON m_shadow (name_norm);
 
@@ -1023,7 +1027,7 @@ CREATE INDEX iAdditionalName ON m_user (additionalName_norm);
 
 CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_norm);
 
-CREATE INDEX iUserEnabled ON m_user (enabled);
+CREATE INDEX iUserAdministrative ON m_user (administrativeStatus);
 
 ALTER TABLE m_user
 ADD INDEX fk_user (id, oid),
