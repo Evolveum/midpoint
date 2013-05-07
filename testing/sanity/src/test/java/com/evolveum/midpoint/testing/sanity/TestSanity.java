@@ -134,6 +134,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
@@ -1006,8 +1007,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNull("postalAddress attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "postalAddress"));
 
         assertNotNull("Activation is null", modelShadow.getActivation());
-        assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().isEnabled());
-        assertTrue("The account is not enabled in the shadow", modelShadow.getActivation().isEnabled());
+        assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().getAdministrativeStatus());
+        assertEquals("The account is not enabled in the shadow", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
 
     }
 
@@ -1193,7 +1194,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "sn")));
                 assertNotNull("Missing activation", shadow.getActivation());
-                assertNotNull("Missing activation/enabled", shadow.getActivation().isEnabled());
+                assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
                 return true;
             }
         };
@@ -1465,8 +1466,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "There there over the corner");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
-        assertNotNull("The account 'enabled' status was not present in shadow", modelShadow.getActivation().isEnabled());
-        assertFalse("The account was not disabled in the shadow", modelShadow.getActivation().isEnabled());
+        assertNotNull("The account activation status was not present in shadow", modelShadow.getActivation().getAdministrativeStatus());
+        assertEquals("The account was not disabled in the shadow", ActivationStatusType.DISABLED, modelShadow.getActivation().getAdministrativeStatus());
 
         // Check if LDAP account was updated
 
@@ -1569,8 +1570,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "There there over the corner");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
-        assertNotNull("The account 'enabled' status was not present in shadow", modelShadow.getActivation().isEnabled());
-        assertTrue("The account was not enabled in the shadow", modelShadow.getActivation().isEnabled());
+        assertNotNull("The account activation status was not present in shadow", modelShadow.getActivation().getAdministrativeStatus());
+        assertEquals("The account was not enabled in the shadow", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
 
         // Check if LDAP account was updated
 
