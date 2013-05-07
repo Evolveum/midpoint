@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2012 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2012 [name of copyright owner]     -->
+<!--                                                         -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
+
+	<!-- Functional organizational structure -->
+
+	<org oid="00000000-8888-6666-0000-100000000007">
+		<name>F0007</name>
+		<description>The office of the most respectful Governor 2.</description>
+		<displayName>Governor Office 2</displayName>
+		<identifier>0007</identifier>
+		<orgType>functional</orgType>
+		<costCenter>CC0</costCenter>
+		<locality>The Governor's Mansion</locality>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000008">
+		<name>F0008</name>
+		<description>Defending the scum since the ancient times 2.</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+		<displayName>Ministry of Defense 2</displayName>
+		<identifier>0008</identifier>
+		<orgType>functional</orgType>
+		<locality>The towers, bastions and bars 2</locality>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000009">
+		<name>F0009</name>
+		<description>Offending. Anyone. Anywhere 2.</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000007" type="c:OrgType"/>
+		<displayName>Ministry of Offense 2</displayName>
+		<identifier>0009</identifier>
+		<orgType>functional</orgType>
+		<costCenter>CC666</costCenter>
+	</org>
+	
+	<org oid="00000000-8888-6666-0000-100000000010">
+		<name>F00010</name>
+		<description>Hosting the worst scumm of the Caribbean 2.</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000012" type="c:OrgType"/>
+		<displayName>Scumm Bar 2</displayName>
+		<identifier>00010</identifier>
+		<orgType>functional</orgType>
+		<locality>Mêlée Island</locality>
+	</org>
+	
+	<org oid="00000000-8888-6666-0000-100000000011">
+		<name>F00011</name>
+		<description>Swashing, buckling and insulting. Hard. 2</description>
+		<displayName>Swashbuckler Section 2</displayName>
+		<identifier>00011</identifier>
+		<orgType>functional</orgType>
+	</org>
+
+
+	<!-- Project organizational structure -->
+
+	<org oid="00000000-8888-6666-0000-200000000003">
+		<name>PRoot2</name>
+		<description>Project organizational structure root2</description>
+		<displayName>Projects 2</displayName>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-200000000004">
+		<name>P0004</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000003" type="c:OrgType"/>
+		<displayName>Save Elaine 2</displayName>
+		<identifier>0004</identifier>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-200000000005">
+		<name>P0005</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000004" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
+		<displayName>Kidnap and marry Elaine 2</displayName>
+		<identifier>0005</identifier>
+		<orgType>project</orgType>
+	</org>
+	
+	
+
+</objects>

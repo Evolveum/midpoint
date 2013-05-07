@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
+import com.evolveum.midpoint.repo.sql.data.common.ROrgIncorrect;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
@@ -49,7 +50,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
+import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -69,38 +72,62 @@ public class OrgStructTest extends BaseSQLRepoTest {
     private static final File TEST_DIR = new File("src/test/resources/orgstruct");
 
     private static final String ORG_STRUCT_OBJECTS = TEST_DIR + "/org-monkey-island.xml";
+    private static final String ORG_STRUCT_OBJECTS_INCORRECT = TEST_DIR + "/org-monkey-island-incorrect.xml";
+    
+    private static final String MODIFY_ORG_ADD_REF_FILENAME = TEST_DIR + "/modify-orgStruct-add-orgref.xml";
+    private static final String MODIFY_ORG_INCORRECT_ADD_REF_FILENAME = TEST_DIR + "/modify-orgStruct-incorrect-add-orgref.xml";
+    
+    private static final String MODIFY_ORG_DELETE_REF_FILENAME = TEST_DIR + "/modify-orgStruct-delete-ref.xml";
+    private static final String MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME = TEST_DIR + "/modify-orgStruct-incorrect-delete-ref.xml";
+    
+    private static final String MODIFY_ORG_ADD_USER_FILENAME = TEST_DIR + "/modify-orgStruct-add-user.xml";
+    
     private static final String ORG_F001_OID = "00000000-8888-6666-0000-100000000001";
+    private static final String ORG_F002_OID = "00000000-8888-6666-0000-100000000002";
+    private static final String ORG_F003_OID = "00000000-8888-6666-0000-100000000003";
+    private static final String ORG_F004_OID = "00000000-8888-6666-0000-100000000004";
+    private static final String ORG_F006_OID = "00000000-8888-6666-0000-100000000006";
+    private static final String ORG_F007_OID = "00000000-8888-6666-0000-100000000007";
+    private static final String ORG_F008_OID = "00000000-8888-6666-0000-100000000008";
+    private static final String ORG_F009_OID = "00000000-8888-6666-0000-100000000009";
+    private static final String ORG_F010_OID = "00000000-8888-6666-0000-100000000010";
+    private static final String ORG_F012_OID = "00000000-8888-6666-0000-100000000012";
+    
+    
     private static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
 
     private static final String MODIFY_ORG_ADD_REF_OID = "00000000-8888-6666-0000-100000000005";
-    private static final String MODIFY_ORG_ADD_REF_FILENAME = TEST_DIR + "/modify-orgStruct-add-orgref.xml";
-    private static final String MODIFY_DELETE_REF_OID = "00000000-8888-6666-0000-100000000006";
-    private static final String MODIFY_DELETE_REF_FILENAME = TEST_DIR + "/modify-orgStruct-delete-ref.xml";
-    private static final String MODIFY_ORG_ADD_USER_FILENAME = TEST_DIR + "/modify-orgStruct-add-user.xml";
-
-    private static final String QUERY_ORG_STRUCT_USER_UNBOUNDED = TEST_DIR + "/query-org-struct-user-unbounded.xml";
-    private static final String QUERY_ORG_STRUCT_ORG_DEPTH = TEST_DIR + "/query-org-struct-org-depth.xml";
-
+    private static final String MODIFY_ORG_INCORRECT_ADD_REF_OID = "00000000-8888-6666-0000-100000000006";
+    
+    private static final String MODIFY_ORG_DELETE_REF_OID = "00000000-8888-6666-0000-100000000006";
+    private static final String MODIFY_ORG_INCORRECT_DELETE_REF_OID = "00000000-8888-6666-0000-100000000006";
+    
+    private static final String DELETE_ORG_OID = "00000000-8888-6666-0000-100000000006";
+    
+    private static final String SEARCH_ORG_OID_UNBOUNDED_DEPTH = "00000000-8888-6666-0000-100000000001";
+    private static final String SEARCH_ORG_OID_DEPTH1 = "00000000-8888-6666-0000-100000000001";
+    
+    private static final String MODIFY_USER_DELETE_REF_OID = "00000000-8888-6666-0000-100000000002";
+    
     private static final Trace LOGGER = TraceManager.getTrace(OrgStructTest.class);
 
     String ELAINE_OID;
     private static final String ELAINE_NAME = "elaine";
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "unused" })
     @Test
     public void test001addOrgStructObjects() throws Exception {
 
         LOGGER.info("===[ addOrgStruct ]===");
-
-        List<PrismObject<? extends Objectable>> orgStruct = prismContext.getPrismDomProcessor().parseObjects(
-                new File(ORG_STRUCT_OBJECTS));
-
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
+        
+        List<PrismObject<? extends Objectable>> orgStruct = prismContext.getPrismDomProcessor().parseObjects(
+                new File(ORG_STRUCT_OBJECTS));  
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
         }
-
+        
         List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), opResult);
         AssertJUnit.assertNotNull(orgTypes);
         AssertJUnit.assertEquals(9, orgTypes.size());
@@ -117,6 +144,35 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals("CC0", orgF001.getCostCenter());
 //		PrismAsserts.assertEqualsPolyString("The Governor's Mansion", "The Governor's Mansion", orgF001.getLocality());
 
+        
+        OrgType orgF003 = repositoryService.getObject(OrgType.class, ORG_F003_OID, opResult).asObjectable();
+        OrgType orgF004 = repositoryService.getObject(OrgType.class, ORG_F004_OID, opResult).asObjectable();
+        OrgType orgF006 = repositoryService.getObject(OrgType.class, ORG_F006_OID, opResult).asObjectable();
+        
+        AssertJUnit.assertNotNull(orgF006);
+        AssertJUnit.assertEquals("F0006", orgF006.getName().getOrig());
+        AssertJUnit.assertEquals("Hosting the worst scumm of the Caribbean.", orgF006.getDescription());
+		AssertJUnit.assertEquals("Scumm Bar", orgF006.getDisplayName().getOrig());
+        AssertJUnit.assertEquals("0006", orgF006.getIdentifier());
+        AssertJUnit.assertEquals(1, orgF006.getOrgType().size());
+        AssertJUnit.assertEquals("functional", orgF006.getOrgType().get(0));
+        AssertJUnit.assertEquals("Mêlée Island", orgF006.getLocality().getOrig());
+        
+        
+        ObjectReferenceType oRefType = new ObjectReferenceType();
+        boolean isEqual003 = false;
+        boolean isEqual004 = false;
+       	for (int i = 0; i<orgF006.getParentOrgRef().size(); i++)
+        {
+        	oRefType = orgF006.getParentOrgRef().get(i);
+        	isEqual003 = isEqual003 || oRefType.getOid().equals(orgF003.getOid());
+        	isEqual004 = isEqual004 || oRefType.getOid().equals(orgF004.getOid());
+        }
+        
+       	AssertJUnit.assertEquals(true,isEqual003);
+       	AssertJUnit.assertEquals(true,isEqual004);
+       	        
+        
         OrgType pRoot = repositoryService.getObject(OrgType.class, ORG_PROJECT_ROOT_OID, opResult).asObjectable();
         AssertJUnit.assertEquals("PRoot", pRoot.getName().getOrig());
         AssertJUnit.assertEquals("Project organizational structure root", pRoot.getDescription());
@@ -126,7 +182,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
 //		QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
         ObjectQuery query = new ObjectQuery();
-        PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         query.setFilter(EqualsFilter.createEqual(null, userObjectDef, UserType.F_NAME, ELAINE_NAME));
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, opResult);
@@ -153,88 +209,170 @@ public class OrgStructTest extends BaseSQLRepoTest {
         session.beginTransaction();
         List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
         LOGGER.info("==============CLOSURE TABLE==========");
-        AssertJUnit.assertEquals(65, results.size());
+        AssertJUnit.assertEquals(54, results.size());
         for (ROrgClosure o : results) {
             LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
                     o.getDescendant().toJAXB(prismContext), o.getDepth()});
         }
 
         // check descendants for F0001 org unit
-        String ancestorOid = "00000000-8888-6666-0000-100000000001";
-        String descendantOid = "00000000-8888-6666-0000-100000000006";
-        Criteria criteria = session.createCriteria(ROrgClosure.class).createCriteria("ancestor", "anc")
-                .setFetchMode("ancestor", FetchMode.JOIN).add(Restrictions.eq("anc.oid", ancestorOid));
+        Criteria criteria = session.createCriteria(ROrgClosure.class)
+        		.createCriteria("ancestor", "anc")
+                .setFetchMode("ancestor", FetchMode.JOIN).
+                add(Restrictions.eq("anc.oid", ORG_F001_OID));
 
         results = criteria.list();
-        AssertJUnit.assertEquals(21, results.size());
+        AssertJUnit.assertEquals(13, results.size());
 
-        criteria = session.createCriteria(ROrgClosure.class).add(Restrictions.eq("depth", 2));
-        Criteria ancCriteria = criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
-                .add(Restrictions.eq("anc.oid", ancestorOid));
+        criteria = session.createCriteria(ROrgClosure.class)
+        		.add(Restrictions.eq("depth", 2));
+        Criteria ancCriteria = criteria.createCriteria("ancestor", "anc")
+        		.setFetchMode("ancestor", FetchMode.JOIN)
+                .add(Restrictions.eq("anc.oid", ORG_F001_OID));
         Criteria descCriteria = criteria.createCriteria("descendant", "desc")
-                .setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
-
+                .setFetchMode("descendant", FetchMode.JOIN)
+                .add(Restrictions.eq("desc.oid", ORG_F006_OID));
         results = criteria.list();
-        AssertJUnit.assertEquals(2, results.size());
+        AssertJUnit.assertEquals(1, results.size());
 
         session.getTransaction().commit();
         session.close();
     }
 
-    @Test
-    public void test002modifyOrgStructAdd() throws Exception {
+    @SuppressWarnings({ "unchecked" })
+	@Test
+    public void test001addOrgStructObjectsIncorrect() throws Exception {
+
+    	LOGGER.info("===[ addIncorrectOrgStruct ]===");
+         
+    	OperationResult opResult = new OperationResult("===[ addIncorrectOrgStruct ]===");
+                     
+        List<PrismObject<? extends Objectable>> orgStructIncorrect = prismContext.getPrismDomProcessor().parseObjects(
+        	 new File(ORG_STRUCT_OBJECTS_INCORRECT));
+            
+        for (PrismObject<? extends Objectable> o : orgStructIncorrect) {  	 
+         repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
+        }
+                  
+     	OrgType orgF008 = repositoryService.getObject(OrgType.class, ORG_F008_OID, opResult).asObjectable();
+       	OrgType orgF009 = repositoryService.getObject(OrgType.class, ORG_F009_OID, opResult).asObjectable();
+       	AssertJUnit.assertEquals(orgF008.getParentOrgRef().get(0).getOid(), orgF009.getOid());
+       	       	
+       	OrgType orgF010 = repositoryService.getObject(OrgType.class, ORG_F010_OID, opResult).asObjectable();
+       	
+       	ObjectReferenceType oRefType = new ObjectReferenceType();
+        boolean isEqual009 = false;
+        boolean isEqual012 = false;
+       	for (int i = 0; i<orgF010.getParentOrgRef().size(); i++)
+        {
+        	oRefType = orgF010.getParentOrgRef().get(i);
+        	isEqual009 = isEqual009 || oRefType.getOid().equals(orgF009.getOid());
+        	isEqual012 = isEqual012 || oRefType.getOid().equals(ORG_F012_OID);
+        }
+        
+       	AssertJUnit.assertEquals(true,isEqual009);
+       	AssertJUnit.assertEquals(true,isEqual012);
+       	
+        LOGGER.info("==>after add<==");
+        Session session = getFactory().openSession();
+        session.beginTransaction();
+        
+        LOGGER.info("==============CLOSURE TABLE==========");
+        List<ROrgClosure> orgClosure = session.createQuery("from ROrgClosure").list();
+        // descendants of F007 - F007<0>, F009<1>, F008<2>, F0010<2>
+        Criteria criteria = session.createCriteria(ROrgClosure.class)
+        		.createCriteria("ancestor", "anc")
+                .setFetchMode("ancestor", FetchMode.JOIN)
+                .add(Restrictions.eq("anc.oid", ORG_F007_OID));
+        
+        orgClosure = criteria.list();
+        AssertJUnit.assertEquals(4, orgClosure.size());
+
+        criteria = session.createCriteria(ROrgClosure.class)
+        		.add(Restrictions.eq("depth", 2))
+        		.createCriteria("ancestor", "anc")
+        		.setFetchMode("ancestor", FetchMode.JOIN)
+        		.add(Restrictions.eq("anc.oid", ORG_F007_OID));
+        
+
+        orgClosure = criteria.list();
+        AssertJUnit.assertEquals(2, orgClosure.size());
+         
+        LOGGER.info("==============ORG INCORRECT TABLE==========");
+        List<ROrgIncorrect> orgIncorrect = session.createQuery("from ROrgIncorrect").list();
+        AssertJUnit.assertEquals(1, orgIncorrect.size());
+        AssertJUnit.assertEquals(ORG_F012_OID, orgIncorrect.get(0).getAncestorOid());
+        AssertJUnit.assertEquals(ORG_F010_OID, orgIncorrect.get(0).getDescendantOid());
+
+        session.getTransaction().commit();
+        session.close();
+     }
+
+    @SuppressWarnings("unchecked")
+	@Test
+    public void test002modifyOrgStructAddRef() throws Exception {
         LOGGER.info("===[ modifyOrgStruct ]===");
         OperationResult opResult = new OperationResult("===[ modifyOrgStruct ]===");
         // test modification of org ref in another org type..
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_ADD_REF_FILENAME),
                 ObjectModificationType.class);
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
         Session session = getFactory().openSession();
         session.beginTransaction();
-        String descendantOid = "00000000-8888-6666-0000-100000000005";
-        Criteria criteria = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
-                .setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+        
+        Criteria criteria = session.createCriteria(ROrgClosure.class)
+        		.createCriteria("descendant", "desc")
+                .setFetchMode("descendant", FetchMode.JOIN)
+                .add(Restrictions.eq("desc.oid", MODIFY_ORG_ADD_REF_OID));
 
-        List<ROrgClosure> results = criteria.list();
+        List<ROrgClosure> orgClosure = criteria.list();
 
         LOGGER.info("before modify");
-        for (ROrgClosure c : results) {
+        for (ROrgClosure c : orgClosure) {
             LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid(), c.getDepth()});
         }
-        AssertJUnit.assertEquals(3, results.size());
+        AssertJUnit.assertEquals(3, orgClosure.size());
         session.getTransaction().commit();
 
         repositoryService.modifyObject(OrgType.class, MODIFY_ORG_ADD_REF_OID, delta.getModifications(), opResult);
 
         session.clear();
         session.beginTransaction();
-        criteria = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
-                .setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+        criteria = session.createCriteria(ROrgClosure.class)
+        		.createCriteria("descendant", "desc")
+                .setFetchMode("descendant", FetchMode.JOIN)
+                .add(Restrictions.eq("desc.oid", MODIFY_ORG_ADD_REF_OID));
 
-        results = criteria.list();
+        orgClosure = criteria.list();
+        
         LOGGER.info("after modify");
-        for (ROrgClosure c : results) {
+        for (ROrgClosure c : orgClosure) {
             LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid(), c.getDepth()});
         }
-        AssertJUnit.assertEquals(5, results.size());
+        AssertJUnit.assertEquals(4, orgClosure.size());
 
         List<String> ancestors = new ArrayList<String>();
-        ancestors.add("00000000-8888-6666-0000-100000000005");
-        ancestors.add("00000000-8888-6666-0000-100000000003");
-        ancestors.add("00000000-8888-6666-0000-100000000001");
-        ancestors.add("00000000-8888-6666-0000-100000000002");
+        ancestors.add(MODIFY_ORG_ADD_REF_OID);
+        ancestors.add(ORG_F003_OID);
+        ancestors.add(ORG_F001_OID);
+        ancestors.add(ORG_F002_OID);
 
         for (String ancestorOid : ancestors) {
 
-            criteria = session.createCriteria(ROrgClosure.class);
-            Criteria ancCriteria = criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
+        	
+        	criteria = session.createCriteria(ROrgClosure.class);
+            criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
                     .add(Restrictions.eq("anc.oid", ancestorOid));
-            Criteria descCriteria = criteria.createCriteria("descendant", "desc")
-                    .setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+            criteria.createCriteria("descendant", "desc")
+                    .setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", MODIFY_ORG_ADD_REF_OID));
 
-            results = criteria.list();
+            orgClosure = criteria.list();
+            
+            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] {orgClosure.get(0).getAncestor().toJAXB(prismContext),
+            	orgClosure.get(0).getDescendant().toJAXB(prismContext), orgClosure.get(0).getDepth() });
+            
 //			LOGGER.info("==============CLOSURE TABLE FOR EACH==========");
 //			
 //			for (ROrgClosure o : results) {
@@ -242,71 +380,272 @@ public class OrgStructTest extends BaseSQLRepoTest {
 //						o.getDescendant().toJAXB(prismContext), o.getDepth() });
 //
 //			}
-            if (ancestorOid.equals("00000000-8888-6666-0000-100000000001")) {
-                AssertJUnit.assertEquals(2, results.size());
-            } else {
-                AssertJUnit.assertEquals(1, results.size());
-                AssertJUnit.assertEquals(ancestorOid, results.get(0).getAncestor().getOid());
-                AssertJUnit.assertEquals(descendantOid, results.get(0).getDescendant().getOid());
-                int depth = -1;
-                if (ancestorOid.equals("00000000-8888-6666-0000-100000000005")) {
-                    depth = 0;
-                } else if (ancestorOid.equals("00000000-8888-6666-0000-100000000003")) {
-                    depth = 1;
-                } else if (ancestorOid.equals("00000000-8888-6666-0000-100000000002")) {
-                    depth = 1;
-                }
-                AssertJUnit.assertEquals(depth, results.get(0).getDepth());
-            }
+
+			AssertJUnit.assertEquals(1, orgClosure.size());
+			AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0)
+					.getAncestor().getOid());
+			AssertJUnit.assertEquals(MODIFY_ORG_ADD_REF_OID, orgClosure.get(0)
+					.getDescendant().getOid());
+			int depth = -1;
+			if (ancestorOid.equals(MODIFY_ORG_ADD_REF_OID)) {
+				depth = 0;
+			} else if (ancestorOid.equals(ORG_F001_OID)) {
+				depth = 2;
+			} else if (ancestorOid.equals(ORG_F003_OID)) {
+				depth = 1;
+			} else if (ancestorOid.equals(ORG_F002_OID)) {
+				depth = 1;
+			}
+			AssertJUnit.assertEquals(depth, orgClosure.get(0).getDepth());
+
         }
         session.getTransaction().commit();
         session.close();
     }
 
-    @Test
-    public void test003modifyOrgStructDeleteRef() throws Exception {
-        // test modification of org ref - delete org ref
-        LOGGER.info("===[ modify delete org ref ]===");
-        OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_DELETE_REF_FILENAME),
-                ObjectModificationType.class);
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+    @SuppressWarnings("unchecked")
+	@Test
+    public void test002modifyOrgStructAddRefIncorrect() throws Exception {
+        LOGGER.info("===[ modifyOrgStruct ]===");
+        OperationResult opResult = new OperationResult("===[ modifyOrgStructIncorrect ]===");
+        // test modification of org ref in another org type..
 
-        repositoryService.modifyObject(OrgType.class, MODIFY_DELETE_REF_OID, delta.getModifications(), opResult);
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_INCORRECT_ADD_REF_FILENAME),
+                ObjectModificationType.class);
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+
+        repositoryService.modifyObject(OrgType.class, MODIFY_ORG_INCORRECT_ADD_REF_OID, delta.getModifications(), opResult);
 
         Session session = getFactory().openSession();
+        session.clear();
         session.beginTransaction();
-        LOGGER.info("==>after modify - delete<==");
-        List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-        AssertJUnit.assertEquals(53, results.size());
-        LOGGER.info("==============CLOSURE TABLE==========");
-        for (ROrgClosure o : results) {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
+        
+        Criteria criteria = session.createCriteria(ROrgClosure.class)
+        		.createCriteria("descendant", "desc")
+        		.setFetchMode("descendant", FetchMode.JOIN)
+        		.add(Restrictions.eq("desc.oid", MODIFY_ORG_INCORRECT_ADD_REF_OID));
 
+        List<ROrgClosure> orgClosure = criteria.list();
+        
+        LOGGER.info("after modify incorrect - closure");
+        for (ROrgClosure c : orgClosure) {
+            LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid(), c.getDepth()});
         }
+        AssertJUnit.assertEquals(5, orgClosure.size());
+
+        List<String> ancestors = new ArrayList<String>();
+        ancestors.add(MODIFY_ORG_INCORRECT_ADD_REF_OID);
+        ancestors.add(ORG_F001_OID);
+        ancestors.add(ORG_F002_OID);
+
+        for (String ancestorOid : ancestors) 
+        {
+            criteria = session.createCriteria(ROrgClosure.class);
+            criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
+                    .add(Restrictions.eq("anc.oid", ancestorOid));
+            criteria.createCriteria("descendant", "desc")
+                    .setFetchMode("descendant", FetchMode.JOIN)
+                    .add(Restrictions.eq("desc.oid", MODIFY_ORG_INCORRECT_ADD_REF_OID));
+          
+            orgClosure = criteria.list();
+            
+            AssertJUnit.assertEquals(1, orgClosure.size());
+            
+            AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0).getAncestor().getOid());
+            AssertJUnit.assertEquals(MODIFY_ORG_INCORRECT_ADD_REF_OID, orgClosure.get(0).getDescendant().getOid());
+            
+            int depth = -1;
+            if (ancestorOid.equals(MODIFY_ORG_INCORRECT_ADD_REF_OID))
+            {
+            	depth = 0;
+            } 
+            else if (ancestorOid.equals(ORG_F001_OID)) 
+            {
+                depth = 2;
+            } 
+            else if (ancestorOid.equals(ORG_F002_OID))
+            {
+                depth = 1;
+            }
+            AssertJUnit.assertEquals(depth, orgClosure.get(0).getDepth());
+        }
+        
+        
+        criteria = session.createCriteria(ROrgIncorrect.class)
+                .add(Restrictions.eq("descendantOid", MODIFY_ORG_INCORRECT_ADD_REF_OID));
+
+        List<ROrgIncorrect> orgIncorrect = criteria.list();
+        
+        LOGGER.info("after modify incorrect - incorrect");
+        for (ROrgIncorrect c : orgIncorrect) {
+            LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestorOid(), c.getDescendantOid()});
+        }
+        AssertJUnit.assertEquals(1, orgIncorrect.size());
+        AssertJUnit.assertEquals(MODIFY_ORG_INCORRECT_ADD_REF_OID, orgIncorrect.get(0).getDescendantOid());
+        AssertJUnit.assertEquals(ORG_F012_OID, orgIncorrect.get(0).getAncestorOid());
+        
         session.getTransaction().commit();
         session.close();
     }
 
-    @Test
-    public void test004modifyOrgStructAddUser() throws Exception {
+    @SuppressWarnings("unchecked")
+	@Test
+    public void test003modifyOrgStructDeleteRef() throws Exception {
+       
+    	// test modification of org ref - delete org ref
+        LOGGER.info("===[ modify delete org ref ]===");
+        OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
+        
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_DELETE_REF_FILENAME),
+                ObjectModificationType.class);
+        
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+        
+        Session session = getFactory().openSession();
+        session.beginTransaction();
+        
+        LOGGER.info("==>before modify - delete<==");
+        
+        Query qDelete = session.createQuery("from ROrgClosure where " +
+        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
+        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid and depthValue = :depth");
+        qDelete.setParameter("descendantId",0);
+        qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
+        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorOid", ORG_F003_OID);
+        qDelete.setParameter("depth", 1);
+        
+        List<ROrgClosure> orgClosure = qDelete.list();
+        
+        AssertJUnit.assertEquals(1, orgClosure.size());
+        
+        session.getTransaction().commit();
+        
+        repositoryService.modifyObject(OrgType.class, MODIFY_ORG_DELETE_REF_OID, delta.getModifications(), opResult);
+
+        session.clear();
+        session.beginTransaction();
+        
+        LOGGER.info("==>after modify - delete<==");
+        
+        qDelete = session.createQuery("from ROrgClosure where " +
+        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
+        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid and depthValue = :depth");
+        qDelete.setParameter("descendantId",0);
+        qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
+        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorOid", ORG_F003_OID);
+        qDelete.setParameter("depth", 1);
+        
+        orgClosure = qDelete.list();
+        
+        AssertJUnit.assertEquals(0, orgClosure.size());
+        
+        session.getTransaction().commit();
+        session.close();
+    }
+   
+    @SuppressWarnings("unchecked")
+	@Test
+    public void test003modifyOrgStructDeleteRefIncorrect() throws Exception {
+       
+    	// test modification of org ref - delete org ref
+        LOGGER.info("===[ modify delete org ref ]===");
+        OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
+        
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
+                ObjectModificationType.class);
+        
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+        
+        Session session = getFactory().openSession();
+        session.beginTransaction();
+        
+        LOGGER.info("==>before modify - delete<==");
+        
+        Query qDelete = session.createQuery("from ROrgClosure where " +
+        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
+        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid");
+        qDelete.setParameter("descendantId",0);
+        qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
+        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorOid", ORG_F012_OID);
+        
+        List<ROrgClosure> orgClosure = qDelete.list();
+        
+        AssertJUnit.assertEquals(0, orgClosure.size());
+        
+        session.getTransaction().commit();
+        
+        repositoryService.modifyObject(OrgType.class, MODIFY_ORG_INCORRECT_DELETE_REF_OID, delta.getModifications(), opResult);
+
+        session.clear();
+        session.beginTransaction();
+        
+        LOGGER.info("==>after modify - delete<==");
+        
+        qDelete = session.createQuery("from ROrgClosure where " +
+        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
+        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid");
+        qDelete.setParameter("descendantId",0);
+        qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
+        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorOid", ORG_F012_OID);
+        
+        orgClosure = qDelete.list();
+        
+        AssertJUnit.assertEquals(0, orgClosure.size());
+        
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    @SuppressWarnings("unchecked")
+	@Test
+    public void test004modifyOrgStructAddUser() throws Exception
+    {
         LOGGER.info("===[ modify add user to orgStruct ]===");
+                
+        Session session = getFactory().openSession();
+        
+        /* session.beginTransaction();
+        
+        Query sqlUser = session.createQuery("from RUser where givenName_norm = :userName");
+        sqlUser.setParameter("userName", ELAINE_NAME);
+        List<RUser> users = sqlUser.list();
+        
+        AssertJUnit.assertEquals(1,users.size());
+        
+        ELAINE_OID = users.get(0).getOid();
+
+        session.getTransaction().commit();
+        */
+        
         OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");
-        // test modification of org ref in another org type..
+        
+        //test modification of org ref in another org type..
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_ADD_USER_FILENAME),
                 ObjectModificationType.class);
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        
+        ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
 
         repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
 
-        Session session = getFactory().openSession();
+        //session.clear();
         session.beginTransaction();
+        
         LOGGER.info("==>after modify - add user to org<==");
-        List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-        AssertJUnit.assertEquals(56, results.size());
+        
+        Query sqlOrgClosure = session.createQuery("from ROrgClosure where descendant_oid = :descendantOid and descendant_id = :descendantId");
+        sqlOrgClosure.setParameter("descendantOid", ELAINE_OID);
+        sqlOrgClosure.setParameter("descendantId", 0);
+        List<ROrgClosure> orgClosure = sqlOrgClosure.list();
+        
+        AssertJUnit.assertEquals(7, orgClosure.size());
+        
         LOGGER.info("==============CLOSURE TABLE==========");
-        for (ROrgClosure o : results) {
+        
+        for (ROrgClosure o : orgClosure) {
             LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
                     o.getDescendant().toJAXB(prismContext), o.getDepth()});
 
@@ -315,158 +654,147 @@ public class OrgStructTest extends BaseSQLRepoTest {
         session.close();
     }
 
-    @Test
-    public void test005deleteOrg() throws Exception {
+    @SuppressWarnings("unchecked")
+	@Test
+    public void test005deleteOrg() throws Exception 
+    {
         LOGGER.info("===[ deleteOrgStruct ]===");
-        String orgOidToDelete = "00000000-8888-6666-0000-100000000002";
+        
         OperationResult opResult = new OperationResult("===[ deleteOrgStruct ]===");
-        repositoryService.deleteObject(OrgType.class, orgOidToDelete, opResult);
+        
+        repositoryService.deleteObject(OrgType.class, DELETE_ORG_OID, opResult);
                                        
         Session session = getFactory().openSession();
         session.beginTransaction();
+        
         LOGGER.info("==>after delete<==");
-        List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-        AssertJUnit.assertEquals(50, results.size());
+        
+        Query sqlOrgClosure = session.createQuery("from ROrgClosure where " +
+        		"(descendant_oid = :deleteOid and descendant_id = :deleteId) or" +
+        		"(ancestor_oid = :deleteOid and ancestor_id = :deleteId)");
+        sqlOrgClosure.setParameter("deleteId", 0);
+        sqlOrgClosure.setParameter("deleteOid", DELETE_ORG_OID);
+        
+        List<ROrgClosure> orgClosure = sqlOrgClosure.list();
+        
+        AssertJUnit.assertEquals(0, orgClosure.size());
+        
         LOGGER.info("==============CLOSURE TABLE==========");
-        for (ROrgClosure o : results) {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
-
-        }
+        
         session.getTransaction().commit();
         session.close();
     }
 
     @Test
     public void test006searchOrgStructUserUnbounded() throws Exception {
-        LOGGER.info("===[ SEARCH QUERY ]===");
-        OperationResult parentResult = new OperationResult("search objects - org struct");
-//        Session session = getFactory().openSession();
-//        session.beginTransaction();
+     
+    	LOGGER.info("===[ SEARCH QUERY ]===");
+        OperationResult parentResult = new OperationResult("search objects - org struct unbound");
 
-//        List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-//        LOGGER.info("==============CLOSURE TABLE==========");
-//        for (ROrgClosure o : results) {
-//            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-//                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
-//        }
-//        session.getTransaction().commit();
-//        session.close();
+        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_UNBOUNDED_DEPTH));
 
-        // File file = new File(TEST_DIR + "/query-org-struct.xml")
-        QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_USER_UNBOUNDED), QueryType.class);
-//		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_USER_UNBOUNDED));
-//		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-//		QueryType query = QueryUtil.createQuery(filter);
-
-        // List<>
-
-//		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001"));
-
-        List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
-        for (PrismObject<ObjectType> u : resultss) {
+        List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
+        
+        AssertJUnit.assertEquals(8, orgClosure.size());
+        
+        for (PrismObject<ObjectType> u : orgClosure)
+        {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
     }
 
-    @Test
-    public void test007searchOrgStructOrgDepth() throws Exception {
+    @SuppressWarnings("unchecked")
+	@Test
+    public void test007searchOrgStructOrgDepth() throws Exception
+    {
         LOGGER.info("===[ SEARCH QUERY ]===");
         OperationResult parentResult = new OperationResult("search objects - org struct");
+        
         Session session = getFactory().openSession();
         session.beginTransaction();
 
-        List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+        Query sqlSearch =  session.createQuery("from ROrgClosure where depthValue = 1 and " +
+        		"(ancestor_oid = :searchOid or descendant_oid = :searchOid)");
+        sqlSearch.setParameter("searchOid", SEARCH_ORG_OID_DEPTH1);
+        
+        List<ROrgClosure> orgClosure = sqlSearch.list();
+        
+        AssertJUnit.assertEquals(4, orgClosure.size());
+        
         LOGGER.info("==============CLOSURE TABLE==========");
-        for (ROrgClosure o : results) {
+        for (ROrgClosure o : orgClosure) {
             LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
                     o.getDescendant().toJAXB(prismContext), o.getDepth()});
         }
         session.getTransaction().commit();
         session.close();
 
-        // File file = new File(TEST_DIR + "/query-org-struct.xml");
-//		Document document = DOMUtil.parseFile(new File(QUERY_ORG_STRUCT_ORG_DEPTH));
-//		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-//		QueryType query = QueryUtil.createQuery(filter);
-//		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_ORG_DEPTH), QueryType.class);
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001", null, 1));
-//		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
-        // List<>
-        List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
-        for (PrismObject<ObjectType> u : resultss) {
+    
+        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_DEPTH1, null, 1));
+
+        List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
+        
+        AssertJUnit.assertEquals(4, sOrgClosure.size());
+        
+        for (PrismObject<ObjectType> u : sOrgClosure) {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
     }
 
     @Test
-    public void test007searchRootOrg() throws Exception {
+    public void test008searchRootOrg() throws Exception {
         LOGGER.info("===[ SEARCH ROOT QUERY ]===");
         OperationResult parentResult = new OperationResult("search root org struct");
-//        Session session = getFactory().openSession();
-//        session.beginTransaction();
-//
-//        List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-//        LOGGER.info("==============CLOSURE TABLE==========");
-//        for (ROrgClosure o : results) {
-//            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-//                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
-//        }
-//        
-//        Query rootOrgQuery = session.createQuery("select org from ROrg as org where org.oid in (select descendant.oid from ROrgClosure group by descendant.oid having count(descendant.oid)=1)");
-//        List<ROrg> results = rootOrgQuery.list();
-////      LOGGER.info("==============CLOSURE TABLE==========");
-//      for (ROrg o : results) {
-//          System.out.println("=> result: " + ObjectTypeUtil.toShortString(o.toJAXB(prismContext)));
-//      }
-        ObjectQuery q = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
-        List<PrismObject<OrgType>> rootOrgs = repositoryService.searchObjects(OrgType.class, q, parentResult);
-        
-        System.out.println("####################query results: "+ rootOrgs.size());
-        for (PrismObject<OrgType> obj : rootOrgs){
-        	
-        		System.out.println("root org: "+ obj.dump());
-        	}
-        AssertJUnit.assertEquals("Expected two root organization units, but got: " + rootOrgs.size(), 2, rootOrgs.size());
-//        session.getTransaction().commit();
-//        session.close();
+         /*       
+        Session session = getFactory().openSession();
+        session.beginTransaction();
+       
+        Query sqlSearch = session.createQuery("select distinct ancestor_oid from ROrgClosure where ancestor_oid " +
+        		" not in (select distinct descendant_oid from ROrgClosure where depthValue > 0)");
+        List<ROrgClosure> orgClosure = sqlSearch.list();
 
+        AssertJUnit.assertEquals(5, orgClosure.size());
+        
+        for (ROrgClosure o : orgClosure) 
+        {
+            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
+                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
+        }
+
+        session.getTransaction().commit();
+        session.close();
+*/
+        ObjectQuery qSearch = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
+        
+        List<PrismObject<OrgType>> rootOrgs = repositoryService.searchObjects(OrgType.class, qSearch, parentResult);
+        
+        for (PrismObject<OrgType> ro : rootOrgs) 
+        {
+            LOGGER.info("ROOT  ========= {}", ObjectTypeUtil.toShortString(ro.asObjectable()));
+        }
+        AssertJUnit.assertEquals(5, rootOrgs.size());
     }
+
     
 
     @Test
     public void test009modifyOrgStructRemoveUser() throws Exception {
         LOGGER.info("===[ modify remove org ref from user ]===");
-        OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");
-        // test modification of org ref in another org type..
-//		ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_ADD_USER_FILENAME),
-//				ObjectModificationType.class);
-//		ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        
+        OperationResult opResult = new OperationResult("===[ modify remove org ref from user ]===");
 
-        PrismReferenceValue prv = new PrismReferenceValue("00000000-8888-6666-0000-100000000006");
+        PrismReferenceValue prv = new PrismReferenceValue(MODIFY_USER_DELETE_REF_OID);
         prv.setTargetType(OrgType.COMPLEX_TYPE);
-        ObjectDelta delta = ObjectDelta.createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF, prismContext, prv);
+        ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF, prismContext, prv);
+        
         repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
-
-//		Session session = getFactory().openSession();
-//		LOGGER.info("==>after modify - add user to org<==");
-//		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-//		AssertJUnit.assertEquals(56, results.size());
-//		LOGGER.info("==============CLOSURE TABLE==========");
-//		for (ROrgClosure o : results) {
-//			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
-//					o.getDescendant().toJAXB(prismContext), o.getDepth() });
-//
-//		}
-//		session.close();
 
         UserType userElaine = repositoryService.getObject(UserType.class, ELAINE_OID, opResult).asObjectable();
         LOGGER.trace("elaine's og refs");
         for (ObjectReferenceType ort : userElaine.getParentOrgRef()) {
             LOGGER.trace("{}", ort);
-            if (ort.getOid().equals("00000000-8888-6666-0000-100000000006")) {
-                AssertJUnit.fail("expected that elain does not have reference on the org with oid: 00000000-8888-6666-0000-100000000006");
+            if (ort.getOid().equals(MODIFY_USER_DELETE_REF_OID)) {
+                AssertJUnit.fail("expected that elain does not have reference on the org with oid:" + MODIFY_USER_DELETE_REF_OID);
             }
         }
     }

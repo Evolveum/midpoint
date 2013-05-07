@@ -665,6 +665,7 @@
                             <additionalClasspathElements>
                                 <additionalClasspathElement>/opt/Bamboo_db_configs/mssqljdbc4.jar</additionalClasspathElement>
                                 <additionalClasspathElement>/opt/Bamboo_db_configs/ojdbc6.jar</additionalClasspathElement>
+                                <additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER 4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>
                             </additionalClasspathElements>
                         </configuration>
                         <dependencies>

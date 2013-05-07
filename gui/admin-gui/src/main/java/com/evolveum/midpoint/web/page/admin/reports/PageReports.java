@@ -472,11 +472,11 @@ public class PageReports extends PageAdminReports {
 	}
 
 	private byte[] createReport() {
-		UserFilterDto dto = userFilterDto.getObject();
+		/*UserFilterDto dto = userFilterDto.getObject();
 		if (dto.getResource() == null) {
 			getSession().error(getString("pageReports.message.noResourceSelected"));
 			throw new RestartResponseException(PageReports.class);
-		}
+		}*/
 
 
 		JasperDesign design;
@@ -485,7 +485,7 @@ public class PageReports extends PageAdminReports {
 
 		byte[] generatedReport = null;
 		Session session = null;
-
+/*
 		try {
             ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
 			// Loading template
@@ -508,6 +508,31 @@ public class PageReports extends PageAdminReports {
 			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
 			jasperPrint = JasperFillManager.fillReport(report, params);
 			generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
+		} catch (JRException ex) {
+            getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
+			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
+			throw new RestartResponseException(PageReports.class);
+		} finally{
+			session.close();
+		}
+		*/
+		try {
+            ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
+			// Loading template
+
+			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserList.jrxml"));
+			report = JasperCompileManager.compileReport(design);
+			
+			Map params = new HashMap();
+			params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
+			
+			session = sessionFactory.openSession();
+			session.beginTransaction();
+			
+			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+			jasperPrint = JasperFillManager.fillReport(report, params);
+			generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
+			
 		} catch (JRException ex) {
             getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
 			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
