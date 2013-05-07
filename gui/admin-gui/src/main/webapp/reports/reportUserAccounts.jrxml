@@ -19,7 +19,7 @@
 	</parameter>
 	<parameter name="RESOURCE_OID" class="java.lang.String"/>
 	<queryString language="hql">
-		<![CDATA[select u.name.orig as userName, s.name.orig as accName, u.familyName.orig as lastName, u.givenName.orig as firstName, r.name.orig as resourceName, s.intent as accType, s.objectClass as objectClass, u.emailAddress as email, u.employeeNumber as emplNum, u.activation as activation from RUser as u, RFocus as f join f.linkRef as accRef, RShadow as s join s.resourceRef as resRef, RResource as r where u.name.orig in $P{USER_NAME} and resRef.targetOid = $P{RESOURCE_OID} and accRef.targetOid = s.oid and resRef.targetOid = r.oid]]>
+		<![CDATA[select u.name.orig as userName, s.name.orig as accName, u.familyName.orig as lastName, u.givenName.orig as firstName, r.name.orig as resourceName, s.intent as accType, s.objectClass as objectClass, u.emailAddress as email, u.employeeNumber as emplNum, u.activation as activation from RUser as u join u.accountRefs as accRef, RResourceObjectShadow as s join s.resourceRef as resRef, RResource as r where u.name.orig in $P{USER_NAME} and resRef.targetOid = $P{RESOURCE_OID} and accRef.targetOid = s.oid and resRef.targetOid = r.oid]]>
 	</queryString>
 	<field name="userName" class="java.lang.String"/>
 	<field name="accName" class="java.lang.String"/>

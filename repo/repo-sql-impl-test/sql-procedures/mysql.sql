@@ -51,6 +51,7 @@ DETERMINISTIC
     DELETE FROM m_generic_object;
 
     DELETE FROM m_org_closure;
+    DELETE FROM m_org_incorrect;
 
     DELETE FROM m_focus;
     DELETE FROM m_object;
