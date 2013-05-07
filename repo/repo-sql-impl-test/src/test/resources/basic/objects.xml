@@ -684,6 +684,8 @@
             User Template Object.
             This object is used when creating a new account, to set it up as needed.
         </description>
+        <includeRef oid="1234" type="c:UserType"/>
+        <includeRef oid="12345" type="c:ResourceType"/>
         <mapping>
             <description>
                 Property construction.
@@ -728,6 +730,8 @@
             Alternative User Template Object.
             This object is used when creating a new account, to set it up as needed.
         </description>
+
+        <includeRef oid="12346" type="c:UserType"/>
 
 		<mapping>
             <description>

@@ -51,7 +51,7 @@ import java.util.Set;
 public class RObjectTemplate extends RObject {
 
     private RPolyString name;
-    private String propertyConstruction;
+    private String mapping;
     private String accountConstruction;
     private RObjectTemplateType type;
     private Set<RObjectReference> includeRef;
@@ -82,8 +82,8 @@ public class RObjectTemplate extends RObject {
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
     @Column(nullable = true)
-    public String getPropertyConstruction() {
-        return propertyConstruction;
+    public String getMapping() {
+        return mapping;
     }
 
     public void setType(RObjectTemplateType type) {
@@ -107,8 +107,8 @@ public class RObjectTemplate extends RObject {
         this.accountConstruction = accountConstruction;
     }
 
-    public void setPropertyConstruction(String propertyConstruction) {
-        this.propertyConstruction = propertyConstruction;
+    public void setMapping(String mapping) {
+        this.mapping = mapping;
     }
 
     @Override
@@ -122,7 +122,7 @@ public class RObjectTemplate extends RObject {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
-        if (propertyConstruction != null ? !propertyConstruction.equals(that.propertyConstruction) : that.propertyConstruction != null)
+        if (mapping != null ? !mapping.equals(that.mapping) : that.mapping != null)
             return false;
         if (type != null ? !type.equals(that.type) : that.type != null)
             return false;
@@ -137,7 +137,7 @@ public class RObjectTemplate extends RObject {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (propertyConstruction != null ? propertyConstruction.hashCode() : 0);
+        result = 31 * result + (mapping != null ? mapping.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
@@ -163,8 +163,8 @@ public class RObjectTemplate extends RObject {
                 jaxb.getAccountConstruction().addAll(holder.getAccountConstruction());
             }
 
-            if (StringUtils.isNotEmpty(repo.getPropertyConstruction())) {
-                ObjectTemplateType holder = RUtil.toJAXB(repo.getPropertyConstruction(), ObjectTemplateType.class, prismContext);
+            if (StringUtils.isNotEmpty(repo.getMapping())) {
+                ObjectTemplateType holder = RUtil.toJAXB(repo.getMapping(), ObjectTemplateType.class, prismContext);
                 jaxb.getMapping().addAll(holder.getMapping());
             }
         } catch (Exception ex) {
@@ -199,7 +199,7 @@ public class RObjectTemplate extends RObject {
                 template.asPrismObject().setName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
 
                 template.getMapping().addAll(jaxb.getMapping());
-                repo.setPropertyConstruction(RUtil.toRepo(template, prismContext));
+                repo.setMapping(RUtil.toRepo(template, prismContext));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
