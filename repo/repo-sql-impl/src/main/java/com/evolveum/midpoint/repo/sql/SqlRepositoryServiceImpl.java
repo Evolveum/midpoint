@@ -459,7 +459,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         RContainerId containerId = (RContainerId) session.save(rObject);
         String oid = containerId.getOid();
 
-
         if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
             long time = System.currentTimeMillis();
             LOGGER.trace("Org. structure closure table update started.");
@@ -520,7 +519,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session.delete(orgInc);
         }
     }
-
 
     private <T extends ObjectType> void fillTransitiveHierarchy(RObject newDescendant, String descendantOid,
                                                                 Session session) throws SchemaException {

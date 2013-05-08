@@ -159,7 +159,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals("Mêlée Island", orgF006.getLocality().getOrig());
         
         
-        ObjectReferenceType oRefType = new ObjectReferenceType();
+        ObjectReferenceType oRefType;
         boolean isEqual003 = false;
         boolean isEqual004 = false;
        	for (int i = 0; i<orgF006.getParentOrgRef().size(); i++)
@@ -207,13 +207,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==>after add<==");
         Session session = getFactory().openSession();
         session.beginTransaction();
-        List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
-        LOGGER.info("==============CLOSURE TABLE==========");
-        AssertJUnit.assertEquals(54, results.size());
-        for (ROrgClosure o : results) {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
-        }
+        long count = (Long) session.createQuery("select count(*) from ROrgClosure").uniqueResult();
+        AssertJUnit.assertEquals(54L, count);
 
         // check descendants for F0001 org unit
         Criteria criteria = session.createCriteria(ROrgClosure.class)
@@ -221,7 +216,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
                 .setFetchMode("ancestor", FetchMode.JOIN).
                 add(Restrictions.eq("anc.oid", ORG_F001_OID));
 
-        results = criteria.list();
+        List<ROrgClosure> results = criteria.list();
         AssertJUnit.assertEquals(13, results.size());
 
         criteria = session.createCriteria(ROrgClosure.class)
