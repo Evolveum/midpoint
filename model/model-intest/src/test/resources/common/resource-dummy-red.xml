@@ -194,14 +194,14 @@
 				</outbound>
 			</attribute>
 			<activation>
-            	<enabled>
+            	<administrativeStatus>
                     <outbound>
                     	<strength>strong</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
                     </outbound>            	
-            	</enabled>
+            	</administrativeStatus>
             </activation>
 			<credentials>
                 <password>

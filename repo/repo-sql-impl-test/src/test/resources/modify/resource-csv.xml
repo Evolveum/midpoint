@@ -198,7 +198,7 @@ object.
                     </password>
                 </credentials>
                 <activation>
-                    <enabled>
+                    <administrativeStatus>
                         <outbound>
                             <asIs/>
                         </outbound>
@@ -208,7 +208,7 @@ object.
                                 <asIs/>
                             </source>
                         </inbound>
-                    </enabled>
+                    </administrativeStatus>
                 </activation>
             </accountType>
         </schemaHandling>

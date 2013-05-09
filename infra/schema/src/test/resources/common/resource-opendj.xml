@@ -570,7 +570,7 @@ This is now the only account type that midPoint can work with. -->
             </credentials>
 
             <activation>
-                <enabled>
+                <administrativeStatus>
                     <outbound>
                         <asIs/>
                     </outbound>
@@ -579,7 +579,7 @@ This is now the only account type that midPoint can work with. -->
                     		<asIs/>
                     	</source>
                     </inbound>
-                </enabled>
+                </administrativeStatus>
             </activation>
 
         </accountType>

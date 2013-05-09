@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
@@ -138,10 +139,14 @@ public class Migrator {
 	private PrismObject<UserType> migrateUser(PrismObject<UserType> orig) {
 		UserType origUserType = orig.asObjectable();
 		ActivationType origActivation = origUserType.getActivation();
-		if (origActivation == null || origActivation.isEnabled() == null) {
+		if ((origActivation == null || origActivation.isEnabled() == null) && 
+				(origUserType.getAccountRef().isEmpty())) {
 			return orig;
 		}
+		
 		PrismObject<UserType> migrated = orig.clone();
+		
+		// Activation
 		UserType migratedUserType = migrated.asObjectable();
 		ActivationType activationType = migratedUserType.getActivation();
 		if (activationType.getAdministrativeStatus() == null) {
@@ -152,6 +157,15 @@ public class Migrator {
 			}
 		}
 		activationType.setEnabled(null);
+		
+		// accountRef
+		for (ObjectReferenceType accountRef: migratedUserType.getAccountRef()) {
+			ObjectReferenceType linkRef = new ObjectReferenceType();
+			linkRef.setOid(accountRef.getOid());
+			migratedUserType.getLinkRef().add(linkRef);
+		}
+		migratedUserType.getAccountRef().clear();
+		
 		return migrated;
 	}
 

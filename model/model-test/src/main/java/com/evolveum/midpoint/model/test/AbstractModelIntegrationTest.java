@@ -288,9 +288,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
-		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
+		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
+		assertNotNull("No linkRefs in "+user, linkRef);
 		boolean found = false; 
-		for (PrismReferenceValue val: accountRef.getValues()) {
+		for (PrismReferenceValue val: linkRef.getValues()) {
 			if (val.getOid().equals(accountOid)) {
 				found = true;
 			}

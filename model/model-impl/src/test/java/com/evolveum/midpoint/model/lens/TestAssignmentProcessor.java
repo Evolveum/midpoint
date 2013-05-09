@@ -156,7 +156,8 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+        assertNoDecision(accContext);
+        assertLegal(accContext);
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
@@ -214,7 +215,8 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());        
+        assertNoDecision(accContext);
+        assertLegal(accContext);
     }
 
     @Test
@@ -253,7 +255,8 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
+        assertNoDecision(accContext);
+        assertLegal(accContext);
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
@@ -320,7 +323,8 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+        assertNoDecision(accContext);
+        assertLegal(accContext);
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
@@ -373,22 +377,6 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         assertNoMinusAttributeValues(plusAccountConstruction, 
         		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
-        
-        
-//        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-//        assertNull(accountSecondaryDelta.getObjectToAdd());
-//
-//        assertEquals(2, accountSecondaryDelta.getModifications().size());
-//
-//        PropertyDelta propertyDeltaSecretary = accountSecondaryDelta.getPropertyDelta(ATTRIBUTES_PARENT_PATH, new QName(resourceType.getNamespace(), "secretary"));
-//        assertNotNull(propertyDeltaSecretary);
-//        TestUtil.assertPropertyValueSetEquals(propertyDeltaSecretary.getValuesToAdd(), "Jack the Monkey");
-//        assertNull(propertyDeltaSecretary.getValuesToDelete());
-//        PropertyDelta propertyDeltaL = accountSecondaryDelta.getPropertyDelta(ATTRIBUTES_PARENT_PATH, new QName(resourceType.getNamespace(), "l"));
-//        assertNotNull(propertyDeltaL);
-//        TestUtil.assertPropertyValueSetEquals(propertyDeltaL.getValuesToAdd(), "World's End");
-//        assertNull(propertyDeltaL.getValuesToDelete());
-
     }
 
 		
@@ -433,7 +421,8 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
 
-        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+        assertNoDecision(accContext);
+        assertLegal(accContext);
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
@@ -471,16 +460,6 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         assertNoMinusAttributeValues(minusAccountConstruction, 
         		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-        
-//        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-//        assertNull(accountSecondaryDelta.getObjectToAdd());
-//
-//        assertEquals(1, accountSecondaryDelta.getModifications().size());
-//
-//        PropertyDelta propertyDeltaL = accountSecondaryDelta.getPropertyDelta(ATTRIBUTES_PARENT_PATH, new QName(resourceType.getNamespace(), "l"));
-//        assertNotNull(propertyDeltaL);
-//        TestUtil.assertPropertyValueSetEquals(propertyDeltaL.getValuesToDelete(), "Shipwreck cove");
-//        assertNull(propertyDeltaL.getValuesToAdd());
 
     }
 	
@@ -496,8 +475,6 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 	        LensContext<UserType, ShadowType> context = createUserAccountContext();
 	        fillContextWithUser(context, USER_LARGO_OID, result);
 	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, result);
-//	        addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME);
-//	        addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
 	        context.recompute();
 	        
 	        AccountSynchronizationSettingsType accountSynchronizationSettings = new AccountSynchronizationSettingsType();
@@ -513,48 +490,22 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
 	        // WHEN
 	        assignmentProcessor.processAssignmentsAccounts(context, result);
+	        
 	        context.recompute();
 	        // THEN
 	        display("Output context", context);
 	        display("outbound processor result", result);
-//			assertSuccess("Outbound processor failed (result)", result);
 
-//	        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
 	        assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
 	        assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
 	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.", ContainerDelta.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(), UserType.F_ASSIGNMENT));
 	        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+	        
+	        LensProjectionContext<ShadowType> accContext = context.getProjectionContexts().iterator().next();
+	        
+	        assertNoDecision(accContext);
+	        assertLegal(accContext);
 
-//	        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
-//	        assertEquals(1, accountContexts.size());
-//	        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
-//	        assertNull(accContext.getPrimaryDelta());
-//
-//	        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-//	        assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
-//	        
-//	        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
-//	        
-//	        assignmentProcessor.processAssignmentsAccountValues(accContext, result);
-//	        
-//	        PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple =
-//	        	accContext.getAccountConstructionDeltaSetTriple();
-//	        
-//	        PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
-//	        PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
-//	        assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
-//	        
-//	        AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
-//	                        
-//	        assertNoZeroAttributeValues(zeroAccountConstruction, 
-//	        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-//	        assertPlusAttributeValues(zeroAccountConstruction, 
-//	        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Tortuga");
-//	        assertMinusAttributeValues(zeroAccountConstruction, 
-//	        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
-//	        
-//	        deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, true);
-	                   
 	    }
 	
 	private <T> void assertPlusAttributeValues(AccountConstruction accountConstruction, QName attrName, T... expectedValue) {
@@ -668,5 +619,16 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 		return null;
 	}
 
+	private void assertLegal(LensProjectionContext<ShadowType> accContext) {
+		assertEquals("Expected projection "+accContext+" not legal", Boolean.TRUE, accContext.isLegal());
+	}
+
+	private void assertIllegal(LensProjectionContext<ShadowType> accContext) {
+		assertEquals("Expected projection "+accContext+" not illegal", Boolean.FALSE, accContext.isLegal());
+	}
+
+	private void assertNoDecision(LensProjectionContext<ShadowType> accContext) {
+		assertNull("Projection "+accContext+" has decision "+accContext.getSynchronizationPolicyDecision()+" while not expecting any", accContext.getSynchronizationPolicyDecision());
+	}
     
 }

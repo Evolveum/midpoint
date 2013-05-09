@@ -172,6 +172,14 @@ public class Projector {
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
+		        	activationProcessor.processActivation(context, projectionContext, result);
+		        	
+		        	projectionContext.recompute();
+		        	
+		        	LensUtil.traceContext(LOGGER, activityDescription, "activation", false, context, false);
+		        	
+		        	// TODO: decide if we need to continue
+		        	
 		        	// This is a "composite" processor. it contains several more processor invocations inside
 		        	accountValuesProcessor.process(context, projectionContext, activityDescription, result);
 		        	
@@ -183,18 +191,15 @@ public class Projector {
 		        	
 		        	credentialsProcessor.processCredentials(context, projectionContext, result);
 		        	
-		        	projectionContext.recompute();
 		        	//SynchronizerUtil.traceContext("credentials", context, false);
 		        	if (consistencyChecks) context.checkConsistence();
-		        	
-		        	activationProcessor.processActivation(context, projectionContext, result);
 			        
-		        	context.recompute();
-		        	LensUtil.traceContext(LOGGER, activityDescription, "values, credentials and activation", false, context, true);
+		        	projectionContext.recompute();
+		        	LensUtil.traceContext(LOGGER, activityDescription, "values and credentials", false, context, true);
 			        if (consistencyChecks) context.checkConsistence();
 			
 			        reconciliationProcessor.processReconciliation(context, projectionContext, result);
-			        context.recompute();
+			        projectionContext.recompute();
 			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation", false, context, false);
 			        if (consistencyChecks) context.checkConsistence();
 		        }

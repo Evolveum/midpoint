@@ -124,7 +124,7 @@ public class ContextLoader {
 		        context.recomputeFocus();
 		        
 		        // this also removes the accountRef deltas
-		        loadAccountRefs(ucContext, result);
+		        loadLinkRefs(ucContext, result);
 	    	}
 			
 	    	// Some cleanup
@@ -159,7 +159,7 @@ public class ContextLoader {
         
         if (consistencyChecks) context.checkConsistence();
         
-        LensUtil.traceContext(LOGGER, activityDescription, "load", false, context, false);
+        LensUtil.traceContext(LOGGER, activityDescription, "after load", false, context, false);
 
 	}
 	
@@ -326,31 +326,26 @@ public class ContextLoader {
 		}
 	}
 	
-	private void loadAccountRefs(LensContext<UserType,ShadowType> context, OperationResult result) throws ObjectNotFoundException,
+	private void loadLinkRefs(LensContext<UserType,ShadowType> context, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
 			return;
 		}
-		SynchronizationPolicyDecision policyDecision = null;
-		if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().isDelete()) {
-			// If user is deleted, all accounts should also be deleted
-			policyDecision = SynchronizationPolicyDecision.DELETE;
-		}
 
 		PrismObject<UserType> userOld = focusContext.getObjectOld();
 		if (userOld != null) {
-			loadAccountRefsFromUser(context, userOld, policyDecision, result);
+			loadLinkRefsFromFocus(context, userOld, result);
 		}
 
 		if (consistencyChecks) context.checkConsistence();
 		
-		loadAccountRefsFromDelta(context, userOld, focusContext.getPrimaryDelta(), result);
+		loadLinkRefsFromDelta(context, userOld, focusContext.getPrimaryDelta(), result);
 		
 		if (consistencyChecks) context.checkConsistence();
 
-		loadAccountContextsSync(context, result);
+		loadProjectionContextsSync(context, result);
 		
 		if (consistencyChecks) context.checkConsistence();
 	}
@@ -358,19 +353,19 @@ public class ContextLoader {
 	/**
 	 * Does not overwrite existing account contexts, just adds new ones.
 	 */
-	private void loadAccountRefsFromUser(LensContext<UserType,ShadowType> context, PrismObject<UserType> user,
-			SynchronizationPolicyDecision policyDecision, OperationResult result) throws ObjectNotFoundException,
+	private void loadLinkRefsFromFocus(LensContext<UserType,ShadowType> context, PrismObject<UserType> focus,
+			OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
-		if (accountRef == null) {
+		PrismReference linkRef = focus.findReference(UserType.F_LINK_REF);
+		if (linkRef == null) {
 			return;
 		}
-		for (PrismReferenceValue accountRefVal : accountRef.getValues()) {
-			String oid = accountRefVal.getOid();
+		for (PrismReferenceValue linkRefVal : linkRef.getValues()) {
+			String oid = linkRefVal.getOid();
 			if (StringUtils.isBlank(oid)) {
-				LOGGER.trace("Null or empty OID in account reference {} in user:\n{}", accountRef,
-						user.dump());
-				throw new SchemaException("Null or empty OID in account reference in " + user);
+				LOGGER.trace("Null or empty OID in link reference {} in:\n{}", linkRef,
+						focus.dump());
+				throw new SchemaException("Null or empty OID in link reference in " + focus);
 			}
 			LensProjectionContext<ShadowType> existingAccountContext = findAccountContext(oid, context);
 			if (existingAccountContext != null) {
@@ -379,30 +374,29 @@ public class ContextLoader {
 				existingAccountContext.setFresh(true);
 				continue;
 			}
-			PrismObject<ShadowType> account = accountRefVal.getObject();
-			if (account == null) {
+			PrismObject<ShadowType> shadow = linkRefVal.getObject();
+			if (shadow == null) {
 				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
 				GetOperationOptions options = GetOperationOptions.createNoFetch();
 				try {
-					account = provisioningService.getObject(ShadowType.class, oid, options , result);
+					shadow = provisioningService.getObject(ShadowType.class, oid, options , result);
 				} catch (ObjectNotFoundException e) {
 					// Broken accountRef. We need to mark it for deletion
 					LensProjectionContext<ShadowType> accountContext = getOrCreateBrokenAccountContext(context, oid);
 					accountContext.setFresh(true);
+					accountContext.setExists(false);
 					OperationResult getObjectSubresult = result.getLastSubresult();
 					getObjectSubresult.setErrorsHandled();
 					continue;
 				}
 			} else {
 				// Make sure it has a proper definition. This may come from outside of the model.
-				provisioningService.applyDefinition(account, result);
+				provisioningService.applyDefinition(shadow, result);
 			}
-			LensProjectionContext<ShadowType> accountContext = getOrCreateAccountContext(context, account, result);
-			if (accountContext.getSynchronizationIntent() == null) {
-				accountContext.setSynchronizationPolicyDecision(policyDecision);
-			}
+			LensProjectionContext<ShadowType> accountContext = getOrCreateAccountContext(context, shadow, result);
 			accountContext.setFresh(true);
+			accountContext.setExists(true);
 			if (context.isDoReconciliationForAllProjections()) {
 				accountContext.setDoReconciliation(true);
 			}
@@ -411,11 +405,11 @@ public class ContextLoader {
 				// reconciliation step.				
 				continue;
 			}
-			accountContext.setObjectOld(account);
+			accountContext.setObjectOld(shadow);
 		}
 	}
 
-	private void loadAccountRefsFromDelta(LensContext<UserType,ShadowType> context, PrismObject<UserType> user,
+	private void loadLinkRefsFromDelta(LensContext<UserType,ShadowType> context, PrismObject<UserType> user,
 			ObjectDelta<UserType> userPrimaryDelta, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -492,6 +486,7 @@ public class ContextLoader {
 					ObjectDelta<ShadowType> accountPrimaryDelta = account.createAddDelta();
 					accountContext.setPrimaryDelta(accountPrimaryDelta);
 					accountContext.setFullShadow(true);
+					accountContext.setExists(false);
 					isCombinedAdd = true;
 				} else {
 					// We have OID. This is either linking of existing account or
@@ -505,6 +500,7 @@ public class ContextLoader {
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
 						accountContext.setObjectOld(account);
+						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
 						if (refVal.getObject() == null) {
 							// account does not exist, no composite account in
@@ -522,6 +518,7 @@ public class ContextLoader {
 							ObjectDelta<ShadowType> accountPrimaryDelta = account.createAddDelta();
 							accountContext.setPrimaryDelta(accountPrimaryDelta);
 							accountContext.setFullShadow(true);
+							accountContext.setExists(false);
 							isCombinedAdd = true;
 						}
 					}
@@ -549,6 +546,7 @@ public class ContextLoader {
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
 						accountContext.setObjectOld(account);
+						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
 						try{
 						// Broken accountRef. We need to try again with raw options, because the error should be thrown becaue of non-existent resource
@@ -556,6 +554,7 @@ public class ContextLoader {
 						account = provisioningService.getObject(ShadowType.class, oid, options , result);
 						accountContext = getOrCreateBrokenAccountContext(context, oid);
 						accountContext.setFresh(true);
+						accountContext.setExists(false);
 						OperationResult getObjectSubresult = result.getLastSubresult();
 						getObjectSubresult.setErrorsHandled();
 						} catch (ObjectNotFoundException ex){
@@ -595,7 +594,7 @@ public class ContextLoader {
 
 	}
 
-	private void loadAccountContextsSync(LensContext<UserType,ShadowType> context, OperationResult result) throws SchemaException,
+	private void loadProjectionContextsSync(LensContext<UserType,ShadowType> context, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		for (LensProjectionContext<ShadowType> accountCtx : context.getProjectionContexts()) {
@@ -616,6 +615,7 @@ public class ContextLoader {
 				if (syncDelta.getChangeType() == ChangeType.ADD) {
 					account = syncDelta.getObjectToAdd().clone();
 					accountCtx.setObjectOld(account);
+					accountCtx.setExists(true);
 				} else {
 					if (oid == null) {
 						throw new IllegalArgumentException("No OID in sync delta in " + accountCtx);
@@ -628,9 +628,12 @@ public class ContextLoader {
 					// account does not really exists now.
 					// (but the OID and resource will be set from the repo
 					// shadow)
-					if (syncDelta.getChangeType() != ChangeType.DELETE) {
+					if (syncDelta.getChangeType() == ChangeType.DELETE) {
+						accountCtx.setExists(false);
+					} else {
 						syncDelta.applyTo(account);
 						accountCtx.setObjectOld(account);
+						accountCtx.setExists(true);
 					}
 				}
 				// Make sure OID is set correctly
@@ -647,19 +650,6 @@ public class ContextLoader {
 					accountCtx.setResource(resourceType);
 				}
 				accountCtx.setFresh(true);
-			}
-		}
-	}
-
-	private void pruneOidlessReferences(Collection<PrismReferenceValue> refVals) {
-		if (refVals == null) {
-			return;
-		}
-		Iterator<PrismReferenceValue> iterator = refVals.iterator();
-		while (iterator.hasNext()) {
-			PrismReferenceValue referenceValue = iterator.next();
-			if (referenceValue.getOid() == null) {
-				iterator.remove();
 			}
 		}
 	}
@@ -761,15 +751,18 @@ public class ContextLoader {
 			} else {
 				if (projContext.isAdd()) {
 					// No need to load old object, there is none
+					projContext.setExists(false);
 					projContext.recompute();
 					projectionObject = projContext.getObjectNew();
 				} else {
 					if (projectionObjectOid == null) {
+						projContext.setExists(false);
 						if (projContext.getResourceShadowDiscriminator() == null || projContext.getResourceShadowDiscriminator().getResourceOid() == null) {								
 							throw new SystemException(
 									"Projection with null OID, no representation and no resource OID in account sync context "+projContext);
 						}
 					} else {
+						projContext.setExists(true);
 						GetOperationOptions options = projContext.isDoReconciliation() ? GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
 //						if (projContext.isDoReconciliation()) {
 //							options = GetOperationOptions.createDoNotDiscovery();

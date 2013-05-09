@@ -1955,6 +1955,28 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="account" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	DEPRECATED: use link instead
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:accountRef</a:objectReference>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="accountRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	DEPRECATED: use linkRef instead
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>
@@ -3196,34 +3218,64 @@
     </xsd:complexType>
 
     <xsd:complexType name="ResourceActivationDefinitionType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                Defines how the synchronization of the activation section is handled for the resource.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="enabled" type="tns:ResourceActivationEnableDefinitionType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines how the synchronization of the activation section is handled for the resource.
-                    </xsd:documentation>
-                </xsd:annotation>
+        	<xsd:element name="existence" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
+		    	<xsd:annotation>
+		            <xsd:documentation>
+		                TODO
+		            </xsd:documentation>
+		        </xsd:annotation>                
+            </xsd:element>
+        	<xsd:element name="administrativeStatus" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
+		    	<xsd:annotation>
+		            <xsd:documentation>
+		                TODO
+		            </xsd:documentation>
+		        </xsd:annotation>                
+            </xsd:element>
+        	<xsd:element name="validFrom" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
+		    	<xsd:annotation>
+		            <xsd:documentation>
+		                TODO
+		            </xsd:documentation>
+		        </xsd:annotation>                
+            </xsd:element>
+        	<xsd:element name="validTo" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
+		    	<xsd:annotation>
+		            <xsd:documentation>
+		                TODO
+		            </xsd:documentation>
+		        </xsd:annotation>                
+            </xsd:element>
+            <xsd:element name="enabled" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
+		    	<xsd:annotation>
+		            <xsd:documentation>
+		                DEPRECATED
+		            </xsd:documentation>
+		        </xsd:annotation>                
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ResourceActivationEnableDefinitionType">
+    <xsd:complexType name="ResourceBidirectionalMappingType">
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines how the "enable" value is constructed in case of information flow from IDM to the
-                        resource, e.g. in case of provisioning.
+                        Maps information outbound from midpoint to the resource.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
-            			Defines how user "enable" value is constructed if the user is created or updated from this account.
-            			The "target" part of the assignment is implictly set to user's enable flag, therefore it may be
-            			omitted.
+            			Maps information inbound to midpoint from the resource.
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>

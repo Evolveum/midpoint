@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * Aggregate bean containing resource OID, intent and thombstone flag.
@@ -37,8 +38,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  * @author Radovan Semancik
  */
 public class ResourceShadowDiscriminator implements Serializable {
-
+	private static final long serialVersionUID = 346600684011645741L;
+	
 	private String resourceOid;
+	private ShadowKindType kind = ShadowKindType.ACCOUNT;
 	private String intent;
 	private boolean thombstone;
 	
@@ -59,12 +62,26 @@ public class ResourceShadowDiscriminator implements Serializable {
 	public String getResourceOid() {
 		return resourceOid;
 	}
+	
 	public void setResourceOid(String resourceOid) {
 		this.resourceOid = resourceOid;
 	}
+	
+	public ShadowKindType getKind() {
+		return kind;
+	}
+
+	public void setKind(ShadowKindType kind) {
+		if (kind == null) {
+			throw new IllegalArgumentException("Kind cannot be null");
+		}
+		this.kind = kind;
+	}
+
 	public String getIntent() {
 		return intent;
 	}
+	
 	public void setIntent(String intent) {
 		if (intent == null) {
 			intent = SchemaConstants.INTENT_DEFAULT;
@@ -82,22 +99,37 @@ public class ResourceShadowDiscriminator implements Serializable {
 	public void setThombstone(boolean thombstone) {
 		this.thombstone = thombstone;
 	}
+	
+    public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
+        ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();
+        rsdt.setIntent(intent);
+        ObjectReferenceType resourceRef = new ObjectReferenceType();
+        resourceRef.setOid(resourceOid);
+        resourceRef.setType(ResourceType.COMPLEX_TYPE);
+        rsdt.setResourceRef(resourceRef);
+        return rsdt;
+    }
 
-	@Override
-	public String toString() {
-		return "Discr(" + resourceOid + ": " + intent + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
-	}
+    public static ResourceShadowDiscriminator fromResourceShadowDiscriminatorType(ShadowDiscriminatorType resourceShadowDiscriminatorType) {
+        if (resourceShadowDiscriminatorType == null) {
+            return null;
+        }
+        return new ResourceShadowDiscriminator(
+                resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
+                resourceShadowDiscriminatorType.getIntent());
+    }
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
+		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
 		result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
 		result = prime * result + (thombstone ? 1231 : 1237);
 		return result;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -111,6 +143,8 @@ public class ResourceShadowDiscriminator implements Serializable {
 			if (other.intent != null)
 				return false;
 		} else if (!intent.equals(other.intent))
+			return false;
+		if (kind != other.kind)
 			return false;
 		if (resourceOid == null) {
 			if (other.resourceOid != null)
@@ -151,23 +185,9 @@ public class ResourceShadowDiscriminator implements Serializable {
 		}
 		return a.equals(b);
 	}
-
-    public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
-        ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();
-        rsdt.setIntent(intent);
-        ObjectReferenceType resourceRef = new ObjectReferenceType();
-        resourceRef.setOid(resourceOid);
-        resourceRef.setType(ResourceType.COMPLEX_TYPE);
-        rsdt.setResourceRef(resourceRef);
-        return rsdt;
-    }
-
-    public static ResourceShadowDiscriminator fromResourceShadowDiscriminatorType(ShadowDiscriminatorType resourceShadowDiscriminatorType) {
-        if (resourceShadowDiscriminatorType == null) {
-            return null;
-        }
-        return new ResourceShadowDiscriminator(
-                resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
-                resourceShadowDiscriminatorType.getIntent());
-    }
+	
+    @Override
+	public String toString() {
+		return "Discr(" + kind.value() + " ("+intent+") on "+ resourceOid + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
+	}
 }

@@ -34,12 +34,15 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceActivationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceBidirectionalMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -308,12 +311,70 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getPasswordPolicy();
 	}
 
-	public MappingType getActivationInbound() {
-		return refinedObjectClassDefinition.getActivationInbound();
+	
+
+	public Class<?> getCompileTimeClass() {
+		return refinedObjectClassDefinition.getCompileTimeClass();
 	}
 
-	public MappingType getActivationOutbound() {
-		return refinedObjectClassDefinition.getActivationOutbound();
+	public QName getExtensionForType() {
+		return refinedObjectClassDefinition.getExtensionForType();
+	}
+
+	public boolean isContainerMarker() {
+		return refinedObjectClassDefinition.isContainerMarker();
+	}
+
+	public boolean isIdentifier(QName attrName) {
+		return refinedObjectClassDefinition.isIdentifier(attrName);
+	}
+
+	public boolean isObjectMarker() {
+		return refinedObjectClassDefinition.isObjectMarker();
+	}
+
+	public boolean isXsdAnyMarker() {
+		return refinedObjectClassDefinition.isXsdAnyMarker();
+	}
+
+	public QName getSuperType() {
+		return refinedObjectClassDefinition.getSuperType();
+	}
+
+	public boolean isSecondaryIdentifier(QName attrName) {
+		return refinedObjectClassDefinition.isSecondaryIdentifier(attrName);
+	}
+
+	public boolean isRuntimeSchema() {
+		return refinedObjectClassDefinition.isRuntimeSchema();
+	}
+
+	public Collection<ResourceObjectAssociationType> getAssociations() {
+		return refinedObjectClassDefinition.getAssociations();
+	}
+
+	public Collection<ResourceObjectAssociationType> getAssociations(ShadowKindType kind) {
+		return refinedObjectClassDefinition.getAssociations(kind);
+	}
+
+	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+		return refinedObjectClassDefinition.toResourceAttributeContainerDefinition();
+	}
+
+	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+		return refinedObjectClassDefinition.toResourceAttributeContainerDefinition(elementName);
+	}
+
+	public ResourceActivationDefinitionType getActivationSchemaHandling() {
+		return refinedObjectClassDefinition.getActivationSchemaHandling();
+	}
+
+	public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(QName propertyName) {
+		return refinedObjectClassDefinition.getActivationBidirectionalMappingType(propertyName);
+	}
+
+	public AttributeFetchStrategyType getActivationFetchStrategy(QName propertyName) {
+		return refinedObjectClassDefinition.getActivationFetchStrategy(propertyName);
 	}
 
 	public Collection<ResourceObjectAssociationType> getEntitlementAssociations() {

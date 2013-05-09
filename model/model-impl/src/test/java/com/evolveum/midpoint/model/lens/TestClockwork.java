@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
@@ -103,11 +104,11 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
     // tests specific bug dealing with preservation of null values in focus secondary deltas
     @Test(enabled = true)
     public void test010SerializeAddUserBarbossa() throws Exception {
-
-        displayTestTile(this, "test010SerializeAddUserBarbossa");
+    	final String TEST_NAME = "test010SerializeAddUserBarbossa";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".test020AssignAccountToJackSync");
+        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -139,12 +140,13 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 
 	@Test
     public void test020AssignAccountToJackSync() throws Exception {
-        displayTestTile(this, "test020AssignAccountToJackSync");
+		final String TEST_NAME = "test020AssignAccountToJackSync";
+        displayTestTile(this, TEST_NAME);
 
         try {
         	
 	        // GIVEN
-	        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".test020AssignAccountToJackSync");
+	        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
 	        OperationResult result = task.getResult();
 	        
 	        LensContext<UserType, ShadowType> context = createJackAssignAccountContext(result);
@@ -304,17 +306,26 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
-        
-        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, dummyResourceCtl.getAttributeFullnamePath() , "Jack Sparrow");
+        ObjectDelta<?> executedDelta = getExecutedDelta(accContext);
+        assertEquals(ChangeType.ADD, executedDelta.getChangeType());
+        PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath() , "jack");
+        PrismAsserts.assertPropertyAdd(executedDelta, dummyResourceCtl.getAttributeFullnamePath() , "Jack Sparrow");
         
 	}
 	
+	private ObjectDelta<?> getExecutedDelta(LensProjectionContext<ShadowType> ctx) {
+		List<LensObjectDeltaOperation<ShadowType>> executedDeltas = ctx.getExecutedDeltas();
+		if (executedDeltas.isEmpty()) {
+			return null;
+		}
+		if (executedDeltas.size() > 1) {
+			AssertJUnit.fail("More than one executed delta in "+ctx);
+		}
+		return executedDeltas.get(0).getObjectDelta();
+	}
+
 	private void assertJackAccountShadow(LensContext<UserType, ShadowType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());

@@ -122,6 +122,7 @@
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
 				<outbound>
+					<name>ICFS NAME outbound mapping</name>
 				    <strength>weak</strength>
 				    <source>
 				    	<path>$user/name</path>
@@ -135,6 +136,7 @@
 					</expression>
 				</outbound>
 				<inbound>
+					<name>ICFS NAME inbound mapping</name>
 					<!-- This avoids "kickback" of a name from account to a user. -->
 					<strength>weak</strength>
 					<target>
@@ -154,11 +156,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
+					<name>fullname outbound mapping</name>
 					<source>
 						<path>$user/fullName</path>
 					</source>
 				</outbound>
 				<inbound>
+					<name>fullname inbound mapping</name>
 					<strength>weak</strength>
 					<target>
 						<path>$user/fullName</path>
@@ -172,6 +176,7 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
+					<name>location outbound mapping</name>
 					<strength>strong</strength>
 					<source>
 						<path>
@@ -180,6 +185,7 @@
 					</source>
 				</outbound>
 				<inbound>
+					<name>location inbound mapping</name>
 					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel>
 					<expression>
 						<script>
@@ -264,13 +270,13 @@
             </protected>
             
             <activation>
-            	<enabled>
+            	<administrativeStatus>
             		<outbound>
                     	<expression>
                         	<asIs/>
                         </expression>
             		</outbound>
-            	</enabled>
+            	</administrativeStatus>
             </activation>
 			
 			<credentials>

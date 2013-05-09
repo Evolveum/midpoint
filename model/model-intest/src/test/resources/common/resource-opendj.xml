@@ -348,9 +348,9 @@
 				</outbound>
 			</attribute>
 			<activation>
-				<enabled>
+				<administrativeStatus>
 					<outbound/>
-				</enabled>
+				</administrativeStatus>
 			</activation>
 		</accountType>
 	</schemaHandling>

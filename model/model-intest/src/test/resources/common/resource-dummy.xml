@@ -283,7 +283,7 @@
             </protected>
             
             <activation>
-            	<enabled>
+            	<administrativeStatus>
             		<outbound>
             			<strength>weak</strength>
                     	<expression>
@@ -293,7 +293,7 @@
             		<inbound>
             			<strength>weak</strength>
             		</inbound>
-            	</enabled>
+            	</administrativeStatus>
             </activation>
             
             <credentials>

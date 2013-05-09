@@ -393,27 +393,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return thisObject.clone();
 	}
 
-	protected abstract String getElementDefaultDesc();
-	
-	protected String getElementDesc() {
-		PrismObject<O> object = getObjectOld();
-		if (object == null) {
-			object = getObjectOld();
-		}
-		if (object == null) {
-			return getElementDefaultDesc();
-		}
-		return object.toDebugType();
-	}
-	
-	protected String getDebugDumpTitle() {
-		return StringUtils.capitalize(getElementDesc());
-	}
-	
-	protected String getDebugDumpTitle(String suffix) {
-		return getDebugDumpTitle()+" "+suffix;
-	}
-
     public void fillInJaxb(LensElementContextType lensElementContextType) throws SchemaException {
         lensElementContextType.setObjectOld(objectOld != null ? objectOld.asObjectable() : null);
         lensElementContextType.setObjectNew(objectNew != null ? objectNew.asObjectable() : null);
@@ -462,6 +441,27 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (secondaryDelta != null) {
 			CryptoUtil.checkEncrypted(secondaryDelta);
 		}
+	}
+	
+	protected abstract String getElementDefaultDesc();
+	
+	protected String getElementDesc() {
+		PrismObject<O> object = getObjectOld();
+		if (object == null) {
+			object = getObjectOld();
+		}
+		if (object == null) {
+			return getElementDefaultDesc();
+		}
+		return object.toDebugType();
+	}
+	
+	protected String getDebugDumpTitle() {
+		return StringUtils.capitalize(getElementDesc());
+	}
+	
+	protected String getDebugDumpTitle(String suffix) {
+		return getDebugDumpTitle()+" "+suffix;
 	}
 
 }

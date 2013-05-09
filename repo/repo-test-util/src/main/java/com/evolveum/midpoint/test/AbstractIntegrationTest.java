@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -375,6 +377,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		display("Aplying sync settings result", result);
 		result.computeStatus();
 		assertSuccess("Aplying sync settings failed (result)", result);
+	}
+	
+	protected void assertNoChanges(ObjectDelta<?> delta) {
+        assertNull("Unexpected changes: "+ delta, delta);
 	}
 
 }

@@ -71,30 +71,9 @@ public class LensUtil {
 	
 	public static <F extends ObjectType, P extends ObjectType> void traceContext(Trace logger, String activity, String phase, 
 			boolean important,  LensContext<F,P> context, boolean showTriples) throws SchemaException {
-		// The provided information is useless, this is now a pointless noise now
-//    	if (important && logger.isDebugEnabled()) {
-//    		StringBuilder sb = new StringBuilder("Lens context ");
-//    		sb.append(activity);
-//    		sb.append(" after ");
-//    		sb.append(phase);
-//    		sb.append(":");
-//    		boolean empty = true;
-//    		for (ObjectDelta objectDelta: context.getAllChanges()) {
-//    			if (objectDelta.isEmpty()) {
-//    				continue;
-//    			}
-//    			sb.append("\n");
-//    			sb.append(objectDelta.toString());
-//    			empty = false;
-//    		}
-//    		if (empty) {
-//    			sb.append(" no change");
-//    		}
-//    		logger.debug(sb.toString());
-//    	}
         if (logger.isTraceEnabled()) {
         	logger.trace("Lens context:\n"+
-            		"---[ {} CONTEXT after {} ]--------------------------------\n"+
+            		"---[ {} context {} ]--------------------------------\n"+
             		"{}\n",
             		new Object[]{activity, phase, context.dump(showTriples)});
         }

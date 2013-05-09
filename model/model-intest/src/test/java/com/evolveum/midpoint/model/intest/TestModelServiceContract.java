@@ -20,6 +20,8 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -593,10 +595,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test119ModifyUserDeleteAccount() throws Exception {
-        displayTestTile(this, "test119ModifyUserDeleteAccount");
+		final String TEST_NAME = "test119ModifyUserDeleteAccount";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test119ModifyUserDeleteAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
@@ -611,9 +614,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         
 		// WHEN
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
+		displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result, 2);
         
@@ -621,7 +626,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
+        assertEquals("Unexpected number of linkRefs", 0, userJackType.getLinkRef().size());
         
 		// Check is shadow is gone
         try {
@@ -1372,10 +1377,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
         // Explicit unlink is not needed here, it should work without it
-//        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-//		accountRefVal.setOid(accountOid);
-//		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
-//		userDelta.addModification(accountRefDelta);
         
 		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
 		

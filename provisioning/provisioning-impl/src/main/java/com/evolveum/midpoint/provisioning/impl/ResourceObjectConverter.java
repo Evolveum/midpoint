@@ -280,13 +280,13 @@ public class ResourceObjectConverter {
 			}
 		}
 		
-		// Activation/enabled
+		// Activation/administrativeStatus
 		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
 		if (CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
 			// There resource is capable of returning enable flag but it does not do it by default
-			AttributeFetchStrategyType enableFetchStrategy = objectClassDefinition.getActivationEnableFetchStrategy();
-			if (enableFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-				attributesToReturn.setReturnEnabledExplicit(true);
+			AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
+			if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				attributesToReturn.setReturnAdministrativeStatusExplicit(true);
 				apply = true;
 			}
 		}

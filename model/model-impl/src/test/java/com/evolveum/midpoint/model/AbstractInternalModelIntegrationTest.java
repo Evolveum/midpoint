@@ -277,6 +277,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
         accountSyncContext.setOid(account.getOid());
 		accountSyncContext.setObjectOld(account);
 		accountSyncContext.setResource(resourceType);
+		accountSyncContext.setExists(true);
 		context.rememberResource(resourceType);
 		return accountSyncContext;
     }

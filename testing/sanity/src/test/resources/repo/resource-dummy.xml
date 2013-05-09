@@ -268,13 +268,13 @@
             </protected>
             
             <activation>
-            	<enabled>
+            	<administrativeStatus>
             		<outbound>
                     	<expression>
                         	<asIs/>
                         </expression>
             		</outbound>
-            	</enabled>
+            	</administrativeStatus>
             </activation>
 			
 			<credentials>

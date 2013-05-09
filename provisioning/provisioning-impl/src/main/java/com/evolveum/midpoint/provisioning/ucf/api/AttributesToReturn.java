@@ -30,10 +30,11 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
  *
  */
 public class AttributesToReturn implements Serializable {
+	private static final long serialVersionUID = 157146351122133667L;
 	
 	private boolean returnDefaultAttributes = true;
 	private boolean returnPasswordExplicit = false;
-	private boolean returnEnabledExplicit = false;
+	private boolean returnAdministrativeStatusExplicit = false;
 	Collection<? extends ResourceAttributeDefinition> attributesToReturn = null;
 	
 	public boolean isReturnDefaultAttributes() {
@@ -60,19 +61,19 @@ public class AttributesToReturn implements Serializable {
 		this.returnPasswordExplicit = returnPasswordExplicit;
 	}
 
-	public boolean isReturnEnabledExplicit() {
-		return returnEnabledExplicit;
+	public boolean isReturnAdministrativeStatusExplicit() {
+		return returnAdministrativeStatusExplicit;
 	}
 
-	public void setReturnEnabledExplicit(boolean returnEnabledExplicit) {
-		this.returnEnabledExplicit = returnEnabledExplicit;
+	public void setReturnAdministrativeStatusExplicit(boolean returnAdministrativeStatusExplicit) {
+		this.returnAdministrativeStatusExplicit = returnAdministrativeStatusExplicit;
 	}
 
 	@Override
 	public String toString() {
 		return "AttributesToReturn(returnDefaultAttributes=" + returnDefaultAttributes + ", returnPasswordExplicit="
-				+ returnPasswordExplicit + ", returnEnabledExplicit="
-						+ returnEnabledExplicit + ", attributesToReturn=" + attributesToReturn + ")";
+				+ returnPasswordExplicit + ", returnAdministrativeStatusExplicit="
+						+ returnAdministrativeStatusExplicit + ", attributesToReturn=" + attributesToReturn + ")";
 	}
 
 }

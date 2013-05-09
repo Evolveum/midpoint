@@ -109,32 +109,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		assertNotNull("Missing account secondary delta", accCtx.getSecondaryDelta());
 		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
-                
-//        assertTrue(context.getUserPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-//        assertNull("Unexpected user changes", context.getUserSecondaryDelta());
-//        assertFalse("No account changes", context.getAccountContexts().isEmpty());
-//
-//        Collection<AccountSyncContext> accountContexts = context.getAccountContexts();
-//        assertEquals(1, accountContexts.size());
-//        AccountSyncContext accContext = accountContexts.iterator().next();
-//        assertNull(accContext.getAccountPrimaryDelta());
-//
-//        ObjectDelta<ResourceObjectShadowType> accountSecondaryDelta = accContext.getAccountSecondaryDelta();
-//        
-//        assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
-//        
-//        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
-//        PrismObject<ResourceObjectShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-//        assertEquals("user", newAccount.findProperty(ResourceObjectShadowType.F_ACCOUNT_TYPE).getRealValue());
-//        assertEquals(new QName(resourceDummyType.getNamespace(), "AccountObjectClass"),
-//                newAccount.findProperty(ResourceObjectShadowType.F_OBJECT_CLASS).getRealValue());
-//        PrismReference resourceRef = newAccount.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
-//        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
-//
-//        PrismContainer<?> attributes = newAccount.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-//        assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
-//        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceDummyType.getNamespace(), "fullname")).getRealValue());
-        
+                  
 	}
 
 }

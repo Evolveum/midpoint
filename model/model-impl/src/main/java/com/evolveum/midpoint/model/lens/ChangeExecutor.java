@@ -246,39 +246,32 @@ public class ChangeExecutor {
 				subResult.recordNotApplicableIfUnknown();
 				
 			} catch (SchemaException e) {
-				subResult.recordFatalError(e);
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ObjectNotFoundException e) {
-				subResult.recordFatalError(e);
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ObjectAlreadyExistsException e) {
 				// in his case we do not need to set account context as
 				// broken, instead we need to restart projector for this
 				// context to recompute new account or find out if the
 				// account was already linked..
-				subResult.recordFatalError(e);
+				recordProjectionExecutionException(e, accCtx, subResult, null);
 				continue;
 			} catch (CommunicationException e) {
-				subResult.recordFatalError(e);
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ConfigurationException e) {
-				subResult.recordFatalError(e);
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (SecurityViolationException e) {
-				subResult.recordFatalError(e);
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ExpressionEvaluationException e) {
-				subResult.recordFatalError(e);
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (RuntimeException e) {
-				subResult.recordFatalError(e);
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			}
 		}
@@ -287,6 +280,15 @@ public class ChangeExecutor {
         result.computeStatusComposite();
 
     }
+
+	private <P extends ObjectType> void recordProjectionExecutionException(Exception e, LensProjectionContext<P> accCtx,
+			OperationResult subResult, SynchronizationPolicyDecision decision) {
+		subResult.recordFatalError(e);
+		LOGGER.error("Error executing changes for {}: {}", new Object[]{accCtx.toHumanReadableString(), e.getMessage(), e});
+		if (decision != null) {
+			accCtx.setSynchronizationPolicyDecision(decision);
+		}
+	}
 
 	private void recordFatalError(OperationResult subResult, OperationResult result, String message, Throwable e) {
 		if (message == null) {

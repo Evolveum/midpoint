@@ -138,10 +138,10 @@ public class Clockwork {
 			
 			if (!context.isFresh()) {
 				context.cleanup();
-				projector.project(context, "projection", result);
+				projector.project(context, "PROJECTOR ("+state+")", result);
 			}
 			
-			LensUtil.traceContext(LOGGER, "clockwork", state.toString() + " projection (before processing)", true, context, false);
+			LensUtil.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
 			if (InternalsConfig.consistencyChecks) {
 				try {
 					context.checkConsistence();
@@ -256,7 +256,7 @@ public class Clockwork {
 		// Force recompute for next wave
 		context.rot();
 		
-		LensUtil.traceContext(LOGGER, "clockwork", context.getState() + " change execution", false, context, false);
+		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
 
 	private <F extends ObjectType, P extends ObjectType> void audit(LensContext<F,P> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {

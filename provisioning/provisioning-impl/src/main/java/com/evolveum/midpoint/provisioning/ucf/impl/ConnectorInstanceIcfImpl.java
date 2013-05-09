@@ -899,7 +899,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				|| (attributesToReturn.isReturnDefaultAttributes() && passwordReturnedByDefault())) {
 			icfAttrsToGet.add(OperationalAttributes.PASSWORD_NAME);
 		}
-		if (attributesToReturn.isReturnEnabledExplicit() 
+		if (attributesToReturn.isReturnAdministrativeStatusExplicit() 
 				|| (attributesToReturn.isReturnDefaultAttributes() && enabledReturnedByDefault())) {
 			icfAttrsToGet.add(OperationalAttributes.ENABLE_NAME);
 		}

@@ -147,15 +147,18 @@ public class AssignmentProcessor {
     public void processAssignmentsAccounts(LensContext<UserType,ShadowType> context, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
-        AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
-        AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(accountSynchronizationSettings);
+    	LensFocusContext<UserType> focusContext = context.getFocusContext();
+        ObjectDelta<UserType> focusDelta = focusContext.getDelta();
+        
+    	if (focusDelta != null && focusDelta.isDelete()) {
+			processFocusDelete(context, result);
+			return;
+		}
         
         // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
         // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
         // not create deltas, it just creates the triples. So we can decide what to do later when we convert triples to deltas.
         
-        LensFocusContext<UserType> focusContext = context.getFocusContext();
-        ObjectDelta<UserType> focusDelta = focusContext.getDelta();
         Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new ArrayList<PrismContainerValue<AssignmentType>>();
         if (focusContext.getObjectOld() != null) {
             PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectOld().findContainer(UserType.F_ASSIGNMENT);
@@ -353,82 +356,62 @@ public class AssignmentProcessor {
                 throw new IllegalStateException("Account type is null in ResourceAccountType during assignment processing");
             }
 
+            // SITUATION: The projection should exist, there is NO CHANGE in assignments
             if (zeroAccountMap.containsKey(rat)) {
+            	
                 LensProjectionContext<ShadowType> accountSyncContext = context.findProjectionContext(rat);
                 if (accountSyncContext == null) {
-                	// The account should exist before the change but it does not
-                	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
+                	// The projection should exist before the change but it does not
+                	// This happens during reconciliation if there is an inconsistency. 
+                	// Pretend that the assignment was just added. That should do.
                 	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
-                	//TODO: the same for relative decision
-					if (AssignmentPolicyEnforcementType.NONE == accountSyncContext
-							.getAssignmentPolicyEnforcementType() || AssignmentPolicyEnforcementType.RELATIVE == accountSyncContext.getAssignmentPolicyEnforcementType()) {
-						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.IGNORE);
-					} else {
-						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.ADD);
-						accountSyncContext.setAssigned(true);
-						accountSyncContext.setActive(true);
-					}
-                } else {
-                	// The account existed before the change and should still exist
-                	if (AssignmentPolicyEnforcementType.NONE == accountSyncContext.getAssignmentPolicyEnforcementType()){
-                		chooseDesicionAccordingToDelta(accountSyncContext, context);
-					} else {
-						accountSyncContext.setAssigned(true);
-						accountSyncContext.setActive(true);
-						markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.KEEP);
-					}
                 }
+            	accountSyncContext.setLegal(true);
+            	accountSyncContext.setAssigned(true);
 
+                
+            // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
-            	context.findProjectionContext(rat).setAssigned(true);
-            	context.findProjectionContext(rat).setActive(true);
+            	
+            	LensProjectionContext<ShadowType> projectionContext = context.findProjectionContext(rat);
+            	projectionContext.setAssigned(true);
+            	projectionContext.setLegal(true);
                 // Account was removed and added in the same operation, therefore keep its original state
                 // TODO
-                throw new UnsupportedOperationException("add+delete of account is not supported yet");
+                throw new UnsupportedOperationException("add+delete of projection is not supported yet");
                 //continue;
 
+                
+            // SITUATION: The projection is ASSIGNED
             } else if (plusAccountMap.containsKey(rat)) {
-                // Account added
-            	if (accountExists(context,rat)) {
-            		LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
-            		markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
-            	} else {
-					LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(
-							context, rat);
-					if (AssignmentPolicyEnforcementType.NONE == accountContext.getAssignmentPolicyEnforcementType()) {
-						chooseDesicionAccordingToDelta(accountContext, context);
-					} else {
-						markPolicyDecision(accountContext, SynchronizationPolicyDecision.ADD);
-					}
-            	}
-                context.findProjectionContext(rat).setAssigned(true);
-                context.findProjectionContext(rat).setActive(true);
+            	
+            	LensProjectionContext<ShadowType> projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
+            	projectionContext.setAssigned(true);
+            	projectionContext.setLegal(true);
 
+            	
+        	// SITUATION: The projection is UNASSIGNED
             } else if (minusAccountMap.containsKey(rat)) {
+            	
             	if (accountExists(context,rat)) {
             		LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
+            		accountContext.setAssigned(false);
+            		
             		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountContext.getAssignmentPolicyEnforcementType();
             		// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
-            		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL || assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
-	                	accountContext.setAssigned(false);
-	                	accountContext.setActive(false);
-	                    // Account removed
-	                    markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
+            		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL 
+            				|| assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
+	                	accountContext.setLegal(false);
             		} else {
-            			if (accountContext.isDelete()) {
-            				accountContext.setAssigned(false);
-    	                	accountContext.setActive(false);
-            				markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
-            			} else {
-            				markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
-            			}
+	                	accountContext.setLegal(true);
             		}
             	} else {
+
             		// We have to delete something that is not there. Nothing to do.
             	}
 
             } else {
-                throw new IllegalStateException("Account " + rat + " went looney");
+                throw new IllegalStateException("Projection " + rat + " went looney");
             }
 
             PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountDeltaSetTriple = 
@@ -448,10 +431,23 @@ public class AssignmentProcessor {
         }
         
         removeIgnoredContexts(context);
-        finishPolicyDecisions(context);
+        finishLegalDecisions(context);
         
     }
     
+	/**
+	 * Simply mark all projections as illegal - except those that are being unliked
+	 */
+	private void processFocusDelete(LensContext<UserType, ShadowType> context, OperationResult result) {
+		for (LensProjectionContext<ShadowType> projectionContext: context.getProjectionContexts()) {
+			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
+				// We do not want to affect unliked projections
+				continue;
+			}
+			projectionContext.setLegal(false);
+		}
+	}
+
 	private String determineResource(AssignmentType assignmentType) {
 		if (assignmentType.getAccountConstruction() != null){
 			ConstructionType accConstruction = assignmentType.getAccountConstruction();
@@ -509,79 +505,45 @@ public class AssignmentProcessor {
 	}
 
 	/**
-	 * Set policy decisions for the accounts that does not have it already
-	 * @throws SchemaException 
+	 * Set 'legal' flag for the accounts that does not have it already 
 	 */
-	private void finishPolicyDecisions(LensContext<UserType,ShadowType> context) throws PolicyViolationException, SchemaException {
-		for (LensProjectionContext<ShadowType> accountContext: context.getProjectionContexts()) {
-			if (accountContext.getSynchronizationPolicyDecision() != null) {
+	private void finishLegalDecisions(LensContext<UserType,ShadowType> context) throws PolicyViolationException, SchemaException {
+		for (LensProjectionContext<ShadowType> projectionContext: context.getProjectionContexts()) {
+			
+			if (projectionContext.isLegal() != null) {
 				// already have decision
 				continue;
 			}
-			
-			chooseDesicionAccordingToDelta(accountContext, context);
-			AssignmentPolicyEnforcementType enforcementType = accountContext.getAssignmentPolicyEnforcementType();
-			if (enforcementType == AssignmentPolicyEnforcementType.FULL && !accountContext.isAssigned()) {
-				if (accountContext.isAdd()) {
-					throw new PolicyViolationException("Attempt to add account "+accountContext.getResourceShadowDiscriminator()
-							+" while the account synchronization enforcement policy is FULL and the account is not assigned");
-				} else {
-					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
-					return;
-				}
+		
+			if (projectionContext.isLegalize()){
+				createAssignmentDelta(context, projectionContext);
+				projectionContext.setAssigned(true);
+				projectionContext.setLegal(true);
+				continue;
 			}
 			
-			if (accountContext.getSynchronizationIntent() != null) {
-				SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationIntent().toSynchronizationPolicyDecision();
-				if (policyDecision != null) {
-					accountContext.setSynchronizationPolicyDecision(policyDecision);
-					continue;
+			AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();
+			
+			if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
+				// What is not explicitly allowed is illegal in FULL enforcement mode
+				projectionContext.setLegal(false);
+				if (projectionContext.isAdd()) {
+					throw new PolicyViolationException("Attempt to add projection "+projectionContext.toHumanReadableString()
+							+" while the synchronization enforcement policy is FULL and the projection is not assigned");
 				}
+				continue;
+				
+			} else if ((enforcementType == AssignmentPolicyEnforcementType.NONE || enforcementType == AssignmentPolicyEnforcementType.POSITIVE) 
+					&& !projectionContext.isThombstone()) {
+				// Everything that is not yet dead is legal in NONE enforcement mode
+				projectionContext.setLegal(true);
 			}
-			ObjectDelta<ShadowType> accountSyncDelta = accountContext.getSyncDelta();
-			if (accountSyncDelta != null) {
-				if (accountSyncDelta.isDelete()) {
-					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
-				} else {
-					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
-				}
-			}
-			// TODO: other cases?
-//			chooseDesicionAccordingToDelta(accountContext, context);
 			
 		}
-		
-		
-		
-	}
-
-	private <F extends ObjectType, P extends ObjectType, T extends ObjectType> void chooseDesicionAccordingToDelta(LensProjectionContext<T> accountContext, LensContext<F,P> context) throws SchemaException {
-	
-		if (accountContext.getSynchronizationPolicyDecision() == null){
-			if (accountContext.isAdd()){
-				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.ADD);
-				if (accountContext.isLegalize()){
-					createAssignmentDelta(context, accountContext);
-					accountContext.setAssigned(true);
-					accountContext.setActive(true);
-				}
-			} else if (accountContext.isDelete()){
-				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
-			} else {
-				accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-				if (accountContext.isLegalize()){
-					createAssignmentDelta(context, accountContext);
-					accountContext.setAssigned(true);
-					accountContext.setActive(true);
-					
-				}
-			}
-		}
-		
 	}
 
 	private <F extends ObjectType, P extends ObjectType, T extends ObjectType> void createAssignmentDelta(LensContext<F, P> context, LensProjectionContext<T> accountContext) throws SchemaException{
-		ContainerDelta assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
 		AssignmentType assignmet = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));

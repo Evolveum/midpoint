@@ -149,6 +149,10 @@ public class DebugUtil {
 		debugDumpLabel(sb, label, indent);
 		if (dds == null) {
 			sb.append(" null");
+		} else if (dds.isEmpty()) {
+			sb.append(" ");
+			sb.append(getCollectionOpeningSymbol(dds));
+			sb.append(getCollectionClosingSymbol(dds));
 		} else {
 			sb.append("\n");
 			sb.append(debugDump(dds, indent + 1));

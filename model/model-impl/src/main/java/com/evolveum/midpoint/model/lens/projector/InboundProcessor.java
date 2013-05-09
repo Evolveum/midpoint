@@ -204,7 +204,12 @@ public class InboundProcessor {
         }
         processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
         		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
-        processSpecialPropertyInbound(accountDefinition.getActivationInbound(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+        
+        processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_ADMINISTRATIVE_STATUS), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);        
+        processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_FROM), SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
+        processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_TO), SchemaConstants.PATH_ACTIVATION_VALID_TO,
         		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
     }
 
@@ -395,6 +400,19 @@ public class InboundProcessor {
         }
 
         return filteredValue;
+    }
+	
+	/**
+     * Processing for special (fixed-schema) properties such as credentials and activation. 
+     */
+    private void processSpecialPropertyInbound(ResourceBidirectionalMappingType biMappingType, ItemPath sourcePath,
+            PrismObject<UserType> newUser, LensProjectionContext<ShadowType> accContext, 
+            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,ShadowType> context, 
+            OperationResult opResult) throws SchemaException {
+    	if (biMappingType == null) {
+    		return;
+    	}
+    	processSpecialPropertyInbound(biMappingType.getInbound(), sourcePath, newUser, accContext, accountDefinition, context, opResult);
     }
 
     /**

@@ -34,6 +34,8 @@ public class ExpressionConstants {
 	public static final QName VAR_OPERATION = new QName(SchemaConstants.NS_C, "operation");
 	public static final QName VAR_RESOURCE = new QName(SchemaConstants.NS_C, "resource");
 	
+	public static final QName VAR_LEGAL = new QName(SchemaConstants.NS_C, "legal");
+	
 	/**
 	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.
 	 * Iterations are used to find unique values for an account, to resolve naming conflicts, etc.

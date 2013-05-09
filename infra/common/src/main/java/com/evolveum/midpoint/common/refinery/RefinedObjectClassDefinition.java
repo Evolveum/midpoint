@@ -654,50 +654,41 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         
         return credentials.getPassword();
     }
-
-    public MappingType getActivationInbound() {
-        
-        ResourceActivationEnableDefinitionType enabled = getActivationEnableDefinition();
-        if (enabled == null || enabled.getInbound() == null) {
-            return null;
-        }
-
-        return (enabled.getInbound());
-    }
- 
-	public MappingType getActivationOutbound() {
-
-		ResourceActivationEnableDefinitionType enabled = getActivationEnableDefinition();
-		if (enabled == null || enabled.getOutbound() == null) {
-			return null;
-		}
-
-		return (enabled.getOutbound());
-	}
- 
     
-    private ResourceActivationEnableDefinitionType getActivationEnableDefinition(){
+    public ResourceActivationDefinitionType getActivationSchemaHandling(){
         if (schemaHandlingObjectTypeDefinitionType == null) {
             return null;
         }
 
-        ResourceActivationDefinitionType activation = schemaHandlingObjectTypeDefinitionType.getActivation();
-        if (activation == null) {
-            return null;
-        }
-        
-        return activation.getEnabled();
+        return schemaHandlingObjectTypeDefinitionType.getActivation();
     }
     
-    public AttributeFetchStrategyType getActivationEnableFetchStrategy() {
-    	ResourceActivationEnableDefinitionType enableDef = getActivationEnableDefinition();
-		if (enableDef == null) {
+    public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(QName propertyName) {
+    	ResourceActivationDefinitionType activationSchemaHandling = getActivationSchemaHandling();
+    	if (activationSchemaHandling == null) {
+    		return null;
+    	}
+    	
+    	if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(propertyName)) {
+    		return activationSchemaHandling.getAdministrativeStatus();
+    	} else if (ActivationType.F_VALID_FROM.equals(propertyName)) {
+    		return activationSchemaHandling.getValidFrom();
+    	} else if (ActivationType.F_VALID_TO.equals(propertyName)) {
+    		return activationSchemaHandling.getValidTo();
+    	} else {
+    		throw new IllegalArgumentException("Unknown activation property "+propertyName);
+    	}
+    }
+    
+    public AttributeFetchStrategyType getActivationFetchStrategy(QName propertyName) {
+    	ResourceBidirectionalMappingType biType = getActivationBidirectionalMappingType(propertyName);
+		if (biType == null) {
 			return AttributeFetchStrategyType.IMPLICIT;
 		}
-		if (enableDef.getFetchStrategy() == null) {
+		if (biType.getFetchStrategy() == null) {
 			return AttributeFetchStrategyType.IMPLICIT;
 		}
-		return enableDef.getFetchStrategy();
+		return biType.getFetchStrategy();
 	}
 
     @Override

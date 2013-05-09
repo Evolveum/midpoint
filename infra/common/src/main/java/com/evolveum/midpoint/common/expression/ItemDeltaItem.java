@@ -70,6 +70,13 @@ public class ItemDeltaItem<V extends PrismValue> {
 		this.itemNew = idi.getItemNew();
 		this.delta = idi.getDelta();
 	}
+	
+	public ItemDeltaItem(Item<V> item) {
+		super();
+		this.itemOld = item;
+		this.itemNew = item;
+		this.delta = null;
+	}
 
 	public Item<V> getItemOld() {
 		return itemOld;

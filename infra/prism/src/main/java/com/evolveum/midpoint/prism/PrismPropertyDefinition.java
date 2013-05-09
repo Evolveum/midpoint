@@ -21,19 +21,12 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import org.w3c.dom.Element;
+import java.util.Arrays;
 
 import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * Property Definition.
@@ -64,11 +57,11 @@ import java.util.List;
  *
  * @author Radovan Semancik
  */
-public class PrismPropertyDefinition extends ItemDefinition {
+public class PrismPropertyDefinition<T> extends ItemDefinition {
 
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;
-    private Object[] allowedValues;
+    private T[] allowedValues;
     private boolean create = true;
     private boolean read = true;
     private boolean update = true;
@@ -83,7 +76,7 @@ public class PrismPropertyDefinition extends ItemDefinition {
      *
      * @return Object array. May be null.
      */
-    public Object[] getAllowedValues() {
+    public T[] getAllowedValues() {
         return allowedValues;
     }
 
@@ -153,28 +146,28 @@ public class PrismPropertyDefinition extends ItemDefinition {
 	}
 
 	@Override
-    public PrismProperty instantiate() {
+    public PrismProperty<T> instantiate() {
         return instantiate(getNameOrDefaultName());
     }
 
     @Override
-    public PrismProperty instantiate(QName name) {
-        return new PrismProperty(name, this, prismContext);
+    public PrismProperty<T> instantiate(QName name) {
+        return new PrismProperty<T>(name, this, prismContext);
     }
 
     @Override
-	public PropertyDelta createEmptyDelta(ItemPath path) {
-		return new PropertyDelta(path, this);
+	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
+		return new PropertyDelta<T>(path, this);
 	}
 
 	@Override
-	public PrismPropertyDefinition clone() {
-        	PrismPropertyDefinition clone = new PrismPropertyDefinition(getName(), getDefaultName(), getValueType(), getPrismContext());
+	public PrismPropertyDefinition<T> clone() {
+        	PrismPropertyDefinition<T> clone = new PrismPropertyDefinition<T>(getName(), getDefaultName(), getValueType(), getPrismContext());
         	copyDefinitionData(clone);
         	return clone;
 	}
 
-	protected void copyDefinitionData(PrismPropertyDefinition clone) {
+	protected void copyDefinitionData(PrismPropertyDefinition<T> clone) {
 		super.copyDefinitionData(clone);
 		clone.allowedValues = this.allowedValues;
 		clone.valueType = this.valueType;
