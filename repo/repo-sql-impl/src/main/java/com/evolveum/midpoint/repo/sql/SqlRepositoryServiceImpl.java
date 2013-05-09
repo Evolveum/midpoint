@@ -424,13 +424,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 long time = System.currentTimeMillis();
                 LOGGER.trace("Org. structure closure table update started.");
                 objectType.setOid(merged.getOid());
-                fillHierarchy(objectType, session);
+                fillHierarchy(merged, session,true);
                 LOGGER.trace("Org. structure closure table update finished ({} ms).",
                         new Object[]{(System.currentTimeMillis() - time)});
             }
         } else {
             //we have to recompute actual hierarchy because we've changed object
-            recomputeHierarchy(objectType, session, modifications);
+            recomputeHierarchy(merged, session, modifications);
         }
 
         return merged.getOid();
@@ -463,8 +463,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             long time = System.currentTimeMillis();
             LOGGER.trace("Org. structure closure table update started.");
             objectType.setOid(oid);
-            //fillHierarchy(objectType, session);
-            this.fillHierarchyExt(rObject, session);
+            fillHierarchy(rObject, session, true);
             LOGGER.trace("Org. structure closure table update finished ({} ms).",
                     new Object[]{(System.currentTimeMillis() - time)});
         }
@@ -483,86 +482,82 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return oid;
     }
 
-    private <T extends ObjectType> void fillHierarchy(T orgType, Session session) throws SchemaException {
-        int depth = 0;
-        RObject rOrg = createDataObjectFromJAXB(orgType);
-        ROrgClosure closure = new ROrgClosure(rOrg, rOrg, depth);
-        // if (checkClosureUniqueness(closure, session)) {
-        session.save(closure);
-        // }
 
-        for (ObjectReferenceType orgRef : orgType.getParentOrgRef()) {
-            fillTransitiveHierarchy(rOrg, orgRef.getOid(), session);
-        }
-    }
+    private <T extends ObjectType> void fillHierarchy(RObject rOrg, Session session, boolean withIncorrect) throws SchemaException 
+	{
 
-    private <T extends ObjectType> void fillHierarchyExt(RObject rOrg, Session session) throws SchemaException {
+		ROrgClosure closure = new ROrgClosure(rOrg, rOrg, 0);
+		session.save(closure);
 
-        int depth = 0;
-        ROrgClosure closure = new ROrgClosure(rOrg, rOrg, depth);
-        // if (checkClosureUniqueness(closure, session)) {
-        session.save(closure);
-        // }
+		for (RObjectReference orgRef : rOrg.getParentOrgRef())
+		{
+			fillTransitiveHierarchy(rOrg, orgRef.getTargetOid(), session, withIncorrect);
+		}
+		
+		if (withIncorrect)
+		{
+			Query qIncorrect = session
+					.createQuery("from ROrgIncorrect where ancestor_oid = :oid");
+			qIncorrect.setString("oid", rOrg.getOid());
 
-        for (RObjectReference orgRef : rOrg.getParentOrgRef()) {
-            fillTransitiveHierarchyExt(rOrg, orgRef.getTargetOid(), session, false);
-        }
+			List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
 
-        Query qIncorrect = session.createQuery("from ROrgIncorrect where ancestor_oid = :oid");
-        qIncorrect.setString("oid", rOrg.getOid());
-        List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
-        for (ROrgIncorrect orgInc : orgIncorrect) {
-            Query qOrg = session.createQuery("from ROrg where id = 0 and oid = :oid");
-            qOrg.setString("oid", orgInc.getDescendantOid());
-            ROrg rOrgI = (ROrg) qOrg.uniqueResult();
-            fillTransitiveHierarchyExt(rOrgI, rOrg.getOid(), session, true);
-            session.delete(orgInc);
-        }
-    }
+			for (ROrgIncorrect orgInc : orgIncorrect) {
+				Query qOrg = session
+						.createQuery("from ROrg where id = 0 and oid = :oid");
+				qOrg.setString("oid", orgInc.getDescendantOid());
+				ROrg rOrgI = (ROrg) qOrg.uniqueResult();
+				fillTransitiveHierarchy(rOrgI, rOrg.getOid(), session, !withIncorrect);
+				session.delete(orgInc);
+			}
+		}
+	}
 
-    private <T extends ObjectType> void fillTransitiveHierarchy(RObject newDescendant, String descendantOid,
-                                                                Session session) throws SchemaException {
 
-//		Criteria query = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
-//				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
-        Criteria query = session.createCriteria(ROrgClosure.class);
-        Criteria desc = query.createCriteria("descendant", "desc");
-        query.setFetchMode("descendant", FetchMode.JOIN);
-        desc.add(Restrictions.eq("oid", descendantOid));
+    private <T extends ObjectType> void fillTransitiveHierarchy(
+			RObject descendant, String ancestorOid, Session session,
+			boolean withIncorrect) throws SchemaException {
 
-        // query.
-        List<ROrgClosure> results = query.list();
-        for (ROrgClosure o : results) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("adding {}\t{}\t{}", new Object[]{o.getAncestorOid(), o.getDescendantOid(), o.getDepth() + 1});
-            }
-            session.save(new ROrgClosure(o.getAncestor(), newDescendant, o.getDepth() + 1));
-        }
+		Criteria cOrgClosure = session.createCriteria(ROrgClosure.class)
+				.createCriteria("descendant", "desc")
+				.setFetchMode("descendant", FetchMode.JOIN)
+				.add(Restrictions.eq("oid", ancestorOid));
 
-    }
+		List<ROrgClosure> orgClosure = cOrgClosure.list();
 
-    private <T extends ObjectType> void fillTransitiveHierarchyExt(RObject descendant, String ancestorOid,
-                                                                   Session session, boolean isIncorrect) throws SchemaException {
+		if (orgClosure.size() > 0) {
+			for (ROrgClosure o : orgClosure) {
+				LOGGER.trace(
+						"adding {}\t{}\t{}",
+						new Object[] { o.getAncestor().getOid(),
+								descendant.getOid(), o.getDepth() + 1 });
 
-        Criteria query = session.createCriteria(ROrgClosure.class);
-        Criteria desc = query.createCriteria("descendant", "desc");
-        query.setFetchMode("descendant", FetchMode.JOIN);
-        desc.add(Restrictions.eq("oid", ancestorOid));
+				// if not exist pair with same depth, then create else nothing
+				// do
+				Query qExistClosure = session
+						.createQuery("select count(*) from ROrgClosure where "
+								+ "ancestor_id = :ancestorId and ancestor_Oid = :ancestorOid "
+								+ "and descendant_id = :descendantId and descendant_oid = :descendantOid "
+								+ "and depthValue = :depth");
+				qExistClosure.setParameter("ancestorId", 0);
+				qExistClosure.setParameter("ancestorOid", o.getAncestor().getOid());
+				qExistClosure.setParameter("descendantId", 0);
+				qExistClosure.setParameter("descendantOid", descendant.getOid());
+				qExistClosure.setParameter("depth", o.getDepth() + 1);
 
-        List<ROrgClosure> results = query.list();
-        if (results.size() > 0) {
-            for (ROrgClosure o : results) {
-                LOGGER.trace("adding {}\t{}\t{}", new Object[]{o.getAncestor().getOid(),
-                        o.getDescendant().getOid(), o.getDepth() + 1});                        //todo remove
-                session.save(new ROrgClosure(o.getAncestor(), descendant, o.getDepth() + 1));
-            }
-        } else if (!isIncorrect) {
-            LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
-                    descendant.getOid()});
-            session.save(new ROrgIncorrect(ancestorOid, descendant.getOid(), descendant.getId()));
-        }
-    }
+				boolean existClosure = (Long)qExistClosure.uniqueResult() == 0;
 
+				if (existClosure)
+					session.save(new ROrgClosure(o.getAncestor(), descendant, o
+							.getDepth() + 1));
+			}
+		} else if (withIncorrect) {
+			LOGGER.trace("adding incorrect {}\t{}", new Object[] { ancestorOid,
+					descendant.getOid() });
+			session.save(new ROrgIncorrect(ancestorOid, descendant.getOid(),
+					descendant.getId()));
+		}
+	}
     @Override
     public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
@@ -612,16 +607,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "' was not found.", null, oid);
             }
 
-            List<RObject> objectsToRecompute = null;
-            if (type.isAssignableFrom(OrgType.class)) {
-                objectsToRecompute = deleteTransitiveHierarchy(object, session);
-            }
-
-            session.delete(object);
-
-            if (objectsToRecompute != null) {
-                recompute(objectsToRecompute, session);
-            }
+            deleteReferences(object,session);
+			
+			List<RObject> objectsToRecompute = null;
+			if (type.isAssignableFrom(OrgType.class)) {
+				objectsToRecompute = deleteTransitiveHierarchy(object, session);
+			}
+			
+			session.delete(object);
+		
+			if (objectsToRecompute != null) {
+				recompute(objectsToRecompute, session);
+			}
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -638,27 +635,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private void recompute(List<RObject> objectsToRecompute, Session session) throws SchemaException,
-            DtoTranslationException {
+    
 
-        LOGGER.trace("Recomputing organization structure closure table after delete.");
+    private void recompute(List<RObject> objectsToRecompute, Session session)
+			throws SchemaException, DtoTranslationException {
 
-        for (RObject object : objectsToRecompute) {
-            Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(object.toJAXB(getPrismContext())
-                    .getClass()));
-            query.add(Restrictions.eq("oid", object.getOid()));
-            query.add(Restrictions.eq("id", 0L));
-            RObject obj = (RObject) query.uniqueResult();
-            if (obj == null) {
-                // object not found..probably it was just deleted.
-                continue;
-            }
-            deleteAncestors(object, session);
-            fillHierarchy(object.toJAXB(getPrismContext()), session);
-        }
-        LOGGER.trace("Closure table for organization structure recomputed.");
-    }
+		LOGGER.trace("Recomputing organization structure closure table after delete.");
 
+		for (RObject object : objectsToRecompute) {
+			Criteria query = session.createCriteria(ClassMapper
+					.getHQLTypeClass(object.toJAXB(getPrismContext())
+							.getClass()));
+			query.add(Restrictions.eq("oid", object.getOid()));
+			query.add(Restrictions.eq("id", 0L));
+			RObject obj = (RObject) query.uniqueResult();
+			if (obj == null) {
+				// object not found..probably it was just deleted.
+				continue;
+			}
+			deleteAncestors(object, session);
+			fillHierarchy(object, session, false);
+		}
+		LOGGER.trace("Closure table for organization structure recomputed.");
+	}
+    
+    
     private void deleteAncestors(RObject object, Session session) {
         Criteria criteria = session.createCriteria(ROrgClosure.class);
         criteria.add(Restrictions.eq("descendant", object));
@@ -669,6 +670,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
     }
+    
+    private void deleteReferences(RObject object, Session session) 
+	{
+		Query sqlDelete = session.createQuery("delete from RObjectReference where targetOid = :deleteOid");
+		sqlDelete.setParameter("deleteOid", object.getOid());
+		sqlDelete.executeUpdate();
+		
+		LOGGER.trace("deleting reference: oid:{}",	new Object[] {object.getOid()});
+	}
+
 
     @Override
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult result) {
@@ -885,7 +896,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session.merge(rObject);
 
-            recomputeHierarchy(prismObject.asObjectable(), session, modifications);
+            recomputeHierarchy(rObject, session, modifications);
 
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
@@ -916,132 +927,157 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     }
 
-    private <T extends ObjectType> void recomputeHierarchy(T orgType, Session session,
-                                                           Collection<? extends ItemDelta> modifications)
-            throws SchemaException, DtoTranslationException {
 
-        for (ItemDelta delta : modifications) {
-            if (!delta.getName().equals(OrgType.F_PARENT_ORG_REF)) {
-                continue;
-            }
-            // if modification is one of the modify or delete, delete old
-            // record in org closure table and in the next step fill the
-            // closure table with the new records
-            if (delta.isReplace() || delta.isDelete()) {
-                for (Object orgRefDValue : delta.getValuesToDelete()) {
-                    if (!(orgRefDValue instanceof PrismReferenceValue)) {
-                        throw new SchemaException(
-                                "Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
-                                        + orgRefDValue);
-                    }
+    private <T extends ObjectType> void recomputeHierarchy(
+			RObject rObjectToModify, Session session,
+			Collection<? extends ItemDelta> modifications)
+			throws SchemaException, DtoTranslationException 
+	{
 
-                    RObject rObjectToModify = createDataObjectFromJAXB(orgType);
-                    if (orgType.getClass().isAssignableFrom(OrgType.class)) {
+		for (ItemDelta delta : modifications)
+		{
+			if (!delta.getName().equals(OrgType.F_PARENT_ORG_REF)) 	continue;
+			
+			// if modification is one of the modify or delete, delete old
+			// record in org closure table and in the next step fill the
+			// closure table with the new records
+			if (delta.isReplace() || delta.isDelete()) 
+			{
+				for (Object orgRefDValue : delta.getValuesToDelete()) 
+				{
+					if (!(orgRefDValue instanceof PrismReferenceValue)) 
+						throw new SchemaException(
+								"Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
+										+ orgRefDValue);
+					
 
-                        List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
-                        refillHierarchy(rObjectToModify, objectsToRecompute, session);
-                    } else {
-                        deleteHierarchy(rObjectToModify, session);
-                        if (orgType.getParentOrgRef() != null && !orgType.getParentOrgRef().isEmpty()) {
-                            for (ObjectReferenceType orgRef : orgType.getParentOrgRef()) {
-                                fillTransitiveHierarchy(rObjectToModify, orgRef.getOid(), session);
-                            }
-                        }
-                    }
-                }
-                // List<RObject> objectsToRecompute =
-                // deleteFromHierarchy(createDataObjectFromJAXB(orgType),
-                // session);
-                // recompute(objectsToRecompute, session);
-                // fillHierarchy(orgType, session);
-            } else {
-                // fill closure table with new transitive relations
-                for (Object orgRefDValue : delta.getValuesToAdd()) {
-                    if (!(orgRefDValue instanceof PrismReferenceValue)) {
-                        throw new SchemaException(
-                                "Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
-                                        + orgRefDValue);
-                    }
+					if (rObjectToModify.getClass().isAssignableFrom(ROrg.class))
+					{
+						List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
+						refillHierarchy(rObjectToModify, objectsToRecompute, session);
+					} 
+					else 
+					{
+						deleteHierarchy(rObjectToModify, session);
+						if (rObjectToModify.getParentOrgRef() != null
+								&& !rObjectToModify.getParentOrgRef().isEmpty()) 
+						{
+							for (RObjectReference orgRef : rObjectToModify.getParentOrgRef()) 
+							{
+								fillTransitiveHierarchy(rObjectToModify, orgRef.getTargetOid(), session, true);
+							}
+						}
+					}
+				}
+			} else {
+				// fill closure table with new transitive relations
+				for (Object orgRefDValue : delta.getValuesToAdd()) {
+					if (!(orgRefDValue instanceof PrismReferenceValue)) {
+						throw new SchemaException(
+								"Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
+										+ orgRefDValue);
+					}
 
-                    PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
+					PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
 
-                    RObject rDescendant = createDataObjectFromJAXB(orgType);
-                    LOGGER.trace("filling transitive hierarchy for descendant {}, ref {}", new Object[]{rDescendant.getOid(), value.getOid()});//todo remove
-                    fillTransitiveHierarchy(rDescendant, value.getOid(), session);
-                }
-            }
-        }
-    }
+					LOGGER.trace(
+							"filling transitive hierarchy for descendant {}, ref {}",
+							new Object[] { rObjectToModify.getOid(),
+									value.getOid() });
+					// todo remove
+					fillTransitiveHierarchy(rObjectToModify, value.getOid(), session, true);
+				}
+			}
+		}
+	}
 
-    private List<RObject> deleteTransitiveHierarchy(RObject rObjectToModify, Session session) throws SchemaException,
-            DtoTranslationException {
 
-        List<RObject> descendants = session.createCriteria(ROrgClosure.class)
-                .setProjection(Projections.property("descendant")).add(Restrictions.eq("ancestor", rObjectToModify))
-                .list();
 
-        List<RObject> ancestors = session
-                .createCriteria(ROrgClosure.class)
-                .setProjection(Projections.property("ancestor"))
-                .createCriteria("ancestor", "anc")
-                .add(Restrictions.and(Restrictions.eq("this.descendant", rObjectToModify),
-                        Restrictions.not(Restrictions.eq("anc.oid", rObjectToModify.getOid())))).list();
+    private List<RObject> deleteTransitiveHierarchy(RObject rObjectToModify,
+			Session session) throws SchemaException, DtoTranslationException {
 
-        Criteria criteria = session.createCriteria(ROrgClosure.class);
+		Criteria cDescendant = session.createCriteria(ROrgClosure.class)
+				.setProjection(Projections.property("descendant"))
+				.add(Restrictions.eq("ancestor", rObjectToModify));
 
-        if (ancestors != null && !ancestors.isEmpty()) {
-            criteria.add(Restrictions.in("ancestor", ancestors));
-        } else {
-            LOGGER.trace("No ancestors for object: {}", rObjectToModify.getOid());
-        }
+		Criteria cAncestor = session.createCriteria(ROrgClosure.class)
+				.setProjection(Projections.property("ancestor"))
+				.createCriteria("ancestor", "anc")
+				.add(Restrictions.and(Restrictions.eq("this.descendant",
+						rObjectToModify), Restrictions.not(Restrictions.eq(
+						"anc.oid", rObjectToModify.getOid()))));
 
-        if (descendants != null && !descendants.isEmpty()) {
-            criteria.add(Restrictions.in("descendant", descendants));
-        } else {
-            LOGGER.trace("No descendants for object: {}", rObjectToModify.getOid());
-        }
+		Criteria cOrgClosure = session.createCriteria(ROrgClosure.class);
+		
+		List<RObject> ocAncestor = cAncestor.list();
+		List<RObject> ocDescendant = cDescendant.list();
+		
+		if (ocAncestor != null && !ocAncestor.isEmpty()) {
+			cOrgClosure.add(Restrictions.in("ancestor", ocAncestor));
+		} else {
+			LOGGER.trace("No ancestors for object: {}",
+					rObjectToModify.getOid());
+		}
 
-        List<ROrgClosure> orgClosure = criteria.list();
-        for (ROrgClosure o : orgClosure) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-                        new Object[]{o.getAncestorOid(), o.getDescendantOid(), o.getDepth()});
-            }
-            session.delete(o);
-        }
+		if (ocDescendant != null && !ocDescendant.isEmpty()) {
+			cOrgClosure.add(Restrictions.in("descendant", ocDescendant));
+		} else {
+			LOGGER.trace("No descendants for object: {}",
+					rObjectToModify.getOid());
+		}
 
-        deleteHierarchy(rObjectToModify, session);
-        return descendants;
-    }
+		List<ROrgClosure> orgClosure = cOrgClosure.list();
+		
+		for (ROrgClosure o : orgClosure) {
+			LOGGER.trace(
+					"1deleting from hierarchy: A: {} D:{} depth:{}",
+					new Object[] { o.getAncestor().toJAXB(getPrismContext()),
+							o.getDescendant().toJAXB(getPrismContext()),
+							o.getDepth() });
+			session.delete(o);
+		}
+		deleteHierarchy(rObjectToModify, session);
+		return ocDescendant;
+	}
+    
 
-    private void refillHierarchy(RObject parent, List<RObject> descendants, Session session) throws SchemaException,
-            DtoTranslationException {
-        fillHierarchy(parent.toJAXB(getPrismContext()), session);
 
-        for (RObject descentant : descendants) {
-            LOGGER.trace("ObjectToRecompte {}", descentant);
-            if (!parent.getOid().equals(descentant.getOid())) {
-                fillTransitiveHierarchy(descentant, parent.getOid(), session);
-            }
-        }
+    private void refillHierarchy(RObject parent, List<RObject> descendants,
+			Session session) throws SchemaException, DtoTranslationException 
+	{
+		fillHierarchy(parent, session, false);
 
-    }
+		for (RObject descendant : descendants) {
+			LOGGER.trace("ObjectToRecompute {}", descendant);
+			if (!parent.getOid().equals(descendant.getOid())) {
+				fillTransitiveHierarchy(descendant, parent.getOid(),
+						session, false);
+			}
+		}
 
-    private void deleteHierarchy(RObject objectToDelete, Session session) throws DtoTranslationException {
-        Criteria criteria = session.createCriteria(ROrgClosure.class).add(
-                Restrictions.or(Restrictions.eq("ancestor", objectToDelete),
-                        Restrictions.eq("descendant", objectToDelete)));
+	}
 
-        List<ROrgClosure> orgClosure = criteria.list();
-        for (ROrgClosure o : orgClosure) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-                        new Object[]{o.getAncestorOid(), o.getDescendantOid(), o.getDepth()});
-            }
-            session.delete(o);
-        }
+    private void deleteHierarchy(RObject objectToDelete, Session session)
+			throws DtoTranslationException {
 
-    }
+		String sqlDeleteOrgClosure = "delete from ROrgClosure where " +
+				 "(descendant_id = :modifyId and descendant_oid = :modifyOid) or " +
+				 "(ancestor_id =:modifyId and ancestor_oid = :modifyOid)";
+		
+		session.createQuery(sqlDeleteOrgClosure)
+				.setParameter("modifyOid", objectToDelete.getOid())
+				.setParameter("modifyId", 0)
+				.executeUpdate();
+
+		String sqlDeleteOrgIncorrect = "delete from ROrgIncorrect where "
+				+ "(descendant_id = :descendantId and descendant_oid = :modifyOid) "
+				+ "or ancestor_oid = :modifyOid";
+		session.createQuery(sqlDeleteOrgIncorrect)
+				.setParameter("modifyOid", objectToDelete.getOid())
+				.setParameter("descendantId", 0)
+				.executeUpdate();
+		
+	}
 
     // private List<RObject> deleteFromHierarchy(RObject object, Session
     // session) throws SchemaException,

@@ -207,18 +207,27 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==>after add<==");
         Session session = getFactory().openSession();
         session.beginTransaction();
-        long count = (Long) session.createQuery("select count(*) from ROrgClosure").uniqueResult();
+        Query qCount = session.createQuery("select count(*) from ROrgClosure");
+        long count = (Long) qCount.uniqueResult();
         AssertJUnit.assertEquals(54L, count);
 
         // check descendants for F0001 org unit
-        Criteria criteria = session.createCriteria(ROrgClosure.class)
+        /*Criteria criteria = session.createCriteria(ROrgClosure.class)
         		.createCriteria("ancestor", "anc")
                 .setFetchMode("ancestor", FetchMode.JOIN).
                 add(Restrictions.eq("anc.oid", ORG_F001_OID));
 
         List<ROrgClosure> results = criteria.list();
         AssertJUnit.assertEquals(13, results.size());
-
+        */
+        // check descendants for F0001 org unit
+        qCount = session.createQuery("select count(*) from ROrgClosure where ancestor_oid = :ancestorOid");
+        qCount.setParameter("ancestorOid", ORG_F001_OID);
+        count = (Long) qCount.uniqueResult();
+        AssertJUnit.assertEquals(13L, count);
+        
+        
+        /*
         criteria = session.createCriteria(ROrgClosure.class)
         		.add(Restrictions.eq("depth", 2));
         Criteria ancCriteria = criteria.createCriteria("ancestor", "anc")
@@ -229,6 +238,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
                 .add(Restrictions.eq("desc.oid", ORG_F006_OID));
         results = criteria.list();
         AssertJUnit.assertEquals(1, results.size());
+        */
+        
+        qCount = session.createQuery("select count(*) from ROrgClosure where ancestor_oid = :ancestorOid");
+        qCount.setParameter("ancestorOid", ORG_F001_OID);
+        count = (Long) qCount.uniqueResult();
+        AssertJUnit.assertEquals(13L, count);
 
         session.getTransaction().commit();
         session.close();
@@ -237,11 +252,11 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @SuppressWarnings({ "unchecked" })
 	@Test
     public void test001addOrgStructObjectsIncorrect() throws Exception {
-
+    	 
     	LOGGER.info("===[ addIncorrectOrgStruct ]===");
-         
-    	OperationResult opResult = new OperationResult("===[ addIncorrectOrgStruct ]===");
-                     
+    	
+         OperationResult opResult = new OperationResult("===[ addIncorrectOrgStruct ]===");       
+                  
         List<PrismObject<? extends Objectable>> orgStructIncorrect = prismContext.getPrismDomProcessor().parseObjects(
         	 new File(ORG_STRUCT_OBJECTS_INCORRECT));
             
@@ -412,7 +427,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(OrgType.class, MODIFY_ORG_INCORRECT_ADD_REF_OID, delta.getModifications(), opResult);
 
         Session session = getFactory().openSession();
-        session.clear();
         session.beginTransaction();
         
         Criteria criteria = session.createCriteria(ROrgClosure.class)
