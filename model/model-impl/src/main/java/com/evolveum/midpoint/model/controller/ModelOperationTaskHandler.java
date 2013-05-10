@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.controller;
 
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -87,14 +88,14 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
         } else {
 
-            PrismProperty<LensContextType> contextTypeProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
-            if (contextTypeProperty == null) {
-                throw new SystemException("There's no model context property in task " + task + " (" + SchemaConstants.MODEL_CONTEXT_PROPERTY + ")");
+            PrismContainer<LensContextType> contextTypeContainer = (PrismContainer) task.getExtensionItem(SchemaConstants.MODEL_CONTEXT_NAME);
+            if (contextTypeContainer == null) {
+                throw new SystemException("There's no model context container in task " + task + " (" + SchemaConstants.MODEL_CONTEXT_NAME + ")");
             }
 
             LensContext context = null;
             try {
-                context = LensContext.fromJaxb(contextTypeProperty.getRealValue(), prismContext);
+                context = LensContext.fromLensContextType(contextTypeContainer.getValue().asContainerable(), prismContext);
             } catch (SchemaException e) {
                 throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
             }
@@ -102,8 +103,8 @@ public class ModelOperationTaskHandler implements TaskHandler {
             try {
                 clockwork.run(context, task, result);
 
-                contextTypeProperty.setRealValue(context.toJaxb());
-                task.setExtensionPropertyImmediate(contextTypeProperty, result);
+                task.setExtensionContainer(context.toPrismContainer());         // will this work?
+                task.savePendingModifications(result);
 
                 if (result.isUnknown()) {
                     result.computeStatus();

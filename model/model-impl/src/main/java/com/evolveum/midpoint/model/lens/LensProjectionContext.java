@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
@@ -39,18 +40,10 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -784,56 +777,6 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		return AccountOperation.MODIFY;
 	}
 
-    public LensProjectionContextType toJaxb() throws SchemaException {
-        LensProjectionContextType lensProjectionContextType = new LensProjectionContextType();
-        super.fillInJaxb(lensProjectionContextType);
-        lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
-        lensProjectionContextType.setWave(wave);
-        lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
-                resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
-        lensProjectionContextType.setFullShadow(fullShadow);
-        lensProjectionContextType.setIsAssigned(isAssigned);
-        lensProjectionContextType.setIsActive(isActive);
-        lensProjectionContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
-        lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
-        lensProjectionContextType.setDoReconciliation(doReconciliation);
-        lensProjectionContextType.setIteration(iteration);
-        lensProjectionContextType.setIterationToken(iterationToken);
-        lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
-        return lensProjectionContextType;
-    }
-
-    public static LensProjectionContext fromJaxb(LensProjectionContextType projectionContextType, LensContext lensContext) throws SchemaException {
-
-        String objectTypeClassString = projectionContextType.getObjectTypeClass();
-        if (StringUtils.isEmpty(objectTypeClassString)) {
-            throw new SystemException("Object type class is undefined in LensProjectionContextType");
-        }
-        ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(projectionContextType.getResourceShadowDiscriminator());
-
-        LensProjectionContext projectionContext;
-        try {
-            projectionContext = new LensProjectionContext(Class.forName(objectTypeClassString), lensContext, resourceShadowDiscriminator);
-        } catch (ClassNotFoundException e) {
-            throw new SystemException("Couldn't instantiate LensProjectionContext because object type class couldn't be found", e);
-        }
-
-        projectionContext.fillInFromJaxb(projectionContextType);
-        projectionContext.syncDelta = projectionContextType.getSyncDelta() != null ? DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext()) : null;
-        projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
-        projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
-        projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
-        projectionContext.isActive = projectionContextType.isIsActive() != null ? projectionContextType.isIsActive() : false;
-        projectionContext.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(projectionContextType.getSynchronizationIntent());
-        projectionContext.synchronizationPolicyDecision = SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(projectionContextType.getSynchronizationPolicyDecision());
-        projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;
-        projectionContext.iteration = projectionContextType.getIteration() != null ? projectionContextType.getIteration() : 0;
-        projectionContext.iterationToken = projectionContextType.getIterationToken();
-        projectionContext.accountPasswordPolicy = projectionContextType.getAccountPasswordPolicy();
-
-        return projectionContext;
-    }
-
     @Override
 	public void checkEncrypted() {
 		super.checkEncrypted();
@@ -994,5 +937,60 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			return "("+resourceShadowDiscriminator.getKind().value() + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
 		}
 	}
+
+    public void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer) throws SchemaException {
+
+        LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
+
+        super.storeIntoLensElementContextType(lensProjectionContextType);
+        lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
+        lensProjectionContextType.setWave(wave);
+        lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
+                resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
+        lensProjectionContextType.setFullShadow(fullShadow);
+        lensProjectionContextType.setIsAssigned(isAssigned);
+        lensProjectionContextType.setIsActive(isActive);
+        lensProjectionContextType.setIsLegal(isLegal);
+        lensProjectionContextType.setIsExists(isExists);
+        lensProjectionContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
+        lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
+        lensProjectionContextType.setDoReconciliation(doReconciliation);
+        lensProjectionContextType.setIteration(iteration);
+        lensProjectionContextType.setIterationToken(iterationToken);
+        lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
+    }
+
+    public static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType, LensContext lensContext) throws SchemaException {
+
+        String objectTypeClassString = projectionContextType.getObjectTypeClass();
+        if (StringUtils.isEmpty(objectTypeClassString)) {
+            throw new SystemException("Object type class is undefined in LensProjectionContextType");
+        }
+        ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(projectionContextType.getResourceShadowDiscriminator());
+
+        LensProjectionContext projectionContext;
+        try {
+            projectionContext = new LensProjectionContext(Class.forName(objectTypeClassString), lensContext, resourceShadowDiscriminator);
+        } catch (ClassNotFoundException e) {
+            throw new SystemException("Couldn't instantiate LensProjectionContext because object type class couldn't be found", e);
+        }
+
+        projectionContext.retrieveFromLensElementContextType(projectionContextType);
+        projectionContext.syncDelta = projectionContextType.getSyncDelta() != null ? DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext()) : null;
+        projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
+        projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
+        projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
+        projectionContext.isActive = projectionContextType.isIsActive() != null ? projectionContextType.isIsActive() : false;
+        projectionContext.isLegal = projectionContextType.isIsLegal();
+        projectionContext.isExists = projectionContextType.isIsExists() != null ? projectionContextType.isIsExists() : false;
+        projectionContext.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(projectionContextType.getSynchronizationIntent());
+        projectionContext.synchronizationPolicyDecision = SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(projectionContextType.getSynchronizationPolicyDecision());
+        projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;
+        projectionContext.iteration = projectionContextType.getIteration() != null ? projectionContextType.getIteration() : 0;
+        projectionContext.iterationToken = projectionContextType.getIterationToken();
+        projectionContext.accountPasswordPolicy = projectionContextType.getAccountPasswordPolicy();
+
+        return projectionContext;
+    }
 
 }

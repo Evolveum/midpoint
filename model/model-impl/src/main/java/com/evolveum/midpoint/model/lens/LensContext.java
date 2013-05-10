@@ -23,10 +23,10 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -683,14 +684,22 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         return sb.toString();
     }
 
-    public LensContextType toJaxb() throws SchemaException {
-        LensContextType lensContextType = new LensContextType();
+    public PrismContainer<LensContextType> toPrismContainer() throws SchemaException {
+
+        PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);
+        LensContextType lensContextType = lensContextTypeContainer.createNewValue().asContainerable();
 
         lensContextType.setState(state != null ? state.toModelStateType() : null);
         lensContextType.setChannel(channel);
-        lensContextType.setFocusContext(focusContext != null ? focusContext.toJaxb() : null);
+
+        if (focusContext != null) {
+            PrismContainer<LensFocusContextType> lensFocusContextTypeContainer = lensContextTypeContainer.findOrCreateContainer(LensContextType.F_FOCUS_CONTEXT);
+            focusContext.addToPrismContainer(lensFocusContextTypeContainer);
+        }
+
+        PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
         for (LensProjectionContext lensProjectionContext : projectionContexts) {
-            lensContextType.getProjectionContext().add(lensProjectionContext.toJaxb());
+            lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer);
         }
         lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
         lensContextType.setProjectionClass(projectionClass != null ? projectionClass.getName() : null);
@@ -699,10 +708,11 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         lensContextType.setExecutionWave(executionWave);
         lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
 
-        return lensContextType;
+        return lensContextTypeContainer;
     }
 
-    public static LensContext fromJaxb(LensContextType lensContextType, PrismContext prismContext) throws SchemaException {
+
+    public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext) throws SchemaException {
 
         String focusClassString = lensContextType.getFocusClass();
         String projectionClassString = lensContextType.getProjectionClass();
@@ -723,9 +733,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
         lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
         lensContext.setChannel(lensContextType.getChannel());
-        lensContext.setFocusContext(LensFocusContext.fromJaxb(lensContextType.getFocusContext(), lensContext));
+        lensContext.setFocusContext(LensFocusContext.fromLensFocusContextType(lensContextType.getFocusContext(), lensContext));
         for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {
-            lensContext.addProjectionContext(LensProjectionContext.fromJaxb(lensProjectionContextType, lensContext));
+            lensContext.addProjectionContext(LensProjectionContext.fromLensProjectionContextType(lensProjectionContextType, lensContext));
         }
         lensContext.setDoReconciliationForAllProjections(lensContextType.isDoReconciliationForAllProjections() != null ?
             lensContextType.isDoReconciliationForAllProjections() : false);

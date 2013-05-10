@@ -216,6 +216,7 @@ public class ModelExecuteOptions implements Serializable {
         retval.setNoCrypt(noCrypt);
         retval.setReconcile(reconcile);
         retval.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
+        retval.setOverwrite(overwrite);
         return retval;
     }
 
@@ -229,6 +230,7 @@ public class ModelExecuteOptions implements Serializable {
         retval.setNoCrypt(type.isNoCrypt());
         retval.setReconcile(type.isReconcile());
         retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
+        retval.setOverwrite(type.isOverwrite());
         return retval;
     }
 

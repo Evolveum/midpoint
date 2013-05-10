@@ -208,10 +208,13 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
         
 	private Object asElement(PrismValue itemValue) {
 		PrismContext prismContext = containerValue.getPrismContext();
+        if (prismContext == null) {
+            throw new IllegalStateException("prismContext is null in " + containerValue);
+        }
 		try {
 			return prismContext.getPrismJaxbProcessor().toAny(itemValue, document);
 		} catch (SchemaException e) {
-			throw new SystemException("Unexpected schema proble: "+e.getMessage(),e);
+			throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
 		}
 		// return itemValue.asDomElement();
 	}

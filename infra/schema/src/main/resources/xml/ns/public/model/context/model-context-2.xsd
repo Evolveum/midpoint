@@ -103,6 +103,9 @@
                 A serialization of model context, i.e. a context of an operation in the model.
                 In particular, this type is storing data for LensContext class.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="state" type="c:ModelStateType">
@@ -184,20 +187,37 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="objectOld" type="c:ObjectType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReference>tns:objectOldRef</a:objectReference>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectOldRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:composite>true</a:composite>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectNew" type="c:ObjectType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReference>tns:objectNewRef</a:objectReference>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectNewRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:composite>true</a:composite>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="primaryDelta" type="t:ObjectDeltaType" minOccurs="0">
@@ -238,11 +258,14 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="LensFocusContextType">       <!-- TODO extends LensElementContextType -->
+    <xsd:complexType name="LensFocusContextType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:LensElementContextType">
@@ -258,12 +281,16 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="lensFocusContext" type="tns:LensFocusContextType" />     <!-- seems to be necessary for PrismContainerDefinition for LFCT to be created -->
 
-    <xsd:complexType name="LensProjectionContextType">       <!-- TODO extends LensElementContextType -->
+    <xsd:complexType name="LensProjectionContextType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:LensElementContextType">
@@ -312,6 +339,20 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="isLegal" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                True if there is a valid assignment for this projection and/or the policy allows such project to exist.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="isExists" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="synchronizationIntent" type="c:SynchronizationIntentType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -352,21 +393,43 @@
                     </xsd:element>
                     <xsd:element name="accountPasswordPolicy" type="c:ValuePolicyType" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:accountPasswordPolicyRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="accountPasswordPolicyRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:ValuePolicyType</a:objectReferenceTargetType>
+                                <a:composite>true</a:composite>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
-
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="lensProjectionContext" type="tns:LensProjectionContextType" />     <!-- seems to be necessary for PrismContainerDefinition for LFCT to be created -->
 
     <xsd:complexType name="ObjectDeltaWavesType">
         <xsd:sequence>
-            <xsd:element name="wave" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="wave" type="tns:ObjectDeltaWaveType" minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
+        <xsd:attribute name="waveCount" type="xsd:int" />
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectDeltaWaveType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="delta" type="t:ObjectDeltaType"/>
+        </xsd:sequence>
+        <xsd:attribute name="number" type="xsd:int" />
+
     </xsd:complexType>
 
     <xsd:complexType name="LensObjectDeltaOperationType">

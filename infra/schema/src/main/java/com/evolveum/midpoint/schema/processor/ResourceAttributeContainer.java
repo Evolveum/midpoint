@@ -28,11 +28,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
@@ -63,7 +59,12 @@ public final class ResourceAttributeContainer extends PrismContainer {
 
 	@Override
 	public ResourceAttributeContainerDefinition getDefinition() {
-		return (ResourceAttributeContainerDefinition) super.getDefinition();
+        PrismContainerDefinition prismContainerDefinition = super.getDefinition();
+        if (prismContainerDefinition instanceof ResourceAttributeContainerDefinition) {
+		    return (ResourceAttributeContainerDefinition) prismContainerDefinition;
+        } else {
+            throw new IllegalStateException("definition should be " + ResourceAttributeContainerDefinition.class + " but it is " + prismContainerDefinition.getClass() + " instead; definition = " + prismContainerDefinition.debugDump(0));
+        }
 	}
 
 	/**

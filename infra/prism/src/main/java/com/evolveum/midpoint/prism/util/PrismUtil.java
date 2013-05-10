@@ -19,22 +19,18 @@
  */
 package com.evolveum.midpoint.prism.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * @author semancik
@@ -113,5 +109,29 @@ public class PrismUtil {
 		}
 		return true;
 	}
+
+//    public static void checkRACD(Item item) {
+//        if (item instanceof PrismProperty) {
+//            // nothing to do
+//        } else if (item instanceof PrismReference) {
+//            for (PrismReferenceValue prismReferenceValue : ((PrismReference) item).getValues()) {
+//                if (prismReferenceValue.getObject() != null) {
+//                    checkRACD(prismReferenceValue.getObject());
+//                }
+//            }
+//
+//        } else if (item instanceof PrismContainer) {
+//            item.getDefinition();       // fails if item is ResourceAttributeContainer and there's a problem
+//
+//            for (PrismContainerValue<Containerable> prismContainerValue : ((PrismContainer<Containerable>) item).getValues()) {
+//                for (Item item1 : prismContainerValue.getItems()) {
+//                    checkRACD(item1);
+//                }
+//            }
+//        } else {
+//            throw new IllegalStateException("Unknown type of item: " + item);
+//        }
+//    }
+
 
 }

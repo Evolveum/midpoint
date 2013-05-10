@@ -28,11 +28,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.history.WfHistoryEventDto;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -61,7 +59,6 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -237,20 +234,12 @@ public class TaskDto extends Selectable {
 
         if (options.isRetrieveModelContext()) {
             PrismContext prismContext = task.getTaskPrismObject().getPrismContext();
-            PrismProperty<LensContextType> modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
-            if (modelContextProperty != null) {
-                Object value = modelContextProperty.getRealValue();
-                if (value instanceof Element || value instanceof JAXBElement) {
-                    try {
-                        value = prismContext.getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
-                    } catch (SchemaException e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
-                        // todo report to result
-                    }
-                }
+            PrismContainer<LensContextType> modelContextContainer = (PrismContainer) task.getExtensionItem(SchemaConstants.MODEL_CONTEXT_NAME);
+            if (modelContextContainer != null) {
+                Object value = modelContextContainer.getValue().asContainerable();
                 if (value != null) {
                     if (!(value instanceof LensContextType)) {
-                        throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
+                        throw new SystemException("Model context information in task " + task + " is of wrong type: " + value.getClass());
                     }
                     try {
                         ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value);

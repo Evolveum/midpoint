@@ -21,17 +21,16 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -306,14 +305,15 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
 	}
 
-    public LensFocusContextType toJaxb() throws SchemaException {
-        LensFocusContextType lensFocusContextType = new LensFocusContextType();
-        super.fillInJaxb(lensFocusContextType);
-        lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toJaxb());
-        return lensFocusContextType;
+    public void addToPrismContainer(PrismContainer<LensFocusContextType> lensFocusContextTypeContainer) throws SchemaException {
+
+        LensFocusContextType lensFocusContextType = lensFocusContextTypeContainer.createNewValue().asContainerable();
+
+        super.storeIntoLensElementContextType(lensFocusContextType);
+        lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
     }
 
-    public static LensFocusContext fromJaxb(LensFocusContextType focusContextType, LensContext lensContext) throws SchemaException {
+    public static LensFocusContext fromLensFocusContextType(LensFocusContextType focusContextType, LensContext lensContext) throws SchemaException {
 
         String objectTypeClassString = focusContextType.getObjectTypeClass();
         if (StringUtils.isEmpty(objectTypeClassString)) {
@@ -326,8 +326,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             throw new SystemException("Couldn't instantiate LensFocusContext because object type class couldn't be found", e);
         }
 
-        lensFocusContext.fillInFromJaxb(focusContextType);
-        lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromJaxb(focusContextType.getSecondaryDeltas(), lensContext.getPrismContext());
+        lensFocusContext.retrieveFromLensElementContextType(focusContextType);
+        lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromObjectDeltaWavesType(focusContextType.getSecondaryDeltas(), lensContext.getPrismContext());
         return lensFocusContext;
     }
 

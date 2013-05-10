@@ -30,6 +30,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -232,7 +233,12 @@ public class PrismDomProcessor {
 		return parsePrismContainer(valueElements, DOMUtil.getQName(domElement), propertyContainerDefinition);
 	}
 
-	private <T extends Containerable> PrismContainer<T> parsePrismContainer(List<? extends Object> valueElements,
+    public <T extends Containerable> PrismContainer<T> parsePrismContainer(String xml,
+                                                                           PrismContainerDefinition<T> propertyContainerDefinition) throws SchemaException {
+        return parsePrismContainer(DOMUtil.parseDocument(xml).getDocumentElement(), propertyContainerDefinition);
+    }
+
+    private <T extends Containerable> PrismContainer<T> parsePrismContainer(List<? extends Object> valueElements,
 			QName itemName, PrismContainerDefinition<T> containerDefinition) throws SchemaException {
 		PrismContainer<T> container = containerDefinition.instantiate(itemName);
 		for (Object value : valueElements) {
@@ -746,6 +752,12 @@ public class PrismDomProcessor {
 		try {
 			if (valueElement instanceof Element) {
 				Element valueDomElement = (Element) valueElement;
+
+                PrismObjectDefinition<Objectable> schemaObjectDefinitionFromXsiType = findDefinitionFromXsiType(valueDomElement);
+                if (schemaObjectDefinitionFromXsiType != null) {
+                    schemaObjectDefinition = schemaObjectDefinitionFromXsiType;
+                }
+
 				if (schemaObjectDefinition == null) {
 					compositeObject = parseObject(valueDomElement);
 				} else {
@@ -756,6 +768,12 @@ public class PrismDomProcessor {
 				JAXBElement<Objectable> jaxbElement = (JAXBElement<Objectable>) valueElement;
 				Objectable objectable = jaxbElement.getValue();
 				compositeObject = objectable.asPrismObject();
+
+                PrismObjectDefinition<Objectable> schemaObjectDefinitionFromJaxbType = findDefinitionFromJaxbType(jaxbElement);
+                if (schemaObjectDefinitionFromJaxbType != null) {
+                    schemaObjectDefinition = schemaObjectDefinitionFromJaxbType;
+                }
+
 				if (schemaObjectDefinition == null) {
 					getPrismContext().adopt(objectable);
 				} else {
@@ -772,6 +790,31 @@ public class PrismDomProcessor {
 		refVal.setObject(compositeObject);
 		return refVal;
 	}
+
+    private PrismObjectDefinition<Objectable> findDefinitionFromXsiType(Element objectElement) throws SchemaException {
+        QName xsiType = DOMUtil.resolveXsiType(objectElement);
+        if (xsiType != null) {
+            PrismObjectDefinition<Objectable> objectDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(xsiType);
+            if (objectDefinition == null) {
+                throw new SchemaException("No definition found for type " + xsiType + " (as defined by xsi:type)");
+            } else {
+                return objectDefinition;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private PrismObjectDefinition<Objectable> findDefinitionFromJaxbType(JAXBElement jaxbElement) throws SchemaException {
+        Class declaredType = jaxbElement.getDeclaredType();
+        if (declaredType != null) {
+            return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(declaredType);
+                // or, should we throw an exception when no definition is found?
+        } else {
+            return null;
+        }
+    }
+
 
 	public PrismReferenceValue parseReferenceValue(Element element) {
 		String oid = getOid(element);
@@ -1059,10 +1102,25 @@ public class PrismDomProcessor {
 	}
 
 	public List<Element> serializeItemToDom(Item<?> item) throws SchemaException {
-		return serializeItemToDom(item, DOMUtil.getDocument());
+        return serializeItemToDom(item, false);
+    }
+    public List<Element> serializeItemToDom(Item<?> item, boolean serializeCompositeObjects) throws SchemaException {
+		return serializeItemToDom(item, DOMUtil.getDocument(), serializeCompositeObjects);
 	}
 
-	public List<Element> serializeItemToDom(Item<?> item, Document document) throws SchemaException {
+//    public String serializeContainerValueToString(PrismContainerValue<?> value, QName rootElementName, boolean serializeCompositeObjects) throws SchemaException {
+//        DomSerializer domSerializer = new DomSerializer(getPrismContext());
+//        domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
+//        Element element = domSerializer.serializeContainerValue(value, DOMUtil.getDocument(rootElementName).getDocumentElement());
+//        return DOMUtil.serializeDOMToString(element);
+//    }
+
+    public List<Element> serializeItemToDom(Item<?> item, Document document) throws SchemaException {
+        return serializeItemToDom(item, document, false);
+    }
+
+    public List<Element> serializeItemToDom(Item<?> item, Document document, boolean serializeCompositeObjects) throws SchemaException {
+
 		QName elementName = item.getName();
 		// This is kind of a hack. The serializeValueToDom method will place the
 		// element that we want below the
@@ -1070,12 +1128,17 @@ public class PrismDomProcessor {
 		// and then extract the real element
 		// from it.
 		Element fakeElement = document.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
-		serializeItemToDom(item, fakeElement);
+		serializeItemToDom(item, fakeElement, serializeCompositeObjects);
 		return DOMUtil.listChildElements(fakeElement);
 	}
 
 	public void serializeItemToDom(Item<?> item, Element parentElement) throws SchemaException {
+        serializeItemToDom(item, parentElement, false);
+    }
+
+    public void serializeItemToDom(Item<?> item, Element parentElement, boolean serializeCompositeObjects) throws SchemaException {
 		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+        domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
 		domSerializer.serialize(item, parentElement);
 	}
 

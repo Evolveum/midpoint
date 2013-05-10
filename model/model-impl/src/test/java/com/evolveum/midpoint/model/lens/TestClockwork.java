@@ -38,6 +38,9 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -75,6 +78,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnf
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * @author semancik
@@ -120,14 +125,16 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         clockwork.click(context, task, result);     // one round - compute projections
 
         System.out.println("Context before serialization = " + context.debugDump());
-        LensContextType lensContextType = context.toJaxb();
 
-        String xml = prismContext.getPrismJaxbProcessor().marshalElementToString(lensContextType, new QName("lensContext"));
+        PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
+        List<Element> lensContextTypeElements = prismContext.getPrismDomProcessor().serializeItemToDom(lensContextType, true);
+        String xml = DOMUtil.serializeDOMToString(lensContextTypeElements.get(0));
+
         System.out.println("Serialized form = " + xml);
 
-        lensContextType = prismContext.getPrismJaxbProcessor().unmarshalElement(xml, LensContextType.class).getValue();
+        PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
+        LensContext context2 = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext());
 
-        LensContext context2 = LensContext.fromJaxb(lensContextType, context.getPrismContext());
         System.out.println("Context after deserialization = " + context.debugDump());
 
         // THEN
@@ -275,15 +282,19 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         	if (serialize) {
 
                 System.out.println("Context before serialization = " + context.debugDump());
-                LensContextType lensContextType = context.toJaxb();
 
-                String xml = prismContext.getPrismJaxbProcessor().marshalElementToString(lensContextType, new QName("lensContext"));
+                PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
+                List<Element> lensContextTypeElements = prismContext.getPrismDomProcessor().serializeItemToDom(lensContextType, true);
+                String xml = DOMUtil.serializeDOMToString(lensContextTypeElements.get(0));
+
                 System.out.println("Serialized form = " + xml);
 
-                lensContextType = prismContext.getPrismJaxbProcessor().unmarshalElement(xml, LensContextType.class).getValue();
+                PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
+                context = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext());
 
-                context = LensContext.fromJaxb(lensContextType, context.getPrismContext());
                 System.out.println("Context after deserialization = " + context.debugDump());
+
+                context.checkConsistence();
             }
         }
         
@@ -310,8 +321,8 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         
         ObjectDelta<?> executedDelta = getExecutedDelta(accContext);
         assertEquals(ChangeType.ADD, executedDelta.getChangeType());
-        PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath() , "jack");
-        PrismAsserts.assertPropertyAdd(executedDelta, dummyResourceCtl.getAttributeFullnamePath() , "Jack Sparrow");
+        PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath(), "jack");
+        PrismAsserts.assertPropertyAdd(executedDelta, dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");
         
 	}
 	

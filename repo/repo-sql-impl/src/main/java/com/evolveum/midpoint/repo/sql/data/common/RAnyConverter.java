@@ -129,7 +129,7 @@ public class RAnyConverter {
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
+            throw new DtoTranslationException("Exception when translating " + item + ": " + ex.getMessage(), ex);
         }
 
         return rValues;

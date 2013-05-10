@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.wf.activiti;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.wf.dao.MiscDataUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -48,16 +50,6 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 		return context;
 	}
 
-    public static PrismContext getPrismContext() {
-        PrismContext pc = SpringApplicationContextHolder
-                .getApplicationContext().
-                        getBean("prismContext", PrismContext.class);
-        if (pc == null) {
-            throw new IllegalStateException("Could not find PrismContext");
-        }
-        return pc;
-    }
-
     public static ActivitiInterface getActivitiInterface() {
         return getBean("activitiInterface", ActivitiInterface.class);
     }
@@ -68,6 +60,18 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
             throw new IllegalStateException("Could not find " + name + " bean");
         }
         return bean;
+    }
+
+    public static MiscDataUtil getMiscDataUtil() {
+        return getBean("miscDataUtil", MiscDataUtil.class);
+    }
+
+    public static RepositoryService getRepositoryService() {
+        return getBean("repositoryService", RepositoryService.class);
+    }
+
+    public static PrismContext getPrismContext() {
+        return getBean("prismContext", PrismContext.class);
     }
 }
 

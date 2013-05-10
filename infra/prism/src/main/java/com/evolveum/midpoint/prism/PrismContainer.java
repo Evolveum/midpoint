@@ -757,6 +757,14 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         return "";
     }
 
+    public static <V extends Containerable> PrismContainer<V> newInstance(PrismContext prismContext, QName type) throws SchemaException {
+        PrismContainerDefinition<V> definition = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);
+        if (definition == null) {
+            throw new SchemaException("Definition for " + type + " couldn't be found");
+        }
+        return definition.instantiate();
+    }
+
     /**
      * Return a human readable name of this class suitable for logs.
      */

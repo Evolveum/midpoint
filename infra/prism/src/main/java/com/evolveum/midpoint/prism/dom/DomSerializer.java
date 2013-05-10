@@ -104,8 +104,10 @@ public class DomSerializer {
 		if (object.getVersion() != null) {
 			topElement.setAttribute(PrismConstants.ATTRIBUTE_VERSION_LOCAL_NAME, object.getVersion());
 		}
+        QName elementQName = new QName(topElement.getNamespaceURI(), topElement.getLocalName());
 		if (object.getDefinition() != null &&
-				!prismContext.getSchemaRegistry().hasImplicitTypeDefinition(object.getName(), object.getDefinition().getTypeName())) {
+//				!prismContext.getSchemaRegistry().hasImplicitTypeDefinition(object.getName(), object.getDefinition().getTypeName())) {
+                !prismContext.getSchemaRegistry().hasImplicitTypeDefinition(elementQName, object.getDefinition().getTypeName())) {
 			DOMUtil.setXsiType(topElement, object.getDefinition().getTypeName());
 		}
 	}
@@ -256,7 +258,7 @@ public class DomSerializer {
 	}
 
 	<V extends PrismValue> void serialize(Item<V> item, Element parentElement) throws SchemaException {
-		// special handling for reference values (account vs accountRef). 
+		// special handling for reference values (account vs accountRef).
 		if (item instanceof PrismReference) {
 			serialize((PrismReference)item, parentElement);
 		} else {

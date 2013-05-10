@@ -671,7 +671,7 @@ public class SchemaProcessor implements Processor {
 
     private void createAsPrismContainer(ClassOutline classOutline, JVar container) {
         JDefinedClass definedClass = classOutline.implClass;
-        JMethod getContainer = definedClass.method(JMod.PROTECTED, CLASS_MAP.get(PrismObject.class),
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
         		METHOD_AS_PRISM_CONTAINER);
 
         //create method body

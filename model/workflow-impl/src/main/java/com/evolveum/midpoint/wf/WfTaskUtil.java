@@ -52,10 +52,8 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -84,7 +82,7 @@ public class WfTaskUtil {
 
     // wfModelContext - records current model context (i.e. context of current model operation)
 
-    private PrismPropertyDefinition wfModelContextPropertyDefinition;
+    private PrismContainerDefinition wfModelContextContainerDefinition;
     private PrismPropertyDefinition wfSkipModelContextProcessingPropertyDefinition;
 
     // wfStatus - records information about process execution at WfMS
@@ -128,7 +126,7 @@ public class WfTaskUtil {
     @PostConstruct
     public void init() {
 
-        wfModelContextPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.MODEL_CONTEXT_PROPERTY);
+        wfModelContextContainerDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(SchemaConstants.MODEL_CONTEXT_NAME);
         wfSkipModelContextProcessingPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
         wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFSTATUS_PROPERTY_NAME);
         wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFLAST_DETAILS_PROPERTY_NAME);
@@ -140,7 +138,7 @@ public class WfTaskUtil {
         wfResultingDeltaPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
         wfProcessInstanceFinishedPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
 
-        Validate.notNull(wfModelContextPropertyDefinition, SchemaConstants.MODEL_CONTEXT_PROPERTY + " definition was not found");
+        Validate.notNull(wfModelContextContainerDefinition, SchemaConstants.MODEL_CONTEXT_NAME + " definition was not found");
         Validate.notNull(wfSkipModelContextProcessingPropertyDefinition, SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY + " definition was not found");
         Validate.notNull(wfStatusPropertyDefinition, Constants.WFSTATUS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastDetailsPropertyDefinition, Constants.WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
@@ -419,30 +417,30 @@ public class WfTaskUtil {
 //    }
 
     public boolean hasModelContext(Task task) {
-        PrismProperty modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
+        PrismProperty modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_NAME);
         return modelContextProperty != null && modelContextProperty.getRealValue() != null;
     }
 
     public ModelContext retrieveModelContext(Task task, OperationResult result) throws SchemaException {
-        PrismProperty modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_PROPERTY);
-        if (modelContextProperty == null || modelContextProperty.getRealValue() == null) {
+        PrismContainer<LensContextType> modelContextContainer = (PrismContainer) task.getExtensionItem(SchemaConstants.MODEL_CONTEXT_NAME);
+        if (modelContextContainer == null || modelContextContainer.isEmpty()) {
             throw new SystemException("No model context information in task " + task);
         }
-        Object value = modelContextProperty.getRealValue();
-        if (value instanceof Element || value instanceof JAXBElement) {
-            value = prismContext.getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
-        }
-        if (!(value instanceof LensContextType)) {
-            throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
-        }
-        return LensContext.fromJaxb((LensContextType) value, prismContext);
+//        Object value = modelContextProperty.getRealValue();
+//        if (value instanceof Element || value instanceof JAXBElement) {
+//            value = prismContext.getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
+//        }
+//        if (!(value instanceof LensContextType)) {
+//            throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
+//        }
+        return LensContext.fromLensContextType(modelContextContainer.getValue().asContainerable(), prismContext);
     }
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {
         Validate.notNull(context, "model context cannot be null");
-        PrismProperty modelContextProperty = wfModelContextPropertyDefinition.instantiate();
-        modelContextProperty.setRealValue(((LensContext) context).toJaxb());
-        task.setExtensionProperty(modelContextProperty);
+
+        LensContextType modelContext = (LensContextType) (((LensContext) context).toPrismContainer().getValue().asContainerable());
+        task.setExtensionContainerValue(SchemaConstants.MODEL_CONTEXT_NAME, modelContext);
     }
 
     public void storeDeltasToProcess(List<ObjectDelta<? extends ObjectType>> deltas, Task task) throws SchemaException {
@@ -451,7 +449,7 @@ public class WfTaskUtil {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
             deltaToProcess.addRealValue(DeltaConvertor.toObjectDeltaType(delta));
         }
-        task.addExtensionProperty(deltaToProcess);
+        task.setExtensionProperty(deltaToProcess);
     }
 
     public void storeResultingDeltas(List<ObjectDelta<Objectable>> deltas, Task task) throws SchemaException {
@@ -463,7 +461,7 @@ public class WfTaskUtil {
             }
             resultingDeltas.addRealValue(DeltaConvertor.toObjectDeltaType(delta));
         }
-        task.addExtensionProperty(resultingDeltas);
+        task.setExtensionProperty(resultingDeltas);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Stored {} deltas into task {}", resultingDeltas.size(), task);

@@ -1568,9 +1568,20 @@ public class TaskQuartzImpl implements Task {
 
     @Override
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
-		processModificationBatched(setExtensionPropertyAndPrepareDelta(property));
+		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
 	}
 
+    @Override
+    public void setExtensionReference(PrismReference reference) throws SchemaException {
+        processModificationBatched(setExtensionReferenceAndPrepareDelta(reference.getName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
+    }
+
+    @Override
+    public <C extends Containerable> void setExtensionContainer(PrismContainer<C> container) throws SchemaException {
+        processModificationBatched(setExtensionContainerAndPrepareDelta(container.getName(), container.getDefinition(), PrismValue.cloneCollection(container.getValues())));
+    }
+
+    // use this method to avoid cloning the value
     @Override
     public <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException {
         PrismPropertyDefinition propertyDef = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(propertyName);
@@ -1578,31 +1589,32 @@ public class TaskQuartzImpl implements Task {
             throw new SchemaException("Unknown property " + propertyName);
         }
 
-        PrismProperty<T> property = propertyDef.instantiate();
-        property.setRealValue(value);
-
-        setExtensionProperty(property);
+        ArrayList<PrismPropertyValue<T>> values = new ArrayList(1);
+        values.add(new PrismPropertyValue<T>(value));
+        processModificationBatched(setExtensionPropertyAndPrepareDelta(propertyName, propertyDef, values));
     }
 
-
+    // use this method to avoid cloning the value
     @Override
-    public <C extends Containerable> void setExtensionContainer(PrismContainer<C> item) throws SchemaException {
-        processModificationBatched(setExtensionContainerAndPrepareDelta(item));
-    }
+    public <T extends Containerable> void setExtensionContainerValue(QName containerName, T value) throws SchemaException {
+        PrismContainerDefinition containerDef = getPrismContext().getSchemaRegistry().findContainerDefinitionByElementName(containerName);
+        if (containerDef == null) {
+            throw new SchemaException("Unknown container item " + containerName);
+        }
 
-    @Override
-    public void setExtensionReference(PrismReference reference) throws SchemaException {
-        processModificationBatched(setExtensionReferenceAndPrepareDelta(reference));
+        ArrayList<PrismContainerValue<T>> values = new ArrayList(1);
+        values.add(value.asPrismContainerValue());
+        processModificationBatched(setExtensionContainerAndPrepareDelta(containerName, containerDef, values));
     }
 
     @Override
     public void addExtensionProperty(PrismProperty<?> property) throws SchemaException {
-        processModificationBatched(addExtensionPropertyAndPrepareDelta(property));
+        processModificationBatched(addExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
     }
 
     @Override
     public void deleteExtensionProperty(PrismProperty<?> property) throws SchemaException {
-        processModificationBatched(deleteExtensionPropertyAndPrepareDelta(property));
+        processModificationBatched(deleteExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
     }
 
     @Override
@@ -1619,34 +1631,31 @@ public class TaskQuartzImpl implements Task {
 	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         try {
-		    processModificationNow(setExtensionPropertyAndPrepareDelta(property), parentResult);
+		    processModificationNow(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())), parentResult);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
 	}
 	
-	public void setExtensionPropertyTransient(PrismProperty<?> property) throws SchemaException {
-		setExtensionPropertyAndPrepareDelta(property);
-	}
-
-    private ItemDelta<?> setExtensionPropertyAndPrepareDelta(PrismProperty<?> item) throws SchemaException {
-        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, item.getName()), item.getDefinition());
-        return setExtensionItemAndPrepareDeltaCommon(delta, item);
+    private ItemDelta<?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
-    private ItemDelta<?> setExtensionContainerAndPrepareDelta(PrismContainer<?> item) throws SchemaException {
-        ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, item.getName()), item.getDefinition());
-        return setExtensionItemAndPrepareDeltaCommon(delta, item);
+    private ItemDelta<?> setExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
+        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
-    private ItemDelta<?> setExtensionReferenceAndPrepareDelta(PrismReference reference) throws SchemaException {
-        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, reference.getName()), reference.getDefinition());
-        return setExtensionItemAndPrepareDeltaCommon(delta, reference);
+    private ItemDelta<?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition, Collection<? extends PrismContainerValue> values) throws SchemaException {
+        ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
-    private ItemDelta<?> setExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Item item) throws SchemaException {
+    private <V extends PrismValue> ItemDelta<?> setExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Collection<V> values) throws SchemaException {
 
-        delta.setValuesToReplace(PrismValue.cloneCollection(item.getValues()));
+        // these values should have no parent, otherwise the following will fail
+        delta.setValuesToReplace(values);
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
         modifications.add(delta);
@@ -1664,10 +1673,10 @@ public class TaskQuartzImpl implements Task {
         return isPersistent() ? delta : null;
     }
 
-    private PropertyDelta<?> addExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
+    private ItemDelta<?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
 
-        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
-        delta.addValuesToAdd(PrismValue.cloneCollection(property.getValues()));
+        delta.addValuesToAdd(values);
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
         modifications.add(delta);
@@ -1676,10 +1685,10 @@ public class TaskQuartzImpl implements Task {
         return isPersistent() ? delta : null;
     }
 
-    private PropertyDelta<?> deleteExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
+    private ItemDelta<?> deleteExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
 
-        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
-        delta.addValuesToDelete(PrismValue.cloneCollection(property.getValues()));
+        delta.addValuesToDelete(values);
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
         modifications.add(delta);

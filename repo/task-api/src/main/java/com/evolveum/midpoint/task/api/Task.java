@@ -381,7 +381,15 @@ public interface Task extends Dumpable {
 	
 	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	// TODO
+    void addExtensionProperty(PrismProperty<?> property) throws SchemaException;
+
+    <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException;
+
+    <T extends Containerable> void setExtensionContainerValue(QName containerName, T value) throws SchemaException;
+
+    void modifyExtension(ItemDelta itemDelta) throws SchemaException;
+
+    // TODO
 	public long getProgress();
 
 	/**
@@ -519,11 +527,6 @@ public interface Task extends Dumpable {
 
     String getDescription();
 
-    void addExtensionProperty(PrismProperty<?> property) throws SchemaException;
-
-    <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException;
-
-    void modifyExtension(ItemDelta itemDelta) throws SchemaException;
 
     /**
      * Removes specified VALUES of this extension property (not all of its values).

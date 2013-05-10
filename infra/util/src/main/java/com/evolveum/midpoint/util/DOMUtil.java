@@ -159,6 +159,12 @@ public class DOMUtil {
 		return loader.newDocument();
 	}
 
+    public static Document getDocument(QName rootElementName) {
+        Document document = loader.newDocument();
+        document.appendChild(createElement(document, rootElementName));
+        return document;
+    }
+
 	public static Document parseDocument(String doc) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

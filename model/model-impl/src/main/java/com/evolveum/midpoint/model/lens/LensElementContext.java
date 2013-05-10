@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensElementContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
@@ -34,19 +33,12 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -393,19 +385,19 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return thisObject.clone();
 	}
 
-    public void fillInJaxb(LensElementContextType lensElementContextType) throws SchemaException {
+    public void storeIntoLensElementContextType(LensElementContextType lensElementContextType) throws SchemaException {
         lensElementContextType.setObjectOld(objectOld != null ? objectOld.asObjectable() : null);
         lensElementContextType.setObjectNew(objectNew != null ? objectNew.asObjectable() : null);
         lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
         lensElementContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
         for (LensObjectDeltaOperation executedDelta : executedDeltas) {
-            lensElementContextType.getExecutedDeltas().add(executedDelta.toJaxb());
+            lensElementContextType.getExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
         }
         lensElementContextType.setObjectTypeClass(objectTypeClass != null ? objectTypeClass.getName() : null);
         lensElementContextType.setOid(oid);
     }
 
-    public void fillInFromJaxb(LensElementContextType lensElementContextType) throws SchemaException {
+    public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType) throws SchemaException {
 
         ObjectType objectTypeOld = lensElementContextType.getObjectOld();
         this.objectOld = objectTypeOld != null ? objectTypeOld.asPrismObject() : null;
@@ -420,7 +412,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.secondaryDelta = secondaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
 
         for (LensObjectDeltaOperationType eDeltaOperationType : lensElementContextType.getExecutedDeltas()) {
-            this.executedDeltas.add(LensObjectDeltaOperation.fromJaxb(eDeltaOperationType, lensContext.getPrismContext()));
+            this.executedDeltas.add(LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext()));
         }
 
         this.oid = lensElementContextType.getOid();

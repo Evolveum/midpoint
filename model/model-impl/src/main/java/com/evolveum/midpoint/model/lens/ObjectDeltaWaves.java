@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.ObjectDeltaWaveType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.ObjectDeltaWavesType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import java.io.Serializable;
 import java.util.*;
@@ -364,7 +364,12 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
         
         if (waves.size() == 1) {
         	sb.append(" single wave\n");
-        	sb.append(waves.get(0).debugDump(indent + 1));
+            if (waves.get(0) != null) {
+        	    sb.append(waves.get(0).debugDump(indent + 1));
+            } else {
+                DebugUtil.indentDebugDump(sb, indent + 1);
+                sb.append("null\n");
+            }
         } else {
 	        sb.append(waves.size()).append(" waves");
 	        for (int wave = 0; wave < waves.size(); wave++) {
@@ -390,22 +395,42 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 	}
 
 
-    public ObjectDeltaWavesType toJaxb() throws SchemaException {
+    public ObjectDeltaWavesType toObjectDeltaWavesType() throws SchemaException {
         ObjectDeltaWavesType objectDeltaWavesType = new ObjectDeltaWavesType();
-        for (ObjectDelta wave : waves) {
-            objectDeltaWavesType.getWave().add(wave != null ? DeltaConvertor.toObjectDeltaType(wave) : null);
+        for (int i = 0; i < waves.size(); i++) {
+            ObjectDelta wave = waves.get(i);
+            if (wave != null) {
+                ObjectDeltaWaveType objectDeltaWaveType = new ObjectDeltaWaveType();
+                objectDeltaWaveType.setNumber(i);
+                objectDeltaWaveType.setDelta(DeltaConvertor.toObjectDeltaType(wave));
+
+                objectDeltaWavesType.getWave().add(objectDeltaWaveType);
+            }
         }
         return objectDeltaWavesType;
     }
 
-    public static ObjectDeltaWaves fromJaxb(ObjectDeltaWavesType secondaryDeltas, PrismContext prismContext) throws SchemaException {
+    public static ObjectDeltaWaves fromObjectDeltaWavesType(ObjectDeltaWavesType secondaryDeltas, PrismContext prismContext) throws SchemaException {
         if (secondaryDeltas == null) {
             return null;
         }
 
         ObjectDeltaWaves retval = new ObjectDeltaWaves();
-        for (ObjectDeltaType odt : secondaryDeltas.getWave()) {
-            retval.waves.add(odt != null ? DeltaConvertor.createObjectDelta(odt, prismContext) : null);
+
+        int max = 0;
+        for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
+            if (odwt.getNumber() > max) {
+                max = odwt.getNumber();
+            }
+        }
+
+        ObjectDelta[] wavesAsArray = new ObjectDelta[max+1];
+        for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
+            wavesAsArray[odwt.getNumber()] = DeltaConvertor.createObjectDelta(odwt.getDelta(), prismContext);
+        }
+
+        for (int i = 0; i <= max; i++) {
+            retval.waves.add(wavesAsArray[i]);
         }
         return retval;
     }

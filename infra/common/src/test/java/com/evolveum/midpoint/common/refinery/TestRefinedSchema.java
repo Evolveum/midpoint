@@ -35,6 +35,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -245,6 +246,8 @@ public class TestRefinedSchema {
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
 
         PrismObject<ShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
+
+        ShadowUtil.checkConsistence(accObject, "parsed account");
 
         // WHEN
 
