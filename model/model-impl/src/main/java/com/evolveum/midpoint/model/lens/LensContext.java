@@ -27,11 +27,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
@@ -50,6 +51,7 @@ import java.util.Map.Entry;
 public class LensContext<F extends ObjectType, P extends ObjectType> implements ModelContext<F, P> {
 
     private static final long serialVersionUID = -778283437426659540L;
+    private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
     private ModelState state = ModelState.INITIAL;
 	
@@ -93,16 +95,19 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     transient private Map<String, ResourceType> resourceCache;
 	
 	transient private PrismContext prismContext;
+
+    transient private ProvisioningService provisioningService;
 	
 	private ModelExecuteOptions options;
 	
-	public LensContext(Class<F> focusClass, Class<P> projectionClass, PrismContext prismContext) {
+	public LensContext(Class<F> focusClass, Class<P> projectionClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
 		if (focusClass == null && projectionClass == null) {
 			throw new IllegalArgumentException("Neither focus class nor projection class was specified");
 		}
 		
         this.prismContext = prismContext;
+        this.provisioningService = provisioningService;
         this.focusClass = focusClass;
         this.projectionClass = projectionClass;
     }
@@ -117,8 +122,12 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		}
 		return prismContext;
 	}
-	
-	@Override
+
+    public ProvisioningService getProvisioningService() {
+        return provisioningService;
+    }
+
+    @Override
 	public ModelState getState() {
 		return state;
 	}
@@ -581,7 +590,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     }
     
     public LensContext<F, P> clone() {
-    	LensContext<F, P> clone = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+    	LensContext<F, P> clone = new LensContext<F, P>(focusClass, projectionClass, prismContext, provisioningService);
     	copyValues(clone);
     	return clone;
     }
@@ -712,7 +721,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     }
 
 
-    public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext) throws SchemaException {
+    public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext, ProvisioningService provisioningService, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "fromLensContextType");
 
         String focusClassString = lensContextType.getFocusClass();
         String projectionClassString = lensContextType.getProjectionClass();
@@ -726,16 +737,16 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
         LensContext lensContext;
         try {
-            lensContext = new LensContext(Class.forName(focusClassString), Class.forName(projectionClassString), prismContext);
+            lensContext = new LensContext(Class.forName(focusClassString), Class.forName(projectionClassString), prismContext, provisioningService);
         } catch (ClassNotFoundException e) {
             throw new SystemException("Couldn't instantiate LensContext because focus or projection class couldn't be found", e);
         }
 
         lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
         lensContext.setChannel(lensContextType.getChannel());
-        lensContext.setFocusContext(LensFocusContext.fromLensFocusContextType(lensContextType.getFocusContext(), lensContext));
+        lensContext.setFocusContext(LensFocusContext.fromLensFocusContextType(lensContextType.getFocusContext(), lensContext, result));
         for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {
-            lensContext.addProjectionContext(LensProjectionContext.fromLensProjectionContextType(lensProjectionContextType, lensContext));
+            lensContext.addProjectionContext(LensProjectionContext.fromLensProjectionContextType(lensProjectionContextType, lensContext, result));
         }
         lensContext.setDoReconciliationForAllProjections(lensContextType.isDoReconciliationForAllProjections() != null ?
             lensContextType.isDoReconciliationForAllProjections() : false);

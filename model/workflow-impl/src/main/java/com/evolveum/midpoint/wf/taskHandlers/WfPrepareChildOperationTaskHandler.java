@@ -10,9 +10,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -120,6 +118,12 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
         } catch (ObjectAlreadyExistsException e) {
             LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
             status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+        } catch (CommunicationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
+            status = TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
+        } catch (ConfigurationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
+            status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
         }
 
         TaskRunResult runResult = new TaskRunResult();
@@ -127,7 +131,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
         return runResult;
     }
 
-    private void setOidIfNeeded(ObjectDelta deltaOut, Task task, OperationResult result) throws SchemaException {
+    private void setOidIfNeeded(ObjectDelta deltaOut, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
         List<Task> prerequisities = task.listPrerequisiteTasks(result);
 

@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -85,7 +86,7 @@ public abstract class BaseAction implements Action {
     private ChangeExecutor executor;
     private ModelController model;
     private List<Object> parameters;
-
+    private ProvisioningService provisioningService;
     private PrismContext prismContext;
     private AuditService auditService;
     
@@ -105,7 +106,15 @@ public abstract class BaseAction implements Action {
 		this.prismContext = prismContext;
 	}
 
-	@Override
+    public ProvisioningService getProvisioningService() {
+        return provisioningService;
+    }
+
+    public void setProvisioningService(ProvisioningService provisioningService) {
+        this.provisioningService = provisioningService;
+    }
+
+    @Override
     public List<Object> getParameters() {
         if (parameters == null) {
             parameters = new ArrayList<Object>();
@@ -186,7 +195,7 @@ public abstract class BaseAction implements Action {
      * Creates empty lens context, filling in only the very basic metadata (such as channel).
      */
     protected LensContext<UserType, ShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
-    	LensContext<UserType, ShadowType> context = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, getPrismContext());
+    	LensContext<UserType, ShadowType> context = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, getPrismContext(), getProvisioningService());
     	context.setChannel(change.getSourceChannel());
     	return context;
     }

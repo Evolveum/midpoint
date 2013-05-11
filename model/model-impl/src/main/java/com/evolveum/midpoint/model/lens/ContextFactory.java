@@ -100,7 +100,7 @@ public class ContextFactory {
 		if (focusClass == null) {
 			focusClass = determineFocusClass(projectionClass);
 		}
-		LensContext<F, P> context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+		LensContext<F, P> context = new LensContext<F, P>(focusClass, projectionClass, prismContext, provisioningService);
 		context.setChannel(task.getChannel());
 		context.setOptions(options);
 		context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));

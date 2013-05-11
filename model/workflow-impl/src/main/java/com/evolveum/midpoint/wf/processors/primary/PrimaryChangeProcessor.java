@@ -34,10 +34,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -311,6 +308,10 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         } catch (ObjectAlreadyExistsException e) {
             failReason = e;
         } catch (RuntimeException e) {
+            failReason = e;
+        } catch (CommunicationException e) {
+            failReason = e;
+        } catch (ConfigurationException e) {
             failReason = e;
         }
 

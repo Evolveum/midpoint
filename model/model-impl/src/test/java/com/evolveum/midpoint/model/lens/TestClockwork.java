@@ -133,7 +133,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         System.out.println("Serialized form = " + xml);
 
         PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
-        LensContext context2 = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext());
+        LensContext context2 = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
 
         System.out.println("Context after deserialization = " + context.debugDump());
 
@@ -290,7 +290,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
                 System.out.println("Serialized form = " + xml);
 
                 PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
-                context = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext());
+                context = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
 
                 System.out.println("Context after deserialization = " + context.debugDump());
 

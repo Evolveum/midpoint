@@ -39,9 +39,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -242,11 +240,14 @@ public class TaskDto extends Selectable {
                         throw new SystemException("Model context information in task " + task + " is of wrong type: " + value.getClass());
                     }
                     try {
-                        ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value);
+                        ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
                         modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
-                    } catch (SchemaException e) {
+                    } catch (SchemaException e) {   // todo report to result
                         LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
-                        // todo report to result
+                    } catch (CommunicationException e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
+                    } catch (ConfigurationException e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
                     }
                 }
             }

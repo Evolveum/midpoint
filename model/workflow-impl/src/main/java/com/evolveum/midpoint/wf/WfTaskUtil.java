@@ -27,15 +27,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -74,6 +72,9 @@ public class WfTaskUtil {
 
     @Autowired(required = true)
     private PrismContext prismContext;
+
+    @Autowired(required = true)
+    private ProvisioningService provisioningService;
 
     @Autowired
     private WfConfiguration wfConfiguration;
@@ -421,7 +422,7 @@ public class WfTaskUtil {
         return modelContextProperty != null && modelContextProperty.getRealValue() != null;
     }
 
-    public ModelContext retrieveModelContext(Task task, OperationResult result) throws SchemaException {
+    public ModelContext retrieveModelContext(Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         PrismContainer<LensContextType> modelContextContainer = (PrismContainer) task.getExtensionItem(SchemaConstants.MODEL_CONTEXT_NAME);
         if (modelContextContainer == null || modelContextContainer.isEmpty()) {
             throw new SystemException("No model context information in task " + task);
@@ -433,14 +434,15 @@ public class WfTaskUtil {
 //        if (!(value instanceof LensContextType)) {
 //            throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
 //        }
-        return LensContext.fromLensContextType(modelContextContainer.getValue().asContainerable(), prismContext);
+        return LensContext.fromLensContextType(modelContextContainer.getValue().asContainerable(), prismContext, provisioningService, result);
     }
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {
         Validate.notNull(context, "model context cannot be null");
 
-        LensContextType modelContext = (LensContextType) (((LensContext) context).toPrismContainer().getValue().asContainerable());
-        task.setExtensionContainerValue(SchemaConstants.MODEL_CONTEXT_NAME, modelContext);
+        PrismContainer<LensContextType> modelContext = ((LensContext) context).toPrismContainer();
+        //task.setExtensionContainerValue(SchemaConstants.MODEL_CONTEXT_NAME, modelContext);
+        task.setExtensionContainer(modelContext);
     }
 
     public void storeDeltasToProcess(List<ObjectDelta<? extends ObjectType>> deltas, Task task) throws SchemaException {

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,6 +48,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private Clockwork clockwork;
     private ChangeExecutor changeExecutor;
     private PrismContext prismContext;
+    private ProvisioningService provisioningService;
     private AuditService auditService;
     
     @Deprecated
@@ -75,6 +77,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
                 baseAction.setExecutor(changeExecutor);
                 baseAction.setPrismContext(prismContext);
                 baseAction.setAuditService(auditService);
+                baseAction.setProvisioningService(provisioningService);
                 baseAction.setModel(model);
             }
         } catch (Exception ex) {
@@ -114,5 +117,8 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 	public void setAuditService(AuditService auditService) {
 		this.auditService = auditService;
 	}
-    
+
+    public void setProvisioningService(ProvisioningService provisioningService) {
+        this.provisioningService = provisioningService;
+    }
 }

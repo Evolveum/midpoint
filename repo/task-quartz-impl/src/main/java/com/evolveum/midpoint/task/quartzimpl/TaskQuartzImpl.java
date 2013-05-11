@@ -1502,7 +1502,12 @@ public class TaskQuartzImpl implements Task {
 
         List<Task> dependents = new ArrayList<Task>(getDependents().size());
         for (String dependentId : getDependents()) {
-            dependents.add(taskManager.getTaskByIdentifier(dependentId, result));
+            try {
+                Task dependent = taskManager.getTaskByIdentifier(dependentId, result);
+                dependents.add(dependent);
+            } catch (ObjectNotFoundException e) {
+                LOGGER.trace("Dependent task {} was not found. Probably it was not yet stored to repo; we just ignore it.", dependentId);
+            }
         }
 
         result.recordSuccessIfUnknown();

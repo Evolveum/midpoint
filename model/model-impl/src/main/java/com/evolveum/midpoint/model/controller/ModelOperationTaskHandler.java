@@ -26,11 +26,11 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -68,6 +68,9 @@ public class ModelOperationTaskHandler implements TaskHandler {
     private PrismContext prismContext;
 
     @Autowired(required = true)
+    private ProvisioningService provisioningService;
+
+    @Autowired(required = true)
     private Clockwork clockwork;
 
 	@Override
@@ -95,9 +98,15 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
             LensContext context = null;
             try {
-                context = LensContext.fromLensContextType(contextTypeContainer.getValue().asContainerable(), prismContext);
+                context = LensContext.fromLensContextType(contextTypeContainer.getValue().asContainerable(), prismContext, provisioningService, result);
             } catch (SchemaException e) {
                 throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
+            } catch (ObjectNotFoundException e) {
+                throw new SystemException("Cannot recover model context from task " + task, e);
+            } catch (CommunicationException e) {
+                throw new SystemException("Cannot recover model context from task " + task, e);     // todo wait and retry
+            } catch (ConfigurationException e) {
+                throw new SystemException("Cannot recover model context from task " + task, e);
             }
 
             try {

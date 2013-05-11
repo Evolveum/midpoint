@@ -11,9 +11,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -71,6 +69,12 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                 throw new IllegalStateException("There's no model context in the task; task = " + task);
             }
         } catch (SchemaException e) {
+            return reportException("Couldn't retrieve model context from task " + task, task, result, e);
+        } catch (ObjectNotFoundException e) {
+            return reportException("Couldn't retrieve model context from task " + task, task, result, e);
+        } catch (CommunicationException e) {
+            return reportException("Couldn't retrieve model context from task " + task, task, result, TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR, e);
+        } catch (ConfigurationException e) {
             return reportException("Couldn't retrieve model context from task " + task, task, result, e);
         }
 
@@ -133,12 +137,16 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
     }
 
     private TaskRunResult reportException(String message, Task task, OperationResult result, Throwable cause) {
+        return reportException(message, task, result, TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR, cause);
+    }
+
+    private TaskRunResult reportException(String message, Task task, OperationResult result, TaskRunResult.TaskRunResultStatus status, Throwable cause) {
 
         LoggingUtils.logException(LOGGER, message, cause);
         result.recordFatalError(message, cause);
 
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
+        runResult.setRunResultStatus(status);
         runResult.setOperationResult(task.getResult());
         return runResult;
     }

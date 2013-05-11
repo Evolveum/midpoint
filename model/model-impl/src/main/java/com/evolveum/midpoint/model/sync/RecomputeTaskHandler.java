@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -87,7 +88,10 @@ public class RecomputeTaskHandler implements TaskHandler {
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
-	
+
+    @Autowired(required = true)
+    private ProvisioningService provisioningService;
+
     @Autowired(required = true)
     private Clockwork clockwork;
     
@@ -242,7 +246,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		LOGGER.trace("Recomputing user {}", user);
 
 		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class,
-				ShadowType.class, prismContext);
+				ShadowType.class, prismContext, provisioningService);
 		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 		focusContext.setObjectOld(user);
 		focusContext.setOid(user.getOid());

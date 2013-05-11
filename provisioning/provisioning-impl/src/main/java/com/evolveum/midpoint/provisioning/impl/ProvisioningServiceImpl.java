@@ -1157,7 +1157,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} else if (ResourceType.class.isAssignableFrom(object.getCompileTimeClass())){
 			resourceManager.applyDefinition((PrismObject<ResourceType>) object, parentResult);
 		} else {
-			throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + object.getCompileTimeClass());
+			throw new IllegalArgumentException("Could not apply definition to object type: " + object.getCompileTimeClass());
 		}
 	}
 	

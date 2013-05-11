@@ -249,6 +249,10 @@
         <property name="auditService">
             <ref bean="auditService"/>
         </property>
+        <property name="provisioningService">
+            <ref bean="provisioningService"/>
+        </property>
+
     </bean>
 
     <bean id="filterManager" class="com.evolveum.midpoint.common.filter.FilterManagerImpl">

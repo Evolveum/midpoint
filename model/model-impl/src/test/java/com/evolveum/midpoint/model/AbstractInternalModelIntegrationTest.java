@@ -218,7 +218,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	}
 	
 	protected LensContext<UserType, ShadowType> createUserAccountContext() {
-		return new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext);
+		return new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext, provisioningService);
 	}
 	
 	protected LensFocusContext<UserType> fillContextWithUser(LensContext<UserType, ShadowType> context, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException {

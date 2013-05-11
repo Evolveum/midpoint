@@ -27,9 +27,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -121,9 +119,15 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
         } catch (ObjectAlreadyExistsException e) {
             LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.PERMANENT_ERROR;
+        } catch (CommunicationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            status = TaskRunResultStatus.TEMPORARY_ERROR;
+        } catch (ConfigurationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            status = TaskRunResultStatus.PERMANENT_ERROR;
         }
 
-		TaskRunResult runResult = new TaskRunResult();
+        TaskRunResult runResult = new TaskRunResult();
 		runResult.setRunResultStatus(status);
 		return runResult;
 	}

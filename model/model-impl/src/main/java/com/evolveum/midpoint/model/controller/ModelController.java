@@ -1028,8 +1028,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 	}
 
     @Override
-    public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext) throws SchemaException {
-        return LensContext.fromLensContextType(wrappedContext, prismContext);
+    public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+        return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, result);
     }
 
 }

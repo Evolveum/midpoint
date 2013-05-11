@@ -28,7 +28,7 @@
         <t:modificationType>replace</t:modificationType>
         <t:path>c:activation</t:path>
         <t:value>
-            <c:enabled>false</c:enabled>
+            <c:administrativeStatus>disabled</c:administrativeStatus>
         </t:value>
     </modification>
 

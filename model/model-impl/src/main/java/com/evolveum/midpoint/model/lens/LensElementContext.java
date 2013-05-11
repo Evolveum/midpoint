@@ -23,6 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensElementContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
@@ -397,13 +401,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setOid(oid);
     }
 
-    public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType) throws SchemaException {
+    public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
         ObjectType objectTypeOld = lensElementContextType.getObjectOld();
         this.objectOld = objectTypeOld != null ? objectTypeOld.asPrismObject() : null;
+        fixProvisioningType(this.objectOld, result);
 
         ObjectType objectTypeNew = lensElementContextType.getObjectNew();
         this.objectNew = objectTypeOld != null ? objectTypeNew.asPrismObject() : null;
+        fixProvisioningType(this.objectNew, result);
 
         ObjectDeltaType primaryDeltaType = lensElementContextType.getPrimaryDelta();
         this.primaryDelta = primaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(primaryDeltaType, lensContext.getPrismContext()) : null;
@@ -420,7 +426,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         // note: objectTypeClass is already converted (used in the constructor)
     }
 
-	public void checkEncrypted() {
+    private void fixProvisioningType(PrismObject<O> object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        if (object != null && object.getCompileTimeClass() != null && (ShadowType.class.isAssignableFrom(object.getCompileTimeClass()) || ResourceType.class.isAssignableFrom(object.getCompileTimeClass()))) {
+            lensContext.getProvisioningService().applyDefinition(object, result);
+        }
+    }
+
+    public void checkEncrypted() {
 		if (objectNew != null) {
 			CryptoUtil.checkEncrypted(objectNew);
 		}
