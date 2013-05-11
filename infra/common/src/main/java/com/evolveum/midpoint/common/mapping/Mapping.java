@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.mapping;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -114,7 +115,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private PrismValueDeltaSetTriple<V> outputTriple = null;
 	private ItemDefinition outputDefinition;
 	private ItemPath outputPath;
-	private Collection<Source<?>> sources;
+	private Collection<Source<?>> sources = new ArrayList<Source<?>>();
 	private boolean conditionMaskOld = true;
 	private boolean conditionMaskNew = true;
 	private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionOutputTriple;
@@ -166,6 +167,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		this.originObject = originObject;
 	}
 
+	public void addSource(Source<?> source) {
+		sources.add(source);
+	}
+	
 	public Source<?> getDefaultSource() {
 		return defaultSource;
 	}
@@ -212,7 +217,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			if (mappingType.getName() != null) {
 				sb.append("'").append(mappingType.getName()).append("' ");
 			}
-			sb.append(" in ");
+			sb.append("in ");
 			sb.append(contextDescription);
 			mappingContextDescription  = sb.toString();
 		}
@@ -378,7 +383,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 		
 		try {
-			sources = parseSources(result);
+			parseSources(result);
 			parseTarget();
 	
 			if (outputDefinition == null) {
@@ -510,18 +515,26 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 
 	private Collection<Source<?>> parseSources(OperationResult result) throws SchemaException, ObjectNotFoundException {
-		Collection<Source<?>> sources = new ArrayList<Source<?>>();
 		List<MappingSourceDeclarationType> sourceTypes = mappingType.getSource();
-		if (sourceTypes == null || sourceTypes.isEmpty()) {
-			if (defaultSource != null) {
-				defaultSource.recompute();
-				sources.add(defaultSource);
-			}
-			return sources;
-		} else {
+		if (defaultSource != null) {
+			defaultSource.recompute();
+			sources.add(defaultSource);
+			defaultSource.recompute();
+		}
+		if (sourceTypes != null) {
 			for (MappingSourceDeclarationType sourceType: sourceTypes) {
 				Source<?> source = parseSource(sourceType, result);
 				source.recompute();
+				
+				// Override existing sources (e.g. default source)
+				Iterator<Source<?>> iterator = sources.iterator();
+				while (iterator.hasNext()) {
+					Source<?> next = iterator.next();
+					if (next.getName().equals(source.getName())) {
+						iterator.remove();
+					}
+				}
+				
 				sources.add(source);
 			}
 		}
@@ -659,6 +672,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "condition in "+getMappingContextDescription(), result);
 		params.setStringPolicyResolver(stringPolicyResolver);
+		params.setDefaultSource(defaultSource);
 		conditionOutputTriple = expression.evaluate(params);
 	}
 
@@ -671,6 +685,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
 				"expression in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "expression in "+getMappingContextDescription(), result);
+		params.setDefaultSource(defaultSource);
 		params.setRegress(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		outputTriple = expression.evaluate(params);

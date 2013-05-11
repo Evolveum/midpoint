@@ -667,9 +667,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	
+	/**
+	 * Note: red resource disables account on unsassign, does NOT delete it
+	 */
 	@Test
-    public void test129ModifyUserUnassignAccountRed() throws Exception {
-		final String TEST_NAME = "test129ModifyUserUnassignAccountRed";
+    public void test128ModifyUserUnassignAccountRed() throws Exception {
+		final String TEST_NAME = "test128ModifyUserUnassignAccountRed";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -690,8 +693,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		// Check accountRef
-        assertUserNoAccountRefs(userJack);
+
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", false, dummyResourceCtlRed, task);
                 
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -701,7 +704,54 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/**
+	 * Note: red resource disables account on unsassign, does NOT delete it
+	 * So let's delete the account explicitly to make room for the following tests
+	 */
+	@Test
+    public void test129DeleteAccountRed() throws Exception {
+		final String TEST_NAME = "test129DeleteAccountRed";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        String acccountRedOid = getUserAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, acccountRedOid, prismContext);
+        deltas.add(shadowDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+		userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertNoLinkedAccount(userJack);
+                
+        // Check if dummy resource accounts are gone
+        assertNoDummyAccount("jack");
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
@@ -1060,21 +1110,26 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	
 	private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, resourceCtl, task);
+		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, true, resourceCtl, task);
+	}
+	
+	private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
+			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, expectedEnabled, resourceCtl, task);
 	}
 	
 	private void assertAccountLocation(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expectedShip, resourceCtl, task);
+		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expectedShip, true, resourceCtl, task);
 	}
 	
 	private void assertAccountRename(PrismObject<UserType> userJack, String name, String expectedFullName, String expectedShip,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		assertAccount(userJack, name, expectedFullName, "name", null, resourceCtl, task);
+		assertAccount(userJack, name, expectedFullName, "name", null, true, resourceCtl, task);
 	}
 	
 	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String attributeName, String expectedShip,
-			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		// ship inbound mapping is used, it is strong 
         String accountOid = getSingleUserAccountRef(userJack);
         
@@ -1103,12 +1158,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         }
         
         // Check account in dummy resource
-        assertDummyAccount(resourceCtl.getName(), name, expectedFullName, true);
+        assertDummyAccount(resourceCtl.getName(), name, expectedFullName, expectedEnabled);
 	}
 	
 	private void assertAccount(PrismObject<UserType> userJack, String expectedFullName, String attributeName, String expectedShip,
-			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		assertAccount(userJack, "jack", expectedFullName, attributeName, expectedShip, resourceCtl, task);
+			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		assertAccount(userJack, "jack", expectedFullName, attributeName, expectedShip, expectedEnabled, resourceCtl, task);
 	}
 	
 

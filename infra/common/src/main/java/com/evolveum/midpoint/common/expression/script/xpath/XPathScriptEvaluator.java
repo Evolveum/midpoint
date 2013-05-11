@@ -84,6 +84,9 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 		
 		QName xsdReturnType = outputDefinition.getTypeName();
         Class<T> type = XsdTypeMapper.toJavaType(xsdReturnType);
+        if (type == null) {
+        	type = (Class<T>) Element.class;
+        }
 		
         QName returnType = determineRerturnType(type, expressionType, outputDefinition, suggestedReturnType);
 

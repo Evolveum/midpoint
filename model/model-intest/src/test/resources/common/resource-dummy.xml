@@ -283,6 +283,14 @@
             </protected>
             
             <activation>
+            	<!-- Explicit existence mapping, but does the same as the default one -->
+            	<existence>
+            		<outbound>
+            			<expression>
+            				<asIs/>
+            			</expression>
+            		</outbound>
+            	</existence>
             	<administrativeStatus>
             		<outbound>
             			<strength>weak</strength>

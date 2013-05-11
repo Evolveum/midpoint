@@ -70,14 +70,21 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
         
+		Source<V> source;
     	if (params.getSources().isEmpty()) {
     		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+params.getContextDescription());
     	}
     	if (params.getSources().size() > 1) {
-    		throw new ExpressionEvaluationException("asIs evaluator cannot work more than one source ("+params.getSources().size()
-    				+" sources specified) in "+params.getContextDescription());
+    		Source<V> defaultSource = (Source<V>) params.getDefaultSource();
+    		if (defaultSource != null) {
+    			source = defaultSource;
+    		} else {
+    			throw new ExpressionEvaluationException("asIs evaluator cannot work with more than one source ("+params.getSources().size()
+    				+" sources specified) without specification of a default source, in "+params.getContextDescription());
+    		}
+    	} else {
+    		source = (Source<V>) params.getSources().iterator().next();
     	}
-    	Source<V> source = (Source<V>) params.getSources().iterator().next();
         PrismValueDeltaSetTriple<V> sourceTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
         
         if (sourceTriple == null) {

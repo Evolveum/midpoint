@@ -102,6 +102,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      * True if there is a valid assignment for this projection and/or the policy allows such project to exist.
      */
     private Boolean isLegal = null;
+    transient private Boolean isLegalOld = null;
     
     private boolean isExists;
 
@@ -270,6 +271,14 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 
 	public void setLegal(Boolean isLegal) {
 		this.isLegal = isLegal;
+	}
+
+	public Boolean isLegalOld() {
+		return isLegalOld;
+	}
+
+	public void setLegalOld(Boolean isLegalOld) {
+		this.isLegalOld = isLegalOld;
 	}
 
 	public boolean isExists() {
@@ -860,7 +869,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         sb.append(", exists=").append(isExists);
         sb.append(", assigned=").append(isAssigned);
         sb.append(", active=").append(isActive);
-        sb.append(", legal=").append(isLegal);
+        sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
         sb.append(", recon=").append(doReconciliation);
         sb.append(", syncIntent=").append(synchronizationIntent);
         sb.append(", decision=").append(synchronizationPolicyDecision);

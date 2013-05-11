@@ -240,14 +240,14 @@ public class ActivationProcessor {
         
         // Target
         PrismPropertyDefinition<Boolean> shadowExistsDef = new PrismPropertyDefinition<Boolean>(SHADOW_EXISTS_PROPERTY_NAME,
-        		SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
+        		SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
         shadowExistsDef.setMinOccurs(1);
         shadowExistsDef.setMaxOccurs(1);
 		existenceMapping.setDefaultTargetDefinition(shadowExistsDef);
 		
 		// Source: legal
 		PrismPropertyDefinition<Boolean> legalDef = new PrismPropertyDefinition<Boolean>(LEGAL_PROPERTY_NAME,
-        		LEGAL_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
+        		LEGAL_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
 		legalDef.setMinOccurs(1);
 		legalDef.setMaxOccurs(1);
 		PrismProperty<Boolean> legalProp = legalDef.instantiate();
@@ -268,15 +268,6 @@ public class ActivationProcessor {
         }
     	
         return shadowExistsProp.getRealValue();
-    }
-    
-    public void decide(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, boolean shadowShouldExist, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-    	
-    	
-    	
-    	
-    	
-    	
     }
     
    	private <T> void evaluateActivationMapping(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
@@ -320,6 +311,10 @@ public class ActivationProcessor {
         Source<PrismPropertyValue<ActivationStatusType>> source = new Source<PrismPropertyValue<ActivationStatusType>>(sourceIdi, ExpressionConstants.VAR_INPUT);
 		mapping.setDefaultSource(source);
         
+        ItemDeltaItem<PrismPropertyValue<Boolean>> legalIdi = getLegalIdi(accCtx);
+        Source<PrismPropertyValue<Boolean>> legalSource = new Source<PrismPropertyValue<Boolean>>(legalIdi, ExpressionConstants.VAR_LEGAL);
+        mapping.addSource(legalSource);
+        
 		// Target
         PrismObjectDefinition<ShadowType> shadowDefinition = 
             	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
@@ -361,5 +356,27 @@ public class ActivationProcessor {
 	        accCtx.addToSecondaryDelta(projectionPropertyDelta);
         }
     }
+
+	private ItemDeltaItem<PrismPropertyValue<Boolean>> getLegalIdi(LensProjectionContext<ShadowType> accCtx) throws SchemaException {
+		Boolean legal = accCtx.isLegal();
+		Boolean legalOld = accCtx.isLegalOld();
+		
+		PrismPropertyDefinition<Boolean> legalDef = new PrismPropertyDefinition<Boolean>(LEGAL_PROPERTY_NAME,
+        		LEGAL_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		legalDef.setMinOccurs(1);
+		legalDef.setMaxOccurs(1);
+		PrismProperty<Boolean> legalProp = legalDef.instantiate();
+		legalProp.add(new PrismPropertyValue<Boolean>(legal));
+		
+		if (legal == legalOld) {
+			return new ItemDeltaItem<PrismPropertyValue<Boolean>>(legalProp);
+		} else {
+			PrismProperty<Boolean> legalPropOld = legalProp.clone();
+			legalPropOld.setRealValue(legalOld);
+			PropertyDelta<Boolean> legalDelta = legalPropOld.createDelta();
+			legalDelta.setValuesToReplace(new PrismPropertyValue<Boolean>(legal));
+			return new ItemDeltaItem<PrismPropertyValue<Boolean>>(legalPropOld, legalDelta, legalProp);
+		}
+	}
 
 }

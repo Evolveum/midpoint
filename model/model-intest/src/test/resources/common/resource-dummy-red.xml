@@ -194,11 +194,28 @@
 				</outbound>
 			</attribute>
 			<activation>
+				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted. -->
+            	<existence>
+            		<outbound>
+            			<expression>
+            				<value>true</value>
+            			</expression>
+            		</outbound>
+            	</existence>
             	<administrativeStatus>
                     <outbound>
                     	<strength>strong</strength>
                     	<expression>
-                        	<asIs/>
+                        	<script>
+                        		<code>
+                        			import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+                        			if (legal) {
+                        				input;
+                        			} else {
+                        				ActivationStatusType.DISABLED;
+                        			}
+                        		</code>
+                        	</script>
                         </expression>
                     </outbound>            	
             	</administrativeStatus>

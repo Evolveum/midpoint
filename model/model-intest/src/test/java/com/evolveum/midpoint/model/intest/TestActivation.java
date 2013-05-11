@@ -400,10 +400,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test121ModifyJackUserAndAccountRed() throws Exception {
-        displayTestTile(this, "test121ModifyJackUserAndAccountRed");
+		final String TEST_NAME = "test121ModifyJackUserAndAccountRed";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -460,6 +461,78 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDisabled(userJack);
 		assertDummyEnabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
+	}
+	
+	/**
+	 * Let's make a clean slate for the next test
+	 */
+	@Test
+    public void test138ModifyJackEnabled() throws Exception {
+		final String TEST_NAME = "test138ModifyJackEnabled";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+
+        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                        
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+
+        assertEnabled(userJack);
+		assertDummyEnabled("jack");
+		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
+	}
+	
+	/**
+	 * Red dummy resource disables account instead of deleting it.
+	 */
+	@Test
+    public void test139ModifyUserJackUnAssignAccountDummyRed() throws Exception {
+		final String TEST_NAME = "test139ModifyUserJackUnAssignAccountDummyRed";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
+        deltas.add(accountAssignmentUserDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertAccounts(USER_JACK_OID, 2);
+        accountRedOid = getUserAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+                
+        // Check account in dummy resource
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", false);
+        
+        assertEnabled(userJack);
+        assertDummyEnabled("jack");
+		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
 	
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {

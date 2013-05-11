@@ -189,7 +189,7 @@ public class QueryConvertor {
 					val.setParent(filter);
 				}
 				Element element = prismContext.getPrismDomProcessor().serializeValueToDom(val, propertyName, doc);
-				if (filter.getDefinition().getTypeClass().equals(PolyString.class) || filter.getDefinition().getTypeClass().equals(PolyStringType.class)){
+				if (PolyString.class.equals(filter.getDefinition().getTypeClass()) || PolyStringType.class.equals(filter.getDefinition().getTypeClass())) {
 					for (Element e : DOMUtil.listChildElements(element)){
 						value.appendChild(e);
 					}

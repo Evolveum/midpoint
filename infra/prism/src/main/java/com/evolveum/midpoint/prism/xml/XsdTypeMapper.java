@@ -141,13 +141,13 @@ public class XsdTypeMapper {
         return null;
     }
     
-    public static Class toJavaType(QName xsdType) {
-        Class javaType = xsdToJavaTypeMap.get(xsdType);
+    public static <T> Class<T> toJavaType(QName xsdType) {
+        Class<T> javaType = xsdToJavaTypeMap.get(xsdType);
         if (javaType == null) {
             if (xsdType.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
                 throw new IllegalArgumentException("No type mapping for XSD type " + xsdType);
             } else {
-                return Element.class;
+                return null;
             }
         }
         return javaType;

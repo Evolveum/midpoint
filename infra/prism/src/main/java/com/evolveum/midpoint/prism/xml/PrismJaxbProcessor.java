@@ -163,7 +163,7 @@ public class PrismJaxbProcessor {
 //		return complexTypeDefinition != null;
 	}
 
-	public Class<?> getCompileTimeClass(QName xsdType) {
+	public <T> Class<T> getCompileTimeClass(QName xsdType) {
 		SchemaDescription desc = getSchemaRegistry().findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
 		if (desc == null) {
 			return null;
@@ -172,7 +172,7 @@ public class PrismJaxbProcessor {
 		if (map == null) {
 			return null;
 		}
-		return map.get(xsdType);
+		return (Class<T>) map.get(xsdType);
 	}
 	
 	public <T> T toJavaValue(Element element, Class<T> typeClass) throws JAXBException {

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class ExpressionEvaluationContext {
 
 	private Collection<Source<?>> sources;
+	private Source<?> defaultSource;
 	private Map<QName, Object> variables;
 	private boolean regress = false;
 	private StringPolicyResolver stringPolicyResolver;
@@ -62,6 +63,14 @@ public class ExpressionEvaluationContext {
 		this.sources = sources;
 	}
 	
+	public Source<?> getDefaultSource() {
+		return defaultSource;
+	}
+
+	public void setDefaultSource(Source<?> defaultSource) {
+		this.defaultSource = defaultSource;
+	}
+
 	public Map<QName, Object> getVariables() {
 		return variables;
 	}
@@ -106,6 +115,7 @@ public class ExpressionEvaluationContext {
 		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, result);
 		clone.regress = this.regress;
 		clone.stringPolicyResolver = this.stringPolicyResolver;
+		clone.defaultSource = this.defaultSource;
 		return clone;
 	}
 

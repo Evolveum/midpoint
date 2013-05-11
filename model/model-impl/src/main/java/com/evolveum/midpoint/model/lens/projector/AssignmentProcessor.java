@@ -367,6 +367,7 @@ public class AssignmentProcessor {
                 	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
                 }
             	accountSyncContext.setLegal(true);
+            	accountSyncContext.setLegalOld(true);
             	accountSyncContext.setAssigned(true);
 
                 
@@ -376,6 +377,7 @@ public class AssignmentProcessor {
             	LensProjectionContext<ShadowType> projectionContext = context.findProjectionContext(rat);
             	projectionContext.setAssigned(true);
             	projectionContext.setLegal(true);
+            	projectionContext.setLegalOld(true);
                 // Account was removed and added in the same operation, therefore keep its original state
                 // TODO
                 throw new UnsupportedOperationException("add+delete of projection is not supported yet");
@@ -388,22 +390,24 @@ public class AssignmentProcessor {
             	LensProjectionContext<ShadowType> projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
             	projectionContext.setAssigned(true);
             	projectionContext.setLegal(true);
+            	projectionContext.setLegalOld(false);
 
             	
         	// SITUATION: The projection is UNASSIGNED
             } else if (minusAccountMap.containsKey(rat)) {
             	
             	if (accountExists(context,rat)) {
-            		LensProjectionContext<ShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
-            		accountContext.setAssigned(false);
+            		LensProjectionContext<ShadowType> projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
+            		projectionContext.setAssigned(false);
+            		projectionContext.setLegalOld(true);
             		
-            		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountContext.getAssignmentPolicyEnforcementType();
+            		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
             		// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
             		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL 
             				|| assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
-	                	accountContext.setLegal(false);
+	                	projectionContext.setLegal(false);
             		} else {
-	                	accountContext.setLegal(true);
+	                	projectionContext.setLegal(true);
             		}
             	} else {
 
@@ -445,6 +449,7 @@ public class AssignmentProcessor {
 				continue;
 			}
 			projectionContext.setLegal(false);
+			projectionContext.setLegalOld(true);
 		}
 	}
 
@@ -519,6 +524,7 @@ public class AssignmentProcessor {
 				createAssignmentDelta(context, projectionContext);
 				projectionContext.setAssigned(true);
 				projectionContext.setLegal(true);
+				projectionContext.setLegalOld(false);
 				continue;
 			}
 			
@@ -527,6 +533,7 @@ public class AssignmentProcessor {
 			if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
 				// What is not explicitly allowed is illegal in FULL enforcement mode
 				projectionContext.setLegal(false);
+				projectionContext.setLegalOld(true);
 				if (projectionContext.isAdd()) {
 					throw new PolicyViolationException("Attempt to add projection "+projectionContext.toHumanReadableString()
 							+" while the synchronization enforcement policy is FULL and the projection is not assigned");
@@ -537,6 +544,7 @@ public class AssignmentProcessor {
 					&& !projectionContext.isThombstone()) {
 				// Everything that is not yet dead is legal in NONE enforcement mode
 				projectionContext.setLegal(true);
+				projectionContext.setLegalOld(true);
 			}
 			
 		}

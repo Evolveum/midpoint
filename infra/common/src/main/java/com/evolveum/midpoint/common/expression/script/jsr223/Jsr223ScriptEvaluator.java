@@ -113,7 +113,11 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		}
 		
 		QName xsdReturnType = outputDefinition.getTypeName();
-        Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
+		
+		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
+		if (javaReturnType == null) {
+			javaReturnType = prismContext.getPrismJaxbProcessor().getCompileTimeClass(xsdReturnType);
+		}
         
 		List<PrismPropertyValue<T>> pvals = new ArrayList<PrismPropertyValue<T>>();
 		
