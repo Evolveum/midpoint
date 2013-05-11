@@ -247,8 +247,6 @@ public class TestRefinedSchema {
 
         PrismObject<ShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 
-        ShadowUtil.checkConsistence(accObject, "parsed account");
-
         // WHEN
 
         PrismObjectDefinition<ShadowType> objectDefinition = defaultAccountDefinition.getObjectDefinition();
