@@ -93,12 +93,19 @@ public class InboundProcessor {
     <F extends ObjectType, P extends ObjectType> void processInbound(LensContext<F,P> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
+    		LOGGER.trace("Skipping inbound processing because focus is null");
+    		return;
+    	}
+    	if (focusContext.isDelete()) {
+    		LOGGER.trace("Skipping inbound processing because focus is being deleted");
     		return;
     	}
     	if (focusContext.getObjectTypeClass() != UserType.class) {
+    		LOGGER.trace("Skipping inbound processing because focus is not user");
     		// We can do this only for user.
     		return;
     	}
+    	
     	LensContext<UserType,ShadowType> usContext = (LensContext<UserType,ShadowType>) context;
     	LensFocusContext<UserType> userContext = (LensFocusContext<UserType>)focusContext;
     	

@@ -76,6 +76,7 @@ public class ActivationProcessor {
 
 	private static final QName SHADOW_EXISTS_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "shadowExists");
 	private static final QName LEGAL_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "legal");
+	private static final QName FOCUS_EXISTS_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "focusExists");
 
     @Autowired(required = true)
     private PrismContext prismContext;
@@ -246,17 +247,16 @@ public class ActivationProcessor {
 		existenceMapping.setDefaultTargetDefinition(shadowExistsDef);
 		
 		// Source: legal
-		PrismPropertyDefinition<Boolean> legalDef = new PrismPropertyDefinition<Boolean>(LEGAL_PROPERTY_NAME,
-        		LEGAL_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
-		legalDef.setMinOccurs(1);
-		legalDef.setMaxOccurs(1);
-		PrismProperty<Boolean> legalProp = legalDef.instantiate();
-		legalProp.add(new PrismPropertyValue<Boolean>(legal));
-        ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = new ItemDeltaItem<PrismPropertyValue<Boolean>>(legalProp); 
-        Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_LEGAL);
-		existenceMapping.setDefaultSource(source);
-				
-		// TODO: Var: focusExists
+        ItemDeltaItem<PrismPropertyValue<Boolean>> legalSourceIdi = getLegalIdi(accCtx); 
+        Source<PrismPropertyValue<Boolean>> legalSource 
+        	= new Source<PrismPropertyValue<Boolean>>(legalSourceIdi, ExpressionConstants.VAR_LEGAL);
+		existenceMapping.setDefaultSource(legalSource);
+
+		// Source: focusExists
+        ItemDeltaItem<PrismPropertyValue<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext()); 
+        Source<PrismPropertyValue<Boolean>> focusExistsSource 
+        	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
+		existenceMapping.addSource(focusExistsSource);
 		
         existenceMapping.setOriginType(OriginType.OUTBOUND);
         existenceMapping.setOriginObject(accCtx.getResource());
@@ -270,7 +270,7 @@ public class ActivationProcessor {
         return shadowExistsProp.getRealValue();
     }
     
-   	private <T> void evaluateActivationMapping(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
+	private <T> void evaluateActivationMapping(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
    			ResourceBidirectionalMappingType bidirectionalMappingType, ItemPath focusPropertyPath, ItemPath projectionPropertyPath,
    			String desc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         
@@ -306,14 +306,21 @@ public class ActivationProcessor {
         	}
         }
         
-        // Source
+        // Source: administrativeStatus
         ItemDeltaItem<PrismPropertyValue<ActivationStatusType>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
         Source<PrismPropertyValue<ActivationStatusType>> source = new Source<PrismPropertyValue<ActivationStatusType>>(sourceIdi, ExpressionConstants.VAR_INPUT);
 		mapping.setDefaultSource(source);
         
+		// Source: legal
         ItemDeltaItem<PrismPropertyValue<Boolean>> legalIdi = getLegalIdi(accCtx);
         Source<PrismPropertyValue<Boolean>> legalSource = new Source<PrismPropertyValue<Boolean>>(legalIdi, ExpressionConstants.VAR_LEGAL);
         mapping.addSource(legalSource);
+        
+        // Source: focusExists
+        ItemDeltaItem<PrismPropertyValue<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext()); 
+        Source<PrismPropertyValue<Boolean>> focusExistsSource 
+        	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
+        mapping.addSource(focusExistsSource);
         
 		// Target
         PrismObjectDefinition<ShadowType> shadowDefinition = 
@@ -379,4 +386,41 @@ public class ActivationProcessor {
 		}
 	}
 
+	private ItemDeltaItem<PrismPropertyValue<Boolean>> getFocusExistsIdi(LensFocusContext<UserType> lensFocusContext) throws SchemaException {
+		Boolean existsOld = null;
+		Boolean existsNew = null;
+		
+		if (lensFocusContext != null) {
+			if (lensFocusContext.isDelete()) {
+				existsOld = true;
+				existsNew = false;
+			} else if (lensFocusContext.isAdd()) {
+				existsOld = false;
+				existsNew = true;
+			} else {
+				existsOld = true;
+				existsNew = true;
+			}
+		}
+		
+		PrismPropertyDefinition<Boolean> existsDef = new PrismPropertyDefinition<Boolean>(FOCUS_EXISTS_PROPERTY_NAME,
+				FOCUS_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		existsDef.setMinOccurs(1);
+		existsDef.setMaxOccurs(1);
+		PrismProperty<Boolean> existsProp = existsDef.instantiate();
+		
+		existsProp.add(new PrismPropertyValue<Boolean>(existsNew));
+		
+		if (existsOld == existsNew) {
+			return new ItemDeltaItem<PrismPropertyValue<Boolean>>(existsProp);
+		} else {
+			PrismProperty<Boolean> existsPropOld = existsProp.clone();
+			existsPropOld.setRealValue(existsOld);
+			PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
+			existsDelta.setValuesToReplace(new PrismPropertyValue<Boolean>(existsNew));
+			return new ItemDeltaItem<PrismPropertyValue<Boolean>>(existsPropOld, existsDelta, existsProp);
+		}
+	}
+
+	
 }

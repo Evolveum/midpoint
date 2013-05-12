@@ -71,6 +71,21 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     	}
     }
 	
+	public boolean isDelete() {
+		if (getPrimaryDelta() != null && getPrimaryDelta().isDelete()) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isAdd() {
+		if (getPrimaryDelta() != null && getPrimaryDelta().isAdd()) {
+			return true;
+		}
+		return false;
+	}
+
+	
 	@Override
 	public ObjectDelta<O> getSecondaryDelta() {
         try {
@@ -336,4 +351,5 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		super.checkEncrypted();
 		secondaryDeltas.checkEncrypted("secondary delta");
 	}
+    
 }

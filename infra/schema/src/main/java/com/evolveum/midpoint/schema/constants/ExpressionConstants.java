@@ -35,6 +35,7 @@ public class ExpressionConstants {
 	public static final QName VAR_RESOURCE = new QName(SchemaConstants.NS_C, "resource");
 	
 	public static final QName VAR_LEGAL = new QName(SchemaConstants.NS_C, "legal");
+	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");
 	
 	/**
 	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.

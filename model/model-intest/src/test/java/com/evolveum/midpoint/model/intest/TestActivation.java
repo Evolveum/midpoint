@@ -535,6 +535,40 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
 	
+	@Test
+    public void test199DeleteUserJack() throws Exception {
+		final String TEST_NAME = "test199DeleteUserJack";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_JACK_OID, prismContext);
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        try {
+			PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+			AssertJUnit.fail("Jack is still alive!");
+		} catch (ObjectNotFoundException ex) {
+			// This is OK
+		}
+                
+        // Check that the accounts are gone
+        assertNoDummyAccount(null, "jack");
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack");
+	}
+	
+	
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}
