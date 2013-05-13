@@ -30,9 +30,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import org.apache.commons.lang.ClassUtils;
@@ -46,15 +45,13 @@ import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -315,6 +312,10 @@ public class PrismValuePanel extends Panel {
         }
 
         InputPanel panel;
+        if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
+            return WebMiscUtil.createActivationStatusPanel(id, new PropertyModel(model, baseExpression), this);
+        }
+
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {

@@ -386,6 +386,10 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         names.add(PasswordType.F_LAST_SUCCESSFUL_LOGIN);
         names.add(PasswordType.F_PREVIOUS_SUCCESSFUL_LOGIN);
         names.add(ObjectType.F_FETCH_RESULT);
+        //activation
+        names.add(ActivationType.F_EFFECTIVE_STATUS);
+        names.add(ActivationType.F_VALIDITY_STATUS);
+        names.add(ActivationType.F_ENABLED);
 
         if (ShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
             names.add(CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS);

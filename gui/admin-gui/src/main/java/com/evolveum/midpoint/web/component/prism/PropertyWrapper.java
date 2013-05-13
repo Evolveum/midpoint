@@ -133,7 +133,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
                     new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
         } else if (isThisPropertyActivationEnabled()) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(true), new PrismPropertyValue(null), ValueStatus.ADDED);
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(ActivationStatusType.ENABLED),
+                    new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
         }
@@ -146,7 +147,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             return false;
         }
 
-        if (!ActivationType.F_ENABLED.equals(property.getName())) {
+        if (!ActivationType.F_ADMINISTRATIVE_STATUS.equals(property.getName())) {
             return false;
         }
 

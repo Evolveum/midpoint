@@ -1878,13 +1878,14 @@ public class PageUser extends PageAdminUsers {
 				continue;
 			}
 
-			PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ENABLED);
+			PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
 			if (enabledProperty.getValues().size() != 1) {
 				warn(getString("pageUser.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
 			}
 			ValueWrapper value = enabledProperty.getValues().get(0);
-			value.getValue().setValue(enabled);
+            ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
+			value.getValue().setValue(status);
 
 			wrapper.setSelected(false);
 		}

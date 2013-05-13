@@ -140,13 +140,13 @@ public class ObjectWrapper implements Serializable {
         	return true;
         }
 
-        PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ENABLED);
+        PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
         if (enabledProperty.getValues().size() != 1) {
         	LOGGER.warn("No enabled property found for account " + getDisplayName() + ".");
         	return false;
         }
         ValueWrapper value = enabledProperty.getValues().get(0);
-        return (Boolean) value.getValue().getValue();
+        return value.getValue().getValue() == ActivationStatusType.ENABLED;
 	}
 
 	public void setHeaderStatus(HeaderStatus headerStatus) {

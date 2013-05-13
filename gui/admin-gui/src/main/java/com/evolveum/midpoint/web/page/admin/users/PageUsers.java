@@ -56,10 +56,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -570,13 +567,15 @@ public class PageUsers extends PageAdminUsers {
                 getPrismContext().adopt(user);
 
 //				PrismObject<UserType> object = user.asPrismObject();
-                ItemPath path = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+                ItemPath path = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 //				PrismProperty property = object.findOrCreateProperty(path);
 //				PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
 //				delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling,
 //						OriginType.USER_ACTION, null)));
 
-                ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(), path, getPrismContext(), enabling);
+                ActivationStatusType status = enabling ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
+                ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+                        path, getPrismContext(), status);
 //				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 //				objectDelta.addModification(delta);
 

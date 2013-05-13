@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -43,8 +44,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -100,6 +103,25 @@ public final class WebMiscUtil {
                 return list;
             }
         };
+    }
+
+    public static DropDownChoicePanel createActivationStatusPanel(String id, final IModel<ActivationStatusType> model,
+                                                                  final Component component) {
+        return new DropDownChoicePanel(id, model,
+                WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class),
+                new IChoiceRenderer<ActivationStatusType>() {
+
+                    @Override
+                    public Object getDisplayValue(ActivationStatusType object) {
+                        return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
+                    }
+
+                    @Override
+                    public String getIdValue(ActivationStatusType object, int index) {
+                        return Integer.toString(index);
+                    }
+                });
+
     }
 
     public static String getName(ObjectType object) {
@@ -293,14 +315,13 @@ public final class WebMiscUtil {
             return false;
         }
 
-        PrismProperty enabled = activation.findProperty(ActivationType.F_ENABLED);
-        if (enabled == null || enabled.getRealValue() == null) {
+        ActivationStatusType status = (ActivationStatusType) activation.getPropertyRealValue(ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.class);
+        if (status == null) {
             return false;
         }
 
         //todo imrove with activation dates...
-
-        return (Boolean) enabled.getRealValue();
+        return ActivationStatusType.ENABLED.equals(status);
     }
 
     public static boolean isSuccessOrHandledError(OperationResult result) {
