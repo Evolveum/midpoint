@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
+import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -56,32 +57,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  * @author Radovan Semancik
  * 
  */
-public class SynchronizeAccountResultHandler implements ResultHandler<ShadowType> {
+public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
 	
 	private ResourceObjectChangeListener objectChangeListener;
-	private Task task;
 	private ResourceType resource;
 	private RefinedObjectClassDefinition refinedAccountDefinition;
 	private QName sourceChannel;
-	private String processShortName;
-	private long progress;
-	private long errors;
-	private boolean stopOnError;
 	private boolean forceAdd;
 
-	public SynchronizeAccountResultHandler(ResourceType resource, RefinedObjectClassDefinition refinedAccountDefinition, Task task,
-			ResourceObjectChangeListener objectChangeListener) {
+	public SynchronizeAccountResultHandler(ResourceType resource, RefinedObjectClassDefinition refinedAccountDefinition,
+			String processShortName, Task task, ResourceObjectChangeListener objectChangeListener) {
+		super(task, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource);
 		this.objectChangeListener = objectChangeListener;
-		this.task = task;
 		this.resource = resource;
 		this.refinedAccountDefinition = refinedAccountDefinition;
-		progress = 0;
-		errors = 0;
-		stopOnError = true;
 		forceAdd = false;
-		processShortName = "synchronization";
 	}
 
 	public boolean isForceAdd() {
@@ -100,18 +92,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<ShadowType
 		this.sourceChannel = sourceChannel;
 	}
 	
-	public String getProcessShortName() {
-		return processShortName;
-	}
 	
-	private String getProcessShortNameCapitalized() {
-		return StringUtils.capitalize(processShortName);
-	}
-
-	public void setProcessShortName(String processShortName) {
-		this.processShortName = processShortName;
-	}
-
 	/*
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
@@ -122,19 +103,8 @@ public class SynchronizeAccountResultHandler implements ResultHandler<ShadowType
 	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
 	 */
 	@Override
-	public boolean handle(PrismObject<ShadowType> accountShadow, OperationResult parentResult) {
-		if (accountShadow.getOid() == null) {
-			throw new IllegalArgumentException("Object has null OID");
-		}
-		
-		progress++;
-
-		long startTime = System.currentTimeMillis();
-		OperationResult result = parentResult.createSubresult(SynchronizeAccountResultHandler.class
-				.getName() + ".handle");
-		result.addParam("object", accountShadow);
-		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
-		
+	protected boolean handleOject(PrismObject<ShadowType> accountShadow, OperationResult result) {
+				
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
 			LOGGER.trace("{} skipping {} because it is protected",new Object[] {
@@ -143,11 +113,6 @@ public class SynchronizeAccountResultHandler implements ResultHandler<ShadowType
 			return true;
 		}
 		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("{} starting for {} from {}",new Object[] {
-					getProcessShortNameCapitalized(), accountShadow,resource.asPrismObject()});
-		}
-
 		if (objectChangeListener == null) {
 			LOGGER.warn("No object change listener set for {} task, ending the task", getProcessShortName());
 			result.recordFatalError("No object change listener set for "+getProcessShortName()+" task, ending the task");
@@ -156,120 +121,42 @@ public class SynchronizeAccountResultHandler implements ResultHandler<ShadowType
 
 		// We are going to pretend that all of the objects were just created.
 		// That will efficiently import them to the IDM repository
+			
+		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+		change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
+		change.setResource(resource.asPrismObject());
+		
+		if (forceAdd) {
+			// We should provide shadow in the state before the change. But we are
+			// pretending that it has
+			// not existed before, so we will not provide it.
+			ObjectDelta<ShadowType> shadowDelta = new ObjectDelta<ShadowType>(
+					ShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
+			//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
+			PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();
+			shadowDelta.setObjectToAdd(shadowToAdd);
+			shadowDelta.setOid(newShadowType.getOid());
+			change.setObjectDelta(shadowDelta);
+			// Need to also set current shadow. This will get reflected in "old" object in lens context
+			change.setCurrentShadow(accountShadow);
+			
+		} else {
+			// No change, therefore the delta stays null. But we will set the current
+			change.setCurrentShadow(accountShadow);
+		}
 
 		try {
-			
-			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-			change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
-			change.setResource(resource.asPrismObject());
-			
-			if (forceAdd) {
-				// We should provide shadow in the state before the change. But we are
-				// pretending that it has
-				// not existed before, so we will not provide it.
-				ObjectDelta<ShadowType> shadowDelta = new ObjectDelta<ShadowType>(
-						ShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
-				//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
-				PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();
-				shadowDelta.setObjectToAdd(shadowToAdd);
-				shadowDelta.setOid(newShadowType.getOid());
-				change.setObjectDelta(shadowDelta);
-				// Need to also set current shadow. This will get reflected in "old" object in lens context
-				change.setCurrentShadow(accountShadow);
-				
-			} else {
-				// No change, therefore the delta stays null. But we will set the current
-				change.setCurrentShadow(accountShadow);
-			}
-
-			try {
-				change.checkConsistence();
-			} catch (RuntimeException ex) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Change:\n{}",change.dump());
-				}
-				throw ex;
-			}
-			
-			// Invoke the change notification
-			objectChangeListener.notifyChange(change, task, result);
-			long endTime = System.currentTimeMillis();
-			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("{} object {} from resource {} done ({} ms)",new Object[]{
-						getProcessShortNameCapitalized(), ObjectTypeUtil.toShortString(newShadowType),
-						ObjectTypeUtil.toShortString(resource), endTime - startTime});
-			}
-		} catch (Exception ex) {
-			errors++;
-			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("{} of object {} from resource {} failed: {}", new Object[] {
-						getProcessShortNameCapitalized(),
-						accountShadow, resource.asPrismObject(), ex.getMessage(), ex });
-			}
+			change.checkConsistence();
+		} catch (RuntimeException ex) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Change notication listener failed for {} of object {}: {}: ", new Object[] {
-						getProcessShortName(),
-						accountShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
+				LOGGER.trace("Change:\n{}",change.dump());
 			}
-			result.recordPartialError("failed to synchronize: "+ex.getMessage(), ex);
-			return !isStopOnError();
+			throw ex;
 		}
 		
-		// FIXME: hack. Hardcoded ugly summarization of successes
-		if (result.isSuccess()) {
-			result.getSubresults().clear();
-		}
+		// Invoke the change notification
+		objectChangeListener.notifyChange(change, getTask(), result);
 
-		// Check if we haven't been interrupted
-		if (task.canRun()) {
-			result.computeStatus();
-			// Everything OK, signal to continue
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("{} finished for {} from {}, result: {}", new Object[]{
-						getProcessShortNameCapitalized(), accountShadow, resource, result.dump()});
-			}
-			return true;
-		} else {
-			result.recordPartialError("Interrupted");
-			// Signal to stop
-			if (LOGGER.isWarnEnabled()) {
-				LOGGER.warn("{} from {} interrupted",new Object[]{
-						getProcessShortNameCapitalized(),ObjectTypeUtil.toShortString(resource)});
-			}
-			return false;
-		}
+		return true;
 	}
-
-	public long heartbeat() {
-		// If we exist then we run. So just return the progress count.
-		return progress;
-	}
-
-	public long getProgress() {
-		return progress;
-	}
-	
-	public long getErrors() {
-		return errors;
-	}
-
-	/**
-	 * Get the value of stopOnError
-	 * 
-	 * @return the value of stopOnError
-	 */
-	public boolean isStopOnError() {
-		return stopOnError;
-	}
-
-	/**
-	 * Set the value of stopOnError
-	 * 
-	 * @param stopOnError
-	 *            new value of stopOnError
-	 */
-	public void setStopOnError(boolean stopOnError) {
-		this.stopOnError = stopOnError;
-	}
-
 }

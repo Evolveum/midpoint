@@ -197,7 +197,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
+			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
@@ -221,6 +221,15 @@ public class ModelController implements ModelService, ModelInteractionService {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (CommunicationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (ConfigurationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (SecurityViolationException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
@@ -828,7 +837,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	// Note: The result is in the task. No need to pass it explicitly
 	@Override
 	public void importFromResource(String resourceOid, QName objectClass, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -846,9 +855,19 @@ public class ModelController implements ModelService, ModelInteractionService {
 		try {
 			resource = getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
 		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Object not found");
-			RepositoryCache.exit();
+			ModelUtils.recordFatalError(result, ex);
 			throw ex;
+		} catch (CommunicationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (ConfigurationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (SecurityViolationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} finally {
+			RepositoryCache.exit();
 		}
 		
 		if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {

@@ -153,7 +153,7 @@ public abstract class BaseAction implements Action {
         }
 
         try {
-            return model.getObjectResolver().getObject(UserType.class, oid, null, result);
+            return model.getObjectResolver().getObjectSimple(UserType.class, oid, null, result);
         } catch (ObjectNotFoundException ex) {
             // user was not found, we return null
         	return null;

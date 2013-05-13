@@ -207,7 +207,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNull("User "+username+" sneaked in", user);
 	}
 
-	private void assertImportedUserByOid(String userOid, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	private void assertImportedUserByOid(String userOid, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<UserType> user = getUser(userOid);
 		assertNotNull("No user "+userOid, user);
 		assertImportedUser(user, resourceOids);
@@ -219,7 +219,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		assertImportedUser(user, resourceOids);
 	}
 		
-	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         assertAccounts(user, resourceOids.length);
         for (String resourceOid: resourceOids) {
         	assertAccount(user, resourceOid);

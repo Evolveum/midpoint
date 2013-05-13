@@ -31,6 +31,8 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -90,7 +92,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
     }
 
     private PrismObject<ConnectorType> resolveConnector(ResourceType resource, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 
         ObjectReferenceType ref = resource.getConnectorRef();
         String oid = ref != null ? ref.getOid() : null;

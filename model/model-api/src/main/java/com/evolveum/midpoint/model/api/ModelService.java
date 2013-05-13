@@ -131,7 +131,8 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException;
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, 
+			CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * <p>
@@ -399,7 +400,8 @@ public interface ModelService {
 	 * @throws SchemaException 
 	 */
 	void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, 
+			SecurityViolationException;
 
 	/**
 	 * Import objects from file.

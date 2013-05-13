@@ -212,7 +212,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, String filename, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, String filename, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		importObjectFromFile(filename, result);
 		OperationResult importResult = result.getLastSubresult();
 		assertSuccess("Import of "+filename+" has failed", importResult);
@@ -308,7 +308,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			+ accountRef.getValues();
 	}
 	
-	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		String accountOid = getUserAccountRef(user, resourceOid);
 		assertNotNull("User "+user+" has no account on resource "+resourceOid, accountOid);
 	}
@@ -612,7 +612,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 	
-	protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getUser");
         OperationResult result = task.getResult();
 		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
@@ -670,15 +670,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return accounts;
 	}
 	
-	protected PrismObject<ShadowType> getAccount(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected PrismObject<ShadowType> getAccount(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		return getAccount(accountOid, false, true);
 	}
 	
-	protected PrismObject<ShadowType> getAccountNoFetch(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected PrismObject<ShadowType> getAccountNoFetch(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		return getAccount(accountOid, true, true);
 	}
 	
-	protected PrismObject<ShadowType> getAccount(String accountOid, boolean noFetch, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected PrismObject<ShadowType> getAccount(String accountOid, boolean noFetch, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getAccount");
         OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> opts = null;
@@ -734,7 +734,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return accountOid;
 	}
 	
-	protected String getUserAccountRef(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected String getUserAccountRef(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         UserType userType = user.asObjectable();
         for (ObjectReferenceType accountRefType: userType.getLinkRef()) {
         	String accountOid = accountRefType.getOid();
@@ -1262,10 +1262,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return result;
 	}
 	
-	protected void setSecurityContextUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	protected void setSecurityContextUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance("get administrator");
-        PrismObject<UserType> object = modelService.getObject(UserType.class, userOid,
-                null, task, task.getResult());
+        PrismObject<UserType> object = modelService.getObject(UserType.class, userOid, null, task, task.getResult());
 
         assertNotNull("User "+userOid+" is null", object.asObjectable());
         SecurityContextHolder.getContext().setAuthentication(

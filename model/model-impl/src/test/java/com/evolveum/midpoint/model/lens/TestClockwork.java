@@ -337,7 +337,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 		return executedDeltas.get(0).getObjectDelta();
 	}
 
-	private void assertJackAccountShadow(LensContext<UserType, ShadowType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	private void assertJackAccountShadow(LensContext<UserType, ShadowType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
         LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();

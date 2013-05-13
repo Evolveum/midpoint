@@ -97,7 +97,7 @@ public class ModelCrudService {
 	
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return modelController.getObject(clazz, oid, options, task, parentResult);
 	}	
 
@@ -423,7 +423,7 @@ public class ModelCrudService {
 	}
 
 	public void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		modelController.importFromResource(resourceOid, objectClass, task, parentResult);
 	}
 

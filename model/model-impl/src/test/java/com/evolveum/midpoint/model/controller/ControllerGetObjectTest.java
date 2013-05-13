@@ -82,17 +82,17 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getObjectNullOid() throws ObjectNotFoundException, SchemaException {
+	public void getObjectNullOid() throws Exception {
 		controller.getObject(null, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getObjectNullPropertyReferenceListType() throws ObjectNotFoundException, SchemaException {
+	public void getObjectNullPropertyReferenceListType() throws Exception {
 		controller.getObject(null, "1", null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void getObjectNullResultType() throws ObjectNotFoundException, SchemaException {
+	public void getObjectNullResultType() throws Exception {
 		controller.getObject(null, "1", null, null, null);
 	}
 
@@ -105,7 +105,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 
 	@SuppressWarnings("unchecked")
 	@Test(expectedExceptions = ObjectNotFoundException.class)
-	public void getNonExistingObject() throws ObjectNotFoundException, SchemaException {
+	public void getNonExistingObject() throws Exception {
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		Task task = taskManager.createTaskInstance("Get Object");
 		when(repository.getObject(any(Class.class),eq(oid), any(OperationResult.class)))
@@ -116,7 +116,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void getUserCorrect() throws JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, FileNotFoundException {
+	public void getUserCorrect() throws Exception {
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
 				"get-user-correct.xml"), UserType.class);
 

@@ -32,17 +32,22 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -71,7 +76,7 @@ public class ModelObjectResolver implements ObjectResolver {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 	
 	@Override
-	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, 
+	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, String contextDescription, 
 			OperationResult result) throws ObjectNotFoundException, SchemaException {
 				String oid = ref.getOid();
 				Class<?> typeClass = null;
@@ -80,9 +85,9 @@ public class ModelObjectResolver implements ObjectResolver {
 					typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 				}
 				if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
-					expectedType = (Class<T>) typeClass;
+					expectedType = (Class<O>) typeClass;
 				}
-				return getObject(expectedType, oid, null, result);
+				return getObjectSimple(expectedType, oid, null, result);
 	}
 	
 	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, OperationResult result) throws ObjectNotFoundException {
@@ -101,11 +106,28 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (typeQName != null) {
 			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 		}
-		return ((ObjectType) getObject((Class)typeClass, oid, options, result)).asPrismObject();
+		return ((ObjectType) getObjectSimple((Class)typeClass, oid, options, result)).asPrismObject();
+	}
+	
+	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, 
+			OperationResult result) throws ObjectNotFoundException {
+		try {
+			return getObject(clazz, oid, options, result);
+		} catch (SystemException ex) {
+			throw ex;
+		} catch (ObjectNotFoundException ex) {
+			throw ex;
+		} catch (CommonException ex) {
+			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
+			// Add to result only a short version of the error, the details will be in subresults
+			result.recordFatalError(
+					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
+			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
+		}
 	}
 	
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, GetOperationOptions options, 
-			OperationResult result) throws ObjectNotFoundException {
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;
@@ -135,12 +157,18 @@ public class ModelObjectResolver implements ObjectResolver {
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError(ex);
 			throw ex;
-		} catch (CommonException ex) {
-			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
-			// Add to result only a short version of the error, the details will be in subresults
-			result.recordFatalError(
-					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
-			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
+		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError(e);
+			throw e;
 		} catch (RuntimeException ex) {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
 					oid, clazz);
@@ -150,6 +178,14 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 
 		return objectType;
+	}
+	
+	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, ResultHandler<O> handler, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (ObjectTypes.isClassManagedByProvisioning(type)) {
+			provisioning.searchObjectsIterative(type, query, handler, parentResult);
+		} else {
+			cacheRepositoryService.searchObjectsIterative(type, query, handler, parentResult);
+		}
 	}
 	
 }

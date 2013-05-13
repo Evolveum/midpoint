@@ -303,9 +303,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
-				refinedAccountDefinition, task, changeNotificationDispatcher);
+				refinedAccountDefinition, "reconciliation", task, changeNotificationDispatcher);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
-		handler.setProcessShortName("reconciliation");
 		handler.setStopOnError(false);
 
 		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
