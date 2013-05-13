@@ -109,6 +109,10 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 throw new SystemException("Cannot recover model context from task " + task, e);
             }
 
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Context to be executed = " + context.debugDump());
+            }
+
             try {
                 clockwork.run(context, task, result);
 

@@ -31,6 +31,7 @@
 	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.expression" level="INFO" />
+    <logger name="com.evolveum.midpoint.model.controller.ModelOperationTaskHandler" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
 	<!-- Projector "TRACE" is just too much info ... -->
 	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />

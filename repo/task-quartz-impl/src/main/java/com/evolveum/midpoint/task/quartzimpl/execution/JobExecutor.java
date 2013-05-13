@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class JobExecutor implements InterruptableJob {
 
 	private static TaskManagerQuartzImpl taskManagerImpl;
-    private static final String DOT_CLASS = JobExecutor.class.getName();
+    private static final String DOT_CLASS = JobExecutor.class.getName() + ".";
 
     /*
      * Ugly hack - this class is instantiated not by Spring but explicity by Quartz.
@@ -92,11 +92,12 @@ public class JobExecutor implements InterruptableJob {
         executingThread = Thread.currentThread();
         
 		LOGGER.trace("execute called; task = " + task + ", thread = " + executingThread);
-		logRunStart();
-		
+
+        TaskHandler handler = null;
 		try {
         
-			TaskHandler handler = taskManagerImpl.getHandler(task.getHandlerUri());
+			handler = taskManagerImpl.getHandler(task.getHandlerUri());
+            logRunStart(handler);
 		
 			if (handler==null) {
 				LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
@@ -123,7 +124,7 @@ public class JobExecutor implements InterruptableJob {
                 processTaskStop(executionResult);
             }
 
-			logRunFinish();
+			logRunFinish(handler);
 		}
 
 	}
@@ -220,12 +221,12 @@ public class JobExecutor implements InterruptableJob {
 			RepositoryCache.enter();
 			TaskRunResult runResult = null;
 
-			recordCycleRunStart(executionResult);
+			recordCycleRunStart(executionResult, handler);
             runResult = executeHandler(handler);        // exceptions thrown by handler are handled in this method
 
             // we should record finish-related information before dealing with (potential) task closure/restart
             // so we place this method call before the following block
-            recordCycleRunFinish(runResult, executionResult);
+            recordCycleRunFinish(runResult, handler, executionResult);
 
             // should be after recordCycleRunFinish, e.g. not to overwrite task result
             task.refresh(executionResult);
@@ -284,9 +285,9 @@ mainCycle:
 
                 TaskRunResult runResult;
                 try {
-				    recordCycleRunStart(executionResult);
+				    recordCycleRunStart(executionResult, handler);
 				    runResult = executeHandler(handler);
-				    boolean canContinue = recordCycleRunFinish(runResult, executionResult);
+				    boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
                     if (!canContinue) { // in case of task disappeared
                         break;
                     }
@@ -446,16 +447,16 @@ mainCycle:
 		return new OperationResult(DOT_CLASS + methodName);
 	}
 	
-	private void logRunStart() {
-		LOGGER.trace("Task thread run STARTING "+task);
+	private void logRunStart(TaskHandler handler) {
+		LOGGER.trace("Task thread run STARTING  " + task + ", handler = " + handler);
 	}
 	
-	private void logRunFinish() {
-		LOGGER.trace("Task thread run FINISHED " + task);
+	private void logRunFinish(TaskHandler handler) {
+		LOGGER.trace("Task thread run FINISHED " + task + ", handler = " + handler);
 	}
     
-	private void recordCycleRunStart(OperationResult result) {
-		LOGGER.trace("Task cycle run STARTING "+task);
+	private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
+		LOGGER.trace("Task cycle run STARTING " + task + ", handler = " + handler);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
             if (task.getCategory() == null) {
@@ -472,8 +473,8 @@ mainCycle:
 	/*
 	 * Returns a flag whether to continue (false if the task has disappeared)
 	 */
-	private boolean recordCycleRunFinish(TaskRunResult runResult, OperationResult result) {
-		LOGGER.trace("Task cycle run FINISHED " + task);
+	private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
+		LOGGER.trace("Task cycle run FINISHED " + task + ", handler = " + handler);
 		try {
             task.setProgress(runResult.getProgress());
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
