@@ -21,13 +21,16 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.SessionFactory;
+import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -47,7 +50,12 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     @Autowired
+    private LocalSessionFactoryBean sessionFactory;
+
+    @Autowired
     protected RepositoryService repositoryService;
+    @Autowired
+    protected AuditService auditService;
     @Autowired
     protected PrismContext prismContext;
     @Autowired
@@ -85,5 +93,11 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     public void afterMethod(Method method) {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
+    }
+
+    protected boolean isH2used() {
+        String dialect = sessionFactory.getHibernateProperties().getProperty("hibernate.dialect");
+
+        return H2Dialect.class.getName().equals(dialect);
     }
 }

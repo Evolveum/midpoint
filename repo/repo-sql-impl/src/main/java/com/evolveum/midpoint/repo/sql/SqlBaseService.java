@@ -313,7 +313,8 @@ public class SqlBaseService {
         if (duration.getSign() > 0) {
             duration = duration.negate();
         }
-        long minValue = duration.getTimeInMillis(new Date());
+        Date minValue = new Date();
+        duration.addTo(minValue);
 
         Session session = null;
         try {
@@ -324,19 +325,22 @@ public class SqlBaseService {
             if (RAuditEventRecord.class.equals(entity)) {
                 name = "audit records";
 
-                query = session.createQuery("delete from RAuditEventRecord as a where a.timestamp < :timestamp");
-                query.setLong("timestamp", minValue);
+                query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
+                        + " as a where a.timestamp < :timestamp");
+                query.setLong("timestamp", minValue.getTime());
             } else if (RTask.class.equals(entity)) {
                 name = "tasks";
 
-                query = session.createQuery("delete from RTask as t where t.completionTimestamp < :timestamp");
-                query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(new Date(minValue)));
+                query = session.createQuery("delete from " + entity.getSimpleName()
+                        + " as t where t.completionTimestamp < :timestamp");
+                query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
             } else {
                 throw new SystemException("Unknown cleanup entity type '" + entity + "'.");
             }
 
             int count = query.executeUpdate();
-            LOGGER.info("Cleanup in {} performed, {} records deleted.", new Object[]{name, count});
+            LOGGER.info("Cleanup in {} performed, {} records deleted up to {} (duration '{}').",
+                    new Object[]{name, count, minValue, duration});
 
             session.getTransaction().commit();
         } catch (RuntimeException ex) {
