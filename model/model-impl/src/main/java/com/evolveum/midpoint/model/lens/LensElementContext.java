@@ -408,7 +408,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         fixProvisioningType(this.objectOld, result);
 
         ObjectType objectTypeNew = lensElementContextType.getObjectNew();
-        this.objectNew = objectTypeOld != null ? objectTypeNew.asPrismObject() : null;
+        this.objectNew = objectTypeNew != null ? objectTypeNew.asPrismObject() : null;
         fixProvisioningType(this.objectNew, result);
 
         ObjectDeltaType primaryDeltaType = lensElementContextType.getPrimaryDelta();

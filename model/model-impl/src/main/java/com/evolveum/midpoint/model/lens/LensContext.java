@@ -487,7 +487,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 			projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
 		}
 	}
-	
+
 	public void checkEncrypted() {
 		if (focusContext != null) {
 			focusContext.checkEncrypted();
@@ -756,7 +756,6 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
             lensContextType.getExecutionWave() : 0);
         lensContext.setOptions(ModelExecuteOptions.fromModelExecutionOptionsType(lensContextType.getOptions()));
 
-        lensContext.adopt(prismContext);
         return lensContext;
     }
 
