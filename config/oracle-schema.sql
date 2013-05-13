@@ -375,6 +375,13 @@ CREATE TABLE m_org_closure (
   PRIMARY KEY (id)
 ) INITRANS 30;
 
+CREATE TABLE m_org_incorrect (
+  descendant_oid VARCHAR2(36 CHAR) NOT NULL,
+  descendant_id  NUMBER(19, 0)     NOT NULL,
+  ancestor_oid   VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (descendant_oid, descendant_id, ancestor_oid)
+) INITRANS 30;
+
 CREATE TABLE m_org_org_type (
   org_id  NUMBER(19, 0)     NOT NULL,
   org_oid VARCHAR2(36 CHAR) NOT NULL,

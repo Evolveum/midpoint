@@ -372,6 +372,13 @@ CREATE TABLE m_org_closure (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE m_org_incorrect (
+  descendant_oid VARCHAR(36) NOT NULL,
+  descendant_id  BIGINT      NOT NULL,
+  ancestor_oid   VARCHAR(36) NOT NULL,
+  PRIMARY KEY (descendant_oid, descendant_id, ancestor_oid)
+);
+
 CREATE TABLE m_org_org_type (
   org_id  BIGINT      NOT NULL,
   org_oid VARCHAR(36) NOT NULL,
