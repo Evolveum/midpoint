@@ -33,6 +33,8 @@
     bottom:0;
 }
 
+div.objectForm table.tableForm input[type='text'],
+div.objectForm table.tableForm input[type='password'],
 div.objectForm .tableForm .tableFormBody input[type='text'],
 div.objectForm .tableForm .tableFormBody input[type='password'],
 div.objectForm .tableForm .tableFormBody input[type='checkbox'],
