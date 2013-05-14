@@ -119,9 +119,13 @@ CREATE TABLE m_any_string (
 CREATE TABLE m_assignment (
   accountConstruction         NVARCHAR(MAX),
   administrativeStatus        INT,
+  archiveTimestamp            DATETIME2,
+  disableTimestamp            DATETIME2,
   effectiveStatus             INT,
+  enableTimestamp             DATETIME2,
   validFrom                   DATETIME2,
   validTo                     DATETIME2,
+  validityChangeTimestamp     DATETIME2,
   validityStatus              INT,
   assignmentOwner             INT,
   description                 NVARCHAR(MAX),
@@ -449,9 +453,13 @@ CREATE TABLE m_role (
 
 CREATE TABLE m_shadow (
   administrativeStatus          INT,
+  archiveTimestamp              DATETIME2,
+  disableTimestamp              DATETIME2,
   effectiveStatus               INT,
+  enableTimestamp               DATETIME2,
   validFrom                     DATETIME2,
   validTo                       DATETIME2,
+  validityChangeTimestamp       DATETIME2,
   validityStatus                INT,
   assigned                      BIT,
   attemptNumber                 INT,
@@ -564,9 +572,13 @@ CREATE TABLE m_task_dependent (
 
 CREATE TABLE m_user (
   administrativeStatus     INT,
+  archiveTimestamp         DATETIME2,
+  disableTimestamp         DATETIME2,
   effectiveStatus          INT,
+  enableTimestamp          DATETIME2,
   validFrom                DATETIME2,
   validTo                  DATETIME2,
+  validityChangeTimestamp  DATETIME2,
   validityStatus           INT,
   additionalName_norm      NVARCHAR(255),
   additionalName_orig      NVARCHAR(255),

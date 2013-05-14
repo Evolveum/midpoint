@@ -122,9 +122,13 @@ CREATE TABLE m_any_string (
 CREATE TABLE m_assignment (
   accountConstruction         CLOB,
   administrativeStatus        NUMBER(10, 0),
+  archiveTimestamp            TIMESTAMP,
+  disableTimestamp            TIMESTAMP,
   effectiveStatus             NUMBER(10, 0),
+  enableTimestamp             TIMESTAMP,
   validFrom                   TIMESTAMP,
   validTo                     TIMESTAMP,
+  validityChangeTimestamp     TIMESTAMP,
   validityStatus              NUMBER(10, 0),
   assignmentOwner             NUMBER(10, 0),
   description                 CLOB,
@@ -452,9 +456,13 @@ CREATE TABLE m_role (
 
 CREATE TABLE m_shadow (
   administrativeStatus          NUMBER(10, 0),
+  archiveTimestamp              TIMESTAMP,
+  disableTimestamp              TIMESTAMP,
   effectiveStatus               NUMBER(10, 0),
+  enableTimestamp               TIMESTAMP,
   validFrom                     TIMESTAMP,
   validTo                       TIMESTAMP,
+  validityChangeTimestamp       TIMESTAMP,
   validityStatus                NUMBER(10, 0),
   assigned                      NUMBER(1, 0),
   attemptNumber                 NUMBER(10, 0),
@@ -567,9 +575,13 @@ CREATE TABLE m_task_dependent (
 
 CREATE TABLE m_user (
   administrativeStatus     NUMBER(10, 0),
+  archiveTimestamp         TIMESTAMP,
+  disableTimestamp         TIMESTAMP,
   effectiveStatus          NUMBER(10, 0),
+  enableTimestamp          TIMESTAMP,
   validFrom                TIMESTAMP,
   validTo                  TIMESTAMP,
+  validityChangeTimestamp  TIMESTAMP,
   validityStatus           NUMBER(10, 0),
   additionalName_norm      VARCHAR2(255 CHAR),
   additionalName_orig      VARCHAR2(255 CHAR),

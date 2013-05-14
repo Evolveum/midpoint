@@ -50,6 +50,30 @@ public class RActivation {
     private XMLGregorianCalendar validFrom;
     private XMLGregorianCalendar validTo;
     private RTimeIntervalStatus validityStatus;
+    private XMLGregorianCalendar disableTimestamp;
+    private XMLGregorianCalendar enableTimestamp;
+    private XMLGregorianCalendar archiveTimestamp;
+    private XMLGregorianCalendar validityChangeTimestamp;
+
+    @Column(nullable = true)
+    public XMLGregorianCalendar getArchiveTimestamp() {
+        return archiveTimestamp;
+    }
+
+    @Column(nullable = true)
+    public XMLGregorianCalendar getDisableTimestamp() {
+        return disableTimestamp;
+    }
+
+    @Column(nullable = true)
+    public XMLGregorianCalendar getEnableTimestamp() {
+        return enableTimestamp;
+    }
+
+    @Column(nullable = true)
+    public XMLGregorianCalendar getValidityChangeTimestamp() {
+        return validityChangeTimestamp;
+    }
 
     @Column(nullable = true)
     @Enumerated(EnumType.ORDINAL)
@@ -99,6 +123,22 @@ public class RActivation {
         this.validTo = validTo;
     }
 
+    public void setArchiveTimestamp(XMLGregorianCalendar archiveTimestamp) {
+        this.archiveTimestamp = archiveTimestamp;
+    }
+
+    public void setDisableTimestamp(XMLGregorianCalendar disableTimestamp) {
+        this.disableTimestamp = disableTimestamp;
+    }
+
+    public void setEnableTimestamp(XMLGregorianCalendar enableTimestamp) {
+        this.enableTimestamp = enableTimestamp;
+    }
+
+    public void setValidityChangeTimestamp(XMLGregorianCalendar validityChangeTimestamp) {
+        this.validityChangeTimestamp = validityChangeTimestamp;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -114,6 +154,14 @@ public class RActivation {
                 that.effectiveStatus != null) return false;
         if (validityStatus != null ? !validityStatus.equals(that.validityStatus) :
                 that.validityStatus != null) return false;
+        if (archiveTimestamp != null ? !archiveTimestamp.equals(that.archiveTimestamp) :
+                that.archiveTimestamp != null) return false;
+        if (disableTimestamp != null ? !disableTimestamp.equals(that.disableTimestamp) :
+                that.disableTimestamp != null) return false;
+        if (enableTimestamp != null ? !enableTimestamp.equals(that.enableTimestamp) :
+                that.enableTimestamp != null) return false;
+        if (validityChangeTimestamp != null ? !validityChangeTimestamp.equals(that.validityChangeTimestamp) :
+                that.validityChangeTimestamp != null) return false;
 
         return true;
     }
@@ -125,6 +173,10 @@ public class RActivation {
         result = 31 * result + (administrativeStatus != null ? administrativeStatus.hashCode() : 0);
         result = 31 * result + (effectiveStatus != null ? effectiveStatus.hashCode() : 0);
         result = 31 * result + (validityStatus != null ? validityStatus.hashCode() : 0);
+        result = 31 * result + (archiveTimestamp != null ? archiveTimestamp.hashCode() : 0);
+        result = 31 * result + (disableTimestamp != null ? disableTimestamp.hashCode() : 0);
+        result = 31 * result + (enableTimestamp != null ? enableTimestamp.hashCode() : 0);
+        result = 31 * result + (validityChangeTimestamp != null ? validityChangeTimestamp.hashCode() : 0);
         return result;
     }
 
@@ -143,6 +195,11 @@ public class RActivation {
         repo.setValidityStatus(RUtil.getRepoEnumValue(jaxb.getValidityStatus(), RTimeIntervalStatus.class));
         repo.setValidFrom(jaxb.getValidFrom());
         repo.setValidTo(jaxb.getValidTo());
+
+        repo.setArchiveTimestamp(jaxb.getArchiveTimestamp());
+        repo.setDisableTimestamp(jaxb.getDisableTimestamp());
+        repo.setEnableTimestamp(jaxb.getEnableTimestamp());
+        repo.setValidityChangeTimestamp(jaxb.getValidityChangeTimestamp());
     }
 
     public static void copyToJAXB(RActivation repo, ActivationType jaxb, PrismContext prismContext) {
@@ -160,6 +217,11 @@ public class RActivation {
         }
         jaxb.setValidFrom(repo.getValidFrom());
         jaxb.setValidTo(repo.getValidTo());
+
+        jaxb.setArchiveTimestamp(repo.getArchiveTimestamp());
+        jaxb.setDisableTimestamp(repo.getDisableTimestamp());
+        jaxb.setEnableTimestamp(repo.getEnableTimestamp());
+        jaxb.setValidityChangeTimestamp(repo.getValidityChangeTimestamp());
     }
 
     public ActivationType toJAXB(PrismContext prismContext) throws DtoTranslationException {

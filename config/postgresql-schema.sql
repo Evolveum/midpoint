@@ -119,9 +119,13 @@ CREATE TABLE m_any_string (
 CREATE TABLE m_assignment (
   accountConstruction         TEXT,
   administrativeStatus        INT4,
+  archiveTimestamp            TIMESTAMP,
+  disableTimestamp            TIMESTAMP,
   effectiveStatus             INT4,
+  enableTimestamp             TIMESTAMP,
   validFrom                   TIMESTAMP,
   validTo                     TIMESTAMP,
+  validityChangeTimestamp     TIMESTAMP,
   validityStatus              INT4,
   assignmentOwner             INT4,
   description                 TEXT,
@@ -449,9 +453,13 @@ CREATE TABLE m_role (
 
 CREATE TABLE m_shadow (
   administrativeStatus          INT4,
+  archiveTimestamp              TIMESTAMP,
+  disableTimestamp              TIMESTAMP,
   effectiveStatus               INT4,
+  enableTimestamp               TIMESTAMP,
   validFrom                     TIMESTAMP,
   validTo                       TIMESTAMP,
+  validityChangeTimestamp       TIMESTAMP,
   validityStatus                INT4,
   assigned                      BOOLEAN,
   attemptNumber                 INT4,
@@ -564,9 +572,13 @@ CREATE TABLE m_task_dependent (
 
 CREATE TABLE m_user (
   administrativeStatus     INT4,
+  archiveTimestamp         TIMESTAMP,
+  disableTimestamp         TIMESTAMP,
   effectiveStatus          INT4,
+  enableTimestamp          TIMESTAMP,
   validFrom                TIMESTAMP,
   validTo                  TIMESTAMP,
+  validityChangeTimestamp  TIMESTAMP,
   validityStatus           INT4,
   additionalName_norm      VARCHAR(255),
   additionalName_orig      VARCHAR(255),

@@ -157,9 +157,13 @@ CREATE TABLE m_any_string (
 CREATE TABLE m_assignment (
   accountConstruction         LONGTEXT,
   administrativeStatus        INTEGER,
+  archiveTimestamp            DATETIME(6),
+  disableTimestamp            DATETIME(6),
   effectiveStatus             INTEGER,
+  enableTimestamp             DATETIME(6),
   validFrom                   DATETIME(6),
   validTo                     DATETIME(6),
+  validityChangeTimestamp     DATETIME(6),
   validityStatus              INTEGER,
   assignmentOwner             INTEGER,
   description                 LONGTEXT,
@@ -562,9 +566,13 @@ CREATE TABLE m_role (
 
 CREATE TABLE m_shadow (
   administrativeStatus          INTEGER,
+  archiveTimestamp              DATETIME(6),
+  disableTimestamp              DATETIME(6),
   effectiveStatus               INTEGER,
+  enableTimestamp               DATETIME(6),
   validFrom                     DATETIME(6),
   validTo                       DATETIME(6),
+  validityChangeTimestamp       DATETIME(6),
   validityStatus                INTEGER,
   assigned                      BIT,
   attemptNumber                 INTEGER,
@@ -692,9 +700,13 @@ CREATE TABLE m_task_dependent (
 
 CREATE TABLE m_user (
   administrativeStatus     INTEGER,
+  archiveTimestamp         DATETIME(6),
+  disableTimestamp         DATETIME(6),
   effectiveStatus          INTEGER,
+  enableTimestamp          DATETIME(6),
   validFrom                DATETIME(6),
   validTo                  DATETIME(6),
+  validityChangeTimestamp  DATETIME(6),
   validityStatus           INTEGER,
   additionalName_norm      VARCHAR(255),
   additionalName_orig      VARCHAR(255),
