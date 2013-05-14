@@ -1962,6 +1962,7 @@
                             	DEPRECATED: use link instead
                             </xsd:documentation>
                             <xsd:appinfo>
+		            			<a:deprecated>true</a:deprecated>
                     			<a:objectReference>tns:accountRef</a:objectReference>
                     		</xsd:appinfo>
                         </xsd:annotation>
@@ -1973,6 +1974,7 @@
                             	DEPRECATED: use linkRef instead
                             </xsd:documentation>
                             <xsd:appinfo>
+		            			<a:deprecated>true</a:deprecated>
                     			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
@@ -2164,6 +2166,9 @@
                         	DEPRECATED
                         	Use "construction" element instead.
                         </xsd:documentation>
+                        <xsd:appinfo>
+	            			<a:deprecated>true</a:deprecated>
+	            		</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 
@@ -2216,6 +2221,7 @@
                         This defines the "administrative state", i.e. the administrator's decision.
                     </xsd:documentation>
                     <xsd:appinfo>
+                    	<a:deprecated>true</a:deprecated>
                         <a:displayName>Enabled</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -2307,6 +2313,57 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="disableTimestamp" type="xsd:dateTime" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamp of last modification of the activation status to the disabled state.
+            			Note: This timestamp is used for recording purposes. Changing it will NOT change
+            			the activation state.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enableTimestamp" type="xsd:dateTime" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamp of last modification of the activation status to the enabled state.
+            			Note: This timestamp is used for recording purposes. Changing it will NOT change
+            			the activation state.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="archiveTimestamp" type="xsd:dateTime" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamp of last modification of the activation status to the archived state.
+            			Note: This timestamp is used for recording purposes. Changing it will NOT change
+            			the activation state.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="validityChangeTimestamp" type="xsd:dateTime" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamp of last modification of the effective validity state, i.e. last time the validity
+            			state was recomputed with result that was different than the previous recomputation. It is
+            			used to avoid repreated validity change deltas.
+            			Note: This timestamp is used for recording purposes. Changing it will NOT change
+            			the activation state.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -2715,6 +2772,9 @@
             		<xsd:documentation>
             			DEPRECATED. Use objectType instead.
             		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:deprecated>true</a:deprecated>
+            		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -2737,6 +2797,9 @@
             		<xsd:documentation>
             			DEPRECATED. Use "intent" instead.
             		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:deprecated>true</a:deprecated>
+            		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
@@ -3257,6 +3320,9 @@
 		            <xsd:documentation>
 		                DEPRECATED
 		            </xsd:documentation>
+		            <xsd:appinfo>
+            			<a:deprecated>true</a:deprecated>
+            		</xsd:appinfo>
 		        </xsd:annotation>                
             </xsd:element>
         </xsd:sequence>
@@ -3892,6 +3958,9 @@
             		<xsd:documentation>
             			DEPRECATED. Only for use in search filters. Can be removed once the filters are fixed.
             		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:deprecated>true</a:deprecated>
+            		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="stringFilter" type="tns:StringFilterType" minOccurs="0" maxOccurs="unbounded"/>
@@ -3942,6 +4011,9 @@
             <xsd:documentation>
                 DEPRECATED. For compatibility only (search filters).
             </xsd:documentation>
+            <xsd:appinfo>
+            		<a:deprecated>true</a:deprecated>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
     
@@ -4862,6 +4934,9 @@
     		<xsd:documentation>
     			DEPRECATED. Use "shadow" element instead.
     		</xsd:documentation>
+    		<xsd:appinfo>
+        			<a:deprecated>true</a:deprecated>
+       		</xsd:appinfo>
     	</xsd:annotation>
     </xsd:element>
     <xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
@@ -5014,6 +5089,9 @@
                 provisioning resource. For that please see the resource schema which is dynamic and may
                 be different for each resource.
             </xsd:documentation>
+            <xsd:appinfo>
+         			<a:deprecated>true</a:deprecated>
+         		</xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ShadowType">
@@ -5023,6 +5101,9 @@
                     		<xsd:documentation>
                     			DEPRECATED. Replaced by "intent" in tns:ShadowType.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+		            			<a:deprecated>true</a:deprecated>
+		            		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -5035,6 +5116,9 @@
      		<xsd:documentation>
      			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.
      		</xsd:documentation>
+     		<xsd:appinfo>
+         			<a:deprecated>true</a:deprecated>
+         		</xsd:appinfo>
      	</xsd:annotation>
      </xsd:element>
 
@@ -5576,7 +5660,7 @@
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                            	DEPRECATED. This should no longer be used. It will disappear.
+                            	. This should no longer be used. It will disappear.
                             	
                                 Defines an account that the user should have.
                                 It defines the resource and account type. Such
@@ -5590,6 +5674,9 @@
                                 need a way how "assign" the account to the user
                                 correctly.
                             </xsd:documentation>
+                            <xsd:appinfo>
+			           			<a:deprecated>true</a:deprecated>
+			           		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
