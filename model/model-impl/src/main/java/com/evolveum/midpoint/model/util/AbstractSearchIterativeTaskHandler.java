@@ -26,13 +26,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.model.ModelObjectResolver;
-import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -47,7 +42,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
  * @author semancik
@@ -58,16 +52,15 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 	private String taskName;
 	private String taskOperationPrefix;
 	private Class<O> type;
-	private String contextDesc;
 	
 	// This is not ideal, TODO: refactor
 	private Map<Task, AbstractSearchIterativeResultHandler> handlers = new HashMap<Task,AbstractSearchIterativeResultHandler>();
 	
 	@Autowired(required=true)
-	private ModelObjectResolver modelObjectResolver;
+	protected ModelObjectResolver modelObjectResolver;
 	
 	@Autowired(required = true)
-	private PrismContext prismContext;
+	protected PrismContext prismContext;
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
 	
