@@ -13,9 +13,7 @@ public enum RActivationStatus implements SchemaEnum<ActivationStatusType> {
 
     DISABLED(ActivationStatusType.DISABLED),
 
-    ARCHIVED(ActivationStatusType.ARCHIVED),
-
-    ABSENT(ActivationStatusType.ABSENT);
+    ARCHIVED(ActivationStatusType.ARCHIVED);
 
     private ActivationStatusType status;
 

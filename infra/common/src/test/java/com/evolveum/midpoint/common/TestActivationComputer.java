@@ -190,10 +190,10 @@ public class TestActivationComputer {
     }
     
     @Test
-    public void testComputeAdministrativeAbsentAfter() throws Exception {
-    	testCompute("testComputeAdministrativeEnabledBefore", WINTER_SOLSTICE, 
-    			ActivationStatusType.ABSENT, SPRING_EQUINOX, AUTUMN_EQUINOX, 
-    			ActivationStatusType.ABSENT, TimeIntervalStatusType.AFTER);
+    public void testComputeAdministrativeDisabledAfter() throws Exception {
+    	testCompute("testComputeAdministrativeDisabledAfter", WINTER_SOLSTICE, 
+    			ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX, 
+    			ActivationStatusType.DISABLED, TimeIntervalStatusType.AFTER);
     }
     
     @Test

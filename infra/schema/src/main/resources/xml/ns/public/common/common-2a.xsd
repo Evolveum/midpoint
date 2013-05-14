@@ -2430,22 +2430,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="absent">
-                <xsd:annotation>
-                	<xsd:documentation>
-                		The entitity is inactive and it does not exist.
-                		
-                		This is kind of "virtual" state. It should not be stored in the repository
-                		or be used by the GUI. It is used to mark the decision to remove the user record
-                		or account after the computation is complete. It is therefore mostly used in
-                		expressions and mappings. 
-                	</xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ABSENT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-             </xsd:restriction>
+        </xsd:restriction>
     </xsd:simpleType>
     
     <xsd:simpleType name="TimeIntervalStatusType">
