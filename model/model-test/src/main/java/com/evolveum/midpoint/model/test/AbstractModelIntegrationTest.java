@@ -144,6 +144,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected static final ItemPath ACTIVATION_ADMINISTRATIVE_STATUS_PATH = new ItemPath(UserType.F_ACTIVATION, 
 			ActivationType.F_ADMINISTRATIVE_STATUS);
+	protected static final ItemPath ACTIVATION_VALID_FROM_PATH = new ItemPath(UserType.F_ACTIVATION, 
+			ActivationType.F_VALID_FROM);
+	protected static final ItemPath ACTIVATION_VALID_TO_PATH = new ItemPath(UserType.F_ACTIVATION, 
+			ActivationType.F_VALID_TO);
 	
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -328,7 +332,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong number of accounts linked to "+user, numAccounts, accountRef.size());
 	}
 	
-	protected void assertEnabled(PrismObject<UserType> user) {
+	protected void assertAdministrativeEnabled(PrismObject<UserType> user) {
 		PrismProperty<ActivationStatusType> statusProperty = user.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
 		assert statusProperty != null : "No status property in "+user;
 		ActivationStatusType status = statusProperty.getRealValue();

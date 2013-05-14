@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common;
 
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
@@ -60,14 +61,14 @@ public class ActivationComputer {
 			// Explicit administrative status overrides everything 
 			return administrativeStatus;
 		}
-//		if (activationType.isEnabled() != null) {
-//			// DEPRECATED legacy property
-//			if (activationType.isEnabled()) {
-//				return ActivationStatusType.ENABLED;
-//			} else {
-//				return ActivationStatusType.DISABLED;
-//			}
-//		}
+		if (activationType.isEnabled() != null) {
+			// DEPRECATED legacy property
+			if (activationType.isEnabled()) {
+				return ActivationStatusType.ENABLED;
+			} else {
+				return ActivationStatusType.DISABLED;
+			}
+		}
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (validityStatus == null) {
 			// No administrative status, no validity. Defaults to disabled.
@@ -85,34 +86,42 @@ public class ActivationComputer {
 	}
 	
 	public TimeIntervalStatusType getValidityStatus(ActivationType activationType) {
+		return getValidityStatus(activationType, clock.currentTimeXMLGregorianCalendar());
+	}
+	
+	public TimeIntervalStatusType getValidityStatus(ActivationType activationType, XMLGregorianCalendar referenceTime) {
 		XMLGregorianCalendar validFrom = activationType.getValidFrom();
 		XMLGregorianCalendar validTo = activationType.getValidTo();
 		if (validFrom == null && validTo == null) {
 			return null;
 		}
 		TimeIntervalStatusType status = TimeIntervalStatusType.IN;
-		if (validFrom != null && clock.isFuture(validFrom)) {
+		if (validFrom != null &&  (referenceTime == null || referenceTime.compare(validFrom) ==  DatatypeConstants.LESSER)) {
 			status = TimeIntervalStatusType.BEFORE;
 		}
-		if (validTo != null && clock.isPast(validTo)) {
+		if (validTo != null && referenceTime.compare(validTo) ==  DatatypeConstants.GREATER) {
 			status = TimeIntervalStatusType.AFTER;
 		}
 		return status;
 	}
 	
 	public void computeEffective(ActivationType activationType) {
+		computeEffective(activationType, clock.currentTimeXMLGregorianCalendar());
+	}
+	
+	public void computeEffective(ActivationType activationType, XMLGregorianCalendar referenceTime) {
 		ActivationStatusType effectiveStatus = null;
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
 			// Explicit administrative status overrides everything 
 			effectiveStatus = administrativeStatus;
-//		} else if (activationType.isEnabled() != null) {
-//			// DEPRECATED legacy property
-//			if (activationType.isEnabled()) {
-//				effectiveStatus = ActivationStatusType.ENABLED;
-//			} else {
-//				effectiveStatus = ActivationStatusType.DISABLED;
-//			}
+		} else if (activationType.isEnabled() != null) {
+			// DEPRECATED legacy property
+			if (activationType.isEnabled()) {
+				effectiveStatus = ActivationStatusType.ENABLED;
+			} else {
+				effectiveStatus = ActivationStatusType.DISABLED;
+			}
 		}
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (effectiveStatus == null) {

@@ -45,6 +45,11 @@ public class Clock {
 		}
 		return System.currentTimeMillis();
 	}
+	
+	public XMLGregorianCalendar currentTimeXMLGregorianCalendar() {
+		long millis = currentTimeMillis();
+		return XmlTypeConverter.createXMLGregorianCalendar(millis);
+	}
 
 	public boolean isPast(long date) {
 		return currentTimeMillis() > date;

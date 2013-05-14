@@ -224,7 +224,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         for (String resourceOid: resourceOids) {
         	assertAccount(user, resourceOid);
         }
-        assertEnabled(user);
+        assertAdministrativeEnabled(user);
 	}
 
 }

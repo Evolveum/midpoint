@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -67,6 +69,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -99,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -132,9 +136,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEnabled(userJack);
+		assertAdministrativeEnabled(userJack);
+		assertValidity(userJack, null);
 	}
-	
+
 	@Test
     public void test051ModifyUserJackDisable() throws Exception {
         displayTestTile(this, "test051ModifyUserJackDisable");
@@ -178,7 +183,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEnabled(userJack);
+		assertAdministrativeEnabled(userJack);
 	}
 	
 	@Test
@@ -264,7 +269,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEnabled(userJack);
+		assertAdministrativeEnabled(userJack);
 		assertDummyEnabled("jack");
 	}
 	
@@ -292,7 +297,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEnabled(userJack);
+		assertAdministrativeEnabled(userJack);
 		assertDummyDisabled("jack");
 	}
 	
@@ -319,7 +324,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEnabled(userJack);
+		assertAdministrativeEnabled(userJack);
 		assertDummyEnabled("jack");
 	}
 	
@@ -353,7 +358,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEnabled(userJack);
+		assertAdministrativeEnabled(userJack);
 		assertDummyDisabled("jack");
 	}
 	
@@ -389,7 +394,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
         
-        assertEnabled(userJack);
+        assertAdministrativeEnabled(userJack);
 		assertDummyDisabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
@@ -492,7 +497,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
 
-        assertEnabled(userJack);
+        assertAdministrativeEnabled(userJack);
 		assertDummyEnabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
@@ -530,7 +535,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", false);
         
-        assertEnabled(userJack);
+        assertAdministrativeEnabled(userJack);
         assertDummyEnabled("jack");
 		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
@@ -568,6 +573,54 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
 	
+	@Test
+    public void test200AddUserLargo() throws Exception {
+		final String TEST_NAME = "test200AddUserLargo";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        long startMillis = System.currentTimeMillis();
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userLargo = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));
+        ObjectDelta<UserType> addDelta = userLargo.createAddDelta();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
+        
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        userLargo = getUser(USER_LARGO_OID);
+		display("User after change execution", userLargo);
+        
+		assertValidity(userLargo, TimeIntervalStatusType.IN);
+		assertValidityTimestamp(userLargo, startMillis, System.currentTimeMillis());
+	}
+	
+	@Test
+    public void test210ModifyLargoValidTo() throws Exception {
+		final String TEST_NAME = "test210ModifyLargoValidTo";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        long startMillis = System.currentTimeMillis();
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        XMLGregorianCalendar tenMinutesAgo = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis() - 10 * 60 * 1000);
+        
+        // WHEN
+        modifyUserReplace(USER_LARGO_OID, ACTIVATION_VALID_TO_PATH, task, result, tenMinutesAgo);
+        
+        // THEN
+        PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
+		display("User after change execution", userLargo);
+        
+		assertValidity(userLargo, TimeIntervalStatusType.AFTER);
+		assertValidityTimestamp(userLargo, startMillis, System.currentTimeMillis());
+	}
+	
 	
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
@@ -603,4 +656,21 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assert status != ActivationStatusType.ENABLED : "status property is "+status+" in "+user;
 	}
 	
+	private void assertValidity(PrismObject<UserType> user, TimeIntervalStatusType expectedValidityStatus) {
+		ActivationType activation = user.asObjectable().getActivation();
+		assertNotNull("No activation in "+user, activation);
+		assertEquals("Unexpected validity status in "+user, expectedValidityStatus, activation.getValidityStatus());
+	}
+	
+	private void assertValidityTimestamp(PrismObject<UserType> user, long lowerBound, long upperBound) {
+		ActivationType activation = user.asObjectable().getActivation();
+		assertNotNull("No activation in "+user, activation);
+		XMLGregorianCalendar validityChangeTimestamp = activation.getValidityChangeTimestamp();
+		assertNotNull("No validityChangeTimestamp in "+user, validityChangeTimestamp);
+		long validityMillis = XmlTypeConverter.toMillis(validityChangeTimestamp);
+		if (validityMillis > lowerBound && validityMillis < upperBound) {
+			return;
+		}
+		AssertJUnit.fail("Expected validityChangeTimestamp to be between "+lowerBound+" and "+upperBound+", but it was "+validityMillis);
+	}
 }

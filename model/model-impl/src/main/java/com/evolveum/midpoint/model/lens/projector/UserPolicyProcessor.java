@@ -26,11 +26,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.mapping.Mapping;
@@ -44,14 +47,18 @@ import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -62,6 +69,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
@@ -71,6 +80,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -97,6 +107,12 @@ public class UserPolicyProcessor {
 	
 	@Autowired(required = true)
 	private ModelObjectResolver modelObjectResolver;
+	
+	@Autowired(required = true)
+	private Clock clock;
+	
+	@Autowired(required = true)
+	private ActivationComputer activationComputer;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -128,11 +144,76 @@ public class UserPolicyProcessor {
 //		if (password != null) {
 			passwordPolicyProcessor.processPasswordPolicy((LensFocusContext<UserType>) focusContext, usContext, result);
 //		}
+			
+		processActivation(usContext, result);
 
 		applyUserTemplate(usContext, result);
 				
 	}
 
+	private <F extends UserType> void processActivation(LensContext<F, ShadowType> context, OperationResult result) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		
+		if (focusContext.isDelete()) {
+			return;
+		}
+		
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		TimeIntervalStatusType validityStatusNew = null;
+		TimeIntervalStatusType validityStatusOld = null;
+		XMLGregorianCalendar validityChangeTimestamp = null;
+		
+		PrismObject<F> focusNew = focusContext.getObjectNew();
+		F focusNewType = focusNew.asObjectable();
+		ActivationType activationNew = focusNewType.getActivation();
+		
+		if (activationNew != null) {
+			validityStatusNew = activationComputer.getValidityStatus(activationNew, now);
+			validityChangeTimestamp = activationNew.getValidityChangeTimestamp();
+		}
+		
+		PrismObject<F> focusOld = focusContext.getObjectOld();
+		if (focusOld != null) {
+			F focusOldType = focusOld.asObjectable();
+			ActivationType activationOld = focusOldType.getActivation();
+			if (activationOld != null) {
+				validityStatusOld = activationComputer.getValidityStatus(activationOld, validityChangeTimestamp);
+			}
+		}
+		
+		if (validityStatusOld == validityStatusNew) {
+			// No change, (almost) no work
+			if (validityStatusNew != null && activationNew.getValidityStatus() == null) {
+				// There was no validity change. But the status is not recorded. So let's record it so it can be used in searches. 
+				recordValidityDelta(focusContext, validityStatusNew, now);
+			} else {
+				LOGGER.trace("Skipping validity processing because there was no change ({} -> {})", validityStatusOld, validityStatusNew);
+			}
+		} else {
+			LOGGER.trace("Validity change {} -> {}", validityStatusOld, validityStatusNew);
+			recordValidityDelta(focusContext, validityStatusNew, now);
+		}
+		
+		
+	}
+	
+	private <F extends UserType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
+			XMLGregorianCalendar now) throws SchemaException {
+		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
+		
+		PrismPropertyDefinition<TimeIntervalStatusType> validityStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_STATUS);
+		PropertyDelta<TimeIntervalStatusType> validityStatusDelta 
+				= validityStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS));
+		validityStatusDelta.setValueToReplace(new PrismPropertyValue<TimeIntervalStatusType>(validityStatusNew));
+		focusContext.swallowToProjectionWaveSecondaryDelta(validityStatusDelta);
+		
+		PrismPropertyDefinition<XMLGregorianCalendar> validityChangeTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP);
+		PropertyDelta<XMLGregorianCalendar> validityChangeTimestampDelta 
+				= validityChangeTimestampDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP));
+		validityChangeTimestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now));
+		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
+	}
 	
 	private void applyUserTemplate(LensContext<UserType, ShadowType> context, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
@@ -339,6 +420,11 @@ public class UserPolicyProcessor {
 	private PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().getObjectSchema()
 				.findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
+	
+	private PrismContainerDefinition<ActivationType> getActivationDefinition() {
+		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
+		return userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
 	}
 
 }
