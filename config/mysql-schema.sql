@@ -221,7 +221,7 @@ CREATE TABLE m_audit_event (
   targetOwner       LONGTEXT,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
-  timestampValue    BIGINT,
+  timestampValue    DATETIME(6),
   PRIMARY KEY (id)
 )
   DEFAULT CHARACTER SET utf8

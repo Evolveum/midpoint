@@ -35,6 +35,8 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,7 +48,7 @@ import java.util.Set;
 public class RAuditEventRecord implements Serializable {
 
     private long id;
-    private Long timestamp;
+    private Timestamp timestamp;
     private String eventIdentifier;
     private String sessionIdentifier;
     private String taskIdentifier;
@@ -149,7 +151,7 @@ public class RAuditEventRecord implements Serializable {
     }
 
     @Column(name = "timestampValue")
-    public Long getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
@@ -217,7 +219,7 @@ public class RAuditEventRecord implements Serializable {
         this.taskOID = taskOID;
     }
 
-    public void setTimestamp(Long timestamp) {
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -281,7 +283,9 @@ public class RAuditEventRecord implements Serializable {
 
         RAuditEventRecord repo = new RAuditEventRecord();
         repo.setChannel(record.getChannel());
-        repo.setTimestamp(record.getTimestamp());
+        if (record.getTimestamp() != null) {
+            repo.setTimestamp(new Timestamp(record.getTimestamp()));
+        }
         repo.setEventStage(RAuditEventStage.toRepo(record.getEventStage()));
         repo.setEventType(RAuditEventType.toRepo(record.getEventType()));
         repo.setSessionIdentifier(record.getSessionIdentifier());

@@ -177,7 +177,7 @@ CREATE TABLE m_audit_event (
   targetOwner       CLOB,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
-  timestampValue    BIGINT,
+  timestampValue    TIMESTAMP,
   PRIMARY KEY (id)
 );
 

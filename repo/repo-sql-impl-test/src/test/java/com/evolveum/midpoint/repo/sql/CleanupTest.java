@@ -194,7 +194,7 @@ public class CleanupTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(1, records.size());
             RAuditEventRecord record = records.get(0);
 
-            Date finished = new Date(record.getTimestamp());
+            Date finished = new Date(record.getTimestamp().getTime());
 
             Date mark = new Date(NOW);
             Duration duration = policy.getMaxAge();
@@ -207,4 +207,15 @@ public class CleanupTest extends BaseSQLRepoTest {
             session.close();
         }
     }
+
+//create temporary table if not exists HT_m_task (id bigint not null, oid varchar(36) not null)
+//insert into HT_m_task select rtask0_.id as id, rtask0_.oid as oid from m_task rtask0_
+//      inner join m_object rtask0_1_ on rtask0_.id=rtask0_1_.id and rtask0_.oid=rtask0_1_.oid
+//      inner join m_container rtask0_2_ on rtask0_.id=rtask0_2_.id and rtask0_.oid=rtask0_2_.oid
+//      where rtask0_.completionTimestamp<?
+//delete from m_task where (id, oid) IN (select id, oid from HT_m_task)
+//delete from m_object where (id, oid) IN (select id, oid from HT_m_task)
+//delete from m_container where (id, oid) IN (select id, oid from HT_m_task)
+//drop temporary table HT_m_task
+
 }

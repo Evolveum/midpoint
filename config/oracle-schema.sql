@@ -180,7 +180,7 @@ CREATE TABLE m_audit_event (
   targetOwner       CLOB,
   taskIdentifier    VARCHAR2(255 CHAR),
   taskOID           VARCHAR2(255 CHAR),
-  timestampValue    NUMBER(19, 0),
+  timestampValue    TIMESTAMP,
   PRIMARY KEY (id)
 ) INITRANS 30;
 

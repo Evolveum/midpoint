@@ -239,12 +239,12 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         //todo remove after some time [lazyman]
         //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
         if (PolyString.class.equals(def.getJaxbType()) && (value instanceof String)) {
-            LOGGER.warn("Trying to query PolyString value but filter contains String '{}'.", new Object[]{filter});
+            LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", new Object[]{filter});
             value = new PolyString((String) value, (String) value);
         }
         //attempt to fix value type for polystring (if it was polystringtype in filter we create polystring from it)
         if (PolyString.class.equals(def.getJaxbType()) && (value instanceof PolyStringType)) {
-            LOGGER.warn("Trying to query PolyString value but filter contains PolyStringType '{}'.", new Object[]{filter});
+            LOGGER.debug("Trying to query PolyString value but filter contains PolyStringType '{}'.", new Object[]{filter});
             PolyStringType type = (PolyStringType) value;
             value = new PolyString(type.getOrig(), type.getNorm());
         }

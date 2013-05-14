@@ -43,6 +43,7 @@ import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureExcep
 
 import javax.xml.datatype.Duration;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -327,7 +328,7 @@ public class SqlBaseService {
 
                 query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
                         + " as a where a.timestamp < :timestamp");
-                query.setLong("timestamp", minValue.getTime());
+                query.setParameter("timestamp", new Timestamp(minValue.getTime()));
             } else if (RTask.class.equals(entity)) {
                 name = "tasks";
 

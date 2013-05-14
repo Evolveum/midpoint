@@ -177,7 +177,7 @@ CREATE TABLE m_audit_event (
   targetOwner       NVARCHAR(MAX),
   taskIdentifier    NVARCHAR(255),
   taskOID           NVARCHAR(255),
-  timestampValue    BIGINT,
+  timestampValue    DATETIME2,
   PRIMARY KEY (id)
 );
 
