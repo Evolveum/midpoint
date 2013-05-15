@@ -1,7 +1,12 @@
 package com.evolveum.midpoint.provisioning.api;
 
-
 public class ProvisioningOperationOptions {
+
+	/**
+	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
+	 * any expressions, etc.
+	 */
+	Boolean raw;
 	
 	Boolean completePostponed;
 	
@@ -132,6 +137,30 @@ public class ProvisioningOperationOptions {
 	public static ProvisioningOperationOptions createOverwrite(boolean overwrite) {
 		ProvisioningOperationOptions opts = new ProvisioningOperationOptions();
 		opts.setOverwrite(overwrite);
+		return opts;
+	}
+	
+	public Boolean getRaw() {
+		return raw;
+	}
+
+	public void setRaw(Boolean raw) {
+		this.raw = raw;
+	}
+	
+	public static boolean isRaw(ProvisioningOperationOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.raw == null) {
+			return false;
+		}
+		return options.raw;
+	}
+	
+	public static ProvisioningOperationOptions createRaw() {
+		ProvisioningOperationOptions opts = new ProvisioningOperationOptions();
+		opts.setRaw(true);
 		return opts;
 	}
 

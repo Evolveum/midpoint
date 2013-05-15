@@ -157,26 +157,51 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		PrismObject<T> resultingObject = null;
 
 		if (ResourceType.class.isAssignableFrom(type)) {
-			// We need to handle resource specially. This is usually cached and we do not want to get the repository
-			// object if it is in the cache.
 			
-			// Make sure that the object is complete, e.g. there is a (fresh)
-			// schema
-			try {
-				resultingObject = (PrismObject<T>) resourceManager.getResource(
-						oid, result);
-			} catch (ObjectNotFoundException ex) {
-				recordFatalError(LOGGER, result, "Resource object not found", ex);
-				throw ex;
-			} catch (SchemaException ex) {
-				recordFatalError(LOGGER, result, "Schema violation", ex);
-				throw ex;
-			} catch (CommunicationException ex) {
-				recordFatalError(LOGGER, result, "Error communicating with resource", ex);
-				throw ex;
-			} catch (ConfigurationException ex){
-				recordFatalError(LOGGER, result, "Bad resource configuration", ex);
-				throw ex;
+			if (GetOperationOptions.isRaw(options)) {
+				resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid,
+						result);
+				try {
+					applyDefinition(resultingObject, result);
+				} catch (ObjectNotFoundException ex) {
+					// this is almost OK, we use raw for debug pages, so we want
+					// to return resource and it can be fixed
+					result.muteLastSubresultError();
+					logWarning(LOGGER, result,
+							"Bad connector reference defined for resource:  " + ex.getMessage(), ex);
+				} catch (SchemaException ex){
+					result.muteLastSubresultError();
+					logWarning(LOGGER, result,
+							"Schema violation:  " + ex.getMessage(), ex);
+				} catch (ConfigurationException ex){
+					result.muteLastSubresultError();
+					logWarning(LOGGER, result,
+							"Configuration problem:  " + ex.getMessage(), ex);
+				}
+			} else {
+				// We need to handle resource specially. This is usually cached
+				// and we do not want to get the repository
+				// object if it is in the cache.
+
+				// Make sure that the object is complete, e.g. there is a
+				// (fresh)
+				// schema
+				try {
+					resultingObject = (PrismObject<T>) resourceManager.getResource(oid, result);
+					resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
+				} catch (ObjectNotFoundException ex) {
+					recordFatalError(LOGGER, result, "Resource object not found", ex);
+					throw ex;
+				} catch (SchemaException ex) {
+					recordFatalError(LOGGER, result, "Schema violation", ex);
+					throw ex;
+				} catch (CommunicationException ex) {
+					recordFatalError(LOGGER, result, "Error communicating with resource", ex);
+					throw ex;
+				} catch (ConfigurationException ex) {
+					recordFatalError(LOGGER, result, "Bad resource configuration", ex);
+					throw ex;
+				}
 			}
 			
 		} else {
@@ -227,6 +252,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 					resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow(oid,
 							(PrismObject<ShadowType>) (repositoryObject), options, result);
+					resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 	
 				} catch (ObjectNotFoundException e) {
 					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
@@ -248,11 +274,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 			} else {
 				resultingObject = repositoryObject;
+				resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 			}
 		}
 		
 		result.computeStatus();
-		resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 		result.cleanupResult();
 		
 		validateObject(resultingObject);

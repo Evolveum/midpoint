@@ -26,10 +26,12 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -771,11 +773,16 @@ public class ResourceManager {
 			
 		} else if (delta.isModify()) {
 			// Go on
-			
 		} else {
 			return;
 		}
 
+		if (delta.hasCompleteDefinition()){
+			//nothing to do, all modifications has definitions..just aplly this deltas..
+			return;
+		}
+		
+	
         PrismObject<ResourceType> resource;
 		String resourceOid = delta.getOid();
         if (resourceOid == null) {
@@ -800,6 +807,18 @@ public class ResourceManager {
         if (StringUtils.isBlank(connectorOid)) {
             objectResult.recordFatalError("The connector reference (connectorRef) is null or empty");
             return;
+        }
+        
+        //ItemDelta.findItemDelta(delta.getModifications(), ResourceType.F_SCHEMA, ContainerDelta.class) == null || 
+       
+        ReferenceDelta connectorRefDelta = ReferenceDelta.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
+        if (connectorRefDelta != null){
+        	if (connectorRefDelta.getItemNew().getValues().size() == 1){
+        		PrismReferenceValue connectorRefValue = connectorRefDelta.getItemNew().getValues().iterator().next();
+        		if (connectorRefValue.getOid() != null && !connectorOid.equals(connectorRefValue.getOid())){
+        			connectorOid = connectorRefValue.getOid();
+        		}
+        	}
         }
 
         PrismObject<ConnectorType> connector = null;
@@ -863,6 +882,11 @@ public class ResourceManager {
         	if (itemDelta.getDefinition() == null && (ResourceType.F_CONNECTOR_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
         		ItemPath path = itemDelta.getPath().rest();
         		ItemDefinition itemDef = configContainerDef.findItemDefinition(path);
+        		if (itemDef == null){
+        			LOGGER.error("No definition found for item {}. Check your namespaces?", path);
+        			objectResult.recordFatalError("No definition found for item " + path+ ". Check your namespaces?" );
+        			throw new SchemaException("No definition found for item " + path+ ". Check your namespaces?" );
+        		}
 				itemDelta.applyDefinition(itemDef);
         		
         	}
@@ -871,6 +895,7 @@ public class ResourceManager {
 
 	
 
+	
 	public void applyDefinition(PrismObject<ResourceType> resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		applyConnectorSchemaToResource(resource, parentResult);
 	}
