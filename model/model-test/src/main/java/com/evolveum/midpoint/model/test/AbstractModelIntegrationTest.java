@@ -1277,7 +1277,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertEffectiveActivationDeltaOnly(ObjectDelta<UserType> userDelta, String desc, ActivationStatusType expectedEfficientActivation) {
-		assertEquals("Unexpected number of modification in "+desc, 1, userDelta.getModifications().size());
+		if (userDelta.getModifications().size() == 2) {
+			// There may be metadata modification, we tolerate that
+			Collection<? extends ItemDelta<?>> metadataDelta = userDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
+			assertTrue("There are "+userDelta.getModifications().size()+" modifications in "+desc+" and none of it is metadata delta", metadataDelta != null && !metadataDelta.isEmpty());
+		} else {
+			assertEquals("Unexpected number of modification in "+desc, 1, userDelta.getModifications().size());
+		}
 		PropertyDelta<ActivationStatusType> effectiveStatusDelta = userDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
 		assertNotNull("No effective status delta in "+desc, effectiveStatusDelta);
 		PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);

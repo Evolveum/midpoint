@@ -240,7 +240,8 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.DISABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -309,7 +310,10 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	
 	private void assertJackAssignAccountContext(LensContext<UserType, ShadowType> context) {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        if (context.getFocusContext().getSecondaryDelta() != null) {
+        	assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.ENABLED);
+        }
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
