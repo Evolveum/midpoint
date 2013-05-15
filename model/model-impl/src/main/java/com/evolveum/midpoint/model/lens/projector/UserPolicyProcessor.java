@@ -69,6 +69,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
@@ -166,7 +167,9 @@ public class UserPolicyProcessor {
 		
 		PrismObject<F> focusNew = focusContext.getObjectNew();
 		F focusNewType = focusNew.asObjectable();
+		
 		ActivationType activationNew = focusNewType.getActivation();
+		ActivationType activationOld = null;
 		
 		if (activationNew != null) {
 			validityStatusNew = activationComputer.getValidityStatus(activationNew, now);
@@ -176,7 +179,7 @@ public class UserPolicyProcessor {
 		PrismObject<F> focusOld = focusContext.getObjectOld();
 		if (focusOld != null) {
 			F focusOldType = focusOld.asObjectable();
-			ActivationType activationOld = focusOldType.getActivation();
+			activationOld = focusOldType.getActivation();
 			if (activationOld != null) {
 				validityStatusOld = activationComputer.getValidityStatus(activationOld, validityChangeTimestamp);
 			}
@@ -195,7 +198,21 @@ public class UserPolicyProcessor {
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 		
+		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew);
+		ActivationStatusType effectiveStatusOld = activationComputer.getEffectiveStatus(activationOld, validityStatusOld);
 		
+		if (effectiveStatusOld == effectiveStatusNew) {
+			// No change, (almost) no work
+			if (effectiveStatusNew != null && (activationNew == null || activationNew.getEffectiveStatus() == null)) {
+				// There was no effective status change. But the status is not recorded. So let's record it so it can be used in searches. 
+				recordEffectiveStatusDelta(focusContext, effectiveStatusNew);
+			} else {
+				LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusOld, effectiveStatusNew);
+			}
+		} else {
+			LOGGER.trace("Effective status change {} -> {}", effectiveStatusOld, effectiveStatusNew);
+			recordEffectiveStatusDelta(focusContext, effectiveStatusNew);
+		}
 	}
 	
 	private <F extends UserType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
@@ -213,6 +230,17 @@ public class UserPolicyProcessor {
 				= validityChangeTimestampDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP));
 		validityChangeTimestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now));
 		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
+	}
+	
+	private <F extends UserType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext, ActivationStatusType effectiveStatusNew)
+			throws SchemaException {
+		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
+		
+		PrismPropertyDefinition<ActivationStatusType> effectiveStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_EFFECTIVE_STATUS);
+		PropertyDelta<ActivationStatusType> effectiveStatusDelta 
+				= effectiveStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(effectiveStatusNew));
+		focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);		
 	}
 	
 	private void applyUserTemplate(LensContext<UserType, ShadowType> context, OperationResult result) 

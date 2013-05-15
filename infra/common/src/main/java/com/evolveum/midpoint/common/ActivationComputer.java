@@ -56,6 +56,13 @@ public class ActivationComputer {
 	}
 	
 	public ActivationStatusType getEffectiveStatus(ActivationType activationType) {
+		return getEffectiveStatus(activationType, getValidityStatus(activationType));
+	}
+	
+	public ActivationStatusType getEffectiveStatus(ActivationType activationType, TimeIntervalStatusType validityStatus) {
+		if (activationType == null) {
+			return ActivationStatusType.DISABLED;
+		}
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
 			// Explicit administrative status overrides everything 
@@ -69,7 +76,6 @@ public class ActivationComputer {
 				return ActivationStatusType.DISABLED;
 			}
 		}
-		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (validityStatus == null) {
 			// No administrative status, no validity. Defaults to disabled.
 			return ActivationStatusType.DISABLED;

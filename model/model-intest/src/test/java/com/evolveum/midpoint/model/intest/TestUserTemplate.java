@@ -319,6 +319,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_LARGO_OID, null, task, result);
+		display("Largo after", userAfter);
         assertUser(userAfter, USER_LARGO_OID, "largo", "Largo LaGrande", "Largo", "LaGrande");
         
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Imported user");

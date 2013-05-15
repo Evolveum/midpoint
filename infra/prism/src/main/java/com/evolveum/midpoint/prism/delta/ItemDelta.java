@@ -1000,6 +1000,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 * deltas are equal. 
 	 */
 	public boolean contains(ItemDelta<V> other) {
+		if (!this.getPath().equals(other.getPath())) {
+			return false;
+		}
 		if (!containsSet(this.valuesToAdd, other.valuesToAdd)) {
 			return false;
 		}

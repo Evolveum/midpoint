@@ -137,7 +137,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, "Jack Sparrow");
         
 		assertAdministrativeEnabled(userJack);
-		assertValidity(userJack, null);
+		// Cannot assert validity or effective status here. The user was added through repo and was not recomputed yet.
 	}
 
 	@Test
@@ -161,6 +161,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, "Jack Sparrow");
         
 		assertDisabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
 	}
 	
 	@Test
@@ -184,6 +186,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, "Jack Sparrow");
         
 		assertAdministrativeEnabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
 	}
 	
 	@Test
@@ -596,6 +600,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertValidity(userLargo, TimeIntervalStatusType.IN);
 		assertValidityTimestamp(userLargo, startMillis, System.currentTimeMillis());
+		assertEffectiveStatus(userLargo, ActivationStatusType.ENABLED);
 	}
 	
 	@Test
@@ -619,6 +624,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertValidity(userLargo, TimeIntervalStatusType.AFTER);
 		assertValidityTimestamp(userLargo, startMillis, System.currentTimeMillis());
+		assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
 	}
 	
 	
@@ -673,4 +679,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		}
 		AssertJUnit.fail("Expected validityChangeTimestamp to be between "+lowerBound+" and "+upperBound+", but it was "+validityMillis);
 	}
+	
+	private void assertEffectiveStatus(PrismObject<UserType> user, ActivationStatusType expected) {
+		ActivationType activation = user.asObjectable().getActivation();
+		assertNotNull("No activation in "+user, activation);
+		assertEquals("Unexpected effective activation status in "+user, expected, activation.getEffectiveStatus());
+	}
+
 }
