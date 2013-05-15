@@ -19,101 +19,101 @@ CREATE TABLE m_account_shadow (
 );
 
 CREATE TABLE m_any (
-  owner_id  BIGINT      NOT NULL,
-  owner_oid VARCHAR(36) NOT NULL,
-  ownerType INTEGER     NOT NULL,
-  PRIMARY KEY (owner_id, owner_oid, ownerType)
+  owner_id   BIGINT      NOT NULL,
+  owner_oid  VARCHAR(36) NOT NULL,
+  owner_type INTEGER     NOT NULL,
+  PRIMARY KEY (owner_id, owner_oid, owner_type)
 );
 
 CREATE TABLE m_any_clob (
-  checksum               VARCHAR(32)  NOT NULL,
-  name_namespace         VARCHAR(255) NOT NULL,
-  name_localPart         VARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
-  anyContainer_owner_oid VARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INTEGER      NOT NULL,
-  type_namespace         VARCHAR(255) NOT NULL,
-  type_localPart         VARCHAR(100) NOT NULL,
-  dynamicDef             BOOLEAN,
-  clobValue              CLOB,
-  valueType              INTEGER,
-  PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart)
+  checksum                VARCHAR(32)  NOT NULL,
+  name_namespace          VARCHAR(255) NOT NULL,
+  name_localPart          VARCHAR(100) NOT NULL,
+  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
+  anyContainer_owner_type INTEGER      NOT NULL,
+  type_namespace          VARCHAR(255) NOT NULL,
+  type_localPart          VARCHAR(100) NOT NULL,
+  dynamicDef              BOOLEAN,
+  clobValue               CLOB,
+  valueType               INTEGER,
+  PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart)
 );
 
 CREATE TABLE m_any_date (
-  name_namespace         VARCHAR(255) NOT NULL,
-  name_localPart         VARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
-  anyContainer_owner_oid VARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INTEGER      NOT NULL,
-  type_namespace         VARCHAR(255) NOT NULL,
-  type_localPart         VARCHAR(100) NOT NULL,
-  dateValue              TIMESTAMP    NOT NULL,
-  dynamicDef             BOOLEAN,
-  valueType              INTEGER,
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, dateValue)
+  name_namespace          VARCHAR(255) NOT NULL,
+  name_localPart          VARCHAR(100) NOT NULL,
+  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
+  anyContainer_owner_type INTEGER      NOT NULL,
+  type_namespace          VARCHAR(255) NOT NULL,
+  type_localPart          VARCHAR(100) NOT NULL,
+  dateValue               TIMESTAMP    NOT NULL,
+  dynamicDef              BOOLEAN,
+  valueType               INTEGER,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, dateValue)
 );
 
 CREATE TABLE m_any_long (
-  name_namespace         VARCHAR(255) NOT NULL,
-  name_localPart         VARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
-  anyContainer_owner_oid VARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INTEGER      NOT NULL,
-  type_namespace         VARCHAR(255) NOT NULL,
-  type_localPart         VARCHAR(100) NOT NULL,
-  longValue              BIGINT       NOT NULL,
-  dynamicDef             BOOLEAN,
-  valueType              INTEGER,
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, longValue)
+  name_namespace          VARCHAR(255) NOT NULL,
+  name_localPart          VARCHAR(100) NOT NULL,
+  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
+  anyContainer_owner_type INTEGER      NOT NULL,
+  type_namespace          VARCHAR(255) NOT NULL,
+  type_localPart          VARCHAR(100) NOT NULL,
+  longValue               BIGINT       NOT NULL,
+  dynamicDef              BOOLEAN,
+  valueType               INTEGER,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, longValue)
 );
 
 CREATE TABLE m_any_poly_string (
-  name_namespace         VARCHAR(255) NOT NULL,
-  name_localPart         VARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
-  anyContainer_owner_oid VARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INTEGER      NOT NULL,
-  type_namespace         VARCHAR(255) NOT NULL,
-  type_localPart         VARCHAR(100) NOT NULL,
-  orig                   VARCHAR(255) NOT NULL,
-  dynamicDef             BOOLEAN,
-  norm                   VARCHAR(255),
-  valueType              INTEGER,
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, orig)
+  name_namespace          VARCHAR(255) NOT NULL,
+  name_localPart          VARCHAR(100) NOT NULL,
+  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
+  anyContainer_owner_type INTEGER      NOT NULL,
+  type_namespace          VARCHAR(255) NOT NULL,
+  type_localPart          VARCHAR(100) NOT NULL,
+  orig                    VARCHAR(255) NOT NULL,
+  dynamicDef              BOOLEAN,
+  norm                    VARCHAR(255),
+  valueType               INTEGER,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, orig)
 );
 
 CREATE TABLE m_any_reference (
-  name_namespace         VARCHAR(255) NOT NULL,
-  name_localPart         VARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
-  anyContainer_owner_oid VARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INTEGER      NOT NULL,
-  type_namespace         VARCHAR(255) NOT NULL,
-  type_localPart         VARCHAR(100) NOT NULL,
-  targetoid              VARCHAR(36)  NOT NULL,
-  description            CLOB,
-  dynamicDef             BOOLEAN,
-  filter                 CLOB,
-  relation_namespace     VARCHAR(255),
-  relation_localPart     VARCHAR(100),
-  targetType             INTEGER,
-  valueType              INTEGER,
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, targetoid)
+  name_namespace          VARCHAR(255) NOT NULL,
+  name_localPart          VARCHAR(100) NOT NULL,
+  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
+  anyContainer_owner_type INTEGER      NOT NULL,
+  type_namespace          VARCHAR(255) NOT NULL,
+  type_localPart          VARCHAR(100) NOT NULL,
+  targetoid               VARCHAR(36)  NOT NULL,
+  description             CLOB,
+  dynamicDef              BOOLEAN,
+  filter                  CLOB,
+  relation_namespace      VARCHAR(255),
+  relation_localPart      VARCHAR(100),
+  targetType              INTEGER,
+  valueType               INTEGER,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, targetoid)
 );
 
 CREATE TABLE m_any_string (
-  name_namespace         VARCHAR(255) NOT NULL,
-  name_localPart         VARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
-  anyContainer_owner_oid VARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INTEGER      NOT NULL,
-  type_namespace         VARCHAR(255) NOT NULL,
-  type_localPart         VARCHAR(100) NOT NULL,
-  stringValue            VARCHAR(255) NOT NULL,
-  dynamicDef             BOOLEAN,
-  valueType              INTEGER,
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, stringValue)
+  name_namespace          VARCHAR(255) NOT NULL,
+  name_localPart          VARCHAR(100) NOT NULL,
+  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
+  anyContainer_owner_type INTEGER      NOT NULL,
+  type_namespace          VARCHAR(255) NOT NULL,
+  type_localPart          VARCHAR(100) NOT NULL,
+  stringValue             VARCHAR(255) NOT NULL,
+  dynamicDef              BOOLEAN,
+  valueType               INTEGER,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, stringValue)
 );
 
 CREATE TABLE m_assignment (
@@ -649,42 +649,42 @@ REFERENCES m_shadow;
 
 ALTER TABLE m_any_clob
 ADD CONSTRAINT fk_any_clob
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iDate ON m_any_date (dateValue);
 
 ALTER TABLE m_any_date
 ADD CONSTRAINT fk_any_date
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iLong ON m_any_long (longValue);
 
 ALTER TABLE m_any_long
 ADD CONSTRAINT fk_any_long
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iPolyString ON m_any_poly_string (orig);
 
 ALTER TABLE m_any_poly_string
 ADD CONSTRAINT fk_any_poly_string
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iTargetOid ON m_any_reference (targetoid);
 
 ALTER TABLE m_any_reference
 ADD CONSTRAINT fk_any_reference
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iString ON m_any_string (stringValue);
 
 ALTER TABLE m_any_string
 ADD CONSTRAINT fk_any_string
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);

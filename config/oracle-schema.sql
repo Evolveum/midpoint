@@ -22,101 +22,101 @@ CREATE TABLE m_account_shadow (
 ) INITRANS 30;
 
 CREATE TABLE m_any (
-  owner_id  NUMBER(19, 0)     NOT NULL,
-  owner_oid VARCHAR2(36 CHAR) NOT NULL,
-  ownerType NUMBER(10, 0)     NOT NULL,
-  PRIMARY KEY (owner_id, owner_oid, ownerType)
+  owner_id   NUMBER(19, 0)     NOT NULL,
+  owner_oid  VARCHAR2(36 CHAR) NOT NULL,
+  owner_type NUMBER(10, 0)     NOT NULL,
+  PRIMARY KEY (owner_id, owner_oid, owner_type)
 ) INITRANS 30;
 
 CREATE TABLE m_any_clob (
-  checksum               VARCHAR2(32 CHAR)  NOT NULL,
-  name_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  name_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  anyContainer_owner_id  NUMBER(19, 0)      NOT NULL,
-  anyContainer_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
-  anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
-  type_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  type_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  dynamicDef             NUMBER(1, 0),
-  clobValue              CLOB,
-  valueType              NUMBER(10, 0),
-  PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart)
+  checksum                VARCHAR2(32 CHAR)  NOT NULL,
+  name_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  name_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  anyContainer_owner_id   NUMBER(19, 0)      NOT NULL,
+  anyContainer_owner_oid  VARCHAR2(36 CHAR)  NOT NULL,
+  anyContainer_owner_type NUMBER(10, 0)      NOT NULL,
+  type_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  type_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  dynamicDef              NUMBER(1, 0),
+  clobValue               CLOB,
+  valueType               NUMBER(10, 0),
+  PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart)
 ) INITRANS 30;
 
 CREATE TABLE m_any_date (
-  name_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  name_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  anyContainer_owner_id  NUMBER(19, 0)      NOT NULL,
-  anyContainer_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
-  anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
-  type_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  type_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  dateValue              TIMESTAMP          NOT NULL,
-  dynamicDef             NUMBER(1, 0),
-  valueType              NUMBER(10, 0),
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, dateValue)
+  name_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  name_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  anyContainer_owner_id   NUMBER(19, 0)      NOT NULL,
+  anyContainer_owner_oid  VARCHAR2(36 CHAR)  NOT NULL,
+  anyContainer_owner_type NUMBER(10, 0)      NOT NULL,
+  type_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  type_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  dateValue               TIMESTAMP          NOT NULL,
+  dynamicDef              NUMBER(1, 0),
+  valueType               NUMBER(10, 0),
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, dateValue)
 ) INITRANS 30;
 
 CREATE TABLE m_any_long (
-  name_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  name_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  anyContainer_owner_id  NUMBER(19, 0)      NOT NULL,
-  anyContainer_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
-  anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
-  type_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  type_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  longValue              NUMBER(19, 0)      NOT NULL,
-  dynamicDef             NUMBER(1, 0),
-  valueType              NUMBER(10, 0),
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, longValue)
+  name_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  name_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  anyContainer_owner_id   NUMBER(19, 0)      NOT NULL,
+  anyContainer_owner_oid  VARCHAR2(36 CHAR)  NOT NULL,
+  anyContainer_owner_type NUMBER(10, 0)      NOT NULL,
+  type_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  type_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  longValue               NUMBER(19, 0)      NOT NULL,
+  dynamicDef              NUMBER(1, 0),
+  valueType               NUMBER(10, 0),
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, longValue)
 ) INITRANS 30;
 
 CREATE TABLE m_any_poly_string (
-  name_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  name_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  anyContainer_owner_id  NUMBER(19, 0)      NOT NULL,
-  anyContainer_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
-  anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
-  type_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  type_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  orig                   VARCHAR2(255 CHAR) NOT NULL,
-  dynamicDef             NUMBER(1, 0),
-  norm                   VARCHAR2(255 CHAR),
-  valueType              NUMBER(10, 0),
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, orig)
+  name_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  name_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  anyContainer_owner_id   NUMBER(19, 0)      NOT NULL,
+  anyContainer_owner_oid  VARCHAR2(36 CHAR)  NOT NULL,
+  anyContainer_owner_type NUMBER(10, 0)      NOT NULL,
+  type_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  type_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  orig                    VARCHAR2(255 CHAR) NOT NULL,
+  dynamicDef              NUMBER(1, 0),
+  norm                    VARCHAR2(255 CHAR),
+  valueType               NUMBER(10, 0),
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, orig)
 ) INITRANS 30;
 
 CREATE TABLE m_any_reference (
-  name_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  name_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  anyContainer_owner_id  NUMBER(19, 0)      NOT NULL,
-  anyContainer_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
-  anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
-  type_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  type_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  targetoid              VARCHAR2(36 CHAR)  NOT NULL,
-  description            CLOB,
-  dynamicDef             NUMBER(1, 0),
-  filter                 CLOB,
-  relation_namespace     VARCHAR2(255 CHAR),
-  relation_localPart     VARCHAR2(100 CHAR),
-  targetType             NUMBER(10, 0),
-  valueType              NUMBER(10, 0),
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, targetoid)
+  name_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  name_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  anyContainer_owner_id   NUMBER(19, 0)      NOT NULL,
+  anyContainer_owner_oid  VARCHAR2(36 CHAR)  NOT NULL,
+  anyContainer_owner_type NUMBER(10, 0)      NOT NULL,
+  type_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  type_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  targetoid               VARCHAR2(36 CHAR)  NOT NULL,
+  description             CLOB,
+  dynamicDef              NUMBER(1, 0),
+  filter                  CLOB,
+  relation_namespace      VARCHAR2(255 CHAR),
+  relation_localPart      VARCHAR2(100 CHAR),
+  targetType              NUMBER(10, 0),
+  valueType               NUMBER(10, 0),
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, targetoid)
 ) INITRANS 30;
 
 CREATE TABLE m_any_string (
-  name_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  name_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  anyContainer_owner_id  NUMBER(19, 0)      NOT NULL,
-  anyContainer_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
-  anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
-  type_namespace         VARCHAR2(255 CHAR) NOT NULL,
-  type_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  stringValue            VARCHAR2(255 CHAR) NOT NULL,
-  dynamicDef             NUMBER(1, 0),
-  valueType              NUMBER(10, 0),
-  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, stringValue)
+  name_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  name_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  anyContainer_owner_id   NUMBER(19, 0)      NOT NULL,
+  anyContainer_owner_oid  VARCHAR2(36 CHAR)  NOT NULL,
+  anyContainer_owner_type NUMBER(10, 0)      NOT NULL,
+  type_namespace          VARCHAR2(255 CHAR) NOT NULL,
+  type_localPart          VARCHAR2(100 CHAR) NOT NULL,
+  stringValue             VARCHAR2(255 CHAR) NOT NULL,
+  dynamicDef              NUMBER(1, 0),
+  valueType               NUMBER(10, 0),
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, stringValue)
 ) INITRANS 30;
 
 CREATE TABLE m_assignment (
@@ -652,42 +652,42 @@ REFERENCES m_shadow;
 
 ALTER TABLE m_any_clob
 ADD CONSTRAINT fk_any_clob
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iDate ON m_any_date (dateValue) INITRANS 30;
 
 ALTER TABLE m_any_date
 ADD CONSTRAINT fk_any_date
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iLong ON m_any_long (longValue) INITRANS 30;
 
 ALTER TABLE m_any_long
 ADD CONSTRAINT fk_any_long
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iPolyString ON m_any_poly_string (orig) INITRANS 30;
 
 ALTER TABLE m_any_poly_string
 ADD CONSTRAINT fk_any_poly_string
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iTargetOid ON m_any_reference (targetoid) INITRANS 30;
 
 ALTER TABLE m_any_reference
 ADD CONSTRAINT fk_any_reference
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iString ON m_any_string (stringValue) INITRANS 30;
 
 ALTER TABLE m_any_string
 ADD CONSTRAINT fk_any_string
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
 REFERENCES m_any;
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) INITRANS 30;
