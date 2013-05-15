@@ -28,4 +28,7 @@
     <givenName>James Jr.</givenName>
     <honorificSuffix>007</honorificSuffix>
     <locality>home</locality>
+    <activation>
+    	<effectiveStatus>disabled</effectiveStatus>
+    </activation>
 </c:object>

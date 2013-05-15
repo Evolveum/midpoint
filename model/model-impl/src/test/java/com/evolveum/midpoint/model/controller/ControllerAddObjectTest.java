@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -165,6 +166,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
 				PrismObject<UserType> user = (PrismObject<UserType>) invocation.getArguments()[0];
+				IntegrationTestTools.display("Got user", user);
 				PrismAsserts.assertEquivalent("Unexpected argument to addObject", expectedUser, user);
 
 				return oid;

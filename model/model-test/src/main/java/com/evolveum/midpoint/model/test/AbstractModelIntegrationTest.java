@@ -1275,5 +1275,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         		new UsernamePasswordAuthenticationToken(
         				new MidPointPrincipal(object.asObjectable()), null));
 	}
+	
+	protected void assertEffectiveActivationDeltaOnly(ObjectDelta<UserType> userDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+		assertEquals("Unexpected number of modification in "+desc, 1, userDelta.getModifications().size());
+		PropertyDelta<ActivationStatusType> effectiveStatusDelta = userDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		assertNotNull("No effective status delta in "+desc, effectiveStatusDelta);
+		PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
+	}
+
 
 }

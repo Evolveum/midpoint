@@ -31,6 +31,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -231,8 +233,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         // THEN
         display("Output context", context);
         
-        assertNull("Unexpected user primary changes"+context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
-        assertNull("Unexpected user secondary changes"+context.getFocusContext().getSecondaryDelta(), context.getFocusContext().getSecondaryDelta());
+        assertNull("Unexpected user primary changes "+context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -325,7 +327,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -380,7 +382,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNoChanges(context.getFocusContext().getSecondaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -432,7 +434,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNoChanges(context.getFocusContext().getSecondaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -486,7 +488,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNoChanges(context.getFocusContext().getSecondaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.DISABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -541,7 +543,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         // will be recomputed (e.g. "ship") and will bounce back by INBOUND
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         display("User Secondary Delta", userSecondaryDelta);
-        assertEquals("Unexpected number of user secondary changes", 1, userSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of user secondary changes", 2, userSecondaryDelta.getModifications().size());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -635,7 +637,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertNull("Unexpected user primary changes", context.getFocusContext().getPrimaryDelta());
-        assertNull("Unexpected user secondary changes", context.getFocusContext().getSecondaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -734,7 +736,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -787,7 +789,6 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
-        PrismAsserts.assertOrigin(userSecondaryDelta, OriginType.INBOUND);
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_DESCRIPTION, "Came from Monkey Island");
         
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
@@ -800,10 +801,19 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
 
-        // TODO
-        
+        // Activation is created in user policy. Therefore assert the origin of that as special case
+        // and remove it from the delta so the next assert passes
+        Iterator<? extends ItemDelta> iterator = userSecondaryDelta.getModifications().iterator();
+        while (iterator.hasNext()) {
+        	ItemDelta modification = iterator.next();
+        	if (ItemPath.getName(modification.getPath().first()).equals(UserType.F_ACTIVATION)) {
+        		PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
+        		iterator.remove();
+        	}
+        }
+        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
     }
-	
+
 	@Test
     public void test401ImportHermanDummy() throws Exception {
 		final String TEST_NAME = "test401ImportHermanDummy";
@@ -837,7 +847,6 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
-        PrismAsserts.assertOrigin(userSecondaryDelta, OriginType.INBOUND);
         
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -848,7 +857,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
-        
+
+        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
     }
 	
 	@Test
@@ -883,7 +893,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
         		PrismTestUtil.createPolyString("The crew of Black Pearl"));
-        PrismAsserts.assertOrigin(userSecondaryDelta, OriginType.INBOUND);
+        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
     }
 
 	@Test
@@ -945,7 +955,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
         		PrismTestUtil.createPolyString("The crew of The Sea Monkey"));
-        PrismAsserts.assertOrigin(userSecondaryDelta, OriginType.INBOUND);
+        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
     }
 
 	
@@ -987,10 +997,10 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         // There is an inbound mapping for password that generates it if not present. it is triggered in this case.
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-        assertEquals("Unexpected number of modifications in user secondary delta", 1, userSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of modifications in user secondary delta", 2, userSecondaryDelta.getModifications().size());
         ItemDelta modification = userSecondaryDelta.getModifications().iterator().next();
         assertEquals("Unexpected modification", PasswordType.F_VALUE, modification.getName());
-        PrismAsserts.assertOrigin(userSecondaryDelta, OriginType.INBOUND);
+        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
 
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -1058,4 +1068,19 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertNull("Found jack's shadow!", jackAccount);
 	}
 
+	private void assertOriginWithActivation(ObjectDelta<UserType> delta, OriginType expectedOrigi) {
+		// Activation is created in user policy. Therefore assert the origin of that as special case
+        // and remove it from the delta so the next assert passes
+        Iterator<? extends ItemDelta> iterator = delta.getModifications().iterator();
+        while (iterator.hasNext()) {
+        	ItemDelta modification = iterator.next();
+        	if (ItemPath.getName(modification.getPath().first()).equals(UserType.F_ACTIVATION)) {
+        		PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
+        		iterator.remove();
+        	}
+        }
+        PrismAsserts.assertOrigin(delta,expectedOrigi);
+	}
+
+	
 }

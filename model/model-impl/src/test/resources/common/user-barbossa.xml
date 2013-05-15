@@ -91,6 +91,10 @@
     <familyName>Barbossa</familyName>
     <locality>Caribbean</locality>
     
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    
     <credentials>
         <password>
         	<value>
