@@ -7,6 +7,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,6 +26,8 @@ public class ContainerValueDto implements Serializable {
         for (Object o : value.getItems()) {
             itemList.addAll(ContainerItemDto.createContainerValueDtoList((Item) o));
         }
+
+        Collections.sort(itemList);
     }
 
     public ContainerValueDto(PrismContainer container) {

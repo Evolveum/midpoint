@@ -5,7 +5,7 @@ package com.evolveum.midpoint.wf.processes.general;
  */
 public class ProcessVariableNames {
 
-    public static final String APPROVAL_REQUEST = "approvalRequest";
+    public static final String APPROVAL_REQUEST = "approvalRequest";            // of type ApprovalRequest
     public static final String APPROVAL_TASK_NAME = "approvalTaskName";
 
     public static final String ALL_DECISIONS = "allDecisions";

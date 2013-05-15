@@ -210,14 +210,16 @@ public class WorkItemProvider {
     }
 
     private PrismObject<? extends ObjectType> getRequestSpecificData(Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, WorkflowException {
+        return getChangeProcessor(task, variables).getRequestSpecificData(task, variables, result);
+    }
 
+    private ChangeProcessor getChangeProcessor(Task task, Map<String, Object> variables) {
         String cpClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
         if (cpClassName == null) {
             throw new IllegalStateException("Change processor is unknown for task: " + task);
         }
 
-        ChangeProcessor changeProcessor = wfConfiguration.findChangeProcessor(cpClassName);
-        return changeProcessor.getRequestSpecificData(task, variables, result);
+        return wfConfiguration.findChangeProcessor(cpClassName);
     }
 
 //    // TODO make more clean!
@@ -225,26 +227,8 @@ public class WorkItemProvider {
 //        return formProperty.getId().contains("" + FLAG_SEPARATOR_CHAR + flag);
 //    }
 
-    private PrismObject<ObjectType> getAdditionalData(Task task, Map<String,Object> variables, OperationResult result) throws ObjectNotFoundException {
-        Object d = variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_ADDITIONAL_DATA);
-
-        if (d instanceof ObjectType) {
-            return ((ObjectType) d).asPrismObject();
-        } else if (d instanceof PrismObject) {
-            return (PrismObject<ObjectType>) d;
-        } else if (d instanceof String && ((String) d).startsWith("@")) {   // brutal hack - reference to another process variable in the form of @variableName
-            d = variables.get(((String) d).substring(1));
-            if (d instanceof PrismObject) {
-                return (PrismObject<ObjectType>) d;
-            } else if (d instanceof ObjectType) {
-                return ((ObjectType) d).asPrismObject();
-            }
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Variable " + CommonProcessVariableNames.VARIABLE_MIDPOINT_ADDITIONAL_DATA + " found to be " + d + " but that's nothing useful at this moment.");
-        }
-        return null;
+    private PrismObject<? extends ObjectType> getAdditionalData(Task task, Map<String,Object> variables, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return getChangeProcessor(task, variables).getAdditionalData(task, variables, result);
     }
 
     private PrismObject<? extends ObjectType> getTrackingData(Task task, Map<String,Object> variables, OperationResult result) throws ObjectNotFoundException, SchemaException {

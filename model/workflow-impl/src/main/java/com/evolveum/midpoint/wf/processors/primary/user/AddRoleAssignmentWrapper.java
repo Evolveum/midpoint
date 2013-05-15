@@ -223,9 +223,6 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
 
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_ADDITIONAL_DATA, roleType);
-
-
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
             instruction.setDelta(delta);
             setDeltaProcessVariable(instruction, delta);
@@ -324,5 +321,15 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         return formPrism;
     }
 
+    @Override
+    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
+        ApprovalRequest<AssignmentType> approvalRequest = (ApprovalRequest<AssignmentType>) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
+        if (approvalRequest == null) {
+            throw new IllegalStateException("No approval request in activiti task " + task);
+        }
+
+        String oid = approvalRequest.getItemToApprove().getTargetRef().getOid();
+        return repositoryService.getObject(RoleType.class, oid, result);
+    }
 }

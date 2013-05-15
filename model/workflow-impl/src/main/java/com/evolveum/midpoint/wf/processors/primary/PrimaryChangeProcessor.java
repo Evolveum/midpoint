@@ -431,12 +431,19 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         task.savePendingModifications(result);
     }
 
-
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+        return getProcessWrapper(variables).getRequestSpecificData(task, variables, result);
+    }
+
+    @Override
+    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return getProcessWrapper(variables).getAdditionalData(task, variables, result);
+    }
+
+    private PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
         String wrapperClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
-        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperClassName);
-        return wrapper.getRequestSpecificData(task, variables, result);
+        return findProcessWrapper(wrapperClassName);
     }
 
     public PrimaryApprovalProcessWrapper findProcessWrapper(String name) {

@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.web.component.model.delta;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,17 +10,19 @@ import java.util.List;
 /**
  * @author Pavol
  */
-public class ContainerItemDto implements Serializable {
+public class ContainerItemDto implements Serializable, Comparable {
 
     public static final String F_ATTRIBUTE = "attribute";
     public static final String F_VALUE = "value";
 
     private String attribute;
     private Object value;
+    private int order;
 
-    public ContainerItemDto(String attribute, Object value) {
+    public ContainerItemDto(String attribute, Object value, int order) {
         this.attribute = attribute;
         this.value = value;
+        this.order = order;
     }
 
     public String getAttribute() {
@@ -34,6 +33,10 @@ public class ContainerItemDto implements Serializable {
         return value;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
     public static Collection<? extends ContainerItemDto> createContainerValueDtoList(Item item) {
 
         List<ContainerItemDto> retval = new ArrayList<ContainerItemDto>();
@@ -42,15 +45,28 @@ public class ContainerItemDto implements Serializable {
 
         for (Object o : item.getValues()) {
             if (o instanceof PrismPropertyValue) {
-                retval.add(new ContainerItemDto(attribute, ValueUtil.toStringValue((PrismPropertyValue) o)));
+                retval.add(new ContainerItemDto(attribute, ValueUtil.toStringValue((PrismPropertyValue) o), getOrder(o)));
             } else if (o instanceof PrismReferenceValue) {
-                retval.add(new ContainerItemDto(attribute, ValueUtil.toStringValue((PrismReferenceValue) o)));
+                retval.add(new ContainerItemDto(attribute, ValueUtil.toStringValue((PrismReferenceValue) o), getOrder(o)));
             } else if (o instanceof PrismContainerValue) {
-                retval.add(new ContainerItemDto(attribute, new ContainerValueDto((PrismContainerValue) o)));
+                retval.add(new ContainerItemDto(attribute, new ContainerValueDto((PrismContainerValue) o), getOrder(o)));
             }
         }
 
         return retval;
+    }
+
+    private static int getOrder(Object o) {
+        if (o instanceof PrismValue) {
+            PrismValue value = (PrismValue) o;
+            if (value.getParent() != null && value.getParent().getDefinition() != null) {
+                ItemDefinition itemDefinition = value.getParent().getDefinition();
+                if (itemDefinition.getDisplayOrder() != null) {
+                    return itemDefinition.getDisplayOrder();
+                }
+            }
+        }
+        return Integer.MAX_VALUE;
     }
 
     public static String getItemName(Item item) {
@@ -58,4 +74,22 @@ public class ContainerItemDto implements Serializable {
                 (item.getName() != null ? item.getName().getLocalPart() : "?");
     }
 
+    @Override
+    public int compareTo(Object o) {
+        if (o instanceof ContainerItemDto) {
+            ContainerItemDto other = (ContainerItemDto) o;
+            return ((Integer) this.order).compareTo(other.getOrder());
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ContainerItemDto{" +
+                "attribute='" + attribute + '\'' +
+                ", value=" + value +
+                ", order=" + order +
+                '}';
+    }
 }

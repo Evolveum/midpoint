@@ -45,8 +45,9 @@ public class ValueUtil {
             ConstructionType ct = (ConstructionType) value;
             Object resource = (ct.getResource() != null ? ct.getResource().getName() : (ct.getResourceRef() != null ? ct.getResourceRef().getOid() : null));
             return "resource object" + (resource != null ? " on " + resource : "") + (ct.getDescription() != null ? ": " + ct.getDescription() : "");
-        }
-        else {
+        } else if (value instanceof Enum) {
+            return value.toString();
+        } else {
             return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
         }
     }

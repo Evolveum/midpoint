@@ -102,6 +102,11 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         return null;        // todo implement this
     }
 
+    @Override
+    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+        return null;        // todo implement this
+    }
+
     private ApprovalRequest<String> createApprovalRequest(ItemDelta delta) {
 
         ObjectReferenceType approverRef = new ObjectReferenceType();
