@@ -54,4 +54,8 @@
     <familyName>Marley</familyName>
     <locality>Melee Island</locality>
     
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    
 </user>

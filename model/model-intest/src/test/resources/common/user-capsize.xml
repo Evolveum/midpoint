@@ -75,6 +75,10 @@
     <familyName>Capsize</familyName>
     <honorificPrefix>Captain</honorificPrefix>
     
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    
     <credentials>
         <password>
         	<value>
