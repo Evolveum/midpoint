@@ -167,6 +167,14 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="deprecated" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks deprecated parts of the schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="extension" type="xsd:QName">
         <xsd:annotation>

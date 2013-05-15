@@ -146,6 +146,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationValidityCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
@@ -550,6 +551,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		AttributeInfo passwordAttributeInfo = null;
 		AttributeInfo enableAttributeInfo = null;
+		AttributeInfo enableDateAttributeInfo = null;
+		AttributeInfo disableDateAttributeInfo = null;
 
 		// New instance of midPoint schema object
 		resourceSchema = new ResourceSchema(getSchemaNamespace(), prismContext);
@@ -602,6 +605,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				if (OperationalAttributes.ENABLE_NAME.equals(attributeInfo.getName())) {
 					enableAttributeInfo = attributeInfo;
+					// Skip this attribute, capability is sufficient
+					continue;
+				}
+				
+				if (OperationalAttributes.ENABLE_DATE_NAME.equals(attributeInfo.getName())) {
+					enableDateAttributeInfo = attributeInfo;
+					// Skip this attribute, capability is sufficient
+					continue;
+				}
+				
+				if (OperationalAttributes.DISABLE_DATE_NAME.equals(attributeInfo.getName())) {
+					disableDateAttributeInfo = attributeInfo;
 					// Skip this attribute, capability is sufficient
 					continue;
 				}
@@ -675,14 +690,43 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		capabilities = new ArrayList<Object>();
+		
+		ActivationCapabilityType capAct = null;
 
 		if (enableAttributeInfo != null) {
-			ActivationCapabilityType capAct = new ActivationCapabilityType();
+			if (capAct == null) {
+				capAct = new ActivationCapabilityType();
+			}
 			ActivationStatusCapabilityType capActStatus = new ActivationStatusCapabilityType();
 			capAct.setStatus(capActStatus);
 			if (!enableAttributeInfo.isReturnedByDefault()) {
 				capActStatus.setReturnedByDefault(false);
 			}
+		}
+		
+		if (enableDateAttributeInfo != null) {
+			if (capAct == null) {
+				capAct = new ActivationCapabilityType();
+			}
+			ActivationValidityCapabilityType capValidFrom = new ActivationValidityCapabilityType();
+			capAct.setValidFrom(capValidFrom);
+			if (!enableDateAttributeInfo.isReturnedByDefault()) {
+				capValidFrom.setReturnedByDefault(false);
+			}
+		}
+
+		if (disableDateAttributeInfo != null) {
+			if (capAct == null) {
+				capAct = new ActivationCapabilityType();
+			}
+			ActivationValidityCapabilityType capValidTo = new ActivationValidityCapabilityType();
+			capAct.setValidTo(capValidTo);
+			if (!disableDateAttributeInfo.isReturnedByDefault()) {
+				capValidTo.setReturnedByDefault(false);
+			}
+		}
+
+		if (capAct != null) {
 			capabilities.add(capabilityObjectFactory.createActivation(capAct));
 		}
 

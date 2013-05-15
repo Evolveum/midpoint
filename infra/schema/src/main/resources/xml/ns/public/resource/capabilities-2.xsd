@@ -23,6 +23,7 @@
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
     xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
     elementFormDefault="qualified"
@@ -36,7 +37,7 @@
             Defines resource capabilities such as ability to enable/disable account,
             ability to reset passwords, etc.
             
-            Version: 2.0
+            Version: 2.2-SNAPSHOT
             Recommended namespace prefix: cap
         </xsd:documentation>
         <xsd:appinfo>
@@ -99,9 +100,16 @@
 							<xsd:documentation>
 								DEPRECATED. Does not work any more. Use "status" instead.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="status" type="tns:ActivationStatusCapabilityType" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="validFrom" type="tns:ActivationValidityCapabilityType" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="validTo" type="tns:ActivationValidityCapabilityType" minOccurs="0">
 					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
@@ -176,6 +184,21 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ActivationValidityCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to provide activation validity dates (validFrom, validTo)
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
