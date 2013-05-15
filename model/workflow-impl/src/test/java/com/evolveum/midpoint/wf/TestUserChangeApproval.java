@@ -94,6 +94,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     protected static final String USER_BILL_FILENAME = COMMON_DIR_NAME + "/user-bill.xml";
     protected static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
+    private static final String DONT_CHECK = "dont-check";
 
     @Autowired(required = true)
 	private Clockwork clockwork;
@@ -133,7 +134,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	@Test(enabled = true)
     public void test010UserModifyAddRole() throws Exception {
         displayTestTile(this, "test010UserModifyAddRole");
-       	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, new ContextCreator() {
+       	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
                @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
                    LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -178,7 +179,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test011UserModifyAddRoleChangeGivenName() throws Exception {
         displayTestTile(this, "test011UserModifyAddRoleChangeGivenName");
-        executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, 1, false, new ContextCreator() {
+        executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -219,7 +220,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test012UserModifyAddRoleChangeGivenNameImmediate() throws Exception {
         displayTestTile(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
-        executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, 2, true, new ContextCreator() {
+        executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, 2, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -259,7 +260,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test020UserModifyAddThreeRoles() throws Exception {
         displayTestTile(this, "test020UserModifyAddThreeRoles");
-        executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, 2, false, new ContextCreator() {
+        executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, 2, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -309,7 +310,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test021UserModifyAddThreeRolesImmediate() throws Exception {
         displayTestTile(this, "test021UserModifyAddThreeRolesImmediate");
-        executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, 3, true, new ContextCreator() {
+        executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, 3, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -356,7 +357,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test030UserAdd() throws Exception {
         displayTestTile(this, "test030UserAdd");
-        executeTest("test030UserAdd", null, 2, false, new ContextCreator() {
+        executeTest("test030UserAdd", null, 2, false, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -391,6 +392,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 return decideOnRoleApproval(executionId);
             }
 
+            @Override
+            String getObjectOid(Task task, OperationResult result) throws SchemaException {
+                //return findUserInRepo("bill", result).getOid();
+                return DONT_CHECK;        // don't check in this case
+            }
         });
     }
 
@@ -400,7 +406,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         deleteUserFromModel("bill");
 
-        executeTest("test031UserAddImmediate", null, 3, true, new ContextCreator() {
+        executeTest("test031UserAddImmediate", null, 3, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -440,6 +446,10 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 return decideOnRoleApproval(executionId);
             }
 
+            @Override
+            String getObjectOid(Task task, OperationResult result) throws SchemaException {
+                return findUserInRepo("bill", result).getOid();
+            }
         });
     }
 
@@ -451,7 +461,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
         LOGGER.trace("password before test = " + originalPasswordValue);
 
-        executeTest("test040UserModifyPasswordChangeBlocked", USER_JACK_OID, 1, false, new ContextCreator() {
+        executeTest("test040UserModifyPasswordChangeBlocked", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -492,7 +502,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
         LOGGER.trace("password before test = " + originalPasswordValue);
 
-        executeTest("test041UserModifyPasswordChange", USER_JACK_OID, 1, false, new ContextCreator() {
+        executeTest("test041UserModifyPasswordChange", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -528,7 +538,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
         LOGGER.trace("password before test = " + originalPasswordValue);
 
-        executeTest("test050UserModifyAddRoleAndPasswordChange", USER_JACK_OID, 2, false, new ContextCreator() {
+        executeTest("test050UserModifyAddRoleAndPasswordChange", USER_JACK_OID, 2, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
@@ -566,6 +576,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
         void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
         boolean decideOnApproval(String executionId) throws Exception { return true; }
+        String getObjectOid(Task task, OperationResult result) throws SchemaException { return null; };
     }
 
     private boolean decideOnRoleApproval(String executionId) {
@@ -585,7 +596,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         }
     }
 	
-	private void executeTest(String testName, String oid, int sensitiveRolesAdded, boolean immediate, ContextCreator contextCreator) throws Exception {
+	private void executeTest(String testName, String oid, int sensitiveRolesAdded, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {
 
 		// GIVEN
         Task rootTask = taskManager.createTaskInstance(TestUserChangeApproval.class.getName() + "."+testName);
@@ -692,8 +703,29 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         waitForTaskClose(rootTask, 60000);
         contextCreator.assertsRootTaskFinishes(rootTask, result);
 
+        if (oid == null) {
+            oid = contextCreator.getObjectOid(rootTask, result);
+        }
+        assertNotNull("object oid is null after operation", oid);
+        if (!oid.equals(DONT_CHECK)) {
+            assertObjectInTaskTree(rootTask, oid, checkObjectOnSubtasks, result);
+        }
+
         display("Output context", context);
 	}
+
+    private void assertObjectInTaskTree(Task rootTask, String oid, boolean checkObjectOnSubtasks, OperationResult result) throws SchemaException {
+        assertObjectInTask(rootTask, oid);
+        if (checkObjectOnSubtasks) {
+            for (Task task : rootTask.listSubtasks(result)) {
+                assertObjectInTask(task, oid);
+            }
+        }
+    }
+
+    private void assertObjectInTask(Task task, String oid) {
+        assertEquals("Missing or wrong object OID in task " + task, oid, task.getObjectOid());
+    }
 
     protected void waitForTaskClose(final Task task, final int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskClose");

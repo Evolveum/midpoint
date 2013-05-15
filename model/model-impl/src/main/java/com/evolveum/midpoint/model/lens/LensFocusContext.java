@@ -21,6 +21,7 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -343,6 +344,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
         lensFocusContext.retrieveFromLensElementContextType(focusContextType, result);
         lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromObjectDeltaWavesType(focusContextType.getSecondaryDeltas(), lensContext.getPrismContext());
+
+        // fixing provisioning type in delta (however, this is not usually needed, unless primary object is shadow or resource
+        Objectable object;
+        if (lensFocusContext.getObjectNew() != null) {
+            object = lensFocusContext.getObjectNew().asObjectable();
+        } else if (lensFocusContext.getObjectOld() != null) {
+            object = lensFocusContext.getObjectOld().asObjectable();
+        } else {
+            object = null;
+        }
+        for (Object o : lensFocusContext.secondaryDeltas) {
+            ObjectDelta<? extends ObjectType> delta = (ObjectDelta<? extends ObjectType>) o;
+            if (delta != null) {
+                lensFocusContext.fixProvisioningTypeInDelta(delta, object, result);
+            }
+        }
+
         return lensFocusContext;
     }
 

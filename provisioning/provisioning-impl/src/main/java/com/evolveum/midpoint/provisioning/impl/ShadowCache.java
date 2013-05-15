@@ -535,7 +535,7 @@ public abstract class ShadowCache {
 	}
 
 
-	public void applyDefinition(ObjectDelta<ShadowType> delta, OperationResult parentResult)
+	public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType shadowTypeWhenNoOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		PrismObject<ShadowType> shadow = null;
 		ResourceShadowDiscriminator discriminator = null;
@@ -548,9 +548,13 @@ public abstract class ShadowCache {
 			} else {
 				String shadowOid = delta.getOid();
 				if (shadowOid == null) {
-					throw new IllegalArgumentException("No OID in object delta " + delta);
-				}
-				shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, parentResult);
+                    if (shadowTypeWhenNoOid == null) {
+					    throw new IllegalArgumentException("No OID in object delta " + delta + " and no externally-supplied shadow is present as well.");
+				    }
+                    shadow = shadowTypeWhenNoOid.asPrismObject();
+                } else {
+				    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, parentResult);
+                }
 			}
 		} else {
 			// Delete delta, nothing to do at all

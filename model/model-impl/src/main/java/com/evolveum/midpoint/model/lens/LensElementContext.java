@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -405,20 +406,28 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
         ObjectType objectTypeOld = lensElementContextType.getObjectOld();
         this.objectOld = objectTypeOld != null ? objectTypeOld.asPrismObject() : null;
-        fixProvisioningType(this.objectOld, result);
+        fixProvisioningTypeInObject(this.objectOld, result);
 
         ObjectType objectTypeNew = lensElementContextType.getObjectNew();
         this.objectNew = objectTypeNew != null ? objectTypeNew.asPrismObject() : null;
-        fixProvisioningType(this.objectNew, result);
+        fixProvisioningTypeInObject(this.objectNew, result);
+
+        ObjectType object = objectTypeNew != null ? objectTypeNew : objectTypeOld;
 
         ObjectDeltaType primaryDeltaType = lensElementContextType.getPrimaryDelta();
         this.primaryDelta = primaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(primaryDeltaType, lensContext.getPrismContext()) : null;
+        fixProvisioningTypeInDelta(this.primaryDelta, object, result);
 
         ObjectDeltaType secondaryDeltaType = lensElementContextType.getSecondaryDelta();
         this.secondaryDelta = secondaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
+        fixProvisioningTypeInDelta(this.secondaryDelta, object, result);
 
         for (LensObjectDeltaOperationType eDeltaOperationType : lensElementContextType.getExecutedDeltas()) {
-            this.executedDeltas.add(LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext()));
+            LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
+            if (objectDeltaOperation.getObjectDelta() != null) {
+                fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), object, result);
+            }
+            this.executedDeltas.add(objectDeltaOperation);
         }
 
         this.oid = lensElementContextType.getOid();
@@ -426,7 +435,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         // note: objectTypeClass is already converted (used in the constructor)
     }
 
-    private void fixProvisioningType(PrismObject<O> object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+    protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        if (delta != null && delta.getObjectTypeClass() != null && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass()) || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
+            lensContext.getProvisioningService().applyDefinition(delta, object, result);
+        }
+    }
+
+    private void fixProvisioningTypeInObject(PrismObject<O> object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
         if (object != null && object.getCompileTimeClass() != null && (ShadowType.class.isAssignableFrom(object.getCompileTimeClass()) || ResourceType.class.isAssignableFrom(object.getCompileTimeClass()))) {
             lensContext.getProvisioningService().applyDefinition(object, result);
         }

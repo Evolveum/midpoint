@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,10 +34,6 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1138,18 +1135,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){	
-			getShadowCache(Mode.STANDARD).applyDefinition((ObjectDelta<ShadowType>) delta, parentResult);
-		} else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())){
-			resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, parentResult);
-		} else {
-			throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
-		}
-		
-		
+		applyDefinition(delta, null, parentResult);
 	}
-	
-	@SuppressWarnings("unchecked")
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){
+            getShadowCache(Mode.STANDARD).applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, parentResult);
+        } else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())){
+            resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, parentResult);
+        } else {
+            throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
 	public <T extends ObjectType> void applyDefinition(PrismObject<T> object, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())){	

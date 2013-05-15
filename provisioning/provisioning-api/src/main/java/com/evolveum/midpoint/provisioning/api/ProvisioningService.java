@@ -25,6 +25,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -404,12 +405,18 @@ public interface ProvisioningService {
 			ObjectAlreadyExistsException, SecurityViolationException;
 
 	/**
-	 * Applies appropriate definition to the shadow delta.
+	 * Applies appropriate definition to the shadow/resource delta.
 	 */
 	public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult) 
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
-		
-	/**
+
+    /**
+     * Applies appropriate definition to the shadow/resource delta (uses provided object to get necessary information)
+     */
+    public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+
+    /**
 	 * Applies appropriate definition to the shadow.
 	 */
 	public <T extends ObjectType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult) 

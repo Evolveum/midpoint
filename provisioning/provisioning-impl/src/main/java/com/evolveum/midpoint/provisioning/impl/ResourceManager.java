@@ -762,7 +762,7 @@ public class ResourceManager {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, forceFresh, parentResult);
 	}
 
-	public void applyDefinition(ObjectDelta<ResourceType> delta, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		
 		if (delta.isAdd()) {
 			PrismObject<ResourceType> resource = delta.getObjectToAdd();
@@ -775,11 +775,17 @@ public class ResourceManager {
 		} else {
 			return;
 		}
-		
+
+        PrismObject<ResourceType> resource;
 		String resourceOid = delta.getOid();
-		Validate.notNull(resourceOid, "Resource oid not specified in the object delta. Could not apply definition.");
-		PrismObject<ResourceType>resource = getResource(resourceOid, objectResult);
-		ResourceType resourceType = resource.asObjectable();
+        if (resourceOid == null) {
+            Validate.notNull(resourceWhenNoOid, "Resource oid not specified in the object delta, and resource is not specified as well. Could not apply definition.");
+            resource = resourceWhenNoOid.asPrismObject();
+        } else {
+		    resource = getResource(resourceOid, objectResult);
+        }
+
+        ResourceType resourceType = resource.asObjectable();
 //		ResourceType resourceType = completeResource(resource.asObjectable(), null, objectResult);
 		//TODO TODO TODO FIXME FIXME FIXME copied from ObjectImprted..union this two cases
 		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resourceType);

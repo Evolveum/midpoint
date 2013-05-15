@@ -242,6 +242,10 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                 if (instruction == instruction0) {
                     task0 = childTask;
 
+                    // task0 should execute only after all subtasks are created, because when it finishes, it
+                    // writes some information to all dependent tasks (i.e. they must exist at that time)
+                    task0.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
+
                     // for add operations we have to propagate ObjectOID
                     if (context.getFocusContext().getPrimaryDelta().isAdd()) {
                         task0.pushHandlerUri(WfPropagateTaskObjectReferenceTaskHandler.HANDLER_URI, null, null);
@@ -294,6 +298,14 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
                     }
                 }
                 LOGGER.trace("Now the root task starts waiting for child tasks");
+            }
+
+            // resume task0, if it exists
+            if (task0 != null) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Resuming task0: " + task0);
+                }
+                taskManager.resumeTask(task0, result);
             }
 
             // now all children are created, we can start waiting

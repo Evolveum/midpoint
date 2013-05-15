@@ -410,6 +410,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
         return objectDeltaWavesType;
     }
 
+    // don't forget to apply provisioning definitions to resulting deltas (it's the client responsibility)
     public static ObjectDeltaWaves fromObjectDeltaWavesType(ObjectDeltaWavesType secondaryDeltas, PrismContext prismContext) throws SchemaException {
         if (secondaryDeltas == null) {
             return null;
