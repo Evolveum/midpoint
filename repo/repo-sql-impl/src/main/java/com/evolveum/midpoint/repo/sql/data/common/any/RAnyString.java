@@ -66,7 +66,7 @@ public class RAnyString implements RAnyValue {
     @PrimaryKeyJoinColumns({
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_oid", referencedColumnName = "ownerOid"),
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "ownerId"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_ownertype", referencedColumnName = "ownerType")
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_type", referencedColumnName = "owner_type")
     })
     public RAnyContainer getAnyContainer() {
         return anyContainer;
@@ -91,7 +91,7 @@ public class RAnyString implements RAnyValue {
     }
 
     @Id
-    @Column(name = "anyContainer_ownertype")
+    @Column(name = "anyContainer_owner_type")
     public RContainerType getOwnerType() {
         if (ownerType == null && anyContainer != null) {
             ownerType = anyContainer.getOwnerType();

@@ -316,6 +316,8 @@ public class SqlBaseService {
         }
         Date minValue = new Date();
         duration.addTo(minValue);
+        LOGGER.info("Starting cleanup for entity {} deleting up to {} (duration '{}').",
+                new Object[]{entity.getSimpleName(), minValue, duration});
 
         Session session = null;
         try {

@@ -110,7 +110,7 @@ public class RShadow extends RObject {
     @JoinColumns({
             @JoinColumn(name = "attrOid", referencedColumnName = "owner_oid"),
             @JoinColumn(name = "attrId", referencedColumnName = "owner_id"),
-            @JoinColumn(name = "attrType", referencedColumnName = "ownerType")
+            @JoinColumn(name = "attrType", referencedColumnName = "owner_type")
     })
     public RAnyContainer getAttributes() {
         return attributes;

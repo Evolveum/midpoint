@@ -51,6 +51,8 @@ import java.util.Set;
 @Table(name = "m_any")
 public class RAnyContainer implements Serializable {
 
+    public static final String OWNER_TYPE = "owner_type";
+
     private RContainer owner;
     private String ownerOid;
     private Long ownerId;
@@ -95,12 +97,12 @@ public class RAnyContainer implements Serializable {
     @GenericGenerator(name = "ContainerTypeGenerator",
             strategy = "com.evolveum.midpoint.repo.sql.util.ContainerTypeGenerator")
     @Enumerated(EnumType.ORDINAL)
-    @Column(name = "ownerType")
+    @Column(name = OWNER_TYPE)
     public RContainerType getOwnerType() {
         return ownerType;
     }
 
-    @OneToMany(mappedBy = "anyContainer", orphanRemoval = true)
+    @OneToMany(mappedBy = RAnyClob.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyClob> getClobs() {
         if (clobs == null) {
@@ -109,7 +111,7 @@ public class RAnyContainer implements Serializable {
         return clobs;
     }
 
-    @OneToMany(mappedBy = "anyContainer", orphanRemoval = true)
+    @OneToMany(mappedBy = RAnyLong.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyLong> getLongs() {
         if (longs == null) {
@@ -118,7 +120,7 @@ public class RAnyContainer implements Serializable {
         return longs;
     }
 
-    @OneToMany(mappedBy = "anyContainer", orphanRemoval = true)
+    @OneToMany(mappedBy = RAnyString.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyString> getStrings() {
         if (strings == null) {
@@ -127,7 +129,7 @@ public class RAnyContainer implements Serializable {
         return strings;
     }
 
-    @OneToMany(mappedBy = "anyContainer", orphanRemoval = true)
+    @OneToMany(mappedBy = RAnyDate.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyDate> getDates() {
         if (dates == null) {
@@ -136,7 +138,7 @@ public class RAnyContainer implements Serializable {
         return dates;
     }
 
-    @OneToMany(mappedBy = "anyContainer", orphanRemoval = true)
+    @OneToMany(mappedBy = RAnyReference.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyReference> getReferences() {
         if (references == null) {
@@ -145,7 +147,7 @@ public class RAnyContainer implements Serializable {
         return references;
     }
 
-    @OneToMany(mappedBy = "anyContainer", orphanRemoval = true)
+    @OneToMany(mappedBy = RAnyPolyString.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyPolyString> getPolys() {
         if (polys == null) {
