@@ -23,9 +23,12 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.data.common.RContainer;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,17 +36,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.PessimisticLockException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
+import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import javax.xml.datatype.Duration;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Date;
 
 /**
@@ -60,10 +63,12 @@ public class SqlBaseService {
     private static final long LOCKING_TIMEOUT_STEP = 50;
     private static final int LOCKING_EXP_THRESHOLD = 7;       // i.e. up to 6400 msec wait time
 
-    @Autowired(required = true)
+    @Autowired
     private PrismContext prismContext;
-    @Autowired(required = true)
+    @Autowired
     private SessionFactory sessionFactory;
+    @Autowired
+    private LocalSessionFactoryBean sessionFactoryBean;
 
     private SqlRepositoryFactory repositoryFactory;
 
@@ -323,27 +328,17 @@ public class SqlBaseService {
         try {
             session = beginTransaction();
 
-            String name;
-            Query query;
+            int count;
             if (RAuditEventRecord.class.equals(entity)) {
-                name = "audit records";
-
-                query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
-                        + " as a where a.timestamp < :timestamp");
-                query.setParameter("timestamp", new Timestamp(minValue.getTime()));
+                count = cleanupAudit(minValue, session);
             } else if (RTask.class.equals(entity)) {
-                name = "tasks";
-
-                query = session.createQuery("delete from " + entity.getSimpleName()
-                        + " as t where t.completionTimestamp < :timestamp");
-                query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
+                count = cleanupTasks(minValue, session);
             } else {
                 throw new SystemException("Unknown cleanup entity type '" + entity + "'.");
             }
 
-            int count = query.executeUpdate();
             LOGGER.info("Cleanup in {} performed, {} records deleted up to {} (duration '{}').",
-                    new Object[]{name, count, minValue, duration});
+                    new Object[]{entity.getSimpleName(), count, minValue, duration});
 
             session.getTransaction().commit();
         } catch (RuntimeException ex) {
@@ -351,5 +346,82 @@ public class SqlBaseService {
         } finally {
             cleanupSessionAndResult(session, subResult);
         }
+    }
+
+    private int cleanupAudit(Date minValue, Session session) {
+        Query query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
+                + " as a where a.timestamp < :timestamp");
+        query.setParameter("timestamp", new Timestamp(minValue.getTime()));
+
+        return query.executeUpdate();
+    }
+
+    private int cleanupTasks(Date minValue, Session session) {
+        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
+        final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
+        final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
+        final String containerTableName = namingStrategy.classToTableName(RContainer.class.getSimpleName());
+
+        final String completionTimestampColumn = "completionTimestamp";
+
+        Dialect dialect = Dialect.getDialect(sessionFactoryBean.getHibernateProperties());
+        //create temporary table
+        String prefix = "";
+        if (UnicodeSQLServer2008Dialect.class.equals(dialect.getClass())) {
+            prefix = "#";   //this creates temporary table as with global scope
+        }
+        final String tempTable = prefix + dialect.generateTemporaryTableName(taskTableName);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(dialect.getCreateTemporaryTableString());
+        sb.append(' ').append(tempTable).append(" (oid ");
+        sb.append(dialect.getTypeName(Types.VARCHAR, 36, 0, 0));
+        sb.append(" not null)");
+        sb.append(dialect.getCreateTemporaryTablePostfix());
+
+        SQLQuery query = session.createSQLQuery(sb.toString());
+        query.executeUpdate();
+
+        //fill temporary table
+        sb = new StringBuilder();
+        sb.append("insert into ").append(tempTable).append(' ');            //todo improve this insert
+        sb.append("select t.oid as oid from ").append(taskTableName).append(" t");
+        sb.append(" inner join ").append(objectTableName).append(" o on t.id = o.id and t.oid = o.oid");
+        sb.append(" inner join ").append(containerTableName).append(" c on t.id = c.id and t.oid = c.oid");
+        sb.append(" where t.").append(completionTimestampColumn).append(" < ?");
+
+        query = session.createSQLQuery(sb.toString());
+        query.setParameter(0, new Timestamp(minValue.getTime()));
+        query.executeUpdate();
+
+        //drop records from m_task, m_object, m_container
+        sb = new StringBuilder();
+        sb.append("delete from ").append(taskTableName);
+        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+        session.createSQLQuery(sb.toString()).executeUpdate();
+
+        sb = new StringBuilder();
+        sb.append("delete from ").append(objectTableName);
+        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+        session.createSQLQuery(sb.toString()).executeUpdate();
+
+        sb = new StringBuilder();
+        sb.append("delete from ").append(containerTableName);
+        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+        int count = session.createSQLQuery(sb.toString()).executeUpdate();
+
+        LOGGER.info("REMOVED {} OBJECTS.", new Object[]{count});
+
+        //drop temporary table
+        if (dialect.dropTemporaryTableAfterUse()) {
+            LOGGER.info("Dropping temporary table.");
+            sb = new StringBuilder();
+            sb.append(dialect.getDropTemporaryTableString());
+            sb.append(' ').append(tempTable);
+
+            session.createSQLQuery(sb.toString()).executeUpdate();
+        }
+
+        return count;
     }
 }

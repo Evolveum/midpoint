@@ -22,26 +22,26 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.data.common.RContainer;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
+import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
-import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.dialect.Dialect;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -50,11 +50,10 @@ import org.testng.annotations.Test;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.io.File;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -69,12 +68,6 @@ public class CleanupTest extends BaseSQLRepoTest {
 
     @Test
     public void testTasksCleanup() throws Exception {
-        //not a great solution, but better than nothing probably. disabling test if it's h2 DB
-        if (isH2used()) {
-            LOGGER.info("NOTE: SKIPPING THIS TEST, BECAUSE IT WOULD FAIL ON H2.");
-            return;
-        }
-
         // GIVEN
         final File file = new File(FOLDER_BASIC, "tasks.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
@@ -95,6 +88,7 @@ public class CleanupTest extends BaseSQLRepoTest {
         CleanupPolicyType policy = createPolicy(when, NOW);
 
         repositoryService.cleanupTasks(policy, result);
+        // doExperimentalCleanup(when);
 
         // THEN
         List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, result);
@@ -111,6 +105,83 @@ public class CleanupTest extends BaseSQLRepoTest {
         duration.addTo(mark);
 
         AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
+    }
+
+    private void doExperimentalCleanup(Calendar when) {
+        //experimental stuff before integration to main implementation
+        Session session = getFactory().openSession();
+        try {
+            session.beginTransaction();
+
+            MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
+            final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
+            final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
+            final String containerTableName = namingStrategy.classToTableName(RContainer.class.getSimpleName());
+
+            final String completionTimestampColumn = "completionTimestamp";
+
+            Dialect dialect = Dialect.getDialect(sessionFactoryBean.getHibernateProperties());
+            //create temporary table
+            String prefix = "";
+            if (UnicodeSQLServer2008Dialect.class.equals(dialect.getClass())) {
+                prefix = "#";   //this creates temporary table as with global scope
+            }
+            final String tempTable = prefix + dialect.generateTemporaryTableName(taskTableName);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(dialect.getCreateTemporaryTableString());
+            sb.append(' ').append(tempTable).append(" (oid ");
+            sb.append(dialect.getTypeName(Types.VARCHAR, 36, 0, 0));
+            sb.append(" not null)");
+            sb.append(dialect.getCreateTemporaryTablePostfix());
+
+            SQLQuery query = session.createSQLQuery(sb.toString());
+            query.executeUpdate();
+
+            //fill temporary table
+            sb = new StringBuilder();
+            sb.append("insert into ").append(tempTable).append(' ');            //todo improve this insert
+            sb.append("select t.oid as oid from ").append(taskTableName).append(" t");
+            sb.append(" inner join ").append(objectTableName).append(" o on t.id = o.id and t.oid = o.oid");
+            sb.append(" inner join ").append(containerTableName).append(" c on t.id = c.id and t.oid = c.oid");
+            sb.append(" where t.").append(completionTimestampColumn).append(" < ?");
+
+            query = session.createSQLQuery(sb.toString());
+            query.setParameter(0, new Timestamp(when.getTimeInMillis()));
+            query.executeUpdate();
+
+            //drop records from m_task, m_object, m_container
+            sb = new StringBuilder();
+            sb.append("delete from ").append(taskTableName);
+            sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+            session.createSQLQuery(sb.toString()).executeUpdate();
+
+            sb = new StringBuilder();
+            sb.append("delete from ").append(objectTableName);
+            sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+            session.createSQLQuery(sb.toString()).executeUpdate();
+
+            sb = new StringBuilder();
+            sb.append("delete from ").append(containerTableName);
+            sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+            long count = session.createSQLQuery(sb.toString()).executeUpdate();
+
+            LOGGER.info("REMOVED {} OBJECTS.", new Object[]{count});
+
+            //drop temporary table
+            if (dialect.dropTemporaryTableAfterUse()) {
+                LOGGER.info("Dropping temporary table.");
+                sb = new StringBuilder();
+                sb.append(dialect.getDropTemporaryTableString());
+                sb.append(' ').append(tempTable);
+
+                session.createSQLQuery(sb.toString()).executeUpdate();
+            }
+
+            session.getTransaction().commit();
+        } finally {
+            session.close();
+        }
     }
 
     private Calendar create_2013_07_12_12_00_Calendar() {
@@ -209,10 +280,10 @@ public class CleanupTest extends BaseSQLRepoTest {
     }
 
 //create temporary table if not exists HT_m_task (id bigint not null, oid varchar(36) not null)
-//insert into HT_m_task select rtask0_.id as id, rtask0_.oid as oid from m_task rtask0_
-//      inner join m_object rtask0_1_ on rtask0_.id=rtask0_1_.id and rtask0_.oid=rtask0_1_.oid
-//      inner join m_container rtask0_2_ on rtask0_.id=rtask0_2_.id and rtask0_.oid=rtask0_2_.oid
-//      where rtask0_.completionTimestamp<?
+//insert into HT_m_task select t.id as id, t.oid as oid from m_task t
+//      inner join m_object o on t.id=o.id and t.oid=o.oid
+//      inner join m_container c on t.id=c.id and t.oid=c.oid
+//      where t.completionTimestamp<?
 //delete from m_task where (id, oid) IN (select id, oid from HT_m_task)
 //delete from m_object where (id, oid) IN (select id, oid from HT_m_task)
 //delete from m_container where (id, oid) IN (select id, oid from HT_m_task)

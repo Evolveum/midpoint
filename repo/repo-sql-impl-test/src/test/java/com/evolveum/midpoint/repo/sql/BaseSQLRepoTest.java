@@ -50,7 +50,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     @Autowired
-    private LocalSessionFactoryBean sessionFactory;
+    protected LocalSessionFactoryBean sessionFactoryBean;
 
     @Autowired
     protected RepositoryService repositoryService;
@@ -96,7 +96,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     }
 
     protected boolean isH2used() {
-        String dialect = sessionFactory.getHibernateProperties().getProperty("hibernate.dialect");
+        String dialect = sessionFactoryBean.getHibernateProperties().getProperty("hibernate.dialect");
 
         return H2Dialect.class.getName().equals(dialect);
     }
