@@ -263,6 +263,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
         return objectType;
     }
     
+    @Override
+    public void refreshStatus(Task task) {
+        // Local task. No refresh needed. The Task instance has always fresh data.
+    }
     
 	protected abstract ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult);
 

@@ -229,11 +229,6 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 	}
 
     @Override
-    public void refreshStatus(Task task) {
-        // Local task. No refresh needed. The Task instance has always fresh data.
-    }
-
-    @Override
     public String getCategoryName(Task task) {
         return TaskCategory.IMPORTING_ACCOUNTS;
     }

@@ -24,19 +24,24 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.model.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -46,13 +51,16 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -62,6 +70,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -76,8 +85,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  *
  */
 @Component
-public class RecomputeTaskHandler implements TaskHandler {
-	
+public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<UserType> {
+
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/recompute-handler-1";
 
     @Autowired(required=true)
@@ -101,6 +110,10 @@ public class RecomputeTaskHandler implements TaskHandler {
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
 
 	private static final int SEARCH_MAX_SIZE = 100;
+	
+	public RecomputeTaskHandler() {
+        super(UserType.class, "Recompute users", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
+    }
 
 	@PostConstruct
 	private void initialize() {
@@ -108,136 +121,25 @@ public class RecomputeTaskHandler implements TaskHandler {
 	}
 	
 	@Override
-	public TaskRunResult run(Task task) {
-		LOGGER.trace("RecomputeTaskHandler.run starting");
-		
-		long progress = task.getProgress();
-		OperationResult opResult = new OperationResult(OperationConstants.RECOMPUTE);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
-//		String roleOid = task.getObjectOid();
-//		opResult.addContext("roleOid", roleOid);
-
-		try {
-
-			performUserRecompute(task, opResult);
-					
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Recompute: Object does not exist: {}",ex.getMessage(),ex);
-			// This is bad. The resource does not exist. Permanent problem.
-			opResult.recordFatalError("Object does not exist: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (ObjectAlreadyExistsException ex) {
-			LOGGER.error("Recompute: Object already exist: {}",ex.getMessage(),ex);
-			// This is bad. The resource does not exist. Permanent problem.
-			opResult.recordFatalError("Object already exist: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (CommunicationException ex) {
-			LOGGER.error("Recompute: Communication error: {}",ex.getMessage(),ex);
-			// Error, but not critical. Just try later.
-			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (SchemaException ex) {
-			LOGGER.error("Recompute: Error dealing with schema: {}",ex.getMessage(),ex);
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (PolicyViolationException ex) {
-			LOGGER.error("Recompute: Policy violation: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Policy violation: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (ExpressionEvaluationException ex) {
-			LOGGER.error("Recompute: Error evaluating expression: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (RuntimeException ex) {
-			LOGGER.error("Recompute: Internal Error: {}",ex.getMessage(),ex);
-			// Can be anything ... but we can't recover from that.
-			// It is most likely a programming error. Does not make much sense to retry.
-			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (ConfigurationException ex) {
-			LOGGER.error("Recompute: Configuration error: {}",ex.getMessage(),ex);
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			opResult.recordFatalError("Configuration error: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (SecurityViolationException ex) {
-			LOGGER.error("Recompute: Security violation: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Security violation: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		}
-		
-		opResult.computeStatus();
-		// This "run" is finished. But the task goes on ...
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);
-		LOGGER.trace("Recompute.run stopping");
-		return runResult;
+	protected ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) {
+		// Search all objects
+		return new ObjectQuery();
 	}
-
-
-	/**
-	 * Iterate over all the users, trigger a recompute of each of them
-	 */
-	private void performUserRecompute(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, 
-			ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException, 
-			PolicyViolationException, SecurityViolationException {
+	
+	@Override
+	protected AbstractSearchIterativeResultHandler<UserType> createHandler(TaskRunResult runResult, final Task task,
+			OperationResult opResult) {
 		
-//		PagingType paging = new PagingType();
-		
-		int offset = 0;
-		int progress = 0;
-		int errors = 0;
-		while (true) {
-			ObjectPaging paging = ObjectPaging.createPaging(offset, SEARCH_MAX_SIZE);
-			ObjectQuery q = ObjectQuery.createObjectQuery(paging);
-//			paging.setOffset(offset);
-//			paging.setMaxSize(SEARCH_MAX_SIZE);
-			List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, q, result);
-			if (users == null || users.isEmpty()) {
-				break;
+		AbstractSearchIterativeResultHandler<UserType> handler = new AbstractSearchIterativeResultHandler<UserType>(
+				task, RecomputeTaskHandler.class.getName(), "recompute", "recompute task") {
+			@Override
+			protected boolean handleOject(PrismObject<UserType> user, OperationResult result) throws CommonException {
+				recomputeUser(user, task, result);
+				return true;
 			}
-			for (PrismObject<UserType> user : users) {
-				OperationResult subResult = result.createMinorSubresult(OperationConstants.RECOMPUTE_USER);
-				subResult.addContext(OperationResult.CONTEXT_OBJECT, user);
-				recomputeUser(user, task, subResult);
-				subResult.computeStatus();
-				if (subResult.isFatalError()){
-					errors++;
-				}
-				progress++;
-			}
-			offset += SEARCH_MAX_SIZE;
-		}
+		};
 		
-		result.computeStatus();
-		result.cleanupResult();
-		
-	    String statistics = "Processed " + progress + " users, got " + errors + " errors.";
-
-        result.createSubresult(OperationConstants.RECOMPUTE_STATISTICS).recordStatus(OperationResultStatus.SUCCESS, statistics);
-		// TODO: result
-		
+		return handler;
 	}
 
 	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 
@@ -253,28 +155,9 @@ public class RecomputeTaskHandler implements TaskHandler {
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 		syncContext.setDoReconciliationForAllProjections(true);
 		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
-		try{
 		clockwork.run(syncContext, task, result);
-		} catch(Exception ex){
-			result.recordFatalError("Failed to recompute user "+user+". Reason: "+ ex.getMessage(), ex);
-			Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_RESULT, user.getDefinition(), result);
-		}
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
-		
-		// TODO: process result
 	}
-
-	@Override
-	public Long heartbeat(Task task) {
-		// TODO Auto-generated method stub
-		return 0L;
-	}
-
-	@Override
-	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.		
-	}
-
 
     @Override
     public String getCategoryName(Task task) {
