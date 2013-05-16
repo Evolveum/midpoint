@@ -356,6 +356,21 @@ public class SqlBaseService {
         return query.executeUpdate();
     }
 
+    /**
+     * This is attempt to do task cleanup by custom native queries. Hibernate tries to delete task
+     * through temporary table with columns oid, id. That's not a bad idea until it attempts to call
+     * delete from statement with "in" clause with two columns (oid, id). H2 and SQL Server fails
+     * with in clause that contains more than one column.
+     * <p/>
+     * Therefore this method do cleanup by creating temporary table only with oid (id is always 0).
+     * Maybe big schema cleanup would help or something like that.
+     * <p/>
+     * Somebody improve this when there's time for it.
+     *
+     * @param minValue
+     * @param session
+     * @return number of deleted tasks
+     */
     private int cleanupTasks(Date minValue, Session session) {
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
@@ -365,6 +380,13 @@ public class SqlBaseService {
         final String completionTimestampColumn = "completionTimestamp";
 
         Dialect dialect = Dialect.getDialect(sessionFactoryBean.getHibernateProperties());
+        if (!dialect.supportsTemporaryTables()) {
+            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup tasks.",
+                    new Object[]{dialect});
+            throw new SystemException("Dialect " + dialect
+                    + " doesn't support temporary tables, couldn't cleanup tasks.");
+        }
+
         //create temporary table
         String prefix = "";
         if (UnicodeSQLServer2008Dialect.class.equals(dialect.getClass())) {
@@ -410,11 +432,9 @@ public class SqlBaseService {
         sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
         int count = session.createSQLQuery(sb.toString()).executeUpdate();
 
-        LOGGER.info("REMOVED {} OBJECTS.", new Object[]{count});
-
         //drop temporary table
         if (dialect.dropTemporaryTableAfterUse()) {
-            LOGGER.info("Dropping temporary table.");
+            LOGGER.debug("Dropping temporary table.");
             sb = new StringBuilder();
             sb.append(dialect.getDropTemporaryTableString());
             sb.append(' ').append(tempTable);
