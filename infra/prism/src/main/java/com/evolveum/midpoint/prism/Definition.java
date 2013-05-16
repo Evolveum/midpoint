@@ -63,7 +63,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName defaultName;
 	protected QName typeName;
-	protected boolean ignored;
+	protected boolean ignored = false;
 	protected String displayName;
 	protected Integer displayOrder;
 	protected String help;
@@ -80,7 +80,6 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	// TODO: annotations
 	
 	Definition(QName defaultName, QName typeName, PrismContext prismContext) {
-		ignored = false;
 		if (typeName == null) {
 			throw new IllegalArgumentException("Type name can't be null.");
 		}

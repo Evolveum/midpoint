@@ -99,10 +99,10 @@ public class SchemaProcessorUtil {
 	 * empty element: true
 	 * non-empty element: parse element content as boolean
 	 */
-	public static boolean getAnnotationBooleanMarker(XSAnnotation annotation, QName qname) throws SchemaException {
+	public static Boolean getAnnotationBooleanMarker(XSAnnotation annotation, QName qname) throws SchemaException {
 		Element element = getAnnotationElement(annotation, qname);
 		if (element == null) {
-			return false;
+			return null;
 		}
 		String textContent = element.getTextContent();
 		if (textContent == null || textContent.isEmpty()) {

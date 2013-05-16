@@ -61,7 +61,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	protected QName name;
 	private int minOccurs = 1;
     private int maxOccurs = 1;
-    private boolean operational;
+    private boolean operational = false;
     private boolean dynamic;
 
 	// TODO: annotations

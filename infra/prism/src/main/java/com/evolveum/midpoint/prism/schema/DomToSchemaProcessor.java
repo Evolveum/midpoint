@@ -826,17 +826,13 @@ class DomToSchemaProcessor {
 		
 		// ignore
 		Boolean ignore = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_IGNORE);
-		if (ignore == null) {
-			itemDef.setIgnored(false);
-		} else {
+		if (ignore != null) {
 			itemDef.setIgnored(ignore);
 		}
 
 		// operational
 		Boolean operational = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_OPERATIONAL);
-		if (operational == null) {
-			itemDef.setOperational(false);
-		} else {
+		if (operational != null) {
 			itemDef.setOperational(operational);
 		}
 				

@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -97,5 +98,11 @@ public class SchemaTestUtil {
 		PrismAsserts.assertDefinition(accountRefDef, UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
 		assertEquals("Wrong target type in accountRef", ShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
 		assertEquals("Wrong composite object element name in accountRef", UserType.F_LINK, accountRefDef.getCompositeObjectElementName());
+		
+		PrismContainerDefinition<MetadataType> metadataContainer = userDefinition.findContainerDefinition(UserType.F_METADATA);PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
+		assertFalse("Metadata is runtime", metadataContainer.isRuntimeSchema());
+		assertFalse("Metadata is dynamic", metadataContainer.isDynamic());
+		assertTrue("Metadata is NOT operational", metadataContainer.isOperational());
+		assertEquals("Metadata size", 8, metadataContainer.getDefinitions().size());
 	}
 }

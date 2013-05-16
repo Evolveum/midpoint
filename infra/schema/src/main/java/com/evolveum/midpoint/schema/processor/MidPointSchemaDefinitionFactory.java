@@ -83,8 +83,12 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			ocDef.setKind(kind);
 		}
 		
-		boolean defaultInAKind = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, MidPointConstants.RA_DEFAULT);
-		ocDef.setDefaultInAKind(defaultInAKind);
+		Boolean defaultInAKind = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, MidPointConstants.RA_DEFAULT);
+		if (defaultInAKind == null) {
+			ocDef.setDefaultInAKind(false);
+		} else {
+			ocDef.setDefaultInAKind(defaultInAKind);
+		}
 		
 		String intent = null;
 		Element intentElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_INTENT);
