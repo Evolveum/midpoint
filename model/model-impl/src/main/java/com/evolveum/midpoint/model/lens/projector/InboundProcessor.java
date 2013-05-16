@@ -271,7 +271,9 @@ public class InboundProcessor {
 		mapping.setDefaultSource(defaultSource);
 		mapping.setTargetContext(getUserDefinition());
     	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
     	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account);
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account);
 		mapping.setStringPolicyResolver(createStringPolicyResolver(context));
 		mapping.setOriginType(OriginType.INBOUND);
 		mapping.setOriginObject(resource);
@@ -483,7 +485,16 @@ public class InboundProcessor {
         Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), sourceIdi.getDelta(), 
         		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
 		mapping.setDefaultSource(source);
+		
     	mapping.setDefaultTargetDefinition(property.getDefinition());
+    	
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
+    	
+    	PrismObject<ShadowType> accountNew = accContext.getObjectNew();
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
+    	
     	mapping.setStringPolicyResolver(createStringPolicyResolver(context));
     	mapping.setOriginType(OriginType.INBOUND);
     	mapping.setOriginObject(accContext.getResource());

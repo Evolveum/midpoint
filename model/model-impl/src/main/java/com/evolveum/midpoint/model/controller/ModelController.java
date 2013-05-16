@@ -57,12 +57,15 @@ import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -75,12 +78,14 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -95,6 +100,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -388,6 +394,69 @@ public class ModelController implements ModelService, ModelInteractionService {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (PolicyViolationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (RuntimeException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} finally {
+			RepositoryCache.exit();
+		}
+	}
+	
+	@Override
+	public <F extends FocusType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+			
+		OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
+		result.addParams(new String[] { "oid", "type" }, oid, type);
+		
+		RepositoryCache.enter();
+		
+		try {
+	
+			PrismObject<F> focus = objectResolver.getObject(type, oid, null, result).asPrismContainer();
+			
+			LOGGER.trace("Recomputing {}", focus);
+
+			LensContext<F, ShadowType> syncContext = new LensContext<F, ShadowType>(type,
+					ShadowType.class, prismContext, provisioning);
+			LensFocusContext<F> focusContext = syncContext.createFocusContext();
+			focusContext.setObjectOld(focus);
+			focusContext.setOid(focus.getOid());
+			syncContext.setChannel(task.getChannel());
+			syncContext.setDoReconciliationForAllProjections(true);
+			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.dump());
+
+			clockwork.run(syncContext, task, result);
+			
+			result.computeStatus();
+			
+			LOGGER.trace("Recomputing of {}: {}", focus, result.getStatus());
+			
+			result.cleanupResult();
+			
+		} catch (ExpressionEvaluationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (SchemaException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (PolicyViolationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (CommunicationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} catch (ConfigurationException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (SecurityViolationException e) {

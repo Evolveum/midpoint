@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -87,6 +88,7 @@ public interface ModelService {
 	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
 	String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
 	String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
+	String RECOMPUTE = CLASS_NAME_WITH_DOT + "recompute";
 	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
 	String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
 	String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
@@ -203,6 +205,18 @@ public interface ModelService {
 	void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult) 
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
+	/**
+	 * Recomputes focal object with the specified OID. The operation considers all the aplicable policies and
+	 * mapping and tries to re-apply them as necessary.
+	 * 
+	 * @param type type (class) of an object to recompute
+	 * @param oid OID of the object to recompute
+	 * @param task
+	 * @param parentResult parent OperationResult (in/out)
+	 */
+	<F extends FocusType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
+			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	/**
 	 * <p>

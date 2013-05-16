@@ -41,6 +41,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -169,6 +170,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected HookRegistry hookRegistry;
+	
+	@Autowired(required = true)
+	protected Clock clock;
 	
 	@Autowired(required = true)
 	protected PrismContext prismContext;

@@ -290,6 +290,12 @@ public class ActivationProcessor {
         	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
 		existenceMapping.addSource(focusExistsSource);
 		
+		// Variable: focus
+		existenceMapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
+
+        // Variable: user (for convenience, same as "focus")
+		existenceMapping.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+		
         existenceMapping.setOriginType(OriginType.OUTBOUND);
         existenceMapping.setOriginObject(accCtx.getResource());
         existenceMapping.evaluate(result);

@@ -300,6 +300,11 @@
             		</outbound>
             		<inbound>
             			<strength>weak</strength>
+            			<condition>
+            				<script>
+            					<code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
+            				</script>
+            			</condition>
             		</inbound>
             	</administrativeStatus>
             </activation>
