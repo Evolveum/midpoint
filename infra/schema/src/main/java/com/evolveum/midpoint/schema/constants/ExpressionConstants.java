@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 public class ExpressionConstants {
 
 	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
+	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");
 	public static final QName VAR_USER = new QName(SchemaConstants.NS_C, "user");
 	public static final QName VAR_ACCOUNT = new QName(SchemaConstants.NS_C, "account");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
@@ -36,6 +37,7 @@ public class ExpressionConstants {
 	
 	public static final QName VAR_LEGAL = new QName(SchemaConstants.NS_C, "legal");
 	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");
+	public static final QName VAR_ADMINISTRATIVE_STATUS = new QName(SchemaConstants.NS_C, "administrativeStatus");
 	
 	/**
 	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.

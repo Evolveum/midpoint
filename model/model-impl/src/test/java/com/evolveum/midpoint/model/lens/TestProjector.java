@@ -382,7 +382,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
+        assertNoChanges("user secondary delta", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -434,7 +434,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
+        assertNoChanges("user secondary delta", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -543,7 +543,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         // will be recomputed (e.g. "ship") and will bounce back by INBOUND
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         display("User Secondary Delta", userSecondaryDelta);
-        assertEquals("Unexpected number of user secondary changes", 2, userSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of user secondary changes", 1, userSecondaryDelta.getModifications().size());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
@@ -637,7 +637,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertNull("Unexpected user primary changes", context.getFocusContext().getPrimaryDelta());
-        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
+        assertNoChanges("user secondary delta", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();

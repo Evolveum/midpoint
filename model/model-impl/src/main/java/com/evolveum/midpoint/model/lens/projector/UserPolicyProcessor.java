@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -207,7 +208,14 @@ public class UserPolicyProcessor {
 				// There was no effective status change. But the status is not recorded. So let's record it so it can be used in searches. 
 				recordEffectiveStatusDelta(focusContext, effectiveStatusNew);
 			} else {
-				LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusOld, effectiveStatusNew);
+				if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().hasItemDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
+					LOGGER.trace("Forcing effective status delta even though there was no change ({} -> {}) because there is explicit administrativeStatus delta", effectiveStatusOld, effectiveStatusNew);
+					// We need this to force the change down to the projections later in the activation processor
+					// some of the mappings will use effectiveStatus as a source, therefore there has to be a delta for the mapping to work correctly
+					recordEffectiveStatusDelta(focusContext, effectiveStatusNew);
+				} else {
+					LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusOld, effectiveStatusNew);
+				}
 			}
 		} else {
 			LOGGER.trace("Effective status change {} -> {}", effectiveStatusOld, effectiveStatusNew);

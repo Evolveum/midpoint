@@ -110,6 +110,7 @@ public abstract class SchemaConstants {
 			PasswordType.F_VALUE);
 	public static final ItemPath PATH_ACTIVATION = new ItemPath(C_ACTIVATION);
 	public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = new ItemPath(C_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+	public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS = new ItemPath(C_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
 	public static final ItemPath PATH_ACTIVATION_VALID_FROM = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_FROM);
 	public static final ItemPath PATH_ACTIVATION_VALID_TO = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_TO);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);

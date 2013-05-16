@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -60,6 +61,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationValidityCapabilityType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -197,12 +201,40 @@ public class ActivationProcessor {
             LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", accCtxDesc);
             return;
         }
-    	
-    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
-    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
-    			ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), result);
-    
-    	// TODO: validFrom, validTo
+        
+        ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(accCtx.getResource(), ActivationCapabilityType.class);
+        if (capActivation == null) {
+        	LOGGER.trace("Skipping activation status and validity processing because {} has no activation capability", accCtx.getResource());
+        }
+
+        ActivationStatusCapabilityType capStatus = capActivation.getStatus();
+        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
+        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
+        
+        if (capStatus != null) {
+        	
+	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
+	    			capActivation, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), result);
+        } else {
+        	LOGGER.trace("Skipping activation status processing because {} does not have activation status capability", accCtx.getResource());
+        }
+
+        if (capValidFrom != null) {
+	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM, 
+	    			null, ActivationType.F_VALID_FROM.getLocalPart(), result);
+        } else {
+        	LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability", accCtx.getResource());
+        }
+	
+        if (capValidTo != null) {
+	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO, 
+	    			null, ActivationType.F_VALID_FROM.getLocalPart(), result);
+	    } else {
+	    	LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability", accCtx.getResource());
+	    }
     	
     }
     
@@ -272,7 +304,7 @@ public class ActivationProcessor {
     
 	private <T> void evaluateActivationMapping(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
    			ResourceBidirectionalMappingType bidirectionalMappingType, ItemPath focusPropertyPath, ItemPath projectionPropertyPath,
-   			String desc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+   			ActivationCapabilityType capActivation, String desc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         
    		String accCtxDesc = accCtx.toHumanReadableString();
 
@@ -305,11 +337,38 @@ public class ActivationProcessor {
         		return;
         	}
         }
+                
+        // Source: administrativeStatus, validFrom or validTo
+        ItemDeltaItem<PrismPropertyValue<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
         
-        // Source: administrativeStatus
-        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
-        Source<PrismPropertyValue<ActivationStatusType>> source = new Source<PrismPropertyValue<ActivationStatusType>>(sourceIdi, ExpressionConstants.VAR_INPUT);
-		mapping.setDefaultSource(source);
+		
+        if (capActivation != null) {
+	        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
+	        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
+	        
+	        // Source: computedShadowStatus
+	        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>> computedIdi;
+	        if (capValidFrom != null && capValidTo != null) {
+	        	// "Native" validFrom and validTo, directly use administrativeStatus
+	        	computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
+	        	
+	        } else {
+	        	// Simulate validFrom and validTo using effectiveStatus
+	        	computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
+	        	
+	        }
+	        
+	        Source<PrismPropertyValue<ActivationStatusType>> computedSource = new Source<PrismPropertyValue<ActivationStatusType>>(computedIdi, ExpressionConstants.VAR_INPUT);
+	        
+	        mapping.setDefaultSource(computedSource);
+	        
+	        Source<PrismPropertyValue<T>> source = new Source<PrismPropertyValue<T>>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS);
+	        mapping.addSource(source);
+	        
+        } else {
+        	Source<PrismPropertyValue<T>> source = new Source<PrismPropertyValue<T>>(sourceIdi, ExpressionConstants.VAR_INPUT);
+        	mapping.setDefaultSource(source);
+        }
         
 		// Source: legal
         ItemDeltaItem<PrismPropertyValue<Boolean>> legalIdi = getLegalIdi(accCtx);
@@ -322,6 +381,12 @@ public class ActivationProcessor {
         	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
         mapping.addSource(focusExistsSource);
         
+        // Variable: focus
+        mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
+
+        // Variable: user (for convenience, same as "focus")
+        mapping.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+
 		// Target
         PrismObjectDefinition<ShadowType> shadowDefinition = 
             	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);

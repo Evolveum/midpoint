@@ -31,10 +31,10 @@
 	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.expression" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.mapping" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.mapping" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model" level="TRACE" />
 	<!-- Projector "TRACE" is just too much info ... -->
-	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
 	<!-- ... and expression trace as well -->
 	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />

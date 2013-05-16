@@ -382,5 +382,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertNoChanges(ObjectDelta<?> delta) {
         assertNull("Unexpected changes: "+ delta, delta);
 	}
+	
+	protected void assertNoChanges(String desc, ObjectDelta<?> delta) {
+        assertNull("Unexpected changes in "+desc+": "+ delta, delta);
+	}
 
 }

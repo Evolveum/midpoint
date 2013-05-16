@@ -120,6 +120,7 @@ public class IntegrationTestTools {
 		if (!checkResults) {
 			return;
 		}
+		assertNotNull(message + ": null result", result);
 		// Ignore top-level if the operation name is not set
 		if (result.getOperation()!=null) {
 			if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {

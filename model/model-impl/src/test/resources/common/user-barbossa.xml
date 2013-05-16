@@ -93,6 +93,7 @@
     
     <activation>
     	<administrativeStatus>enabled</administrativeStatus>
+    	<effectiveStatus>enabled</effectiveStatus>
     </activation>
     
     <credentials>

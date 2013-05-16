@@ -35,6 +35,7 @@
     <locality>Melee Island</locality>
 	<activation>
 		<administrativeStatus>enabled</administrativeStatus>
+		<effectiveStatus>enabled</effectiveStatus>
 	</activation>
 	
 <!--     <credentials> -->

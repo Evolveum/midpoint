@@ -746,8 +746,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	        // Do not assert success yet. This may not be the right account.
 	        PrismObject<ShadowType> account = getAccount(accountOid, true, false);
 	        if (resourceOid.equals(account.asObjectable().getResourceRef().getOid())) {
-	        	OperationResultType fetchResult = account.asObjectable().getFetchResult();
-	        	IntegrationTestTools.assertSuccess("Failed to fetch account "+account, fetchResult);
+	        	// This is noFetch. Therefore there is no fetchResult
 	        	return accountOid;
 	        }
         }
