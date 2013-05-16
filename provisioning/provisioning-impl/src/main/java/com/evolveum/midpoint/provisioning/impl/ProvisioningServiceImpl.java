@@ -188,7 +188,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// schema
 				try {
 					resultingObject = (PrismObject<T>) resourceManager.getResource(oid, result);
-					resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 				} catch (ObjectNotFoundException ex) {
 					recordFatalError(LOGGER, result, "Resource object not found", ex);
 					throw ex;
@@ -252,8 +251,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 					resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow(oid,
 							(PrismObject<ShadowType>) (repositoryObject), options, result);
-					resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
-	
+		
 				} catch (ObjectNotFoundException e) {
 					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 					throw e;
@@ -274,11 +272,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 			} else {
 				resultingObject = repositoryObject;
-				resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 			}
 		}
 		
 		result.computeStatus();
+		if (!GetOperationOptions.isRaw(options)) {
+			resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
+		}
 		result.cleanupResult();
 		
 		validateObject(resultingObject);
