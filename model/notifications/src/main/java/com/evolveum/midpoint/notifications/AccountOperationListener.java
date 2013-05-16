@@ -21,16 +21,12 @@
 
 package com.evolveum.midpoint.notifications;
 
-import com.evolveum.midpoint.notifications.request.AccountNotificationRequest;
-import com.evolveum.midpoint.notifications.request.NotificationRequest;
+import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -44,8 +40,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.List;
 
 /**
  * @author mederly
@@ -128,6 +122,7 @@ public class AccountOperationListener implements ResourceOperationListener {
             return;
         }
 
+        // for the time being, we deal only with accounts here
         if (operationDescription.getObjectDelta().getObjectTypeClass() == null ||
                 !ShadowType.class.isAssignableFrom(operationDescription.getObjectDelta().getObjectTypeClass())) {
             if (LOGGER.isTraceEnabled()) {
@@ -137,33 +132,21 @@ public class AccountOperationListener implements ResourceOperationListener {
             return;
         }
 
-        SystemConfigurationType systemConfigurationType = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, result).asObjectable();
-        if (systemConfigurationType.getNotificationConfiguration() == null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("No notification configuration in repository, exiting the change listener.");
-            }
-            return;
-        }
-
-        AccountNotificationRequest request = createRequest(status, operationDescription, task, result);
+        AccountEvent request = createRequest(status, operationDescription, task, result);
         if (request != null) {
-            for (NotificationConfigurationEntryType entry : systemConfigurationType.getNotificationConfiguration().getEntry()) {
-                if (isRequestApplicable(request, entry)) {
-                    notificationManager.notify(request, entry, result);
-                }
-            }
+            notificationManager.processEvent(request, result);
         }
     }
 
-    private AccountNotificationRequest createRequest(OperationStatus status,
+    private AccountEvent createRequest(OperationStatus status,
                                                      ResourceOperationDescription operationDescription,
                                                      Task task,
                                                      OperationResult result) {
 
-        AccountNotificationRequest request = new AccountNotificationRequest();
-        request.setAccountOperationDescription(operationDescription);
-        request.setOperationStatus(status);
-        request.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping
+        AccountEvent event = new AccountEvent();
+        event.setAccountOperationDescription(operationDescription);
+        event.setOperationStatus(status);
+        event.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 
@@ -171,17 +154,24 @@ public class AccountOperationListener implements ResourceOperationListener {
         if (user == null) {
             return null;        // appropriate message is already logged
         }
-        request.setUser(user.asObjectable());
-        return request;
+
+        if (task.getOwner() != null) {
+            event.setRequester(task.getOwner().asObjectable());
+        } else {
+            LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
+        }
+        event.setRequestee(user.asObjectable());
+        event.setAccountOwner(user.asObjectable());
+        return event;
     }
 
-    private boolean isRequestApplicable(AccountNotificationRequest request, NotificationConfigurationEntryType entry) {
-
-        ResourceOperationDescription opDescr = request.getAccountOperationDescription();
-        OperationStatus status = request.getOperationStatus();
-        ChangeType type = opDescr.getObjectDelta().getChangeType();
-        return typeMatches(type, entry.getSituation(), opDescr) && statusMatches(status, entry.getSituation());
-    }
+//    private boolean isRequestApplicable(AccountEvent request, NotificationConfigurationEntryType entry) {
+//
+//        ResourceOperationDescription opDescr = request.getAccountOperationDescription();
+//        OperationStatus status = request.getOperationStatus();
+//        ChangeType type = opDescr.getObjectDelta().getChangeType();
+//        return typeMatches(type, entry.getSituation(), opDescr) && statusMatches(status, entry.getSituation());
+//    }
 
     private PrismObject<UserType> findRequestee(String accountOid, Task task, OperationResult result, boolean isDelete) {
         PrismObject<UserType> user;
@@ -229,50 +219,50 @@ public class AccountOperationListener implements ResourceOperationListener {
         }
     }
 
-    private boolean typeMatches(ChangeType type, List<QName> filter, ResourceOperationDescription operationDescription) {
-        if (type == ChangeType.ADD) {
-            return filter.contains(NotificationConstants.ACCOUNT_CREATION_QNAME);
-        } else if (type == ChangeType.MODIFY) {
-            return filter.contains(NotificationConstants.ACCOUNT_MODIFICATION_QNAME) && changedNotOnlySyncSituation(operationDescription);
-        } else if (type == ChangeType.DELETE) {
-            return filter.contains(NotificationConstants.ACCOUNT_DELETION_QNAME);
-        } else {
-            LOGGER.warn("Unknown account change type: " + type + ", no notification will be sent.");
-            return false;
-        }
-    }
-
-    // assuming: change type is MODIFY
-    private boolean changedNotOnlySyncSituation(ResourceOperationDescription operationDescription) {
-        if (operationDescription.getObjectDelta() == null) {
-            return true;        // dubious, but let's have it this way
-        } else {
-            for (ItemDelta id : operationDescription.getObjectDelta().getModifications()) {
-                if (!ShadowType.F_SYNCHRONIZATION_SITUATION.equals(id.getName()) &&
-                        !ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION.equals(id.getName())) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    private boolean statusMatches(OperationStatus status, List<QName> filter) {
-        boolean allowSuccess = filter.contains(NotificationConstants.SUCCESS_QNAME);
-        boolean allowInProgress = filter.contains(NotificationConstants.IN_PROGRESS_QNAME);
-        boolean allowFailure = filter.contains(NotificationConstants.FAILURE_QNAME);
-
-        if (!allowSuccess && !allowInProgress && !allowFailure) {
-            return true;
-        }
-
-        switch (status) {
-            case SUCCESS: return allowSuccess;
-            case IN_PROGRESS: return allowInProgress;
-            case FAILURE: return allowFailure;
-            default:
-                LOGGER.warn("Unknown operation status type: " + status + ", no notification will be sent.");
-                return false;
-        }
-    }
+//    private boolean typeMatches(ChangeType type, List<QName> filter, ResourceOperationDescription operationDescription) {
+//        if (type == ChangeType.ADD) {
+//            return filter.contains(NotificationConstants.ACCOUNT_CREATION_QNAME);
+//        } else if (type == ChangeType.MODIFY) {
+//            return filter.contains(NotificationConstants.ACCOUNT_MODIFICATION_QNAME) && changedNotOnlySyncSituation(operationDescription);
+//        } else if (type == ChangeType.DELETE) {
+//            return filter.contains(NotificationConstants.ACCOUNT_DELETION_QNAME);
+//        } else {
+//            LOGGER.warn("Unknown account change type: " + type + ", no notification will be sent.");
+//            return false;
+//        }
+//    }
+//
+//    // assuming: change type is MODIFY
+//    private boolean changedNotOnlySyncSituation(ResourceOperationDescription operationDescription) {
+//        if (operationDescription.getObjectDelta() == null) {
+//            return true;        // dubious, but let's have it this way
+//        } else {
+//            for (ItemDelta id : operationDescription.getObjectDelta().getModifications()) {
+//                if (!ShadowType.F_SYNCHRONIZATION_SITUATION.equals(id.getName()) &&
+//                        !ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION.equals(id.getName())) {
+//                    return true;
+//                }
+//            }
+//            return false;
+//        }
+//    }
+//
+//    private boolean statusMatches(OperationStatus status, List<QName> filter) {
+//        boolean allowSuccess = filter.contains(NotificationConstants.SUCCESS_QNAME);
+//        boolean allowInProgress = filter.contains(NotificationConstants.IN_PROGRESS_QNAME);
+//        boolean allowFailure = filter.contains(NotificationConstants.FAILURE_QNAME);
+//
+//        if (!allowSuccess && !allowInProgress && !allowFailure) {
+//            return true;
+//        }
+//
+//        switch (status) {
+//            case SUCCESS: return allowSuccess;
+//            case IN_PROGRESS: return allowInProgress;
+//            case FAILURE: return allowFailure;
+//            default:
+//                LOGGER.warn("Unknown operation status type: " + status + ", no notification will be sent.");
+//                return false;
+//        }
+//    }
 }

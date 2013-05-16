@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.notifications.transports;
 
+import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -32,50 +33,81 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailConfigurationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailTransportSecurityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.mail.Message;
+import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.mail.Session;
-import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.util.Properties;
 
 /**
  * @author mederly
  */
 @Component
-public class MailSender {
+public class MailTransport implements Transport {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MailSender.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MailTransport.class);
 
-    private static final String DOT_CLASS = MailSender.class.getName() + ".";
+    private static final String NAME = "mail";
+
+    private static final String DOT_CLASS = MailTransport.class.getName() + ".";
 
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
-    public void send(MailMessage mailMessage, OperationResult parentResult) {
+    @Autowired
+    private NotificationManager notificationManager;
+
+    @PostConstruct
+    public void init() {
+        notificationManager.registerTransport(NAME, this);
+    }
+
+    @Override
+    public void send(Message mailMessage, String transportName, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
-        result.addParam("mailMessage recipient", mailMessage.getTo());
+        result.addParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
         PrismObject<SystemConfigurationType> systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
         if (systemConfiguration == null || systemConfiguration.asObjectable().getNotificationConfiguration() == null
-                || systemConfiguration.asObjectable().getNotificationConfiguration().getMail() == null
-                || systemConfiguration.asObjectable().getNotificationConfiguration().getMail().getServer().isEmpty()) {
-            String msg = "Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.";
+                || systemConfiguration.asObjectable().getNotificationConfiguration().getMail() == null) {
+            String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
             result.recordWarning(msg);
             return;
         }
 
         MailConfigurationType mailConfigurationType = systemConfiguration.asObjectable().getNotificationConfiguration().getMail();
+        if (mailConfigurationType.getRedirectToFile() != null) {
+            try {
+                FileUtils.writeStringToFile(new File(mailConfigurationType.getRedirectToFile()), formatToFile(mailMessage));
+                result.recordSuccess();
+            } catch (IOException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't write to mail redirect file {}", e, mailConfigurationType.getRedirectToFile());
+                result.recordPartialError("Couldn't write to mail redirect file " + mailConfigurationType.getRedirectToFile(), e);
+            }
+            return;
+        }
+
+        if (mailConfigurationType.getServer().isEmpty()) {
+            String msg = "Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.";
+            LOGGER.warn(msg) ;
+            result.recordWarning(msg);
+            return;
+        }
+
         String from = mailConfigurationType.getDefaultFrom() != null ? mailConfigurationType.getDefaultFrom() : "nobody@nowhere.org";
 
         for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationType.getServer()) {
@@ -117,18 +149,20 @@ public class MailSender {
             }
 
             try {
-                MimeMessage message = new MimeMessage(session);
-                message.setFrom(new InternetAddress(from));
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress(mailMessage.getTo()));
-                message.setSubject(mailMessage.getSubject());
-                message.setContent(mailMessage.getBody(), mailMessage.getContentType());
-                Transport t = session.getTransport("smtp");
+                MimeMessage mimeMessage = new MimeMessage(session);
+                mimeMessage.setFrom(new InternetAddress(from));
+                for (String recipient : mailMessage.getTo()) {
+                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
+                }
+                mimeMessage.setSubject(mailMessage.getSubject());
+                mimeMessage.setContent(mailMessage.getBody(), mailMessage.getContentType());
+                javax.mail.Transport t = session.getTransport("smtp");
                 if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
                     t.connect(mailServerConfigurationType.getUsername(), mailServerConfigurationType.getPassword());
                 } else {
                     t.connect();
                 }
-                t.sendMessage(message, message.getAllRecipients());
+                t.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
                 LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + mailServerConfigurationType.getHost() + ".");
                 resultForServer.recordSuccess();
                 result.recordSuccess();
@@ -141,5 +175,9 @@ public class MailSender {
         }
         LOGGER.warn("No more mail servers to try, mail notification to " + mailMessage.getTo() + " will not be sent.") ;
         result.recordWarning("Mail notification to " + mailMessage.getTo() + " could not be sent.");
+    }
+
+    private String formatToFile(Message mailMessage) {
+        return "============================================ " + new Date() + "\n" + mailMessage.toString() + "\n\n";
     }
 }

@@ -21,23 +21,62 @@
         </appender>
     </logging>
     <notificationConfiguration>
-        <c:entry>
-            <c:situation>c:accountCreation</c:situation>
-            <c:situation>c:accountModification</c:situation>
-            <c:situation>c:accountDeletion</c:situation>
-            <c:notifier>
-                <c:name>c:dummyNotifier</c:name>
-            </c:notifier>
-        </c:entry>
-        <c:entry>
-            <c:situation>c:accountCreation</c:situation>
-            <c:situation>c:accountModification</c:situation>
-            <c:situation>c:accountDeletion</c:situation>
-            <c:situation>c:failure</c:situation>
-            <c:situation>c:inProgress</c:situation>
-            <c:notifier>
-                <c:name>c:dummyNotifier</c:name>
-            </c:notifier>
-        </c:entry>
+        <handlerChain name="new accounts with traditional filters, dummy and simpleAccount notifiers">
+            <categoryFilter>
+                <category>accountOperation</category>
+            </categoryFilter>
+            <operationFilter>
+                <operation>add</operation>
+            </operationFilter>
+            <statusFilter>
+                <status>success</status>
+            </statusFilter>
+            <dummyNotifier name="newAccounts"/>
+            <simpleAccountNotifier name="newAccounts">
+                <levelOfDetail>10</levelOfDetail>
+                <transport>mail</transport>
+                <transport>dummy:newAccounts</transport>
+            </simpleAccountNotifier>
+            <simpleAccountNotifier name="newAccountsExpressions">
+                <recipientExpression>
+                    <script>
+                        <code>java.util.Arrays.asList("test1","test2")</code>
+                    </script>
+                </recipientExpression>
+                <subjectExpression>
+                    <script>
+                        <code>"Changed account for " + requestee.getName().getOrig()</code>
+                    </script>
+                </subjectExpression>
+                <bodyExpression>
+                    <script>
+                        <code>"Body: Changed account for " + requestee.getName().getOrig()</code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:newAccounts-expressions</transport>
+            </simpleAccountNotifier>
+        </handlerChain>
+        <dummyNotifier />
+        <handlerChain name="new accounts with expression filter">
+            <expressionFilter name="add-account-success">
+                <expression>
+                    <description>Simple expression.</description>
+                    <script>
+                        <code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; event.isSuccess()</code>
+                    </script>
+                </expression>
+            </expressionFilter>
+            <dummyNotifier name="newAccountsViaExpression"/>
+        </handlerChain>
+        <simpleUserNotifier>
+            <recipientExpression>
+                <value>recipient@evolveum.com</value>
+            </recipientExpression>
+            <transport>mail</transport>
+            <transport>dummy:user</transport>
+        </simpleUserNotifier>
+        <mail>
+            <redirectToFile>target/notifications.log</redirectToFile>
+        </mail>
     </notificationConfiguration>
 </systemConfiguration>

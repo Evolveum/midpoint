@@ -35,6 +35,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.notifications.transports.DummyTransport;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -181,6 +182,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                                   // but AbstractModelIntegrationTest is used in other modules as well.
                                   // So until all POMs are modified we keep required=false here.
     protected DummyNotifier dummyNotifier;
+
+    @Autowired(required = false)
+    protected DummyTransport dummyTransport;
 	
 	protected DummyAuditService dummyAuditService;
 	

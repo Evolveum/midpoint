@@ -21,118 +21,82 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.notifications.NotificationConstants;
-import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.OperationStatus;
-import com.evolveum.midpoint.notifications.request.AccountNotificationRequest;
-import com.evolveum.midpoint.notifications.request.NotificationRequest;
-import com.evolveum.midpoint.notifications.NotificationsUtil;
-import com.evolveum.midpoint.notifications.transports.MailMessage;
-import com.evolveum.midpoint.notifications.transports.MailSender;
+import com.evolveum.midpoint.notifications.events.AccountEvent;
+import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotifierConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SimpleAccountNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import org.apache.cxf.common.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import java.util.Date;
 
 /**
  * @author mederly
  */
 @Component
-public class SimpleAccountOperationNotifier implements Notifier {
+public class SimpleAccountNotifier extends GeneralNotifier {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SimpleAccountOperationNotifier.class);
-
-    public static final String PARAMETER_SUBJECT_PREFIX = "subjectPrefix";
-    public static final String PARAMETER_TECHNICAL_INFORMATION = "technicalInformation";
-
-    @Autowired(required = true)
-    private MailSender mailSender;
-
-    @Autowired(required = true)
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-
-    public static final QName NAME = new QName(SchemaConstants.NS_C, "simpleAccountOperationNotifier");
-
-    @Autowired(required = true)
-    private NotificationManager notificationManager;
+    private static final Trace LOGGER = TraceManager.getTrace(SimpleAccountNotifier.class);
+    private static final Integer LEVEL_TECH_INFO = 10;
 
     @PostConstruct
     public void init() {
-        notificationManager.registerNotifier(NAME, this);
+        register(SimpleAccountNotifierType.class);
     }
 
     @Override
-    public void notify(NotificationRequest request,
-                       NotificationConfigurationEntryType notificationConfigurationEntry,
-                       NotifierConfigurationType notifierConfiguration,
-                       OperationResult result) {
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("SimpleAccountOperationNotifier was called; notification request = " + request);
+    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+        if (!(event instanceof AccountEvent)) {
+            LOGGER.trace("SimpleAccountNotifier was called with incompatible notification event; class = " + event.getClass());
+            return false;
+        } else {
+            return true;
         }
-
-        if (!(request instanceof AccountNotificationRequest)) {
-            LOGGER.error("SimpleAccountOperationNotifier got called with incompatible notification request; class = " + request.getClass());
-            return;
-        }
-
-        AccountNotificationRequest accountNotificationRequest = (AccountNotificationRequest) request;
-
-        UserType userType = request.getUser();
-        if (userType == null) {
-            LOGGER.info("Unknown owner of changed account, notification will not be sent.");
-            return;
-        }
-
-        String email = userType.getEmailAddress();
-        if (StringUtils.isEmpty(email)) {
-            LOGGER.info("Notification to " + userType.getName() + " will not be sent, because the user has no mail address set.");
-            return;
-        }
-
-        StringBuilder body = new StringBuilder();
-        StringBuilder subject = new StringBuilder(NotificationsUtil.getNotifierParameter(notifierConfiguration, PARAMETER_SUBJECT_PREFIX, ""));
-        boolean techInfo = "true".equals(NotificationsUtil.getNotifierParameter(notifierConfiguration, PARAMETER_TECHNICAL_INFORMATION, "false"));
-        prepareMessageText(accountNotificationRequest, body, subject, techInfo);
-
-        MailMessage mailMessage = new MailMessage();
-        mailMessage.setBody(body.toString());
-        mailMessage.setContentType("text/plain");
-        mailMessage.setSubject(subject.toString());
-        mailMessage.setTo(email);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Sending mail message " + mailMessage);
-        }
-        mailSender.send(mailMessage, result);
     }
 
-    private void prepareMessageText(AccountNotificationRequest request, StringBuilder body, StringBuilder subject, boolean techInfo) {
+    @Override
+    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
 
-        UserType requestee = request.getUser();
-        ResourceOperationDescription rod = request.getAccountOperationDescription();
+        AccountEvent accountEvent = (AccountEvent) event;
+
+        ResourceOperationDescription rod = accountEvent.getAccountOperationDescription();
+        ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
+
+        if (delta.isAdd()) {
+            return "Account creation notification";
+        } else if (delta.isModify()) {
+            return "Account modification notification";
+        } else if (delta.isDelete()) {
+            return "Account deletion notification";
+        } else {
+            return "(unknown account operation)";
+        }
+    }
+
+    @Override
+    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
+
+        boolean techInfo = generalNotifierType.getLevelOfDetail() != null && generalNotifierType.getLevelOfDetail() >= LEVEL_TECH_INFO;
+
+        StringBuilder body = new StringBuilder();
+
+        AccountEvent accountEvent = (AccountEvent) event;
+
+        UserType owner = accountEvent.getAccountOwner();
+        ResourceOperationDescription rod = accountEvent.getAccountOperationDescription();
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
         body.append("Notification about account-related operation\n\n");
-        body.append("User (requestee): " + requestee.getFullName() + " (" + requestee.getName() + ", oid " + requestee.getOid() + ")\n");
+        body.append("User: " + owner.getFullName() + " (" + owner.getName() + ", oid " + owner.getOid() + ")\n");
         body.append("Notification created on: " + new Date() + "\n\n");
         body.append("Resource: " + rod.getResource().asObjectable().getName() + " (oid " + rod.getResource().getOid() + ")\n");
         boolean named;
@@ -145,27 +109,25 @@ public class SimpleAccountOperationNotifier implements Notifier {
         body.append("\n");
 
         body.append((named ? "The" : "An") + " account ");
-        switch (request.getOperationStatus()) {
+        switch (event.getOperationStatus()) {
             case SUCCESS: body.append("has been successfully "); break;
             case IN_PROGRESS: body.append("has been ATTEMPTED to be "); break;
             case FAILURE: body.append("FAILED to be "); break;
         }
+
         if (delta.isAdd()) {
             body.append("created on the resource.\n\n");
-            subject.append("Account creation notification");
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");
             for (ItemDelta itemDelta : delta.getModifications()) {
                 body.append(" - " + itemDelta.getName().getLocalPart() + "\n");
             }
             body.append("\n");
-            subject.append("Account modification notification");
         } else if (delta.isDelete()) {
             body.append("removed from the resource.\n\n");
-            subject.append("Account deletion notification");
         }
 
-        if (request.getOperationStatus() == OperationStatus.IN_PROGRESS) {
+        if (event.getOperationStatus() == OperationStatus.IN_PROGRESS) {
             body.append("The operation will be retried.\n\n");
         }
 
@@ -174,7 +136,10 @@ public class SimpleAccountOperationNotifier implements Notifier {
             body.append("Technical information:\n\n");
             body.append(rod.debugDump(2));
         }
+
+        return body.toString();
     }
+
 
 //    private String getLocalPart(QName name) {
 //        if (name == null) {

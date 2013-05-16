@@ -30,12 +30,15 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.notifications.events.AccountEvent;
+import com.evolveum.midpoint.notifications.transports.Message;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -244,6 +247,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		purgeScriptHistory();
 		dummyAuditService.clear();
         dummyNotifier.clearRecords();
+        dummyTransport.clearMessages();
         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -289,15 +293,41 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         display("Notifier", dummyNotifier);
-        assertEquals("Invalid number of notification records", 1, dummyNotifier.getRecords().size());
-        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords().get(0);
-        assertEquals("Wrong user in notification record", USER_JACK_OID, record.getRequest().getUser().getOid());
-        assertEquals("Wrong number of account OIDs in notification record", 1, record.getAccountsOids().size());
-        assertEquals("Wrong account OID in notification record", accountOid, record.getAccountsOids().iterator().next());
-        assertEquals("Wrong change type in notification record", ChangeType.ADD, record.getFirstChangeType());
+        checkTest100NotificationRecords("newAccounts");
+        checkTest100NotificationRecords("newAccountsViaExpression");
+
+        List<Message> messages = dummyTransport.getMessages("dummy:newAccounts");
+        assertNotNull("No messages recorded in dummy transport", messages);
+        assertEquals("Invalid number of messages recorded in dummy transport", 1, messages.size());
+        Message message = messages.get(0);
+        assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
+
+        messages = dummyTransport.getMessages("dummy:newAccounts-expressions");
+        assertNotNull("No messages recorded in dummy transport (expressions)", messages);
+        assertEquals("Invalid number of messages recorded in dummy transport (expressions)", 1, messages.size());
+        message = messages.get(0);
+        assertEquals("Invalid list of recipients (expressions)", Arrays.asList("test1", "test2"), message.getTo());
+        assertEquals("Invalid message subject", "Changed account for jack", message.getSubject());
+        assertEquals("Invalid message body", "Body: Changed account for jack", message.getBody());
+
+//        messages = dummyTransport.getMessages("dummy:user");
+//        assertNotNull("No messages recorded in dummy transport (user)", messages);
+//        assertEquals("Invalid number of messages recorded in dummy transport (user)", 1, messages.size());
+//        message = messages.get(0);
+//        assertEquals("Invalid list of recipients (user)", Arrays.asList("recipient@evolveum.com"), message.getTo());
+//        assertEquals("Invalid message subject", "User modification notification", message.getSubject());
 	}
-	
-	@Test
+
+    private void checkTest100NotificationRecords(String notifierName) {
+        assertEquals("Invalid number of notification records [" + notifierName + "]", 1, dummyNotifier.getRecords(notifierName).size());
+        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords(notifierName).get(0);
+        assertEquals("Wrong user in notification record [" + notifierName + "]", USER_JACK_OID, ((AccountEvent) record.getEvent()).getAccountOwner().getOid());
+        assertEquals("Wrong number of account OIDs in notification record [" + notifierName + "]", 1, record.getAccountsOids().size());
+        assertEquals("Wrong account OID in notification record [" + notifierName + "]", accountOid, record.getAccountsOids().iterator().next());
+        assertEquals("Wrong change type in notification record [" + notifierName + "]", ChangeType.ADD, record.getFirstChangeType());
+    }
+
+    @Test
     public void test101GetAccount() throws Exception {
         displayTestTile(this, "test101GetAccount");
 

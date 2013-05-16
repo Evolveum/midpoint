@@ -103,8 +103,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
-    
+
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
     <!-- ################################## -->
@@ -6182,7 +6181,7 @@
 <!--                     		</xsd:appinfo> -->
 <!--                         </xsd:annotation> -->
 <!--                     </xsd:element> -->
-                    <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0">
+                    <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 A configuration for user notifications. In future, it might be overriden e.g. at a level
@@ -6731,72 +6730,10 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="NotificationConfigurationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A configuration for user notifications. It defines how should be notifications created in various
-                situations, e.g. when an account is created or removed.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="entry" type="tns:NotificationConfigurationEntryType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0" />
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
-
-    <xsd:complexType name="NotificationConfigurationEntryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                One entry of a configuration of notifications.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="situation" type="xsd:QName" minOccurs="1" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        e.g. c:accountCreation, c:accountModification, c:workItemCreation, ...
-                        If there are more than one, the entry is applied if any of them matches.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="situationQualifier" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Information supplementing the situation specification, e.g. a resource on which an account creation is to be watched.
-                        Not implemented yet.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="notifier" type="tns:NotifierConfigurationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Notifier(s) to be used, along with their parameters.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="NotifierConfigurationType">
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:QName" />
-            <xsd:element name="parameter" type="tns:NotifierConfigurationParameterType" minOccurs="0" maxOccurs="unbounded" />
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="NotifierConfigurationParameterType">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-                <xsd:attribute name="name" type="xsd:string"/>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
-
     <xsd:complexType name="MailConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Where and how to send mail notifications.
+                Where and how to send mail notifications (or any other mail messages).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -6819,6 +6756,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Enables quite crude debugging of javamail - sending diagnostics to standard output (console).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Instead of sending mail via SMTP, writes all messages to a file. Useful for debugging.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -7205,6 +7149,328 @@
             <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+
+    <!-- notifications -->
+
+    <xsd:complexType name="NotificationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A configuration for user notifications. It defines how should be notifications created in various
+                situations, e.g. when an account is created or removed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
+            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
+
+    <xsd:complexType name="EventHandlerType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An event handler - typically either a filter, a notifier, a fork (fan-out), or a chain of handlers.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A note about the filter, e.g. for the administrator.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Symbolic name, used either as a comment or (in the future) maybe to reference the filter.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:element name="handler" type="tns:EventHandlerType" abstract="true" />
+
+    <xsd:complexType name="EventHandlerChainType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A chain of event handlers, usually filters and notifiers.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="handlerChain" type="tns:EventHandlerChainType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventHandlerForkType">
+        <xsd:annotation>
+            <xsd:documentation>
+                ...
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="fork" type="tns:EventHandlerForkType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventCategoryFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="category" type="tns:EventCategoryType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="categoryFilter" type="tns:EventCategoryFilterType" substitutionGroup="tns:handler" />
+
+    <xsd:simpleType name="EventCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="accountOperation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCOUNT_OPERATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="userOperation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USER_OPERATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workItemOperation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORK_ITEM_OPERATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="EventStatusFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="tns:EventStatusType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="statusFilter" type="tns:EventStatusFilterType" substitutionGroup="tns:handler" />
+
+    <xsd:simpleType name="EventStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="success">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUCCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="failure">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FAILURE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inProgress">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_PROGRESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="EventOperationFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="operation" type="tns:EventOperationType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="operationFilter" type="tns:EventOperationFilterType" substitutionGroup="tns:handler" />
+
+    <xsd:simpleType name="EventOperationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="add">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modify">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delete">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="EventExpressionFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="expression" type="c:ExpressionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that returns true (if the event is to be passed further) or false (if it has to be thrown off).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="expressionFilter" type="tns:EventExpressionFilterType" substitutionGroup="tns:handler" />
+
+    <!-- notifiers -->
+
+    <xsd:complexType name="GeneralNotifierType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="recipientExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Recipient(s) that should get the notifications. Exact form is to be determined yet,
+                                but here may be mail addresses, phone numbers, etc. We need to think how to distinguish
+                                these kinds of destinations.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subjectExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How to construct the subject of the message that is to be sent.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subjectPrefix" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Simpler alternative to subjectExpression: the subject itself will be constructed by the notifier,
+                                but it will be prefixed by value specified here.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="bodyExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How to construct the body (text) of the message that is to be sent.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="levelOfDetail" type="xsd:int" minOccurs="0" />
+                    <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimpleAccountNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="simpleAccountNotifier" type="tns:SimpleAccountNotifierType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="SimpleUserNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="UserPasswordNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="userPasswordNotifier" type="tns:UserPasswordNotifierType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="DummyNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="dummyNotifier" type="tns:DummyNotifierType" substitutionGroup="tns:handler" />
+
 
 </xsd:schema>
 

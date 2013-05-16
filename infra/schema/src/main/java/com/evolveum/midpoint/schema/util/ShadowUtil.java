@@ -313,5 +313,14 @@ public class ShadowUtil {
 					+attributesDefinition.getClass()+" instead in "+desc);
     	}
 	}
+
+    // TODO is this correct?
+    public static boolean isAccount(ShadowType shadowType) {
+        if (shadowType.getKind() != null) {
+            return shadowType.getKind() == ShadowKindType.ACCOUNT;
+        } else {
+            return true;        // ???
+        }
+    }
 	
 }

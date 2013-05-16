@@ -21,24 +21,21 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.notifications.NotificationConstants;
+import com.evolveum.midpoint.notifications.handlers.BaseHandler;
+import com.evolveum.midpoint.notifications.handlers.EventHandler;
 import com.evolveum.midpoint.notifications.NotificationManager;
-import com.evolveum.midpoint.notifications.request.AccountNotificationRequest;
-import com.evolveum.midpoint.notifications.request.NotificationRequest;
+import com.evolveum.midpoint.notifications.events.AccountEvent;
+import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotifierConfigurationType;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.DummyNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -49,77 +46,72 @@ import java.util.*;
  */
 
 @Component
-public class DummyNotifier implements Notifier, Dumpable {
+public class DummyNotifier extends BaseHandler implements Dumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DummyNotifier.class);
 
-    public static final QName NAME = new QName(SchemaConstants.NS_C, "dummyNotifier");
-
-    @Autowired(required = true)
-    private NotificationManager notificationManager;
-
     @PostConstruct
     public void init() {
-        notificationManager.registerNotifier(NAME, this);
+        register(DummyNotifierType.class);
     }
 
     public class NotificationRecord {
-        NotificationRequest request;
-        NotificationConfigurationEntryType entry;
-        NotifierConfigurationType configuration;
+        Event event;
 
         @Override
         public String toString() {
             return "NotificationRecord{" +
-                    "request=" + request +
-                    ", entry=" + entry +
-                    ", configuration=" + configuration +
+                    "event=" + event +
                     '}';
         }
 
-        public NotifierConfigurationType getConfiguration() {
-            return configuration;
-        }
-
-        public NotificationConfigurationEntryType getEntry() {
-            return entry;
-        }
-
-        public NotificationRequest getRequest() {
-            return request;
+        public Event getEvent() {
+            return event;
         }
 
         public Collection<String> getAccountsOids() {
             Set<String> oids = new HashSet<String>();
-            if (request instanceof AccountNotificationRequest) {
-                oids.add(((AccountNotificationRequest) request).getAccountOperationDescription().getObjectDelta().getOid());
+            if (event instanceof AccountEvent) {
+                oids.add(((AccountEvent) event).getAccountOperationDescription().getObjectDelta().getOid());
             }
             return oids;
         }
 
         public ChangeType getFirstChangeType() {
-            if (request instanceof AccountNotificationRequest) {
-                return ((AccountNotificationRequest) request).getAccountOperationDescription().getObjectDelta().getChangeType();
+            if (event instanceof AccountEvent) {
+                return ((AccountEvent) event).getAccountOperationDescription().getObjectDelta().getChangeType();
             } else {
                 return null;
             }
         }
     }
 
-    public List<NotificationRecord> records = new ArrayList<NotificationRecord>();
+    // must be HashMap for null keys to work
+    public HashMap<String,List<NotificationRecord>> records = new HashMap<String,List<NotificationRecord>>();
 
     @Override
-    public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, NotifierConfigurationType notifierConfiguration, OperationResult result) {
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) {
+
+        logStart(LOGGER, event, eventHandlerType);
+
         NotificationRecord nr = new NotificationRecord();
-        nr.request = request;
-        nr.entry = notificationConfigurationEntry;
-        nr.configuration = notifierConfiguration;
-        records.add(nr);
-        LOGGER.info("Dummy notifier was called. Request = " + request + ", config entry = " + notificationConfigurationEntry + ", notifier config = " + notifierConfiguration);
+        nr.event = event;
+        if (!records.containsKey(eventHandlerType.getName())) {
+            records.put(eventHandlerType.getName(), new ArrayList<NotificationRecord>());
+        }
+        records.get(eventHandlerType.getName()).add(nr);
+        LOGGER.info("Dummy notifier was called. Event = " + event);
+
+        logEnd(LOGGER, event, eventHandlerType, true);
+        return true;
     }
 
     public List<NotificationRecord> getRecords() {
-        return records;
+        return getRecords(null);
+    }
+
+    public List<NotificationRecord> getRecords(String name) {
+        return records.get(name);
     }
 
     public void clearRecords() {

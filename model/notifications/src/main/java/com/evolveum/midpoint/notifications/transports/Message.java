@@ -21,12 +21,14 @@
 
 package com.evolveum.midpoint.notifications.transports;
 
+import java.util.List;
+
 /**
  * @author mederly
  */
-public class MailMessage {
+public class Message {
 
-    private String to;           // todo more values here
+    private List<String> to;
     private String subject;
     private String body;         // todo
     private String contentType;
@@ -47,11 +49,11 @@ public class MailMessage {
         this.subject = subject;
     }
 
-    public String getTo() {
+    public List<String> getTo() {
         return to;
     }
 
-    public void setTo(String to) {
+    public void setTo(List<String> to) {
         this.to = to;
     }
 
@@ -65,7 +67,7 @@ public class MailMessage {
 
     @Override
     public String toString() {
-        return "MailMessage{" +
+        return "Message{" +
                 "to='" + to + '\'' +
                 ", subject='" + subject + '\'' +
                 ", contentType='" + contentType + '\'' +

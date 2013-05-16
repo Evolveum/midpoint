@@ -22,36 +22,30 @@
 package com.evolveum.midpoint.notifications;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.notifications.request.NotificationRequest;
+import com.evolveum.midpoint.notifications.events.Event;
+import com.evolveum.midpoint.notifications.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * One of interfaces of the notifier to midPoint.
  *
- * CURRENTLY A BIT OBSOLETE (and not used at this moment). Account changes are listened to using AccountOperationListener (at the level of provisioning).
+ * Used to catch user-related events.
  *
  * @author mederly
  */
@@ -60,7 +54,7 @@ public class NotificationChangeHook implements ChangeHook {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationChangeHook.class);
 
-    public static final String HOOK_URI = "http://midpoint.evolveum.com/wf/notifier-hook-1";
+    public static final String HOOK_URI = "http://midpoint.evolveum.com/wf/notifier-hook-2";
 
     @Autowired(required = true)
     private HookRegistry hookRegistry;
@@ -73,30 +67,22 @@ public class NotificationChangeHook implements ChangeHook {
     private transient RepositoryService cacheRepositoryService;
 
     @PostConstruct
-    public void init() {//        hookRegistry.registerChangeHook(HOOK_URI, this);
-//        if (LOGGER.isTraceEnabled()) {
-//            LOGGER.trace("Notifier change hook registered.");
-//        }
-
+    public void init() {
+        hookRegistry.registerChangeHook(HOOK_URI, this);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Notifier change hook registered.");
+        }
     }
 
     @Override
     public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
 
-//        if (LOGGER.isTraceEnabled()) {
-//            LOGGER.trace("Entering notifier change hook in state " + context.getState());
-//        }
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Entering notifier change hook in state " + context.getState());
+        }
 
         // todo in the future we should perhaps act in POSTEXECUTION state, but currently the clockwork skips this state
         if (context.getState() != ModelState.FINAL) {
-            return HookOperationMode.FOREGROUND;
-        }
-
-        SystemConfigurationType systemConfigurationType = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, result).asObjectable();
-        if (systemConfigurationType.getNotificationConfiguration() == null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("No notification configuration, exiting the hook.");
-            }
             return HookOperationMode.FOREGROUND;
         }
 
@@ -111,6 +97,12 @@ public class NotificationChangeHook implements ChangeHook {
         if (object == null) {
             object = context.getFocusContext().getObjectOld();
         }
+        if (object == null) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Focus context object is null, exiting the hook.");
+            }
+            return HookOperationMode.FOREGROUND;
+        }
 
         if (!UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
             if (LOGGER.isTraceEnabled()) {
@@ -119,72 +111,27 @@ public class NotificationChangeHook implements ChangeHook {
             return HookOperationMode.FOREGROUND;
         }
 
-        if (object == null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Focus context object is null, exiting the hook.");
-            }
-            return HookOperationMode.FOREGROUND;
-        }
-
-        if (context.getProjectionContexts() == null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("No projection contexts, exiting the hook.");
-            }
-        }
-
-        boolean add = false, modify = false, delete = false;
-
-        List<ObjectDelta<ShadowType>> accountDeltas = new ArrayList<ObjectDelta<ShadowType>>();
-        ModelContext<UserType, ShadowType> userContext = (ModelContext<UserType, ShadowType>) context;
-        for (ModelProjectionContext<ShadowType> projectionContext : userContext.getProjectionContexts()) {
-            ObjectDelta<ShadowType> delta = projectionContext.getPrimaryDelta();
-            if (delta == null) {
-                delta = projectionContext.getSecondaryDelta();
-            }
-            if (delta == null) {
-                LOGGER.warn("Null account delta in projection context " + projectionContext + ", skipping it.");
-                continue;
-            }
-            accountDeltas.add(delta);
-
-            // second condition is brutal hack todo fixme
-            //if (delta.isAdd() || (projectionContext.getObjectOld() == null && projectionContext.getObjectNew() != null)) {
-            if (delta.isAdd() || SynchronizationPolicyDecision.ADD.equals(projectionContext.getSynchronizationPolicyDecision())) {
-                add = true;
-            } else if (delta.isModify()) {
-                modify = true;
-            } else if (delta.isDelete()) {
-                delete = true;
-            }
-        }
-
-        for (NotificationConfigurationEntryType entry : systemConfigurationType.getNotificationConfiguration().getEntry()) {
-            NotificationRequest request = createRequestIfApplicable(object, entry, accountDeltas, context, add, modify, delete);
-            if (request != null) {
-                notificationManager.notify(request, entry);
-            }
+        Event event = createRequest(object, task, context);
+        if (event != null) {
+            notificationManager.processEvent(event, result);
         }
 
         return HookOperationMode.FOREGROUND;
     }
 
-    private NotificationRequest createRequestIfApplicable(PrismObject<UserType> user,
-                                                          NotificationConfigurationEntryType entry,
-                                                          List<ObjectDelta<ShadowType>> accountDeltas,
-                                                          ModelContext<UserType,ShadowType> modelContext,
-                                                          boolean add, boolean modify, boolean delete) {
+    private Event createRequest(PrismObject<UserType> user, Task task,
+                                ModelContext<UserType, ShadowType> modelContext) {
 
-        if ((add && entry.getSituation().contains(NotificationConstants.ACCOUNT_CREATION_QNAME)) ||
-                (modify && entry.getSituation().contains(NotificationConstants.ACCOUNT_MODIFICATION_QNAME)) ||
-                (delete && entry.getSituation().contains(NotificationConstants.ACCOUNT_DELETION_QNAME))) {
+        ModelEvent event = new ModelEvent();
+        event.setModelContext(modelContext);
 
-            NotificationRequest request = new NotificationRequest();
-// todo
-//            request.addParameter(NotificationConstants.ACCOUNT_DELTAS, accountDeltas);
-//            request.addParameter(NotificationConstants.MODEL_CONTEXT, modelContext);
-            request.setUser(user.asObjectable());
-            return request;
+        if (task.getOwner() != null) {
+            event.setRequester(task.getOwner().asObjectable());
+        } else {
+            LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
-        return null;
+
+        event.setRequestee(user.asObjectable());
+        return event;
     }
 }

@@ -21,28 +21,24 @@
 
 package com.evolveum.midpoint.notifications;
 
-import com.evolveum.midpoint.notifications.notifiers.Notifier;
-import com.evolveum.midpoint.notifications.request.NotificationRequest;
+import com.evolveum.midpoint.notifications.events.Event;
+import com.evolveum.midpoint.notifications.handlers.EventHandler;
+import com.evolveum.midpoint.notifications.notifiers.*;
+import com.evolveum.midpoint.notifications.transports.DummyTransport;
+import com.evolveum.midpoint.notifications.transports.Transport;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotifierConfigurationType;
-import org.apache.commons.lang.Validate;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
+import javax.xml.bind.JAXBElement;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
- * Universal mechanism to send user a notification via particular channel (mail, sms, notification window, ...).
- *
- * Expects a request that is reasonably easily processable by content generators - i.e. free of client-specific
- * artifacts (like model state, workflow process/task instance information, etc.)
- *
- * (Unfortunately, currently the request contains exactly the model state - this has to be cleaned up later.)
- *
  * @author mederly
  */
 
@@ -51,40 +47,73 @@ public class NotificationManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationManager.class);
 
-    private Map<QName,Notifier> notifiers = new HashMap<QName,Notifier>();
+    @Autowired(required = true)
+    @Qualifier("cacheRepositoryService")
+    private transient RepositoryService cacheRepositoryService;
 
-    public void registerNotifier(QName name, Notifier notifier) {
-        Validate.notNull(name);
-        Validate.notNull(notifier);
-        notifiers.put(name, notifier);
+    private HashMap<Class<? extends EventHandlerType>,EventHandler> handlers = new HashMap<Class<? extends EventHandlerType>,EventHandler>();
+    private HashMap<String,Transport> transports = new HashMap<String,Transport>();
+
+    public void registerEventHandler(Class<? extends EventHandlerType> clazz, EventHandler handler) {
+        LOGGER.trace("Registering event handler " + handler + " for " + clazz);
+        handlers.put(clazz, handler);
     }
 
-    public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry) {
-        notify(request, notificationConfigurationEntry, new OperationResult("dummy"));
-    }
-
-    public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, OperationResult result) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Processing notification request " + request + " with regard to config entry " + notificationConfigurationEntry);
-        }
-        for (NotifierConfigurationType notifierConfiguration : notificationConfigurationEntry.getNotifier()) {
-            notify(request, notificationConfigurationEntry, notifierConfiguration, result);
-        }
-    }
-
-    private void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, NotifierConfigurationType notifierConfiguration, OperationResult result) {
-        Notifier notifier = findNotifier(notifierConfiguration.getName());
-        if (notifier == null) {
-            LOGGER.error("Couldn't find notifier with name " + notifierConfiguration.getName() + ", notification to " + request.getUser() + " will not be sent.");
-            return;
+    private EventHandler getEventHandler(EventHandlerType eventHandlerType) {
+        EventHandler handler = handlers.get(eventHandlerType.getClass());
+        if (handler == null) {
+            throw new IllegalStateException("Unknown handler for " + eventHandlerType);
         } else {
-            LOGGER.trace("Found notifier {}", notifier);
+            return handler;
         }
-        notifier.notify(request, notificationConfigurationEntry, notifierConfiguration, result);
     }
 
-    private Notifier findNotifier(QName name) {
-        return notifiers.get(name);
+    public void registerTransport(String name, Transport transport) {
+        LOGGER.trace("Registering notification transport " + transport + " under name " + name);
+        transports.put(name, transport);
+    }
+
+    // accepts name:subname (e.g. dummy:accounts) - a primitive form of passing parameters (will be enhanced/replaced in the future)
+    public Transport getTransport(String name) {
+        String key = name.split(":")[0];
+        Transport transport = transports.get(key);
+        if (transport == null) {
+            throw new IllegalStateException("Unknown transport named " + key);
+        } else {
+            return transport;
+        }
+    }
+
+    public void processEvent(Event event) {
+        processEvent(event, new OperationResult("dummy"));
+    }
+
+    public void processEvent(Event event, OperationResult result) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("NotificationManager processing event " + event);
+        }
+
+        SystemConfigurationType systemConfigurationType = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, result).asObjectable();
+        if (systemConfigurationType.getNotificationConfiguration() == null) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("No notification configuration in repository, exiting the change listener.");
+            }
+            return;
+        }
+
+        NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration();
+
+        for (JAXBElement<? extends EventHandlerType> eventHandlerType : notificationConfigurationType.getHandler()) {
+            processEvent(event, eventHandlerType.getValue(), result);
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("NotificationManager successfully processed event " + event + " (" +notificationConfigurationType.getHandler().size() + " top level handler(s))");
+        }
+    }
+
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, OperationResult result) {
+        return getEventHandler(eventHandlerType).processEvent(event, eventHandlerType, this, result);
     }
 
 }

@@ -71,6 +71,7 @@ public abstract class SchemaConstants {
 	public static final QName C_RESULT = new QName(NS_C, "result");
 	public static final QName C_USER = new QName(NS_C, "user");
 	public static final QName C_REQUESTER = new QName(NS_C, "requester");
+    public static final QName C_REQUESTEE = new QName(NS_C, "requestee");
 	public static final QName C_OBJECT_TEMPLATE = new QName(NS_C, "objectTemplate");
 	public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
 	public static final QName C_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
@@ -155,4 +156,7 @@ public abstract class SchemaConstants {
     public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
     public static final QName MODEL_CONTEXT_NAME = new QName(MODEL_CONTEXT_NS, "modelContext");
 
+    public static final QName C_EVENT = new QName(NS_C, "event");
+
+    public static final QName C_TRANSPORT = new QName(NS_C, "transport");
 }

@@ -17,7 +17,6 @@ public class CommonProcessVariableNames {
     public static final String VARIABLE_MIDPOINT_OBJECT_OID = "midPointObjectOid";
     public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";
     public static final String VARIABLE_MIDPOINT_DELTA = "midPointDelta";
-    public static final String VARIABLE_MIDPOINT_ADDITIONAL_DATA = "midPointAdditionalData";
     public static final String VARIABLE_UTIL = "util";
     public static final String VARIABLE_MIDPOINT_LISTENER = "midPointListener";
     public static final String FORM_FIELD_DECISION = "[H]decision";

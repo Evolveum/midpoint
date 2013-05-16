@@ -71,13 +71,4 @@ public class NotificationsUtil {
         }
     }
 
-    public static String getNotifierParameter(NotifierConfigurationType notifierConfiguration, String name, String defaultValue) {
-
-        for (NotifierConfigurationParameterType p : notifierConfiguration.getParameter()) {
-            if (name.equals(p.getName())) {
-                return p.getValue();
-            }
-        }
-        return defaultValue;
-    }
 }
