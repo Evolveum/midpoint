@@ -40,6 +40,10 @@
     <employeeType>CAPTAIN</employeeType>
     <organizationalUnit>Leaders</organizationalUnit>
     <locality>Black Pearl</locality>
+    
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
 
     <credentials>
         <password>

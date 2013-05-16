@@ -968,6 +968,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
         OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        
+        assertTrue("LDAP account is not enabled", openDJController.isAccountEnabled(entry));
 
         originalJacksPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", originalJacksPassword);
@@ -1006,9 +1008,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
         assertNull("postalAddress attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "postalAddress"));
 
-        assertNotNull("Activation is null", modelShadow.getActivation());
-        assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().getAdministrativeStatus());
-        assertEquals("The account is not enabled in the shadow", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
+        assertNotNull("Activation is null (model)", modelShadow.getActivation());
+        assertEquals("Wrong administrativeStatus in the shadow (model)", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
 
     }
 
@@ -1389,7 +1390,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
         display("ds-pwp-account-disabled before change", pwpAccountDisabled);
-        assertNull(pwpAccountDisabled);
+        assertTrue("LDAP account is not enabled (precondition)", openDJController.isAccountEnabled(entry));
+
         assertNoRepoCache();
 
         // WHEN
@@ -1475,11 +1477,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertOpenDJAccountJack(entry, "jack");
 
         pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
-        assertNotNull(pwpAccountDisabled);
-
         display("ds-pwp-account-disabled after change", pwpAccountDisabled);
-
-        assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", pwpAccountDisabled);
+        assertFalse("LDAP account was not disabled", openDJController.isAccountEnabled(entry));
     }
 
     /**
@@ -1581,7 +1580,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // The value of ds-pwp-account-disabled should have been removed
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
         System.out.println("ds-pwp-account-disabled after change: " + pwpAccountDisabled);
-        assertTrue("LDAP account was not enabled", (pwpAccountDisabled == null) || (pwpAccountDisabled.equals("false")));
+        assertTrue("LDAP account was not enabled", openDJController.isAccountEnabled(entry));
     }
 
     /**
