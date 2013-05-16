@@ -419,6 +419,9 @@
 	            </xsd:annotation>
 	        </xsd:element>
 	        
+	        <xsd:element name="trigger" type="tns:TriggerType" minOccurs="0" maxOccurs="unbounded">
+	        </xsd:element>
+	        
 	        <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0" maxOccurs="1">
 	        	<xsd:annotation>
 	        		<xsd:documentation>
@@ -631,6 +634,39 @@
         </xsd:complexContent>
     </xsd:complexType>
 	<xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
+
+	<xsd:complexType name="TriggerType">
+       	<xsd:annotation>
+    		<xsd:documentation>
+    			TODO
+    		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:operational>true</a:operational>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					The time when a trigger needs to be activated.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Handler URI indirectly specifies which class is responsible to handle the task. The handler will
+                        to be used to handle trigger activation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+   		</xsd:sequence>
+ 	</xsd:complexType>
 
     <xsd:complexType name="MetadataType">
        	<xsd:annotation>
