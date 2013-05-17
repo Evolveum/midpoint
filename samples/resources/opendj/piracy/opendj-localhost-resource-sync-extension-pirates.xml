@@ -531,16 +531,6 @@ This resource definition contains also definition to enable synchronization.
 				<path>fullName</path>
 			</target>
 		</mapping>
-        <!-- Account construction.
-             Defines what accounts should be assigned to a user when it is
-             created. It only defines resource and account type. The rest of the
-             account parameters are specified by outbound expressions in the
-             account type in the resource definition, as usual.
-             See https://wikis.forgerock.org/confluence/display/openidm/Synchronization
-             -->
-        <construction>
-            <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
-            <intent>default</intent>
-        </construction>
+
     </objectTemplate>
 </objects>

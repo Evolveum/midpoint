@@ -592,20 +592,6 @@ object.
 			</target>
 		</mapping>
 
-        <construction>
-            <description>
-                Account construction.
-                Defines what accounts should be assigned to a user when it is
-                created. It only defines resource and account type. The rest of the
-                account parameters are specified by outbound expressions in the
-                account type in the resource definition, as usual.
-                See http://wiki.evolveum.com/display/midPoint/Synchronization
-            </description>
-            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            <intent>default</intent>
-
-        </construction>
-
     </objectTemplate>
 
     <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
