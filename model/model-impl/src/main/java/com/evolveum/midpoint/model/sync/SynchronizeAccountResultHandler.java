@@ -103,7 +103,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
 	 */
 	@Override
-	protected boolean handleOject(PrismObject<ShadowType> accountShadow, OperationResult result) {
+	protected boolean handleObject(PrismObject<ShadowType> accountShadow, OperationResult result) {
 				
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {

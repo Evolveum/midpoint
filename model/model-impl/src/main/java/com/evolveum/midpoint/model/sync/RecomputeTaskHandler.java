@@ -133,7 +133,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 		AbstractSearchIterativeResultHandler<UserType> handler = new AbstractSearchIterativeResultHandler<UserType>(
 				task, RecomputeTaskHandler.class.getName(), "recompute", "recompute task") {
 			@Override
-			protected boolean handleOject(PrismObject<UserType> user, OperationResult result) throws CommonException {
+			protected boolean handleObject(PrismObject<UserType> user, OperationResult result) throws CommonException {
 				recomputeUser(user, task, result);
 				return true;
 			}
