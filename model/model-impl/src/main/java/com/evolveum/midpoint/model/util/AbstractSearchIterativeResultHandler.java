@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -102,11 +101,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		
 		progress++;
 		
-		Long startTime = null;
-		if (LOGGER.isTraceEnabled()) {
-			startTime = System.currentTimeMillis();
-		}
-		
+		Long startTime = System.currentTimeMillis();
+
 		OperationResult result = parentResult.createSubresult(taskOperationPrefix + ".handle");
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
@@ -120,7 +116,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		try {
 			
 			// The meat
-			cont = handleOject(object, result);
+			cont = handleObject(object, result);
 			
 			if (LOGGER.isInfoEnabled()) {
 				long endTime = System.currentTimeMillis();
@@ -190,7 +186,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.stopOnError = stopOnError;
 	}
 
-	protected abstract boolean handleOject(PrismObject<O> object, OperationResult result) throws CommonException;
+	protected abstract boolean handleObject(PrismObject<O> object, OperationResult result) throws CommonException;
 
 
 }
