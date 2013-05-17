@@ -46,4 +46,14 @@ public class ActivationUtil {
 		return activation.getAdministrativeStatus() == ActivationStatusType.ENABLED;
 	}
 
+	public static boolean hasValidFrom(ShadowType objectType) {
+		ActivationType activation = objectType.getActivation();
+		return activation != null && activation.getValidFrom() != null;
+	}
+
+	public static boolean hasValidTo(ShadowType objectType) {
+		ActivationType activation = objectType.getActivation();
+		return activation != null && activation.getValidTo() != null;
+	}
+
 }

@@ -38,6 +38,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     private String instanceId;
     private boolean supportSchema = true;
+    private boolean supportValidity = false;
     private boolean readablePassword = false;
     private boolean requireExplicitEnable = false;
     private boolean caseIgnoreId = false;
@@ -70,6 +71,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setSupportSchema(boolean supportSchema) {
 		this.supportSchema = supportSchema;
+	}
+	
+	/**
+     * If set to true the connector will expose the validity ICF special attributes. 
+     */
+    @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_VALIDITY",
+    		helpMessageKey = "UI_SUPPORT_VALIDITY_HELP")
+	public boolean getSupportValidity() {
+		return supportValidity;
+	}
+
+	public void setSupportValidity(boolean supportValidity) {
+		this.supportValidity = supportValidity;
 	}
 	
 	/**

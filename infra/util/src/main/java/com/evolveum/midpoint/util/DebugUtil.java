@@ -273,4 +273,12 @@ public class DebugUtil {
 		return value.getClass().getSimpleName()+":"+value.toString();
 	}
 
+	public static String formatDate(Long millis) {
+		if (millis == null) {
+			return "null";
+		}
+		Date date = new Date(millis);
+		return PrettyPrinter.prettyPrint(date);
+	}
+
 }

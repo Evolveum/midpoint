@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.binary.Base64;
@@ -92,6 +93,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
@@ -1009,6 +1011,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			if (ActivationUtil.hasAdministrativeActivation(objectType)){
 				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(objectType)));
+			}
+			
+			if (ActivationUtil.hasValidFrom(objectType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(objectType.getActivation().getValidFrom())));
+			}
+
+			if (ActivationUtil.hasValidTo(objectType)){
+				attributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(objectType.getActivation().getValidTo())));
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -1957,8 +1967,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
 				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
-				ActivationType activationType = ShadowUtil
-						.getOrCreateActivation(shadow);
+				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
 				ActivationStatusType activationStatusType;
 				if (enabled) {
 					activationStatusType = ActivationStatusType.ENABLED;
@@ -1967,7 +1976,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 				activationType.setAdministrativeStatus(activationStatusType);
 				activationType.setEffectiveStatus(activationStatusType);
-				LOGGER.trace("Converted enabled: {}", activationStatusType);
+				LOGGER.trace("Converted activation administrativeStatus: {}", activationStatusType);
+				continue;
+			}
+			
+			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_DATE_NAME)) {
+				Long millis = getSingleValue(icfAttr, Long.class);
+				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
+				activationType.setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(millis));
+				continue;
+			}
+
+			if (icfAttr.getName().equals(OperationalAttributes.DISABLE_DATE_NAME)) {
+				Long millis = getSingleValue(icfAttr, Long.class);
+				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
+				activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
 				continue;
 			}
 
@@ -2097,6 +2120,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ActivationStatusType status = propDelta.getPropertyNew().getValue(ActivationStatusType.class).getValue();
 				// Not entirely correct, TODO: refactor later
 				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, status == ActivationStatusType.ENABLED));
+			} else if (propDelta.getName().equals(ActivationType.F_VALID_FROM)) {
+				XMLGregorianCalendar xmlCal = propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
+				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(xmlCal)));
+			} else if (propDelta.getName().equals(ActivationType.F_VALID_TO)) {
+				XMLGregorianCalendar xmlCal = propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
+				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(xmlCal)));
 			} else {
 				throw new SchemaException("Got unknown activation attribute delta " + propDelta.getName());
 			}

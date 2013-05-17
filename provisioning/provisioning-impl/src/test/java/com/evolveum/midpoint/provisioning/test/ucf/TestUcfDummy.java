@@ -198,7 +198,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
 		List<Item<?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
-		assertEquals("Wrong number of dummy ConfigPropItems items", 3, dummyConfigPropItems.size());
+		assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
 	}
 
 	@Test

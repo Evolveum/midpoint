@@ -35,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.identityconnectors.common.logging.Log;
@@ -76,6 +77,7 @@ import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyDelta;
 import com.evolveum.icf.dummy.resource.DummyDeltaType;
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -267,6 +269,12 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
 	        		account.setEnabled(getEnable(attr));
 	        		
+	        	} else if (attr.is(OperationalAttributes.ENABLE_DATE_NAME)) {
+	        		account.setValidFrom(getDate(attr));
+
+	        	} else if (attr.is(OperationalAttributes.DISABLE_DATE_NAME)) {
+	        		account.setValidTo(getDate(attr));
+
 	        	} else {
 		        	String name = attr.getName();
 		        	try {
@@ -601,9 +609,31 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         return builder.build();
     }
 
+    private ObjectClassInfoBuilder createCommonObjectClassBuilder(String typeName, 
+    		DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
+    	ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
+    	if (typeName != null) {
+    		objClassBuilder.setType(typeName);
+    	}
+    	
+    	buildAttributes(objClassBuilder, dummyAccountObjectClass);
+    	
+    	if (supportsActivation) {
+    		// __ENABLE__ attribute
+    		objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+    		
+    		if (configuration.getSupportValidity()) {
+            	objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE_DATE);
+            	objClassBuilder.addAttributeInfo(OperationalAttributeInfos.DISABLE_DATE);
+            }
+    	}
+        
+    	// __NAME__ will be added by default
+        return objClassBuilder;
+    }
+    
 	private ObjectClassInfo createAccountObjectClass() {
 		// __ACCOUNT__ objectclass
-        ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         
         DummyObjectClass dummyAccountObjectClass;
 		try {
@@ -616,43 +646,25 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			throw new ConnectorException(e.getMessage(), e);
 		} // DO NOT catch IllegalStateException, let it pass
 		
-		buildAttributes(objClassBuilder, dummyAccountObjectClass);
+		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(null, dummyAccountObjectClass, true);
         
         // __PASSWORD__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
         
-        // __ENABLE__ attribute
-        objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-        
-        // __NAME__ will be added by default
         return objClassBuilder.build();
 	}
 	
 	private ObjectClassInfo createGroupObjectClass() {
 		// __GROUP__ objectclass
-        ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
-        objClassBuilder.setType(ObjectClass.GROUP_NAME);
-        
-        DummyObjectClass dummyObjectClass = resource.getGroupObjectClass();
-        buildAttributes(objClassBuilder, dummyObjectClass);
-        
-        // __ENABLE__ attribute
-        objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-        
-        // __NAME__ will be added by default
+        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(ObjectClass.GROUP_NAME, 
+        		resource.getGroupObjectClass(), true);
+                
         return objClassBuilder.build();
 	}
 	
 	private ObjectClassInfo createPrivilegeObjectClass() {
-        ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
-        objClassBuilder.setType(OBJECTCLASS_PRIVILEGE_NAME);
-        
-        DummyObjectClass dummyObjectClass = resource.getPrivilegeObjectClass();
-        buildAttributes(objClassBuilder, dummyObjectClass);
-        
-        // NO __ENABLE__ attribute in this object class
-        
-        // __NAME__ will be added by default
+        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(OBJECTCLASS_PRIVILEGE_NAME,
+        		resource.getPrivilegeObjectClass(), false);
         return objClassBuilder.build();
 	}
 
@@ -724,11 +736,13 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         validate(objectClass);
         notNull(handler, "Results handled object can't be null.");
         
+        Collection<String> attributesToGet = getAttrsToGet(options);
+        
         if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
         	
 	        Collection<DummyAccount> accounts = resource.listAccounts();
 	        for (DummyAccount account : accounts) {
-	        	ConnectorObject co = convertToConnectorObject(account, options);
+	        	ConnectorObject co = convertToConnectorObject(account, attributesToGet);
 	        	handler.handle(co);
 	        }
 	        
@@ -736,7 +750,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	
         	Collection<DummyGroup> groups = resource.listGroups();
 	        for (DummyGroup group : groups) {
-	        	ConnectorObject co = convertToConnectorObject(group, options);
+	        	ConnectorObject co = convertToConnectorObject(group, attributesToGet);
 	        	handler.handle(co);
 	        }
 	        
@@ -744,7 +758,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	
         	Collection<DummyPrivilege> privs = resource.listPrivileges();
 	        for (DummyPrivilege priv : privs) {
-	        	ConnectorObject co = convertToConnectorObject(priv, options);
+	        	ConnectorObject co = convertToConnectorObject(priv, attributesToGet);
 	        	handler.handle(co);
 	        }
         	
@@ -762,6 +776,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("sync::begin");
         validate(objectClass);
         
+        Collection<String> attributesToGet = getAttrsToGet(options);
+
         int syncToken = (Integer)token.getValue();
         List<DummyDelta> deltas = resource.getDeltasSince(syncToken);
         for (DummyDelta delta: deltas) {
@@ -775,7 +791,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         		if (account == null) {
         			throw new IllegalStateException("We have delta for account '"+delta.getObjectId()+"' but such account does not exist");
         		}
-        		ConnectorObject cobject = convertToConnectorObject(account, options);
+        		ConnectorObject cobject = convertToConnectorObject(account, attributesToGet);
 				builder.setObject(cobject);
         	} else if (delta.getType() == DummyDeltaType.DELETE) {
         		deltaType = SyncDeltaType.DELETE;
@@ -795,7 +811,18 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("sync::end");
     }
 
-    /**
+	private Collection<String> getAttrsToGet(OperationOptions options) {
+        Collection<String> attributesToGet = null;
+		if (options != null) {
+			String[] attributesToGetArray = options.getAttributesToGet();
+			if (attributesToGetArray != null && attributesToGetArray.length != 0) {
+				attributesToGet = Arrays.asList(attributesToGetArray);
+			}
+		}
+		return attributesToGet;
+	}
+
+	/**
      * {@inheritDoc}
      */
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
@@ -834,36 +861,19 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("test::end");
     }
     
-	private ConnectorObject convertToConnectorObject(DummyAccount account, OperationOptions options) {
-		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
-
-		Collection<String> attributesToGet = null;
-		if (options != null) {
-			String[] attributesToGetArray = options.getAttributesToGet();
-			if (attributesToGetArray != null && attributesToGetArray.length != 0) {
-				attributesToGet = Arrays.asList(attributesToGetArray);
-			}
-		}
+   private ConnectorObjectBuilder createConnectorObjectBuilderCommon(DummyObject dummyObject,
+		   DummyObjectClass objectClass, Collection<String> attributesToGet, boolean supportActivation) {
+	   ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
+		builder.setUid(dummyObject.getName());
+		builder.addAttribute(Name.NAME, dummyObject.getName());
 		
-		builder.setUid(account.getName());
-		builder.addAttribute(Name.NAME, account.getName());
-		
-		for (String name : account.getAttributeNames()) {
+		for (String name : dummyObject.getAttributeNames()) {
 			if (attributesToGet != null) {
 				if (!attributesToGet.contains(name)) {
 					continue;
 				}
 			} else {
-				DummyAttributeDefinition attrDef;
-				try {
-					attrDef = resource.getAccountObjectClass().getAttributeDefinition(name);
-				} catch (ConnectException e) {
-					log.error(e, e.getMessage());
-					throw new ConnectionFailedException(e.getMessage(), e);
-				} catch (FileNotFoundException e) {
-					log.error(e, e.getMessage());
-					throw new ConnectorIOException(e.getMessage(), e);
-				}
+				DummyAttributeDefinition attrDef = objectClass.getAttributeDefinition(name);
 				if (attrDef == null) {
 					throw new IllegalArgumentException("Unknown account attribute '"+name+"'");
 				}
@@ -871,9 +881,50 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					continue;
 				}
 			}
-			Set<Object> values = account.getAttributeValues(name, Object.class);
+			Set<Object> values = dummyObject.getAttributeValues(name, Object.class);
 			builder.addAttribute(name, values);
 		}
+		
+		if (supportActivation) {
+			if (attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_NAME)) {
+				builder.addAttribute(OperationalAttributes.ENABLE_NAME, dummyObject.isEnabled());
+			}
+			
+			if (dummyObject.getValidFrom() != null &&
+					(attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_DATE_NAME))) {
+				builder.addAttribute(OperationalAttributes.ENABLE_DATE_NAME, convertToLong(dummyObject.getValidFrom()));
+			}
+			
+			if (dummyObject.getValidTo() != null &&
+					(attributesToGet == null || attributesToGet.contains(OperationalAttributes.DISABLE_DATE_NAME))) {
+				builder.addAttribute(OperationalAttributes.DISABLE_DATE_NAME, convertToLong(dummyObject.getValidTo()));
+			}
+		}
+		
+		return builder;
+   }
+    
+	private Long convertToLong(Date date) {
+		if (date == null) {
+			return null;
+		}
+		return date.getTime();
+	}
+
+	private ConnectorObject convertToConnectorObject(DummyAccount account, Collection<String> attributesToGet) {
+		
+		DummyObjectClass objectClass;
+		try {
+			objectClass = resource.getAccountObjectClass();
+		} catch (ConnectException e) {
+			log.error(e, e.getMessage());
+			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (FileNotFoundException e) {
+			log.error(e, e.getMessage());
+			throw new ConnectorIOException(e.getMessage(), e);
+		}
+		
+		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, objectClass, attributesToGet, true);
 		
 		// Password is not returned by default (hardcoded ICF specification)
 		if (account.getPassword() != null && configuration.getReadablePassword() && 
@@ -881,88 +932,23 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
 			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
 		}
-		
-		if (attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_NAME)) {
-			builder.addAttribute(OperationalAttributes.ENABLE_NAME, account.isEnabled());
-		}
 
         return builder.build();
 	}
 	
-	private ConnectorObject convertToConnectorObject(DummyGroup group, OperationOptions options) {
-		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
-
-		Collection<String> attributesToGet = null;
-		if (options != null) {
-			String[] attributesToGetArray = options.getAttributesToGet();
-			if (attributesToGetArray != null && attributesToGetArray.length != 0) {
-				attributesToGet = Arrays.asList(attributesToGetArray);
-			}
-		}
-		
-		builder.setUid(group.getName());
-		builder.addAttribute(Name.NAME, group.getName());
-		
-		for (String name : group.getAttributeNames()) {
-			if (attributesToGet != null) {
-				if (!attributesToGet.contains(name)) {
-					continue;
-				}
-			} else {
-				DummyAttributeDefinition attrDef = resource.getGroupObjectClass().getAttributeDefinition(name);
-				if (attrDef == null) {
-					throw new IllegalArgumentException("Unknown group attribute '"+name+"'");
-				}
-				if (!attrDef.isReturnedByDefault()) {
-					continue;
-				}
-			}
-			Set<Object> values = group.getAttributeValues(name, Object.class);
-			builder.addAttribute(name, values);
-		}
-				
-		if (attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_NAME)) {
-			builder.addAttribute(OperationalAttributes.ENABLE_NAME, group.isEnabled());
-		}
-
+	private ConnectorObject convertToConnectorObject(DummyGroup group, Collection<String> attributesToGet) {
+		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(group, resource.getGroupObjectClass(),
+				attributesToGet, true);
         return builder.build();
 	}
 	
-	private ConnectorObject convertToConnectorObject(DummyPrivilege priv, OperationOptions options) {
-		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
-
-		Collection<String> attributesToGet = null;
-		if (options != null) {
-			String[] attributesToGetArray = options.getAttributesToGet();
-			if (attributesToGetArray != null && attributesToGetArray.length != 0) {
-				attributesToGet = Arrays.asList(attributesToGetArray);
-			}
-		}
-		
-		builder.setUid(priv.getName());
-		builder.addAttribute(Name.NAME, priv.getName());
-		
-		for (String name : priv.getAttributeNames()) {
-			if (attributesToGet != null) {
-				if (!attributesToGet.contains(name)) {
-					continue;
-				}
-			} else {
-				DummyAttributeDefinition attrDef = resource.getPrivilegeObjectClass().getAttributeDefinition(name);
-				if (attrDef == null) {
-					throw new IllegalArgumentException("Unknown privilege attribute '"+name+"'");
-				}
-				if (!attrDef.isReturnedByDefault()) {
-					continue;
-				}
-			}
-			Set<Object> values = priv.getAttributeValues(name, Object.class);
-			builder.addAttribute(name, values);
-		}
-				
+	private ConnectorObject convertToConnectorObject(DummyPrivilege priv, Collection<String> attributesToGet) {
+		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(priv, resource.getPrivilegeObjectClass(),
+				attributesToGet, false);
         return builder.build();
 	}
 
+	
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) {
 		String userName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		final DummyAccount newAccount = new DummyAccount(userName);
@@ -981,6 +967,20 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
 				enabled = getEnable(attr);
 				newAccount.setEnabled(enabled);
+				
+			} else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
+				if (configuration.getSupportValidity()) {
+					newAccount.setValidFrom(getDate(attr));
+				} else {
+					throw new IllegalArgumentException("ENABLE_DATE specified in the account attributes while not supporting it");
+				}
+				
+			} else if (attr.is(OperationalAttributeInfos.DISABLE_DATE.getName())) {
+				if (configuration.getSupportValidity()) {
+					newAccount.setValidTo(getDate(attr));
+				} else {
+					throw new IllegalArgumentException("DISABLE_DATE specified in the account attributes while not supporting it");
+				}	
 				
 			} else {
 				String name = attr.getName();
@@ -1020,6 +1020,20 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
 				enabled = getEnable(attr);
 				newGroup.setEnabled(enabled);
+				
+			} else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
+				if (configuration.getSupportValidity()) {
+					newGroup.setValidFrom(getDate(attr));
+				} else {
+					throw new IllegalArgumentException("ENABLE_DATE specified in the group attributes while not supporting it");
+				}
+				
+			} else if (attr.is(OperationalAttributeInfos.DISABLE_DATE.getName())) {
+				if (configuration.getSupportValidity()) {
+					newGroup.setValidTo(getDate(attr));
+				} else {
+					throw new IllegalArgumentException("DISABLE_DATE specified in the group attributes while not supporting it");
+				}
 				
 			} else {
 				String name = attr.getName();
@@ -1075,6 +1089,18 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		}
 		return ((Boolean)object).booleanValue();
 	}
+	
+	private Date getDate(Attribute attr) {
+		if (attr.getValue() == null || attr.getValue().isEmpty()) {
+			throw new IllegalArgumentException("Empty date attribute was provided");
+		}
+		Object object = attr.getValue().get(0);
+		if (!(object instanceof Long)) {
+			throw new IllegalArgumentException("Date attribute was provided as "+object.getClass().getName()+" while expecting long");
+		}
+		return new Date(((Long)object).longValue());
+	}
+
 
 	private void changePassword(final DummyAccount account, Attribute attr) {
 		if (attr.getValue() == null || attr.getValue().isEmpty()) {

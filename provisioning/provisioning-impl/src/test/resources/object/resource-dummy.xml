@@ -40,6 +40,7 @@
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
 				<clearValue>Dead men tell no tales</clearValue>
 			</icfi:uselessGuardedString>
+			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>

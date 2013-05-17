@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -771,34 +772,58 @@ public class ResourceObjectConverter {
 		}
 	}
 
-	private Operation determineActivationChange(ShadowType shadow, Collection<? extends ItemDelta> objectChange,
+	private Collection<Operation> determineActivationChange(ShadowType shadow, Collection<? extends ItemDelta> objectChange,
 			ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 
+		Collection<Operation> operations = new ArrayList<Operation>();
+		
+		// administrativeStatus
 		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
-		if (enabledPropertyDelta == null) {
-			return null;
-		}
-		ActivationStatusType status = enabledPropertyDelta.getPropertyNew().getRealValue();
-		LOGGER.trace("Find activation change to: {}", status);
-
-		if (status != null) {
-
-			LOGGER.trace("enabled not null.");
-			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-				// Try to simulate activation capability
-				PropertyModificationOperation activationAttribute = convertToActivationAttribute(shadow, resource,
-						status, objectClassDefinition);
-				return activationAttribute;
-			} else {
-				// Navive activation, need to check if there is not also change to simulated activation which may be in conflict
-				checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
-				return new PropertyModificationOperation(enabledPropertyDelta);
+				SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+		if (enabledPropertyDelta != null) {
+			ActivationStatusType status = enabledPropertyDelta.getPropertyNew().getRealValue();
+			LOGGER.trace("Found activation administrativeStatus change to: {}", status);
+	
+			if (status != null) {
+	
+				if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+					// Try to simulate activation capability
+					PropertyModificationOperation activationAttribute = convertToActivationAttribute(shadow, resource,
+							status, objectClassDefinition);
+					operations.add(activationAttribute);
+				} else {
+					// Navive activation, need to check if there is not also change to simulated activation which may be in conflict
+					checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
+					operations.add(new PropertyModificationOperation(enabledPropertyDelta));
+				}
+	
 			}
-
 		}
-		return null;
+		
+		// validFrom
+		PropertyDelta<XMLGregorianCalendar> validFromPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				SchemaConstants.PATH_ACTIVATION_VALID_FROM);
+		if (validFromPropertyDelta != null) {
+			XMLGregorianCalendar xmlCal = validFromPropertyDelta.getPropertyNew().getRealValue();
+			LOGGER.trace("Found activation validFrom change to: {}", xmlCal);
+			if (xmlCal != null) {
+				operations.add(new PropertyModificationOperation(validFromPropertyDelta));
+			}
+		}
+
+		// validTo
+		PropertyDelta<XMLGregorianCalendar> validToPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				SchemaConstants.PATH_ACTIVATION_VALID_TO);
+		if (validToPropertyDelta != null) {
+			XMLGregorianCalendar xmlCal = validToPropertyDelta.getPropertyNew().getRealValue();
+			LOGGER.trace("Found activation validTo change to: {}", xmlCal);
+			if (xmlCal != null) {
+				operations.add(new PropertyModificationOperation(validToPropertyDelta));
+			}
+		}
+		
+		return operations;
 	}
 	
 	private void checkSimulatedActivation(Collection<? extends ItemDelta> objectChange, ActivationStatusType status, ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException{
@@ -909,10 +934,9 @@ public class ResourceObjectConverter {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}
 			} else if (SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())){
-				Operation activationOperation = determineActivationChange(shadow.asObjectable(), objectChange, resource, objectClassDefinition);
-				LOGGER.trace("Determinig activation change");
-				if (activationOperation != null){
-					operations.add(activationOperation);
+				Collection<Operation> activationOperations = determineActivationChange(shadow.asObjectable(), objectChange, resource, objectClassDefinition);
+				if (activationOperations != null){
+					operations.addAll(activationOperations);
 				}
 			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) { 
 				if (itemDelta instanceof ContainerDelta) {

@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.Set;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author Radovan Semancik
@@ -42,6 +44,8 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 	private String name;
 	private Map<String,Set<Object>> attributes = new HashMap<String, Set<Object>>();
 	private boolean enabled = true;
+	private Date validFrom = null;
+	private Date validTo = null;
 	protected DummyResource resource;
 
 	public DummyObject() {
@@ -73,6 +77,22 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	public Date getValidFrom() {
+		return validFrom;
+	}
+
+	public void setValidFrom(Date validFrom) {
+		this.validFrom = validFrom;
+	}
+
+	public Date getValidTo() {
+		return validTo;
+	}
+
+	public void setValidTo(Date validTo) {
+		this.validTo = validTo;
 	}
 
 	public Set<String> getAttributeNames() {
@@ -244,6 +264,12 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("DummyAccount: ").append(name).append("\n");
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Enabled", enabled, indent + 1);
+		if (validFrom != null || validTo != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "Validity", indent + 1);
+			sb.append(" ").append(PrettyPrinter.prettyPrint(validFrom)).append(" - ").append(PrettyPrinter.prettyPrint(validTo));
+		}
+		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Attributes", attributes, indent + 1);
 		extendDebugDump(sb, indent);
 		return sb.toString();

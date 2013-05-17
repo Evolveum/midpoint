@@ -22,9 +22,11 @@ package com.evolveum.midpoint.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,6 +44,8 @@ import org.w3c.dom.Text;
  *
  */
 public class PrettyPrinter {
+	
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss");
 	
 	private static String defaultNamespacePrefix = null;
 	
@@ -215,6 +219,14 @@ public class PrettyPrinter {
 		return sb.toString();
 	}
 
+	
+	public static String prettyPrint(Date date) {
+		if (date == null) {
+			return "null";
+		}
+		return dateFormat.format(date);
+	}
+	
 	public static String prettyPrint(Object[] value) {
 		return prettyPrint(Arrays.asList(value));
 	}
