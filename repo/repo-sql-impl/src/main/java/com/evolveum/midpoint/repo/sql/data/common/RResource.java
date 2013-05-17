@@ -70,7 +70,7 @@ public class RResource extends RObject {
     private RResourceAdministrativeState administrativeState;
     private Set<RObjectReference> approverRef;
     //end of resource business configuration
-    private String accountSynchronizationSettings;
+    private String projection;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
@@ -141,8 +141,8 @@ public class RResource extends RObject {
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getAccountSynchronizationSettings() {
-        return accountSynchronizationSettings;
+    public String getProjection() {
+        return projection;
     }
 
     @Embedded
@@ -207,8 +207,8 @@ public class RResource extends RObject {
         this.scripts = scripts;
     }
 
-    public void setAccountSynchronizationSettings(String accountSynchronizationSettings) {
-        this.accountSynchronizationSettings = accountSynchronizationSettings;
+    public void setProjection(String projection) {
+        this.projection = projection;
     }
 
     @Override
@@ -306,7 +306,7 @@ public class RResource extends RObject {
                     repo.getConsistency(), ResourceConsistencyType.class, prismContext));
             jaxb.setProjection(RUtil.toJAXB(ResourceType.class, new ItemPath(
                     ResourceType.F_PROJECTION), repo
-                    .getAccountSynchronizationSettings(), ProjectionPolicyType.class,
+                    .getProjection(), ProjectionPolicyType.class,
                     prismContext));
 
         } catch (Exception ex) {
@@ -355,7 +355,7 @@ public class RResource extends RObject {
                 repo.setOperationalState(repoOpState);
             }
 
-            repo.setAccountSynchronizationSettings(RUtil.toRepo(jaxb.getProjection(), prismContext));
+            repo.setProjection(RUtil.toRepo(jaxb.getProjection(), prismContext));
 
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
