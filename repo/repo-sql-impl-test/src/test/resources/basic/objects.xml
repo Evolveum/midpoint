@@ -1095,6 +1095,8 @@
         <inducement id="5">
             <construction>
                 <resourceRef oid="10000000-0000-0000-0000-000000000005" type="c:ResourceType"/>
+                <kind>account</kind>
+                <intent>admin</intent>
             </construction>
         </inducement>
         <authorization id="3">
