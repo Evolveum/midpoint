@@ -304,9 +304,9 @@ public class RResource extends RObject {
             }
             jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_CONSISTENCY),
                     repo.getConsistency(), ResourceConsistencyType.class, prismContext));
-            jaxb.setAccountSynchronizationSettings(RUtil.toJAXB(ResourceType.class, new ItemPath(
-                    ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS), repo
-                    .getAccountSynchronizationSettings(), AccountSynchronizationSettingsType.class,
+            jaxb.setProjection(RUtil.toJAXB(ResourceType.class, new ItemPath(
+                    ResourceType.F_PROJECTION), repo
+                    .getAccountSynchronizationSettings(), ProjectionPolicyType.class,
                     prismContext));
 
         } catch (Exception ex) {
@@ -355,7 +355,7 @@ public class RResource extends RObject {
                 repo.setOperationalState(repoOpState);
             }
 
-            repo.setAccountSynchronizationSettings(RUtil.toRepo(jaxb.getAccountSynchronizationSettings(), prismContext));
+            repo.setAccountSynchronizationSettings(RUtil.toRepo(jaxb.getProjection(), prismContext));
 
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

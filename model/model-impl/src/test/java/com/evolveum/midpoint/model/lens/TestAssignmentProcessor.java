@@ -49,7 +49,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -477,7 +477,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, result);
 	        context.recompute();
 	        
-	        AccountSynchronizationSettingsType accountSynchronizationSettings = new AccountSynchronizationSettingsType();
+	        ProjectionPolicyType accountSynchronizationSettings = new ProjectionPolicyType();
 	        accountSynchronizationSettings.setLegalize(Boolean.TRUE);
 	        accountSynchronizationSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
 	        context.setAccountSynchronizationSettings(accountSynchronizationSettings);

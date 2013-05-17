@@ -55,7 +55,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -434,9 +434,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
 		// TODO: per-resource assignment enforcement
 		ResourceType resource = getResource();
-		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = null;
+		ProjectionPolicyType globalAccountSynchronizationSettings = null;
 		if (resource != null){
-			globalAccountSynchronizationSettings = resource.getAccountSynchronizationSettings();
+			globalAccountSynchronizationSettings = resource.getProjection();
 		} 
 		
 		if (globalAccountSynchronizationSettings == null) {
@@ -448,9 +448,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	public boolean isLegalize(){
 		ResourceType resource = getResource();
-		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = null;
+		ProjectionPolicyType globalAccountSynchronizationSettings = null;
 		if (resource != null){
-			globalAccountSynchronizationSettings = resource.getAccountSynchronizationSettings();
+			globalAccountSynchronizationSettings = resource.getProjection();
 		} 
 		
 		if (globalAccountSynchronizationSettings == null) {

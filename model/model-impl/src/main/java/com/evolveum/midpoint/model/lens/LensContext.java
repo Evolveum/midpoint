@@ -67,7 +67,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	private Class<P> projectionClass;
 
 	transient private ObjectTemplateType userTemplate;
-	transient private AccountSynchronizationSettingsType accountSynchronizationSettings;
+	transient private ProjectionPolicyType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
 
 	transient private DeltaSetTriple<Assignment> evaluatedAssignmentTriple;
@@ -227,12 +227,12 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		this.userTemplate = userTemplate;
 	}
 
-	public AccountSynchronizationSettingsType getAccountSynchronizationSettings() {
+	public ProjectionPolicyType getAccountSynchronizationSettings() {
 		return accountSynchronizationSettings;
 	}
 
 	public void setAccountSynchronizationSettings(
-			AccountSynchronizationSettingsType accountSynchronizationSettings) {
+			ProjectionPolicyType accountSynchronizationSettings) {
 		this.accountSynchronizationSettings = accountSynchronizationSettings;
 	}
 	

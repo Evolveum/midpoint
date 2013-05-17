@@ -68,7 +68,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
@@ -280,11 +280,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		
 		// Change something that's not that important
-		AccountSynchronizationSettingsType accountSynchronizationSettingsType = new AccountSynchronizationSettingsType();
+		ProjectionPolicyType accountSynchronizationSettingsType = new ProjectionPolicyType();
 		accountSynchronizationSettingsType.setLegalize(true);
 		
 		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID, 
-				ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS, prismContext, accountSynchronizationSettingsType);
+				ResourceType.F_PROJECTION, prismContext, accountSynchronizationSettingsType);
 		
 		// WHEN
 		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), null, null, task, result);
@@ -387,11 +387,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		
 		// Change something that's not that important
-		AccountSynchronizationSettingsType accountSynchronizationSettingsType = new AccountSynchronizationSettingsType();
+		ProjectionPolicyType accountSynchronizationSettingsType = new ProjectionPolicyType();
 		accountSynchronizationSettingsType.setLegalize(true);
 		
 		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID, 
-				ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS, prismContext, accountSynchronizationSettingsType);
+				ResourceType.F_PROJECTION, prismContext, accountSynchronizationSettingsType);
 		
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), result);

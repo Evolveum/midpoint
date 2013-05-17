@@ -2614,8 +2614,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="scripts" type="tns:ProvisioningScriptsType" minOccurs="0"/>
-                    <xsd:element name="accountSynchronizationSettings"
-                                 type="tns:AccountSynchronizationSettingsType" minOccurs="0">
+                    <xsd:element name="projection" type="tns:ProjectionPolicyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Resource-wide account synchronization settings.
@@ -6078,7 +6077,7 @@
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="globalAccountSynchronizationSettings"
-                                 type="tns:AccountSynchronizationSettingsType" minOccurs="0">
+                                 type="tns:ProjectionPolicyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 System-global account synchronization settings. These will be used if there is no
@@ -6251,7 +6250,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AccountSynchronizationSettingsType">
+    <xsd:complexType name="ProjectionPolicyType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

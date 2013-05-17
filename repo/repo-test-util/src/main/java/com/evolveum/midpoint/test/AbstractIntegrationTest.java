@@ -318,28 +318,28 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (currentPolicy == policy) {
 			return;
 		}
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         applySyncSettings(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, syncSettings);
 	}
 	
 	protected void assumeResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
-		applySyncSettings(ResourceType.class, oid, ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS, syncSettings);
+		applySyncSettings(ResourceType.class, oid, ResourceType.F_PROJECTION, syncSettings);
 	}
 	
 	protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
 		PrismObjectDefinition<ResourceType> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(ResourceType.class);
 
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
 		ItemDelta deleteAssigmentEnforcement = PropertyDelta
-				.createModificationDeleteProperty(new ItemPath(ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS),
-						objectDefinition.findPropertyDefinition(ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS), syncSettings);
+				.createModificationDeleteProperty(new ItemPath(ResourceType.F_PROJECTION),
+						objectDefinition.findPropertyDefinition(ResourceType.F_PROJECTION), syncSettings);
 
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
 		modifications.add(deleteAssigmentEnforcement);
@@ -353,14 +353,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
-		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfiguration.getGlobalAccountSynchronizationSettings();
+		ProjectionPolicyType globalAccountSynchronizationSettings = systemConfiguration.getGlobalAccountSynchronizationSettings();
 		if (globalAccountSynchronizationSettings == null) {
 			return null;
 		}
 		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
 	}
 	
-	protected void applySyncSettings(Class clazz, String oid, QName path, AccountSynchronizationSettingsType syncSettings)
+	protected void applySyncSettings(Class clazz, String oid, QName path, ProjectionPolicyType syncSettings)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
 		PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()

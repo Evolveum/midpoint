@@ -637,9 +637,9 @@
 
         </synchronization>
         
-         <accountSynchronizationSettings>
+         <projection>
    <assignmentPolicyEnforcement>positive</assignmentPolicyEnforcement>
-   </accountSynchronizationSettings>
+   </projection>
 
     </resource>
 

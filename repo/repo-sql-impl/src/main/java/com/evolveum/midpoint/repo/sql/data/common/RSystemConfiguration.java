@@ -244,7 +244,7 @@ public class RSystemConfiguration extends RObject {
                     ConnectorFrameworkType.class, prismContext));
             jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(SystemConfigurationType.class,
                     new ItemPath(SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS),
-                    repo.getGlobalAccountSynchronizationSettings(), AccountSynchronizationSettingsType.class,
+                    repo.getGlobalAccountSynchronizationSettings(), ProjectionPolicyType.class,
                     prismContext));
             jaxb.setLogging(RUtil.toJAXB(SystemConfigurationType.class,
                     new ItemPath(SystemConfigurationType.F_LOGGING),
