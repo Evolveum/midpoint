@@ -22,10 +22,10 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>CSVFile Import</name>    
-    <assignment>
-    	<accountConstruction>
+    <inducement>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="4e2e5dee-7aa1-11e2-a914-001e8c717e5b" type="c:ResourceType"/>
-    	</accountConstruction>
-    </assignment>    
+    	</construction>
+    </inducement>    
 </role>

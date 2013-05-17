@@ -743,9 +743,9 @@ public class PageUser extends PageAdminUsers {
 					targetObject = (ObjectType) target.asObjectable();
 					type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
 				}
-			} else if (assignment.getAccountConstruction() != null) {
+			} else if (assignment.getConstruction() != null) {
 				// account assignment through account construction
-				ConstructionType construction = assignment.getAccountConstruction();
+				ConstructionType construction = assignment.getConstruction();
 				if (construction.getResource() != null) {
 					targetObject = construction.getResource();
 				} else if (construction.getResourceRef() != null) {
@@ -1255,16 +1255,16 @@ public class PageUser extends PageAdminUsers {
 	 */
 	@Deprecated
 	private void removeResourceFromAccConstruction(AssignmentType assignment) {
-		ConstructionType accConstruction = assignment.getAccountConstruction();
+		ConstructionType accConstruction = assignment.getConstruction();
 		if (accConstruction == null || accConstruction.getResource() == null) {
 			return;
 		}
 
 		ObjectReferenceType ref = new ObjectReferenceType();
-		ref.setOid(assignment.getAccountConstruction().getResource().getOid());
+		ref.setOid(assignment.getConstruction().getResource().getOid());
 		ref.setType(ResourceType.COMPLEX_TYPE);
-		assignment.getAccountConstruction().setResourceRef(ref);
-		assignment.getAccountConstruction().setResource(null);
+		assignment.getConstruction().setResourceRef(ref);
+		assignment.getConstruction().setResource(null);
 	}
 
 	private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef) throws SchemaException {
@@ -1811,7 +1811,7 @@ public class PageUser extends PageAdminUsers {
 	private void addSelectedResourceAssignPerformed(ResourceType resource) {
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType construction = new ConstructionType();
-		assignment.setAccountConstruction(construction);
+		assignment.setConstruction(construction);
 		construction.setResource(resource);
 
 		List<AssignmentEditorDto> assignments = assignmentsModel.getObject();

@@ -147,7 +147,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                         new ItemPath(
                                 new NameItemPathSegment(UserType.F_ASSIGNMENT),
                                 new IdItemPathSegment(1L),
-                                new NameItemPathSegment(AssignmentType.F_ACCOUNT_CONSTRUCTION)),
+                                new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
                         true),
         };
 
@@ -161,7 +161,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
                 String familyName = userRetrieved.asObjectable().getFamilyName().getOrig();
                 String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
-                String referenceDescription = userRetrieved.asObjectable().getAssignment().get(0).getAccountConstruction().getDescription();
+                String referenceDescription = userRetrieved.asObjectable().getAssignment().get(0).getConstruction().getDescription();
                 LOGGER.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription + ", familyName = " + familyName + ", referenceDescription = " + referenceDescription);
                 if (!givenName.equals(assignmentDescription)) {
                     String msg = "Inconsistent object state: GivenName = " + givenName + ", assignment description = " + assignmentDescription;

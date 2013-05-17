@@ -24,12 +24,12 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
     <name>Pirate Role</name>
-    <assignment>
+    <inducement>
     	<!-- Inner "sailor" role -->
 		<targetRef oid="12345678-d34d-b33f-f00d-987955553535" type="RoleType"/>
-    </assignment>
-    <assignment>
-    	<accountConstruction>
+    </inducement>
+    <inducement>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
     		<attribute>
@@ -43,6 +43,6 @@
 					<ri:businessCategory>murder</ri:businessCategory>
 				</value>
             </attribute>    		
-    	</accountConstruction>
-    </assignment>  
+    	</construction>
+    </inducement>  
 </role>

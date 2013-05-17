@@ -32,8 +32,8 @@
     <emailAddress>testuserX00002@example.com</emailAddress>
     <assignment id="1">
         <description>d</description>
-        <accountConstruction>
+        <construction>
             <description>d</description>
-        </accountConstruction>
+        </construction>
     </assignment>
 </user>

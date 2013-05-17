@@ -22,8 +22,8 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	oid="12345678-d34d-b33f-f00d-987987987989" version="0">
 	<name>Basic Role - CSV</name>
-	<assignment id="1">
-		<c:accountConstruction
+	<inducement id="1">
+		<c:construction
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 			xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
@@ -37,6 +37,6 @@
 				<c:filter />
 			</c:resourceRef>
 			<c:type>user</c:type>
-		</c:accountConstruction>
-	</assignment>
+		</c:construction>
+	</inducement>
 </role>

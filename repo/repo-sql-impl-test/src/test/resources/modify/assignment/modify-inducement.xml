@@ -37,9 +37,9 @@
         <t:modificationType>delete</t:modificationType>
         <t:path>c:inducement[5]</t:path>
         <t:value>
-            <c:accountConstruction>
+            <c:construction>
                 <c:resourceRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            </c:accountConstruction>
+            </c:construction>
         </t:value>
     </modification>
 </objectModification>

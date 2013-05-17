@@ -121,8 +121,8 @@ public class ObjectTypeUtil {
             return "null";
         }
         StringBuilder sb = new StringBuilder("Assignment(");
-        if (assignment.getAccountConstruction() != null) {
-            sb.append("account");
+        if (assignment.getConstruction() != null) {
+            sb.append("construction");
             // TODO
         }
         if (assignment.getTarget() != null) {

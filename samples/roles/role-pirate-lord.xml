@@ -28,11 +28,11 @@
     <description>
      A role that "extends" pirate role. Used to test role hierarchies.
     </description>
-    <assignment>
+    <inducement>
         <targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="RoleType"/>
-    </assignment>
-    <assignment>
-    	<accountConstruction>
+    </inducement>
+    <inducement>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
     		<attribute>
@@ -54,6 +54,6 @@
 		                </expression>
 		           </outbound>
             </attribute>
-    	</accountConstruction>
-    </assignment>  
+    	</construction>
+    </inducement>  
 </role>

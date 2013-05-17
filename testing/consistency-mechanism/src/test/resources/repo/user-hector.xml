@@ -26,7 +26,7 @@
     <linkRef oid="a0c010c0-d34d-b33f-f00d-111111222333" type="AccountShadowType"/>
 
      <assignment>
-		<accountConstruction>
+		<construction>
 			<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
 			This is inconsistent with the actual resource value (by purpose, so we can test reconcile)
 <!-- 			<attribute> -->
@@ -37,7 +37,7 @@
 <!-- 				<ref>ri:l</ref> -->
 <!-- 				<value>Caribbean</value> -->
 <!-- 			</attribute> -->
-		</accountConstruction>
+		</construction>
 	</assignment>
 
     <fullName>Hector Hector</fullName>

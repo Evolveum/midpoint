@@ -30,7 +30,7 @@
 		<t:modificationType>delete</t:modificationType>
 		<t:value>
 			<assignment>
-				<accountConstruction>
+				<construction>
 					<description>Undead monkey account construction</description>
 					<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 					<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
@@ -42,7 +42,7 @@
 							</expression>
 						</outbound>
 					</attribute>
-				</accountConstruction>
+				</construction>
 			</assignment>
 		</t:value>
 	</apit:modification>

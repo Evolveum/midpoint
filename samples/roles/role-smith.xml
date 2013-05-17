@@ -25,8 +25,8 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>Smith</name>
-    <assignment>
-        <accountConstruction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
+    <inducement>
+        <construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
         	<!-- The c: prefix in type must be there due to a JAXB bug -->
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
             <attribute>
@@ -37,7 +37,7 @@
                		</expression>
                 </outbound>
             </attribute>
-        </accountConstruction>
-    </assignment>  
+        </construction>
+    </inducement>  
     <requestable>true</requestable>  
 </role>

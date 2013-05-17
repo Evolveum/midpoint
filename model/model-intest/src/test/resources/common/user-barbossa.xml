@@ -29,7 +29,7 @@
     <name>barbossa</name>
 
     <assignment id="1001">
-		<accountConstruction>
+		<construction>
 			<description>Brethren account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
@@ -57,11 +57,11 @@
 					</expression>
 				</outbound>
 			</attribute>
-		</accountConstruction>
+		</construction>
 	</assignment>
 
     <assignment>
-		<accountConstruction>
+		<construction>
 			<description>Shipwreck account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
@@ -73,7 +73,7 @@
 					</expression>
 				</outbound>
 			</attribute>
-		</accountConstruction>
+		</construction>
 	</assignment>
     
     <fullName>Hector Barbossa</fullName>

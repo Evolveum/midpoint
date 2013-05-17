@@ -35,14 +35,14 @@
     <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
 
     <assignment>
-		<accountConstruction>
+		<construction>
 			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
 				<ref>ri:l</ref>
 				<value>Shipwreck cove</value>
 			</attribute>
-		</accountConstruction>
+		</construction>
 	</assignment>
     
     <extension>

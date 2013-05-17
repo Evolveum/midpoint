@@ -241,8 +241,8 @@ public class SchemaDebugUtil {
 			sb.append("target:");
 			sb.append(prettyPrint(assignmentType.getTargetRef()));
 		}
-		if (assignmentType.getAccountConstruction() != null) {
-			sb.append(prettyPrint(assignmentType.getAccountConstruction()));
+		if (assignmentType.getConstruction() != null) {
+			sb.append(prettyPrint(assignmentType.getConstruction()));
 		}
 		sb.append(", ");
 		if (assignmentType.getActivation() != null) {

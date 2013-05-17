@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -56,9 +57,9 @@ public class Migrator {
 			PrismObject<ResourceType> out = migrateResource((PrismObject<ResourceType>) original.getObject());
 			return (TypedPrismObject<O>) new TypedPrismObject<ResourceType>((Class<ResourceType>) origType, out);
 		}
-		if (AbstractRoleType.class.isAssignableFrom(origType)) {
-			PrismObject<AbstractRoleType> out = migrateAbstractRole((PrismObject<AbstractRoleType>) original.getObject());
-			return (TypedPrismObject<O>) new TypedPrismObject<AbstractRoleType>((Class<AbstractRoleType>) origType, out);
+		if (FocusType.class.isAssignableFrom(origType)) {
+			PrismObject<FocusType> out = migrateFocus((PrismObject<FocusType>) original.getObject());
+			original = (TypedPrismObject<I>) new TypedPrismObject<FocusType>((Class<FocusType>) origType, out);
 		}
 		if (UserType.class.isAssignableFrom(origType)) {
 			PrismObject<UserType> out = migrateUser((PrismObject<UserType>) original.getObject());
@@ -104,14 +105,14 @@ public class Migrator {
 		return migrated;
 	}
 	
-	private PrismObject<AbstractRoleType> migrateAbstractRole(PrismObject<AbstractRoleType> orig) {
-		AbstractRoleType origARoleType = orig.asObjectable();
-		List<AssignmentType> origAssignments = origARoleType.getAssignment();
+	private PrismObject<FocusType> migrateFocus(PrismObject<FocusType> orig) {
+		FocusType origFocusType = orig.asObjectable();
+		List<AssignmentType> origAssignments = origFocusType.getAssignment();
 		if (origAssignments.isEmpty()) {
 			return orig;
 		}
 		boolean hasAccountConstruction = false;
-		for (AssignmentType origAssignment: origARoleType.getAssignment()) {
+		for (AssignmentType origAssignment: origFocusType.getAssignment()) {
 			if (origAssignment.getAccountConstruction() != null) {
 				hasAccountConstruction = true;
 			}
@@ -121,10 +122,10 @@ public class Migrator {
 			return orig;
 		}
 		
-		PrismObject<AbstractRoleType> migrated = orig.clone();
-		AbstractRoleType migratedARoleType = migrated.asObjectable();
+		PrismObject<FocusType> migrated = orig.clone();
+		FocusType migratedFocusType = migrated.asObjectable();
 		
-		for (AssignmentType migAssignment: migratedARoleType.getAssignment()) {
+		for (AssignmentType migAssignment: migratedFocusType.getAssignment()) {
 			if (migAssignment.getAccountConstruction() != null) {
 				ConstructionType accountConstruction = migAssignment.getAccountConstruction();
 				accountConstruction.setKind(ShadowKindType.ACCOUNT);

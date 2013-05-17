@@ -77,7 +77,7 @@
 		<parentOrgRef oid="c74a7d86-7798-11e2-964e-100000000000" type="c:OrgType"/>
 		<assignment>
 			<description>Access to engineering library</description>
-			<accountConstruction>
+			<construction>
 		    		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
 				<attribute>
 		                    <ref>ri:ou</ref>
@@ -95,7 +95,7 @@
 		                    	</expression>
 		                    </outbound>
 		                </attribute>
-		    	</accountConstruction>
+		    	</construction>
 		</assignment>
 		<displayName>Department of Machines</displayName>
 		<identifier>0200</identifier>

@@ -574,7 +574,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		AssignmentType assignmentType = cval.asContainerable();
 		ConstructionType accountConstructionType = new ConstructionType();
-		assignmentType.setAccountConstruction(accountConstructionType);
+		accountConstructionType.setKind(ShadowKindType.ACCOUNT);
+		assignmentType.setConstruction(accountConstructionType);
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resourceOid);
 		accountConstructionType.setResourceRef(resourceRef);
@@ -592,10 +593,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, ConstructionType newValue) throws SchemaException {
-        PrismPropertyDefinition ppd = getAssignmentDefinition().findPropertyDefinition(AssignmentType.F_ACCOUNT_CONSTRUCTION);
+        PrismPropertyDefinition ppd = getAssignmentDefinition().findPropertyDefinition(AssignmentType.F_CONSTRUCTION);
         PropertyDelta<ConstructionType> acDelta =
                 PropertyDelta.createModificationReplaceProperty(
-                        new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_ACCOUNT_CONSTRUCTION)),
+                        new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
                         ppd,
                         newValue);
 
@@ -876,9 +877,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertAssignedAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
-			ConstructionType accountConstruction = assignmentType.getAccountConstruction();
-			if (accountConstruction != null) {
-				if (resourceOid.equals(accountConstruction.getResourceRef().getOid())) {
+			ConstructionType construction = assignmentType.getConstruction();
+			if (construction != null) {
+				if (construction.getKind() != null && construction.getKind() != ShadowKindType.ACCOUNT) {
+					continue;
+				}
+				if (resourceOid.equals(construction.getResourceRef().getOid())) {
 					return;
 				}
 			}
@@ -889,9 +893,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertAssignedNoAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
-			ConstructionType accountConstruction = assignmentType.getAccountConstruction();
-			if (accountConstruction != null) {
-				if (resourceOid.equals(accountConstruction.getResourceRef().getOid())) {
+			ConstructionType construction = assignmentType.getConstruction();
+			if (construction != null) {
+				if (construction.getKind() != null && construction.getKind() != ShadowKindType.ACCOUNT) {
+					continue;
+				}
+				if (resourceOid.equals(construction.getResourceRef().getOid())) {
 					AssertJUnit.fail(user.toString()+" has account assignment for resource "+resourceOid+" while expecting no such assignment");
 				}
 			}
@@ -931,8 +938,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ConstructionType accountConstruntion = new ConstructionType();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
-		accountConstruntion.setResourceRef(resourceRef );
-		assignmentType.setAccountConstruction(accountConstruntion );
+		accountConstruntion.setResourceRef(resourceRef);
+		accountConstruntion.setKind(ShadowKindType.ACCOUNT);
+		assignmentType.setConstruction(accountConstruntion);
 		user.asObjectable().getAssignment().add(assignmentType);
 	}
 	

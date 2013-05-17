@@ -40,9 +40,9 @@
     </credentials>
     
     <assignment>
-    	<accountConstruction>
+    	<construction>
     		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-    	</accountConstruction>
+    	</construction>
     </assignment>
     
 </user>

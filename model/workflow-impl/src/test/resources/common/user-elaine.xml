@@ -32,21 +32,21 @@
     <linkRef oid="c0c010c0-d34d-b33f-f00d-22220204000e" type="c:AccountShadowType"/>
 
     <assignment>
-		<accountConstruction>
+		<construction>
 			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-		</accountConstruction>
+		</construction>
 	</assignment>
 	
 	<assignment>
-		<accountConstruction>
+		<construction>
 			<resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-		</accountConstruction>
+		</construction>
 	</assignment>
 	
 	<assignment>
-		<accountConstruction>
+		<construction>
 			<resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-		</accountConstruction>
+		</construction>
 	</assignment>
 
     <fullName>Elaine Marley</fullName>

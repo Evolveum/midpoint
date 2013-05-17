@@ -25,10 +25,11 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
     <name>Captain Role</name>    
-    <assignment>
-    	<accountConstruction>
+    <inducement>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
+    		<kind>account</kind>
     		<attribute>
                 <ref>ri:employeeType</ref>
                 <outbound>
@@ -94,6 +95,6 @@
                 	</source>
                 </outbound>
             </attribute>
-    	</accountConstruction>
-    </assignment>    
+    	</construction>
+    </inducement>    
 </role>

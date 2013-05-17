@@ -76,11 +76,12 @@
 	<!-- Scumm Bar also acts as a role, assigning account on dummy resource. -->
 	<org oid="00000000-8888-6666-0000-100000000006">
 		<name>F0006</name>
-		<assignment>
-			<accountConstruction>
+		<inducement>
+			<construction>
 				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-			</accountConstruction>
-		</assignment>
+				<kind>account</kind>
+			</construction>
+		</inducement>
 		<description>Hosting the worst scumm of the Caribbean.</description>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000003"/>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000004"/>

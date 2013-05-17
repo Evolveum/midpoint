@@ -29,8 +29,8 @@
      and also sets "employeeType" attribute to a fixed value and it sets "destinationIndicator"
      as a copy of a user property.
     </description>
-    <assignment>
-    	<accountConstruction>
+    <inducement>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
     		<attribute>
@@ -49,7 +49,7 @@
                     	</source>
                     </outbound>
                 </attribute>
-    	</accountConstruction>
-    </assignment>
+    	</construction>
+    </inducement>
     <requestable>true</requestable>
 </role>

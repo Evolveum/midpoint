@@ -20,7 +20,7 @@
 <!--                                                         -->
 
 <assignment xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'>
-	<accountConstruction>
+	<construction>
 		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-	</accountConstruction>
+	</construction>
 </assignment>

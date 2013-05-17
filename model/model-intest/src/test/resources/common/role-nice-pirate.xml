@@ -24,9 +24,9 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Nice Pirate</name>
     <description>A pirate that cannot loot</description>
-    <assignment>
+    <inducement>
     	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-    </assignment>
+    </inducement>
     <authorization>
     	<decision>deny</decision>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>

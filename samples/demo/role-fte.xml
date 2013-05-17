@@ -24,9 +24,9 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
     <name>Full Time Employee</name>    
     <description>Basic role for full-time employee. It contains basic access rights that every employee should get automatically.</description>
-    <assignment>
+    <inducement>
 	<description>Addressbook resource</description>
-    	<accountConstruction>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="c1b8b075-8c45-4058-ba32-753b87ac2da0" type="c:ResourceType"/>
 		<attribute>
@@ -37,11 +37,11 @@
                     	</expression>
                     </outbound>
                 </attribute>
-    	</accountConstruction>
-    </assignment>    
-    <assignment>
+    	</construction>
+    </inducement>    
+    <inducement>
 	<description>LDAP resource with implied group membership</description>
-    	<accountConstruction>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
 		<attribute>
@@ -52,7 +52,7 @@
                     	</expression>
                     </outbound>
                 </attribute>
-    	</accountConstruction>
-    </assignment>
+    	</construction>
+    </inducement>
 </role>
 

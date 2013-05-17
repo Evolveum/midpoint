@@ -364,8 +364,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         assertEquals("Unexpected number of functional orgs (-1)", NUM_PROJECT_ORGS, projectOrgs.size());
         
         PrismObject<OrgType> orgScummBar = modelService.getObject(OrgType.class, ORG_SCUMM_BAR_OID, null, task, result);
-        List<AssignmentType> scummBarAssignments = orgScummBar.asObjectable().getAssignment();
-        assertEquals("Unexpected number of scumm bar assignments: "+scummBarAssignments,  1, scummBarAssignments.size());
+        List<AssignmentType> scummBarInducements = orgScummBar.asObjectable().getInducement();
+        assertEquals("Unexpected number of scumm bar inducements: "+scummBarInducements,  1, scummBarInducements.size());
 	}
      	
 }

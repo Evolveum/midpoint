@@ -24,14 +24,14 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>Basic Role - LDAP</name>    
     <assignment id="1">
-    	<accountConstruction>
+    	<construction>
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-    	</accountConstruction>
+    	</construction>
     </assignment>
     <inducement id="2">
-        <accountConstruction>
+        <construction>
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-        </accountConstruction>
+        </construction>
     </inducement>
     <inducement id="3">
         <targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>

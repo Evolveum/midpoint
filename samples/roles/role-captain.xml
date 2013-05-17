@@ -25,13 +25,13 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
     <name>Captain</name>    
-    <assignment>
+    <inducement>
     	<!-- Inner "sailor" role. This role includes sailor role, therefore any specifications
              of the sailor role also apply to this role. -->
         <targetRef oid="12345678-d34d-b33f-f00d-987955553535" type="RoleType"/>
-    </assignment>
-    <assignment>
-    	<accountConstruction>
+    </inducement>
+    <inducement>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
     		<attribute>
@@ -75,6 +75,6 @@
 		                 </expression>
 		             </outbound>
                 </attribute>
-    	</accountConstruction>
-    </assignment>    
+    	</construction>
+    </inducement>    
 </role>

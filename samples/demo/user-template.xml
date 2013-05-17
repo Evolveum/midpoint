@@ -51,9 +51,9 @@
     	<expression>
             <value>
 				<assignment>
-					<accountConstruction>
+					<construction>
 						<resourceRef oid="8844dcca-775d-11e2-a0ac-001e8c717e5b" type="c:ResourceType"/>
-					</accountConstruction>
+					</construction>
 				</assignment>
             </value>    	
     	</expression>

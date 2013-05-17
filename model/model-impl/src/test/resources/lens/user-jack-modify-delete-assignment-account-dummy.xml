@@ -30,9 +30,9 @@
 		<t:modificationType>delete</t:modificationType>
 		<t:value>
 			<c:assignment>
-				<c:accountConstruction>
+				<c:construction>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-				</c:accountConstruction>
+				</c:construction>
 			</c:assignment>
 		</t:value>
 	</modification>

@@ -73,13 +73,13 @@
             <administrativeStatus>enabled</administrativeStatus>
         </activation>
         <assignment id="1">
-            <accountConstruction>
+            <construction>
                 <description>
                     Account construction.
                 </description>
                 <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
                 <type>default</type>
-            </accountConstruction>
+            </construction>
         </assignment>
         <assignment>
             <extension>

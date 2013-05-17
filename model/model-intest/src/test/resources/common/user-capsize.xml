@@ -53,21 +53,21 @@
     </link>
 
     <assignment>
-        <accountConstruction>
+        <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-        </accountConstruction>
+        </construction>
     </assignment>
 
     <assignment>
-        <accountConstruction>
+        <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-        </accountConstruction>
+        </construction>
     </assignment>
 
     <assignment>
-        <accountConstruction>
+        <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-        </accountConstruction>
+        </construction>
     </assignment>
 
     <fullName>Kate Capsize</fullName>

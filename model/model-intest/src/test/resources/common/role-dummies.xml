@@ -25,9 +25,10 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Dummies</name>    
-    <assignment>
-    	<accountConstruction>
+    <inducement>
+    	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+    		<kind>account</kind>
     		<attribute>
                 <ref>ri:title</ref>
                 <outbound>
@@ -44,11 +45,11 @@
 					</expression>
 				</outbound>
             </attribute>
-    	</accountConstruction>
-    </assignment>    
-    <assignment>
-    	<accountConstruction>
+    	</construction>
+    </inducement>    
+    <inducement>
+    	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
-    	</accountConstruction>
-    </assignment>    
+    	</construction>
+    </inducement>    
 </role>

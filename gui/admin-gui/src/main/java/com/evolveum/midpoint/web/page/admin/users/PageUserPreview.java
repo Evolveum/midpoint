@@ -558,7 +558,7 @@ public class PageUserPreview extends PageAdmin {
 			prismRefValue = (PrismReferenceValue) assignment;
 		} else {
 			PrismContainerValue prismContVal = (PrismContainerValue) assignment;
-			accountConstrRef = prismContVal.findReference(AssignmentType.F_ACCOUNT_CONSTRUCTION);
+			accountConstrRef = prismContVal.findReference(AssignmentType.F_CONSTRUCTION);
 			if(accountConstrRef == null) {
 				accountConstrRef = prismContVal.findReference(AssignmentType.F_TARGET_REF);
 			}

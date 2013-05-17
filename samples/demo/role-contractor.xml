@@ -24,9 +24,9 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
     <name>Contractor</name>    
     <description>Role that gives contractors necessary access.</description>
-    <assignment>
+    <inducement>
 	<description>Addressbook resource. We want contractors to be in addressbook. But not in the LDAP.</description>
-    	<accountConstruction>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="c1b8b075-8c45-4058-ba32-753b87ac2da0" type="c:ResourceType"/>
 		<attribute>
@@ -37,7 +37,7 @@
                     	</expression>
                     </outbound>
                 </attribute>
-    	</accountConstruction>
-    </assignment>    
+    	</construction>
+    </inducement>    
 </role>
 

@@ -57,13 +57,13 @@
                 <modifyApproverRef oid="eeeccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
                 <modifyChannel>http://modifyChannelUri</modifyChannel>
             </metadata>
-            <accountConstruction>
+            <construction>
                 <description>
                     Account construction.
                 </description>
                 <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
                 <type>default</type>
-            </accountConstruction>
+            </construction>
         </assignment>
 
         <fullName>
@@ -709,18 +709,6 @@
             	<path>fullName</path>
             </target>
         </mapping>
-        <accountConstruction>
-            <description>
-                Account construction.
-                Defines what accounts should be assigned to a user when it is
-                created. It only defines resource and account type. The rest of the
-                account parameters are specified by outbound expressions in the
-                account type in the resource definition, as usual.
-                See http://wiki.evolveum.com/display/midPoint/Synchronization
-            </description>
-            <resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
-            <type>default</type>
-        </accountConstruction>
     </objectTemplate>
 
     <objectTemplate>
@@ -1088,9 +1076,9 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
         <name>Judge</name>
         <assignment id="1">
-            <accountConstruction>
+            <construction>
                 <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-            </accountConstruction>
+            </construction>
         </assignment>
         <inducement id="5">
             <construction>

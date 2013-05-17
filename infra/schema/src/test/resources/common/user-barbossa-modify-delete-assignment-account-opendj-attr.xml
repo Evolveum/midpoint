@@ -30,13 +30,13 @@
 	<modification modificationType="delete">
 		<t:value>
 			<c:assignment>
-				<c:accountConstruction>
+				<c:construction>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 					<c:attribute>
 						<c:ref>ri:l</c:ref>
 						<c:value>Shipwreck cove</c:value>
 					</c:attribute>
-				</c:accountConstruction>
+				</c:construction>
 			</c:assignment>
 		</t:value>
 	</modification>

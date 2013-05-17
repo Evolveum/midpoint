@@ -359,7 +359,7 @@ public class PageDashboard extends PageAdminHome {
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
         if (targetRef == null || targetRef.isEmpty()) {
             //account construction
-            PrismProperty construction = assignment.findProperty(AssignmentType.F_ACCOUNT_CONSTRUCTION);
+            PrismProperty construction = assignment.findProperty(AssignmentType.F_CONSTRUCTION);
             String name = null;
             String description = null;
             if (construction != null && !construction.isEmpty()) {

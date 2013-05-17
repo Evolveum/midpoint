@@ -454,31 +454,37 @@ public class AssignmentProcessor {
 	}
 
 	private String determineResource(AssignmentType assignmentType) {
-		if (assignmentType.getAccountConstruction() != null){
-			ConstructionType accConstruction = assignmentType.getAccountConstruction();
-			if (accConstruction.getResource() != null){
-				return accConstruction.getResource().getOid();
-			} else if (accConstruction.getResourceRef() != null){
-				return accConstruction.getResourceRef().getOid();
+		ConstructionType construction = assignmentType.getConstruction();
+		if (construction == null) {
+			construction = assignmentType.getAccountConstruction();
+		}
+		if (construction != null){
+			if (construction.getResource() != null){
+				return construction.getResource().getOid();
+			} else if (construction.getResourceRef() != null){
+				return construction.getResourceRef().getOid();
 			} 
 			
 			throw new IllegalStateException("No resource defined in account construction.");
 		}
 		
-		throw new IllegalArgumentException("Account construction not defined in the assigment.");
+		throw new IllegalArgumentException("Construction not defined in the assigment.");
 	}
 	
 	private String determineIntent(AssignmentType assignmentType) {
-		if (assignmentType.getAccountConstruction() != null){
-			ConstructionType accConstruction = assignmentType.getAccountConstruction();
-			if (accConstruction.getIntent() != null){
-				return accConstruction.getIntent();
+		ConstructionType construction = assignmentType.getConstruction();
+		if (construction == null) {
+			construction = assignmentType.getAccountConstruction();
+		}
+		if (construction != null){
+			if (construction.getIntent() != null){
+				return construction.getIntent();
 			} 
 			
 			return "default";
 		}
 		
-		throw new IllegalArgumentException("Account construction not defined in the assigment.");
+		throw new IllegalArgumentException("Construction not defined in the assigment.");
 	}
 
 	private Collection<PrismPropertyValue<AccountConstruction>> getConstructions(AccountConstructionPack accountConstructionPack) {
@@ -555,7 +561,7 @@ public class AssignmentProcessor {
 		AssignmentType assignmet = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
-		assignmet.setAccountConstruction(constructionType);
+		assignmet.setConstruction(constructionType);
 		assignmentDelta.addValueToAdd(assignmet.asPrismContainerValue());
 		assignmentDelta.applyDefinition(prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(UserType.class)

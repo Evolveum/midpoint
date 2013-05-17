@@ -22,10 +22,11 @@
 <role oid="12345678-d34d-b33f-f00d-55555555bbbb"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>Beta</name>    
-    <assignment>
-    	<accountConstruction>
+    <inducement>
+    	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-            <type>default</type>
-    	</accountConstruction>
-    </assignment>    
+    		<kind>account</kind>
+            <intent>default</intent>
+    	</construction>
+    </inducement>    
 </role>

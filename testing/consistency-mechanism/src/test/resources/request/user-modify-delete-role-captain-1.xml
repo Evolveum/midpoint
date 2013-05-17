@@ -32,12 +32,12 @@
 	<modification>
 		<t:modificationType>delete</t:modificationType>
 		<t:value>
-			<c:assignment>
+			<c:inducement>
 				<c:extension>
 					<my:shipName xsi:type="xsd:string">The Sea Monkey</my:shipName>
 				</c:extension>
 				<c:targetRef oid="12345678-d34d-b33f-f00d-987987cccccc" type="c:RoleType"/>
-			</c:assignment>
+			</c:inducement>
 		</t:value>
 	</modification>
 </objectModification>

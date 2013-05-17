@@ -29,9 +29,9 @@
 		<t:modificationType>add</t:modificationType>
 		<t:value>
 			<c:inducement id="5">
-                <c:accountConstruction>
+                <c:construction>
                     <c:resourceRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-                </c:accountConstruction>
+                </c:construction>
 			</c:inducement>
 		</t:value>
 	</modification>

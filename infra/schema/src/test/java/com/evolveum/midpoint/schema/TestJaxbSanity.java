@@ -124,9 +124,9 @@ public class TestJaxbSanity {
 		PrismObject<UserType> user2 = user2Type.asPrismObject();
 		
 		// Compare plain JAXB objects (not backed by containers)
-		ConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
-		ConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
-		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
+		ConstructionType ac1 = user1Type.getAssignment().get(0).getConstruction();
+		ConstructionType ac2 = user2Type.getAssignment().get(0).getConstruction();
+		assertTrue("ConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN
 		ObjectDelta<UserType> objectDelta = user1.diff(user2);
@@ -154,10 +154,10 @@ public class TestJaxbSanity {
 		UserType user2Type = user2.asObjectable();
 		
 		// Compare plain JAXB objects (not backed by containers)
-		ConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
-		ConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
-		assertTrue("AccountConstructionType not equals (JAXB)", ac1.equals(ac2));
-		assertTrue("AccountConstructionType hashcode does not match (JAXB)", ac1.hashCode() == ac2.hashCode());
+		ConstructionType ac1 = user1Type.getAssignment().get(0).getConstruction();
+		ConstructionType ac2 = user2Type.getAssignment().get(0).getConstruction();
+		assertTrue("ConstructionType not equals (JAXB)", ac1.equals(ac2));
+		assertTrue("ConstructionType hashcode does not match (JAXB)", ac1.hashCode() == ac2.hashCode());
 		
 		AssignmentType as1Type = user1Type.getAssignment().get(0);
 		PrismContainerValue<AssignmentType> as1ContVal = as1Type.asPrismContainerValue();
@@ -206,9 +206,9 @@ public class TestJaxbSanity {
 		PrismObject<UserType> user2 = user2Type.asPrismObject();
 		
 		// Compare plain JAXB objects (not backed by containers)
-		ConstructionType ac1 = user1Type.getAssignment().get(0).getAccountConstruction();
-		ConstructionType ac2 = user2Type.getAssignment().get(0).getAccountConstruction();
-		assertTrue("AccountConstructionType not equals", ac1.equals(ac2));
+		ConstructionType ac1 = user1Type.getAssignment().get(0).getConstruction();
+		ConstructionType ac2 = user2Type.getAssignment().get(0).getConstruction();
+		assertTrue("ConstructionType not equals", ac1.equals(ac2));
 		
 		// WHEN, THEN
 		assertTrue("User not equals (PrismObject)", user1.equals(user2));

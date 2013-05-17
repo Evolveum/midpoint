@@ -29,8 +29,8 @@
 	<honorificSuffix>007</honorificSuffix>
 	<locality>home</locality>
 	<assignment>
-        <accountConstruction>
+        <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-        </accountConstruction>
+        </construction>
     </assignment>
 </c:object>

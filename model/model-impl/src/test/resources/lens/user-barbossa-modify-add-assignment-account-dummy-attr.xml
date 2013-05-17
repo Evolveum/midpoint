@@ -31,7 +31,7 @@
 		<t:modificationType>add</t:modificationType>
 		<t:value>
 			<c:assignment>
-				<c:accountConstruction>
+				<c:construction>
 					<c:description>Monkey account construction</c:description>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 					<c:attribute>
@@ -53,7 +53,7 @@
 							</c:expression>
 						</c:outbound>
 					</c:attribute>
-				</c:accountConstruction>
+				</c:construction>
 			</c:assignment>
 		</t:value>
 	</modification>

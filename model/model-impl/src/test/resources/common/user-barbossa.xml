@@ -29,7 +29,7 @@
     <name>barbossa</name>
 
     <assignment id="1001">
-		<accountConstruction>
+		<construction>
 			<description>Brethren account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
@@ -65,11 +65,11 @@
 					</expression>
 				</outbound>
 			</attribute>
-		</accountConstruction>
+		</construction>
 	</assignment>
 
     <assignment>
-		<accountConstruction>
+		<construction>
 			<description>Undead monkey account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
@@ -81,7 +81,7 @@
 					</expression>
 				</outbound>
 			</attribute>
-		</accountConstruction>
+		</construction>
 	</assignment>
     
     <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>

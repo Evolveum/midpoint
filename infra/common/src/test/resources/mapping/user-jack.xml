@@ -78,9 +78,9 @@
     </activation>
     
     <assignment id="111">
-    	<accountConstruction>
+    	<construction>
 			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>    		
-    	</accountConstruction>
+    	</construction>
     </assignment>
     
 </user>

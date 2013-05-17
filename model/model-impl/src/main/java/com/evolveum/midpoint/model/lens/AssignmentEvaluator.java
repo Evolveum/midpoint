@@ -50,9 +50,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -152,7 +154,7 @@ public class AssignmentEvaluator {
 		
 		checkSchema(assignmentType, sourceDescription);
 		
-		if (assignmentType.getAccountConstruction()!=null) {
+		if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
 			
 			evaluateConstruction(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, result);
 			
@@ -165,7 +167,7 @@ public class AssignmentEvaluator {
 			evaluateTargetRef(assignment, assignmentPathSegment, assignmentType.getTargetRef(), source, sourceDescription, assignmentPath, result);
 
 		} else {
-			throw new SchemaException("No target or accountConstrucion in assignment in "+ObjectTypeUtil.toShortString(source));
+			throw new SchemaException("No target or construcion in assignment in " + source);
 		}
 		
 		assignmentPath.remove(assignmentPathSegment);
@@ -176,8 +178,12 @@ public class AssignmentEvaluator {
 		assertSource(source, assignment);
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
-		AccountConstruction accContruction = new AccountConstruction(assignmentType.getAccountConstruction(),
-				source);
+		ConstructionType constructionType = assignmentType.getConstruction();
+		if (constructionType == null) {
+			constructionType = assignmentType.getAccountConstruction();
+			constructionType.setKind(ShadowKindType.ACCOUNT);
+		}
+		AccountConstruction accContruction = new AccountConstruction(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation
 		accContruction.setAssignmentPath(assignmentPath.clone());
 		accContruction.setUserOdo(userOdo);
@@ -252,8 +258,8 @@ public class AssignmentEvaluator {
 	private void evaluateAbstractRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, AbstractRoleType role, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
-		for (AssignmentType roleAssignment : role.getAssignment()) {
-			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignment, null);
+		for (AssignmentType roleInducement : role.getInducement()) {
+			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducement, null);
 			String subSourceDescription = role+" in "+sourceDescription;
 			evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, result);
 		}

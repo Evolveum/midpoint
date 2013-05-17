@@ -44,9 +44,9 @@
 <!-- 				</c:attributes> -->
 <!-- 			</c:account> -->
 			<c:assignment>
-				<c:accountConstruction>
+				<c:construction>
 					<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-				</c:accountConstruction>
+				</c:construction>
 			</c:assignment>
 
 		</t:value>

@@ -25,9 +25,9 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
     <name>Patron</name>    
     <description>A role for art patrons. Designed to be assigned manually.</description>
-    <assignment>
+    <inducement>
 	<description>Addressbook resource</description>
-    	<accountConstruction>
+    	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="c1b8b075-8c45-4058-ba32-753b87ac2da0" type="c:ResourceType"/>
 		<attribute>
@@ -38,7 +38,7 @@
                     	</expression>
                     </outbound>
                 </attribute>
-    	</accountConstruction>
-    </assignment>    
+    	</construction>
+    </inducement>    
 </role>
 

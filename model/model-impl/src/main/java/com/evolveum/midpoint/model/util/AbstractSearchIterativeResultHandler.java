@@ -124,6 +124,12 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 						getProcessShortNameCapitalized(), object,
 						getContextDesc(), endTime - startTime});
 			}
+			
+			// We do not want to override the result set by handler. This is just a fallback case
+			if (result.isUnknown()) {
+				result.computeStatus();
+			}
+			
 		} catch (Exception ex) {
 			errors++;
 			if (LOGGER.isErrorEnabled()) {
@@ -131,7 +137,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 						getProcessShortNameCapitalized(),
 						object, getContextDesc(), ex.getMessage(), ex });
 			}
-			result.recordPartialError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
+			// We do not want to override the result set by handler. This is just a fallback case
+			if (result.isUnknown()) {
+				result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
+			}
 			return !isStopOnError();
 		}
 		
@@ -147,7 +156,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		
 		// Check if we haven't been interrupted
 		if (task.canRun()) {
-			result.computeStatus();
 			// Everything OK, signal to continue
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} finished for {} {}, result:\n{}", new Object[]{
@@ -155,7 +163,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			}
 			return true;
 		} else {
-			result.recordPartialError("Interrupted");
+			parentResult.recordPartialError("Interrupted");
 			// Signal to stop
 			if (LOGGER.isWarnEnabled()) {
 				LOGGER.warn("{} {} interrupted",new Object[]{

@@ -87,9 +87,9 @@
     	<extension>
     		<ext:intType>42</ext:intType>
     	</extension>
-    	<accountConstruction>
+    	<construction>
 			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>    		
-    	</accountConstruction>
+    	</construction>
     </assignment>
 
     <fullName>

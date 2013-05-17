@@ -23,9 +23,9 @@
 	        	<strength>weak</strength>
 	            <value>
 	            	<assignment>
-						<accountConstruction>
+						<construction>
 							<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-						</accountConstruction>
+						</construction>
 					</assignment>
 	            </value>
 	        </valueConstruction>
