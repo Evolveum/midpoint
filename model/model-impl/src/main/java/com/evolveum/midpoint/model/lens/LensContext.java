@@ -634,7 +634,17 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		}
 	}
 
-	@Override
+    @Override
+    public Class<F> getFocusClass() {
+        return focusClass;
+    }
+
+    @Override
+    public Class<P> getProjectionClass() {
+        return projectionClass;
+    }
+
+    @Override
     public String debugDump() {
         return debugDump(0);
     }
@@ -652,7 +662,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     public String debugDump(int indent) {
     	return debugDump(indent, true);
     }
-    
+
     public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);

@@ -40,5 +40,8 @@ public interface ModelContext<F extends ObjectType, P extends ObjectType> extend
 	public Collection<? extends ModelProjectionContext<P>> getProjectionContexts();
 	
 	public ModelProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat);
-	
+
+    Class<F> getFocusClass();
+
+    Class<P> getProjectionClass();
 }

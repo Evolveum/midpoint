@@ -31,7 +31,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -60,29 +62,17 @@ public class SimpleUserNotifier extends GeneralNotifier {
             LOGGER.trace("SimpleUserNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
         }
-        ModelContext modelContext = ((ModelEvent) event).getModelContext();
-        if (modelContext == null || modelContext.getFocusContext() == null || modelContext.getFocusContext().getPrimaryDelta() == null) {
-            LOGGER.trace("No primary focus delta in model context, exiting.");
-            return false;
-        }
-        ObjectDelta primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
-        if (primaryDelta.getObjectTypeClass() == null || !UserType.class.isAssignableFrom(primaryDelta.getObjectTypeClass())) {
-            LOGGER.trace("Not a UserType operation; object type class in primary delta = " + primaryDelta.getObjectTypeClass());
-            return false;
-        }
-        return true;
+        return !(((ModelEvent) event).getUserDeltas()).isEmpty();
     }
 
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
 
-        ObjectDelta delta = ((ModelEvent) event).getModelContext().getFocusContext().getPrimaryDelta();
-
-        if (delta.isAdd()) {
+        if (event.isAdd()) {
             return "User creation notification";
-        } else if (delta.isModify()) {
+        } else if (event.isModify()) {
             return "User modification notification";
-        } else if (delta.isDelete()) {
+        } else if (event.isDelete()) {
             return "User deletion notification";
         } else {
             return "(unknown user operation)";
@@ -90,7 +80,7 @@ public class SimpleUserNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
+    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) throws SchemaException {
 
         boolean techInfo = generalNotifierType.getLevelOfDetail() != null && generalNotifierType.getLevelOfDetail() >= LEVEL_TECH_INFO;
 
@@ -98,7 +88,8 @@ public class SimpleUserNotifier extends GeneralNotifier {
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         PrismObject<UserType> user = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
         UserType userType = user.asObjectable();
-        ObjectDelta<UserType> delta = focusContext.getPrimaryDelta();
+
+        ObjectDelta<UserType> delta = ObjectDelta.summarize(((ModelEvent) event).getUserDeltas());
 
         StringBuilder body = new StringBuilder();
 
@@ -119,6 +110,7 @@ public class SimpleUserNotifier extends GeneralNotifier {
         }
 
         // todo what about the status?
+        body.append("Operation status: " + event.getOperationStatus() + "\n\n");
 
         if (techInfo) {
             body.append("----------------------------------------\n");

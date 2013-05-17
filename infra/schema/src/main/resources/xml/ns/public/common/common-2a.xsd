@@ -7458,6 +7458,19 @@
     </xsd:complexType>
     <xsd:element name="userPasswordNotifier" type="tns:UserPasswordNotifierType" substitutionGroup="tns:handler" />
 
+    <xsd:complexType name="AccountPasswordNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" substitutionGroup="tns:handler" />
+
     <xsd:complexType name="DummyNotifierType">
         <xsd:annotation>
             <xsd:documentation>

@@ -132,6 +132,7 @@ public class NotificationChangeHook implements ChangeHook {
         }
 
         event.setRequestee(user.asObjectable());
+        event.setOperationStatus(OperationStatus.SUCCESS);          // todo recognize other states, if necessary
         return event;
     }
 }

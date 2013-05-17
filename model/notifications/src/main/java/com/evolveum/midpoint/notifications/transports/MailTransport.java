@@ -92,7 +92,7 @@ public class MailTransport implements Transport {
         MailConfigurationType mailConfigurationType = systemConfiguration.asObjectable().getNotificationConfiguration().getMail();
         if (mailConfigurationType.getRedirectToFile() != null) {
             try {
-                FileUtils.writeStringToFile(new File(mailConfigurationType.getRedirectToFile()), formatToFile(mailMessage));
+                TransportUtil.appendToFile(mailConfigurationType.getRedirectToFile(), formatToFile(mailMessage));
                 result.recordSuccess();
             } catch (IOException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't write to mail redirect file {}", e, mailConfigurationType.getRedirectToFile());
@@ -176,6 +176,7 @@ public class MailTransport implements Transport {
         LOGGER.warn("No more mail servers to try, mail notification to " + mailMessage.getTo() + " will not be sent.") ;
         result.recordWarning("Mail notification to " + mailMessage.getTo() + " could not be sent.");
     }
+
 
     private String formatToFile(Message mailMessage) {
         return "============================================ " + new Date() + "\n" + mailMessage.toString() + "\n\n";

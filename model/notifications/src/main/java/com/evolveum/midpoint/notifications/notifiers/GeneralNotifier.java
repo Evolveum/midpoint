@@ -1,17 +1,16 @@
 package com.evolveum.midpoint.notifications.notifiers;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.notifications.transports.Message;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.cxf.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,7 +38,7 @@ public abstract class GeneralNotifier extends BaseHandler {
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) {
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) throws SchemaException {
 
         logStart(getLogger(), event, eventHandlerType);
 
@@ -101,7 +100,7 @@ public abstract class GeneralNotifier extends BaseHandler {
         return null;
     }
 
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
+    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) throws SchemaException {
         return null;
     }
 
@@ -170,6 +169,7 @@ public abstract class GeneralNotifier extends BaseHandler {
             return null;
         }
     }
+
 
 
 }

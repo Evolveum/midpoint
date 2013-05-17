@@ -25,28 +25,27 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.events.Event;
-import com.evolveum.midpoint.notifications.events.ModelEvent;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountPasswordNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * @author mederly
  */
 @Component
-public class UserPasswordNotifier extends GeneralNotifier {
+public class AccountPasswordNotifier extends GeneralNotifier {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UserPasswordNotifier.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccountPasswordNotifier.class);
     private static final Integer LEVEL_TECH_INFO = 10;
 
     @Autowired
@@ -54,13 +53,13 @@ public class UserPasswordNotifier extends GeneralNotifier {
 
     @PostConstruct
     public void init() {
-        register(UserPasswordNotifierType.class);
+        register(AccountPasswordNotifierType.class);
     }
 
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof ModelEvent)) {
-            LOGGER.trace("UserPasswordNotifier was called with incompatible notification event; class = " + event.getClass());
+        if (!(event instanceof AccountEvent)) {
+            LOGGER.trace("AccountPasswordNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
         }
         if (!event.isSuccess()) {
@@ -68,33 +67,46 @@ public class UserPasswordNotifier extends GeneralNotifier {
             return false;
         }
 
-        ModelEvent modelEvent = (ModelEvent) event;
-        if (modelEvent.getUserDeltas().isEmpty()) {
-            LOGGER.trace("No user deltas in event, exiting.");
+        AccountEvent accountEvent = (AccountEvent) event;
+        ObjectDelta<? extends ShadowType> delta = accountEvent.getAccountOperationDescription().getObjectDelta();
+        if (delta == null) {    // should not occur
+            LOGGER.trace("Object delta is null, exiting. Event = " + event);
+            return false;
         }
-        return getPasswordFromDeltas(modelEvent.getUserDeltas()) != null;
+        return getPasswordFromDelta(delta) != null;
     }
 
-    private String getPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) {
+    private String getPasswordFromDelta(ObjectDelta<? extends ShadowType> delta) {
         try {
-            return midpointFunctions.getPlaintextUserPasswordFromDeltas(deltas);
+            return midpointFunctions.getPlaintextAccountPasswordFromDelta(delta);
         } catch (EncryptionException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't decrypt password from user deltas: {}", e, DebugUtil.debugDump(deltas));
+            LoggingUtils.logException(LOGGER, "Couldn't decrypt password from shadow delta: {}", e, delta.debugDump());
             return null;
         }
     }
 
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
-        return "User password notification";
+        return "Account password notification";
     }
 
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
 
-        ModelEvent modelEvent = (ModelEvent) event;
-        List<ObjectDelta<UserType>> deltas = modelEvent.getUserDeltas();
-        return "Password for user " + event.getRequestee().getName() + " is: " + getPasswordFromDeltas(deltas);
+        StringBuilder body = new StringBuilder();
+
+        AccountEvent accountEvent = (AccountEvent) event;
+
+        ResourceOperationDescription rod = accountEvent.getAccountOperationDescription();
+        ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
+
+        body.append("Password for account ");
+        if (rod.getCurrentShadow() != null && rod.getCurrentShadow().asObjectable().getName() != null) {
+            body.append(rod.getCurrentShadow().asObjectable().getName() + " ");
+        }
+        body.append("on " + rod.getResource().asObjectable().getName());
+        body.append(" is: " + getPasswordFromDelta(delta));
+        return body.toString();
     }
 
 }

@@ -28,6 +28,8 @@ import com.evolveum.midpoint.notifications.transports.DummyTransport;
 import com.evolveum.midpoint.notifications.transports.Transport;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -113,7 +115,12 @@ public class NotificationManager {
     }
 
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, OperationResult result) {
-        return getEventHandler(eventHandlerType).processEvent(event, eventHandlerType, this, result);
+        try {
+            return getEventHandler(eventHandlerType).processEvent(event, eventHandlerType, this, result);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Event couldn't be processed; event = {}", e, event);
+            return true;        // continue if you can
+        }
     }
 
 }
