@@ -72,6 +72,7 @@ public class RAssignment extends RContainer implements ROwnable {
     private String description;
     private RActivation activation;
     private String accountConstruction;
+    private String construction;
     private REmbeddedReference targetRef;
     private RMetadata metadata;
 
@@ -153,6 +154,12 @@ public class RAssignment extends RContainer implements ROwnable {
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getConstruction() {
+        return construction;
+    }
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getDescription() {
         return description;
     }
@@ -172,6 +179,10 @@ public class RAssignment extends RContainer implements ROwnable {
         }
     }
 
+    public void setConstruction(String construction) {
+        this.construction = construction;
+    }
+    
     public void setAccountConstruction(String accountConstruction) {
         this.accountConstruction = accountConstruction;
     }
@@ -215,6 +226,8 @@ public class RAssignment extends RContainer implements ROwnable {
 
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
+        if (construction != null ? !construction.equals(that.construction) : that.construction != null)
+            return false;
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
@@ -228,6 +241,7 @@ public class RAssignment extends RContainer implements ROwnable {
         int result = super.hashCode();
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
+        result = 31 * result + (construction != null ? construction.hashCode() : 0);
         return result;
     }
 
@@ -250,10 +264,11 @@ public class RAssignment extends RContainer implements ROwnable {
 
         try {
             jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), ConstructionType.class, prismContext));
+            jaxb.setConstruction(RUtil.toJAXB(repo.getConstruction(), ConstructionType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-
+        
         if (repo.getTargetRef() != null) {
             jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
         }
@@ -288,10 +303,11 @@ public class RAssignment extends RContainer implements ROwnable {
 
         try {
             repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));
+            repo.setConstruction(RUtil.toRepo(jaxb.getConstruction(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-
+        
         if (jaxb.getTarget() != null) {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
