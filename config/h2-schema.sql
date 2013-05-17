@@ -414,7 +414,7 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_resource (
-  accountSynchronizationSettings CLOB,
+  projection					 CLOB,
   administrativeState            INTEGER,
   capabilities_cachingMetadata   CLOB,
   capabilities_configured        CLOB,

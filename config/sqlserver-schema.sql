@@ -414,7 +414,7 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_resource (
-  accountSynchronizationSettings NVARCHAR(MAX),
+  projection					 NVARCHAR(MAX),
   administrativeState            INT,
   capabilities_cachingMetadata   NVARCHAR(MAX),
   capabilities_configured        NVARCHAR(MAX),
