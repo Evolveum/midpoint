@@ -131,6 +131,7 @@ CREATE TABLE m_assignment (
   validityChangeTimestamp     TIMESTAMP,
   validityStatus              NUMBER(10, 0),
   assignmentOwner             NUMBER(10, 0),
+  construction                CLOB,
   description                 CLOB,
   owner_id                    NUMBER(19, 0)     NOT NULL,
   owner_oid                   VARCHAR2(36 CHAR) NOT NULL,
@@ -417,7 +418,6 @@ CREATE TABLE m_reference (
 ) INITRANS 30;
 
 CREATE TABLE m_resource (
-  projection					 CLOB,
   administrativeState            NUMBER(10, 0),
   capabilities_cachingMetadata   CLOB,
   capabilities_configured        CLOB,
@@ -434,6 +434,7 @@ CREATE TABLE m_resource (
   name_orig                      VARCHAR2(255 CHAR),
   namespace                      VARCHAR2(255 CHAR),
   o16_lastAvailabilityStatus     NUMBER(10, 0),
+  projection                     CLOB,
   schemaHandling                 CLOB,
   scripts                        CLOB,
   synchronization                CLOB,

@@ -128,6 +128,7 @@ CREATE TABLE m_assignment (
   validityChangeTimestamp     DATETIME2,
   validityStatus              INT,
   assignmentOwner             INT,
+  construction                NVARCHAR(MAX),
   description                 NVARCHAR(MAX),
   owner_id                    BIGINT       NOT NULL,
   owner_oid                   NVARCHAR(36) NOT NULL,
@@ -414,7 +415,6 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_resource (
-  projection					 NVARCHAR(MAX),
   administrativeState            INT,
   capabilities_cachingMetadata   NVARCHAR(MAX),
   capabilities_configured        NVARCHAR(MAX),
@@ -431,6 +431,7 @@ CREATE TABLE m_resource (
   name_orig                      NVARCHAR(255),
   namespace                      NVARCHAR(255),
   o16_lastAvailabilityStatus     INT,
+  projection                     NVARCHAR(MAX),
   schemaHandling                 NVARCHAR(MAX),
   scripts                        NVARCHAR(MAX),
   synchronization                NVARCHAR(MAX),

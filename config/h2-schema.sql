@@ -128,6 +128,7 @@ CREATE TABLE m_assignment (
   validityChangeTimestamp     TIMESTAMP,
   validityStatus              INTEGER,
   assignmentOwner             INTEGER,
+  construction                CLOB,
   description                 CLOB,
   owner_id                    BIGINT      NOT NULL,
   owner_oid                   VARCHAR(36) NOT NULL,
@@ -414,7 +415,6 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_resource (
-  projection					 CLOB,
   administrativeState            INTEGER,
   capabilities_cachingMetadata   CLOB,
   capabilities_configured        CLOB,
@@ -431,6 +431,7 @@ CREATE TABLE m_resource (
   name_orig                      VARCHAR(255),
   namespace                      VARCHAR(255),
   o16_lastAvailabilityStatus     INTEGER,
+  projection                     CLOB,
   schemaHandling                 CLOB,
   scripts                        CLOB,
   synchronization                CLOB,

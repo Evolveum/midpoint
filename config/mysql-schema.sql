@@ -71,7 +71,7 @@ CREATE TABLE m_any_date (
   anyContainer_owner_type INTEGER      NOT NULL,
   type_namespace          VARCHAR(255) NOT NULL,
   type_localPart          VARCHAR(100) NOT NULL,
-  dateValue               DATETIME(6) NOT NULL,
+  dateValue               DATETIME(6)  NOT NULL,
   dynamicDef              BIT,
   valueType               INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, dateValue)
@@ -166,6 +166,7 @@ CREATE TABLE m_assignment (
   validityChangeTimestamp     DATETIME(6),
   validityStatus              INTEGER,
   assignmentOwner             INTEGER,
+  construction                LONGTEXT,
   description                 LONGTEXT,
   owner_id                    BIGINT      NOT NULL,
   owner_oid                   VARCHAR(36) NOT NULL,
@@ -521,7 +522,6 @@ CREATE TABLE m_reference (
   ENGINE = InnoDB;
 
 CREATE TABLE m_resource (
-  projection					 LONGTEXT,
   administrativeState            INTEGER,
   capabilities_cachingMetadata   LONGTEXT,
   capabilities_configured        LONGTEXT,
@@ -538,6 +538,7 @@ CREATE TABLE m_resource (
   name_orig                      VARCHAR(255),
   namespace                      VARCHAR(255),
   o16_lastAvailabilityStatus     INTEGER,
+  projection                     LONGTEXT,
   schemaHandling                 LONGTEXT,
   scripts                        LONGTEXT,
   synchronization                LONGTEXT,
