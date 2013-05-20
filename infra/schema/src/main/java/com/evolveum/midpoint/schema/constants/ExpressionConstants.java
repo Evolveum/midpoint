@@ -33,6 +33,7 @@ public class ExpressionConstants {
 	public static final QName VAR_ACCOUNT = new QName(SchemaConstants.NS_C, "account");
 	public static final QName VAR_SHADOW = new QName(SchemaConstants.NS_C, "shadow");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+	public static final QName VAR_USER_ASSIGNMENT = new QName(SchemaConstants.NS_C, "userAssignment");
 	public static final QName VAR_OPERATION = new QName(SchemaConstants.NS_C, "operation");
 	public static final QName VAR_RESOURCE = new QName(SchemaConstants.NS_C, "resource");
 	

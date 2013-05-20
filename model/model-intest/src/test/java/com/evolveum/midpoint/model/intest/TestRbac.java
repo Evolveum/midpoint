@@ -415,8 +415,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("jack");
 	}
 	
-	// WORK IN PROGRESS
-	@Test(enabled=false)
+	@Test
     public void test135JackAssignRoleAdriaticPirate() throws Exception {
 		final String TEST_NAME = "test135JackAssignRoleAdriaticPirate";
         displayTestTile(this, TEST_NAME);
@@ -439,8 +438,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, "Adriatic");
 	}
 	
-	// WORK IN PROGRESS
-	@Test(enabled=false)
+	@Test
     public void test136JackUnAssignRoleAdriaticPirate() throws Exception {
 		final String TEST_NAME = "test136JackUnAssignRoleAdriaticPirate";
         displayTestTile(this, TEST_NAME);

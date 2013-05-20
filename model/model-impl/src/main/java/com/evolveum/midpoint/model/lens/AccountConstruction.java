@@ -21,6 +21,7 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -29,6 +30,12 @@ import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -46,6 +53,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
@@ -74,8 +82,9 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private MappingFactory valueConstructionFactory;
-	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeConstructions;
+	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeMappings;
 	private RefinedObjectClassDefinition refinedAccountDefinition;
+	private PrismContainerValue<AssignmentType> magicAssignment;
 	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AccountConstruction.class);
@@ -84,7 +93,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		this.accountConstructionType = accountConstructionType;
 		this.source = source;
 		this.assignmentPath = null;
-		this.attributeConstructions = null;
+		this.attributeMappings = null;
 	}
 
 	public void setSource(ObjectType source) {
@@ -150,15 +159,15 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return accountConstructionType.getDescription();
 	}
 	
-	public Collection<Mapping<? extends PrismPropertyValue<?>>> getAttributeConstructions() {
-		if (attributeConstructions == null) {
-			attributeConstructions = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
+	public Collection<Mapping<? extends PrismPropertyValue<?>>> getAttributeMappings() {
+		if (attributeMappings == null) {
+			attributeMappings = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
 		}
-		return attributeConstructions;
+		return attributeMappings;
 	}
 	
 	public Mapping<? extends PrismPropertyValue<?>> getAttributeConstruction(QName attrName) {
-		for (Mapping<? extends PrismPropertyValue<?>> myVc : getAttributeConstructions()) {
+		for (Mapping<? extends PrismPropertyValue<?>> myVc : getAttributeMappings()) {
 			if (myVc.getItemName().equals(attrName)) {
 				return myVc;
 			}
@@ -167,11 +176,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	}
 	
 	public void addAttributeConstruction(Mapping<? extends PrismPropertyValue<?>> valueConstruction) {
-		getAttributeConstructions().add(valueConstruction);
+		getAttributeMappings().add(valueConstruction);
 	}
 
 	public boolean containsAttributeConstruction(QName attributeName) {
-		for (Mapping<?> myVc: getAttributeConstructions()) {
+		for (Mapping<?> myVc: getAttributeMappings()) {
 			if (attributeName.equals(myVc.getItemName())) {
 				return true;
 			}
@@ -208,6 +217,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	
 	public void evaluate(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		evaluateAccountType(result);
+		constructMagicAssignment(result);
 		evaluateAttributes(result);
 	}
 	
@@ -240,9 +250,34 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			}
 		}
 	}
+	
+	private void constructMagicAssignment(OperationResult result) throws SchemaException {
+		for (AssignmentPathSegment segment: assignmentPath.getSegments()) {
+			AssignmentType segmentAssignmentType = segment.getAssignmentType();
+			PrismContainerValue<AssignmentType> segmentAssignmentCVal = segmentAssignmentType.asPrismContainerValue();
+			if (magicAssignment == null) {
+				magicAssignment = segmentAssignmentCVal.clone();
+				// Make sure that the magic assignment has a valid parent so it can be serialized
+				PrismContainerDefinition<AssignmentType> assignmentDef = segmentAssignmentCVal.getParent().getDefinition();
+				PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
+				assignmentCont.add(magicAssignment);
+			} else {
+				PrismContainer<Containerable> magicExtension = magicAssignment.findOrCreateContainer(AssignmentType.F_EXTENSION);
+				PrismContainer<Containerable> segmentExtension = segmentAssignmentCVal.findContainer(AssignmentType.F_EXTENSION);
+				if (segmentExtension != null) {
+					for (Item<?> segmentItem: segmentExtension.getValue().getItems()) {
+						Item<?> magicItem = magicExtension.findItem(segmentItem.getName());
+						if (magicItem == null) {
+							magicExtension.add(segmentItem.clone());
+						}
+					}
+				}
+			}
+		}
+	}
 
 	private void evaluateAttributes(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		attributeConstructions = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
+		attributeMappings = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
 //		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
 //				assignments.size(), assignments});
 		for (ResourceAttributeDefinitionType attribudeDefinitionType : accountConstructionType.getAttribute()) {
@@ -257,9 +292,9 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			if (outboundMappingType == null) {
 				throw new SchemaException("No oubound section in definition of attribute "+attrName+" in account construction in "+source);
 			}
-			Mapping<? extends PrismPropertyValue<?>> attributeConstruction = evaluateAttribute(attribudeDefinitionType, result);
-			if (attributeConstruction != null) {
-				attributeConstructions.add(attributeConstruction);
+			Mapping<? extends PrismPropertyValue<?>> attributeMapping = evaluateAttribute(attribudeDefinitionType, result);
+			if (attributeMapping != null) {
+				attributeMappings.add(attributeMapping);
 			}
 		}
 	}
@@ -297,7 +332,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		mapping.setOriginObject(source);
 		if (!assignmentPath.isEmpty()) {
 			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentType.asPrismContainerValue());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignment);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_USER_ASSIGNMENT, assignmentType.asPrismContainerValue());
 		}
 		// TODO: other variables ?
 		
@@ -325,7 +361,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	}
 	
 	public boolean hasValueForAttribute(QName attributeName) {
-		for (Mapping<? extends PrismPropertyValue<?>> attributeConstruction: attributeConstructions) {
+		for (Mapping<? extends PrismPropertyValue<?>> attributeConstruction: attributeMappings) {
 			if (attributeName.equals(attributeConstruction.getItemName())) {
 				PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction.getOutputTriple();
 				if (outputTriple != null && !outputTriple.isEmpty()) {
@@ -341,7 +377,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((assignmentPath == null) ? 0 : assignmentPath.hashCode());
-		result = prime * result + ((attributeConstructions == null) ? 0 : attributeConstructions.hashCode());
+		result = prime * result + ((attributeMappings == null) ? 0 : attributeMappings.hashCode());
 		result = prime * result
 				+ ((refinedAccountDefinition == null) ? 0 : refinedAccountDefinition.hashCode());
 		result = prime * result + ((resource == null) ? 0 : resource.hashCode());
@@ -363,10 +399,10 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 				return false;
 		} else if (!assignmentPath.equals(other.assignmentPath))
 			return false;
-		if (attributeConstructions == null) {
-			if (other.attributeConstructions != null)
+		if (attributeMappings == null) {
+			if (other.attributeMappings != null)
 				return false;
-		} else if (!attributeConstructions.equals(other.attributeConstructions))
+		} else if (!attributeMappings.equals(other.attributeMappings))
 			return false;
 		if (refinedAccountDefinition == null) {
 			if (other.refinedAccountDefinition != null)
@@ -409,8 +445,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			sb.append(refinedAccountDefinition.getShadowDiscriminator());
 		}
 		sb.append(")");
-		if (attributeConstructions != null) {
-			for (Mapping attrConstr: attributeConstructions) {
+		if (attributeMappings != null) {
+			for (Mapping attrConstr: attributeMappings) {
 				sb.append("\n");
 				sb.append(attrConstr.debugDump(indent+1));
 			}
@@ -420,7 +456,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 
 	@Override
 	public String toString() {
-		return "AccountConstruction(" + attributeConstructions + ")";
+		return "AccountConstruction(" + attributeMappings + ")";
 	}
 	
 }
