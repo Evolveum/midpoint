@@ -390,6 +390,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         names.add(ActivationType.F_EFFECTIVE_STATUS);
         names.add(ActivationType.F_VALIDITY_STATUS);
         names.add(ActivationType.F_ENABLED);
+        //user
+        names.add(UserType.F_RESULT);
 
         if (ShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
             names.add(CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS);
