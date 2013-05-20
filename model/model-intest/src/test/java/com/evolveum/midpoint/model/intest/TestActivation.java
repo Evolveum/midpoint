@@ -22,6 +22,8 @@ package com.evolveum.midpoint.model.intest;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
@@ -31,6 +33,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -55,6 +58,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
+import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -102,6 +107,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
@@ -114,9 +120,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestActivation extends AbstractInitializedModelIntegrationTest {
 			
+	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+	private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
+	private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
+	
 	private String accountOid;
 	private String accountRedOid;
 	private XMLGregorianCalendar lastValidityChangeTimestamp;
+	private String accountMancombOid;
+	private String userMancombOid;
 
 	public TestActivation() throws JAXBException {
 		super();
@@ -807,6 +819,110 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
 	}
 	
+	/**
+	 * Test reading of validity data through shadow
+	 */
+	@Test
+    public void test300AddDummyGreenAccountMancomb() throws Exception {
+		final String TEST_NAME = "test300AddDummyGreenAccountMancomb";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		account.setEnabled(true);
+		account.setValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE);
+		account.setValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
+        
+		/// WHEN
+        displayWhen(TEST_NAME);
+        
+		dummyResourceGreen.addAccount(account);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyGreen);
+        display("Account mancomb", accountMancomb);
+        assertNotNull("No mancomb account shadow", accountMancomb);
+        accountMancombOid = accountMancomb.getOid();
+        assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID, 
+        		accountMancomb.asObjectable().getResourceRef().getOid());
+        assertValidFrom(accountMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+        assertValidTo(accountMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);        
+	}
+	
+	/**
+	 * Testing of inbound mappings for validity data. Done by initiating an import of accouts from green resource. 
+	 */
+	@Test
+    public void test310ImportAccountsFromDummyGreen() throws Exception {
+		final String TEST_NAME = "test310ImportAccountsFromDummyGreen";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Preconditions
+        assertUsers(5);
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNull("Unexpected user mancomb before import", userMancomb);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(dummyResourceCtlGreen.getNamespace(), "AccountObjectClass"), task, result);
+		
+        // THEN
+        displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        IntegrationTestTools.assertInProgress("importAccountsFromResource result", subresult);
+        
+        waitForTaskFinish(task, true, 40000);
+        
+        displayThen(TEST_NAME);
+        
+        userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("No user mancomb after import", userMancomb);
+        userMancombOid = userMancomb.getOid();
+        
+        assertUsers(6);
+        
+        assertAdministrativeEnabled(userMancomb);
+        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
+	}
+	
+	@Test
+    public void test350AssignMancombBlueAccount() throws Exception {
+		final String TEST_NAME = "test350AssignMancombBlueAccount";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        assignAccount(userMancombOid, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+        PrismObject<UserType> userMancomb = getUser(userMancombOid);
+		display("User after change execution", userMancomb);
+		assertAccounts(userMancombOid, 2);
+        
+		DummyAccount mancombBlueAccount = getDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		assertNotNull("No mancomb blue account", mancombBlueAccount);
+		assertTrue("mancomb blue account not enabled", mancombBlueAccount.isEnabled());
+		assertEquals("Wrong validFrom in mancomb blue account", ACCOUNT_MANCOMB_VALID_FROM_DATE, mancombBlueAccount.getValidFrom());
+		assertEquals("Wrong validTo in mancomb blue account", ACCOUNT_MANCOMB_VALID_TO_DATE, mancombBlueAccount.getValidTo());
+	}
 	
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);

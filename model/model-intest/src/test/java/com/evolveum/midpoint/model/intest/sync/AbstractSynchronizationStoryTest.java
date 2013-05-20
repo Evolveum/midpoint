@@ -29,7 +29,9 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -85,6 +87,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		
 	protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
 	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+	private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
+	private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 	
 	protected static String userWallyOid;
 	
@@ -146,11 +150,18 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         // Preconditions
         assertUsers(5);
-                
+
+        DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		account.setEnabled(true);
+		account.setValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE);
+		account.setValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
+        
 		/// WHEN
         displayWhen(TEST_NAME);
         
-        dummyResourceCtlGreen.addAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", "Melee Island");
+		dummyResourceGreen.addAccount(account);
         
         waitForSyncTaskNextRun(resourceDummyGreen);
 		
@@ -163,17 +174,22 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID, 
         		accountMancomb.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED);
+        assertValidFrom(accountMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+        assertValidTo(accountMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
         assertAccounts(userMancomb, 1);
+        assertAdministrativeEnabled(userMancomb);
+        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         
         assertLinked(userMancomb, accountMancomb);
         
         assertUsers(6);
 	}
-	
+
 	@Test
     public void test200ImportLiveSyncTaskDummyBlue() throws Exception {
 		final String TEST_NAME = "test200ImportLiveSyncTaskDummyBlue";

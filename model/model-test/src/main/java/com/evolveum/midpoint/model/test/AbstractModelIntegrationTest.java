@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -85,6 +86,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -114,6 +116,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
@@ -1303,6 +1306,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNotNull("No effective status delta in "+desc, effectiveStatusDelta);
 		PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
 	}
+	
+	protected void assertValidFrom(PrismObject<? extends ObjectType> obj, Date expectedDate) {
+		assertEquals("Wrong validFrom in "+obj, XmlTypeConverter.createXMLGregorianCalendar(expectedDate), 
+				getActivation(obj).getValidFrom());
+	}
 
+	protected void assertValidTo(PrismObject<? extends ObjectType> obj, Date expectedDate) {
+		assertEquals("Wrong validTo in "+obj, XmlTypeConverter.createXMLGregorianCalendar(expectedDate), 
+				getActivation(obj).getValidTo());
+	}
+	
+	private ActivationType getActivation(PrismObject<? extends ObjectType> obj) {
+		ObjectType objectType = obj.asObjectable();
+		ActivationType activation;
+		if (objectType instanceof ShadowType) {
+			activation = ((ShadowType)objectType).getActivation();
+		} else if (objectType instanceof UserType) {
+			activation = ((UserType)objectType).getActivation();
+		} else {
+			throw new IllegalArgumentException("Cannot get activation from "+obj);
+		}
+		assertNotNull("No activation in "+obj, activation);
+		return activation;
+	}
 
 }

@@ -28,8 +28,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -235,6 +237,12 @@ public class MiscUtil {
         } else {
             return xgc.toGregorianCalendar().getTime();
         }
+    }
+    
+    public static java.util.Date asDate(int year, int month, int date, int hrs, int min, int sec) {
+    	Calendar cal = Calendar.getInstance();
+    	cal.set(year, month - 1, date, hrs, min, sec);
+    	return cal.getTime();
     }
     
     public static <T> void carthesian(Collection<Collection<T>> dimensions, Processor<Collection<T>> processor) {

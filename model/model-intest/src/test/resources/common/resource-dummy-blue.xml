@@ -51,6 +51,7 @@
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>blue</icfi:instanceId>
+			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -192,6 +193,32 @@
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
+			<activation>
+            	<administrativeStatus>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</administrativeStatus>
+            	<validFrom>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validFrom>
+            	<validTo>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validTo>
+            </activation>
 		</accountType>
 	</schemaHandling>
 	

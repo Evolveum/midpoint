@@ -51,6 +51,7 @@
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>green</icfi:instanceId> <!-- Default instance. -->
+			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -275,10 +276,26 @@
                         	<asIs/>
                         </expression>
             		</outbound>
-            		<inbound>
-            			<strength>weak</strength>
-            		</inbound>
+            		<inbound/>
             	</administrativeStatus>
+            	<validFrom>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            		<inbound/>
+            	</validFrom>
+            	<validTo>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            		<inbound/>
+            	</validTo>
             </activation>
 			
 			<credentials>
@@ -301,6 +318,10 @@
 		</accountType>
 		
 	</schemaHandling>
+	
+	<projection>
+		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+	</projection>
 	
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
