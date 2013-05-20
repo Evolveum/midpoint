@@ -60,6 +60,10 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
     public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
+    //other
+    public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
+    public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
+
     //embedded configuration
     private boolean embedded = true;
     private boolean asServer;
@@ -83,6 +87,9 @@ public class SqlRepositoryConfiguration {
     private boolean useReadOnlyTransactions;
     private String performanceStatisticsFile;
     private int performanceStatisticsLevel;
+
+    private boolean iterativeSearchByPaging;
+    private int iterativeSearchByPagingBatchSize;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
         setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, asServer));
@@ -108,6 +115,11 @@ public class SqlRepositoryConfiguration {
         setUseReadOnlyTransactions(configuration.getBoolean(PROPERTY_USE_READ_ONLY_TRANSACTIONS, useReadOnlyTransactions));
         setPerformanceStatisticsFile(configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE, performanceStatisticsFile));
         setPerformanceStatisticsLevel(configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, performanceStatisticsLevel));
+
+        computeDefaultIterativeSearchParameters();
+
+        setIterativeSearchByPaging(configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, iterativeSearchByPaging));
+        setIterativeSearchByPagingBatchSize(configuration.getInt(PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, iterativeSearchByPagingBatchSize));
     }
 
     private void computeDefaultConcurrencyParameters() {
@@ -148,6 +160,15 @@ public class SqlRepositoryConfiguration {
                     + ", lockForUpdateViaSql = " + lockForUpdateViaSql
                     + ", useReadOnlyTransactions = " + useReadOnlyTransactions
                     + ". Please override them if necessary.");
+        }
+    }
+
+    private void computeDefaultIterativeSearchParameters() {
+        if (hibernateDialect == null || hibernateDialect.equals("org.hibernate.dialect.H2Dialect")) {
+            iterativeSearchByPaging = true;
+            iterativeSearchByPagingBatchSize = 10;
+        } else {
+            iterativeSearchByPaging = false;
         }
     }
 
@@ -380,6 +401,22 @@ public class SqlRepositoryConfiguration {
 
     public void setPerformanceStatisticsLevel(int performanceStatisticsLevel) {
         this.performanceStatisticsLevel = performanceStatisticsLevel;
+    }
+
+    public boolean isIterativeSearchByPaging() {
+        return iterativeSearchByPaging;
+    }
+
+    public void setIterativeSearchByPaging(boolean iterativeSearchByPaging) {
+        this.iterativeSearchByPaging = iterativeSearchByPaging;
+    }
+
+    public int getIterativeSearchByPagingBatchSize() {
+        return iterativeSearchByPagingBatchSize;
+    }
+
+    public void setIterativeSearchByPagingBatchSize(int iterativeSearchByPagingBatchSize) {
+        this.iterativeSearchByPagingBatchSize = iterativeSearchByPagingBatchSize;
     }
 
     public String getDataSource() {

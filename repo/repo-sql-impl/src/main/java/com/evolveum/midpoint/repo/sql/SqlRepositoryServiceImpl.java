@@ -782,6 +782,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{
                 (query == null ? "undefined" : query.dump()),
                 (paging != null ? paging.dump() : "undefined")});
+        if (iterative) {
+            LOGGER.trace("Iterative search by paging: {}, batch size {}", getConfiguration().isIterativeSearchByPaging(), getConfiguration().getIterativeSearchByPagingBatchSize());
+        }
     }
 
     private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
@@ -1475,6 +1478,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
+        if (getConfiguration().isIterativeSearchByPaging()) {
+            searchObjectsIterativeByPaging(type, query, handler, subResult);
+            return;
+        }
+
         SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
 
@@ -1551,6 +1559,26 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             handleGeneralRuntimeException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
+        }
+    }
+
+    // temporary, very primitive version that loads all objects at once
+    private <T extends ObjectType> void searchObjectsIterativeByPaging(Class<T> type, ObjectQuery query,
+                                                                       ResultHandler<T> handler, OperationResult result)
+            throws SchemaException {
+
+        try {
+            List<PrismObject<T>> objects = searchObjects(type, query, result);
+
+            for (PrismObject<T> object : objects) {
+                if (!handler.handle(object, result)) {
+                    break;
+                }
+            }
+        } finally {
+            if (result != null && result.isUnknown()) {
+                result.computeStatus();
+            }
         }
     }
 

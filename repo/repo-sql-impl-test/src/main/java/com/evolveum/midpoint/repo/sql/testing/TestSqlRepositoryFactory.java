@@ -81,6 +81,9 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationStringProperty(configuration, PROPERTY_PERFORMANCE_STATISTICS_FILE);
         updateConfigurationStringProperty(configuration, PROPERTY_PERFORMANCE_STATISTICS_LEVEL);
 
+        updateConfigurationBooleanProperty(configuration, PROPERTY_ITERATIVE_SEARCH_BY_PAGING);
+        updateConfigurationStringProperty(configuration, PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE);
+
         super.init(configuration);
     }
 
@@ -124,6 +127,9 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_USE_READ_ONLY_TRANSACTIONS);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_PERFORMANCE_STATISTICS_FILE);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_PERFORMANCE_STATISTICS_LEVEL);
+
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_ITERATIVE_SEARCH_BY_PAGING);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE);
     }
 
     private void updateConfigurationIntegerProperty(Configuration configuration, String propertyName) {
