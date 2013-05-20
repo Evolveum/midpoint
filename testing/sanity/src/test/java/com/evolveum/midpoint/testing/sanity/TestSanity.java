@@ -3091,8 +3091,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNotNull(task.getLastRunFinishTimestamp());
         AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
 
-        // The progress should be 0, as there were no changes yet
-        AssertJUnit.assertEquals(0, task.getProgress());
+        AssertJUnit.assertEquals(10, task.getProgress());
 
         // Test for presence of a result. It should be there and it should
         // indicate success
