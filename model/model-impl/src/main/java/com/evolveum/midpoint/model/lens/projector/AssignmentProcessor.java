@@ -250,7 +250,12 @@ public class AssignmentProcessor {
             	continue;
             } catch (SchemaException ex){
             	ModelUtils.recordFatalError(result, ex);
-            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(determineResource(assignmentType), determineIntent(assignmentType));
+            	String resourceOid = determineResource(assignmentType);
+            	if (resourceOid == null) {
+            		// This is a role assignment or something like that. Just throw the original exception for now.
+            		throw ex;
+            	}
+            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid, determineIntent(assignmentType));
 				LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rad);
 				if (accCtx != null) {
 					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
@@ -465,10 +470,10 @@ public class AssignmentProcessor {
 				return construction.getResourceRef().getOid();
 			} 
 			
-			throw new IllegalStateException("No resource defined in account construction.");
+			return null;
 		}
 		
-		throw new IllegalArgumentException("Construction not defined in the assigment.");
+		return null;
 	}
 	
 	private String determineIntent(AssignmentType assignmentType) {

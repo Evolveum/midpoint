@@ -75,5 +75,9 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <!-- assignment extension -->
+    
+    <xsd:element name="sea" type="xsd:string"/>
 
 </xsd:schema>

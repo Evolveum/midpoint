@@ -136,6 +136,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendDummySchema();
 		dummyResource = dummyResourceCtl.getDummyResource();
+		dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(),
+				DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
@@ -210,6 +212,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// Roles
 		addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
 		addObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
+		addObjectFromFile(ROLE_ADRIATIC_PIRATE_FILENAME, RoleType.class, initResult);
 		addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
 		addObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
 		addObjectFromFile(ROLE_DUMMIES_FILENAME, RoleType.class, initResult);

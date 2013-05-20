@@ -38,12 +38,17 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -355,6 +360,104 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("jack");
 	}
 	
+	@Test
+    public void test130JackAssignRolePirateWithSeaInAssignment() throws Exception {
+		final String TEST_NAME = "test130JackAssignRolePirateWithSeaInAssignment";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismContainer<?> extension = getAssignmentExtensionInstance();
+        PrismSchema piracySchema = getPiracySchema();
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismProperty<String> seaProp = seaPropDef.instantiate();
+        seaProp.setRealValue("Caribbean");
+        extension.add(seaProp);
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, extension, task, result);
+        
+        // THEN
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen");
+        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, "Caribbean");
+	}
+	
+	@Test
+    public void test134JackUnAssignRolePirateWithSeaInAssignment() throws Exception {
+		final String TEST_NAME = "test134JackUnAssignRolePirateWithSeaInAssignment";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismContainer<?> extension = getAssignmentExtensionInstance();
+        PrismSchema piracySchema = getPiracySchema();
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismProperty<String> seaProp = seaPropDef.instantiate();
+        seaProp.setRealValue("Caribbean");
+        extension.add(seaProp);
+        
+		// WHEN
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, extension, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 0);
+        assertNoDummyAccount("jack");
+	}
+	
+	// WORK IN PROGRESS
+	@Test(enabled=false)
+    public void test135JackAssignRoleAdriaticPirate() throws Exception {
+		final String TEST_NAME = "test135JackAssignRoleAdriaticPirate";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
+        
+        // THEN
+        assertAssignedRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen");
+        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, "Adriatic");
+	}
+	
+	// WORK IN PROGRESS
+	@Test(enabled=false)
+    public void test136JackUnAssignRoleAdriaticPirate() throws Exception {
+		final String TEST_NAME = "test136JackUnAssignRoleAdriaticPirate";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 0);
+        assertNoDummyAccount("jack");
+	}
+	
 	//////////////////////
 	// Following tests use POSITIVE enforcement mode
 	/////////////////////
@@ -505,7 +608,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-        modifications.add(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, false));
+        modifications.add(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, false));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);

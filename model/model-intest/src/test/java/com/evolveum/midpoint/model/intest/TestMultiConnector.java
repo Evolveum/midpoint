@@ -140,6 +140,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
+		dummyResourceCtl.extendDummySchema();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
 		dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot");

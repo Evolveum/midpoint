@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
@@ -113,9 +114,16 @@ public class ResourceCarefulAntUtil {
 
     private static Definition createNewXmlSchemaDef(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
     	PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(resourceFile);
-    	Definition def = resource.asObjectable().getSchema().getDefinition();
-    	// TODO: modify it somehow
-		return def;
+    	XmlSchemaType schema = resource.asObjectable().getSchema();
+    	Definition def;
+    	if (schema == null) {
+    		def = new Definition();
+    		def.getAny().add(DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT));
+    	} else {
+    		def = schema.getDefinition();
+	    	// TODO: modify it somehow
+    	}
+    	return def;
 	}
 
 

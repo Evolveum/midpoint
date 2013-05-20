@@ -21,6 +21,7 @@ package com.evolveum.midpoint.model.intest;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -134,6 +135,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String ROLE_NICE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-nice-pirate.xml";
 	protected static final String ROLE_NICE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556677";
+	
+	protected static final String ROLE_ADRIATIC_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-adriatic-pirate.xml";
+	protected static final String ROLE_ADRIATIC_PIRATE_OID = "12345678-d34d-b33f-f00d-5555555566aa";
 	
 	protected static final String ROLE_CAPTAIN_FILENAME = COMMON_DIR_NAME + "/role-captain.xml";
 	protected static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-55555555cccc";
@@ -254,6 +258,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_LOOT = new QName(NS_PIRACY, "loot");
 	protected static final QName PIRACY_BAD_LUCK = new QName(NS_PIRACY, "badLuck");
 	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
+	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
+	
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
 	
 	// Authorizations
 	
@@ -350,5 +357,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         LOGGER.info("###>>> springTestContextPrepareTestInstance start");
         super.springTestContextPrepareTestInstance();
         LOGGER.info("###>>> springTestContextPrepareTestInstance end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+    
+    protected PrismSchema getPiracySchema() {
+    	return prismContext.getSchemaRegistry().findSchemaByNamespace(NS_PIRACY);
     }
 }

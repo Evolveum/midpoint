@@ -86,6 +86,8 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 		super.initSystem(initTask, initResult);
 		ResourceCarefulAntUtil.initAnts(ants, new File(RESOURCE_DUMMY_FILENAME), prismContext);
 		descriptionAnt = ants.get(0);
+		// get resource to make sure it has generated schema
+		modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, initTask, initResult);
 	}
 
 	@Test

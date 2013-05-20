@@ -116,7 +116,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		isExtendedSchema = true;
 	}
 	
-	private void addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
+	public void addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
 		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
 		accountObjectClass.add(attrDef);
 	}
