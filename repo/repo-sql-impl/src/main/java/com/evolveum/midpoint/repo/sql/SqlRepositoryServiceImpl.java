@@ -1562,18 +1562,46 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    // temporary, very primitive version that loads all objects at once
     private <T extends ObjectType> void searchObjectsIterativeByPaging(Class<T> type, ObjectQuery query,
                                                                        ResultHandler<T> handler, OperationResult result)
             throws SchemaException {
 
         try {
-            List<PrismObject<T>> objects = searchObjects(type, query, result);
+            ObjectQuery pagedQuery = query != null ? query.clone() : new ObjectQuery();
 
-            for (PrismObject<T> object : objects) {
-                if (!handler.handle(object, result)) {
-                    break;
+            int offset;
+            int remaining;
+            final int batchSize = getConfiguration().getIterativeSearchByPagingBatchSize();
+
+            ObjectPaging paging = pagedQuery.getPaging();
+
+            if (paging == null) {
+                paging = ObjectPaging.createPaging(0, 0);        // counts will be filled-in later
+                pagedQuery.setPaging(paging);
+                offset = 0;
+                remaining = countObjects(type, query, result);
+            } else {
+                offset = paging.getOffset() != null ? paging.getOffset() : 0;
+                remaining = paging.getMaxSize() != null ? paging.getMaxSize() : countObjects(type, query, result) - offset;
+            }
+
+            while (remaining > 0) {
+                paging.setOffset(offset);
+                paging.setMaxSize(remaining < batchSize ? remaining : batchSize);
+
+                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, result);
+
+                for (PrismObject<T> object : objects) {
+                    if (!handler.handle(object, result)) {
+                        break;
+                    }
                 }
+
+                if (objects.size() == 0) {
+                    break;                      // should not occur, but let's check for this to avoid endless loops
+                }
+                offset += objects.size();
+                remaining -= objects.size();
             }
         } finally {
             if (result != null && result.isUnknown()) {

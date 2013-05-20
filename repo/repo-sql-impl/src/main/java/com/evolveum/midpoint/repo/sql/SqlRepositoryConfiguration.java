@@ -166,7 +166,7 @@ public class SqlRepositoryConfiguration {
     private void computeDefaultIterativeSearchParameters() {
         if (hibernateDialect == null || hibernateDialect.equals("org.hibernate.dialect.H2Dialect")) {
             iterativeSearchByPaging = true;
-            iterativeSearchByPagingBatchSize = 10;
+            iterativeSearchByPagingBatchSize = 100;
         } else {
             iterativeSearchByPaging = false;
         }

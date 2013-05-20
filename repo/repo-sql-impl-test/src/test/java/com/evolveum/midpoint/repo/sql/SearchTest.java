@@ -27,11 +27,15 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,6 +53,8 @@ import java.util.List;
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SearchTest extends BaseSQLRepoTest {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SearchTest.class);
 
     @BeforeClass
     public void beforeClass() throws Exception {
@@ -92,7 +98,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void iterateSet() throws Exception {
-        OperationResult result = new OperationResult("search empty");
+        OperationResult result = new OperationResult("search set");
 
         final List<PrismObject> objects = new ArrayList<PrismObject>();
 
@@ -111,4 +117,47 @@ public class SearchTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertEquals(2, objects.size());
     }
+
+    @Test
+    public void iterateSetWithPaging() throws Exception {
+        iterateGeneral(0, 2, 2, "atestuserX00002", "atestuserX00003");
+        iterateGeneral(0, 2, 1, "atestuserX00002", "atestuserX00003");
+        iterateGeneral(0, 1, 10, "atestuserX00002");
+        iterateGeneral(0, 1, 1, "atestuserX00002");
+        iterateGeneral(1, 1, 1, "atestuserX00003");
+    }
+
+    private void iterateGeneral(int offset, int size, int batch, final String... names) throws Exception {
+        OperationResult result = new OperationResult("search general");
+
+        final List<PrismObject> objects = new ArrayList<PrismObject>();
+
+        ResultHandler handler = new ResultHandler() {
+
+            int index = 0;
+            @Override
+            public boolean handle(PrismObject object, OperationResult parentResult) {
+                objects.add(object);
+                AssertJUnit.assertEquals("Incorrect object name was read", names[index++], object.asObjectable().getName().getOrig());
+                return true;
+            }
+        };
+
+        SqlRepositoryConfiguration config = ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        int oldbatch = config.getIterativeSearchByPagingBatchSize();
+        config.setIterativeSearchByPagingBatchSize(batch);
+
+        LOGGER.trace(">>>>>> iterateGeneral: offset = " + offset + ", size = " + size + ", batch = " + batch + " <<<<<<");
+
+        ObjectQuery query = new ObjectQuery();
+        query.setPaging(ObjectPaging.createPaging(offset, size));
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, result);
+        result.recomputeStatus();
+
+        config.setIterativeSearchByPagingBatchSize(oldbatch);
+
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals(size, objects.size());
+    }
+
 }
