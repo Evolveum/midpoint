@@ -302,7 +302,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Message message = messages.get(0);
         assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
 
-        messages = dummyTransport.getMessages("dummy:newAccounts-expressions");
+        messages = dummyTransport.getMessages("dummy:newAccountsViaExpression");
         assertNotNull("No messages recorded in dummy transport (expressions)", messages);
         assertEquals("Invalid number of messages recorded in dummy transport (expressions)", 1, messages.size());
         message = messages.get(0);

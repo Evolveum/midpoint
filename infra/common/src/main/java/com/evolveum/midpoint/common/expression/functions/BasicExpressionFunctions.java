@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.common.expression.functions;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,6 +34,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -353,5 +356,9 @@ public class BasicExpressionFunctions {
 			return values.iterator().next();
 		}
 	}
+
+    public static String readFile(String filename) throws IOException {
+        return FileUtils.readFileToString(new File(filename));
+    }
 	
 }

@@ -46,7 +46,11 @@ public abstract class GeneralNotifier extends BaseHandler {
 
         boolean retval;
 
-        if (!checkApplicability(event, generalNotifierType, result)) {
+        if (generalNotifierType.getHandler() != null &&
+            !notificationManager.processEvent(event, generalNotifierType.getHandler().getValue(), result)) {
+            LOGGER.trace("Filtered out by embedded filter");
+            retval = true;
+        } else if (!checkApplicability(event, generalNotifierType, result)) {
             retval = true;      // message has to be logged in checkApplicability method
         } else if (generalNotifierType.getTransport().isEmpty()) {
             LOGGER.warn("No transports for this notifier, exiting without sending any notifications.");

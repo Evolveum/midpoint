@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.DummyNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -46,7 +47,7 @@ import java.util.*;
  */
 
 @Component
-public class DummyNotifier extends BaseHandler implements Dumpable {
+public class DummyNotifier extends GeneralNotifier implements Dumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DummyNotifier.class);
 
@@ -90,20 +91,16 @@ public class DummyNotifier extends BaseHandler implements Dumpable {
     public HashMap<String,List<NotificationRecord>> records = new HashMap<String,List<NotificationRecord>>();
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) {
-
-        logStart(LOGGER, event, eventHandlerType);
-
+    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         NotificationRecord nr = new NotificationRecord();
         nr.event = event;
-        if (!records.containsKey(eventHandlerType.getName())) {
-            records.put(eventHandlerType.getName(), new ArrayList<NotificationRecord>());
+        if (!records.containsKey(generalNotifierType.getName())) {
+            records.put(generalNotifierType.getName(), new ArrayList<NotificationRecord>());
         }
-        records.get(eventHandlerType.getName()).add(nr);
+        records.get(generalNotifierType.getName()).add(nr);
         LOGGER.info("Dummy notifier was called. Event = " + event);
 
-        logEnd(LOGGER, event, eventHandlerType, true);
-        return true;
+        return false;           // skip content generation etc
     }
 
     public List<NotificationRecord> getRecords() {

@@ -6869,7 +6869,81 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-	<xsd:complexType name="CleanupPoliciesType">
+    <xsd:complexType name="SmsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Where and how to send SMS notifications (or any other SMS).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="gateway" type="tns:SmsGatewayConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of a particular mail server host. If there are more of them, they are tried
+                        one after another. If there is none, mail notifications are not sent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What to put into "From" field of SMS, if supported by the gateway.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Instead of sending messages via SMS, writes all messages to a file. Useful for debugging.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="SmsGatewayConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of a particular SMS gateway.
+
+                Currently, we only support sending via HTTP GET method.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="url" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to construct URL used to send SMS.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="username" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the SMS gateway.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="password" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the SMS gateway.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Instead of opening HTTP connection, writes the URL to this file. Useful for debugging.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="CleanupPoliciesType">
         <xsd:annotation>
             <xsd:documentation>
                 Configuration of cleanup intervals and policies for various midPoint subsystems.
@@ -7161,6 +7235,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
             <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0"/>
+            <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
@@ -7380,6 +7455,14 @@
         <xsd:complexContent>
             <xsd:extension base="tns:EventHandlerType">
                 <xsd:sequence>
+                    <xsd:element ref="tns:handler" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                For convenience, filtering can be placed also here (it influences only this notifier,
+                                not any components on the chain after it).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="recipientExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -7426,6 +7509,16 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:GeneralNotifierType">
+                <xsd:sequence>
+                    <xsd:element name="watchSynchronizationAttributes" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether to send a notification when only auxiliary attributes related to synchronization situation
+                                (synchronizationSituationDescription, synchronizationSituation) are modified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

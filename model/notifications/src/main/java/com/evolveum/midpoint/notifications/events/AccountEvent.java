@@ -2,12 +2,10 @@ package com.evolveum.midpoint.notifications.events;
 
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 /**
  * @author mederly
@@ -78,6 +76,10 @@ public class AccountEvent extends Event {
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
         return eventCategoryType == EventCategoryType.ACCOUNT_OPERATION
                 && ShadowUtil.isAccount(accountOperationDescription.getCurrentShadow().asObjectable());
+    }
+
+    public ObjectDelta<ShadowType> getShadowDelta() {
+        return (ObjectDelta<ShadowType>) accountOperationDescription.getObjectDelta();
     }
 
     @Override

@@ -21,12 +21,14 @@
         </appender>
     </logging>
     <notificationConfiguration>
+        <dummyNotifier name="all"/>
         <accountPasswordNotifier>
             <recipientExpression>
                 <value>recipient@evolveum.com</value>
             </recipientExpression>
             <transport>mail</transport>
             <transport>dummy:accountPasswords</transport>
+            <transport>sms:default</transport>
         </accountPasswordNotifier>
         <userPasswordNotifier>
             <recipientExpression>
@@ -34,15 +36,34 @@
             </recipientExpression>
             <transport>mail</transport>
             <transport>dummy:userPasswords</transport>
+            <transport>sms:default</transport>
         </userPasswordNotifier>
+        <simpleAccountNotifier>
+            <recipientExpression>
+                <value>recipient@evolveum.com</value>
+            </recipientExpression>
+            <levelOfDetail>10</levelOfDetail>
+            <transport>mail</transport>
+            <transport>dummy:accountChanges</transport>
+        </simpleAccountNotifier>
         <simpleUserNotifier>
             <recipientExpression>
                 <value>recipient@evolveum.com</value>
             </recipientExpression>
             <levelOfDetail>10</levelOfDetail>
             <transport>mail</transport>
-            <transport>dummy:user</transport>
+            <transport>dummy:userChanges</transport>
         </simpleUserNotifier>
+        <dummyNotifier name="newAccountsViaExpression">
+            <expressionFilter>
+                <expression>
+                    <description>Simple expression.</description>
+                    <script>
+                        <code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; event.isSuccess()</code>
+                    </script>
+                </expression>
+            </expressionFilter>
+        </dummyNotifier>
         <handlerChain name="new accounts with traditional filters, dummy and simpleAccount notifiers">
             <categoryFilter>
                 <category>accountOperation</category>
@@ -76,23 +97,21 @@
                     </script>
                 </bodyExpression>
                 <levelOfDetail>10</levelOfDetail>
-                <transport>dummy:newAccounts-expressions</transport>
+                <transport>dummy:newAccountsViaExpression</transport>
             </simpleAccountNotifier>
         </handlerChain>
-        <dummyNotifier />
-        <handlerChain name="new accounts with expression filter">
-            <expressionFilter name="add-account-success">
-                <expression>
-                    <description>Simple expression.</description>
-                    <script>
-                        <code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; event.isSuccess()</code>
-                    </script>
-                </expression>
-            </expressionFilter>
-            <dummyNotifier name="newAccountsViaExpression"/>
-        </handlerChain>
         <mail>
-            <redirectToFile>target/notifications.log</redirectToFile>
+            <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
+        <sms name="default">
+            <gateway>
+                <url>
+                    <script>
+                        <code>"https://my-sms-gateway.com/send?number=" + to + "&amp;text=" + encodedMessageText</code>
+                    </script>
+                </url>
+                <redirectToFile>target/sms-notifications.log</redirectToFile>
+            </gateway>
+        </sms>
     </notificationConfiguration>
 </systemConfiguration>

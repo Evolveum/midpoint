@@ -502,7 +502,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 
 	/**
 	 * Used when the result contains several composite sub-result that are of equivalent meaning.
-	 * If all of them fails the result will be fatal error as well. If only some of them fail the
+	 * If all of them fail the result will be fatal error as well. If only some of them fail the
 	 * result will be partial error. Handled error is considered a success.
 	 */
 	public void computeStatusComposite() {
@@ -513,22 +513,43 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			return;
 		}
 
-		boolean allOk = true;
+		boolean allFatalError = true;
 		boolean allNotApplicable = true;
 		boolean hasInProgress = false;
 		boolean hasHandledError = false;
+        boolean hasError = false;
+        boolean hasWarning = false;
 		for (OperationResult sub : getSubresults()) {
 			if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allNotApplicable = false;
 			}
+            if (sub.getStatus() != OperationResultStatus.FATAL_ERROR) {
+                allFatalError = false;
+            }
 			if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
-				allOk = false;
+                hasError = true;
 				if (message == null) {
 					message = sub.getMessage();
 				} else {
 					message = message + ", " + sub.getMessage();
 				}
 			}
+            if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
+                hasError = true;
+                if (message == null) {
+                    message = sub.getMessage();
+                } else {
+                    message = message + ", " + sub.getMessage();
+                }
+            }
+            if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
+                hasHandledError = true;
+                if (message == null) {
+                    message = sub.getMessage();
+                } else {
+                    message = message + ", " + sub.getMessage();
+                }
+            }
 			if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
 				hasInProgress = true;
 				if (message == null) {
@@ -537,37 +558,31 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 					message = message + ", " + sub.getMessage();
 				}
 			}
-			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
-				allOk = false;
-				if (message == null) {
-					message = sub.getMessage();
-				} else {
-					message = message + ", " + sub.getMessage();
-				}
-			}
-			if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
-				hasHandledError = true;
-				if (message == null) {
-					message = sub.getMessage();
-				} else {
-					message = message + ", " + sub.getMessage();
-				}
-			}
+            if (sub.getStatus() == OperationResultStatus.WARNING) {
+                hasWarning = true;
+                if (message == null) {
+                    message = sub.getMessage();
+                } else {
+                    message = message + ", " + sub.getMessage();
+                }
+            }
 		}
 		
 		if (allNotApplicable) {
 			status = OperationResultStatus.NOT_APPLICABLE;
-		} else if (allOk) {
-			if (hasHandledError) {
-				status = OperationResultStatus.HANDLED_ERROR;
-			} else {
-				status = OperationResultStatus.SUCCESS;
-			}
-		} else if (hasInProgress) {
-			status = OperationResultStatus.IN_PROGRESS;
-		} else {
-			status = OperationResultStatus.PARTIAL_ERROR;
-		}
+		} else if (allFatalError) {
+            status = OperationResultStatus.FATAL_ERROR;
+        } else if (hasInProgress) {
+            status = OperationResultStatus.IN_PROGRESS;
+        } else if (hasError) {
+            status = OperationResultStatus.PARTIAL_ERROR;
+        } else if (hasWarning) {
+            status = OperationResultStatus.WARNING;
+        } else if (hasHandledError) {
+            status = OperationResultStatus.HANDLED_ERROR;
+        } else {
+            status = OperationResultStatus.SUCCESS;
+        }
 	}
 	
 	public OperationResultStatus getComputeStatus() {

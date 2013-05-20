@@ -21,11 +21,13 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
+import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.OperationStatus;
 import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Date;
+import java.util.*;
 
 /**
  * @author mederly
@@ -53,13 +55,30 @@ public class SimpleAccountNotifier extends GeneralNotifier {
         register(SimpleAccountNotifierType.class);
     }
 
+    private static final List<ItemPath> synchronizationPaths = Arrays.asList(
+            new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION),
+            new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION));
+
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof AccountEvent)) {
             LOGGER.trace("SimpleAccountNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
         } else {
-            return true;
+
+            AccountEvent accountEvent = (AccountEvent) event;
+            ObjectDelta<ShadowType> delta = accountEvent.getShadowDelta();
+            if (!delta.isModify() || ((SimpleAccountNotifierType) generalNotifierType).isWatchSynchronizationAttributes() == Boolean.TRUE) {
+                return true;
+            }
+
+            for (ItemDelta itemDelta : delta.getModifications()) {
+                if (!synchronizationPaths.contains(itemDelta.getPath())) {
+                    return true;
+                }
+            }
+            LOGGER.trace("Only synchronization-related attributes in delta, skipping the notifier.");
+            return false;
         }
     }
 
