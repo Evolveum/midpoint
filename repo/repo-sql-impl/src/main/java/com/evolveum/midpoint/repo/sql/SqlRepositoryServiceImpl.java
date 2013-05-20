@@ -42,10 +42,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sql.util.ScrollableResultsIterator;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -66,17 +63,16 @@ import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -497,7 +493,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		if (withIncorrect)
 		{
 			Query qIncorrect = session
-					.createQuery("from ROrgIncorrect where ancestor_oid = :oid");
+					.createQuery("from ROrgIncorrect as o where o.ancestorOid = :oid");
 			qIncorrect.setString("oid", rOrg.getOid());
 
 			List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
@@ -535,17 +531,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				// if not exist pair with same depth, then create else nothing
 				// do
 				Query qExistClosure = session
-						.createQuery("select count(*) from ROrgClosure where "
-								+ "ancestor_id = :ancestorId and ancestor_Oid = :ancestorOid "
-								+ "and descendant_id = :descendantId and descendant_oid = :descendantOid "
-								+ "and depthValue = :depth");
-				qExistClosure.setParameter("ancestorId", 0);
+						.createQuery("select count(*) from ROrgClosure as o where "
+								+ "o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid "
+								+ "and o.descendantId = :descendantId and o.descendantOid = :descendantOid "
+								+ "and o.depth = :depth");
+				qExistClosure.setParameter("ancestorId", 0L);
 				qExistClosure.setParameter("ancestorOid", o.getAncestor().getOid());
-				qExistClosure.setParameter("descendantId", 0);
+				qExistClosure.setParameter("descendantId", 0L);
 				qExistClosure.setParameter("descendantOid", descendant.getOid());
 				qExistClosure.setParameter("depth", o.getDepth() + 1);
 
-				boolean existClosure = (Long)qExistClosure.uniqueResult() == 0;
+				boolean existClosure = (Long) qExistClosure.uniqueResult() == 0;
 
 				if (existClosure)
 					session.save(new ROrgClosure(o.getAncestor(), descendant, o
@@ -1063,21 +1059,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private void deleteHierarchy(RObject objectToDelete, Session session)
 			throws DtoTranslationException {
 
-		String sqlDeleteOrgClosure = "delete from ROrgClosure where " +
-				 "(descendant_id = :modifyId and descendant_oid = :modifyOid) or " +
-				 "(ancestor_id =:modifyId and ancestor_oid = :modifyOid)";
+		String sqlDeleteOrgClosure = "delete from ROrgClosure as o where " +
+				 "(o.descendantId = :modifyId and o.descendantOid = :modifyOid) or " +
+				 "(o.ancestorId =:modifyId and o.ancestorOid = :modifyOid)";
 		
 		session.createQuery(sqlDeleteOrgClosure)
 				.setParameter("modifyOid", objectToDelete.getOid())
-				.setParameter("modifyId", 0)
+				.setParameter("modifyId", 0L)
 				.executeUpdate();
 
-		String sqlDeleteOrgIncorrect = "delete from ROrgIncorrect where "
-				+ "(descendant_id = :descendantId and descendant_oid = :modifyOid) "
-				+ "or ancestor_oid = :modifyOid";
+		String sqlDeleteOrgIncorrect = "delete from ROrgIncorrect as o where "
+				+ "(o.descendantId = :descendantId and o.descendantOid = :modifyOid) "
+				+ "or o.ancestorOid = :modifyOid";
 		session.createQuery(sqlDeleteOrgIncorrect)
 				.setParameter("modifyOid", objectToDelete.getOid())
-				.setParameter("descendantId", 0)
+				.setParameter("descendantId", 0L)
 				.executeUpdate();
 		
 	}
@@ -1614,5 +1610,108 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
         OperationResult subResult = parentResult.createSubresult(CLEANUP_TASKS);
         cleanup(RTask.class, policy, subResult);
+    }
+
+
+
+    /**
+     * This is attempt to do task cleanup by custom native queries. Hibernate tries to delete task
+     * through temporary table with columns oid, id. That's not a bad idea until it attempts to call
+     * delete from statement with "in" clause with two columns (oid, id). H2 and SQL Server fails
+     * with in clause that contains more than one column.
+     * <p/>
+     * Therefore this method do cleanup by creating temporary table only with oid (id is always 0).
+     * Maybe big schema cleanup would help or something like that.
+     * <p/>
+     * Somebody improve this when there's time for it.
+     *
+     * @param entity
+     * @param minValue
+     * @param session
+     * @return number of deleted tasks
+     */
+    @Override
+    protected int cleanupAttempt(Class entity, Date minValue, Session session) {
+        if (!RTask.class.equals(entity)) {
+            return 0;
+        }
+
+        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
+        final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
+        final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
+        final String containerTableName = namingStrategy.classToTableName(RContainer.class.getSimpleName());
+
+        final String completionTimestampColumn = "completionTimestamp";
+
+        Dialect dialect = Dialect.getDialect(getSessionFactoryBean().getHibernateProperties());
+        if (!dialect.supportsTemporaryTables()) {
+            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup tasks.",
+                    new Object[]{dialect});
+            throw new SystemException("Dialect " + dialect
+                    + " doesn't support temporary tables, couldn't cleanup tasks.");
+        }
+
+        //create temporary table
+
+        //this creates temporary table as with global scope
+        String prefix = isUsingSQLServer(dialect) ? "#" : "";
+        final String tempTable = prefix + dialect.generateTemporaryTableName(taskTableName);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(dialect.getCreateTemporaryTableString());
+        sb.append(' ').append(tempTable).append(" (oid ");
+        sb.append(dialect.getTypeName(Types.VARCHAR, 36, 0, 0));
+        sb.append(" not null)");
+        sb.append(dialect.getCreateTemporaryTablePostfix());
+
+        SQLQuery query = session.createSQLQuery(sb.toString());
+        query.executeUpdate();
+
+        //fill temporary table
+        sb = new StringBuilder();
+        sb.append("insert into ").append(tempTable).append(' ');            //todo improve this insert
+        sb.append("select t.oid as oid from ").append(taskTableName).append(" t");
+        sb.append(" inner join ").append(objectTableName).append(" o on t.id = o.id and t.oid = o.oid");
+        sb.append(" inner join ").append(containerTableName).append(" c on t.id = c.id and t.oid = c.oid");
+        sb.append(" where t.").append(completionTimestampColumn).append(" < ?");
+        if (isUsingSQLServer(dialect)) {
+            sb.append("collate database_default");
+        }
+
+        query = session.createSQLQuery(sb.toString());
+        query.setParameter(0, new Timestamp(minValue.getTime()));
+        query.executeUpdate();
+
+        //drop records from m_task, m_object, m_container
+        sb = new StringBuilder();
+        sb.append("delete from ").append(taskTableName);
+        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+        session.createSQLQuery(sb.toString()).executeUpdate();
+
+        sb = new StringBuilder();
+        sb.append("delete from ").append(objectTableName);
+        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+        session.createSQLQuery(sb.toString()).executeUpdate();
+
+        sb = new StringBuilder();
+        sb.append("delete from ").append(containerTableName);
+        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+        int count = session.createSQLQuery(sb.toString()).executeUpdate();
+
+        //drop temporary table
+        if (dialect.dropTemporaryTableAfterUse()) {
+            LOGGER.debug("Dropping temporary table.");
+            sb = new StringBuilder();
+            sb.append(dialect.getDropTemporaryTableString());
+            sb.append(' ').append(tempTable);
+
+            session.createSQLQuery(sb.toString()).executeUpdate();
+        }
+
+        return count;
+    }
+
+    private boolean isUsingSQLServer(Dialect dialect) {
+        return UnicodeSQLServer2008Dialect.class.equals(dialect.getClass());
     }
 }

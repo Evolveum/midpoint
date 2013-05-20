@@ -84,6 +84,10 @@ public class SqlBaseService {
         return repositoryFactory.getPerformanceMonitor();
     }
 
+    protected LocalSessionFactoryBean getSessionFactoryBean() {
+        return sessionFactoryBean;
+    }
+
     public PrismContext getPrismContext() {
         return prismContext;
     }
@@ -328,15 +332,7 @@ public class SqlBaseService {
         try {
             session = beginTransaction();
 
-            int count;
-            if (RAuditEventRecord.class.equals(entity)) {
-                count = cleanupAudit(minValue, session);
-            } else if (RTask.class.equals(entity)) {
-                count = cleanupTasks(minValue, session);
-            } else {
-                throw new SystemException("Unknown cleanup entity type '" + entity + "'.");
-            }
-
+            int count = cleanupAttempt(entity, minValue, session);
             LOGGER.info("Cleanup in {} performed, {} records deleted up to {} (duration '{}').",
                     new Object[]{entity.getSimpleName(), count, minValue, duration});
 
@@ -348,100 +344,7 @@ public class SqlBaseService {
         }
     }
 
-    private int cleanupAudit(Date minValue, Session session) {
-        Query query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
-                + " as a where a.timestamp < :timestamp");
-        query.setParameter("timestamp", new Timestamp(minValue.getTime()));
-
-        return query.executeUpdate();
-    }
-
-    /**
-     * This is attempt to do task cleanup by custom native queries. Hibernate tries to delete task
-     * through temporary table with columns oid, id. That's not a bad idea until it attempts to call
-     * delete from statement with "in" clause with two columns (oid, id). H2 and SQL Server fails
-     * with in clause that contains more than one column.
-     * <p/>
-     * Therefore this method do cleanup by creating temporary table only with oid (id is always 0).
-     * Maybe big schema cleanup would help or something like that.
-     * <p/>
-     * Somebody improve this when there's time for it.
-     *
-     * @param minValue
-     * @param session
-     * @return number of deleted tasks
-     */
-    private int cleanupTasks(Date minValue, Session session) {
-        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
-        final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
-        final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
-        final String containerTableName = namingStrategy.classToTableName(RContainer.class.getSimpleName());
-
-        final String completionTimestampColumn = "completionTimestamp";
-
-        Dialect dialect = Dialect.getDialect(sessionFactoryBean.getHibernateProperties());
-        if (!dialect.supportsTemporaryTables()) {
-            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup tasks.",
-                    new Object[]{dialect});
-            throw new SystemException("Dialect " + dialect
-                    + " doesn't support temporary tables, couldn't cleanup tasks.");
-        }
-
-        //create temporary table
-        String prefix = "";
-        if (UnicodeSQLServer2008Dialect.class.equals(dialect.getClass())) {
-            prefix = "#";   //this creates temporary table as with global scope
-        }
-        final String tempTable = prefix + dialect.generateTemporaryTableName(taskTableName);
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(dialect.getCreateTemporaryTableString());
-        sb.append(' ').append(tempTable).append(" (oid ");
-        sb.append(dialect.getTypeName(Types.VARCHAR, 36, 0, 0));
-        sb.append(" not null)");
-        sb.append(dialect.getCreateTemporaryTablePostfix());
-
-        SQLQuery query = session.createSQLQuery(sb.toString());
-        query.executeUpdate();
-
-        //fill temporary table
-        sb = new StringBuilder();
-        sb.append("insert into ").append(tempTable).append(' ');            //todo improve this insert
-        sb.append("select t.oid as oid from ").append(taskTableName).append(" t");
-        sb.append(" inner join ").append(objectTableName).append(" o on t.id = o.id and t.oid = o.oid");
-        sb.append(" inner join ").append(containerTableName).append(" c on t.id = c.id and t.oid = c.oid");
-        sb.append(" where t.").append(completionTimestampColumn).append(" < ?");
-
-        query = session.createSQLQuery(sb.toString());
-        query.setParameter(0, new Timestamp(minValue.getTime()));
-        query.executeUpdate();
-
-        //drop records from m_task, m_object, m_container
-        sb = new StringBuilder();
-        sb.append("delete from ").append(taskTableName);
-        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
-        session.createSQLQuery(sb.toString()).executeUpdate();
-
-        sb = new StringBuilder();
-        sb.append("delete from ").append(objectTableName);
-        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
-        session.createSQLQuery(sb.toString()).executeUpdate();
-
-        sb = new StringBuilder();
-        sb.append("delete from ").append(containerTableName);
-        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
-        int count = session.createSQLQuery(sb.toString()).executeUpdate();
-
-        //drop temporary table
-        if (dialect.dropTemporaryTableAfterUse()) {
-            LOGGER.debug("Dropping temporary table.");
-            sb = new StringBuilder();
-            sb.append(dialect.getDropTemporaryTableString());
-            sb.append(' ').append(tempTable);
-
-            session.createSQLQuery(sb.toString()).executeUpdate();
-        }
-
-        return count;
+    protected int cleanupAttempt(Class entity, Date minValue, Session session) {
+        return 0;
     }
 }

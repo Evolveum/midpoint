@@ -33,11 +33,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.PessimisticLockException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -99,5 +103,18 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         cleanup(RAuditEventRecord.class, policy, parentResult);
+    }
+
+    @Override
+    protected int cleanupAttempt(Class entity, Date minValue, Session session) {
+        if (!RAuditEventRecord.class.equals(entity)) {
+            return 0;
+        }
+
+        Query query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
+                + " as a where a.timestamp < :timestamp");
+        query.setParameter("timestamp", new Timestamp(minValue.getTime()));
+
+        return query.executeUpdate();
     }
 }
