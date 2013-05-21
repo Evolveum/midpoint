@@ -53,6 +53,7 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -416,15 +417,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 			
 			LOGGER.trace("Recomputing {}", focus);
 
-			LensContext<F, ShadowType> syncContext = new LensContext<F, ShadowType>(type,
-					ShadowType.class, prismContext, provisioning);
-			LensFocusContext<F> focusContext = syncContext.createFocusContext();
-			focusContext.setObjectOld(focus);
-			focusContext.setOid(focus.getOid());
-			syncContext.setChannel(task.getChannel());
-			syncContext.setDoReconciliationForAllProjections(true);
+			LensContext<F, ShadowType> syncContext = LensUtil.createRecomputeContext(type, focus, prismContext, provisioning); 
 			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.dump());
-
 			clockwork.run(syncContext, task, result);
 			
 			result.computeStatus();

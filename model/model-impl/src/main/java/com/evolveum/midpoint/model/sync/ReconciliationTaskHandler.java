@@ -97,7 +97,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 @Component
 public class ReconciliationTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/reconciliation-handler-1";
+	public static final String HANDLER_URI = SynchronizationConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/reconciliation/handler-2";
 	public static final long DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL = 5 * 60 * 1000;
 
 	@Autowired(required = true)

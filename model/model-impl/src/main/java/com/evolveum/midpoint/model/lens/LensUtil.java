@@ -38,9 +38,11 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -427,6 +430,19 @@ public class LensUtil {
         	}
         }
         return pvwos;
+    }
+    
+    public static <F extends FocusType> LensContext<F, ShadowType> createRecomputeContext(
+    		Class<F> focusType, PrismObject<F> focus,
+    		PrismContext prismContext, ProvisioningService provisioningService) {
+    	LensContext<F, ShadowType> syncContext = new LensContext<F, ShadowType>(focusType,
+				ShadowType.class, prismContext, provisioningService);
+		LensFocusContext<F> focusContext = syncContext.createFocusContext();
+		focusContext.setObjectOld(focus);
+		focusContext.setOid(focus.getOid());
+		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
+		syncContext.setDoReconciliationForAllProjections(true);
+		return syncContext;
     }
 
 }

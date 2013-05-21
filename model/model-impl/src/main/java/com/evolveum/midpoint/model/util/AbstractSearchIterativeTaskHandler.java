@@ -91,7 +91,17 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 		// TODO: error checking - already running
         handlers.put(task, handler);
         
-		ObjectQuery query = createQuery(runResult, task, opResult);
+        ObjectQuery query;
+        try {
+        	query = createQuery(runResult, task, opResult);
+        } catch (SchemaException ex) {
+        	LOGGER.error("{}: Schema error while creating a search filter: {}", new Object[]{taskName, ex.getMessage(), ex});
+            opResult.recordFatalError("Schema error while creating a search filter: " + ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            runResult.setProgress(handler.getProgress());
+            return runResult;
+        }
+        
 		if (query == null) {
 			// the error should already be in the runResult
 			return runResult;
@@ -102,21 +112,21 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 			modelObjectResolver.searchIterative(type, query, handler, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
-            LOGGER.error("Import: Object not found: {}", ex.getMessage(), ex);
+            LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});
             // This is bad. The resource does not exist. Permanent problem.
             opResult.recordFatalError("Object not found " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             runResult.setProgress(handler.getProgress());
             return runResult;
         } catch (CommunicationException ex) {
-            LOGGER.error("Import: Communication error: {}", ex.getMessage(), ex);
+            LOGGER.error("{}: Communication error: {}", new Object[]{taskName, ex.getMessage(), ex});
             // Error, but not critical. Just try later.
             opResult.recordPartialError("Communication error: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             runResult.setProgress(handler.getProgress());
             return runResult;
         } catch (SchemaException ex) {
-            LOGGER.error("Import: Error dealing with schema: {}", ex.getMessage(), ex);
+            LOGGER.error("{}: Error dealing with schema: {}", new Object[]{taskName, ex.getMessage(), ex});
             // Not sure about this. But most likely it is a misconfigured resource or connector
             // It may be worth to retry. Error is fatal, but may not be permanent.
             opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
@@ -124,7 +134,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
             runResult.setProgress(handler.getProgress());
             return runResult;
         } catch (RuntimeException ex) {
-            LOGGER.error("Import: Internal Error: {}", ex.getMessage(), ex);
+            LOGGER.error("{}: Internal Error: {}", new Object[]{taskName, ex.getMessage(), ex});
             // Can be anything ... but we can't recover from that.
             // It is most likely a programming error. Does not make much sense to retry.
             opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
@@ -132,7 +142,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
             runResult.setProgress(handler.getProgress());
             return runResult;
         } catch (ConfigurationException ex) {
-        	LOGGER.error("Import: Configuration error: {}", ex.getMessage(), ex);
+        	LOGGER.error("{}: Configuration error: {}", new Object[]{taskName, ex.getMessage(), ex});
             // Not sure about this. But most likely it is a misconfigured resource or connector
             // It may be worth to retry. Error is fatal, but may not be permanent.
             opResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
@@ -140,7 +150,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
             runResult.setProgress(handler.getProgress());
             return runResult;
 		} catch (SecurityViolationException ex) {
-			LOGGER.error("Import: Security violation: {}", ex.getMessage(), ex);
+			LOGGER.error("{}: Security violation: {}", new Object[]{taskName, ex.getMessage(), ex});
             opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             runResult.setProgress(handler.getProgress());
@@ -263,7 +273,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
     
-	protected abstract ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult);
+	protected abstract ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
 
 	protected abstract  AbstractSearchIterativeResultHandler<O> createHandler(TaskRunResult runResult, Task task,
 			OperationResult opResult);

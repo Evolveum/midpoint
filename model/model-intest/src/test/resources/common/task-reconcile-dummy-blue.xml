@@ -34,7 +34,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/model/sync/reconciliation-handler-1</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
 	<objectRef oid="10000000-0000-0000-0000-000000000204"/>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>

@@ -54,7 +54,7 @@ import java.util.List;
 @Component
 public class LiveSyncTaskHandler implements TaskHandler {
 	
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/handler-1";
+	public static final String HANDLER_URI = SynchronizationConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-2";
 
     @Autowired(required=true)
 	private TaskManager taskManager;

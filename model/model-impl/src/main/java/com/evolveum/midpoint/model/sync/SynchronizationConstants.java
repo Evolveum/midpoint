@@ -26,9 +26,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  */
 public class SynchronizationConstants {
 	
-	public static final String NS_SYNCHRONIZATION = SchemaConstants.NS_MODEL +"/synchronization";
-	public static final String SYNC_EXTENSION_SCHEMA = NS_SYNCHRONIZATION + "/extension-2";
-	public static final QName FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(SYNC_EXTENSION_SCHEMA, "freshnessInterval");
-	public static final QName DRY_RUN = new QName(SYNC_EXTENSION_SCHEMA, "dryRun");
+	public static final String NS_SYNCHRONIZATION_PREFIX = SchemaConstants.NS_MODEL +"/synchronization";
+	public static final String NS_SYNCHRONIZATION_TASK_PREFIX = NS_SYNCHRONIZATION_PREFIX + "/task";
+	public static final String NS_SYNC_EXTENSION_SCHEMA = NS_SYNCHRONIZATION_PREFIX + "/extension-2";
+	public static final QName FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(NS_SYNC_EXTENSION_SCHEMA, "freshnessInterval");
+	public static final QName DRY_RUN = new QName(NS_SYNC_EXTENSION_SCHEMA, "dryRun");
+	public static final QName LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME = new QName(NS_SYNC_EXTENSION_SCHEMA, "lastRecomputeTimestamp");
 
 }
