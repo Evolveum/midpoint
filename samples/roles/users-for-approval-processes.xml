@@ -9,6 +9,9 @@
       <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</orig>
       <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</norm>
    </name>
+   <activation>
+      <administrativeStatus>enabled</administrativeStatus>
+   </activation>
    <fullName>
       <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Boss2</orig>
       <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</norm>
@@ -39,9 +42,6 @@
       </password>
       <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
-   <activation>
-      <administrativeStatus>enabled</administrativeStatus>
-   </activation>
 </user>
 	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
       oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
@@ -50,6 +50,9 @@
       <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</orig>
       <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</norm>
    </name>
+   <activation>
+      <administrativeStatus>enabled</administrativeStatus>
+   </activation>
    <fullName>
       <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Security Manager</orig>
       <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security manager</norm>
@@ -80,9 +83,6 @@
       </password>
       <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
-   <activation>
-      <administrativeStatus>enabled</administrativeStatus>
-   </activation>
 </user>
 	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
       oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
@@ -91,6 +91,9 @@
       <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</orig>
       <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</norm>
    </name>
+   <activation>
+      <administrativeStatus>enabled</administrativeStatus>
+   </activation>
    <fullName>
       <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Boss1</orig>
       <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</norm>
@@ -121,8 +124,5 @@
       </password>
       <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
-   <activation>
-      <administrativeStatus>enabled</administrativeStatus>
-   </activation>
 </user>
 </objects>
