@@ -205,6 +205,7 @@ public class ActivationProcessor {
         ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(accCtx.getResource(), ActivationCapabilityType.class);
         if (capActivation == null) {
         	LOGGER.trace("Skipping activation status and validity processing because {} has no activation capability", accCtx.getResource());
+        	return;
         }
 
         ActivationStatusCapabilityType capStatus = capActivation.getStatus();
