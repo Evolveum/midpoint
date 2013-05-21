@@ -21,6 +21,7 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -85,6 +86,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeMappings;
 	private RefinedObjectClassDefinition refinedAccountDefinition;
 	private PrismContainerValue<AssignmentType> magicAssignment;
+	private PrismContainerValue<AssignmentType> immediateAssignment;
+	private PrismContainerValue<AssignmentType> thisAssignment;
 	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AccountConstruction.class);
@@ -217,7 +220,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	
 	public void evaluate(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		evaluateAccountType(result);
-		constructMagicAssignment(result);
+		computeVariables(result);
 		evaluateAttributes(result);
 	}
 	
@@ -251,14 +254,19 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		}
 	}
 	
-	private void constructMagicAssignment(OperationResult result) throws SchemaException {
-		for (AssignmentPathSegment segment: assignmentPath.getSegments()) {
+	private void computeVariables(OperationResult result) throws SchemaException {
+		LOGGER.info("PATH {}", assignmentPath);
+		Iterator<AssignmentPathSegment> iterator = assignmentPath.getSegments().iterator();
+		while (iterator.hasNext()) {
+			AssignmentPathSegment segment = iterator.next();
 			AssignmentType segmentAssignmentType = segment.getAssignmentType();
 			PrismContainerValue<AssignmentType> segmentAssignmentCVal = segmentAssignmentType.asPrismContainerValue();
+			PrismContainerDefinition<AssignmentType> assignmentDef = segmentAssignmentCVal.getParent().getDefinition();
+			
+			// Magic assignment
 			if (magicAssignment == null) {
 				magicAssignment = segmentAssignmentCVal.clone();
 				// Make sure that the magic assignment has a valid parent so it can be serialized
-				PrismContainerDefinition<AssignmentType> assignmentDef = segmentAssignmentCVal.getParent().getDefinition();
 				PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
 				assignmentCont.add(magicAssignment);
 			} else {
@@ -273,6 +281,15 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 					}
 				}
 			}
+			
+			// immediate assignment (use assignment from previous iteration)
+			immediateAssignment = thisAssignment;
+			
+			// this assignment
+			thisAssignment = segmentAssignmentCVal.clone();
+			// Make sure that the assignment has a valid parent so it can be serialized
+			PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
+			assignmentCont.add(thisAssignment);
 		}
 	}
 
@@ -325,6 +342,8 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		}
 		
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
 		mapping.setSourceContext(userOdo);
 		mapping.setRootNode(userOdo);
 		mapping.setDefaultTargetDefinition(outputDefinition);
@@ -333,7 +352,9 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (!assignmentPath.isEmpty()) {
 			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignment);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_USER_ASSIGNMENT, assignmentType.asPrismContainerValue());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, immediateAssignment);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, thisAssignment);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentType.asPrismContainerValue());
 		}
 		// TODO: other variables ?
 		

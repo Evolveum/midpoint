@@ -75,4 +75,11 @@ public class AssignmentPath {
 		return clone;
 	}
 
+	@Override
+	public String toString() {
+		return "AssignmentPath(" + segments + ")";
+	}
+	
+	
+
 }

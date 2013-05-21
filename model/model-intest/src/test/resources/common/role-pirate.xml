@@ -27,6 +27,9 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Pirate</name>    
     <inducement>
+    	<extension>
+    		<piracy:sea>The Seven Seas</piracy:sea>
+    	</extension>
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>
@@ -83,14 +86,32 @@
                 <ref>ri:sea</ref>
                 <outbound>
                 	<source>
+                		<path>$focus/name</path>
+                	</source>
+                	<source>
                 		<path>$assignment/extension/piracy:sea</path>
+                		<name>magicSea</name>
+                	</source>
+                	<source>
+                		<path>$focusAssignment/extension/piracy:sea</path>
+                		<name>focusSea</name>
+                	</source>
+                	<source>
+                		<path>$immediateAssignment/extension/piracy:sea</path>
+                		<name>immediateSea</name>
+                	</source>
+                	<source>
+                		<path>$thisAssignment/extension/piracy:sea</path>
+                		<name>thisSea</name>
                 	</source>
                 	<expression>
-						<asIs/>
+						<script>
+							<code>name + " sailed " + magicSea + ", immediately " + immediateSea + ", with this " + thisSea + " while focused on " + focusSea + " (in "+source.getName()+")"</code>
+						</script>
 					</expression>
 					<condition>
 						<script>
-							<code>!sea?.isAllWhitespace()</code>
+							<code>!magicSea?.isAllWhitespace()</code>
 						</script>
 					</condition>
 				</outbound>

@@ -387,12 +387,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
         assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, "Caribbean");
+        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        		"jack sailed Caribbean, immediately Caribbean, with this The Seven Seas while focused on Caribbean (in Pirate)");
 	}
 	
 	@Test
-    public void test134JackUnAssignRolePirateWithSeaInAssignment() throws Exception {
-		final String TEST_NAME = "test134JackUnAssignRolePirateWithSeaInAssignment";
+    public void test132JackUnAssignRolePirateWithSeaInAssignment() throws Exception {
+		final String TEST_NAME = "test132JackUnAssignRolePirateWithSeaInAssignment";
         displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -415,9 +416,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("jack");
 	}
 	
+	/**
+	 * The value for sea is set in Adriatic Pirate role extension.
+	 */
 	@Test
-    public void test135JackAssignRoleAdriaticPirate() throws Exception {
-		final String TEST_NAME = "test135JackAssignRoleAdriaticPirate";
+    public void test134JackAssignRoleAdriaticPirate() throws Exception {
+		final String TEST_NAME = "test134JackAssignRoleAdriaticPirate";
         displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -435,7 +439,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
         assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, "Adriatic");
+        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        		"jack sailed Adriatic, immediately Adriatic, with this The Seven Seas while focused on  (in Pirate)");
 	}
 	
 	@Test
@@ -448,6 +453,66 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 0);
+        assertNoDummyAccount("jack");
+	}
+	
+	/**
+	 * Even though we assign Adriatic Pirate role which has a sea set in its extension the
+	 * sea set in user's extension should override it.
+	 */
+	@Test
+    public void test137JackAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
+		final String TEST_NAME = "test137JackAssignRoleAdriaticPirateWithSeaInAssignment";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismContainer<?> extension = getAssignmentExtensionInstance();
+        PrismSchema piracySchema = getPiracySchema();
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismProperty<String> seaProp = seaPropDef.instantiate();
+        seaProp.setRealValue("Caribbean");
+        extension.add(seaProp);
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, task, result);
+        
+        // THEN
+        assertAssignedRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen");
+        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        		"jack sailed Caribbean, immediately Adriatic, with this The Seven Seas while focused on Caribbean (in Pirate)");
+	}
+	
+	@Test
+    public void test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
+		final String TEST_NAME = "test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismContainer<?> extension = getAssignmentExtensionInstance();
+        PrismSchema piracySchema = getPiracySchema();
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismProperty<String> seaProp = seaPropDef.instantiate();
+        seaProp.setRealValue("Caribbean");
+        extension.add(seaProp);
+        
+		// WHEN
+        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, task, result);
         
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);

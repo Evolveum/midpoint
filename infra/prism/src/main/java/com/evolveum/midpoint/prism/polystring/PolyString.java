@@ -50,7 +50,8 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  */
 public class PolyString implements Matchable<PolyString>, Recomputable, Structured, Dumpable, DebugDumpable, Serializable {
-	
+	private static final long serialVersionUID = -5070443143609226661L;
+
 	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
 	public static final QName F_NORM = new QName(PrismConstants.NS_TYPES, "norm");
 
@@ -120,12 +121,26 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	
 	// Groovy operator overload
 	public PolyString plus(PolyString other) {
+		if (other == null) {
+			return this;
+		}
 		return new PolyString(this.orig + other.orig);
 	}
 
 	// Groovy operator overload
 	public PolyString plus(String other) {
+		if (other == null) {
+			return this;
+		}
 		return new PolyString(this.orig + other);
+	}
+	
+	// Groovy operator overload
+	public PolyString plus(PolyStringType other) {
+		if (other == null) {
+			return this;
+		}
+		return new PolyString(this.orig + other.getOrig());
 	}
 	
 	// Groovy operator overload
