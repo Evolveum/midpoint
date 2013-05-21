@@ -91,6 +91,10 @@
 			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>    		
     	</construction>
     </assignment>
+    
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
 
     <fullName>
         <t:orig>Jack Sparrow</t:orig>
@@ -134,8 +138,5 @@
         </password>
         <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
     </credentials>
-    <activation>
-        <administrativeStatus>enabled</administrativeStatus>
-    </activation>
     
 </object>
