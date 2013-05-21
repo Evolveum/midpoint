@@ -20,6 +20,7 @@
             <append>true</append>
         </appender>
     </logging>
+    <!--
     <notificationConfiguration>
         <dummyNotifier name="all"/>
         <accountPasswordNotifier>
@@ -114,4 +115,5 @@
             </gateway>
         </sms>
     </notificationConfiguration>
+    -->
 </systemConfiguration>
