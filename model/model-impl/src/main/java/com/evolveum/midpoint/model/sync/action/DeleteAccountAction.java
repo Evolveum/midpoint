@@ -48,9 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSitu
  */
 public class DeleteAccountAction extends ModifyUserAction {
 
-//	@Autowired(required = true)
-//	private ProvisioningService provisioning;
-
 	public DeleteAccountAction() {
 		super(SynchronizationIntent.DELETE, ACTION_DELETE_ACCOUNT);
 	}
