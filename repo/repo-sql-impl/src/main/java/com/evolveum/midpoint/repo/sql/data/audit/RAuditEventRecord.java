@@ -23,11 +23,15 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -36,7 +40,6 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,7 +58,8 @@ public class RAuditEventRecord implements Serializable {
     private String taskOID;
     private String hostIdentifier;
     //prism object - user
-    private String initiator;
+    private String initiatorOid;
+    private String initiatorName;
     //prism object
     private String target;
     //prism object - user
@@ -115,10 +119,13 @@ public class RAuditEventRecord implements Serializable {
         return id;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getInitiator() {
-        return initiator;
+    @Column(length = 36)
+    public String getInitiatorOid() {
+        return initiatorOid;
+    }
+
+    public String getInitiatorName() {
+        return initiatorName;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -191,8 +198,12 @@ public class RAuditEventRecord implements Serializable {
         this.id = id;
     }
 
-    public void setInitiator(String initiator) {
-        this.initiator = initiator;
+    public void setInitiatorName(String initiatorName) {
+        this.initiatorName = initiatorName;
+    }
+
+    public void setInitiatorOid(String initiatorOid) {
+        this.initiatorOid = initiatorOid;
     }
 
     public void setOutcome(ROperationResultStatus outcome) {
@@ -238,7 +249,8 @@ public class RAuditEventRecord implements Serializable {
         if (eventType != that.eventType) return false;
         if (hostIdentifier != null ? !hostIdentifier.equals(that.hostIdentifier) : that.hostIdentifier != null)
             return false;
-        if (initiator != null ? !initiator.equals(that.initiator) : that.initiator != null) return false;
+        if (initiatorOid != null ? !initiatorOid.equals(that.initiatorOid) : that.initiatorOid != null) return false;
+        if (initiatorName != null ? !initiatorName.equals(that.initiatorName) : that.initiatorName != null) return false;
         if (outcome != that.outcome) return false;
         if (sessionIdentifier != null ? !sessionIdentifier.equals(that.sessionIdentifier) : that.sessionIdentifier != null)
             return false;
@@ -262,7 +274,8 @@ public class RAuditEventRecord implements Serializable {
         result = 31 * result + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
         result = 31 * result + (taskOID != null ? taskOID.hashCode() : 0);
         result = 31 * result + (hostIdentifier != null ? hostIdentifier.hashCode() : 0);
-        result = 31 * result + (initiator != null ? initiator.hashCode() : 0);
+        result = 31 * result + (initiatorName != null ? initiatorName.hashCode() : 0);
+        result = 31 * result + (initiatorOid != null ? initiatorOid.hashCode() : 0);
         result = 31 * result + (target != null ? target.hashCode() : 0);
         result = 31 * result + (targetOwner != null ? targetOwner.hashCode() : 0);
         result = 31 * result + (eventType != null ? eventType.hashCode() : 0);
@@ -311,8 +324,10 @@ public class RAuditEventRecord implements Serializable {
                 repo.setTargetOwner(xml);
             }
             if (record.getInitiator() != null) {
-                xml = domProcessor.serializeObjectToString(record.getInitiator());
-                repo.setInitiator(xml);
+                PrismObject<UserType> initiator = record.getInitiator();
+                PolyString name = initiator.getPropertyRealValue(ObjectType.F_NAME, PolyString.class);
+                repo.setInitiatorName(name != null ? name.getOrig() : null);
+                repo.setInitiatorOid(initiator.getOid());
             }
 
             for (ObjectDeltaOperation<?> delta : record.getDeltas()) {

@@ -48,7 +48,8 @@ import javax.persistence.*;
  */
 @Entity
 @org.hibernate.annotations.Table(appliesTo = "m_assignment",
-        indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus")})
+        indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
+                @Index(name = "iAssignmentEffective", columnNames = "effectiveStatus")})
 @ForeignKey(name = "fk_assignment")
 public class RAssignment extends RContainer implements ROwnable {
 

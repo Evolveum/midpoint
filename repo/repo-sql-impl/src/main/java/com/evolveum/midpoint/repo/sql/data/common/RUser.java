@@ -44,8 +44,7 @@ import java.util.Set;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
-        indexes = {@Index(name = "iUserAdministrative", columnNames = "administrativeStatus"),
-                @Index(name = "iFullName", columnNames = "fullName_norm"),
+        indexes = {@Index(name = "iFullName", columnNames = "fullName_norm"),
                 @Index(name = "iFamilyName", columnNames = "familyName_norm"),
                 @Index(name = "iGivenName", columnNames = "givenName_norm"),
                 @Index(name = "iLocality", columnNames = "locality_norm"),
@@ -69,7 +68,6 @@ public class RUser extends RFocus {
     private Set<RPolyString> organizationalUnit;
     private RPolyString locality;
     private RCredentials credentials;
-    private RActivation activation;
     private String costCenter;
     private String locale;
     private String timezone;
@@ -94,11 +92,6 @@ public class RUser extends RFocus {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RPolyString> getOrganization() {
         return organization;
-    }
-
-    @Embedded
-    public RActivation getActivation() {
-        return activation;
     }
 
     @Embedded
@@ -239,10 +232,6 @@ public class RUser extends RFocus {
         this.name = name;
     }
 
-    public void setActivation(RActivation activation) {
-        this.activation = activation;
-    }
-
     public void setAdditionalName(RPolyString additionalName) {
         this.additionalName = additionalName;
     }
@@ -309,7 +298,6 @@ public class RUser extends RFocus {
         RUser rUser = (RUser) o;
 
         if (name != null ? !name.equals(rUser.name) : rUser.name != null) return false;
-        if (activation != null ? !activation.equals(rUser.activation) : rUser.activation != null) return false;
         if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
             return false;
         if (credentials != null ? !credentials.equals(rUser.credentials) : rUser.credentials != null) return false;
@@ -353,7 +341,6 @@ public class RUser extends RFocus {
         result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
         result = 31 * result + (locality != null ? locality.hashCode() : 0);
         result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
-        result = 31 * result + (activation != null ? activation.hashCode() : 0);
         result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
         result = 31 * result + (locale != null ? locale.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
@@ -387,12 +374,6 @@ public class RUser extends RFocus {
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
 
-        if (jaxb.getActivation() != null) {
-            RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
-            repo.setActivation(activation);
-
-        }
         if (jaxb.getCredentials() != null) {
             RCredentials credentials = new RCredentials();
             RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
@@ -434,10 +415,6 @@ public class RUser extends RFocus {
         jaxb.setPreferredLanguage(repo.getPreferredLanguage());
         jaxb.setTitle(RPolyString.copyToJAXB(repo.getTitle()));
         jaxb.setNickName(RPolyString.copyToJAXB(repo.getNickName()));
-
-        if (repo.getActivation() != null) {
-            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        }
 
         if (repo.getCredentials() != null) {
             ItemPath path = new ItemPath(UserType.F_CREDENTIALS);

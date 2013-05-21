@@ -1629,6 +1629,14 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Activation. e.g. enable/disable status, start and end dates, etc.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1975,14 +1983,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                User's activation. e.g. enable/disable status, start and end dates, etc.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>

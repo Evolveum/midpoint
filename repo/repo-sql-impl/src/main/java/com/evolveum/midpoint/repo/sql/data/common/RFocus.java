@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
@@ -32,8 +33,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Where;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.util.HashSet;
@@ -45,10 +48,14 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_focus")
+@org.hibernate.annotations.Table(appliesTo = "m_focus",
+        indexes = {@Index(name = "iFocusAdministrative", columnNames = "administrativeStatus"),
+                @Index(name = "iFocusEffective", columnNames = "effectiveStatus")})
 public abstract class RFocus extends RObject {
 
     private Set<RObjectReference> linkRef;
     private Set<RAssignment> assignment;
+    private RActivation activation;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RAccountRef.DISCRIMINATOR)
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
@@ -72,6 +79,11 @@ public abstract class RFocus extends RObject {
         return assignment;
     }
 
+    @Embedded
+    public RActivation getActivation() {
+        return activation;
+    }
+
     public void setAssignment(Set<RAssignment> assignment) {
         this.assignment = assignment;
     }
@@ -80,16 +92,21 @@ public abstract class RFocus extends RObject {
         this.linkRef = linkRef;
     }
 
+    public void setActivation(RActivation activation) {
+        this.activation = activation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RFocus rFocus = (RFocus) o;
+        RFocus other = (RFocus) o;
 
-        if (assignment != null ? !assignment.equals(rFocus.assignment) : rFocus.assignment != null) return false;
-        if (linkRef != null ? !linkRef.equals(rFocus.linkRef) : rFocus.linkRef != null) return false;
+        if (assignment != null ? !assignment.equals(other.assignment) : other.assignment != null) return false;
+        if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) return false;
+        if (activation != null ? !activation.equals(other.activation) : other.activation != null) return false;
 
         return true;
     }
@@ -97,6 +114,7 @@ public abstract class RFocus extends RObject {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (activation != null ? activation.hashCode() : 0);
 
         return result;
     }
@@ -115,6 +133,13 @@ public abstract class RFocus extends RObject {
 
             repo.getAssignment().add(rAssignment);
         }
+
+        if (jaxb.getActivation() != null) {
+            RActivation activation = new RActivation();
+            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            repo.setActivation(activation);
+
+        }
     }
 
     public static void copyToJAXB(RFocus repo, FocusType jaxb, PrismContext prismContext) throws
@@ -128,6 +153,10 @@ public abstract class RFocus extends RObject {
 
         for (RAssignment rAssignment : repo.getAssignment()) {
             jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+        }
+
+        if (repo.getActivation() != null) {
+            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
         }
     }
 }
