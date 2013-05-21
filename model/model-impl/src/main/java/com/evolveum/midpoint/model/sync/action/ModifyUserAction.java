@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
@@ -201,17 +202,19 @@ public class ModifyUserAction extends BaseAction {
         PrismProperty enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         LOGGER.trace("User activation defined, activation property found {}", enable);
 
-        PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);
+        PrismPropertyValue<ActivationStatusType> value = enable.getValue(ActivationStatusType.class);
         if (value != null) {
-            Boolean isEnabled = value.getValue();
-            if (isEnabled == null) {
+            ActivationStatusType status = value.getValue();
+            if (status == null) {
                 createActivationPropertyDelta(context, userActivationDecision, null);
             }
 
+            Boolean isEnabled = ActivationStatusType.ENABLED == status ? Boolean.TRUE : Boolean.FALSE;
+            
             if ((isEnabled && ActivationDecision.DISABLE.equals(userActivationDecision))
                     || (!isEnabled && ActivationDecision.ENABLE.equals(userActivationDecision))) {
 
-                createActivationPropertyDelta(context, userActivationDecision, isEnabled);
+                createActivationPropertyDelta(context, userActivationDecision, status);
             }
         } else {
             createActivationPropertyDelta(context, userActivationDecision, null);
@@ -221,7 +224,7 @@ public class ModifyUserAction extends BaseAction {
     }
 
     private void createActivationPropertyDelta(LensContext<UserType, ShadowType> context, ActivationDecision activationDecision,
-            Boolean oldValue) {
+            ActivationStatusType oldValue) {
 
     	LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> userDelta = focusContext.getSecondaryDelta(0);

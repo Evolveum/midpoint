@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -279,17 +280,19 @@ public abstract class BaseAction implements Action {
             accContext.setSecondaryDelta(accDelta);
         }
 
-        PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);
+        PrismPropertyValue<ActivationStatusType> value = enable.getValue(ActivationStatusType.class);
         if (value != null) {
-            Boolean isEnabled = value.getValue();
-            if (isEnabled == null) {
+            ActivationStatusType status = value.getValue();
+            if (status == null) {
                 createActivationPropertyDelta(accDelta, activationDecision, null);
             }
+            
+            Boolean isEnabled = ActivationStatusType.ENABLED == status ? Boolean.TRUE : Boolean.FALSE;
 
             if ((isEnabled && ActivationDecision.DISABLE.equals(activationDecision))
                     || (!isEnabled && ActivationDecision.ENABLE.equals(activationDecision))) {
 
-                createActivationPropertyDelta(accDelta, activationDecision, isEnabled);
+                createActivationPropertyDelta(accDelta, activationDecision, status);
             }
         } else {
             createActivationPropertyDelta(accDelta, activationDecision, null);
@@ -432,7 +435,7 @@ public abstract class BaseAction implements Action {
 	}
 
     protected void createActivationPropertyDelta(ObjectDelta<?> objectDelta, ActivationDecision activationDecision,
-            Boolean oldValue) {
+            ActivationStatusType oldValue) {
         LOGGER.trace("Updating activation for {}, activation decision {}, old value was {}",
                 new Object[]{objectDelta.getClass().getSimpleName(), activationDecision, oldValue});
 
@@ -444,7 +447,7 @@ public abstract class BaseAction implements Action {
         }
         delta.clear();
 
-        Boolean newValue = ActivationDecision.ENABLE.equals(activationDecision) ? Boolean.TRUE : Boolean.FALSE;
+        ActivationStatusType newValue = ActivationDecision.ENABLE.equals(activationDecision) ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
         PrismPropertyValue value = new PrismPropertyValue<Object>(newValue, OriginType.SYNC_ACTION, null);
         if (oldValue == null) {
             delta.addValueToAdd(value);

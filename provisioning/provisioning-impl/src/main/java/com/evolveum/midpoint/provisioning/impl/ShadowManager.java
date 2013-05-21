@@ -41,7 +41,9 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -291,7 +293,7 @@ public class ShadowManager {
 		if (accountList.isEmpty()) {
 			// account was not found in the repository, create it now
 
-			if (change.getObjectDelta() == null || !(change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
+			if (change.getObjectDelta() == null || change.getObjectDelta().getChangeType() != ChangeType.DELETE) {
 				try {
 					newShadow = createNewAccountFromChange(change, resource, objectClassDefinition, parentResult);
 				} catch (ObjectNotFoundException ex) {
@@ -311,8 +313,19 @@ public class ShadowManager {
 
 		} else {
 			// Account was found in repository
-
 			newShadow = accountList.get(0);
+			
+			if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE){
+				Collection<? extends ItemDelta> deadDeltas = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, newShadow.getDefinition(), true);
+			try{
+				repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+						+ " to the repository. Reason: " + e.getMessage(), e);
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			}
+			
 		}
 		
 

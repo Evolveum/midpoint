@@ -132,8 +132,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 					shadowModifications.getModification(), shadow.asPrismObject().getDefinition());
 			
 			shadow.setDead(true);
-			Collection<PropertyDelta> deadDeltas = new ArrayList<PropertyDelta>();
-			deadDeltas.add(PropertyDelta.createModificationReplaceProperty(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true));
+			
+			Collection<? extends ItemDelta> deadDeltas = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true);
 			cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deadDeltas, result);
 			
 			ResourceObjectShadowChangeDescription change = createResourceObjectShadowChangeDescription(shadow,
