@@ -1798,17 +1798,17 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		try{
 		modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		fail("expected schema exception was not thrown");
-//		} catch (SchemaException ex){
-//			LOGGER.info("schema exeption while trying to re-add account after communication problem without family name..this is expected.");
-//			result.muteLastSubresultError();
-//			result.recordSuccess();
+		} catch (SchemaException ex){
+			LOGGER.info("schema exeption while trying to re-add account after communication problem without family name..this is expected.");
+			result.muteLastSubresultError();
+			result.recordSuccess();
 		
 		
 		//TODO: is this really expected? shouldn't it be a schema exception???
-		} catch (SystemException ex){
-			LOGGER.info("system exeption while trying to re-add account after communication problem without family name..this is expected.");
-			result.muteLastSubresultError();
-			result.recordSuccess();
+//		} catch (SystemException ex){
+//			LOGGER.info("system exeption while trying to re-add account after communication problem without family name..this is expected.");
+//			result.muteLastSubresultError();
+//			result.recordSuccess();
 //			LOGGER.info("expected schema exeption while got: {}", ex);
 		}
 		
