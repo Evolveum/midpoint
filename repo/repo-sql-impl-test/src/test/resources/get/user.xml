@@ -15,6 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">

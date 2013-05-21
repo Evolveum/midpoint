@@ -13,6 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <user version="1" oid="f65963e3-9d47-4b18-aaf3-bfc98bdfa000"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
       xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -15,6 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <query xmlns="http://prism.evolveum.com/xml/ns/public/query-2"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">

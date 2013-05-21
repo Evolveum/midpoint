@@ -15,6 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <objectModification
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
