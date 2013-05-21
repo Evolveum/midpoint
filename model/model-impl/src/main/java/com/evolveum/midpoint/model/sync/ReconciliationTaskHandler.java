@@ -222,7 +222,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 
 		try {
-			PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult);
+			PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, opResult);
 			
 			performResourceReconciliation(resource, task, opResult);
 			performShadowReconciliation(resource, freshnessInterval, task, opResult);
