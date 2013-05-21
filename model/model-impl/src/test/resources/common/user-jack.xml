@@ -31,6 +31,10 @@
         <piracy:weapon>pistol</piracy:weapon>
         <piracy:weapon>mouth</piracy:weapon>
     </extension>
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
@@ -52,7 +56,4 @@
         </password>
     </credentials>
     
-    <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
-    </activation>
 </user>
