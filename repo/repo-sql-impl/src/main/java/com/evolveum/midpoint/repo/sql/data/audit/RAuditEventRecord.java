@@ -22,9 +22,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.Validate;
@@ -32,6 +34,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -349,7 +352,9 @@ public class RAuditEventRecord implements Serializable {
                 PrismObject target = record.getTarget();
                 repo.setTargetName(getOrigName(target));
                 repo.setTargetOid(target.getOid());
-                repo.setTargetType(RContainerType.getType(target.getCompileTimeClass()));
+
+                QName type = ObjectTypes.getObjectType(target.getCompileTimeClass()).getTypeQName();
+                repo.setTargetType(ClassMapper.getHQLTypeForQName(type));
             }
             if (record.getTargetOwner() != null) {
                 PrismObject targetOwner = record.getTargetOwner();
