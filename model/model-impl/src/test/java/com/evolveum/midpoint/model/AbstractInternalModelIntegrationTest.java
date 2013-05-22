@@ -172,20 +172,20 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		
 		// System Configuration
 		try {
-			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
 				
 		// Administrator
-		userAdministrator = addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		
 		// User Templates
-		addObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
 
 		// Connectors
-		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
+		repoAddObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
 		
 		// Resources
 		
@@ -201,15 +201,15 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		dummyResourceCtl.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
 				
 		// Accounts
-		addObjectFromFile(ACCOUNT_HBARBOSSA_DUMMY_FILENAME, ShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, ShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_HBARBOSSA_DUMMY_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, ShadowType.class, initResult);
 		
 		// Users
-		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
-		userTypeBarbossa = addObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
-		userTypeGuybrush = addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
-		userTypeElaine = addObjectFromFile(USER_ELAINE_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeJack = repoAddObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeBarbossa = repoAddObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeGuybrush = repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILENAME, UserType.class, initResult).asObjectable();
 				
 	}
 	

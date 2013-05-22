@@ -71,4 +71,8 @@ public class Clock {
 		override(XmlTypeConverter.toMillis(overrideTimestamp));
 	}
 
+	public void resetOverride() {
+		this.override = null;
+	}
+
 }

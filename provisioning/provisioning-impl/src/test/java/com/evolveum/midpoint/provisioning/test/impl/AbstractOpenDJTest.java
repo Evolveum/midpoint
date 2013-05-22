@@ -116,7 +116,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		provisioningService.postInit(initResult);
 		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(ACCOUNT_BAD_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_BAD_FILENAME, ShadowType.class, initResult);
 	}
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {

@@ -114,7 +114,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		dummyResourceCtlRed.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
 		
-		PrismObject<ShadowType> accountGuybrushDummyRed = addObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, ShadowType.class, initResult);
+		PrismObject<ShadowType> accountGuybrushDummyRed = repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, ShadowType.class, initResult);
 		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
 		
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE));

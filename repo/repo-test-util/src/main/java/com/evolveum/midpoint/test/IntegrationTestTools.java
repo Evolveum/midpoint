@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -68,6 +69,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.Arrays;
@@ -932,6 +934,12 @@ public class IntegrationTestTools {
 		for (ScriptHistoryEntry script : scriptsHistory) {
 			display("Script", script);
 		}
+	}
+
+	public static void assertBetween(String message, XMLGregorianCalendar start, XMLGregorianCalendar end,
+			XMLGregorianCalendar actual) {
+		assertTrue(message+": expected time to be after "+start+" but it was "+actual, actual.compare(start) == 1 || actual.compare(start) == 0);
+		assertTrue(message+": expected time to be before "+end+" but it was "+actual, actual.compare(end) == -1 || actual.compare(end) == 0);
 	}
 
 

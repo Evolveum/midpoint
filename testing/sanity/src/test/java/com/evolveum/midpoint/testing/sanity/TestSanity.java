@@ -336,7 +336,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         LOGGER.trace("initSystem");
         super.initSystem(initTask, initResult);
         
-        addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+        repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
         // This should discover the connectors
         LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -346,10 +346,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // We need to add config after calling postInit() so it will not be applied.
         // we want original logging configuration from the test logback config file, not
         // the one from the system config.
-        addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 
         // Add broken connector before importing resources
-        addObjectFromFile(CONNECTOR_BROKEN_FILENAME, ConnectorType.class, initResult);
+        repoAddObjectFromFile(CONNECTOR_BROKEN_FILENAME, ConnectorType.class, initResult);
 
         // Need to import instead of add, so the (dynamic) connector reference
         // will be resolved
@@ -357,12 +357,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
         importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
-        addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
-        addObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
-        addObjectFromFile(ROLE_SAILOR_FILENAME, RoleType.class, initResult);
-        addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
-        addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
-        addObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
+        repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
+        repoAddObjectFromFile(ROLE_SAILOR_FILENAME, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
     }
 
     /**
@@ -2480,7 +2480,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test100Synchronization");
 
-        addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, TaskType.class, result);
+        repoAddObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, TaskType.class, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance
@@ -3192,7 +3192,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Add reconciliation task. This will trigger reconciliation
 
-        addObjectFromFile(TASK_OPENDJ_RECON_FILENAME, TaskType.class, result);
+        repoAddObjectFromFile(TASK_OPENDJ_RECON_FILENAME, TaskType.class, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance

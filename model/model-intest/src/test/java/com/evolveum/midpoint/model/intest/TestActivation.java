@@ -920,6 +920,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong validTo in mancomb blue account", ACCOUNT_MANCOMB_VALID_TO_DATE, mancombBlueAccount.getValidTo());
 	}
 	
+	@Test
+    public void test400AddHerman() throws Exception {
+		final String TEST_NAME = "test400AddHerman";
+        displayTestTile(this, TEST_NAME);
+
+		// WHEN
+        addObject(USER_HERMAN_FILE);
+        
+        // THEN
+        // Make sure that it is effectivelly disabled
+        PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
+        assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
+	}
+	
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}

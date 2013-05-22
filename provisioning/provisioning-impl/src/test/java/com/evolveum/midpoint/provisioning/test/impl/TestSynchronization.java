@@ -110,7 +110,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		resourceType = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, "org.identityconnectors.ldap.LdapConnector", initResult).asObjectable();
 		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
-		addObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);
+		repoAddObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);
 	}
 	
 	@Test
@@ -146,7 +146,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 		try {
 
-			addObjectFromFile(FILENAME_SYNC_TASK, TaskType.class, result);
+			repoAddObjectFromFile(FILENAME_SYNC_TASK, TaskType.class, result);
 
 			// create add change in embeded LDAP
 			LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILENAME);

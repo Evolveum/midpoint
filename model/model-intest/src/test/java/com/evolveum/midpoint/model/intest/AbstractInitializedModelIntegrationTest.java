@@ -189,32 +189,32 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlBlue.addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
 		
 		// User Templates
-		addObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
-		addObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, ObjectTemplateType.class, initResult);
-		addObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, ObjectTemplateType.class, initResult);
 
 		// Accounts
-		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, ShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, ShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME, ShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME, ShadowType.class, initResult);
 		
 		// Users
-		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
-		userTypeBarbossa = addObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
-		userTypeGuybrush = addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
-		userTypeElaine = addObjectFromFile(USER_ELAINE_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeJack = repoAddObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeBarbossa = repoAddObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeGuybrush = repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILENAME, UserType.class, initResult).asObjectable();
 		
 		// Roles
-		addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
-		addObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
-		addObjectFromFile(ROLE_ADRIATIC_PIRATE_FILENAME, RoleType.class, initResult);
-		addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
-		addObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
-		addObjectFromFile(ROLE_DUMMIES_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_ADRIATIC_PIRATE_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_DUMMIES_FILENAME, RoleType.class, initResult);
 		
 		// Orgstruct
-		addObjectsFromFile(ORG_MONKEY_ISLAND_FILENAME, OrgType.class, initResult);
+		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILENAME, OrgType.class, initResult);
 		
 	}
 	

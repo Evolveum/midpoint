@@ -715,7 +715,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         // Make sure there is a shadow with conflicting account
-        addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, ShadowType.class, result);
+        repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, ShadowType.class, result);
         
         LensContext<UserType, ShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);

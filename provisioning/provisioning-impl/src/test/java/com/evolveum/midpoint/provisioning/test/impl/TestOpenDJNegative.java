@@ -94,9 +94,9 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		addObjectFromFile(ACCOUNT1_REPO_FILENAME, ShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_DELETE_REPO_FILENAME, ShadowType.class, initResult);
-		addObjectFromFile(ACCOUNT_MODIFY_REPO_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT1_REPO_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_DELETE_REPO_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_MODIFY_REPO_FILENAME, ShadowType.class, initResult);
 	}
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors

@@ -437,7 +437,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        addObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, ObjectTemplateType.class, result);
+        repoAddObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, ObjectTemplateType.class, result);
         assumeUserTemplate(USER_TEMPLATE_SYNC_OID, resourceDummyGreen.asObjectable(), result);
         
         rememberTimeBeforeSync();

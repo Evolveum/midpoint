@@ -83,7 +83,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 //		schemaRegistry.loadPrismSchemasFromDirectory(new File(SCHEMA_DIRECTORY_NAME));
 		
 		// Necessary to avoid warnings about missing user in task owner references
-		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");

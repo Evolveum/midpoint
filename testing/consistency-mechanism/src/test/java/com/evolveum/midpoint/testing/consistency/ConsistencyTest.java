@@ -320,7 +320,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 		
-		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -332,7 +332,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// we want original logging configuration from the test logback config
 		// file, not
 		// the one from the system config.
-		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 
 		// Add broken connector before importing resources
 		// addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
@@ -344,11 +344,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
 		// importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
-		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
-		addObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
 		// addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
 		// addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
-		addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 	}
@@ -873,7 +873,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		provisioningService.addObject(shadow.asPrismObject(), null, null, task, secondResult);
 
-		addObjectFromFile(USER_DENIELS_FILENAME, UserType.class, secondResult);
+		repoAddObjectFromFile(USER_DENIELS_FILENAME, UserType.class, secondResult);
 
 		// GIVEN
 		// result =
@@ -1012,8 +1012,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		displayTestTile("test017deleteObjectNotFound");
 		OperationResult parentResult = new OperationResult("Delete object not found");
 
-		addObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, ShadowType.class, parentResult);
-		addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, ShadowType.class, parentResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_USER_MODIFY_DELETE_ACCOUNT,
 				ObjectModificationType.class);
@@ -1056,8 +1056,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Delete account");
 
-		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
-		addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
 
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
 				parentResult);
@@ -1107,8 +1107,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Re-create account, apply changes.");
 
-		addObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
-		addObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
 				parentResult);
@@ -1170,8 +1170,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(
 				"Get account not found => reaction: Re-create account, return re-created.");
 
-		addObjectFromFile(ACCOUNT_HECTOR_FILENAME, ShadowType.class, parentResult);
-		addObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(ACCOUNT_HECTOR_FILENAME, ShadowType.class, parentResult);
+		repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_HECTOR_NOT_FOUND_OID,
 				parentResult);
@@ -1213,7 +1213,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	public void test020addObjectCommunicationProblem() throws Exception {
 		displayTestTile("test020 add object - communication problem");
 		OperationResult result = new OperationResult("add object communication error.");
-		addObjectFromFile(USER_E_FILENAME, UserType.class, result);
+		repoAddObjectFromFile(USER_E_FILENAME, UserType.class, result);
 
 		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_E_OID, result);
 		assertNotNull(addedUser);
@@ -1557,7 +1557,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	public void test027getDiscoveryAddCommunicationProblem() throws Exception {
 		displayTestTile("test027getDiscoveryAddCommunicationProblem");
 		OperationResult result = new OperationResult("test027getDiscoveryAddCommunicationProblem");
-		addObjectFromFile(USER_ANGELIKA_FILENAME, UserType.class, result);
+		repoAddObjectFromFile(USER_ANGELIKA_FILENAME, UserType.class, result);
 
 		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ANGELIKA_OID, result);
 		assertNotNull(addedUser);
@@ -1638,7 +1638,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult("test028getDiscoveryModifyCommunicationProblem");
 		
 		//prepare user 
-		addObjectFromFile(USER_ALICE_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_ALICE_FILENAME, UserType.class, parentResult);
 
 		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ALICE_OID, parentResult);
 		assertNotNull(addedUser);
@@ -1731,7 +1731,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	public void test029modifyDiscoveryAddCommunicationProblem() throws Exception {
 		displayTestTile("test029modifyDiscoveryAddCommunicationProblem");
 		OperationResult result = new OperationResult("test029modifyDiscoveryAddCommunicationProblem");
-		addObjectFromFile(USER_BOB_NO_FAMILY_NAME_FILENAME, UserType.class, result);
+		repoAddObjectFromFile(USER_BOB_NO_FAMILY_NAME_FILENAME, UserType.class, result);
 
 		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_BOB_NO_FAMILY_NAME_OID, result);
 		assertNotNull(addedUser);
@@ -1848,7 +1848,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		openDJController.start();
 		displayTestTile("test030modifyObjectCommunicationProblemWeakMapping");
 		OperationResult result = new OperationResult("test30modifyObjectCommunicationProblemWeakMapping");
-		addObjectFromFile(USER_JOHN_WEAK_FILENAME, UserType.class, result);
+		repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, UserType.class, result);
 
 		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_JOHN_WEAK_OID, result);
 		assertNotNull(addedUser);
@@ -1931,7 +1931,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.start();
 		displayTestTile("test031modifyObjectCommunicationProblemWeakAndStrongMapping");
 		OperationResult result = new OperationResult("test31modifyObjectCommunicationProblemWeakAndStrongMapping");
-		addObjectFromFile(USER_DONALD_FILENAME, UserType.class, result);
+		repoAddObjectFromFile(USER_DONALD_FILENAME, UserType.class, result);
 
 		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_DONALD_OID, result);
 		assertNotNull(addedUser);
@@ -2147,7 +2147,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_HERMAN_FILENAME));
         String accOid = provisioningService.addObject(account, null, null, task, result);
 //        
-        addObjectFromFile(USER_HERMAN_FILENAME, UserType.class, result);
+        repoAddObjectFromFile(USER_HERMAN_FILENAME, UserType.class, result);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_HERMAN_FILENAME));
         display("Adding user", user);
@@ -2221,7 +2221,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("Jack before", userJack);
 		
 		// WHEN
-		addObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
+		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
 		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
 
 		// THEN

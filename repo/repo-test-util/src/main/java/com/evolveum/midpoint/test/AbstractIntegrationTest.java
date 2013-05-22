@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -45,9 +46,12 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -145,12 +149,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
 
-//	@Deprecated
-//	protected PrismObject<ObjectType> addObjectFromFile(String filePath, OperationResult result) throws Exception {
-//		return addObjectFromFile(filePath, ObjectType.class, result);
-//	}
-
-	protected <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, Class<T> type,
+	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
@@ -158,17 +157,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		LOGGER.debug("addObjectFromFile: {}", filePath);
 		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
 		LOGGER.trace("Adding object:\n{}", object.dump());
-		addObject(type, object, "from file "+filePath, result);
+		repoAddObject(type, object, "from file "+filePath, result);
 		result.recordSuccess();
 		return object;
 	}
 	
-	protected <T extends ObjectType> void addObject(Class<T> type, PrismObject<T> object,
+	protected <T extends ObjectType> void repoAddObject(Class<T> type, PrismObject<T> object,
 			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
-		addObject(type, object, null, result);
+		repoAddObject(type, object, null, result);
 	}
 		
-	protected <T extends ObjectType> void addObject(Class<T> type, PrismObject<T> object, String contextDesc,
+	protected <T extends ObjectType> void repoAddObject(Class<T> type, PrismObject<T> object, String contextDesc,
 			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		if (object.canRepresent(TaskType.class)) {
 			Assert.assertNotNull(taskManager, "Task manager is not initialized");
@@ -200,7 +199,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 	
-	protected <T extends ObjectType> List<PrismObject<T>> addObjectsFromFile(String filePath, Class<T> type,
+	protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(String filePath, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectsFromFile");
@@ -209,7 +208,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(new File(filePath));
 		for (PrismObject<T> object: objects) {
 			try {
-				addObject(type, object, result);
+				repoAddObject(type, object, result);
 			} catch (ObjectAlreadyExistsException e) {
 				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
 			} catch (SchemaException e) {
@@ -381,5 +380,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertNoChanges(String desc, ObjectDelta<?> delta) {
         assertNull("Unexpected changes in "+desc+": "+ delta, delta);
 	}
-
+	
+	protected <F extends FocusType> void  assertEffectiveActivation(PrismObject<F> focus, ActivationStatusType expected) {
+		ActivationType activationType = focus.asObjectable().getActivation();
+		assertNotNull("No activation in "+focus, activationType);
+		assertEquals("Wrong effectiveStatus in activation in "+focus, expected, activationType.getEffectiveStatus());
+	}
+	
+	protected <F extends FocusType> void  assertValidityStatus(PrismObject<F> focus, TimeIntervalStatusType expected) {
+		ActivationType activationType = focus.asObjectable().getActivation();
+		assertNotNull("No activation in "+focus, activationType);
+		assertEquals("Wrong validityStatus in activation in "+focus, expected, activationType.getValidityStatus());
+	}
 }

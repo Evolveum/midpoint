@@ -171,7 +171,15 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 
         LOGGER.info(finishMessage + statistics);
         
-        finish(runResult, task, opResult);
+        try {
+        	finish(runResult, task, opResult);
+        } catch (SchemaException ex) {
+        	LOGGER.error("{}: Schema error while finishing the run: {}", new Object[]{taskName, ex.getMessage(), ex});
+            opResult.recordFatalError("Schema error while finishing the run: " + ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            runResult.setProgress(handler.getProgress());
+            return runResult;
+        }
         
         LOGGER.trace("{} run finished (task {}, run result {})", new Object[]{taskName, task, runResult});
 
@@ -188,7 +196,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 		return true;
 	}
 	
-	protected void finish(TaskRunResult runResult, Task task, OperationResult opResult) {
+	protected void finish(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 	}
 
 	private AbstractSearchIterativeResultHandler getHandler(Task task) {

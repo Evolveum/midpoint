@@ -14,26 +14,29 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111118" 
+<user oid="c0c010c0-d34d-b33f-f00d-111111111122" 
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-    <name>largo</name>
-	<!-- No full name -->
-    <givenName>Largo</givenName>
-    <familyName>LaGrande</familyName>
-	<employeeType>PIRATE</employeeType>
-	<activation>
-		<validFrom>1777-05-30T14:15:00Z</validFrom>
-		<validTo>2222-02-22T08:30:42Z</validTo>
+    <name>herman</name>
+    
+    <activation>
+		<validFrom>1700-05-30T11:00:00Z</validFrom>
+		<validTo>2233-03-23T18:30:00Z</validTo>
 	</activation>
-	 <credentials>
+    
+    <fullName>Herman Toothrot</fullName>
+    <givenName>Herman</givenName>
+    <familyName>Toothrot</familyName>
+    <locality>Monkey Island</locality>
+
+    <credentials>
         <password>
         	<value>
-	            <clearValue>dead123</clearValue>
+	            <clearValue>m0nk3y</clearValue>
             </value>
         </password>
     </credentials>

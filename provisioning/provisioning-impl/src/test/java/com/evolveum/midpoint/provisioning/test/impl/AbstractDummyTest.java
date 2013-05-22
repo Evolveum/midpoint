@@ -181,7 +181,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
 		dummyResource.addAccount(dummyAccountDaemon);
 
-		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_DAEMON_FILENAME, ShadowType.class, initResult);
 	}
 	
 	protected String getResourceDummyFilename() {

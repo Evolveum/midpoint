@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -123,6 +124,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
@@ -1349,6 +1351,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		assertNotNull("No activation in "+obj, activation);
 		return activation;
+	}
+
+	protected PrismObject<TaskType> getTask(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getTask");
+        OperationResult result = task.getResult();
+		PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, null, task, result);
+		result.computeStatus();
+		IntegrationTestTools.assertSuccess("getObject(Task) result not success", result);
+		return retTask;
+	}
+
+	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		PrismObject<O> object = PrismTestUtil.parseObject(file);
+		addObject(object);
+	}
+	
+	protected <O extends ObjectType> void addObject(PrismObject<O> object) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addObject");
+        OperationResult result = task.getResult();
+        ObjectDelta<O> addDelta = object.createAddDelta();
+        modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), null, task, result);
+        result.computeStatus();
+        assertSuccess(result);
 	}
 
 }

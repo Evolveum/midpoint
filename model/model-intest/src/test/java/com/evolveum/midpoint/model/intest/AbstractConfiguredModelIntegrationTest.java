@@ -36,6 +36,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
+import java.io.File;
 import java.lang.reflect.Method;
 
 import javax.xml.namespace.QName;
@@ -168,6 +169,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
 	protected static final String USER_RAPP_USERNAME = "rapp";
 
+	// Herman has a validity dates set in the activation part
+	protected static final File USER_HERMAN_FILE = new File(COMMON_DIR_NAME, "user-herman.xml");
+	protected static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
+	protected static final String USER_HERMAN_USERNAME = "herman";
+
 	// Has null name, doesn not have given name, no employeeType
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
 	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
@@ -247,6 +253,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME = COMMON_DIR_NAME + "/task-dumy-green-livesync.xml";
 	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_OID = "10000000-0000-0000-5555-555500000404";
 	
+	protected static final String TASK_VALIDITY_SCANNER_FILENAME = COMMON_DIR_NAME + "/task-validity-scanner.xml";
+	protected static final String TASK_VALIDITY_SCANNER_OID = "10000000-0000-0000-5555-555505060400";
+	
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
 	protected static final QName PIRACY_TALES = new QName(NS_PIRACY, "tales");
@@ -283,15 +292,15 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		
 		// System Configuration
 		try {
-			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
 		
 		// Users
-		userAdministrator = addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-		addObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
 		
 	}
     	

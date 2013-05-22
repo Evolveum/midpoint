@@ -121,7 +121,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-        addObjectsFromFile(USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
+        repoAddObjectsFromFile(USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
 	}
 
     /**

@@ -56,10 +56,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
-	public TestImportRecon() throws JAXBException {
-		super();
-	}
-	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -68,10 +64,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtl.addAccount(USER_RAPP_USERNAME, "Rapp Scallion", "Scabb Island");
 		
 		// And a user that will be correlated to that account
-		addObjectFromFile(USER_RAPP_FILENAME, UserType.class, initResult);
+		repoAddObjectFromFile(USER_RAPP_FILENAME, UserType.class, initResult);
 	}
-
-
 
 	@Test
     public void test100ImportFromResourceDummy() throws Exception {

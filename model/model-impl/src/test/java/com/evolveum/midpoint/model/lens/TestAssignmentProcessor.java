@@ -465,7 +465,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 	        // GIVEN
 	        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test032ModifyUserLegalizeAccount");
 
-	        addObjectFromFile(USER_LARGO_FILENAME, UserType.class, result);
+	        repoAddObjectFromFile(USER_LARGO_FILENAME, UserType.class, result);
 	        
 	        LensContext<UserType, ShadowType> context = createUserAccountContext();
 	        fillContextWithUser(context, USER_LARGO_OID, result);

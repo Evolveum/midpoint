@@ -38,6 +38,8 @@ import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -84,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -153,26 +156,27 @@ public class FocusValidityScannerTaskHandler extends AbstractSearchIterativeTask
 	protected ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
-		PrismObjectDefinition<FocusType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(FocusType.class);
+		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		PrismContainerDefinition<ActivationType> activationContainerDef = focusObjectDef.findContainerDefinition(FocusType.F_ACTIVATION);
 		
 		if (lastRecomputeTimestamp == null) {
 			filter = OrFilter.createOr(
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), focusObjectDef, 
-								ActivationType.F_VALID_FROM, new PrismPropertyValue<XMLGregorianCalendar>(thisRecomputeTimestamp), true),
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), focusObjectDef, 
-								ActivationType.F_VALID_TO, new PrismPropertyValue<XMLGregorianCalendar>(thisRecomputeTimestamp), true));
+						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
+								ActivationType.F_VALID_FROM, thisRecomputeTimestamp, true),
+						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
+								ActivationType.F_VALID_TO, thisRecomputeTimestamp, true));
 		} else {
 			filter = OrFilter.createOr(
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), focusObjectDef, 
-									ActivationType.F_VALID_FROM, new PrismPropertyValue<XMLGregorianCalendar>(lastRecomputeTimestamp), false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), focusObjectDef, 
-									ActivationType.F_VALID_FROM, new PrismPropertyValue<XMLGregorianCalendar>(thisRecomputeTimestamp), true)),
+							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
+									ActivationType.F_VALID_FROM, lastRecomputeTimestamp, false),
+							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
+									ActivationType.F_VALID_FROM, thisRecomputeTimestamp, true)),
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), focusObjectDef, 
-									ActivationType.F_VALID_TO, new PrismPropertyValue<XMLGregorianCalendar>(lastRecomputeTimestamp), false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), focusObjectDef, 
-									ActivationType.F_VALID_TO, new PrismPropertyValue<XMLGregorianCalendar>(thisRecomputeTimestamp), true)));			
+							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
+									ActivationType.F_VALID_TO, lastRecomputeTimestamp, false),
+							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
+									ActivationType.F_VALID_TO, thisRecomputeTimestamp, true)));			
 		}
 		
 		query.setFilter(filter);
@@ -205,8 +209,21 @@ public class FocusValidityScannerTaskHandler extends AbstractSearchIterativeTask
 		clockwork.run(syncContext, task, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}
-
+	
     @Override
+	protected void finish(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+		super.finish(runResult, task, opResult);
+		
+		PrismPropertyDefinition<XMLGregorianCalendar> lastRecomputeTimestampDef = new PrismPropertyDefinition<XMLGregorianCalendar>(
+				SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME, SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME,
+				DOMUtil.XSD_DATETIME, prismContext);
+		PropertyDelta<XMLGregorianCalendar> lastRecomputeTimestampDelta = new PropertyDelta<XMLGregorianCalendar>(
+				new ItemPath(TaskType.F_EXTENSION, SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME), lastRecomputeTimestampDef);
+		lastRecomputeTimestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(thisRecomputeTimestamp));
+		task.modifyExtension(lastRecomputeTimestampDelta);
+	}
+
+	@Override
     public String getCategoryName(Task task) {
         return TaskCategory.USER_RECOMPUTATION;
     }
