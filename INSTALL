@@ -1,12 +1,13 @@
 This is just quick install. For Full commented release notes go to:
 
-http://wiki.evolveum.com/display/midPoint/Installing+midPoint+from+Source+Code 
+https://wiki.evolveum.com/display/midPoint/midPoint+Development+Snapshot
 
 1. Pre-requisities:
 
-1. Apache Tomcat 6.x or 7.x
-2. Get sources of midpoint via SVN or binary version of WAR
-3. Deploy compiled or downloaded war in to Tomcat
+    1. Java 7
+    2. Apache Tomcat 6.x or 7.x
+    3. Get sources of midpoint via SVN or binary version of WAR
+    4. Deploy compiled or downloaded war in to Tomcat
 
 2. Compile sources
  
@@ -29,5 +30,6 @@ Please deploy it to your Tomcat application server (copying midpoint.war to <tom
 3. Comments
 
 Build system tested with:
-Sun Java JDK 6 (1.6.0_26 or later)
+Sun Java JDK 6 (1.6.0_26 or later) - DEPRECATED
+Sun Java JDK 7
 maven 3.0.4 (Maven 2 DOES NOT WORK properly)

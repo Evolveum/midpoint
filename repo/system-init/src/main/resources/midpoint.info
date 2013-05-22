@@ -4,5 +4,5 @@ midpoint.branch=${scmBranch}
 midpoint.timestamp=${timestamp}
 midpoint.scm=${project.scm.connection}
 midpoint.jira=${project.issueManagement.url}
-midpoint.lincence=CDDL v1.0
+midpoint.lincence=Apache License 2.0
 

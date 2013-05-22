@@ -32,10 +32,9 @@
     </organization>
     <licenses>
         <license>
-            <name>CDDL v1.0</name>
-            <url>http://www.sun.com/cddl/cddl.html</url>
+            <name>Apache License v2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
-            <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
     <issueManagement>

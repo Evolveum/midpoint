@@ -501,10 +501,9 @@
     </organization>
     <licenses>
         <license>
-            <name>CDDL v1.0</name>
-            <url>http://www.opensource.org/licenses/CDDL-1.0</url>
+            <name>Apache License v2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
-            <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
     <issueManagement>
@@ -601,8 +600,8 @@
                                     <Organization>Evolveum</Organization>
                                     <Organization-URL>http://www.evolveum.com</Organization-URL>
                                     <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-                                    <License>CDDL v1.0</License>
-                                    <License-URL>http://www.sun.com/cddl/cddl.html</License-URL>
+                                    <License>Apache License 2.0</License>
+                                    <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                                 </manifestEntries>
                             </archive>
                         </configuration>
@@ -618,8 +617,8 @@
                                     <Organization>Evolveum</Organization>
                                     <Organization-URL>http://www.evolveum.com</Organization-URL>
                                     <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-                                    <License>CDDL v1.0</License>
-                                    <License-URL>http://www.sun.com/cddl/cddl.html</License-URL>
+                                    <License>Apache License 2.0</License>
+                                    <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                                 </manifestEntries>
                             </archive>
                         </configuration>

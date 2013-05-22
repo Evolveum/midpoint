@@ -5,10 +5,22 @@ and makes them available in unified form. It belongs to the user provisioning
 category of the enterprise identity management field. The basic features include:
 
    - User provisioning and deprovisioning
-   - Identity synchronization
-   - Identity management process automation
-   - Management of identity-related parts of the enterprise security policy
+   - Integration of Identity Connector Framework
+   - Administration GUI
+   - Identity repository implemention (SQL)
+   - Custom schema extensibility
+   - Identity synchronization (liveSync, reconciliation, discovery, import)
+   - Support for expressions in synchronization mappings (Groovy, JavaScript, XPathv2)
+   - Advanced RBAC support
+   - Identity management process automation (workflow, notifications)
+   - Password policies
+   - Provisioning consistency and error handling
+   - Segregation of Duties (SoG)
    - Support for security auditing and reporting
+   - Local Java APIs
+   - Remote web service interface
+   - High availablity (HA) support
+  
 
 For more information please go to:
 
@@ -22,5 +34,6 @@ Latest source from our SVN repository using the URL:
 
   https://svn.evolveum.com/midpoint/trunk
 
-This project is developed under open source license CDDL v1.0. You may get copy
-of licence in legal/CDDLv1.0.txt.
+This project is developed under Apache license (version 2.0) You may get copy
+of licence in LICENSE file. Please also see NOTICE file for addtional
+copyright statements.
