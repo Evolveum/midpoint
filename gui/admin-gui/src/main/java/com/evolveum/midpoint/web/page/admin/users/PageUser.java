@@ -1356,22 +1356,36 @@ public class PageUser extends PageAdminUsers {
 
 		PrismValue oldValue = assDto.getOldValue();
 		Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
-		List<ItemPathSegment> pathSegments = oldValue.getPath().getSegments();
 
 		for (ItemDelta delta : deltas) {
 			ItemPath deltaPath = delta.getPath();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
-			// replace relative path - add "assignment" path prefix
-			List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
-			newPath.addAll(pathSegments);
-			newPath.addAll(delta.getParentPath().getSegments());
-			// add definition to item delta
-			delta.setParentPath(new ItemPath(newPath));
+
+            delta.setParentPath(joinPath(oldValue.getPath(), deltaPath));
 			delta.applyDefinition(deltaDef);
 
 			userDelta.addModification(delta);
 		}
 	}
+
+    private ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
+        List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
+
+        ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
+        if (path != null) {
+            for (ItemPathSegment seg : path.getSegments()) {
+                if (seg.equals(firstDeltaSegment)) {
+                    break;
+                }
+                newPath.add(seg);
+            }
+        }
+        if (deltaPath != null) {
+            newPath.addAll(deltaPath.getSegments());
+        }
+
+        return new ItemPath(newPath);
+    }
 
 	private void prepareUserDeltaForModify(ObjectDelta<UserType> userDelta) throws SchemaException {
 		// handle accounts
@@ -1398,7 +1412,7 @@ public class PageUser extends PageAdminUsers {
 		// during user add in gui,
 		// and we're not taking care about account/assignment create errors
 		// (error message is still displayed)
-		ObjectDelta delta = null;
+		ObjectDelta delta;
 
 		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();

@@ -141,7 +141,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         ActivationType type = newAssignment.getActivation();
         if (type == null) {
             type = new ActivationType();
-            type.setAdministrativeStatus(ActivationStatusType.ENABLED);
+//            type.setAdministrativeStatus(ActivationStatusType.ENABLED);
             newAssignment.setActivation(type);
         }
 

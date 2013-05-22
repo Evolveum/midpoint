@@ -82,10 +82,11 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME = "name";
     private static final String ID_ACTIVATION = "activation";
+    private static final String ID_ACTIVATION_BLOCK = "activationBlock";
     private static final String ID_BODY = "body";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_RELATION = "relation";
-    private static final String ID_ENABLED = "enabled";
+    private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_VALID_FROM = "validFrom";
     private static final String ID_VALID_TO = "validTo";
     private static final String ID_SHOW_EMPTY = "showEmpty";
@@ -244,23 +245,34 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         relation.setEnabled(false);
         body.add(relation);
 
-        DropDownChoicePanel enabled = WebMiscUtil.createActivationStatusPanel(ID_ENABLED,
+        WebMarkupContainer activationBlock = new WebMarkupContainer(ID_ACTIVATION_BLOCK);
+        activationBlock.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                //disabled activation in assignments for now.
+                return false;
+            }
+        });
+        body.add(activationBlock);
+
+        DropDownChoicePanel administrativeStatus = WebMiscUtil.createActivationStatusPanel(ID_ADMINISTRATIVE_STATUS,
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()), this);
 //        enabled.setStyle("margin: 1px 0 0 10px;");
-        body.add(enabled);
+        activationBlock.add(administrativeStatus);
 
         DateTextField validFrom = DateTextField.forDatePattern(ID_VALID_FROM,
                 createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validFrom")), "dd/MMM/yyyy");
         validFrom.add(new DatePicker());
-        body.add(validFrom);
+        activationBlock.add(validFrom);
 
         DateTextField validTo = DateTextField.forDatePattern(ID_VALID_TO,
                 createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validTo")), "dd/MMM/yyyy");
         validTo.add(new DatePicker());
-        body.add(validTo);
+        activationBlock.add(validTo);
 
         WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
         targetContainer.add(new VisibleEnableBehaviour() {
