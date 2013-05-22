@@ -66,7 +66,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	// OPTIONAL
 	private PrismObject<? extends ObjectType> target;
 	
-	// user that the target "belongs to"????
+	// user that the target "belongs to"????: store OID, name
 	private PrismObject<UserType> targetOwner;
 		
 	// event type

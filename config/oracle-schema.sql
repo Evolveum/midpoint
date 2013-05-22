@@ -172,13 +172,17 @@ CREATE TABLE m_audit_event (
   eventStage        NUMBER(10, 0),
   eventType         NUMBER(10, 0),
   hostIdentifier    VARCHAR2(255 CHAR),
-  initiator         CLOB,
+  initiatorName     VARCHAR2(255 CHAR),
+  initiatorOid      VARCHAR2(36 CHAR),
   message           VARCHAR2(255 CHAR),
   outcome           NUMBER(10, 0),
   parameter         VARCHAR2(255 CHAR),
   sessionIdentifier VARCHAR2(255 CHAR),
-  target            CLOB,
-  targetOwner       CLOB,
+  targetName        VARCHAR2(255 CHAR),
+  targetOid         VARCHAR2(36 CHAR),
+  targetOwnerName   VARCHAR2(255 CHAR),
+  targetOwnerOid    VARCHAR2(36 CHAR),
+  targetType        NUMBER(10, 0),
   taskIdentifier    VARCHAR2(255 CHAR),
   taskOID           VARCHAR2(255 CHAR),
   timestampValue    TIMESTAMP,
@@ -264,8 +268,17 @@ CREATE TABLE m_exclusion (
 ) INITRANS 30;
 
 CREATE TABLE m_focus (
-  id  NUMBER(19, 0)     NOT NULL,
-  oid VARCHAR2(36 CHAR) NOT NULL,
+  administrativeStatus    NUMBER(10, 0),
+  archiveTimestamp        TIMESTAMP,
+  disableTimestamp        TIMESTAMP,
+  effectiveStatus         NUMBER(10, 0),
+  enableTimestamp         TIMESTAMP,
+  validFrom               TIMESTAMP,
+  validTo                 TIMESTAMP,
+  validityChangeTimestamp TIMESTAMP,
+  validityStatus          NUMBER(10, 0),
+  id                      NUMBER(19, 0)     NOT NULL,
+  oid                     VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (id, oid)
 ) INITRANS 30;
 
@@ -575,15 +588,6 @@ CREATE TABLE m_task_dependent (
 ) INITRANS 30;
 
 CREATE TABLE m_user (
-  administrativeStatus     NUMBER(10, 0),
-  archiveTimestamp         TIMESTAMP,
-  disableTimestamp         TIMESTAMP,
-  effectiveStatus          NUMBER(10, 0),
-  enableTimestamp          TIMESTAMP,
-  validFrom                TIMESTAMP,
-  validTo                  TIMESTAMP,
-  validityChangeTimestamp  TIMESTAMP,
-  validityStatus           NUMBER(10, 0),
   additionalName_norm      VARCHAR2(255 CHAR),
   additionalName_orig      VARCHAR2(255 CHAR),
   costCenter               VARCHAR2(255 CHAR),
@@ -693,6 +697,8 @@ REFERENCES m_any;
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) INITRANS 30;
 
+CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus) INITRANS 30;
+
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment
 FOREIGN KEY (id, oid)
@@ -749,6 +755,10 @@ ALTER TABLE m_exclusion
 ADD CONSTRAINT fk_exclusion_owner
 FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_object;
+
+CREATE INDEX iFocusAdministrative ON m_focus (administrativeStatus) INITRANS 30;
+
+CREATE INDEX iFocusEffective ON m_focus (effectiveStatus) INITRANS 30;
 
 ALTER TABLE m_focus
 ADD CONSTRAINT fk_focus
@@ -829,6 +839,8 @@ CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid) INITRANS 30;
 
 CREATE INDEX iShadowAdministrative ON m_shadow (administrativeStatus) INITRANS 30;
 
+CREATE INDEX iShadowEffective ON m_shadow (effectiveStatus) INITRANS 30;
+
 CREATE INDEX iShadowName ON m_shadow (name_norm) INITRANS 30;
 
 ALTER TABLE m_shadow
@@ -873,8 +885,6 @@ CREATE INDEX iFamilyName ON m_user (familyName_norm) INITRANS 30;
 CREATE INDEX iAdditionalName ON m_user (additionalName_norm) INITRANS 30;
 
 CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_norm) INITRANS 30;
-
-CREATE INDEX iUserAdministrative ON m_user (administrativeStatus) INITRANS 30;
 
 ALTER TABLE m_user
 ADD CONSTRAINT fk_user

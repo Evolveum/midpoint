@@ -213,13 +213,17 @@ CREATE TABLE m_audit_event (
   eventStage        INTEGER,
   eventType         INTEGER,
   hostIdentifier    VARCHAR(255),
-  initiator         LONGTEXT,
+  initiatorName     VARCHAR(255),
+  initiatorOid      VARCHAR(36),
   message           VARCHAR(255),
   outcome           INTEGER,
   parameter         VARCHAR(255),
   sessionIdentifier VARCHAR(255),
-  target            LONGTEXT,
-  targetOwner       LONGTEXT,
+  targetName        VARCHAR(255),
+  targetOid         VARCHAR(36),
+  targetOwnerName   VARCHAR(255),
+  targetOwnerOid    VARCHAR(36),
+  targetType        INTEGER,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
   timestampValue    DATETIME(6),
@@ -329,8 +333,17 @@ CREATE TABLE m_exclusion (
   ENGINE = InnoDB;
 
 CREATE TABLE m_focus (
-  id  BIGINT      NOT NULL,
-  oid VARCHAR(36) NOT NULL,
+  administrativeStatus    INTEGER,
+  archiveTimestamp        DATETIME(6),
+  disableTimestamp        DATETIME(6),
+  effectiveStatus         INTEGER,
+  enableTimestamp         DATETIME(6),
+  validFrom               DATETIME(6),
+  validTo                 DATETIME(6),
+  validityChangeTimestamp DATETIME(6),
+  validityStatus          INTEGER,
+  id                      BIGINT      NOT NULL,
+  oid                     VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 )
   DEFAULT CHARACTER SET utf8
@@ -700,15 +713,6 @@ CREATE TABLE m_task_dependent (
   ENGINE = InnoDB;
 
 CREATE TABLE m_user (
-  administrativeStatus     INTEGER,
-  archiveTimestamp         DATETIME(6),
-  disableTimestamp         DATETIME(6),
-  effectiveStatus          INTEGER,
-  enableTimestamp          DATETIME(6),
-  validFrom                DATETIME(6),
-  validTo                  DATETIME(6),
-  validityChangeTimestamp  DATETIME(6),
-  validityStatus           INTEGER,
   additionalName_norm      VARCHAR(255),
   additionalName_orig      VARCHAR(255),
   costCenter               VARCHAR(255),
@@ -838,6 +842,8 @@ REFERENCES m_any (owner_id, owner_oid, owner_type);
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
+CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
+
 ALTER TABLE m_assignment
 ADD INDEX fk_assignment (id, oid),
 ADD CONSTRAINT fk_assignment
@@ -905,6 +911,10 @@ ADD INDEX fk_exclusion_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_exclusion_owner
 FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_object (id, oid);
+
+CREATE INDEX iFocusAdministrative ON m_focus (administrativeStatus);
+
+CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
 
 ALTER TABLE m_focus
 ADD INDEX fk_focus (id, oid),
@@ -1000,6 +1010,8 @@ CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
 
 CREATE INDEX iShadowAdministrative ON m_shadow (administrativeStatus);
 
+CREATE INDEX iShadowEffective ON m_shadow (effectiveStatus);
+
 CREATE INDEX iShadowName ON m_shadow (name_norm);
 
 ALTER TABLE m_shadow
@@ -1049,8 +1061,6 @@ CREATE INDEX iFamilyName ON m_user (familyName_norm);
 CREATE INDEX iAdditionalName ON m_user (additionalName_norm);
 
 CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_norm);
-
-CREATE INDEX iUserAdministrative ON m_user (administrativeStatus);
 
 ALTER TABLE m_user
 ADD INDEX fk_user (id, oid),

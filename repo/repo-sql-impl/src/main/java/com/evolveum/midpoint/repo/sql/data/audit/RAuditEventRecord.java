@@ -19,9 +19,9 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -30,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -52,15 +51,21 @@ public class RAuditEventRecord implements Serializable {
     private String taskIdentifier;
     private String taskOID;
     private String hostIdentifier;
+
     //prism object - user
     private String initiatorOid;
     private String initiatorName;
     //prism object
-    private String target;
+    private String targetOid;
+    private String targetName;
+    private RContainerType targetType;
     //prism object - user
-    private String targetOwner;
+    private String targetOwnerOid;
+    private String targetOwnerName;
+
     private RAuditEventType eventType;
     private RAuditEventStage eventStage;
+
     //collection of object deltas
     private Set<RObjectDeltaOperation> deltas;
     private String channel;
@@ -132,16 +137,27 @@ public class RAuditEventRecord implements Serializable {
         return sessionIdentifier;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getTarget() {
-        return target;
+    public String getTargetName() {
+        return targetName;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getTargetOwner() {
-        return targetOwner;
+    @Column(length = 36)
+    public String getTargetOid() {
+        return targetOid;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public RContainerType getTargetType() {
+        return targetType;
+    }
+
+    public String getTargetOwnerName() {
+        return targetOwnerName;
+    }
+
+    @Column(length = 36)
+    public String getTargetOwnerOid() {
+        return targetOwnerOid;
     }
 
     public String getTaskIdentifier() {
@@ -209,12 +225,24 @@ public class RAuditEventRecord implements Serializable {
         this.sessionIdentifier = sessionIdentifier;
     }
 
-    public void setTarget(String target) {
-        this.target = target;
+    public void setTargetName(String targetName) {
+        this.targetName = targetName;
     }
 
-    public void setTargetOwner(String targetOwner) {
-        this.targetOwner = targetOwner;
+    public void setTargetOid(String targetOid) {
+        this.targetOid = targetOid;
+    }
+
+    public void setTargetType(RContainerType targetType) {
+        this.targetType = targetType;
+    }
+
+    public void setTargetOwnerName(String targetOwnerName) {
+        this.targetOwnerName = targetOwnerName;
+    }
+
+    public void setTargetOwnerOid(String targetOwnerOid) {
+        this.targetOwnerOid = targetOwnerOid;
     }
 
     public void setTaskIdentifier(String taskIdentifier) {
@@ -245,12 +273,18 @@ public class RAuditEventRecord implements Serializable {
         if (hostIdentifier != null ? !hostIdentifier.equals(that.hostIdentifier) : that.hostIdentifier != null)
             return false;
         if (initiatorOid != null ? !initiatorOid.equals(that.initiatorOid) : that.initiatorOid != null) return false;
-        if (initiatorName != null ? !initiatorName.equals(that.initiatorName) : that.initiatorName != null) return false;
+        if (initiatorName != null ? !initiatorName.equals(that.initiatorName) : that.initiatorName != null)
+            return false;
         if (outcome != that.outcome) return false;
         if (sessionIdentifier != null ? !sessionIdentifier.equals(that.sessionIdentifier) : that.sessionIdentifier != null)
             return false;
-        if (target != null ? !target.equals(that.target) : that.target != null) return false;
-        if (targetOwner != null ? !targetOwner.equals(that.targetOwner) : that.targetOwner != null) return false;
+        if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
+        if (targetName != null ? !targetName.equals(that.targetName) : that.targetName != null) return false;
+        if (targetType != null ? !targetType.equals(that.targetType) : that.targetType != null) return false;
+        if (targetOwnerOid != null ? !targetOwnerOid.equals(that.targetOwnerOid) : that.targetOwnerOid != null)
+            return false;
+        if (targetOwnerName != null ? !targetOwnerName.equals(that.targetOwnerName) : that.targetOwnerName != null)
+            return false;
         if (taskIdentifier != null ? !taskIdentifier.equals(that.taskIdentifier) : that.taskIdentifier != null)
             return false;
         if (taskOID != null ? !taskOID.equals(that.taskOID) : that.taskOID != null) return false;
@@ -271,8 +305,11 @@ public class RAuditEventRecord implements Serializable {
         result = 31 * result + (hostIdentifier != null ? hostIdentifier.hashCode() : 0);
         result = 31 * result + (initiatorName != null ? initiatorName.hashCode() : 0);
         result = 31 * result + (initiatorOid != null ? initiatorOid.hashCode() : 0);
-        result = 31 * result + (target != null ? target.hashCode() : 0);
-        result = 31 * result + (targetOwner != null ? targetOwner.hashCode() : 0);
+        result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
+        result = 31 * result + (targetName != null ? targetName.hashCode() : 0);
+        result = 31 * result + (targetType != null ? targetType.hashCode() : 0);
+        result = 31 * result + (targetOwnerOid != null ? targetOwnerOid.hashCode() : 0);
+        result = 31 * result + (targetOwnerName != null ? targetOwnerName.hashCode() : 0);
         result = 31 * result + (eventType != null ? eventType.hashCode() : 0);
         result = 31 * result + (eventStage != null ? eventStage.hashCode() : 0);
         result = 31 * result + (deltas != null ? deltas.hashCode() : 0);
@@ -307,21 +344,21 @@ public class RAuditEventRecord implements Serializable {
         repo.setTaskIdentifier(record.getTaskIdentifier());
         repo.setTaskOID(record.getTaskOID());
 
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         try {
-            String xml;
             if (record.getTarget() != null) {
-                xml = domProcessor.serializeObjectToString(record.getTarget());
-                repo.setTarget(xml);
+                PrismObject target = record.getTarget();
+                repo.setTargetName(getOrigName(target));
+                repo.setTargetOid(target.getOid());
+                repo.setTargetType(RContainerType.getType(target.getCompileTimeClass()));
             }
             if (record.getTargetOwner() != null) {
-                xml = domProcessor.serializeObjectToString(record.getTargetOwner());
-                repo.setTargetOwner(xml);
+                PrismObject targetOwner = record.getTargetOwner();
+                repo.setTargetOwnerName(getOrigName(targetOwner));
+                repo.setTargetOwnerOid(targetOwner.getOid());
             }
             if (record.getInitiator() != null) {
                 PrismObject<UserType> initiator = record.getInitiator();
-                PolyString name = initiator.getPropertyRealValue(ObjectType.F_NAME, PolyString.class);
-                repo.setInitiatorName(name != null ? name.getOrig() : null);
+                repo.setInitiatorName(getOrigName(initiator));
                 repo.setInitiatorOid(initiator.getOid());
             }
 
@@ -336,5 +373,10 @@ public class RAuditEventRecord implements Serializable {
         }
 
         return repo;
+    }
+
+    private static String getOrigName(PrismObject object) {
+        PolyString name = (PolyString) object.getPropertyRealValue(ObjectType.F_NAME, PolyString.class);
+        return name != null ? name.getOrig() : null;
     }
 }
