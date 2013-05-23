@@ -42,25 +42,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public class Migrator {
 	
-	public <I extends ObjectType, O extends ObjectType> TypedPrismObject<O> migrate(TypedPrismObject<I> original) {
-		Class<I> origType = original.getType();
+	public <I extends ObjectType, O extends ObjectType> PrismObject<O> migrate(PrismObject<I> original) {
+		Class<I> origType = original.getCompileTimeClass();
 		if (ObjectTemplateType.class.isAssignableFrom(origType)) {
-			PrismObject<ObjectTemplateType> out = migrateObjectTemplate((PrismObject<ObjectTemplateType>) original.getObject());
-			return (TypedPrismObject<O>) new TypedPrismObject<ObjectTemplateType>((Class<ObjectTemplateType>) origType, out);
+			PrismObject<ObjectTemplateType> out = migrateObjectTemplate((PrismObject<ObjectTemplateType>) original);
+			return (PrismObject<O>) out;
 		}
 		if (ResourceType.class.isAssignableFrom(origType)) {
-			PrismObject<ResourceType> out = migrateResource((PrismObject<ResourceType>) original.getObject());
-			return (TypedPrismObject<O>) new TypedPrismObject<ResourceType>((Class<ResourceType>) origType, out);
+			PrismObject<ResourceType> out = migrateResource((PrismObject<ResourceType>) original);
+			return (PrismObject<O>) out;
 		}
 		if (FocusType.class.isAssignableFrom(origType)) {
-			PrismObject<FocusType> out = migrateFocus((PrismObject<FocusType>) original.getObject());
-			original = (TypedPrismObject<I>) new TypedPrismObject<FocusType>((Class<FocusType>) origType, out);
+			PrismObject<FocusType> out = migrateFocus((PrismObject<FocusType>) original);
+			original = (PrismObject<I>) out;
 		}
 		if (UserType.class.isAssignableFrom(origType)) {
-			PrismObject<UserType> out = migrateUser((PrismObject<UserType>) original.getObject());
-			return (TypedPrismObject<O>) new TypedPrismObject<UserType>((Class<UserType>) origType, out);
+			PrismObject<UserType> out = migrateUser((PrismObject<UserType>) original);
+			return (PrismObject<O>) out;
 		}
-		return (TypedPrismObject<O>) original;
+		return (PrismObject<O>) original;
 	}
 	
 	private PrismObject<ObjectTemplateType> migrateObjectTemplate(PrismObject<ObjectTemplateType> orig) {
@@ -95,7 +95,7 @@ public class Migrator {
 			}
 			migratedSchemaHandling.getObjectType().add(accountType);
 		}
-		origSchemaHandling.getAccountType().clear();
+		migratedSchemaHandling.getAccountType().clear();
 		
 		return migrated;
 	}

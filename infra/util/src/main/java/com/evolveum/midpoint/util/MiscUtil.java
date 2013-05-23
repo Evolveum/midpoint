@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.Set;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -332,6 +333,15 @@ public class MiscUtil {
 			return "null";
 		}
 		return o.toString();
+	}
+
+	public static List<String> splitLines(String string) {
+		List<String> lines = new ArrayList<String>();
+		Scanner scanner = new Scanner(string);
+		while (scanner.hasNextLine()) {
+		  lines.add(scanner.nextLine());
+		}
+		return lines;
 	}
 
 }

@@ -20,7 +20,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -32,10 +34,14 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+
+import difflib.DiffUtils;
+import difflib.Patch;
 
 /**
  * @author semancik
@@ -44,8 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 public class TestMigrator {
 	
 	public static final File TEST_DIR = new File("src/test/resources/migrator");
-	private static final File OBJECT_TEMPLATE_FILE = new File(TEST_DIR, "object-template.xml");
-	private static final File USER_TEMPLATE_FILE = new File(TEST_DIR, "user-template.xml");
+	private static final File TEST_DIR_BEFORE = new File(TEST_DIR, "before");
+	private static final File TEST_DIR_AFTER = new File(TEST_DIR, "after");
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -58,34 +64,48 @@ public class TestMigrator {
 	public void testMigrateUserTemplate() throws Exception {
 		IntegrationTestTools.displayTestTile("testMigrateUserTemplate");
 
-		assertSimpleMigration(ObjectTemplateType.class, USER_TEMPLATE_FILE, OBJECT_TEMPLATE_FILE);
+		for (File beforeFile: TEST_DIR_BEFORE.listFiles()) {
+			String beforeName = beforeFile.getName();
+			if (!beforeName.endsWith(".xml")) {
+				continue;
+			}
+			File afterFile = new File(TEST_DIR_AFTER, beforeName);
+			
+			assertSimpleMigration(beforeFile, afterFile);
+		}
 	}
 	
-	private <O extends ObjectType> void assertSimpleMigration(Class<O> type, File fileOld, File fileNew) throws SchemaException {
+	private <O extends ObjectType> void assertSimpleMigration(File fileOld, File fileNew) throws SchemaException {
 		// GIVEN
 		Migrator migrator = createMigrator();
 		
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<O> objectOld = prismContext.parseObject(fileOld);
-		TypedPrismObject<O> typedObjectOld = new TypedPrismObject<O>(type, objectOld);
 		
 		// WHEN
-		TypedPrismObject<O> typedObjectNew = migrator.migrate(typedObjectOld);
+		PrismObject<O> objectNew = migrator.migrate(objectOld);
 		
 		// THEN
 		
-		IntegrationTestTools.display("Migrated typed object", typedObjectNew);
-		assertNotNull("No migrated typed object", typedObjectNew);
-		assertEquals("Wrong output class", type, typedObjectNew.getType());
+		IntegrationTestTools.display("Migrated object "+fileOld.getName(), objectNew);
+		assertNotNull("No migrated object "+fileOld.getName(), objectNew);
 
-		PrismObject<O> objectNew = typedObjectNew.getObject();
-		IntegrationTestTools.display("Migrated object", objectNew);
+		IntegrationTestTools.display("Migrated object "+fileOld.getName(), objectNew);
+		String migratedXml = PrismTestUtil.serializeObjectToString(objectNew);
+		IntegrationTestTools.display("Migrated object XML "+fileOld.getName(), migratedXml);
 		
 		PrismObject<O> expectedObject = prismContext.parseObject(fileNew);
-		IntegrationTestTools.display("Expected object", expectedObject);
+		IntegrationTestTools.display("Expected object "+fileOld.getName(), expectedObject);
+		String expectedXml = PrismTestUtil.serializeObjectToString(expectedObject);
+		IntegrationTestTools.display("Expected object XML "+fileOld.getName(), expectedXml);
+		
+		List<String> expectedXmlLines = MiscUtil.splitLines(expectedXml);
+		Patch patch = DiffUtils.diff(expectedXmlLines, MiscUtil.splitLines(migratedXml));
+		List<String> diffLines = DiffUtils.generateUnifiedDiff(fileOld.getPath(), fileNew.getPath(), expectedXmlLines, patch, 3);
+		IntegrationTestTools.display("XML textual diff", StringUtils.join(diffLines, '\n'));
 
-		PrismAsserts.assertEquivalent("Unexpected migration result", expectedObject, objectNew);
-		assertEquals("Unexpected element name", expectedObject.getName(), objectNew.getName());
+		PrismAsserts.assertEquivalent("Unexpected migration result for "+fileOld.getName(), expectedObject, objectNew);
+		assertEquals("Unexpected element name for "+fileOld.getName(), expectedObject.getName(), objectNew.getName());
 	}
 	
 	private Migrator createMigrator() {

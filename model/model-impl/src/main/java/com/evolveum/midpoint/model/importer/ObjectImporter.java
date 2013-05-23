@@ -23,7 +23,6 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.migrator.Migrator;
-import com.evolveum.midpoint.model.migrator.TypedPrismObject;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -124,9 +123,7 @@ public class ObjectImporter {
                 	LOGGER.trace("IMPORTING object:\n{}", object.dump());
                 }
                 
-                TypedPrismObject<? extends ObjectType> originalTypedObject =  new TypedPrismObject(object.getCompileTimeClass(), object);
-				TypedPrismObject<? extends ObjectType> migratedTypedObject = migrator.migrate(originalTypedObject);
-				object = migratedTypedObject.getObject();
+                object = migrator.migrate(object);
                 
                 Utils.resolveReferences(object, repository, 
                 		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), prismContext, objectResult);
