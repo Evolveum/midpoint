@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report2" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+	<property name="ireport.zoom" value="1.6105100000000019"/>
+	<property name="ireport.x" value="34"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
+	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
+	<style name="Detail" mode="Transparent" fontName="DejaVu Sans" fontSize="10" isBold="false" forecolor="#000000"/>
+	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="10" isBold="false">
+		<conditionalStyle>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="LOGO_PATH" class="java.lang.String"/>
+	<parameter name="RESOURCE_OID" class="java.lang.String"/>
+	<parameter name="CLASS" class="javax.xml.namespace.QName"/>
+	<parameter name="INTENT" class="java.lang.String"/>
+	<queryString language="hql">
+		<![CDATA[select distinct u.name.orig as username, s.name.orig as name, s.synchronizationSituation as situation, ss.situation as situationDescription, r.name.orig as resourceName from RUser as u, RShadow as s join u.linkRef as linkRef, RResource as r join s.resourceRef as resRef, RSynchronizationSituationDescription as ss join s.synchronizationSituationDescription as ssd where s.intent = $P{INTENT} and s.objectClass = $P{CLASS} and s.oid = linkRef.targetOid and resRef.type = 8 and r.oid = resRef.targetOid and r.oid = $P{RESOURCE_OID} and ssd.shadowOid = ss.shadowOid and s.kind = 0]]>
+	</queryString>
+	<field name="username" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="situation" class="com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation">
+		<fieldDescription><![CDATA[situation]]></fieldDescription>
+	</field>
+	<field name="situationDescription" class="com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation">
+		<fieldDescription><![CDATA[situationDescription]]></fieldDescription>
+	</field>
+	<field name="resourceName" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="138" splitType="Stretch">
+			<frame>
+				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994"/>
+				<staticText>
+					<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="26" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Reconciliation Report]]></text>
+				</staticText>
+				<image>
+					<reportElement uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c" x="589" y="13" width="203" height="45"/>
+					<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
+				</image>
+			</frame>
+			<staticText>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="70" width="120" height="20" forecolor="#000000">
+					<printWhenExpression><![CDATA[!$F{resourceName}.isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Resource:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" x="122" y="70" width="150" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{resourceName}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="90" width="120" height="20" forecolor="#000000">
+					<printWhenExpression><![CDATA[!$P{INTENT}.isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Intent:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" x="122" y="90" width="150" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{INTENT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="110" width="120" height="20" forecolor="#000000">
+					<printWhenExpression><![CDATA[!$P{CLASS}.getLocalPart().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Object Class:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" x="122" y="110" width="150" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{CLASS}.getLocalPart()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="430" y="70" width="170" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Report generated on:]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" x="600" y="70" width="200" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle" textAlignment="Right">
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="24" splitType="Stretch">
+			<frame>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="150" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="150" y="0" width="200" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Situation]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="350" y="0" width="200" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Owner]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="550" y="0" width="250" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Situation description]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<frame>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="0" width="800" height="14"/>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="0" y="0" width="150" height="13"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true"> 
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="150" y="0" width="200" height="13"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{situation}.getSchemaValue()]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="350" y="0" width="200" height="13"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="550" y="0" width="250" height="13"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{situationDescription}.getSchemaValue()]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToBottom" mode="Opaque" x="1" y="13" width="799" height="1" forecolor="#333333"/>
+				</line>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="7" splitType="Stretch">
+			<line>
+				<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="32" splitType="Stretch">
+			<frame>
+				<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" mode="Transparent" x="0" y="1" width="800" height="24" forecolor="#000000" backcolor="#267994"/>
+				<textField>
+					<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Column header" x="680" y="1" width="80" height="20" forecolor="#000000"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+				</textField>
+				<textField pattern="EEEEE dd MMMMM yyyy">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" x="2" y="1" width="197" height="20" forecolor="#000000"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Column header" x="760" y="1" width="40" height="20" forecolor="#000000"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

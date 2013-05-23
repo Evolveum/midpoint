@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
+import java.sql.Timestamp;
+import javax.xml.namespace.QName;
 
 import javax.servlet.ServletContext;
 
@@ -35,6 +38,7 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
+import org.joda.time.DateTime;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -480,12 +484,12 @@ public class PageReports extends PageAdminReports {
 
 		byte[] generatedReport = null;
 		Session session = null;
-
+	/*	
 		try {
             ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
 			// Loading template
 
-			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccounts.jrxml"));
+			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccountsMy.jrxml"));
 			report = JasperCompileManager.compileReport(design);
 			Map params = new HashMap();
 
@@ -510,7 +514,117 @@ public class PageReports extends PageAdminReports {
 		} finally{
 			session.close();
 		}
+		*/
+/*	
+		//User Report
+		try {
+            ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
+			// Loading template
 
+			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserList.jrxml"));
+			report = JasperCompileManager.compileReport(design);
+			
+			Map params = new HashMap();
+			params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
+			
+			session = sessionFactory.openSession();
+			session.beginTransaction();
+			
+			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+			jasperPrint = JasperFillManager.fillReport(report, params);
+			generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
+			
+		} catch (JRException ex) {
+            getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
+			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
+			throw new RestartResponseException(PageReports.class);
+		} finally{
+			session.close();
+		}
+*/
+/*
+
+		// Audit Log report 
+		
+		// parameters 
+		// LOGO_PATH = "/reports/logo.jpg"
+		// DATE_FROM = Timestamp
+		// DATE_TO = Timestamp
+		
+		// output data - audit logs
+		// Timestamp, Initiator name, Event Type, Event Stage, Target type, Target name, Outcome, Message
+		try {
+            ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
+			// Loading template
+			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportAuditLogs.jrxml"));
+			report = JasperCompileManager.compileReport(design);
+			
+			Timestamp dateTo = new Timestamp(new Date().getTime());
+			Long time = (dateTo.getTime() - 3*3600000);
+			Timestamp dateFrom = new Timestamp(time);
+			
+			Map params = new HashMap();
+			params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
+			params.put("DATE_FROM", dateFrom) ;
+			params.put("DATE_TO", dateTo);
+
+			session = sessionFactory.openSession();
+			session.beginTransaction();
+			
+			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+			jasperPrint = JasperFillManager.fillReport(report, params);
+			generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
+		} catch (JRException ex) {
+            getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
+			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
+			throw new RestartResponseException(PageReports.class);
+		} finally{
+			session.close();
+		}
+*/
+
+		// Reconciliation Report
+		
+		// parameters 
+		// LOGO_PATH = "/reports/logo.jpg"
+		// RESOURCE_OID = String
+		// CLASS = QName "http://midpoint.evolveum.com/xml/ns/public/resource/instance-2","AccountObjectClass"
+		// INTENT = STRING "default"
+				
+		// output data - audit logs
+		// Name, Situation, Owner, Situation description
+		
+		try {
+			ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
+			// Loading template
+
+			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportReconciliation.jrxml"));
+			report = JasperCompileManager.compileReport(design);
+			
+			Map params = new HashMap();
+			params.put("LOGO_PATH",	servletContext.getRealPath("/reports/logo.jpg"));
+			params.put("RESOURCE_OID", dto.getResource().getOid());
+			QName objectClass = new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-2","AccountObjectClass");
+			params.put("CLASS", objectClass);
+			params.put("INTENT", "default");
+			
+			session = sessionFactory.openSession();
+			session.beginTransaction();
+
+			params.put(
+					JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION,
+					session);
+			jasperPrint = JasperFillManager.fillReport(report, params);
+			generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
+
+		} catch (JRException ex) {
+			getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
+			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.",	ex);
+			throw new RestartResponseException(PageReports.class);
+		} finally {
+			session.close();
+		}
+	
 		return generatedReport;
 
 	}
@@ -523,7 +637,7 @@ public class PageReports extends PageAdminReports {
             clonedQuery = new ObjectQuery();
             clonedQuery.setFilter(query.getFilter());
         }
-        Class type = getTableDataProvider().getType();
+        Class<? extends ObjectType> type = getTableDataProvider().getType();
         if (type == null) {
             type = ObjectType.class;
         }
@@ -531,7 +645,7 @@ public class PageReports extends PageAdminReports {
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECT);
         List<DebugObjectItem> objects = new ArrayList<DebugObjectItem>();
         try {
-			List<PrismObject> resList = getModelService().searchObjects(type, clonedQuery,
+			List<? extends PrismObject> resList = getModelService().searchObjects(type, clonedQuery,
 					SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
 					createSimpleTask(OPERATION_SEARCH_OBJECT), result);
             if (resList != null) {
@@ -549,6 +663,7 @@ public class PageReports extends PageAdminReports {
             showResult(result);
         }
 
+        
         return objects;
     }
 

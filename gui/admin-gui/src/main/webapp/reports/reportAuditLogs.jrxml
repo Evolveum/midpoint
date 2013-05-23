@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report2" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+	<property name="ireport.zoom" value="1.6105100000000019"/>
+	<property name="ireport.x" value="34"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
+	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
+	<style name="Detail" mode="Transparent" fontName="DejaVu Sans" fontSize="8" isBold="false" forecolor="#000000"/>
+	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="8" isBold="false">
+		<conditionalStyle>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="LOGO_PATH" class="java.lang.String"/>
+	<parameter name="DATE_FROM" class="java.sql.Timestamp"/>	
+	<parameter name="DATE_TO" class="java.sql.Timestamp"/>
+	<queryString language="hql">
+		<![CDATA[select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, coalesce(aer.targetName,'') as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, case when aer.message is null then '' else ', ' end + coalesce(aer.message,'') as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO}]]>
+	</queryString>
+	<field name="timestamp" class="java.sql.Timestamp"/>
+	<field name="initiator" class="java.lang.String"/>
+	<field name="eventType" class="com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType">
+		<fieldDescription><![CDATA[eventType]]></fieldDescription>
+	</field>
+	<field name="eventStage" class="com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage">
+		<fieldDescription><![CDATA[eventStage]]></fieldDescription>
+	</field>
+	<field name="targetName" class="java.lang.String"/>
+	<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RContainerType">
+		<fieldDescription><![CDATA[targetType]]></fieldDescription>
+	</field>
+	<field name="targetOwnerName" class="java.lang.String"/>
+	<field name="outcome" class="com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus">
+		<fieldDescription><![CDATA[outcome]]></fieldDescription>
+	</field>
+	<field name="message" class="java.lang.String"/>	
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="138" splitType="Stretch">
+			<frame>
+				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994"/>
+				<staticText>
+					<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="26" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Audit Log Report]]></text>
+				</staticText>
+				<image>
+					<reportElement uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c" x="589" y="13" width="203" height="45"/>
+					<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
+				</image>
+			</frame>
+			<staticText>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="85" width="88" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[From:]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="100" y="85" width="644" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{DATE_FROM}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="88" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To:]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="100" y="115" width="644" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{DATE_TO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="24" splitType="Stretch">
+			<frame>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="80" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Timestamp]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="80" y="0" width="80" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Initiator]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="160" y="0" width="90" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Event Type]]></text>
+				</staticText>
+				<staticText> 
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="250" y="0" width="90" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Event Stage]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="340" y="0" width="200" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Target]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="540" y="0" width="80" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Outcome]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="620" y="0" width="180" height="18"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<text><![CDATA[Message]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<frame>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="0" width="800" height="14"/>
+				<textField pattern="dd.MM.yy, HH:mm:ss">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="0" y="0" width="80" height="13"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{timestamp}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true"> 
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="80" y="0" width="80" height="13"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{initiator}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="160" y="0" width="90" height="13"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{eventType}.getType()]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="250" y="0" width="90" height="13"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{eventStage}.getStage()]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="340" y="0" width="200" height="13"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{targetName} + " (" + $F{targetType} + ") "]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="540" y="0" width="80" height="13"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{outcome}.getSchemaValue()]]></textFieldExpression>
+				</textField>	
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="620" y="0" width="180" height="13"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{message}]]></textFieldExpression>
+				</textField>				
+				<line>
+					<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToBottom" mode="Opaque" x="0" y="13" width="800" height="1" forecolor="#333333"/>
+				</line>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="7" splitType="Stretch">
+			<line>
+				<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="32" splitType="Stretch">
+			<frame>
+				<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" mode="Transparent" x="0" y="1" width="800" height="24" forecolor="#000000" backcolor="#267994"/>
+				<textField pattern="EEEEE dd MMMMM yyyy">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" x="2" y="1" width="197" height="20" forecolor="#000000"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Column header" x="680" y="1" width="80" height="20" forecolor="#000000"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Column header" x="760" y="1" width="40" height="20" forecolor="#000000"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
