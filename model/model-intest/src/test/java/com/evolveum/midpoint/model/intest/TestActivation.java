@@ -158,10 +158,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
 		// WHEN
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 		
 		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
@@ -172,6 +175,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertDisabled(userJack);
 		assertValidity(userJack, null);
 		assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
+		IntegrationTestTools.assertBetween("disable timestamp", start, end, userJack.asObjectable().getActivation().getDisableTimestamp());
+		
+		IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
 	}
 	
 	@Test
@@ -183,10 +189,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
 		// WHEN
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
 		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
@@ -197,6 +206,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertAdministrativeEnabled(userJack);
 		assertValidity(userJack, null);
 		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
+		IntegrationTestTools.assertBetween("enable timestamp", start, end, userJack.asObjectable().getActivation().getEnableTimestamp());
+		
+		IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
 	}
 	
 	@Test
@@ -212,11 +224,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
+		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
@@ -228,15 +243,21 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
+        IntegrationTestTools.assertBetween("shadow enable timestamp", start, end, accountShadow.asObjectable().getActivation().getEnableTimestamp());
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        IntegrationTestTools.assertCreateTimestamp(accountModel, start, end);
+        IntegrationTestTools.assertBetween("shadow enable timestamp", start, end, accountModel.asObjectable().getActivation().getEnableTimestamp());
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyEnabled("jack");
+        
+        IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
 	}
 	
 	@Test

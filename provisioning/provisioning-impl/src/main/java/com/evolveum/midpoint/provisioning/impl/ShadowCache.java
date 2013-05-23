@@ -111,6 +111,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
@@ -1130,19 +1131,18 @@ public abstract class ShadowCache {
 			PrismObject<ShadowType> repoShadow, ResourceType resource, RefinedObjectClassDefinition objectClassDefinition, 
 			OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, GenericConnectorException {
 
-		PrismObject<ShadowType> resultShadow = repoShadow;
-		boolean cloned = false;
+		PrismObject<ShadowType> resultShadow = repoShadow.clone();
+		boolean resultIsResourceShadowClone = false;
 		if (resultShadow == null) {
 			resultShadow = resourceShadow.clone();
-			cloned = true;
+			resultIsResourceShadowClone = true;
 		}
 		
 		ResourceAttributeContainer resourceAttributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
-		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
-				.getAttributesContainer(resultShadow);
 
 		ShadowType resultShadowType = resultShadow.asObjectable();
+		ShadowType repoShadowType = repoShadow.asObjectable();
 		ShadowType resourceShadowType = resourceShadow.asObjectable();
 		
 		if (resultShadowType.getObjectClass() == null) {
@@ -1155,23 +1155,34 @@ public abstract class ShadowCache {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
 		}
 
-		// Attributes
-		// If the shadows are the same then no copy is needed.
-		if (resultShadow != resourceShadow && !cloned) {
-			repoAttributesContainer.getValue().clear();
-			for (ResourceAttribute<?> resourceAttribute : resourceAttributesContainer.getAttributes()) {
-				repoAttributesContainer.add(resourceAttribute.clone());
-			}
+		
+		// If the shadows are the same then no copy is needed. This was already copied by clone.
+		if (!resultIsResourceShadowClone) {
+			// Attributes
+			resultShadow.removeContainer(ShadowType.F_ATTRIBUTES);
+			resultShadow.add(resourceAttributesContainer.clone());
 			
 			resultShadowType.setProtectedObject(resourceShadowType.isProtectedObject());
 			resultShadowType.setIgnored(resourceShadowType.isIgnored());
+
 			resultShadowType.setActivation(resourceShadowType.getActivation());
 			
 			// Credentials
 			ShadowType resultAccountShadow = resultShadow.asObjectable();
 			ShadowType resourceAccountShadow = resourceShadow.asObjectable();
 			resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
-			
+		}
+
+		// Activation
+		ActivationType resultActivationType = resultShadowType.getActivation();
+		ActivationType repoActivation = repoShadowType.getActivation();
+		if (repoActivation != null) {
+			resultActivationType.setId(repoActivation.getId());
+			// .. but we want metadata from repo
+			resultActivationType.setEnableTimestamp(repoActivation.getEnableTimestamp());
+			resultActivationType.setDisableTimestamp(repoActivation.getDisableTimestamp());
+			resultActivationType.setArchiveTimestamp(repoActivation.getArchiveTimestamp());
+			resultActivationType.setValidityChangeTimestamp(repoActivation.getValidityChangeTimestamp());
 		}
 		
 		// Associations

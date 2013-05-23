@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -94,6 +95,9 @@ public class UserPolicyProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserPolicyProcessor.class);
 
+	private PrismObjectDefinition<UserType> userDefinition;
+	private PrismContainerDefinition<ActivationType> activationDefinition;
+	
 	@Autowired(required = true)
 	private MappingFactory mappingFactory;
 
@@ -107,16 +111,14 @@ public class UserPolicyProcessor {
 	private ModelObjectResolver modelObjectResolver;
 	
 	@Autowired(required = true)
-	private Clock clock;
-	
-	@Autowired(required = true)
 	private ActivationComputer activationComputer;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	<F extends ObjectType, P extends ObjectType> void processUserPolicy(LensContext<F,P> context, OperationResult result) throws ObjectNotFoundException,
+	<F extends ObjectType, P extends ObjectType> void processUserPolicy(LensContext<F,P> context, XMLGregorianCalendar now, 
+			OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -143,13 +145,14 @@ public class UserPolicyProcessor {
 			passwordPolicyProcessor.processPasswordPolicy((LensFocusContext<UserType>) focusContext, usContext, result);
 //		}
 			
-		processActivation(usContext, result);
+		processActivation(usContext, now, result);
 
 		applyUserTemplate(usContext, result);
 				
 	}
 
-	private <F extends UserType> void processActivation(LensContext<F, ShadowType> context, OperationResult result) 
+	private <F extends UserType> void processActivation(LensContext<F, ShadowType> context, XMLGregorianCalendar now, 
+			OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		
@@ -157,7 +160,6 @@ public class UserPolicyProcessor {
 			return;
 		}
 		
-		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		TimeIntervalStatusType validityStatusNew = null;
 		TimeIntervalStatusType validityStatusOld = null;
 		XMLGregorianCalendar validityChangeTimestamp = null;
@@ -202,20 +204,20 @@ public class UserPolicyProcessor {
 			// No change, (almost) no work
 			if (effectiveStatusNew != null && (activationNew == null || activationNew.getEffectiveStatus() == null)) {
 				// There was no effective status change. But the status is not recorded. So let's record it so it can be used in searches. 
-				recordEffectiveStatusDelta(focusContext, effectiveStatusNew);
+				recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 			} else {
 				if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().hasItemDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
 					LOGGER.trace("Forcing effective status delta even though there was no change ({} -> {}) because there is explicit administrativeStatus delta", effectiveStatusOld, effectiveStatusNew);
 					// We need this to force the change down to the projections later in the activation processor
 					// some of the mappings will use effectiveStatus as a source, therefore there has to be a delta for the mapping to work correctly
-					recordEffectiveStatusDelta(focusContext, effectiveStatusNew);
+					recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 				} else {
 					LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusOld, effectiveStatusNew);
 				}
 			}
 		} else {
 			LOGGER.trace("Effective status change {} -> {}", effectiveStatusOld, effectiveStatusNew);
-			recordEffectiveStatusDelta(focusContext, effectiveStatusNew);
+			recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 		}
 	}
 	
@@ -236,7 +238,8 @@ public class UserPolicyProcessor {
 		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
 	}
 	
-	private <F extends UserType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext, ActivationStatusType effectiveStatusNew)
+	private <F extends UserType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext, 
+			ActivationStatusType effectiveStatusNew, XMLGregorianCalendar now)
 			throws SchemaException {
 		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
 		
@@ -244,7 +247,10 @@ public class UserPolicyProcessor {
 		PropertyDelta<ActivationStatusType> effectiveStatusDelta 
 				= effectiveStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
 		effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(effectiveStatusNew, OriginType.USER_POLICY, null));
-		focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);		
+		focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
+		
+		PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY);
+		focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
 	}
 	
 	private void applyUserTemplate(LensContext<UserType, ShadowType> context, OperationResult result) 
@@ -450,13 +456,19 @@ public class UserPolicyProcessor {
 
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
-		return prismContext.getSchemaRegistry().getObjectSchema()
+		if (userDefinition == null) {
+			userDefinition = prismContext.getSchemaRegistry().getObjectSchema()
 				.findObjectDefinitionByCompileTimeClass(UserType.class);
+		}
+		return userDefinition;
 	}
 	
 	private PrismContainerDefinition<ActivationType> getActivationDefinition() {
-		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-		return userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
+		if (activationDefinition == null) {
+			PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
+			activationDefinition = userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
+		}
+		return activationDefinition;
 	}
 
 }

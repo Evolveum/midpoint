@@ -18,6 +18,8 @@ package com.evolveum.midpoint.test;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -103,6 +105,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	@Autowired(required = true)
 	protected Protector protector;
+	
+	@Autowired(required = true)
+	protected Clock clock;
 	
 	@Autowired(required = true)
 	protected PrismContext prismContext;

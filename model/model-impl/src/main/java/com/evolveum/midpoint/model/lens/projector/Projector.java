@@ -15,9 +15,12 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -85,6 +88,9 @@ public class Projector {
 
     @Autowired(required = true)
     private ActivationProcessor activationProcessor;
+    
+    @Autowired(required = true)
+    private Clock clock;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 	
@@ -102,6 +108,11 @@ public class Projector {
 		
 		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
 		result.addContext("executionWave", context.getExecutionWave());
+		
+		// Read the time at the beginning so all processors have the same notion of "now"
+		// this provides nicer unified timestamp that can be used in equality checks in tests and also for
+		// troubleshooting
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		
 		// Projector is using a set of "processors" to do parts of its work. The processors will be called in sequence
 		// in the following code.
@@ -135,7 +146,7 @@ public class Projector {
 		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
 		
-		        userPolicyProcessor.processUserPolicy(context, result);
+		        userPolicyProcessor.processUserPolicy(context, now, result);
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
@@ -168,7 +179,7 @@ public class Projector {
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
-		        	activationProcessor.processActivation(context, projectionContext, result);
+		        	activationProcessor.processActivation(context, projectionContext, now, result);
 		        	
 		        	projectionContext.recompute();
 		        	

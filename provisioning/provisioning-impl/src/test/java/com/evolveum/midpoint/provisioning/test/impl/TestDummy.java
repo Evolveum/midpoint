@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -115,6 +116,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
@@ -871,25 +873,35 @@ public class TestDummy extends AbstractDummyTest {
 
 		account.checkConsistence();
 
-		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result)
-				.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountType.getName());
-		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountType.getKind());
-		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
-		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result);
+		display("Account repo", accountRepo);
+		ShadowType accountTypeRepo = accountRepo.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeRepo.getName());
+		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
+		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
+		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		ActivationType activationRepo = accountTypeRepo.getActivation();
+		assertNotNull("No activation in "+accountRepo+" (repo)", activationRepo);
+		assertEquals("Wrong activation enableTimestamp in "+accountRepo+" (repo)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationRepo.getEnableTimestamp());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, result).asObjectable();
-		display("account from provisioning", provisioningAccountType);
-		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, provisioningAccountType.getName());
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, provisioningAccountType.getKind());
-		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
-		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, null, result);
+		display("Account provisioning", accountProvisioning);
+		ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
+		display("account from provisioning", accountTypeProvisioning);
+		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
+		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
+		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
+		assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
+		assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
+		IntegrationTestTools.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+				accountTypeProvisioning, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
 
@@ -907,7 +919,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
-		checkConsistency(account);
+		checkConsistency(accountProvisioning);
 		assertSteadyResource();
 	}
 

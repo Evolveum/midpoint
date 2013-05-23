@@ -938,9 +938,28 @@ public class IntegrationTestTools {
 
 	public static void assertBetween(String message, XMLGregorianCalendar start, XMLGregorianCalendar end,
 			XMLGregorianCalendar actual) {
+		assertNotNull(message + " is null", actual);
 		assertTrue(message+": expected time to be after "+start+" but it was "+actual, actual.compare(start) == 1 || actual.compare(start) == 0);
 		assertTrue(message+": expected time to be before "+end+" but it was "+actual, actual.compare(end) == -1 || actual.compare(end) == 0);
 	}
 
+	public static void assertEqualsTimestamp(String message, XMLGregorianCalendar expected, XMLGregorianCalendar actual) {
+		assertNotNull(message+"; expected "+expected, actual);
+		assertTrue(message+"; expected "+expected+" but was "+actual, expected.compare(actual) == 0);
+	}
+
+	public static void assertCreateTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
+			XMLGregorianCalendar end) {
+		MetadataType metadata = object.asObjectable().getMetadata();
+		assertNotNull("No metadata in "+object, metadata);
+		assertBetween("createTimestamp in "+object, start, end, metadata.getCreateTimestamp());
+	}
+
+	public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
+			XMLGregorianCalendar end) {
+		MetadataType metadata = object.asObjectable().getMetadata();
+		assertNotNull("No metadata in "+object, metadata);
+		assertBetween("modifyTimestamp in "+object, start, end, metadata.getModifyTimestamp());
+	}
 
 }
