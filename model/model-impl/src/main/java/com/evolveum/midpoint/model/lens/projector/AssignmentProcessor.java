@@ -531,28 +531,39 @@ public class AssignmentProcessor {
 				projectionContext.setAssigned(true);
 				projectionContext.setLegal(true);
 				projectionContext.setLegalOld(false);
-				continue;
-			}
+			} else {
 			
-			AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();
-			
-			if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
-				// What is not explicitly allowed is illegal in FULL enforcement mode
-				projectionContext.setLegal(false);
-				projectionContext.setLegalOld(true);
-				if (projectionContext.isAdd()) {
-					throw new PolicyViolationException("Attempt to add projection "+projectionContext.toHumanReadableString()
-							+" while the synchronization enforcement policy is FULL and the projection is not assigned");
-				}
-				continue;
+				AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();
 				
-			} else if ((enforcementType == AssignmentPolicyEnforcementType.NONE || enforcementType == AssignmentPolicyEnforcementType.POSITIVE) 
-					&& !projectionContext.isThombstone()) {
-				// Everything that is not yet dead is legal in NONE enforcement mode
-				projectionContext.setLegal(true);
-				projectionContext.setLegalOld(true);
+				if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
+					// What is not explicitly allowed is illegal in FULL enforcement mode
+					projectionContext.setLegal(false);
+					projectionContext.setLegalOld(true);
+					if (projectionContext.isAdd()) {
+						throw new PolicyViolationException("Attempt to add projection "+projectionContext.toHumanReadableString()
+								+" while the synchronization enforcement policy is FULL and the projection is not assigned");
+					}
+					
+				} else if ((enforcementType == AssignmentPolicyEnforcementType.NONE || enforcementType == AssignmentPolicyEnforcementType.POSITIVE) 
+						&& !projectionContext.isThombstone()) {
+					// Everything that is not yet dead is legal in NONE enforcement mode
+					projectionContext.setLegal(true);
+					projectionContext.setLegalOld(true);
+					
+				} else if (enforcementType == AssignmentPolicyEnforcementType.RELATIVE && !projectionContext.isThombstone() &&
+						projectionContext.isLegal() == null && projectionContext.isLegalOld() == null) {
+					// RELATIVE mode and nothing has changed. Maintain status quo. Pretend that it is legal.
+					projectionContext.setLegal(true);
+					projectionContext.setLegalOld(true);
+				}
 			}
 			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Finishing legal decision for {}, thombstone {}, enforcement mode {}, legalize {}: {} -> {}",
+						new Object[]{projectionContext.toHumanReadableString(), projectionContext.isThombstone(),
+						projectionContext.getAssignmentPolicyEnforcementType(),
+						projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal()});
+			}
 		}
 	}
 

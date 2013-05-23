@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest.sync;
+package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
@@ -23,13 +23,16 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.model.sync.SynchronizationConstants;
+import com.evolveum.midpoint.model.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -55,9 +58,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrationTest {
+public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
 	private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
+
+	private MockTriggerHandler testTriggerHandler;
+	
+	@Autowired(required=true)
+	private TriggerHandlerRegistry triggerHandlerRegistry;
+	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		// TODO Auto-generated method stub
+		super.initSystem(initTask, initResult);
+		
+		testTriggerHandler = new MockTriggerHandler();
+		
+		triggerHandlerRegistry.register(MockTriggerHandler.HANDLER_URI, testTriggerHandler);
+	}
 
 	@Test
     public void test100ImportScannerTask() throws Exception {
@@ -65,72 +83,65 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        // Pretend that the user was added a long time ago
-        clock.override(LONG_LONG_TIME_AGO);
-        addObject(USER_HERMAN_FILE);
-        // Make sure that it is effectivelly disabled
-        PrismObject<UserType> userHermanBefore = getUser(USER_HERMAN_OID);
-        assertEffectiveActivation(userHermanBefore, ActivationStatusType.DISABLED);
-        assertValidityStatus(userHermanBefore, TimeIntervalStatusType.BEFORE);
-        clock.resetOverride();
+        // Make sure there is an object with a trigger set to a long time ago.
+        // That trigger should be invoked on first run.
+        addTrigger(USER_JACK_OID, LONG_LONG_TIME_AGO, MockTriggerHandler.HANDLER_URI);
         
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         
 		/// WHEN
         displayWhen(TEST_NAME);
-        importObjectFromFile(TASK_VALIDITY_SCANNER_FILENAME);
+        importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 		
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
-        waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
         displayThen(TEST_NAME);
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
         
-        PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
-        assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
-        assertValidityStatus(userHermanAfter, TimeIntervalStatusType.IN);
+        assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
 	}
 	
-	@Test
-    public void test110HermanGoesInvalid() throws Exception {
-		final String TEST_NAME = "test110HermanGoesInvalid";
-        displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        
-        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-        
-        PrismObject<UserType> userHermanBefore = getUser(USER_HERMAN_OID);
-        XMLGregorianCalendar validTo = userHermanBefore.asObjectable().getActivation().getValidTo();
-        assertEffectiveActivation(userHermanBefore, ActivationStatusType.ENABLED);
-        assertValidityStatus(userHermanBefore, TimeIntervalStatusType.IN);
-        
-        // Let's move the clock tiny bit after herman's validTo 
-        validTo.add(XmlTypeConverter.createDuration(100));
-        clock.override(validTo);
-        
-		/// WHEN
-        displayWhen(TEST_NAME);
-        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-		
-        // THEN
-        displayThen(TEST_NAME);
-        
-        // THEN
-        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-
-        PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
-        assertEffectiveActivation(userHermanAfter, ActivationStatusType.DISABLED);
-        assertValidityStatus(userHermanAfter, TimeIntervalStatusType.AFTER);
-
-        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
-	}
+//	@Test
+//    public void test110HermanGoesInvalid() throws Exception {
+//		final String TEST_NAME = "test110HermanGoesInvalid";
+//        displayTestTile(this, TEST_NAME);
+//
+//        // GIVEN
+//        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+//        OperationResult result = task.getResult();
+//        
+//        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+//        
+//        PrismObject<UserType> userHermanBefore = getUser(USER_HERMAN_OID);
+//        XMLGregorianCalendar validTo = userHermanBefore.asObjectable().getActivation().getValidTo();
+//        assertEffectiveActivation(userHermanBefore, ActivationStatusType.ENABLED);
+//        assertValidityStatus(userHermanBefore, TimeIntervalStatusType.IN);
+//        
+//        // Let's move the clock tiny bit after herman's validTo 
+//        validTo.add(XmlTypeConverter.createDuration(100));
+//        clock.override(validTo);
+//        
+//		/// WHEN
+//        displayWhen(TEST_NAME);
+//        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+//		
+//        // THEN
+//        displayThen(TEST_NAME);
+//        
+//        // THEN
+//        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+//
+//        PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
+//        assertEffectiveActivation(userHermanAfter, ActivationStatusType.DISABLED);
+//        assertValidityStatus(userHermanAfter, TimeIntervalStatusType.AFTER);
+//
+//        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+//	}
 
 }

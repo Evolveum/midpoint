@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.transports.DummyTransport;
@@ -125,6 +126,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
@@ -206,22 +208,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {
+		importObjectFromFile(new File(filename));
+	}
+	
+	protected void importObjectFromFile(File file) throws FileNotFoundException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".importObjectFromFile");
-		importObjectFromFile(filename, result);
+		importObjectFromFile(file, result);
 		result.computeStatus();
 		assertSuccess(result);
 	}
 
 	protected void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
+		importObjectFromFile(new File(filename), result);
+	}
+	
+	protected void importObjectFromFile(File file, OperationResult result) throws FileNotFoundException {
 		OperationResult subResult = result.createSubresult(AbstractModelIntegrationTest.class+".importObjectFromFile");
-		subResult.addParam("filename", filename);
-		LOGGER.trace("importObjectFromFile: {}", filename);
+		subResult.addParam("filename", file);
+		LOGGER.trace("importObjectFromFile: {}", file);
 		Task task = taskManager.createTaskInstance();
-		FileInputStream stream = new FileInputStream(filename);
+		FileInputStream stream = new FileInputStream(file);
 		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, subResult);
 		subResult.computeStatus();
 		if (subResult.isError()) {
-			throw new SystemException("Import of file "+filename+" failed: "+subResult.getMessage());
+			throw new SystemException("Import of file "+file+" failed: "+subResult.getMessage());
 		}
 	}
 	
@@ -1383,6 +1393,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult result = task.getResult();
         ObjectDelta<O> addDelta = object.createAddDelta();
         modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), null, task, result);
+        result.computeStatus();
+        assertSuccess(result);
+	}
+	
+	protected void addTrigger(String oid, XMLGregorianCalendar timestamp, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addTrigger");
+        OperationResult result = task.getResult();
+        TriggerType triggerType = new TriggerType();
+        triggerType.setTimestamp(timestamp);
+        triggerType.setHandlerUri(uri);
+        ObjectDelta<ObjectType> delta = ObjectDelta.createModificationAddContainer(ObjectType.class, oid, 
+        		new ItemPath(ObjectType.F_TRIGGER), prismContext, triggerType);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
         result.computeStatus();
         assertSuccess(result);
 	}

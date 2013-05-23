@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 public abstract class SchemaConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
+	public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
 
 	// NAMESPACES
 	

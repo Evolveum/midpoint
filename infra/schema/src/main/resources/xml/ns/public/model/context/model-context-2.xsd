@@ -341,6 +341,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="isLegalOld" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                True if there is a valid assignment for this projection and/or the policy allows such project to exist.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="isExists" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

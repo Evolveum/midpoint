@@ -19,13 +19,15 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 /**
  * @author semancik
  *
  */
 public class TestConstants {
 	
-	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
+	public static final String NS_EXTENSION = SchemaConstants.NS_MIDPOINT_TEST + "/extension";
 	public static final String NS_FOO = "http://www.example.com/foo";
 
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
@@ -43,5 +45,7 @@ public class TestConstants {
 	public static final String USER_ACCOUNT_REF_1_OID = "2f9b9299-6f45-498f-aaaa-000000001111";
 	public static final String USER_ACCOUNT_REF_2_OID = "2f9b9299-6f45-498f-aaaa-000000002222";
 	public static final String USER_ACCOUNT_REF_3_OID = "2f9b9299-6f45-498f-aaaa-000000003333";
+	
+	
 	
 }
