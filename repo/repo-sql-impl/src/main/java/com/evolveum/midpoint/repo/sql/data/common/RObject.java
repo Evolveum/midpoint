@@ -49,6 +49,7 @@ public abstract class RObject extends RContainer {
     private Set<ROrgClosure> descendants;
     private Set<ROrgClosure> ancestors;
     private Set<RObjectReference> parentOrgRef;
+    private Set<RTrigger> trigger;
     private RMetadata metadata;
 
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
@@ -57,6 +58,19 @@ public abstract class RObject extends RContainer {
         return metadata;
     }
 
+    @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RTrigger> getTrigger(){
+    	if (trigger == null){
+    		trigger = new HashSet<RTrigger>();
+    	}
+    	return trigger;
+    }
+    
+    public void setTrigger(Set<RTrigger> trigger) {
+		this.trigger = trigger;
+	}
+    
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
@@ -184,10 +198,16 @@ public abstract class RObject extends RContainer {
         if (!orgRefs.isEmpty()) {
             jaxb.getParentOrgRef().addAll(orgRefs);
         }
+        
+        List trigger = RUtil.safeSetTriggerToList(repo.getTrigger());
+        if (!trigger.isEmpty()) {
+            jaxb.getTrigger().addAll(trigger);
+        }
 
         if (repo.getMetadata() != null) {
             jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
         }
+    
     }
 
     public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)
@@ -212,8 +232,12 @@ public abstract class RObject extends RContainer {
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
         }
 
+       
         repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext, repo, RReferenceOwner.OBJECT_PARENT_ORG));
 
+		if (jaxb.getTrigger() != null) {
+			repo.getTrigger().addAll(RUtil.listTriggerToSet(repo, jaxb.getTrigger()));
+		}
         if (jaxb.getMetadata() != null) {
             RMetadata metadata = new RMetadata();
             metadata.setOwner(repo);

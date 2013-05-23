@@ -266,6 +266,31 @@ public final class RUtil {
         }
         return list;
     }
+    
+    public static Set<RTrigger> listTriggerToSet(RContainer owner, List<TriggerType> list) {
+		Set<RTrigger> set = new HashSet<RTrigger>();
+		if (list != null) {
+			for (TriggerType str : list) {
+				if (str == null) {
+					continue;
+				}
+				set.add(RTrigger.copyFromJAXB(owner, str));
+			}
+		}
+
+		return set;
+	}
+
+	public static List<TriggerType> safeSetTriggerToList(Set<RTrigger> set) {
+		List<TriggerType> list = new ArrayList<TriggerType>();
+		for (RTrigger str : set) {
+			if (str == null) {
+				continue;
+			}
+			list.add(RTrigger.copyToJAXB(str));
+		}
+		return list;
+	}
 
     public static <T> List<T> safeSetToList(Set<T> set) {
         if (set == null || set.isEmpty()) {

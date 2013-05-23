@@ -30,6 +30,10 @@
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00002</name>
+        
+        <trigger>
+        <handlerUri>http://triggerUri</handlerUri>
+        </trigger>
 
         <metadata>
             <creatorRef oid="cccccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
