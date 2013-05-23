@@ -1157,7 +1157,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		applyDefinition(delta, null, parentResult);
+		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
+		result.addParam("delta", delta);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		applyDefinition(delta, null, result);
+		 
+		result.recordSuccessIfUnknown();
 	}
 
     @SuppressWarnings("unchecked")

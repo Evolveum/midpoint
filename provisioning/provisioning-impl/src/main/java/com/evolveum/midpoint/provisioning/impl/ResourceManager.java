@@ -899,14 +899,17 @@ public class ResourceManager {
         		ItemPath path = itemDelta.getPath().rest();
         		ItemDefinition itemDef = configContainerDef.findItemDefinition(path);
         		if (itemDef == null){
-        			LOGGER.error("No definition found for item {}. Check your namespaces?", path);
-        			objectResult.recordFatalError("No definition found for item " + path+ ". Check your namespaces?" );
-        			throw new SchemaException("No definition found for item " + path+ ". Check your namespaces?" );
+        			LOGGER.warn("No definition found for item {}. Check your namespaces?", path);
+        			objectResult.recordWarning("No definition found for item delta: " + itemDelta +". Check your namespaces?" );
+//        			throw new SchemaException("No definition found for item " + path+ ". Check your namespaces?" );
+        			continue;
         		}
 				itemDelta.applyDefinition(itemDef);
         		
         	}
         }
+        
+   
 	}
 
 	
