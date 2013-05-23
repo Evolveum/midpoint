@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.reports.component;
+package com.evolveum.midpoint.web.page.admin.reports.dto;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Panel;
+import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class AuditPopup extends Panel {
+public class ReconciliationReportDto implements Serializable {
 
-    public AuditPopup(String id) {
-        super(id);
+    private String resourceOid;
+
+    public String getResourceOid() {
+        return resourceOid;
     }
 
-    protected void onRunPerformed(AjaxRequestTarget target) {
-
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
     }
 }

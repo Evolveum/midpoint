@@ -16,16 +16,28 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.internal.dto.ResourceItemDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class ReconciliationPopup extends Panel {
+public class ReconciliationPopup extends SimplePanel<ReconciliationReportDto> {
 
-    public ReconciliationPopup(String id) {
-        super(id);
+    public ReconciliationPopup(String id, IModel<ReconciliationReportDto> model,
+                               IModel<List<ResourceItemDto>> resources) {
+        super(id, model);
+
+        initLayout(resources);
+    }
+
+    private void initLayout(IModel<List<ResourceItemDto>> resources) {
+
     }
 
     protected void onRunPerformed(AjaxRequestTarget target) {

@@ -17,30 +17,24 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ajaxDownload.AjaxDownloadBehaviorFromStream;
-import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopup;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.internal.dto.ResourceItemDto;
+import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReconciliationPopup;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.UserFilterDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
-import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import groovy.model.PropertyModel;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
@@ -51,7 +45,6 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -61,13 +54,10 @@ import org.hibernate.SessionFactory;
 import javax.servlet.ServletContext;
 import javax.xml.namespace.QName;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * @author mserbak
+ * @author lazyman
  */
 public class PageReports extends PageAdminReports {
 
@@ -76,34 +66,77 @@ public class PageReports extends PageAdminReports {
     private static final ArrayList<ReportDto> REPORTS = new ArrayList<ReportDto>();
 
     static {
-        REPORTS.add(new ReportDto("PageReports.report.auditName", "PageReports.report.auditDescription"));
-        REPORTS.add(new ReportDto("PageReports.report.reconciliationName", "PageReports.report.reconciliationDescription"));
-        REPORTS.add(new ReportDto("PageReports.report.usersName", "PageReports.report.usersDescription"));
+        REPORTS.add(new ReportDto(ReportDto.Type.AUDIT, "PageReports.report.auditName",
+                "PageReports.report.auditDescription"));
+        REPORTS.add(new ReportDto(ReportDto.Type.RECONCILIATION, "PageReports.report.reconciliationName",
+                "PageReports.report.reconciliationDescription"));
+        REPORTS.add(new ReportDto(ReportDto.Type.USERS, "PageReports.report.usersName",
+                "PageReports.report.usersDescription"));
     }
 
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
-    private static final String OPERATION_CREATE_RESOURCE_LIST = DOT_CLASS + "createResourceList";
-    private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "getObjects";
+    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_AUDIT_POPUP = "auditPopup";
     private static final String ID_RECONCILIATION_POPUP = "reconciliationPopup";
     private static final String ID_REPORTS_TABLE = "reportsTable";
 
-    private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior;
+    private final IModel<List<ResourceItemDto>> resources;
+    private final IModel reportParamsModel = new Model();
 
     @SpringBean(name = "sessionFactory")
     private SessionFactory sessionFactory;
 
     public PageReports() {
+        resources = new LoadableModel<List<ResourceItemDto>>(false) {
+
+            @Override
+            protected List<ResourceItemDto> load() {
+                return loadResources();
+            }
+        };
+
         initLayout();
+    }
+
+    private List<ResourceItemDto> loadResources() {
+        List<ResourceItemDto> resources = new ArrayList<ResourceItemDto>();
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
+        try {
+            List<PrismObject<ResourceType>> objects = getModelService().searchObjects(ResourceType.class, null, null,
+                    createSimpleTask(OPERATION_LOAD_RESOURCES), result);
+
+            if (objects != null) {
+                for (PrismObject<ResourceType> object : objects) {
+                    resources.add(new ResourceItemDto(object.getOid(), WebMiscUtil.getName(object)));
+                }
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load resources", ex);
+            result.recordFatalError("Couldn't load resources, reason: " + ex.getMessage(), ex);
+        } finally {
+            if (result.isUnknown()) {
+                result.recomputeStatus();
+            }
+        }
+
+        Collections.sort(resources);
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResultInSession(result);
+            throw new RestartResponseException(PageDashboard.class);
+        }
+
+        return resources;
     }
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream(true) {
+        final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream(true) {
 
             @Override
             protected byte[] initStream() {
@@ -113,46 +146,44 @@ public class PageReports extends PageAdminReports {
         ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
         mainForm.add(ajaxDownloadBehavior);
 
-//        ajaxDownloadBehavior.initiate(target); in button onClick
-
         TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
-                new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns());
+                new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-
         ModalWindow auditPopup = createModalWindow(ID_AUDIT_POPUP,
                 createStringResource("PageReports.title.auditPopup"), 400, 300);
-        auditPopup.setContent(new AuditPopup(auditPopup.getContentId()) {
+        auditPopup.setContent(new AuditPopupPanel(auditPopup.getContentId(), reportParamsModel) {
 
             @Override
             protected void onRunPerformed(AjaxRequestTarget target) {
-                //todo implement
+                ajaxDownloadBehavior.initiate(target);
             }
         });
         mainForm.add(auditPopup);
 
         ModalWindow reconciliationPopup = createModalWindow(ID_RECONCILIATION_POPUP,
                 createStringResource("PageReports.title.reconciliationPopup"), 400, 300);
-        reconciliationPopup.setContent(new ReconciliationPopup(reconciliationPopup.getContentId()) {
+        reconciliationPopup.setContent(new ReconciliationPopup(reconciliationPopup.getContentId(),
+                reportParamsModel, resources) {
 
             @Override
             protected void onRunPerformed(AjaxRequestTarget target) {
-                //todo implement
+                ajaxDownloadBehavior.initiate(target);
             }
         });
         mainForm.add(reconciliationPopup);
     }
 
-    private List<IColumn<ReportDto, String>> initColumns() {
+    private List<IColumn<ReportDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
         List<IColumn<ReportDto, String>> columns = new ArrayList<IColumn<ReportDto, String>>();
 
         IColumn column = new LinkColumn<ReportDto>(createStringResource("PageReports.table.name")) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<ReportDto> rowModel) {
-                reportClickPerformed(target, rowModel.getObject());
+                reportClickPerformed(target, rowModel.getObject(), ajaxDownloadBehavior);
             }
 
             @Override
@@ -179,27 +210,56 @@ public class PageReports extends PageAdminReports {
     }
 
     private void showModalWindow(String id, AjaxRequestTarget target) {
-        ModalWindow window = (ModalWindow) get(id);
+        ModalWindow window = (ModalWindow) get(createComponentPath(ID_MAIN_FORM, id));
         window.show(target);
     }
 
-    private void reportClickPerformed(AjaxRequestTarget target, ReportDto report) {
-        //todo implement
+    private void reportClickPerformed(AjaxRequestTarget target, ReportDto report,
+                                      AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
+        switch (report.getType()) {
+            case AUDIT:
+                if (!(reportParamsModel.getObject() instanceof AuditReportDto)) {
+                    reportParamsModel.setObject(new AuditReportDto());
+                }
+                showModalWindow(ID_AUDIT_POPUP, target);
+                break;
+            case RECONCILIATION:
+                if (!(reportParamsModel.getObject() instanceof ReconciliationReportDto)) {
+                    reportParamsModel.setObject(new ReconciliationReportDto());
+                }
+                showModalWindow(ID_RECONCILIATION_POPUP, target);
+                break;
+            case USERS:
+                reportParamsModel.setObject(null);
+                ajaxDownloadBehavior.initiate(target);
+                break;
+            default:
+                error(getString("PageReports.message.unknownReport"));
+                target.add(getFeedbackPanel());
+        }
     }
 
     private byte[] createReport() {
-        // User Report
-        // return createUserListReport();
+        Object object = reportParamsModel.getObject();
+        if (object == null) {
+            return createUserListReport();
+        }
 
-        // Audit Report
-        // Timestamp dateTo = new Timestamp(new Date().getTime());
-        // Long time = (dateTo.getTime() - 3 * 3600000);
-        // Timestamp dateFrom = new Timestamp(time);
-        // return createAuditLogReport(dateFrom, dateTo);
+        if (object instanceof AuditReportDto) {
+            AuditReportDto dto = (AuditReportDto) object;
+            return createAuditLogReport(dto.getDateFrom(), dto.getDateTo());
+        } else if (object instanceof ReconciliationReportDto) {
+            ReconciliationReportDto dto = (ReconciliationReportDto) object;
 
-        // Reconciliation Report
-        QName objectClass = new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-2", "AccountObjectClass");
-        return createReconciliationReport("some oid", objectClass, "default");
+            QName objectClass = getObjectClass(dto.getResourceOid());
+            return createReconciliationReport(dto.getResourceOid(), objectClass, "default");
+        }
+
+        return new byte[]{};
+    }
+
+    private QName getObjectClass(String resourceOid) {
+        return new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-2", "AccountObjectClass");
     }
 
     private byte[] createAuditLogReport(Timestamp dateFrom, Timestamp dateTo) {
@@ -221,14 +281,14 @@ public class PageReports extends PageAdminReports {
     }
 
     private byte[] createUserListReport() {
-        return createReport("/reports/reportUserList.jrxml", new HashMap());
+        return createReport("/reports/reportUserAccounts.jrxml", new HashMap());
     }
 
     protected byte[] createReport(String jrxmlPath, Map params) {
         ServletContext servletContext = getMidpointApplication().getServletContext();
         params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
 
-        byte[] generatedReport = null;
+        byte[] generatedReport = new byte[]{};
         Session session = null;
         try {
             // Loading template
@@ -243,8 +303,10 @@ public class PageReports extends PageAdminReports {
             generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
 
             session.getTransaction().commit();
-        } catch (JRException ex) {
-            session.getTransaction().rollback();
+        } catch (Exception ex) {
+            if (session != null && session.getTransaction().isActive()) {
+                session.getTransaction().rollback();
+            }
 
             getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
             LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);

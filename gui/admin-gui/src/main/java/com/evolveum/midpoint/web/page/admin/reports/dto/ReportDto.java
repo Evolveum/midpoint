@@ -23,15 +23,23 @@ import java.io.Serializable;
  */
 public class ReportDto implements Serializable {
 
+    public static enum Type {USERS, RECONCILIATION, AUDIT}
+
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
 
+    private Type type;
     private String name;
     private String description;
 
-    public ReportDto(String name, String description) {
+    public ReportDto(Type type, String name, String description) {
+        this.type = type;
         this.description = description;
         this.name = name;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public String getDescription() {
