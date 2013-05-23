@@ -1317,16 +1317,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertEffectiveActivationDeltaOnly(ObjectDelta<UserType> userDelta, String desc, ActivationStatusType expectedEfficientActivation) {
-		if (userDelta.getModifications().size() == 2) {
-			// There may be metadata modification, we tolerate that
-			Collection<? extends ItemDelta<?>> metadataDelta = userDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
-			assertTrue("There are "+userDelta.getModifications().size()+" modifications in "+desc+" and none of it is metadata delta", metadataDelta != null && !metadataDelta.isEmpty());
-		} else {
-			assertEquals("Unexpected number of modification in "+desc, 1, userDelta.getModifications().size());
+		int expectedModifications = 0;
+		// There may be metadata modification, we tolerate that
+		Collection<? extends ItemDelta<?>> metadataDelta = userDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
+		if (metadataDelta != null && !metadataDelta.isEmpty()) {
+			expectedModifications++;
+		}
+		if (userDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		if (userDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		if (userDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP)) != null) {
+			expectedModifications++;
 		}
 		PropertyDelta<ActivationStatusType> effectiveStatusDelta = userDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-		assertNotNull("No effective status delta in "+desc, effectiveStatusDelta);
-		PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
+		if (effectiveStatusDelta != null) {
+			expectedModifications++;
+			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
+		}
+		assertEquals("Unexpected modifications in "+desc+": "+userDelta, expectedModifications, userDelta.getModifications().size());		
 	}
 	
 	protected void assertValidFrom(PrismObject<? extends ObjectType> obj, Date expectedDate) {

@@ -496,7 +496,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 2, accountSecondaryDelta.getModifications().size());
         PropertyDelta<ActivationStatusType> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, 
         		ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertReplace(enabledDelta, ActivationStatusType.DISABLED);
@@ -993,7 +993,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         // There is an inbound mapping for password that generates it if not present. it is triggered in this case.
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-        assertEquals("Unexpected number of modifications in user secondary delta", 2, userSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of modifications in user secondary delta", 3, userSecondaryDelta.getModifications().size());
         ItemDelta modification = userSecondaryDelta.getModifications().iterator().next();
         assertEquals("Unexpected modification", PasswordType.F_VALUE, modification.getName());
         assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);

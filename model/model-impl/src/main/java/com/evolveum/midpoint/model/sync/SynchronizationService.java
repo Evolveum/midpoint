@@ -133,7 +133,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
 
 			if (task.getExtension() != null){
-				PrismProperty<Boolean> item = task.getExtension().findProperty(SynchronizationConstants.DRY_RUN);
+				PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 				if (item != null && !item.isEmpty()){
 					if (item.getValues().size() > 1){
 						throw new SchemaException("Unexpected number of values for option 'dry run'.");

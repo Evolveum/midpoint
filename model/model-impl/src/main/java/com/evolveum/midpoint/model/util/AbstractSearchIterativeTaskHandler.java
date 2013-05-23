@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -50,6 +51,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 	
 	// This is not ideal, TODO: refactor
 	private Map<Task, AbstractSearchIterativeResultHandler> handlers = new HashMap<Task,AbstractSearchIterativeResultHandler>();
+	
+	@Autowired(required=true)
+	protected TaskManager taskManager;
 	
 	@Autowired(required=true)
 	protected ModelObjectResolver modelObjectResolver;

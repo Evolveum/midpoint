@@ -161,7 +161,7 @@ public class CleanUpTaskHandler implements TaskHandler{
 
 	@Override
 	public String getCategoryName(Task task) {
-		 return TaskCategory.CLEANUP;
+		 return TaskCategory.SYSTEM;
 	}
 
 	@Override

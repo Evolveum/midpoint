@@ -35,6 +35,7 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.util.AbstractScannerTaskHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.util.Utils;
@@ -95,34 +96,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  *
  */
 @Component
-public class FocusValidityScannerTaskHandler extends AbstractSearchIterativeTaskHandler<UserType> {
+public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<UserType> {
 
 	public static final String HANDLER_URI = SynchronizationConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/focus-validation-scanner/handler-2";
 
-	private XMLGregorianCalendar lastRecomputeTimestamp;
-	private XMLGregorianCalendar thisRecomputeTimestamp;
+	@Autowired(required = true)
+	private ProvisioningService provisioningService;
 	
-    @Autowired(required=true)
-	private TaskManager taskManager;
-	
-	@Autowired(required=true)
-	private RepositoryService repositoryService;
-	
-	@Autowired(required=true)
-	private PrismContext prismContext;
-
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
     @Autowired(required = true)
     private Clockwork clockwork;
-    
-    @Autowired(required = true)
-    private Clock clock;
-    
-    @Autowired
-    private ChangeExecutor changeExecutor;
-    	
+        
 	private static final transient Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
 
 	public FocusValidityScannerTaskHandler() {
@@ -135,48 +118,30 @@ public class FocusValidityScannerTaskHandler extends AbstractSearchIterativeTask
 	}
 	
 	@Override
-	protected boolean initialize(TaskRunResult runResult, Task task, OperationResult opResult) {
-		boolean cont = super.initialize(runResult, task, opResult);
-		if (!cont) {
-			return cont;
-		}
-		
-		lastRecomputeTimestamp = null;
-    	PrismProperty<XMLGregorianCalendar> lastRecomputeTimestampProperty = task.getExtension(SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME);
-        if (lastRecomputeTimestampProperty != null) {
-            lastRecomputeTimestamp = lastRecomputeTimestampProperty.getValue().getValue();
-        }
-        
-        thisRecomputeTimestamp = clock.currentTimeXMLGregorianCalendar();
-		        
-        return true;
-	}
-	
-	@Override
 	protected ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
 		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		PrismContainerDefinition<ActivationType> activationContainerDef = focusObjectDef.findContainerDefinition(FocusType.F_ACTIVATION);
 		
-		if (lastRecomputeTimestamp == null) {
+		if (lastScanTimestamp == null) {
 			filter = OrFilter.createOr(
 						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-								ActivationType.F_VALID_FROM, thisRecomputeTimestamp, true),
+								ActivationType.F_VALID_FROM, thisScanTimestamp, true),
 						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-								ActivationType.F_VALID_TO, thisRecomputeTimestamp, true));
+								ActivationType.F_VALID_TO, thisScanTimestamp, true));
 		} else {
 			filter = OrFilter.createOr(
 						AndFilter.createAnd(
 							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_FROM, lastRecomputeTimestamp, false),
+									ActivationType.F_VALID_FROM, lastScanTimestamp, false),
 							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_FROM, thisRecomputeTimestamp, true)),
+									ActivationType.F_VALID_FROM, thisScanTimestamp, true)),
 						AndFilter.createAnd(
 							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_TO, lastRecomputeTimestamp, false),
+									ActivationType.F_VALID_TO, lastScanTimestamp, false),
 							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_TO, thisRecomputeTimestamp, true)));			
+									ActivationType.F_VALID_TO, thisScanTimestamp, true)));			
 		}
 		
 		query.setFilter(filter);
@@ -210,26 +175,4 @@ public class FocusValidityScannerTaskHandler extends AbstractSearchIterativeTask
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}
 	
-    @Override
-	protected void finish(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-		super.finish(runResult, task, opResult);
-		
-		PrismPropertyDefinition<XMLGregorianCalendar> lastRecomputeTimestampDef = new PrismPropertyDefinition<XMLGregorianCalendar>(
-				SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME, SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME,
-				DOMUtil.XSD_DATETIME, prismContext);
-		PropertyDelta<XMLGregorianCalendar> lastRecomputeTimestampDelta = new PropertyDelta<XMLGregorianCalendar>(
-				new ItemPath(TaskType.F_EXTENSION, SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME), lastRecomputeTimestampDef);
-		lastRecomputeTimestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(thisRecomputeTimestamp));
-		task.modifyExtension(lastRecomputeTimestampDelta);
-	}
-
-	@Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.USER_RECOMPUTATION;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

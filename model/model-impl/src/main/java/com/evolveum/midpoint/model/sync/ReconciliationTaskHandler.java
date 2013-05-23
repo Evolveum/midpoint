@@ -145,7 +145,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 		
 		Long freshnessInterval = DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL;
-		PrismProperty<Long> freshnessIntervalProperty = task.getExtension(SynchronizationConstants.FRESHENESS_INTERVAL_PROPERTY_NAME);
+		PrismProperty<Long> freshnessIntervalProperty = task.getExtension(SchemaConstants.MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME);
 		if (freshnessIntervalProperty != null) {
 			PrismPropertyValue<Long> freshnessIntervalPropertyValue = freshnessIntervalProperty.getValue();
 			if (freshnessIntervalPropertyValue == null || freshnessIntervalPropertyValue.getValue() == null || 

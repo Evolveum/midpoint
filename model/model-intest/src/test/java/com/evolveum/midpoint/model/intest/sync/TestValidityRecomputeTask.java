@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -137,7 +138,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		display("Task", task);
         PrismContainer<?> taskExtension = task.getExtension();
         assertNotNull("No task extension", taskExtension);
-        PrismProperty<XMLGregorianCalendar> lastRecomputeTimestampProp = taskExtension.findProperty(SynchronizationConstants.LAST_RECOMPUTE_TIMESTAMP_PROPERTY_NAME);
+        PrismProperty<XMLGregorianCalendar> lastRecomputeTimestampProp = taskExtension.findProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
         assertNotNull("no lastRecomputeTimestamp property", lastRecomputeTimestampProp);
         XMLGregorianCalendar lastRecomputeTimestamp = lastRecomputeTimestampProp.getRealValue();
         assertNotNull("null lastRecomputeTimestamp", lastRecomputeTimestamp);

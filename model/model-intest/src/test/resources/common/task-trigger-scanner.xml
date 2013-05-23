@@ -15,31 +15,24 @@
   ~ limitations under the License.
   -->
 
-<!--Reconciliation task definition for dummy resource -->
-
-<task oid="10000000-0000-0000-5656-565600000004"
+<task oid="00000000-0000-0000-0000-000000000007"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
-	<!-- Resource printable name -->
-	<name>Reconciliation: Dummy</name>
-	
-	<extension>
-		<syncext:freshnessInterval>1000</syncext:freshnessInterval>
-	</extension>
-	
-	<taskIdentifier>10000000-0000-0000-5656-565600000004</taskIdentifier>
+	<name>Trigger Scanner</name>
+
+	<taskIdentifier>00000000-0000-0000-0000-000000000007</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
-	<objectRef oid="10000000-0000-0000-0000-000000000004"/>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-2</handlerUri>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>
-		<interval>5</interval>
+		<interval>1</interval>
 	</schedule>
 
 </task>
