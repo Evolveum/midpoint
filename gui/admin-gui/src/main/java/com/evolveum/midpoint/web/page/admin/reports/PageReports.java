@@ -16,8 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,16 +32,19 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.internal.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReconciliationPopup;
+import com.evolveum.midpoint.web.page.admin.reports.component.ReconciliationPopupPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -76,6 +82,7 @@ public class PageReports extends PageAdminReports {
 
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_AUDIT_POPUP = "auditPopup";
@@ -153,7 +160,7 @@ public class PageReports extends PageAdminReports {
         mainForm.add(table);
 
         ModalWindow auditPopup = createModalWindow(ID_AUDIT_POPUP,
-                createStringResource("PageReports.title.auditPopup"), 400, 300);
+                createStringResource("PageReports.title.auditPopup"), 570, 350);
         auditPopup.setContent(new AuditPopupPanel(auditPopup.getContentId(), reportParamsModel) {
 
             @Override
@@ -164,8 +171,8 @@ public class PageReports extends PageAdminReports {
         mainForm.add(auditPopup);
 
         ModalWindow reconciliationPopup = createModalWindow(ID_RECONCILIATION_POPUP,
-                createStringResource("PageReports.title.reconciliationPopup"), 400, 300);
-        reconciliationPopup.setContent(new ReconciliationPopup(reconciliationPopup.getContentId(),
+                createStringResource("PageReports.title.reconciliationPopup"), 570, 350);
+        reconciliationPopup.setContent(new ReconciliationPopupPanel(reconciliationPopup.getContentId(),
                 reportParamsModel, resources) {
 
             @Override
@@ -259,10 +266,35 @@ public class PageReports extends PageAdminReports {
     }
 
     private QName getObjectClass(String resourceOid) {
-        return new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-2", "AccountObjectClass");
+        if (StringUtils.isEmpty(resourceOid)) {
+            getSession().error(getString("PageReports.message.resourceNotDefined"));
+            throw new RestartResponseException(PageReports.class);
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+        try {
+            Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class,
+                    resourceOid, null, task, result);
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                    LayerType.PRESENTATION, getPrismContext());
+
+            RefinedObjectClassDefinition def = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+            return def.getTypeName();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get default object class qname for resource oid '"
+                    + resourceOid + "'.", ex);
+            showResultInSession(result);
+
+            LoggingUtils.logException(LOGGER, "Couldn't get default object class qname for resource oid {}",
+                    ex, resourceOid);
+            throw new RestartResponseException(PageReports.class);
+        }
     }
 
     private byte[] createAuditLogReport(Timestamp dateFrom, Timestamp dateTo) {
+        LOGGER.debug("Creating audit log report from {} to {}.", new Object[]{dateFrom, dateTo});
+
         Map params = new HashMap();
         params.put("DATE_FROM", dateFrom);
         params.put("DATE_TO", dateTo);
@@ -271,6 +303,8 @@ public class PageReports extends PageAdminReports {
     }
 
     private byte[] createReconciliationReport(String resourceOid, QName objectClass, String intent) {
+        LOGGER.debug("Creating reconciliation report for resource {} with object class {} and intent {}.",
+                new Object[]{resourceOid, objectClass, intent});
         Map params = new HashMap();
 
         params.put("RESOURCE_OID", resourceOid);
@@ -281,6 +315,7 @@ public class PageReports extends PageAdminReports {
     }
 
     private byte[] createUserListReport() {
+        LOGGER.debug("Creating user accounts report.");
         return createReport("/reports/reportUserAccounts.jrxml", new HashMap());
     }
 
@@ -308,7 +343,7 @@ public class PageReports extends PageAdminReports {
                 session.getTransaction().rollback();
             }
 
-            getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
+            getSession().error(getString("PageReports.message.jasperError") + " " + ex.getMessage());
             LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
             throw new RestartResponseException(PageReports.class);
         } finally {
