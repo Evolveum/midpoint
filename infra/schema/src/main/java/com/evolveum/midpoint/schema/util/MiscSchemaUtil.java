@@ -157,7 +157,7 @@ public class MiscSchemaUtil {
 			}
 			if (optionType == ObjectOperationOptionType.NO_FETCH) {
 				options.setNoFetch(true);
-			}
+			}			
 		}
 		return options;
 	}
@@ -239,11 +239,11 @@ public class MiscSchemaUtil {
 			ProjectionPolicyType accountSynchronizationSettings) {
 		if (accountSynchronizationSettings == null) {
 			// default
-			return AssignmentPolicyEnforcementType.POSITIVE;
+			return AssignmentPolicyEnforcementType.RELATIVE;
 		}
 		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountSynchronizationSettings.getAssignmentPolicyEnforcement();
 		if (assignmentPolicyEnforcement == null) {
-			return AssignmentPolicyEnforcementType.POSITIVE;
+			return AssignmentPolicyEnforcementType.RELATIVE;
 		}
 		return assignmentPolicyEnforcement;
 	}
