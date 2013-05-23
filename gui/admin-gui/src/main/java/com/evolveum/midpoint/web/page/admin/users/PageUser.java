@@ -1008,62 +1008,9 @@ public class PageUser extends PageAdminUsers {
 		accountsPanel.add(unlockAccount);
 	}
 
-	private ModalWindow createModalWindow(final String id, IModel<String> title) {
-		final ModalWindow modal = new ModalWindow(id);
-		add(modal);
-
-		modal.setResizable(false);
-		modal.setTitle(title);
-		modal.setCookieName(PageUser.class.getSimpleName() + ((int) (Math.random() * 100)));
-
-		modal.setInitialWidth(1100);
-		modal.setWidthUnit("px");
-		modal.setInitialHeight(520);
-		modal.setHeightUnit("px");
-
-		modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-
-			@Override
-			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-				return true;
-			}
-		});
-
-		modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-
-			@Override
-			public void onClose(AjaxRequestTarget target) {
-				modal.close(target);
-			}
-		});
-
-		modal.add(new AbstractDefaultAjaxBehavior() {
-
-            @Override
-            public void renderHead(Component component, IHeaderResponse response) {
-                response.render(OnDomReadyHeaderItem.forScript("Wicket.Window.unloadConfirmation = false;"));
-                response.render(JavaScriptHeaderItem.forScript("$(document).ready(function() {\n" +
-                        "  $(document).bind('keyup', function(evt) {\n" +
-                        "    if (evt.keyCode == 27) {\n" +
-                        getCallbackScript() + "\n" +
-                        "        evt.preventDefault();\n" +
-                        "    }\n" +
-                        "  });\n" +
-                        "});", id));
-            }
-
-			@Override
-			protected void respond(AjaxRequestTarget target) {
-				modal.close(target);
-
-			}
-		});
-
-		return modal;
-	}
-
 	private void initResourceModal() {
-		ModalWindow window = createModalWindow(MODAL_ID_RESOURCE, createStringResource("pageUser.title.selectResource"));
+		ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
+                createStringResource("pageUser.title.selectResource"), 1100, 520);
 
 		SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
 		window.setContent(new ResourcesPopup(window.getContentId(), provider) {
@@ -1079,7 +1026,7 @@ public class PageUser extends PageAdminUsers {
 
 	private void initAssignableModal() {
 		ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
-				createStringResource("pageUser.title.selectAssignable"));
+				createStringResource("pageUser.title.selectAssignable"), 1100, 520);
 		window.setContent(new AssignablePopupContent(window.getContentId()) {
 
 			@Override

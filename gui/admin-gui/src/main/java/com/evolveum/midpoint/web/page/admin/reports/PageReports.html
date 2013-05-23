@@ -19,35 +19,11 @@
 <body>
 <wicket:extend>
 	<form wicket:id="mainForm">
-        <div wicket:id="option">
-            <div wicket:id="objectsType">
-                <select wicket:id="objectTypeChoice"/>
-            </div>
-            <div wicket:id="usersFilter">
-            	<wicket:message key="pageReports.searchUser"/><br />
-            	<input class="searchText" type="text" wicket:id="searchText"/><br />
-                <!-- <wicket:message key="pageReports.isEnable"/> --> <span wicket:id="activationEnabled"/>
-                <a wicket:id="clearButton"/>
-            	<a class="submitSearch" wicket:id="searchButton"/>
-            	
-            	<br /><br />
-            	<wicket:message key="pageReports.hasAccountOnResource"/>
-            	<img class="tipsyComponent" wicket:id="resourceHelp"/><br />
-                <select wicket:id="resourceChoice"/>
-            </div>
-        </div>
 
-        <div wicket:id="optionContent">
-            <div wicket:id="reportsTable"/>
-        </div>
-        
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-            	<span class="operatingFormText"><wicket:message key="pageReports.button.label.report"/></span>
-                <a wicket:id="selectedReport"/>
-                <a wicket:id="allReport"/>
-            </div>
-        </div>
+        <div wicket:id="auditPopup" />
+        <div wicket:id="reconciliationPopup" />
+
+        <div wicket:id="reportsTable"/>
     </form>
 </wicket:extend>
 </body>
