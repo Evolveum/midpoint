@@ -265,8 +265,14 @@ object.
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
-				<access>create</access>
-				<access>read</access>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>false</update>
+					</access>
+				</limitations>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -290,9 +296,14 @@ object.
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -307,9 +318,9 @@ object.
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
 				<outbound>
 					<source>
 						<!-- The path can be shorteden like this. $user is a default source "context" in outbound -->

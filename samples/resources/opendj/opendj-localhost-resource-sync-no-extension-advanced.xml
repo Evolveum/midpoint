@@ -267,6 +267,7 @@ object.
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
 				<limitations>
+					<minOccurs>0</minOccurs>
 					<access>
 						<create>true</create>
 						<read>true</read>
@@ -304,6 +305,7 @@ object.
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
 				<limitations>
+					<minOccurs>0</minOccurs>
 					<access>
 						<create>true</create>
 						<read>true</read>
@@ -325,6 +327,9 @@ object.
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
 				<outbound>
 					<source>
 						<!-- The path can be shorteden like this. $user is a default source "context" in outbound -->
