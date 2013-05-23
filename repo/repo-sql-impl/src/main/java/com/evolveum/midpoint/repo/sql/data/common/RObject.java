@@ -168,6 +168,8 @@ public abstract class RObject extends RContainer {
             return false;
         if (parentOrgRef != null ? !parentOrgRef.equals(rObject.parentOrgRef) : rObject.parentOrgRef != null)
             return false;
+        if (trigger != null ? !trigger.equals(rObject.trigger) : rObject.trigger != null)
+            return false;
 
         return true;
     }
