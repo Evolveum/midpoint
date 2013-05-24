@@ -82,12 +82,10 @@ public class ItemApprovalPanel extends Panel {
             @Override
             public String getObject() {
                 Boolean result = model.getObject().getAnswer();
-                if (result == Boolean.TRUE) {
-                    return "ItemApprovalPanel.itemThatWasApproved";
-                } else if (result == Boolean.FALSE) {
-                    return "ItemApprovalPanel.itemThatWasRejected";
-                } else {
+                if (result == null) {
                     return "ItemApprovalPanel.itemToBeApproved";
+                } else {
+                    return result ? "ItemApprovalPanel.itemThatWasApproved" : "ItemApprovalPanel.itemThatWasRejected";
                 }
             }
         }));
@@ -95,12 +93,10 @@ public class ItemApprovalPanel extends Panel {
             @Override
             public String getObject() {
                 Boolean result = model.getObject().getAnswer();
-                if (result == Boolean.TRUE) {
-                    return "green";
-                } else if (result == Boolean.FALSE) {
-                    return "red";
+                if (result == null) {
+                    return "black";         // should not be visible, anyway
                 } else {
-                    return "black";          // should not be visible, anyway
+                    return result ? "green" : "red";
                 }
             }
         }));

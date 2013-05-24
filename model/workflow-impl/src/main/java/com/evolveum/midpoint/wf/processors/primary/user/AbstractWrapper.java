@@ -159,9 +159,9 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
     @Override
     public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException {
         List<ObjectDelta<Objectable>> deltaIn = wfTaskUtil.retrieveDeltasToProcess(task);
-        if (event.getAnswer() == Boolean.TRUE) {
+        if (Boolean.TRUE.equals(event.getAnswer())) {
             return new ArrayList<ObjectDelta<Objectable>>(deltaIn);
-        } else if (event.getAnswer() == Boolean.FALSE) {
+        } else if (Boolean.FALSE.equals(event.getAnswer())) {
             return new ArrayList<ObjectDelta<Objectable>>();
         } else {
             throw new IllegalStateException("No wfAnswer variable in process event " + event);      // todo more meaningful message

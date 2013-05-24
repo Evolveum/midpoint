@@ -259,7 +259,7 @@ public class TaskDto extends Selectable {
         }
 
         PrismProperty<Boolean> finished = task.getExtension(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
-        workflowProcessInstanceFinished = finished != null && finished.getRealValue() == Boolean.TRUE;
+        workflowProcessInstanceFinished = finished != null && Boolean.TRUE.equals(finished.getRealValue());
 
         PrismProperty<String> lastDetails = task.getExtension(Constants.WFLAST_DETAILS_PROPERTY_NAME);
         if (lastDetails != null) {

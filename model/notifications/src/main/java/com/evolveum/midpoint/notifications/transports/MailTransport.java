@@ -127,6 +127,9 @@ public class MailTransport implements Transport {
             properties.put("mail.smtp.ssl.enable", "" + sslEnabled);
             properties.put("mail.smtp.starttls.enable", "" + starttlsEnable);
             properties.put("mail.smtp.starttls.required", "" + starttlsRequired);
+            if (Boolean.TRUE.equals(mailConfigurationType.isDebug())) {
+                properties.put("mail.debug", "true");
+            }
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Using mail properties: ");
@@ -138,10 +141,6 @@ public class MailTransport implements Transport {
             }
 
             Session session = Session.getInstance(properties);
-
-            if (mailConfigurationType.isDebug() == Boolean.TRUE) {
-                session.setDebug(true);
-            }
 
             try {
                 MimeMessage mimeMessage = new MimeMessage(session);

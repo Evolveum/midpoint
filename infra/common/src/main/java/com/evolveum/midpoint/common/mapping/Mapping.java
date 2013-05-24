@@ -496,10 +496,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		boolean hasFalse = false;
 		for (PrismPropertyValue<Boolean> pval: booleanPropertyValues) {
 			Boolean value = pval.getValue();
-			if (value == Boolean.TRUE) {
+			if (Boolean.TRUE.equals(value)) {
 				return true;
 			}
-			if (value == Boolean.FALSE) {
+			if (Boolean.FALSE.equals(value)) {
 				hasFalse = true;
 			}
 		}

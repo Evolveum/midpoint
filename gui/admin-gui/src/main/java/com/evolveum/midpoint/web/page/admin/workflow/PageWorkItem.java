@@ -525,7 +525,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             accordion.add(new VisibleEnableBehaviour() {
                 @Override
                 public boolean isVisible() {
-                    return showTechnicalInformationModel.getObject() == Boolean.TRUE;
+                    return Boolean.TRUE.equals(showTechnicalInformationModel.getObject());
                 }
             });
         }
@@ -550,7 +550,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             accordion.add(new VisibleEnableBehaviour() {
                 @Override
                 public boolean isVisible() {
-                    return showTechnicalInformationModel.getObject() == Boolean.TRUE;
+                    return Boolean.TRUE.equals(showTechnicalInformationModel.getObject());
                 }
             });
         }

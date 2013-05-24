@@ -1123,7 +1123,7 @@ public class PageTasks extends PageAdminTasks {
             if (category != null && !ALL_CATEGORIES.equals(category)) {
                 filters.add(EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_CATEGORY, category));
             }
-            if (showSubtasks != Boolean.TRUE) {
+            if (!Boolean.TRUE.equals(showSubtasks)) {
                 filters.add(EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null));
             }
             if (!filters.isEmpty()) {

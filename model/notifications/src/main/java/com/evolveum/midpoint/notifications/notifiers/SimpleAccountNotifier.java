@@ -63,7 +63,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
             AccountEvent accountEvent = (AccountEvent) event;
             ObjectDelta<ShadowType> delta = accountEvent.getShadowDelta();
-            if (!delta.isModify() || ((SimpleAccountNotifierType) generalNotifierType).isWatchSynchronizationAttributes() == Boolean.TRUE) {
+            if (!delta.isModify() || Boolean.TRUE.equals(((SimpleAccountNotifierType) generalNotifierType).isWatchSynchronizationAttributes())) {
                 return true;
             }
 

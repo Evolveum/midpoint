@@ -76,7 +76,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
         PrismProperty<Boolean> skipProperty = task.getExtension(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
 
-        if (skipProperty != null && skipProperty.getRealValue() == Boolean.TRUE) {
+        if (skipProperty != null && Boolean.TRUE.equals(skipProperty.getRealValue())) {
 
             LOGGER.trace("Found " + skipProperty + ", skipping the model operation execution.");
             if (result.isUnknown()) {
