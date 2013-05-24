@@ -72,7 +72,7 @@ public class RExclusion extends RContainer implements ROwnable {
         return ownerId;
     }
 
-    @Column(name = "owner_oid", length = 36, nullable = false)
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();

@@ -55,7 +55,7 @@ public class RSynchronizationSituationDescription implements Serializable {
     }
 
     @Id
-    @Column(name = "shadow_oid", length = 36)
+    @Column(name = "shadow_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getShadowOid() {
         if (shadowOid == null && shadow != null) {
             shadowOid = shadow.getOid();

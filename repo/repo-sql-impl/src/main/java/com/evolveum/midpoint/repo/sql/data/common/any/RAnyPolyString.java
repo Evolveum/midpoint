@@ -76,7 +76,7 @@ public class RAnyPolyString implements RAnyValue {
     }
 
     @Id
-    @Column(name = "anyContainer_owner_oid", length = 36)
+    @Column(name = "anyContainer_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && anyContainer != null) {
             ownerOid = anyContainer.getOwnerOid();

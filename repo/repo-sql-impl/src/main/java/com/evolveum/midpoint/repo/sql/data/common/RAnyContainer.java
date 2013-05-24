@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import org.apache.commons.lang.Validate;
@@ -79,7 +80,7 @@ public class RAnyContainer implements Serializable {
         return ownerId;
     }
 
-    @Column(name = "owner_oid", length = 36)
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();

@@ -21,13 +21,14 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -41,6 +42,7 @@ import javax.persistence.*;
 /**
  * @author lazyman
  */
+@JaxbType(type = AssignmentType.class)
 @Entity
 @org.hibernate.annotations.Table(appliesTo = "m_assignment",
         indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
@@ -116,7 +118,7 @@ public class RAssignment extends RContainer implements ROwnable {
         return ownerId;
     }
 
-    @Column(name = "owner_oid", length = 36, nullable = false)
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();
@@ -178,7 +180,7 @@ public class RAssignment extends RContainer implements ROwnable {
     public void setConstruction(String construction) {
         this.construction = construction;
     }
-    
+
     public void setAccountConstruction(String accountConstruction) {
         this.accountConstruction = accountConstruction;
     }
@@ -227,7 +229,8 @@ public class RAssignment extends RContainer implements ROwnable {
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
-        if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null) return false;
+        if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null)
+            return false;
 
         return true;
     }
@@ -264,7 +267,7 @@ public class RAssignment extends RContainer implements ROwnable {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-        
+
         if (repo.getTargetRef() != null) {
             jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
         }
@@ -303,7 +306,7 @@ public class RAssignment extends RContainer implements ROwnable {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-        
+
         if (jaxb.getTarget() != null) {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }

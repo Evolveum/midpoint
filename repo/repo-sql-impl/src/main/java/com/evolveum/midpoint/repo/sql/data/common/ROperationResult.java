@@ -69,7 +69,7 @@ public class ROperationResult implements OperationResult {
     }
 
     @Id
-    @Column(name = "owner_oid", length = 36)
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();

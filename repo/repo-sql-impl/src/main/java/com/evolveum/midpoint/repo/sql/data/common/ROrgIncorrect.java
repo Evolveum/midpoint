@@ -20,6 +20,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -46,7 +47,7 @@ public class ROrgIncorrect implements Serializable {
 	}
 	
 	@Id
-	@Column(name = "ancestor_oid", nullable = false, updatable = false, length = 36)
+	@Column(name = "ancestor_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
 	public String getAncestorOid() {
 		return ancestorOid;
 	}
@@ -56,7 +57,7 @@ public class ROrgIncorrect implements Serializable {
 	}
 	
 	@Id
-	@Column(name = "descendant_oid", nullable = false, updatable = false, length = 36)
+	@Column(name = "descendant_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
 	public String getDescendantOid() {
 		return descendantOid;
 	}

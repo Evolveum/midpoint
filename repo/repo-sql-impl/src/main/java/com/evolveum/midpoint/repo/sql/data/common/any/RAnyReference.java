@@ -75,7 +75,7 @@ public class RAnyReference implements RAnyValue {
     }
 
     @Id
-    @Column(name = "anyContainer_owner_oid", length = 36)
+    @Column(name = "anyContainer_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && anyContainer != null) {
             ownerOid = anyContainer.getOwnerOid();
@@ -133,7 +133,7 @@ public class RAnyReference implements RAnyValue {
     }
 
     @Index(name = "iTargetOid")
-    @Column(name = "targetoid", length = 36)
+    @Column(name = "targetoid", length = RUtil.COLUMN_LENGTH_OID)
     public String getValue() {
         return value;
     }

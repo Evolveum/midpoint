@@ -1677,7 +1677,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 StringBuilder sb = new StringBuilder();
                 sb.append(dialect.getCreateTemporaryTableString());
                 sb.append(' ').append(tempTable).append(" (oid ");
-                sb.append(dialect.getTypeName(Types.VARCHAR, 36, 0, 0));
+                sb.append(dialect.getTypeName(Types.VARCHAR, RUtil.COLUMN_LENGTH_OID, 0, 0));
                 if (isUsingSQLServer(dialect)) {
                     sb.append(" collate database_default");
                 }

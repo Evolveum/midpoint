@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
@@ -45,7 +46,7 @@ public abstract class RContainer implements Serializable {
     @Id
     @GeneratedValue(generator = "ContainerOidGenerator")
     @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerOidGenerator")
-    @Column(name = "oid", nullable = false, updatable = false, length = 36)
+    @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
     public String getOid() {
         return oid;
     }

@@ -71,9 +71,14 @@ public final class RUtil {
     public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
 
     /**
-     * This constant is used for {@link QName#localPart} column size in databases.
+     * This constant is used for {@link QName#localPart} column size in database.
      */
     public static final int COLUMN_LENGTH_LOCALPART = 100;
+
+    /**
+     * This constant is used for oid column size in database.
+     */
+    public static final int COLUMN_LENGTH_OID = 36;
 
     /**
      * This namespace is used for wrapping xml parts of objects during save to database.

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
@@ -87,7 +88,7 @@ public class ROrgClosure implements Serializable {
         return ancestorId;
     }
 
-    @Column(name = "ancestor_oid", length = 36, insertable = false, updatable = false)
+    @Column(name = "ancestor_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getAncestorOid() {
         if (ancestorOid == null && ancestor.getOid() != null) {
             ancestorOid = ancestor.getOid();
@@ -115,7 +116,7 @@ public class ROrgClosure implements Serializable {
         return descendantId;
     }
 
-    @Column(name = "descendant_oid", length = 36, insertable = false, updatable = false)
+    @Column(name = "descendant_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getDescendantOid() {
         if (descendantOid == null && descendant.getOid() != null) {
             descendantOid = descendant.getOid();

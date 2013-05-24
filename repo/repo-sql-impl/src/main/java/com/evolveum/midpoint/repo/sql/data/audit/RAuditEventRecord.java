@@ -122,7 +122,7 @@ public class RAuditEventRecord implements Serializable {
         return id;
     }
 
-    @Column(length = 36)
+    @Column(length = RUtil.COLUMN_LENGTH_OID)
     public String getInitiatorOid() {
         return initiatorOid;
     }
@@ -144,7 +144,7 @@ public class RAuditEventRecord implements Serializable {
         return targetName;
     }
 
-    @Column(length = 36)
+    @Column(length = RUtil.COLUMN_LENGTH_OID)
     public String getTargetOid() {
         return targetOid;
     }
@@ -158,7 +158,7 @@ public class RAuditEventRecord implements Serializable {
         return targetOwnerName;
     }
 
-    @Column(length = 36)
+    @Column(length = RUtil.COLUMN_LENGTH_OID)
     public String getTargetOwnerOid() {
         return targetOwnerOid;
     }

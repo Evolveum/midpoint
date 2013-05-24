@@ -60,7 +60,7 @@ public class REmbeddedReference implements ObjectReference {
         return relationNamespace;
     }
 
-    @Column(length = 36, insertable = true, updatable = true, nullable = true)
+    @Column(length = RUtil.COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true)
     @Override
     public String getTargetOid() {
         return targetOid;
