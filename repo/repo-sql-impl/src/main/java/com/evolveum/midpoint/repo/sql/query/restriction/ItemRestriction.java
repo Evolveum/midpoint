@@ -35,7 +35,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -50,7 +49,6 @@ import java.util.List;
 public abstract class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemRestriction.class);
-    private String propertyPrefix = "";
 
     @Override
     public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
@@ -109,8 +107,8 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                             new Object[]{entityDef.getJpaName(), propPath.toString()});
                     addNewCriteriaToContext(propPath, entityDef.getJpaName());
                 } else {
-                    //add dot with jpaName to property path
-                    propertyPrefix += entityDef.getJpaName() + ".";
+                    // we don't create new sub criteria, just add this new item path to aliases
+                    addPathAliasToContext(propPath);
                 }
                 definition = entityDef;
             } else if (childDef instanceof AnyDefinition) {
@@ -122,6 +120,10 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                 LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
                         new Object[]{childDef.getJpaName(), propPath.toString()});
                 addNewCriteriaToContext(propPath, childDef.getJpaName());
+                Definition def = ((CollectionDefinition) childDef).getDefinition();
+                if (def instanceof EntityDefinition) {
+                    definition = (EntityDefinition) def;
+                }
             } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition) {
                 break;
             } else {
@@ -129,6 +131,16 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                 throw new QueryException("Not implemented yet.");
             }
         }
+    }
+
+    private void addPathAliasToContext(ItemPath path) {
+        ItemPath lastPropPath = path.allExceptLast();
+        if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
+            lastPropPath = null;
+        }
+
+        String alias = getContext().getAlias(lastPropPath);
+        getContext().addAlias(path, alias);
     }
 
     protected void addNewCriteriaToContext(ItemPath path, String realName) {
@@ -166,13 +178,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         QueryInterpreter interpreter = context.getInterpreter();
         Matcher matcher = interpreter.findMatcher(value);
 
-        String fullPropertyName = "";
-        if (StringUtils.isNotEmpty(propertyPrefix)) {
-            fullPropertyName += propertyPrefix;
-        }
-        fullPropertyName += propertyName;
-
-        return matcher.match(operation, fullPropertyName, value, filter.getMatchingRule());
+        return matcher.match(operation, propertyName, value, filter.getMatchingRule());
     }
 
     protected List<Definition> createDefinitionPath(ItemPath path, QueryContext context) throws QueryException {

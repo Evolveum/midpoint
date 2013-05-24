@@ -106,8 +106,14 @@ public class EntityDefinition extends Definition {
         if (tail.isEmpty()) {
             return findDefinition(first.getName(), type);
         } else {
-            EntityDefinition nextEntity = findDefinition(first.getName(), EntityDefinition.class);
-            if (nextEntity != null) {
+            Definition def = findDefinition(first.getName(), Definition.class);
+            if (def instanceof CollectionDefinition) {
+                CollectionDefinition collDef = (CollectionDefinition) def;
+                def = collDef.getDefinition();
+            }
+
+            if (def instanceof EntityDefinition) {
+                EntityDefinition nextEntity = (EntityDefinition) def;
                 return nextEntity.findDefinition(tail, type);
             }
         }

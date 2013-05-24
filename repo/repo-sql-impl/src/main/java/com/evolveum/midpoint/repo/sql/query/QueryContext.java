@@ -81,8 +81,16 @@ public class QueryContext {
         return aliases.get(path);
     }
 
+    public void addAlias(ItemPath path, String alias) {
+        if (aliases.containsKey(path)) {
+            throw new IllegalArgumentException("Path '" + path + "' (" + alias + ") is already defined in alias map.");
+        }
+
+        aliases.put(path, alias);
+    }
+
     public String addAlias(ItemPath path) {
-        QName qname = null;
+        QName qname;
         if (path == null) {
             //get qname from class type
             qname = ObjectTypes.getObjectType(type).getQName();

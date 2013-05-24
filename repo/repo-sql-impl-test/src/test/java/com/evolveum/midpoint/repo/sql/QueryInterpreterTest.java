@@ -17,13 +17,15 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
@@ -53,9 +55,12 @@ import org.w3c.dom.Element;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -192,11 +197,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryEnabled() throws Exception {
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        String dump = registry.dump();
-
-        LOGGER.info(dump);
-
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
         main.add(Restrictions.eq("activation.administrativeStatus", RActivationStatus.ENABLED));
@@ -454,5 +454,62 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     private void close(Session session) {
         session.getTransaction().commit();
         session.close();
+    }
+
+    @Test
+    public void queryTrigger() throws Exception {
+        QueryDefinitionRegistry qRegistry = QueryDefinitionRegistry.getInstance();
+        LOGGER.info(qRegistry.dump());
+
+        Session session = open();
+
+        final Date NOW = new Date();
+
+        Criteria main = session.createCriteria(RObject.class, "o");
+        Criteria d = main.createCriteria("trigger", "t");
+        d.add(Restrictions.le("t.timestamp", new Timestamp(NOW.getTime())));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
+
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
+        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER);
+        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        ObjectFilter filter = LessFilter.createLessFilter(triggerPath, triggerContainerDef,
+                TriggerType.F_TIMESTAMP, thisScanTimestamp, true);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        String real = getInterpretedQuery(session, ObjectType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryAssignmentActivationAdministrationStatus() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        Criteria d = main.createCriteria("assignment", "a");
+        d.add(Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+        ItemPath triggerPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
+        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        ObjectFilter filter = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
+                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        String real = getInterpretedQuery(session, UserType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
     }
 }
