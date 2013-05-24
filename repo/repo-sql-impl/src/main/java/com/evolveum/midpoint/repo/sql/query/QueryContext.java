@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 
@@ -83,7 +84,12 @@ public class QueryContext {
 
     public void addAlias(ItemPath path, String alias) {
         if (aliases.containsKey(path)) {
-            throw new IllegalArgumentException("Path '" + path + "' (" + alias + ") is already defined in alias map.");
+            if (!StringUtils.equals(alias, aliases.get(path))) {
+                throw new IllegalArgumentException("Path '" + path + "' (" + alias
+                        + ") is already defined in alias map with alias (" + aliases.get(path) + ").");
+            }
+
+            return;
         }
 
         aliases.put(path, alias);

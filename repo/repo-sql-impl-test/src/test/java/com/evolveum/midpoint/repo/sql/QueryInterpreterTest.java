@@ -489,22 +489,59 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void queryAssignmentActivationAdministrationStatus() throws Exception {
+    public void queryAssignmentActivationAdministrativeStatus() throws Exception {
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
-        Criteria d = main.createCriteria("assignment", "a");
-        d.add(Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED));
+        Criteria a = main.createCriteria("assignment", "a");
+        a.add(Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
         ItemPath triggerPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
+
         PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+
         ObjectFilter filter = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
                 ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        String real = getInterpretedQuery(session, UserType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryUserByActivationDouble() throws Exception {
+        LOGGER.info("===[{}]===", new Object[]{"queryUserByName"});
+        Session session = open();
+
+        Date NOW = new Date();
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        main.add(Restrictions.and(
+                Restrictions.eq("u.activation.administrativeStatus", RActivationStatus.ENABLED),
+                Restrictions.eq("u.activation.validFrom", XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()))));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+        ItemPath triggerPath = new ItemPath(AssignmentType.F_ACTIVATION);
+
+        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+
+        ObjectFilter filter1 = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
+                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+
+        ObjectFilter filter2 = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
+                ActivationType.F_VALID_FROM, XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()));
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter1, filter2));
         String real = getInterpretedQuery(session, UserType.class, query);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
