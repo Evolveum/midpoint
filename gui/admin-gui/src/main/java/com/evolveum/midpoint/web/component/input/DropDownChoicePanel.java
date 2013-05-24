@@ -30,16 +30,43 @@ import org.apache.wicket.model.IModel;
  */
 public class DropDownChoicePanel<T> extends InputPanel {
 
+    private static final String ID_INPUT = "input";
+
     public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices) {
+        this(id, model, choices, false);
+    }
+
+    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices, boolean allowNull) {
         super(id);
 
-        add(new DropDownChoice("input", model, choices));
+        DropDownChoice input = new DropDownChoice(ID_INPUT, model, choices) {
+
+            @Override
+            protected CharSequence getDefaultChoice(String selectedValue) {
+                return getString("DropDownChoicePanel.notDefined");
+            }
+        };
+        input.setNullValid(allowNull);
+        add(input);
+    }
+
+    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices, IChoiceRenderer<T> renderer) {
+        this(id, model, choices, renderer, false);
     }
     
-    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices, IChoiceRenderer<T> renderer) {
+    public DropDownChoicePanel(String id, IModel<T> model, IModel<T> choices, IChoiceRenderer<T> renderer,
+                               boolean allowNull) {
         super(id);
 
-        add(new DropDownChoice("input", model, choices, renderer));
+        DropDownChoice input = new DropDownChoice(ID_INPUT, model, choices, renderer) {
+
+            @Override
+            protected String getNullValidDisplayValue() {
+                return getString("DropDownChoicePanel.notDefined");
+            }
+        };
+        input.setNullValid(allowNull);
+        add(input);
     }
 
     @Override

@@ -115,7 +115,7 @@ public final class WebMiscUtil {
                     public String getIdValue(ActivationStatusType object, int index) {
                         return Integer.toString(index);
                     }
-                });
+                }, true);
 
     }
 
