@@ -78,6 +78,7 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 	public static <V extends PrismValue> Item<V> parseValueElements(Collection<?> valueElements, ItemDefinition outputDefinition, 
 			String contextDescription, PrismContext prismContext) throws SchemaException {
 		
+		PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
 		Item<V> output = null;
 		
 		for (Object valueElement: valueElements) {
@@ -96,34 +97,11 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 			}
 			Element valueDomElement = (Element)valueElement;
 			
-			List<Element> valueSubelements = DOMUtil.listChildElements(valueDomElement);
-			if (valueSubelements == null || valueSubelements.isEmpty()) {
-				if (StringUtils.isBlank(valueDomElement.getTextContent())) {
-					// This is OK. Empty element means empty value
-					if (output == null) {
-						output = outputDefinition.instantiate();
-					}
-				} else if (outputDefinition instanceof PrismPropertyDefinition) {
-					// No sub-elements. In case of property try to parse the value is directly in the body of <value> element.
-					Item<V> valueOutput = (Item<V>) prismContext.getPrismDomProcessor().parsePropertyFromValueElement(valueDomElement, 
-							(PrismPropertyDefinition) outputDefinition);
-					if (output == null) {
-						output = valueOutput;
-					} else {
-						output.addAll(valueOutput.getClonedValues());
-					}
-				} else {
-					throw new SchemaException("Tense expression forms can only be used to evalueate properties, not "+
-							output.getClass().getSimpleName()+", try to enclose the value with proper elements");
-				}
-			} else { 
-				Item<V> valueOutput = (Item<V>) prismContext.getPrismDomProcessor().parseItem(valueSubelements, 
-						outputDefinition.getName(), outputDefinition);
-				if (output == null) {
-					output = valueOutput;
-				} else {
-					output.addAll(valueOutput.getClonedValues());
-				}
+			Item<V> elementItem = domProcessor.parseValueElement(valueDomElement, outputDefinition);
+			if (output == null) {
+				output = elementItem;
+			} else {
+				output.addAll(elementItem.getClonedValues());
 			}
 		}
 		return output;

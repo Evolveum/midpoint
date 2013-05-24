@@ -66,7 +66,9 @@ public class LiteralExpressionEvaluator<V extends PrismValue> implements Express
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-		
+		if (outputTriple == null) {
+			return null;
+		}
 		return outputTriple.clone();
 	}
 

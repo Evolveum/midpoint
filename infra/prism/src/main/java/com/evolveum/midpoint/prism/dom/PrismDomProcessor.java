@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.ReflectionUtil;
@@ -497,7 +498,7 @@ public class PrismDomProcessor {
 	}
 
 	public <T> PrismProperty<T> parsePrismProperty(List<? extends Object> valueElements, QName propName,
-			PrismPropertyDefinition propertyDefinition) throws SchemaException {
+			PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
 		if (valueElements == null || valueElements.isEmpty()) {
 			return null;
 		}
@@ -516,7 +517,7 @@ public class PrismDomProcessor {
 		return prop;
 	}
 
-	public <T> T parsePrismPropertyRealValue(Object valueElement, PrismPropertyDefinition propertyDefinition)
+	public <T> T parsePrismPropertyRealValue(Object valueElement, PrismPropertyDefinition<T> propertyDefinition)
 			throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
 		PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
@@ -585,24 +586,35 @@ public class PrismDomProcessor {
 		}
 	}
 
-	public <T> PrismProperty<T> parsePropertyFromValueElement(Element valueElement,
-			PrismPropertyDefinition propertyDefinition) throws SchemaException {
-		PrismProperty<T> prop = propertyDefinition.instantiate();
-		if (propertyDefinition.isSingleValue()) {
-			T realValue = (T) XmlTypeConverter.convertValueElementAsScalar(valueElement,
-					propertyDefinition.getTypeName());
-			postProcessPropertyRealValue(realValue);
-			prop.addValue(new PrismPropertyValue<T>(realValue));
-		} else {
-			List<T> list = (List) XmlTypeConverter.convertValueElementAsList(valueElement,
-					propertyDefinition.getTypeName());
-			for (T realValue : list) {
-				postProcessPropertyRealValue(realValue);
-				prop.add(new PrismPropertyValue<T>(realValue));
+	/**
+	 * Returns a property value from a "value" like elements. Such elements are used in mapping expressions and we need to
+	 * be quite flexible when it comes to parsing. 
+	 */
+	public <V extends PrismValue> Item<V> parseValueElement(Element valueElement,
+			ItemDefinition outputDefinition) throws SchemaException {
+		Item<V> output = null;
+			
+		List<Element> valueSubelements = DOMUtil.listChildElements(valueElement);
+		if (valueSubelements == null || valueSubelements.isEmpty()) {
+			if (StringUtils.isBlank(valueElement.getTextContent())) {
+				// This is OK. Empty element means empty value
+				output = outputDefinition.instantiate();
+			} else if (outputDefinition instanceof PrismPropertyDefinition) {
+				// No sub-elements. In case of property try to parse the value which is directly in the body of <value> element.
+				List<Element> propertyElements = new ArrayList<Element>(1);
+				propertyElements.add(valueElement);
+				output = (Item<V>) parsePrismProperty(propertyElements, outputDefinition.getName(), (PrismPropertyDefinition) outputDefinition);
+			} else {
+				throw new SchemaException("Tense expression forms can only be used to evalueate properties, not "+
+						output.getClass().getSimpleName()+", try to enclose the value with proper elements");
 			}
+		} else { 
+			output = (Item<V>) parseItem(valueSubelements, 
+					outputDefinition.getName(), outputDefinition);
 		}
-		return prop;
+		return output;
 	}
+
 
 	/**
 	 * Used e.g. to parse values from XML representation of deltas.

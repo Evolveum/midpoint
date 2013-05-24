@@ -54,6 +54,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
@@ -157,6 +159,22 @@ public class TestMappingDynamic {
     	PrismAsserts.assertTripleZero(outputTriple, "12345", "67890");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
+    @Test
+    public void testValueSingleEnum() throws Exception {
+        // WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<ActivationStatusType>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    			"mapping-value-single-enum.xml",
+    			"testValueSingleEnum",
+    			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),				// target
+    			"employeeType",				// changed property
+    			"CAPTAIN");					// changed values
+    	
+        // THEN
+    	PrismAsserts.assertTripleZero(outputTriple, ActivationStatusType.ENABLED);
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test

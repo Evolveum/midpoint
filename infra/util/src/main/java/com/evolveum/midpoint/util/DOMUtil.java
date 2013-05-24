@@ -363,7 +363,6 @@ public class DOMUtil {
 			}
 		}
 		return elements;
-		
 	}
 
 	public static List<Element> listChildElements(Node node) {
