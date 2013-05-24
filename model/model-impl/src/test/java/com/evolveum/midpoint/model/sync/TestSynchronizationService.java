@@ -62,11 +62,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	}
 		
 	@Test
-    public void test001AddedAccountJack() throws Exception {
-        displayTestTile(this, "test001AddedAccountJack");
+    public void test010AddedAccountJack() throws Exception {
+		final String TEST_NAME = "test010AddedAccountJack";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + ".test001AddedAccountJack");
+        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -76,7 +77,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         provisioningService.applyDefinition(accountShadowJack, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
-        dummyAccount.setName("jack");
+        dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccount.setPassword("deadMenTellNoTales");
         dummyAccount.setEnabled(true);
         dummyAccount.addAttributeValues("fullname", "Jack Sparrow");
@@ -109,5 +110,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
                   
 	}
+	
+
 
 }

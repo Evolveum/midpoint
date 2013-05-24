@@ -135,7 +135,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
 	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 	
-	public static final String NS_MODEL_EXTENSION = NS_MIDPOINT_PUBLIC + "/extension-2";
+	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-2";
 	public static final QName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "freshnessInterval");
 	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "lastScanTimestamp");

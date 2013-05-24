@@ -745,6 +745,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assert false : "Found shadow for "+username+" on "+resource+" while not expecting it: "+accounts;
 	}
 	
+	protected void assertHasShadow(String username, PrismObject<ResourceType> resource, 
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		ObjectQuery query = createAccountShadowQuery(username, resource);
+		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, result);
+		if (accounts.isEmpty()) {
+			AssertJUnit.fail("No shadow for "+username+" on "+resource);
+		} else if (accounts.size() > 1) {
+			AssertJUnit.fail("Too many shadows for "+username+" on "+resource+" ("+accounts.size()+"): "+accounts);
+		}
+	}
+	
 	private ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
