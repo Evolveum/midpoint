@@ -101,6 +101,16 @@
         </cleanupPolicy>
     </systemConfiguration>
 
+    <role oid="00000000-0000-0000-0000-000000000004"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <name>Superuser</name>
+        <authorization>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all</action>
+        </authorization>
+    </role>
+
     <c:user oid="00000000-0000-0000-0000-000000000002"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
@@ -144,16 +154,6 @@
             <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
         </c:credentials>
     </c:user>
-    
-    <role oid="00000000-0000-0000-0000-000000000004"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
-	    <name>Superuser</name>    
-	    <authorization>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all</action>
-	    </authorization>
-	</role>
 
     <task oid="00000000-0000-0000-0000-000000000005"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
