@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportUserRoles" columnCount="2" pageWidth="120" pageHeight="600" whenNoDataType="AllSectionsNoDetail" columnWidth="59" columnSpacing="1" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+	<property name="ireport.zoom" value="1.6105100000000019"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
+	<style name="Detail" mode="Transparent" forecolor="#000000" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
+	<style name="Column header" mode="Transparent" forecolor="#000000" backcolor="#CCFFFF" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
+	<parameter name="USER_OID" class="java.lang.String"/>
+	<queryString language="hql">
+		<![CDATA[select r.name.orig as roleName from RAssignment as a, RRole as r where a.targetRef.type = 10 and a.targetRef.targetOid = r.oid and a.owner.oid = $P{USER_OID}]]>
+	</queryString>
+	<field name="roleName" class="java.lang.String"/>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<frame>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" mode="Transparent" x="0" y="1" width="100" height="19" isRemoveLineWhenBlank="true"/>
+				<staticText>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="100" height="18"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Role name]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<frame>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="100" height="14"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="0" width="100" height="13"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{roleName}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>

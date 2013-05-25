@@ -315,8 +315,31 @@ public class PageReports extends PageAdminReports {
     }
 
     private byte[] createUserListReport() {
-        LOGGER.debug("Creating user accounts report.");
-        return createReport("/reports/reportUserAccounts.jrxml", new HashMap());
+        LOGGER.debug("Creating user list report.");
+        Map params = new HashMap();
+        
+        ServletContext servletContext = getMidpointApplication().getServletContext();
+        try 
+        {
+        	JasperDesign designRoles = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserRoles.jrxml"));
+        	JasperReport reportRoles = JasperCompileManager.compileReport(designRoles);
+        	params.put("roleReport", reportRoles);
+        	
+        	JasperDesign designOrgs = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserOrgs.jrxml"));
+        	JasperReport reportOrgs = JasperCompileManager.compileReport(designOrgs);
+        	params.put("orgReport", reportOrgs);   
+        } 
+        catch (Exception ex) 
+        {
+            LoggingUtils.logException(LOGGER, "Couldn't create jasper subreport.", ex);
+            throw new RestartResponseException(PageReports.class);
+        } 
+        finally 
+        {
+            
+        }
+             
+        return createReport("/reports/reportUserList.jrxml", params);
     }
 
     protected byte[] createReport(String jrxmlPath, Map params) {
