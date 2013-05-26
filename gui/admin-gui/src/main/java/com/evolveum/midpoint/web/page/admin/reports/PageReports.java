@@ -166,9 +166,12 @@ public class PageReports extends PageAdminReports {
             @Override
             protected void onRunPerformed(AjaxRequestTarget target) {
                 ajaxDownloadBehavior.initiate(target);
+
+                ModalWindow window = (ModalWindow) PageReports.this.get(ID_AUDIT_POPUP);
+                window.close(target);
             }
         });
-        mainForm.add(auditPopup);
+        add(auditPopup);
 
         ModalWindow reconciliationPopup = createModalWindow(ID_RECONCILIATION_POPUP,
                 createStringResource("PageReports.title.reconciliationPopup"), 570, 350);
@@ -178,9 +181,12 @@ public class PageReports extends PageAdminReports {
             @Override
             protected void onRunPerformed(AjaxRequestTarget target) {
                 ajaxDownloadBehavior.initiate(target);
+
+                ModalWindow window = (ModalWindow) PageReports.this.get(ID_RECONCILIATION_POPUP);
+                window.close(target);
             }
         });
-        mainForm.add(reconciliationPopup);
+        add(reconciliationPopup);
     }
 
     private List<IColumn<ReportDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
@@ -217,7 +223,7 @@ public class PageReports extends PageAdminReports {
     }
 
     private void showModalWindow(String id, AjaxRequestTarget target) {
-        ModalWindow window = (ModalWindow) get(createComponentPath(ID_MAIN_FORM, id));
+        ModalWindow window = (ModalWindow) get(id);
         window.show(target);
     }
 
@@ -317,28 +323,21 @@ public class PageReports extends PageAdminReports {
     private byte[] createUserListReport() {
         LOGGER.debug("Creating user list report.");
         Map params = new HashMap();
-        
+
         ServletContext servletContext = getMidpointApplication().getServletContext();
-        try 
-        {
-        	JasperDesign designRoles = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserRoles.jrxml"));
-        	JasperReport reportRoles = JasperCompileManager.compileReport(designRoles);
-        	params.put("roleReport", reportRoles);
-        	
-        	JasperDesign designOrgs = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserOrgs.jrxml"));
-        	JasperReport reportOrgs = JasperCompileManager.compileReport(designOrgs);
-        	params.put("orgReport", reportOrgs);   
-        } 
-        catch (Exception ex) 
-        {
+        try {
+            JasperDesign designRoles = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserRoles.jrxml"));
+            JasperReport reportRoles = JasperCompileManager.compileReport(designRoles);
+            params.put("roleReport", reportRoles);
+
+            JasperDesign designOrgs = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserOrgs.jrxml"));
+            JasperReport reportOrgs = JasperCompileManager.compileReport(designOrgs);
+            params.put("orgReport", reportOrgs);
+        } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't create jasper subreport.", ex);
             throw new RestartResponseException(PageReports.class);
-        } 
-        finally 
-        {
-            
         }
-             
+
         return createReport("/reports/reportUserList.jrxml", params);
     }
 

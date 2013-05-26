@@ -16,14 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 
 /**
  * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
@@ -31,11 +28,12 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
  * @author mserbak
  */
 public class PageAdminReports extends PageAdmin {
-	@Override
+
+    @Override
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        //items.add(new BottomMenuItem("pageAdminReports.reports", PageReports.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminReports.reports"), PageReports.class));
 
         return items;
     }

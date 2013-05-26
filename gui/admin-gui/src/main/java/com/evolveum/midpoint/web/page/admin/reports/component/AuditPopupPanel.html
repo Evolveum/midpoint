@@ -17,27 +17,29 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table style="margin: 10px;" cellpadding="4" cellspacing="4">
-        <tr>
-            <td>
-                <wicket:message key="AuditPopupPanel.dateFrom"/>
-            </td>
-            <td>
-                <input type="text" wicket:id="dateFrom"/>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <wicket:message key="AuditPopupPanel.dateTo"/>
-            </td>
-            <td>
-                <input type="text" wicket:id="dateTo"/>
-            </td>
-        </tr>
-    </table>
+    <form wicket:id="form">
+        <table style="margin: 10px;" cellpadding="4" cellspacing="4">
+            <tr>
+                <td>
+                    <wicket:message key="AuditPopupPanel.dateFrom"/>
+                </td>
+                <td>
+                    <input type="text" wicket:id="dateFrom"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <wicket:message key="AuditPopupPanel.dateTo"/>
+                </td>
+                <td>
+                    <input type="text" wicket:id="dateTo"/>
+                </td>
+            </tr>
+        </table>
 
-    <div style="text-align: center;">
-        <a wicket:id="run"/>
-    </div>
+        <div style="text-align: center;">
+            <a wicket:id="run"/>
+        </div>
+    </form>
 </wicket:panel>
 </html>

@@ -34,6 +34,7 @@ import java.util.Date;
  */
 public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
+    private static final String ID_FORM = "form";
     private static final String ID_DATE_FROM = "dateFrom";
     private static final String ID_DATE_TO = "dateTo";
     private static final String ID_RUN = "run";
@@ -44,15 +45,18 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
     @Override
     protected void initLayout() {
+        Form form = new Form(ID_FORM);
+        add(form);
+
         DateTextField dateFrom = DateTextField.forDatePattern(ID_DATE_FROM,
                 new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM), "dd/MMM/yyyy");
         dateFrom.add(new DatePicker());
-        add(dateFrom);
+        form.add(dateFrom);
 
         DateTextField dateTo = DateTextField.forDatePattern(ID_DATE_TO,
                 new PropertyModel<Date>(getModel(), AuditReportDto.F_TO), "dd/MMM/yyyy");
         dateTo.add(new DatePicker());
-        add(dateTo);
+        form.add(dateTo);
 
         AjaxSubmitLinkButton run = new AjaxSubmitLinkButton(ID_RUN, ButtonType.POSITIVE,
                 createStringResource("PageBase.button.run")) {
@@ -67,7 +71,7 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
                 onRunPerformed(target);
             }
         };
-        add(run);
+        form.add(run);
     }
 
     protected void onRunPerformed(AjaxRequestTarget target) {

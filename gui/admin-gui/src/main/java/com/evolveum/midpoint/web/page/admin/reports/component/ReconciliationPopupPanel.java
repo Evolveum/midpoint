@@ -35,6 +35,7 @@ import java.util.List;
  */
 public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDto> {
 
+    private static final String ID_FORM = "form";
     private static final String ID_RESOURCE = "resource";
     private static final String ID_RUN = "run";
 
@@ -46,6 +47,9 @@ public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDt
     }
 
     private void initLayout(IModel<List<ResourceItemDto>> resources) {
+        Form form = new Form(ID_FORM);
+        add(form);
+
         IChoiceRenderer renderer = new IChoiceRenderer<ResourceItemDto>() {
 
             @Override
@@ -61,7 +65,7 @@ public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDt
 
         DropDownChoice dropDown = new DropDownChoice(ID_RESOURCE, createModel(resources.getObject()),
                 resources, renderer);
-        add(dropDown);
+        form.add(dropDown);
 
         AjaxSubmitLinkButton run = new AjaxSubmitLinkButton(ID_RUN, ButtonType.POSITIVE,
                 createStringResource("PageBase.button.run")) {
@@ -76,7 +80,7 @@ public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDt
                 onRunPerformed(target);
             }
         };
-        add(run);
+        form.add(run);
     }
 
     private IModel<ResourceItemDto> createModel(final List<ResourceItemDto> resources) {
