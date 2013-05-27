@@ -131,25 +131,29 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	private void fireTriggers(PrismObject<ObjectType> object, Task task, OperationResult result) throws SchemaException, 
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		LOGGER.trace("Firing triggers for {}", object);
-
 		PrismContainer<TriggerType> triggerContainer = object.findContainer(ObjectType.F_TRIGGER);
 		if (triggerContainer == null) {
 			LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have trigger container", object);
 		} else {
-			for (PrismContainerValue<TriggerType> triggerCVal: triggerContainer.getValues()) {
-				TriggerType triggerType = triggerCVal.asContainerable();
-				XMLGregorianCalendar timestamp = triggerType.getTimestamp();
-				if (timestamp == null) {
-					LOGGER.warn("Trigger without a timestamp in {}", object);
-				} else {
-					if (isHot(timestamp)) {
-						String handlerUri = triggerType.getHandlerUri();
-						if (handlerUri == null) {
-							LOGGER.warn("Trigger without handler URI in {}", object);
-						} else {
-							fireTrigger(handlerUri, object);
-							removeTrigger(object, triggerCVal);
+			List<PrismContainerValue<TriggerType>> triggerCVals = triggerContainer.getValues();
+			if (triggerCVals == null || triggerCVals.isEmpty()) {
+				LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have any triggers in trigger container", object);
+			} else {
+				LOGGER.trace("Firing triggers for {} ({} triggers)", object, triggerCVals.size());
+				for (PrismContainerValue<TriggerType> triggerCVal: triggerCVals) {
+					TriggerType triggerType = triggerCVal.asContainerable();
+					XMLGregorianCalendar timestamp = triggerType.getTimestamp();
+					if (timestamp == null) {
+						LOGGER.warn("Trigger without a timestamp in {}", object);
+					} else {
+						if (isHot(timestamp)) {
+							String handlerUri = triggerType.getHandlerUri();
+							if (handlerUri == null) {
+								LOGGER.warn("Trigger without handler URI in {}", object);
+							} else {
+								fireTrigger(handlerUri, object);
+								removeTrigger(object, triggerCVal);
+							}
 						}
 					}
 				}
@@ -161,10 +165,10 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	 * Returns true if the timestamp is in the "range of interest" for this scan run. 
 	 */
 	private boolean isHot(XMLGregorianCalendar timestamp) {
-		if (thisScanTimestamp.compare(timestamp) == DatatypeConstants.GREATER) {
+		if (thisScanTimestamp.compare(timestamp) == DatatypeConstants.LESSER) {
 			return false;
 		}
-		return lastScanTimestamp == null || lastScanTimestamp.compare(timestamp) == DatatypeConstants.LESSER;
+		return lastScanTimestamp == null || lastScanTimestamp.compare(timestamp) == DatatypeConstants.GREATER;
 	}
 
 	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object) {

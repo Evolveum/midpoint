@@ -78,7 +78,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	}
 
 	// WORK IN PROGRESS (MID-1272)
-	@Test(enabled=false)
+	@Test
     public void test100ImportScannerTask() throws Exception {
 		final String TEST_NAME = "test100ImportScannerTask";
         displayTestTile(this, TEST_NAME);
