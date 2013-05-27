@@ -1420,5 +1420,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         result.computeStatus();
         assertSuccess(result);
 	}
+	
+	protected <O extends ObjectType> void assertNoTrigger(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoTrigger");
+		PrismObject<O> object = repositoryService.getObject(type, oid, result);
+		result.computeStatus();
+		assertSuccess(result);
+		List<TriggerType> triggers = object.asObjectable().getTrigger();
+		if (triggers != null && !triggers.isEmpty()) {
+			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);
+		}
+	}
 
 }

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
@@ -77,7 +78,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		triggerHandlerRegistry.register(MockTriggerHandler.HANDLER_URI, testTriggerHandler);
 	}
 
-	// WORK IN PROGRESS (MID-1272)
 	@Test
     public void test100ImportScannerTask() throws Exception {
 		final String TEST_NAME = "test100ImportScannerTask";
@@ -106,43 +106,95 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
         
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+        assertNoTrigger(UserType.class, USER_JACK_OID);
+        
+        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 	
-//	@Test
-//    public void test110HermanGoesInvalid() throws Exception {
-//		final String TEST_NAME = "test110HermanGoesInvalid";
-//        displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-//        
-//        PrismObject<UserType> userHermanBefore = getUser(USER_HERMAN_OID);
-//        XMLGregorianCalendar validTo = userHermanBefore.asObjectable().getActivation().getValidTo();
-//        assertEffectiveActivation(userHermanBefore, ActivationStatusType.ENABLED);
-//        assertValidityStatus(userHermanBefore, TimeIntervalStatusType.IN);
-//        
-//        // Let's move the clock tiny bit after herman's validTo 
-//        validTo.add(XmlTypeConverter.createDuration(100));
-//        clock.override(validTo);
-//        
-//		/// WHEN
-//        displayWhen(TEST_NAME);
-//        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
-//		
-//        // THEN
-//        displayThen(TEST_NAME);
-//        
-//        // THEN
-//        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-//
-//        PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
-//        assertEffectiveActivation(userHermanAfter, ActivationStatusType.DISABLED);
-//        assertValidityStatus(userHermanAfter, TimeIntervalStatusType.AFTER);
-//
-//        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
-//	}
+	@Test
+    public void test105NoTrigger() throws Exception {
+		final String TEST_NAME = "test105NoTrigger";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        testTriggerHandler.reset();
+        
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+                
+		/// WHEN
+        displayWhen(TEST_NAME);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+		
+        // THEN
+        displayThen(TEST_NAME);
+        
+        // THEN
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+        assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
+        assertNoTrigger(UserType.class, USER_JACK_OID);
+
+        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+	
+	@Test
+    public void test110TriggerCalledAgain() throws Exception {
+		final String TEST_NAME = "test110TriggerCalledAgain";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        testTriggerHandler.reset();
+        
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+        
+        addTrigger(USER_JACK_OID, startCal, MockTriggerHandler.HANDLER_URI);
+                
+		/// WHEN
+        displayWhen(TEST_NAME);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+		
+        // THEN
+        displayThen(TEST_NAME);
+        
+        // THEN
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+        assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+        assertNoTrigger(UserType.class, USER_JACK_OID);
+
+        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+	}
+	
+	@Test
+    public void test115NoTriggerAgain() throws Exception {
+		final String TEST_NAME = "test115NoTriggerAgain";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        testTriggerHandler.reset();
+        
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+                
+		/// WHEN
+        displayWhen(TEST_NAME);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+		
+        // THEN
+        displayThen(TEST_NAME);
+        
+        // THEN
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+        assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
+        assertNoTrigger(UserType.class, USER_JACK_OID);
+
+        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
 
 }

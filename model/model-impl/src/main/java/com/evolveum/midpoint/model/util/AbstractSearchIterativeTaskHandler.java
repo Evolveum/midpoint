@@ -111,6 +111,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 			return runResult;
 		}
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("{}: searching using query:\n{}", taskName, query.dump());
+		}
+		
 		try {
 		
 			modelObjectResolver.searchIterative(type, query, handler, opResult);
