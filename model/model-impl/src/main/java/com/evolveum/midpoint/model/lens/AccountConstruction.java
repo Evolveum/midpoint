@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -84,6 +86,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private PrismContainerValue<AssignmentType> magicAssignment;
 	private PrismContainerValue<AssignmentType> immediateAssignment;
 	private PrismContainerValue<AssignmentType> thisAssignment;
+	private PrismObject<? extends AbstractRoleType> immediateRole;
 	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AccountConstruction.class);
@@ -266,16 +269,16 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 				PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
 				assignmentCont.add(magicAssignment);
 			} else {
+				// Collect extension values from the assignment extension
 				PrismContainer<Containerable> magicExtension = magicAssignment.findOrCreateContainer(AssignmentType.F_EXTENSION);
-				PrismContainer<Containerable> segmentExtension = segmentAssignmentCVal.findContainer(AssignmentType.F_EXTENSION);
-				if (segmentExtension != null) {
-					for (Item<?> segmentItem: segmentExtension.getValue().getItems()) {
-						Item<?> magicItem = magicExtension.findItem(segmentItem.getName());
-						if (magicItem == null) {
-							magicExtension.add(segmentItem.clone());
-						}
-					}
-				}
+				mergeExtension(magicExtension, segmentAssignmentCVal.findContainer(AssignmentType.F_EXTENSION));
+			}
+			
+			// Collect extension values from the source object extension
+			PrismContainer<Containerable> magicExtension = magicAssignment.findOrCreateContainer(AssignmentType.F_EXTENSION);
+			ObjectType segmentSource = segment.getSource();
+			if (segmentSource != null) {
+				mergeExtension(magicExtension, segmentSource.asPrismObject().findContainer(AssignmentType.F_EXTENSION));
 			}
 			
 			// immediate assignment (use assignment from previous iteration)
@@ -286,6 +289,21 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			// Make sure that the assignment has a valid parent so it can be serialized
 			PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
 			assignmentCont.add(thisAssignment);
+			
+			if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
+				immediateRole = segmentSource.asPrismObject();
+			}
+		}
+	}
+
+	private void mergeExtension(PrismContainer<Containerable> magicExtension, PrismContainer<Containerable> segmentExtension) throws SchemaException {
+		if (segmentExtension != null) {
+			for (Item<?> segmentItem: segmentExtension.getValue().getItems()) {
+				Item<?> magicItem = magicExtension.findItem(segmentItem.getName());
+				if (magicItem == null) {
+					magicExtension.add(segmentItem.clone());
+				}
+			}
 		}
 	}
 
@@ -351,6 +369,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, immediateAssignment);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, thisAssignment);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentType.asPrismContainerValue());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, immediateRole);
 		}
 		// TODO: other variables ?
 		

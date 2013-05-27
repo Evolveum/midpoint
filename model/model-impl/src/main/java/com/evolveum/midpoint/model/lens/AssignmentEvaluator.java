@@ -134,6 +134,7 @@ public class AssignmentEvaluator {
 		Assignment assignment = new Assignment();
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentType, null);
+		assignmentPathSegment.setSource(source);
 		
 		evaluateAssignment(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, result);
 		
@@ -256,6 +257,7 @@ public class AssignmentEvaluator {
 		assertSource(source, assignment);
 		for (AssignmentType roleInducement : role.getInducement()) {
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducement, null);
+			roleAssignmentPathSegment.setSource(role);
 			String subSourceDescription = role+" in "+sourceDescription;
 			evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, result);
 		}

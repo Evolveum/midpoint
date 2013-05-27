@@ -27,6 +27,7 @@ public class AssignmentPathSegment {
 	private AssignmentType assignmentType;
 	private Assignment evaluatedAssignment;
 	private ObjectType target;
+	private ObjectType source;
 	
 	AssignmentPathSegment(AssignmentType assignmentType, ObjectType target) {
 		super();
@@ -57,12 +58,22 @@ public class AssignmentPathSegment {
 	public void setTarget(ObjectType target) {
 		this.target = target;
 	}
+	
+	public ObjectType getSource() {
+		return source;
+	}
+
+	public void setSource(ObjectType source) {
+		this.source = source;
+	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((assignmentType == null) ? 0 : assignmentType.hashCode());
+		result = prime * result + ((evaluatedAssignment == null) ? 0 : evaluatedAssignment.hashCode());
+		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((target == null) ? 0 : target.hashCode());
 		return result;
 	}
@@ -80,6 +91,16 @@ public class AssignmentPathSegment {
 			if (other.assignmentType != null)
 				return false;
 		} else if (!assignmentType.equals(other.assignmentType))
+			return false;
+		if (evaluatedAssignment == null) {
+			if (other.evaluatedAssignment != null)
+				return false;
+		} else if (!evaluatedAssignment.equals(other.evaluatedAssignment))
+			return false;
+		if (source == null) {
+			if (other.source != null)
+				return false;
+		} else if (!source.equals(other.source))
 			return false;
 		if (target == null) {
 			if (other.target != null)

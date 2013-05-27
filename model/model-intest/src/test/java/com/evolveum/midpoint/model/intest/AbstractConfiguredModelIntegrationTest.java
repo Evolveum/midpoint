@@ -134,21 +134,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_NAME + "/role-superuser.xml";
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 	
-	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
-	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
-
-	protected static final String ROLE_BETA_FILENAME = COMMON_DIR_NAME + "/role-beta.xml";
-	protected static final String ROLE_BETA_OID = "12345678-d34d-b33f-f00d-55555555bbbb";
-	
 	// Assigns dummy resource, sets some attributes
 	protected static final String ROLE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-pirate.xml";
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
 	
 	protected static final String ROLE_NICE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-nice-pirate.xml";
 	protected static final String ROLE_NICE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556677";
-	
-	protected static final String ROLE_ADRIATIC_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-adriatic-pirate.xml";
-	protected static final String ROLE_ADRIATIC_PIRATE_OID = "12345678-d34d-b33f-f00d-5555555566aa";
 	
 	protected static final String ROLE_CAPTAIN_FILENAME = COMMON_DIR_NAME + "/role-captain.xml";
 	protected static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-55555555cccc";

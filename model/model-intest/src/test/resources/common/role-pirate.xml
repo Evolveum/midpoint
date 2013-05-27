@@ -95,12 +95,16 @@
                 		<name>immediateSea</name>
                 	</source>
                 	<source>
+                		<path>$immediateRole/extension/piracy:sea</path>
+                		<name>immediateRoleSea</name>
+                	</source>
+                	<source>
                 		<path>$thisAssignment/extension/piracy:sea</path>
                 		<name>thisSea</name>
                 	</source>
                 	<expression>
 						<script>
-							<code>name + " sailed " + magicSea + ", immediately " + immediateSea + ", with this " + thisSea + " while focused on " + focusSea + " (in "+source.getName()+")"</code>
+							<code>name + " sailed " + magicSea + ", immediately " + immediateSea + ", role " + immediateRoleSea + ", with this " + thisSea + " while focused on " + focusSea + " (in "+source.getName()+")"</code>
 						</script>
 					</expression>
 					<condition>

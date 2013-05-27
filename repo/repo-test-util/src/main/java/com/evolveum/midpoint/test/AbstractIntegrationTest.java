@@ -156,13 +156,18 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+		return repoAddObjectFromFile(new File(filePath), type, parentResult);
+	}
+	
+	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
-		result.addParam("file", filePath);
-		LOGGER.debug("addObjectFromFile: {}", filePath);
-		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
+		result.addParam("file", file);
+		LOGGER.debug("addObjectFromFile: {}", file);
+		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(file, type);
 		LOGGER.trace("Adding object:\n{}", object.dump());
-		repoAddObject(type, object, "from file "+filePath, result);
+		repoAddObject(type, object, "from file "+file, result);
 		result.recordSuccess();
 		return object;
 	}
