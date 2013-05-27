@@ -812,7 +812,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.dump());
 		}
 
-		if (object.canRepresent(ShadowType.class)) {
+		if (object.canRepresent(ShadowType.class) && !ProvisioningOperationOptions.isRaw(options)) {
 
 			try {
 				getShadowCache(Mode.STANDARD).deleteShadow((PrismObject<ShadowType>)object, options, scripts, null, task, result);

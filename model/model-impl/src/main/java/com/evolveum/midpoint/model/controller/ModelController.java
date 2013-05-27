@@ -66,6 +66,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -340,7 +341,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), null, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
-						cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result);
+						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
+							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+									ProvisioningOperationOptions.createRaw(), null, task, result);
+						} else {
+							cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+									result);
+						}
 					} else if (delta.isModify()) {
 						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
 								delta.getModifications(), result);
