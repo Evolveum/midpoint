@@ -7471,7 +7471,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:EventHandlerType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:handler" minOccurs="0">
+                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 For convenience, filtering can be placed also here (it influences only this notifier,

@@ -78,7 +78,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private IModel<ObjectViewDto> model;
     private AceEditor<String> editor;
     private final IModel<Boolean> encrypt = new Model<Boolean>(true);
-    private final IModel<Boolean> validateSchema = new Model<Boolean>(false);
+    private final IModel<Boolean> validateSchema = new Model<Boolean>(true);
 
     public PageDebugView() {
         model = new LoadableModel<ObjectViewDto>(false) {

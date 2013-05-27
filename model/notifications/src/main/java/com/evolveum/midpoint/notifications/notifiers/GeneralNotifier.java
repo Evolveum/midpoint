@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,8 +63,16 @@ public abstract class GeneralNotifier extends BaseHandler {
 
         boolean retval;
 
-        if (generalNotifierType.getHandler() != null &&
-            !notificationManager.processEvent(event, generalNotifierType.getHandler().getValue(), result)) {
+        // executing embedded filters
+        boolean filteredOut = false;
+        for (JAXBElement<? extends EventHandlerType> handlerType : generalNotifierType.getHandler()) {
+            if (!notificationManager.processEvent(event, handlerType.getValue(), result)) {
+                filteredOut = true;
+                break;
+            }
+        }
+
+        if (filteredOut) {
             LOGGER.trace("Filtered out by embedded filter");
             retval = true;
         } else if (!checkApplicability(event, generalNotifierType, result)) {
