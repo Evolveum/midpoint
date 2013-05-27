@@ -458,13 +458,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryTrigger() throws Exception {
-        QueryDefinitionRegistry qRegistry = QueryDefinitionRegistry.getInstance();
-        LOGGER.info(qRegistry.dump());
-
-        Session session = open();
-
         final Date NOW = new Date();
 
+        Session session = open();
         Criteria main = session.createCriteria(RObject.class, "o");
         Criteria d = main.createCriteria("trigger", "t");
         d.add(Restrictions.le("t.timestamp", new Timestamp(NOW.getTime())));
@@ -491,7 +487,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     @Test
     public void queryAssignmentActivationAdministrativeStatus() throws Exception {
         Session session = open();
-
         Criteria main = session.createCriteria(RUser.class, "u");
         Criteria a = main.createCriteria("assignment", "a");
         a.add(Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED));
@@ -517,11 +512,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryUserByActivationDouble() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserByName"});
-        Session session = open();
-
         Date NOW = new Date();
 
+        Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
         main.add(Restrictions.and(
                 Restrictions.eq("u.activation.administrativeStatus", RActivationStatus.ENABLED),
@@ -543,6 +536,59 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter1, filter2));
         String real = getInterpretedQuery(session, UserType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryTriggerTimestampDouble() throws Exception {
+//        AND:
+//        GREATER:
+//        PATH:
+//        {.../common/common-2a}trigger
+//        DEF: PPD:{.../common/common-2a}
+//
+//        timestamp
+//        {xsd:}dateTime[0,1],RCU,I
+//        VALUE: PPV():XMLGregorianCalendarImpl:2013-05-27T18:10:02.169+02:00
+//        LESS:
+//        PATH: {.../common/common-2a}trigger
+//        DEF: PPD:{.../common/common-2a}timestamp {xsd}
+//
+//        dateTime[0,1],RCU,I
+//        VALUE: PPV():XMLGregorianCalendarImpl:2013-05-27T18:10:03.945+02:00
+
+
+        final Date NOW = new Date();
+
+        Session session = open();
+        Criteria main = session.createCriteria(RObject.class, "o");
+        Criteria d = main.createCriteria("trigger", "t");
+        d.add(Restrictions.and(
+                Restrictions.gt("t.timestamp", new Timestamp(NOW.getTime())),
+                Restrictions.lt("t.timestamp", new Timestamp(NOW.getTime()))
+        ));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
+
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
+        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER);
+        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        ObjectFilter greater = GreaterFilter.createGreaterFilter(triggerPath, triggerContainerDef,
+                TriggerType.F_TIMESTAMP, thisScanTimestamp, false);
+        ObjectFilter lesser = LessFilter.createLessFilter(triggerPath, triggerContainerDef,
+                TriggerType.F_TIMESTAMP, thisScanTimestamp, false);
+        AndFilter and = AndFilter.createAnd(greater, lesser);
+        LOGGER.info(and.dump());
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(and);
+        String real = getInterpretedQuery(session, ObjectType.class, query);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);

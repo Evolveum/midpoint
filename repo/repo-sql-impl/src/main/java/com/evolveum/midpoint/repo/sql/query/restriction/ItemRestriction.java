@@ -149,6 +149,11 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             lastPropPath = null;
         }
 
+        Criteria existing = getContext().getCriteria(path);
+        if (existing != null) {
+            return;
+        }
+
         // get parent criteria
         Criteria pCriteria = getContext().getCriteria(lastPropPath);
         // create new criteria and alias for this relationship
