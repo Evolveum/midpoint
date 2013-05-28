@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -262,8 +263,8 @@ public class RAssignment extends RContainer implements ROwnable {
         }
 
         try {
-            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), ConstructionType.class, prismContext));
-            jaxb.setConstruction(RUtil.toJAXB(repo.getConstruction(), ConstructionType.class, prismContext));
+            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), ConstructionType.class, ConstructionType.COMPLEX_TYPE, prismContext));
+            jaxb.setConstruction(RUtil.toJAXB(repo.getConstruction(), ConstructionType.class, ConstructionType.COMPLEX_TYPE, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

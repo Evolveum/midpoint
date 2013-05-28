@@ -16,10 +16,15 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -317,20 +322,26 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             }
             PropertyDelta delta1 = new PropertyDelta(attribute1, propertyDefinition1);
             delta1.setValueToReplace(new PrismPropertyValue(poly ? new PolyString(dataWritten) : dataWritten));
-            List<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
+            List<ItemDelta> deltas = new ArrayList<ItemDelta>();
             deltas.add(delta1);
 
-            PrismPropertyDefinition propertyDefinition2 = null;
+            ItemDefinition propertyDefinition2 = null;
             if (attribute2 != null) {
-                propertyDefinition2 = userPrismDefinition.findPropertyDefinition(attribute2);
+                propertyDefinition2 = userPrismDefinition.findItemDefinition(attribute2);
                 if (propertyDefinition2 == null) {
                     throw new IllegalArgumentException("No definition for " + attribute2 + " in " + userPrismDefinition);
                 }
-                PropertyDelta delta2 = new PropertyDelta(attribute2, propertyDefinition2);
+                
+                ItemDelta delta2 = null;
+                if (propertyDefinition2.getClass().isAssignableFrom(PrismContainerDefinition.class)){
+                	delta2 = new ContainerDelta(attribute2, (PrismContainerDefinition) propertyDefinition2);
+                } else{
+                	delta2 = new PropertyDelta(attribute2, (PrismPropertyDefinition) propertyDefinition2);
+                }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
                     ConstructionType act = new ConstructionType();
                     act.setDescription(dataWritten);
-                    delta2.setValueToReplace(new PrismPropertyValue<ConstructionType>(act));
+                    delta2.setValueToReplace(act.asPrismContainerValue());
                 } else {
                     delta2.setValueToReplace(new PrismPropertyValue(dataWritten));
                 }
@@ -386,7 +397,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
                 if (attribute2 != null) {
                     if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
-                        dataRead = user.findProperty(attribute2).getRealValue(ConstructionType.class).getDescription();
+                        dataRead = ((ConstructionType)user.findContainer(attribute2).getValue().getValue()).getDescription();
                     } else {
                         dataRead = user.findProperty(attribute2).getRealValue(String.class);
                     }

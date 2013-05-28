@@ -5576,6 +5576,11 @@
     
 
     <xsd:complexType name="ConstructionType">
+       <xsd:annotation>
+      <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+             </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="c:extension" minOccurs="0" maxOccurs="1"/>
@@ -5646,6 +5651,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="construction" type="tns:ConstructionType"/>
 
 
     <xsd:complexType name="ObjectTemplateType">

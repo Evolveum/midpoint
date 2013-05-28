@@ -88,7 +88,10 @@ public class SchemaTestUtil {
 		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
 		assertEquals("Assignment size", 7, assignmentContainer.getDefinitions().size());
-		PrismAsserts.assertPropertyDefinition(assignmentContainer, AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
+		
+		PrismContainerDefinition constructionContainer = assignmentContainer.findContainerDefinition(AssignmentType.F_CONSTRUCTION);
+		PrismAsserts.assertDefinition(constructionContainer, AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
+		assertFalse("Construction is runtime", constructionContainer.isRuntimeSchema());
 		
 		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(UserType.F_LINK_REF, PrismReferenceDefinition.class);
 		PrismAsserts.assertDefinition(accountRefDef, UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);

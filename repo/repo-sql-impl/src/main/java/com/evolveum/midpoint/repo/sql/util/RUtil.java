@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -107,9 +108,19 @@ public final class RUtil {
             JAXBException {
         return toJAXB(null, null, value, clazz, prismContext);
     }
+    
+    public static <T> T toJAXB(String value, Class<T> clazz, QName type, PrismContext prismContext) throws SchemaException,
+    JAXBException {
+return toJAXB(null, null, value, clazz, type, prismContext);
+}
 
     public static <T> T toJAXB(Class<?> parentClass, ItemPath path, String value,
-                               Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException {
+            Class<T> clazz,PrismContext prismContext) throws SchemaException, JAXBException {
+return toJAXB(parentClass, path, value, clazz, null, prismContext);
+}
+    
+    public static <T> T toJAXB(Class<?> parentClass, ItemPath path, String value,
+                               Class<T> clazz, QName complexType, PrismContext prismContext) throws SchemaException, JAXBException {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -143,8 +154,21 @@ public final class RUtil {
                 return null;
             }
             SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismContainerDefinition parentDefinition = registry.determineDefinitionFromClass(parentClass);
-            PrismContainerDefinition definition = parentDefinition.findContainerDefinition(path);
+            
+            
+            PrismContainerDefinition definition = null;
+            if (parentClass != null){
+            	PrismContainerDefinition parentDefinition = registry.determineDefinitionFromClass(parentClass);
+            	definition = parentDefinition.findContainerDefinition(path);
+            } else if (complexType != null){
+            	definition = registry.findContainerDefinitionByType(complexType);
+            } else {
+            	definition = registry.determineDefinitionFromClass(clazz);
+            }
+            
+            if (definition == null){
+            	throw new SchemaException("Could not find definition for " + QNameUtil.getNodeQName(firstChild));
+            }
 
             PrismContainer container = domProcessor.parsePrismContainer(firstChild, definition);
             return (T) container.getValue().asContainerable(clazz);

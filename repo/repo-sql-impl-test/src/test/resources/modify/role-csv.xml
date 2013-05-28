@@ -32,7 +32,7 @@
 				type="c:ResourceType">
 				<c:filter />
 			</c:resourceRef>
-			<c:type>user</c:type>
+			<c:intent>user</c:intent>
 		</c:construction>
 	</inducement>
 </role>

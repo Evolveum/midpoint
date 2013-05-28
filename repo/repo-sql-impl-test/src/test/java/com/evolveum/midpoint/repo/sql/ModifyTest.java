@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -333,6 +335,102 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, parentResult);
         AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
+    }
+    
+    @Test(enabled=false)
+    public void testModifyAccountMetadata() throws Exception {
+        OperationResult parentResult = new OperationResult("testModifyAccountMetadata");
+        
+        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/user-modify-link-account.xml"));
+        
+        
+        PrismObject<ShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-modify-metadata.xml"));
+       
+        MetadataType metaData = new MetadataType();
+    	metaData.setCreateChannel("channel");
+    	metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+    	accShadow.asObjectable().setMetadata(metaData);
+        
+    	System.out.println("\nAcc shadow");
+        System.out.println(accShadow.dump());
+    	
+    	String oid = repositoryService.addObject(accShadow, null, parentResult);
+        System.out.println("\nAcc shadow");
+        System.out.println(accShadow.dump());
+
+        accShadow.asObjectable().setObjectChange(null);
+
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, parentResult);
+        System.out.println("\nRepo shadow");
+        System.out.println(repoShadow.dump());
+
+        ObjectDelta d = repoShadow.diff(accShadow);
+        System.out.println("\nDelta");
+        System.out.println(d.dump());
+        
+        
+
+//        MetadataType metaData = new MetadataType();
+//    	metaData.setCreateChannel("channel");
+//    	metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+//    	if (task.getOwner() != null){
+//    	metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
+//    	}
+//    	PropertyDelta delta = PropertyDelta.createModificationAddProperty(new ItemPath(ObjectType.F_METADATA), userDefinition.findContainerDefinition(ObjectType.F_METADATA), metaData);
+    	PrismObjectDefinition accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+//        ContainerDelta delta = new ContainerDelta(new ItemPath(), ObjectType.F_METADATA, accountDefinition.findContainerDefinition(AccountShadowType.F_METADATA));
+////        PrismContainerValue pcv = new PrismContainerValue();
+////        pcv.a
+////        delta.setParentPath(new ItemPath(ObjectType.F_METADATA));
+//        delta.addValueToAdd(metaData.asPrismContainerValue());
+//    	
+//        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+//        modifications.add(delta);
+        PrismReferenceValue accountRef = new PrismReferenceValue();
+        accountRef.setOid(oid);
+        accountRef.setTargetType(ShadowType.COMPLEX_TYPE);
+
+        Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
+        		UserType.F_LINK_REF, user.getDefinition(), accountRef); 
+
+        repositoryService.modifyObject(ShadowType.class, oid, accountRefDeltas, parentResult);
+
+        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, parentResult);
+        System.out.println("\nAfter modify");
+        System.out.println(afterModify.dump());
+
+        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        	PropertyDelta pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
+        	modifications.add(pdelta);
+
+		pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA,
+				MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, XmlTypeConverter
+				.createXMLGregorianCalendar(System.currentTimeMillis()));
+		modifications.add(pdelta);
+//
+//		ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(
+//				ObjectType.F_METADATA, MetadataType.F_MODIFIER_REF)), accountDefinition, "123");
+//		modifications.add(refDelta);
+
+		repositoryService.modifyObject(ShadowType.class, oid, modifications, parentResult);
+
+		afterModify = repositoryService.getObject(ShadowType.class,
+				oid, parentResult);
+		System.out.println("\nAfter modify");
+		System.out.println(afterModify.dump());
+
+		 List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
+	                createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null);
+	        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
+	                createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
+	        syncSituationDeltas.add(syncSituationDelta);
+
+	        repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, parentResult);
+//        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
+	        afterModify = repositoryService.getObject(ShadowType.class,
+					oid, parentResult);
+			System.out.println("\nAfter modify");
+			System.out.println(afterModify.dump());
     }
 
     @Test

@@ -163,7 +163,27 @@ public final class WebMiscUtil {
 
         return (T) property.getRealValue(type);
     }
+    
+    public static <T> T getContainerValue(PrismContainerValue object, QName containerName,
+			Class<T> type) {
+    	if (object == null) {
+            return null;
+        }
 
+        PrismContainer container = object.findContainer(containerName);
+        if (container == null || container.isEmpty()) {
+            return null;
+        }
+        
+        PrismContainerValue containerValue = container.getValue();
+
+        if (containerValue == null || containerValue.isEmpty()){
+        	return null;
+        }
+        
+        return (T) containerValue.getValue();
+	}
+    
     public static <T> T getValue(PrismContainer object, QName propertyName, Class<T> type) {
         if (object == null) {
             return null;
@@ -324,4 +344,6 @@ public final class WebMiscUtil {
 
         return result.isSuccess() || result.isHandledError();
     }
+
+	
 }

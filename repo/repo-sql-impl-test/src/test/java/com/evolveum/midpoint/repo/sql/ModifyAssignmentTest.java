@@ -159,7 +159,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(2, assignment.getValues().size());
 
         PrismContainerValue value5 = inducement.getValue(5L);
-        PrismProperty accConstruction = value5.findProperty(AssignmentType.F_CONSTRUCTION);
+        PrismContainer accConstruction = value5.findContainer(AssignmentType.F_CONSTRUCTION);
         AssertJUnit.assertNotNull(accConstruction);
         AssertJUnit.assertEquals(1, accConstruction.getValues().size());
     }

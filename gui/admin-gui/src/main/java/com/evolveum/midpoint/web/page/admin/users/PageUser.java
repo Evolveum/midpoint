@@ -1182,9 +1182,9 @@ public class PageUser extends PageAdminUsers {
 			AssignmentType assignment = new AssignmentType();
 			PrismContainerValue value = assDto.getNewValue();
 			assignment.setupContainerValue(value);
+			value.applyDefinition(assignmentDef, false);
 			userType.getAssignment().add(assignment.clone());
 
-			value.applyDefinition(assignmentDef, false);
 			// todo remove this block [lazyman] after model is updated - it has
 			// to remove resource from accountConstruction
 			removeResourceFromAccConstruction(assignment);
@@ -1768,6 +1768,15 @@ public class PageUser extends PageAdminUsers {
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType construction = new ConstructionType();
 		assignment.setConstruction(construction);
+		
+		try {
+			getPrismContext().adopt(assignment, UserType.class, new ItemPath(UserType.F_ASSIGNMENT));
+		} catch (SchemaException e) {
+			error(getString("Could not create assignment",resource.getName(),e.getMessage()));
+			LoggingUtils.logException(LOGGER, "Couldn't create assignment", e);
+			return;
+		}
+		
 		construction.setResource(resource);
 
 		List<AssignmentEditorDto> assignments = assignmentsModel.getObject();

@@ -67,11 +67,12 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         PrismContainerValue newValue = value.clone();
         newAssignment = new AssignmentType();
         newAssignment.setupContainerValue(newValue);
-        if (AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(type)
-                && oldAssignment.getConstruction() != null) {
-            ConstructionType construction = oldAssignment.getConstruction();
-            newAssignment.setConstruction(construction.clone());
-        }
+        //TODO: is this really needed??construction is cloned earlier by value.clone()
+//        if (AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(type)
+//                && oldAssignment.getConstruction() != null) {
+//            ConstructionType construction = oldAssignment.getConstruction();
+//            newAssignment.setConstruction(construction.clone());
+//        }
 
         this.name = getNameForTargetObject(targetObject);
     }
