@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -25,13 +26,17 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -428,4 +433,41 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     }
 
+
+    @Test(enabled = true)
+    public void concurrency010_SearchIterative() throws Exception {
+
+        String name = "Test10";
+        final String newFullName = "new-full-name";
+
+        final File file = new File("src/test/resources/concurrency/user.xml");
+        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(file);
+        user.asObjectable().setName(new PolyStringType(name));
+
+        final OperationResult result = new OperationResult("Concurrency Test10");
+        String oid = repositoryService.addObject(user, null, result);
+
+        repositoryService.searchObjectsIterative(UserType.class,
+                ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, name)),
+                new ResultHandler<UserType>() {
+                    @Override
+                    public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
+                        LOGGER.info("Handling " + object + "...");
+                        ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, object.getOid(), UserType.F_FULL_NAME, prismContext, new PolyStringType(newFullName));
+                        try {
+                            repositoryService.modifyObject(UserType.class,
+                                object.getOid(),
+                                delta.getModifications(),
+                                parentResult);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Exception in handle method", e);
+                        }
+                        return true;
+                    }
+                },
+                result);
+
+        PrismObject<UserType> reloaded = repositoryService.getObject(UserType.class, oid, result);
+        AssertJUnit.assertEquals("Full name was not changed", newFullName, reloaded.asObjectable().getFullName().getOrig());
+    }
 }

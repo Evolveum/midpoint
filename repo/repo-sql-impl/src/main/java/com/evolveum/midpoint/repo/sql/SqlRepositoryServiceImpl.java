@@ -1457,8 +1457,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return;
         }
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
+//        turned off until resolved 'unfinished operation' warning
+//        SqlPerformanceMonitor pm = getPerformanceMonitor();
+//        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
 
         final String operation = "searching iterative";
         int attempt = 1;
@@ -1469,11 +1470,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     return;
                 } catch (RuntimeException ex) {
                     attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
-                    pm.registerOperationNewTrial(opHandle, attempt);
+//                    pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
         } finally {
-            pm.registerOperationFinish(opHandle, attempt);
+//            pm.registerOperationFinish(opHandle, attempt);
         }
     }
 

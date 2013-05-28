@@ -55,10 +55,21 @@ public class MidPointConnectionCustomizer extends AbstractConnectionCustomizer {
     }
 
     private void updateTransactionIsolation(Connection connection) throws Exception {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Setting connection transaction isolation to " + transactionIsolation.jdbcValue() + " (" + transactionIsolation.value() + ")");
+
+        if (transactionIsolation.jdbcValue() != null) {
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Setting connection transaction isolation to " + transactionIsolation.jdbcValue() + " (" + transactionIsolation.value() + ")");
+            }
+            connection.setTransactionIsolation(transactionIsolation.jdbcValue());
+
+        } else {
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Skipped setting transaction isolation '" + transactionIsolation.value() + "', because it has no JDBC mapping");
+            }
+
         }
-        connection.setTransactionIsolation(transactionIsolation.jdbcValue());
     }
 
     public static TransactionIsolation getTransactionIsolation() {

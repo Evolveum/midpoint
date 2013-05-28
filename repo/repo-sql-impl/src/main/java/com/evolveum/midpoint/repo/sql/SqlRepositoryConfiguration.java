@@ -142,7 +142,7 @@ public class SqlRepositoryConfiguration {
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
         } else if (UnicodeSQLServer2008Dialect.class.getName().equals(hibernateDialect)) {
-            transactionIsolation = TransactionIsolation.SERIALIZABLE;
+            transactionIsolation = TransactionIsolation.SNAPSHOT;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = false;

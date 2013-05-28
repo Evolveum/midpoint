@@ -24,11 +24,13 @@ import java.sql.Connection;
 public enum TransactionIsolation {
 
     READ_COMMITTED("readCommitted", Connection.TRANSACTION_READ_COMMITTED),
-    SERIALIZABLE("serializable", Connection.TRANSACTION_SERIALIZABLE);
-    private final String value;
-    private final int jdbcValue;
+    SERIALIZABLE("serializable", Connection.TRANSACTION_SERIALIZABLE),
+    SNAPSHOT("snapshot", null);       // this is a non-standard setting for MS SQL Server
 
-    TransactionIsolation(String value, int jdbcValue) {
+    private final String value;
+    private final Integer jdbcValue;
+
+    TransactionIsolation(String value, Integer jdbcValue) {
         this.value = value;
         this.jdbcValue = jdbcValue;
     }
@@ -37,7 +39,7 @@ public enum TransactionIsolation {
         return value;
     }
 
-    public int jdbcValue() {
+    public Integer jdbcValue() {
         return jdbcValue;
     }
 

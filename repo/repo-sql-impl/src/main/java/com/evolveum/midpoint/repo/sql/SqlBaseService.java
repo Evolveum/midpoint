@@ -34,11 +34,13 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.*;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.exception.LockAcquisitionException;
+import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import javax.xml.datatype.Duration;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -184,7 +186,8 @@ public class SqlBaseService {
                 || sqlException.getErrorCode() == 8177
                 || sqlException.getErrorCode() == 1466
                 || sqlException.getErrorCode() == 1555
-                || sqlException.getErrorCode() == 22924;
+                || sqlException.getErrorCode() == 22924
+                || sqlException.getErrorCode() == 3960;         // Snapshot isolation transaction aborted due to update conflict.
     }
 
     private SQLException findSqlException(Throwable ex) {
@@ -214,9 +217,25 @@ public class SqlBaseService {
     protected Session beginTransaction(boolean readOnly) {
         Session session = getSessionFactory().openSession();
         session.beginTransaction();
+
+        if (getConfiguration().getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
+            LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
+            session.doWork(new Work() {
+                @Override
+                public void execute(Connection connection) throws SQLException {
+                    connection.createStatement().execute("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
+                }
+            });
+        }
+
         if (readOnly) {
             LOGGER.trace("Marking transaction as read only.");
-            session.createSQLQuery("SET TRANSACTION READ ONLY").executeUpdate();
+            session.doWork(new Work() {
+                @Override
+                public void execute(Connection connection) throws SQLException {
+                    connection.createStatement().execute("SET TRANSACTION READ ONLY");
+                }
+            });
         }
         return session;
     }
