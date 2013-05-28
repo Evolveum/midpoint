@@ -27,6 +27,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -40,6 +44,7 @@ import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -67,6 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * 
@@ -77,10 +83,16 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 public class ModelWebService implements ModelPortType, ModelPort {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
+	
 	@Autowired(required = true)
 	private ModelCrudService model;
+	
 	@Autowired(required = true)
 	private TaskManager taskManager;
+	
+	@Autowired(required = true)
+	private AuditService auditService;
+	
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
@@ -89,6 +101,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(objectType, "Object must not be null.");
 
 		Task task = createTaskInstance(ADD_OBJECT);
+		auditLogin(task);
 		OperationResult operationResult = task.getResult();
 		try {
 			PrismObject object = objectType.asPrismObject();
@@ -99,6 +112,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL addObject() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -109,11 +123,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notNullArgument(options, "options  must not be null.");
 
-		OperationResult operationResult = null;
-		try {
-			Task task = createTaskInstance(GET_OBJECT);
-			operationResult = task.getResult();
-			
+		Task task = createTaskInstance(GET_OBJECT);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
+		try {			
 			PrismObject<? extends ObjectType> object = model.getObject(
 					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid, 
 					MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
@@ -122,6 +135,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -131,10 +145,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
                     Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(objectType, "Object type must not be null or empty.");
 
-		OperationResult operationResult = null;
+		Task task = createTaskInstance(LIST_OBJECTS);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
 		try {
-			Task task = createTaskInstance(LIST_OBJECTS);
-			operationResult = task.getResult();
 			ObjectQuery query = ObjectQuery.createObjectQuery(PagingConvertor.createObjectPaging(paging));
 			List<PrismObject<? extends ObjectType>> list = (List) model.searchObjects(ObjectTypes.getObjectTypeFromUri(objectType)
 					.getClassDefinition(), query, MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
@@ -148,6 +162,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listObjects() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -157,10 +172,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
                   Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
 
-		OperationResult operationResult = null;
+		Task task = createTaskInstance(SEARCH_OBJECTS);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
 		try {
-			Task task = createTaskInstance(SEARCH_OBJECTS);
-			operationResult = task.getResult();
 			ObjectQuery q = QueryConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
 					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q,
@@ -173,6 +188,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			objectListHolder.value = listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -181,10 +197,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	public OperationResultType modifyObject(String objectTypeUri, ObjectModificationType change) throws FaultMessage {
 		notNullArgument(change, "Object modification must not be null.");
 
-		OperationResult operationResult = null;
+		Task task = createTaskInstance(MODIFY_OBJECT);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
 		try {
-			Task task = createTaskInstance(MODIFY_OBJECT);
-			operationResult = task.getResult();
 			Class<? extends ObjectType> type = ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition();
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change, type, prismContext);
 			model.modifyObject(type, change.getOid(),
@@ -192,6 +208,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -202,15 +219,16 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
 
-		OperationResult operationResult = null;
+		Task task = createTaskInstance(DELETE_OBJECT);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
 		try {
-			Task task = createTaskInstance(DELETE_OBJECT);
-			operationResult = task.getResult();
 			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
 					task, operationResult);
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -221,10 +239,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			throws FaultMessage {
 		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
 
-		OperationResult operationResult = null;
+		Task task = createTaskInstance(LIST_ACCOUNT_SHADOW_OWNER);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
 		try {
-			Task task = createTaskInstance(LIST_ACCOUNT_SHADOW_OWNER);
-			operationResult = task.getResult();
 			PrismObject<UserType> user = model.findShadowOwner(accountOid, task, operationResult);
 			handleOperationResult(operationResult, result);
 			if (user != null) {
@@ -233,6 +251,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listAccountShadowOwner() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -252,10 +271,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(objectType, "Object type must not be null.");
 		notNullArgument(paging, "Paging  must not be null.");
 
-		OperationResult operationResult = null;
+		Task task = createTaskInstance(LIST_RESOURCE_OBJECTS);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
 		try {
-			Task task = createTaskInstance(LIST_RESOURCE_OBJECTS);
-			operationResult = task.getResult();
 			List<PrismObject<? extends ShadowType>> list = model.listResourceObjects(
 					resourceOid, objectType, PagingConvertor.createObjectPaging(paging), task, operationResult);
 			handleOperationResult(operationResult, result);
@@ -267,6 +286,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjects() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -275,12 +295,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	public OperationResultType testResource(String resourceOid) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 
+		Task task = createTaskInstance(TEST_RESOURCE);
+		auditLogin(task);
 		try {
-			Task task = createTaskInstance(TEST_RESOURCE);
 			OperationResult testResult = model.testResource(resourceOid, task);
 			return handleOperationResult(testResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, null);
 		}
 	}
@@ -357,6 +379,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(objectClass, "Object class must not be null.");
 
 		Task task = createTaskInstance(IMPORT_FROM_RESOURCE);
+		auditLogin(task);
 		OperationResult operationResult = task.getResult();
 
 		try {
@@ -365,6 +388,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			return handleTaskResult(task);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL importFromResource() failed", ex);
+			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
@@ -397,5 +421,45 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	 */
 	private TaskType handleTaskResult(Task task) {
 		return task.getTaskPrismObject().asObjectable();
+	}
+	
+	private void auditLogin(Task task) {
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
+        PrismObject<UserType> owner = task.getOwner();
+        if (owner != null) {
+	        record.setInitiator(owner);
+	        PolyStringType name = owner.asObjectable().getName();
+	        if (name != null) {
+	        	record.setParameter(name.getOrig());
+	        }
+        }
+
+        record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        record.setTimestamp(System.currentTimeMillis());
+        record.setSessionIdentifier(task.getTaskIdentifier());
+        
+        record.setOutcome(OperationResultStatus.SUCCESS);
+
+        auditService.audit(record, task);
+	}
+	
+	private void auditLogout(Task task) {
+		AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+		PrismObject<UserType> owner = task.getOwner();
+        if (owner != null) {
+	        record.setInitiator(owner);
+	        PolyStringType name = owner.asObjectable().getName();
+	        if (name != null) {
+	        	record.setParameter(name.getOrig());
+	        }
+        }
+
+        record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        record.setTimestamp(System.currentTimeMillis());
+        record.setSessionIdentifier(task.getTaskIdentifier());
+        
+        record.setOutcome(OperationResultStatus.SUCCESS);
+
+        auditService.audit(record, task);
 	}
 }

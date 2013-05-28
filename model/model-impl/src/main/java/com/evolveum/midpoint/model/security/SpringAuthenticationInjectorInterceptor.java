@@ -15,10 +15,18 @@
  */
 package com.evolveum.midpoint.model.security;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,12 +71,16 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 
     private UserDetailsService userDetailsService;
     private AuthorizationEvaluator authorizationEvaluator;
+    private AuditService auditService;
+    private TaskManager taskManager;
 
     public SpringAuthenticationInjectorInterceptor(UserDetailsService userDetailsService,
-    		AuthorizationEvaluator authorizationEvaluator) {
+    		AuthorizationEvaluator authorizationEvaluator, AuditService auditService, TaskManager taskManager) {
         super();
         this.userDetailsService = userDetailsService;
         this.authorizationEvaluator = authorizationEvaluator;
+        this.auditService = auditService;
+        this.taskManager = taskManager;
         id = getClass().getName();
         phase = Phase.PRE_PROTOCOL;
         getAfter().add(WSS4JInInterceptor.class.getName());
@@ -110,8 +122,8 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         //Note: in constructor we have specified that we will be called after we have been successfully authenticated the user through WS-Security
         //Now we will only set the Spring Authentication object based on the user found in the header
         SOAPMessage doc = getSOAPMessage(message);
+        String username = null;
         try {
-            String username = "";
             Element securityHeader = WSSecurityUtil.getSecurityHeader(doc.getSOAPPart(), "");
             username = getUsernameFromSecurityHeader(securityHeader);
 
@@ -125,10 +137,12 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 	// Legacy authorization mechanism. DEPRECATED. TODO: remove
                 	if (userType.getActivation() == null || userType.getActivation().getEffectiveStatus() == null || 
                 			userType.getActivation().getEffectiveStatus() != ActivationStatusType.ENABLED) {
+                		auditLoginFailure(username);
                 		throw new Fault(
                 				new WSSecurityException("User is disabled (LEGACY)"));
                 	}
                 	if (!userType.getCredentials().isAllowedIdmAdminGuiAccess()) {
+                		auditLoginFailure(username);
                 		throw new Fault(
                 				new WSSecurityException("User has LEGACY administration privilege set to false, cannot access web service"));
                 	}
@@ -139,16 +153,19 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 					try {
 						operationName = DOMUtil.getFirstChildElement(doc.getSOAPBody()).getLocalName();
 					} catch (SOAPException e) {
+						auditLoginFailure(username);
 						throw new Fault(e);
 					}
 	                String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
 	                LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
 	                if (!authorizationEvaluator.isAuthorized(action)) {
+	                	auditLoginFailure(username);
 	                	throw new Fault(new WSSecurityException("Unauthorized"));
 	                }
                 }
             }
         } catch (WSSecurityException e) {
+        	auditLoginFailure(username);
             throw new Fault(e);
         }
 
@@ -182,4 +199,18 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     @Override
     public void handleFault(SoapMessage message) {
     }
+    
+    private void auditLoginFailure(String username) {
+		Task task = taskManager.createTaskInstance();
+        task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
+        record.setParameter(username);
+
+        record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        record.setTimestamp(System.currentTimeMillis());
+        record.setOutcome(OperationResultStatus.FATAL_ERROR);
+
+        auditService.audit(record, task);
+	}
 }
