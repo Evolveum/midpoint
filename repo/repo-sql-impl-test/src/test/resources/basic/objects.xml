@@ -32,7 +32,8 @@
         <name>atestuserX00002</name>
         
         <trigger>
-        <handlerUri>http://triggerUri</handlerUri>
+            <handlerUri>http://triggerUri</handlerUri>
+            <timestamp>2013-05-07T10:38:21.350+02:00</timestamp>
         </trigger>
 
         <metadata>

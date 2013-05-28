@@ -640,7 +640,7 @@
     		</xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
-    		<xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
+    		<xsd:element name="timestamp" type="xsd:dateTime">
     			<xsd:annotation>
     				<xsd:documentation>
     					The time when a trigger needs to be activated.
@@ -651,7 +651,7 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-    		<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+    		<xsd:element name="handlerUri" type="xsd:anyURI">
                 <xsd:annotation>
                     <xsd:documentation>
                         Handler URI indirectly specifies which class is responsible to handle the task. The handler will

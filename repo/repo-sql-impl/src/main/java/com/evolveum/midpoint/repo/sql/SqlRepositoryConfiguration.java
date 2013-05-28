@@ -18,10 +18,12 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer;
+import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.dialect.*;
 
 /**
  * This class is used for SQL repository configuration. It reads values from Apache configuration object (xml).
@@ -118,28 +120,28 @@ public class SqlRepositoryConfiguration {
     }
 
     private void computeDefaultConcurrencyParameters() {
-        if (hibernateDialect == null || hibernateDialect.equals("org.hibernate.dialect.H2Dialect")) {
+        if (hibernateDialect == null || H2Dialect.class.getName().equals(hibernateDialect)) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
-        } else if (hibernateDialect.equals("org.hibernate.dialect.MySQL5InnoDBDialect")) {
+        } else if (MySQL5InnoDBDialect.class.getName().equals(hibernateDialect)) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
-        } else if (hibernateDialect.equals("org.hibernate.dialect.Oracle10gDialect")) {
+        } else if (Oracle10gDialect.class.getName().equals(hibernateDialect)) {
             transactionIsolation = TransactionIsolation.READ_COMMITTED;
             lockForUpdateViaHibernate = true;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
-        } else if (hibernateDialect.equals("org.hibernate.dialect.PostgreSQLDialect")
-                || hibernateDialect.equals("org.hibernate.dialect.PostgresPlusDialect")) {
+        } else if (PostgresPlusDialect.class.getName().equals(hibernateDialect)
+                || PostgreSQLDialect.class.getName().equals(hibernateDialect)) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
-        } else if (hibernateDialect.equals("com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect")) {
+        } else if (UnicodeSQLServer2008Dialect.class.getName().equals(hibernateDialect)) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
@@ -159,9 +161,9 @@ public class SqlRepositoryConfiguration {
     }
 
     private void computeDefaultIterativeSearchParameters() {
-        if (hibernateDialect == null || hibernateDialect.equals("org.hibernate.dialect.H2Dialect")) {
+        if (hibernateDialect == null || H2Dialect.class.getName().equals(hibernateDialect)) {
             iterativeSearchByPaging = true;
-            iterativeSearchByPagingBatchSize = 100;
+            iterativeSearchByPagingBatchSize = 50;
         } else {
             iterativeSearchByPaging = false;
         }

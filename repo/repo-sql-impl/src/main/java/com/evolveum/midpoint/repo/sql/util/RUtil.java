@@ -406,6 +406,7 @@ return toJAXB(parentClass, path, value, clazz, null, prismContext);
     public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyContainer.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);

@@ -18,15 +18,16 @@ import java.io.Serializable;
 @Entity
 @IdClass(RTriggerId.class)
 @org.hibernate.annotations.Table(appliesTo = "m_trigger",
-        indexes = {@Index(name = "iTimestamp", columnNames = "timestamp")})
+        indexes = {@Index(name = "iTriggerTimestamp", columnNames = RTrigger.C_TIMESTAMP)})
 public class RTrigger implements Serializable {
 
+    public static final String C_TIMESTAMP = "timestampValue";
     public static final String F_OWNER = "owner";
 
     //owner
     private RContainer owner;
-    private String ownerOid;
     private Long ownerId;
+    private String ownerOid;
 
     private String handlerUri;
     private XMLGregorianCalendar timestamp;
@@ -36,11 +37,21 @@ public class RTrigger implements Serializable {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
+            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id"),
+            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid")
+
     })
     public RContainer getOwner() {
         return owner;
+    }
+
+    @Id
+    @Column(name = "owner_id")
+    public Long getOwnerId() {
+        if (ownerId == null && owner != null) {
+            ownerId = owner.getId();
+        }
+        return ownerId;
     }
 
     @Id
@@ -53,20 +64,13 @@ public class RTrigger implements Serializable {
     }
 
     @Id
-    @Column(name = "owner_id")
-    public Long getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
-    }
-
-    @Column(nullable = true)
+    @Column(name = "handlerUri")
     public String getHandlerUri() {
         return handlerUri;
     }
 
-    @Column(nullable = true)
+    @Id
+    @Column(name = C_TIMESTAMP)
     public XMLGregorianCalendar getTimestamp() {
         return timestamp;
     }
@@ -90,7 +94,6 @@ public class RTrigger implements Serializable {
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
-
 
     @Override
     public boolean equals(Object o) {
