@@ -128,10 +128,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Lets do some local changes on dummy resource
-        
-        // fullname has a strong outbound mapping, this change should be corrected
         DummyAccount guybrushDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        // fullname has a normal outbound mapping, this change should NOT be corrected
         guybrushDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Dubrish Freepweed");
+        
+        // location has strong outbound mapping, this change should be corrected
+        guybrushDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "The Forbidded Dodecahedron");
         
         // Weapon has a weak mapping, this change should be left as it is
         guybrushDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Feather duster");
@@ -166,9 +169,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_BARBOSSA_OID);
         
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
-        // Guybrushes fullname should be corrected back to real fullname
+        // Guybrushes fullname should NOT be corrected back to real fullname
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
-        		"Guybrush Threepwood");
+        		"Dubrish Freepweed");
+        // Guybrushes location should be corrected back to real value
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, 
+        		"Melee Island");
         // Guybrushes weapon should be left untouched
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, 
         		"Feather duster");

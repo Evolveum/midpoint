@@ -86,6 +86,7 @@
     <givenName>Hector</givenName>
     <familyName>Barbossa</familyName>
     <locality>Caribbean</locality>
+    <organizationalUnit>The crew of Pirate Brethren, Inc.</organizationalUnit>
     
     <activation>
     	<administrativeStatus>enabled</administrativeStatus>

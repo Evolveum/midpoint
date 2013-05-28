@@ -1384,7 +1384,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.debug("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
 
-        OperationResult subResult = parentResult.createSubresult(GET_VERSION);
+        OperationResult subResult = parentResult.createMinorSubresult(GET_VERSION);
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 

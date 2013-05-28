@@ -113,8 +113,9 @@
 	</schema>
 
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -136,6 +137,7 @@
 					</expression>
 				</outbound>
 				<inbound>
+					<strength>weak</strength>
 					<target>
 						<path>$c:user/c:name</path>
 					</target>
@@ -189,6 +191,7 @@
 					</source>
 				</outbound>
 			</attribute>
+
 			<activation>
 				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted. -->
             	<existence>
@@ -226,7 +229,7 @@
                     </outbound>
                 </password>
             </credentials>
-		</accountType>
+		</objectType>
 	</schemaHandling>
 	
 </resource>

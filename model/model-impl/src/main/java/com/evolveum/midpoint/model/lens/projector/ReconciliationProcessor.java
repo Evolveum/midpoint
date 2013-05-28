@@ -105,7 +105,9 @@ public class ReconciliationProcessor {
     OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);    
         
         try {
-            if (!accContext.isDoReconciliation()) {
+        	// Reconcile even if it was not explicitly requested and if we have full shadow
+        	// reconciliation is cheap if the shadow is already fetched therefore just do it
+            if (!accContext.isDoReconciliation() && !accContext.isFullShadow()) {
             	return;
             }
             
@@ -134,15 +136,14 @@ public class ReconciliationProcessor {
             	
             	accContext.recompute();
             }
-            
-            LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceShadowDiscriminator());
-
+          
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes = accContext.getSqueezedAttributes();
-            
-//                Map<QName, PrismValueDeltaSetTriple<ValueConstruction<?>>> tripleMap = accContext.getAttributeValueDeltaSetTripleMap();
-            
-            if (squeezedAttributes.isEmpty()) {
+            if (squeezedAttributes == null || squeezedAttributes.isEmpty()) {
             	return;
+            }
+            
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Attribute reconciliation processing {}",accContext.getHumanReadableName());
             }
 
             RefinedObjectClassDefinition accountDefinition = accContext.getRefinedAccountDefinition();            
@@ -181,10 +182,10 @@ public class ReconciliationProcessor {
         		shouldBePValues = pvwoTriple.getNonNegativeValues();
         	}
         	
-        	boolean hasNonInitialShouldBePValue = false;
+        	boolean hasStrongShouldBePValue = false;
         	for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePValue: shouldBePValues) {
         		if (shouldBePValue.getMapping() != null && shouldBePValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
-        			hasNonInitialShouldBePValue = true;
+        			hasStrongShouldBePValue = true;
         			break;
         		}
         	}
@@ -208,8 +209,9 @@ public class ReconciliationProcessor {
         		if (shouldBeMapping == null) {
         			continue;
         		}
-        		if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK && (!arePValues.isEmpty() || hasNonInitialShouldBePValue)) {
-        			// "initial" value and the attribute already has a value. Skip it.
+        		if (shouldBeMapping.getStrength() != MappingStrengthType.STRONG && (!arePValues.isEmpty() || hasStrongShouldBePValue)) {
+        			// weak or normal value and the attribute already has a value. Skip it.
+        			// we cannot override it as it might have been legally changed directly on the projection resource object
         			continue;
         		}
         		Object shouldBeRealValue = shouldBePvwo.getPropertyValue().getValue();

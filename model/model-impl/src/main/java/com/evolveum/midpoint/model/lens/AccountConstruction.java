@@ -254,7 +254,6 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	}
 	
 	private void computeVariables(OperationResult result) throws SchemaException {
-		LOGGER.info("PATH {}", assignmentPath);
 		Iterator<AssignmentPathSegment> iterator = assignmentPath.getSegments().iterator();
 		while (iterator.hasNext()) {
 			AssignmentPathSegment segment = iterator.next();

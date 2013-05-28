@@ -40,6 +40,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestMapping"/>
             <class name="com.evolveum.midpoint.model.intest.TestSecurity"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
+            <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">

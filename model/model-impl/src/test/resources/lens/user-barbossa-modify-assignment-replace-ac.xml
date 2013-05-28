@@ -57,6 +57,7 @@
 				<attribute>
 					<ref>ri:quote</ref>
 					<outbound>
+						<strength>strong</strength>
 						<source>
 							<path>$user/locality</path>
 						</source>

@@ -187,6 +187,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
     
 	public boolean isThombstone() {
+		if (resourceShadowDiscriminator == null) {
+			return false;
+		}
 		return resourceShadowDiscriminator.isThombstone();
 	}
 
@@ -937,14 +940,24 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	 * Return a human readable name of the projection object suitable for logs.
 	 */
 	public String toHumanReadableString() {
+		if (resourceShadowDiscriminator == null) {
+			return "(null" + resource + ")";
+		}
 		if (resource != null) {
-			return "("+resourceShadowDiscriminator.getKind().value() + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
+			return "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
 		} else {
-			return "("+resourceShadowDiscriminator.getKind().value() + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
+			return "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
 		}
 	}
 
-    public void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer) throws SchemaException {
+	private String getKindValue(ShadowKindType kind) {
+		if (kind == null) {
+			return "null";
+		}
+		return kind.value();
+	}
+
+	public void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer) throws SchemaException {
 
         LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
 

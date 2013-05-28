@@ -89,11 +89,15 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
@@ -236,9 +240,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, String filename, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-		importObjectFromFile(filename, result);
+		return importAndGetObjectFromFile(type, new File(filename), oid, task, result);
+	}
+	
+	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, File file, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		importObjectFromFile(file, result);
 		OperationResult importResult = result.getLastSubresult();
-		assertSuccess("Import of "+filename+" has failed", importResult);
+		assertSuccess("Import of "+file+" has failed", importResult);
 		return modelService.getObject(type, oid, null, task, result);
 	}
 	    
@@ -945,6 +953,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
+	
+	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+	}
 
     protected PrismContainerDefinition<AssignmentType> getAssignmentDefinition() {
         return prismContext.getSchemaRegistry().findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
@@ -1430,6 +1442,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (triggers != null && !triggers.isEmpty()) {
 			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);
 		}
+	}
+	
+	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id) throws SchemaException {
+		return createShadow(resource, id, id);
+	}
+	
+	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name) throws SchemaException {
+		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
+		ShadowType shadowType = shadow.asObjectable();
+		shadowType.setName(PrismTestUtil.createPolyStringType(name));
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		shadowType.setResourceRef(resourceRef);
+		shadowType.setKind(ShadowKindType.ACCOUNT);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		shadowType.setObjectClass(objectClassDefinition.getTypeName());
+		ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+		RefinedAttributeDefinition uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
+		ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
+		uidAttr.setRealValue(uid);
+		attrContainer.add(uidAttr);
+		RefinedAttributeDefinition nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+		ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
+		nameAttr.setRealValue(name);
+		attrContainer.add(nameAttr);
+		return shadow;
 	}
 
 }

@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
@@ -196,7 +197,19 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		dummyResourceCtl.extendDummySchema();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
-		dummyResourceCtl.addAccount(ACCOUNT_HBARBOSSA_DUMMY_USERNAME, "Hector Barbossa", "Caribbean");
+		// We need to create Barbossa's account in exactly the shape that is given by his existing assignments
+		// otherwise any substantial change will trigger reconciliation and the recon changes will interfere with
+		// the tests
+		DummyAccount account = new DummyAccount(ACCOUNT_HBARBOSSA_DUMMY_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Hector Barbossa");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Caribbean");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Pirate Brethren, Inc.");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Undead Monkey");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!");
+		dummyResource.addAccount(account);
+		
 		dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
 		dummyResourceCtl.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
 				

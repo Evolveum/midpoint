@@ -535,12 +535,9 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        // This micro-change in assignment will trigger reconciliation, this will cause that also other attributes
-        // will be recomputed (e.g. "ship") and will bounce back by INBOUND
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         display("User Secondary Delta", userSecondaryDelta);
-        assertEquals("Unexpected number of user secondary changes", 1, userSecondaryDelta.getModifications().size());
-        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+        assertNull("Unexpected user secondary delta", userSecondaryDelta);
 
         Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
@@ -552,10 +549,10 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         // There is a lot of changes caused byt the reconciliation. But we are only interested in the new one
-        assertEquals("Unexpected number of account secondary changes", 4, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
-        		"Arr!", "Pirate of Caribbean");
+        		"Pirate of Caribbean");
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.RECONCILIATION);
                 
     }
@@ -1007,11 +1004,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
-        PropertyDelta<String> fullnameDelta = accountSecondaryDelta.findPropertyDelta(
-        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
-        assertNotNull("No fullname Delta in account secondary delta", fullnameDelta);
-        PrismAsserts.assertReplace(fullnameDelta, "Guybrush Threepwood");
-        PrismAsserts.assertOrigin(fullnameDelta, OriginType.RECONCILIATION);
+        // Full name is not changed, it has normal mapping strength
+        // Location is changed back, it has strong mapping
         PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         PrismAsserts.assertReplace(locationDelta, "Melee Island");

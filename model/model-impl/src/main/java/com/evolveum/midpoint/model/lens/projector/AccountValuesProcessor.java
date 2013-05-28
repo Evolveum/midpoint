@@ -16,6 +16,11 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.expression.Expression;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -26,22 +31,29 @@ import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
 import com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -51,6 +63,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
@@ -62,8 +76,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
@@ -91,6 +111,9 @@ public class AccountValuesProcessor {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	RepositoryService repositoryService;
+	
+	@Autowired(required = true)
+	private ExpressionFactory expressionFactory;
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -138,7 +161,7 @@ public class AccountValuesProcessor {
 		while (true) {
 			
 			accountContext.setIteration(iteration);
-			String iterationToken = formatIterationToken(iteration);
+			String iterationToken = formatIterationToken(context, accountContext, iteration, result);
 			accountContext.setIterationToken(iterationToken);			
 			if (consistencyChecks) context.checkConsistence();
 			
@@ -192,11 +215,16 @@ public class AccountValuesProcessor {
 	        		
 	        		
 	        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
-	        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())){
+	        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())) {
 //	        			accountContext.setSecondaryDelta(null);
-	        			cleanupContext(accountContext);
+	        			cleanupContext(accountContext);	        			
 	        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
 	        			accountContext.setObjectOld(fullConflictingShadow);
+	        			accountContext.setFullShadow(true);
+	        			ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
+	        			if (secondaryDelta != null && accountContext.getOid() != null) {
+	        	        	secondaryDelta.setOid(accountContext.getOid());
+	        	        }
 	        			result.computeStatus();
 						// if the result is fatal error, it may mean that the
 						// already exists expection occures before..but in this
@@ -206,9 +234,12 @@ public class AccountValuesProcessor {
 	        			if (result.isError()){
 	        				result.muteError();
 	        			}
-	        			break;
+	        			// Re-do this same iteration again (do not increase iteration count).
+	        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
+	        			continue;
 	        		}
-	        		if (user == null){
+	        		
+	        		if (user == null) {
 		        		
 		        		ResourceType resourceType = accountContext.getResource();
 		        		
@@ -217,13 +248,18 @@ public class AccountValuesProcessor {
 						
 						if (match){
 							//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
-//							accountContext.setPrimaryDelta(null);
-//							accountContext.setSecondaryDelta(null);
 							cleanupContext(accountContext);
 							accountContext.setObjectOld(fullConflictingShadow);
+							accountContext.setFullShadow(true);
 							accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+							ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
+							if (secondaryDelta != null && accountContext.getOid() != null) {
+					        	secondaryDelta.setOid(accountContext.getOid());
+					        }
 							LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
-							break;
+		        			// Re-do this same iteration again (do not increase iteration count).
+		        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
+		        			continue;
 						} else{
 							LOGGER.trace("User {} does not satisfy correlation rules.", context.getFocusContext().getObjectNew());
 						}
@@ -234,8 +270,6 @@ public class AccountValuesProcessor {
 	        		
 	        		
 	        	}
-	        	
-//	        	break;
 	        }
 	        
 	        iteration++;
@@ -258,7 +292,7 @@ public class AccountValuesProcessor {
 	        
 	        cleanupContext(accountContext);
 	        if (consistencyChecks) context.checkConsistence();
-		} 
+		}
 		
 		if (consistencyChecks) context.checkConsistence();
 					
@@ -275,8 +309,61 @@ public class AccountValuesProcessor {
 		return 0;
 	}
 
-	private String formatIterationToken(int iteration) {
+	private String formatIterationToken(LensContext<UserType,ShadowType> context, 
+			LensProjectionContext<ShadowType> accountContext, int iteration, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		// TODO: flexible token format (MID-1102)
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		if (accDef == null) {
+			return formatIterationTokenDefault(iteration);
+		}
+		IterationSpecificationType iterationType = accDef.getIteration();
+		if (iterationType == null) {
+			return formatIterationTokenDefault(iteration);
+		}
+		ExpressionType tokenExpressionType = iterationType.getTokenExpression();
+		if (tokenExpressionType == null) {
+			return formatIterationTokenDefault(iteration);
+		}
+		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition<String>(ExpressionConstants.VAR_ITERATION_TOKEN,
+				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING, prismContext);
+		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), result);
+		
+		Collection<Source<?>> sources = new ArrayList<Source<?>>();
+		PrismPropertyDefinition<Integer> inputDefinition = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
+				ExpressionConstants.VAR_ITERATION, DOMUtil.XSD_INT, prismContext);
+		inputDefinition.setMaxOccurs(1);
+		PrismProperty<Integer> input = inputDefinition.instantiate();
+		input.add(new PrismPropertyValue<Integer>(iteration));
+		ItemDeltaItem<PrismPropertyValue<Integer>> idi = new ItemDeltaItem<PrismPropertyValue<Integer>>(input);
+		Source<PrismPropertyValue<Integer>> iterationSource = new Source<PrismPropertyValue<Integer>>(idi, ExpressionConstants.VAR_ITERATION);
+		sources.add(iterationSource);
+		
+		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, "iteration token expression in "+accountContext.getHumanReadableName(), result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(expressionContext);
+		Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
+		if (outputValues.isEmpty()) {
+			return "";
+		}
+		if (outputValues.size() > 1) {
+			throw new ExpressionEvaluationException("Iteration token expression in "+accountContext.getHumanReadableName()+" returned more than one value ("+outputValues.size()+" values)");
+		}
+		String realValue = outputValues.iterator().next().getValue();
+		if (realValue == null) {
+			return "";
+		}
+		return realValue;
+	}
+		
+	private Map<QName, Object> createExpressionVariables(LensContext<UserType,ShadowType> context, 
+			LensProjectionContext<ShadowType> accountContext) {
+		Map<QName, Object> variables = new HashMap<QName, Object>();
+		variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectNew());
+		variables.put(ExpressionConstants.VAR_SHADOW, accountContext.getObjectNew());
+		return variables;
+	}
+
+	private String formatIterationTokenDefault(int iteration) {
 		if (iteration == 0) {
 			return "";
 		}
@@ -340,7 +427,24 @@ public class AccountValuesProcessor {
 	 * Remove the intermediate results of values processing such as secondary deltas.
 	 */
 	private void cleanupContext(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
-		accountContext.setSecondaryDelta(null);
+		// We must NOT clean up activation computation. This has happened before, it will not happen again
+		// and it does not depend on iteration
+		ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
+		if (secondaryDelta != null) {
+			Collection<? extends ItemDelta> modifications = secondaryDelta.getModifications();
+			if (modifications != null) {
+				Iterator<? extends ItemDelta> iterator = modifications.iterator();
+				while (iterator.hasNext()) {
+					ItemDelta modification = iterator.next();
+					if (! new ItemPath(FocusType.F_ACTIVATION).equals(modification.getParentPath())) {
+						iterator.remove();
+					}
+				}
+			}
+			if (secondaryDelta.isEmpty()) {
+				accountContext.setSecondaryDelta(null);
+			}
+		}
 		accountContext.clearIntermediateResults();
 		accountContext.recompute();
 	}
