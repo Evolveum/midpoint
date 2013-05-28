@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -251,6 +252,19 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		}
 		if (originalValue instanceof PrismPropertyValue<?>) {
 			return ((PrismPropertyValue<?>)originalValue).getValue();
+		}
+		if (originalValue instanceof PrismProperty<?>) {
+			PrismProperty<?> prop = (PrismProperty<?>)originalValue;
+			PrismPropertyDefinition<?> def = prop.getDefinition();
+			if (def != null) {
+				if (def.isSingleValue()) {
+					return prop.getRealValue();
+				} else {
+					return prop.getRealValues();
+				}
+			} else {
+				return prop.getValues();
+			}
 		}
 		return originalValue;
 	}

@@ -162,116 +162,145 @@ public class AccountValuesProcessor {
 			
 			accountContext.setIteration(iteration);
 			String iterationToken = formatIterationToken(context, accountContext, iteration, result);
-			accountContext.setIterationToken(iterationToken);			
-			if (consistencyChecks) context.checkConsistence();
+			String conflictMessage;
 			
-			// Re-evaluates the values in the account constructions (including roles)
-			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
+			LOGGER.trace("Projection values iteration {}, token '{}' for {}", new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
 			
-			context.recompute();
-			if (consistencyChecks) context.checkConsistence();
-			
-			// Evaluates the values in outbound mappings
-			outboundProcessor.processOutbound(context, accountContext, result);
-			
-			context.recompute();
-			if (consistencyChecks) context.checkConsistence();
-			
-			// Merges the values together, processing exclusions and strong/weak mappings are needed
-			consolidationProcessor.consolidateValues(context, accountContext, result);
-			
-			if (consistencyChecks) context.checkConsistence();
-	        context.recompute();
-	        if (consistencyChecks) context.checkConsistence();
-	
-	        // Too noisy for now
-//	        LensUtil.traceContext(LOGGER, activityDescription, "values", context, true);
-	        
-	        if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.DELETE) {
-	        	// No need to play the iterative game if the account is deleted
-	        	break;
-	        }
-	        
-	        // Check constraints
-	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
-	        checker.setPrismContext(prismContext);
-	        checker.setContext(context);
-	        checker.setRepositoryService(repositoryService);
-	        checker.check(result);
-	        if (checker.isSatisfiesConstraints()) {
-	        	LOGGER.trace("Current shadow satisfy uniqueness constraints.");
-	        	break;
-	        } else{
-	        	if (checker.getConflictingShadow() != null){
-	        		PrismObject<ShadowType> fullConflictingShadow = null;
-	        		try{
-	        			fullConflictingShadow = provisioningService.getObject(ShadowType.class, checker.getConflictingShadow().getOid(), null, result);
-	        		} catch (ObjectNotFoundException ex){
-	        			//if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
-	        			LOGGER.trace("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
-	        			break;
-	        		}
-	        		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(checker.getConflictingShadow().getOid(), result);
-	        		
-	        		
-	        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
-	        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())) {
-//	        			accountContext.setSecondaryDelta(null);
-	        			cleanupContext(accountContext);	        			
-	        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-	        			accountContext.setObjectOld(fullConflictingShadow);
-	        			accountContext.setFullShadow(true);
-	        			ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
-	        			if (secondaryDelta != null && accountContext.getOid() != null) {
-	        	        	secondaryDelta.setOid(accountContext.getOid());
-	        	        }
-	        			result.computeStatus();
-						// if the result is fatal error, it may mean that the
-						// already exists expection occures before..but in this
-						// scenario it means, the exception was handled and we
-						// can mute the result to give better understanding of
-						// the situation which happend
-	        			if (result.isError()){
-	        				result.muteError();
-	        			}
-	        			// Re-do this same iteration again (do not increase iteration count).
-	        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
-	        			continue;
-	        		}
-	        		
-	        		if (user == null) {
+			if (!evaluateIterationCondition(context, accountContext, iteration, iterationToken, true, result)) {
+				
+				conflictMessage = "pre-iteration condition was false";
+				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
+						new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
+			} else {
+
+				accountContext.setIterationToken(iterationToken);			
+				if (consistencyChecks) context.checkConsistence();
+				
+				// Re-evaluates the values in the account constructions (including roles)
+				assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
+				
+				context.recompute();
+				if (consistencyChecks) context.checkConsistence();
+				
+				// Evaluates the values in outbound mappings
+				outboundProcessor.processOutbound(context, accountContext, result);
+				
+				context.recompute();
+				if (consistencyChecks) context.checkConsistence();
+				
+				// Merges the values together, processing exclusions and strong/weak mappings are needed
+				consolidationProcessor.consolidateValues(context, accountContext, result);
+				
+				if (consistencyChecks) context.checkConsistence();
+		        context.recompute();
+		        if (consistencyChecks) context.checkConsistence();
+		
+		        // Too noisy for now
+	//	        LensUtil.traceContext(LOGGER, activityDescription, "values", context, true);
+		        
+		        if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.DELETE) {
+		        	// No need to play the iterative game if the account is deleted
+		        	break;
+		        }
+		        
+		        // Check constraints
+		        boolean conflict = true;
+		        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
+		        checker.setPrismContext(prismContext);
+		        checker.setContext(context);
+		        checker.setRepositoryService(repositoryService);
+		        checker.check(result);
+		        if (checker.isSatisfiesConstraints()) {
+		        	LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
+		        	conflict = false;
+		        } else {
+		        	if (checker.getConflictingShadow() != null){
+		        		PrismObject<ShadowType> fullConflictingShadow = null;
+		        		try{
+		        			fullConflictingShadow = provisioningService.getObject(ShadowType.class, checker.getConflictingShadow().getOid(), null, result);
+		        		} catch (ObjectNotFoundException ex){
+		        			//if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
+		        			LOGGER.trace("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
+		        			conflict = false;
+		        		}
 		        		
-		        		ResourceType resourceType = accountContext.getResource();
+		        		if (conflict) {
+			        		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(checker.getConflictingShadow().getOid(), result);
+			        		
+			        		
+			        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
+			        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())) {
+		//	        			accountContext.setSecondaryDelta(null);
+			        			cleanupContext(accountContext);	        			
+			        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+			        			accountContext.setObjectOld(fullConflictingShadow);
+			        			accountContext.setFullShadow(true);
+			        			ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
+			        			if (secondaryDelta != null && accountContext.getOid() != null) {
+			        	        	secondaryDelta.setOid(accountContext.getOid());
+			        	        }
+			        			result.computeStatus();
+								// if the result is fatal error, it may mean that the
+								// already exists expection occures before..but in this
+								// scenario it means, the exception was handled and we
+								// can mute the result to give better understanding of
+								// the situation which happend
+			        			if (result.isError()){
+			        				result.muteError();
+			        			}
+			        			// Re-do this same iteration again (do not increase iteration count).
+			        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
+			        			continue;
+			        		}
+			        		
+			        		if (user == null) {
+				        		
+				        		ResourceType resourceType = accountContext.getResource();
+				        		
+								boolean match = correlationConfirmationEvaluator.matchUserCorrelationRule(fullConflictingShadow, context
+										.getFocusContext().getObjectNew(), resourceType, result);
+								
+								if (match){
+									//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
+									cleanupContext(accountContext);
+									accountContext.setObjectOld(fullConflictingShadow);
+									accountContext.setFullShadow(true);
+									accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+									ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
+									if (secondaryDelta != null && accountContext.getOid() != null) {
+							        	secondaryDelta.setOid(accountContext.getOid());
+							        }
+									LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
+				        			// Re-do this same iteration again (do not increase iteration count).
+				        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
+				        			continue;
+								} else{
+									LOGGER.trace("User {} does not satisfy correlation rules.", context.getFocusContext().getObjectNew());
+								}
+								
+			        		} else{
+			        			LOGGER.trace("Recomputing shadow identifier, because shadow with the some identifier exists and it belongs to other user.");
+			        		}
 		        		
-						boolean match = correlationConfirmationEvaluator.matchUserCorrelationRule(fullConflictingShadow, context
-								.getFocusContext().getObjectNew(), resourceType, result);
-						
-						if (match){
-							//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
-							cleanupContext(accountContext);
-							accountContext.setObjectOld(fullConflictingShadow);
-							accountContext.setFullShadow(true);
-							accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-							ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
-							if (secondaryDelta != null && accountContext.getOid() != null) {
-					        	secondaryDelta.setOid(accountContext.getOid());
-					        }
-							LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
-		        			// Re-do this same iteration again (do not increase iteration count).
-		        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
-		        			continue;
-						} else{
-							LOGGER.trace("User {} does not satisfy correlation rules.", context.getFocusContext().getObjectNew());
-						}
-						
-	        		} else{
-	        			LOGGER.trace("Recomputing shadow identifier, because shadow with the some identifier exists and it belongs to other user.");
-	        		}
-	        		
-	        		
-	        	}
-	        }
-	        
+		        		}
+		        		
+		        	}
+		        	
+		        }
+		        if (!conflict) {
+					if (evaluateIterationCondition(context, accountContext, iteration, iterationToken, false, result)) {
+	    				// stop the iterations
+	    				break;
+	    			} else {
+	    				conflictMessage = "post-iteration condition was false";
+	    				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the post-iteration condition was false",
+	    						new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
+	    			}
+				} else {
+					conflictMessage = checker.getMessages();
+				}
+			}
+			
 	        iteration++;
 	        if (iteration > maxIterations) {
 	        	StringBuilder sb = new StringBuilder();
@@ -286,12 +315,15 @@ public class AccountValuesProcessor {
 	        	} else {
 	        		sb.append(": cannot determine values that satisfy constraints: ");
 	        	}
-	        	sb.append(checker.getMessages());
+	        	if (conflictMessage != null) {
+	        		sb.append(conflictMessage);
+	        	}
 	        	throw new ObjectAlreadyExistsException(sb.toString());
 	        }
 	        
 	        cleanupContext(accountContext);
 	        if (consistencyChecks) context.checkConsistence();
+	        
 		}
 		
 		if (consistencyChecks) context.checkConsistence();
@@ -311,7 +343,6 @@ public class AccountValuesProcessor {
 
 	private String formatIterationToken(LensContext<UserType,ShadowType> context, 
 			LensProjectionContext<ShadowType> accountContext, int iteration, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		// TODO: flexible token format (MID-1102)
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
 			return formatIterationTokenDefault(iteration);
@@ -370,12 +401,52 @@ public class AccountValuesProcessor {
 		return Integer.toString(iteration);
 	}
 
-
-	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<ShadowType> delta) {
-		if (delta == null) {
+	private boolean evaluateIterationCondition(LensContext<UserType, ShadowType> context, 
+			LensProjectionContext<ShadowType> accountContext, int iteration, String iterationToken, 
+			boolean beforeIteration, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		if (accDef == null) {
+			return true;
+		}
+		IterationSpecificationType iterationType = accDef.getIteration();
+		if (iterationType == null) {
+			return true;
+		}
+		ExpressionType expressionType;
+		String desc;
+		if (beforeIteration) {
+			expressionType = iterationType.getPreIterationCondition();
+			desc = "pre-iteration expression in "+accountContext.getHumanReadableName();
+		} else {
+			expressionType = iterationType.getPostIterationCondition();
+			desc = "post-iteration expression in "+accountContext.getHumanReadableName();
+		}
+		if (expressionType == null) {
+			return true;
+		}
+		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
+				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
+		
+		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
+		variables.put(ExpressionConstants.VAR_ITERATION, iteration);
+		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
+		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
+		if (outputValues.isEmpty()) {
 			return false;
 		}
-		return delta.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attr.getName()));
+		if (outputValues.size() > 1) {
+			throw new ExpressionEvaluationException(desc+" returned more than one value ("+outputValues.size()+" values)");
+		}
+		Boolean realValue = outputValues.iterator().next().getValue();
+		if (realValue == null) {
+			return false;
+		}
+		return realValue;
+
 	}
 
 	/**

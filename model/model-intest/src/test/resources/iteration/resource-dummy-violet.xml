@@ -15,9 +15,10 @@
   ~ limitations under the License.
   -->
 
-<resource oid="10000000-0000-0000-0000-00000000a104"
+<resource oid="10000000-0000-0000-0000-00000000a204"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
@@ -25,7 +26,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Pink</name>
+	<name>Dummy Resource Violet</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -44,7 +45,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>pink</icfi:instanceId> <!-- Default instance. -->
+			<icfi:instanceId>violet</icfi:instanceId> <!-- Default instance. -->
 			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
@@ -104,6 +105,35 @@
 
 			<iteration>
 				<maxIterations>5</maxIterations>
+				<tokenExpression>
+					<script>
+						<code>
+							if (iteration == 0) {
+								return "";
+							} else {
+								return "."+iteration;
+							}
+						</code>
+					</script>
+				</tokenExpression>
+				<preIterationCondition>
+					<variable>
+						<name>userName</name>
+						<path>$focus/name/t:orig</path>
+					</variable>
+					<script>
+						<code>userName != 'guybrush' || iteration == 3</code>
+					</script>
+				</preIterationCondition>
+				<postIterationCondition>
+					<variable>
+						<name>name</name>
+						<path>$shadow/attributes/icfs:name</path>
+					</variable>
+					<script>
+						<code>name != 'herman'</code>
+					</script>
+				</postIterationCondition>
 			</iteration>
             
             <activation>

@@ -34,7 +34,9 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -248,6 +250,11 @@ public class Expression<V extends PrismValue> {
 				} else {
 					throw new SchemaException("Unexpected type "+valueObject.getClass()+" in variable definition "+varName+" in "+contextDescription);
 				}
+			} else if (variableDefType.getPath() != null) {
+				XPathHolder xPathHolder = new XPathHolder(variableDefType.getPath());
+				ItemPath itemPath = xPathHolder.toItemPath();
+				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, null, objectResolver, contextDescription, result);
+				newVariables.put(varName, resolvedValue);
 			} else {
 				throw new SchemaException("No value for variable "+varName+" in "+contextDescription);
 			}

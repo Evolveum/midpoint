@@ -797,7 +797,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         for (ObjectReferenceType accountRefType: userType.getLinkRef()) {
         	String accountOid = accountRefType.getOid();
 	        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-	        // Do not assert success yet. This may not be the right account.
 	        PrismObject<ShadowType> account = getAccount(accountOid, true, false);
 	        if (resourceOid.equals(account.asObjectable().getResourceRef().getOid())) {
 	        	// This is noFetch. Therefore there is no fetchResult
@@ -1143,7 +1142,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
-		// TODO: assert name and UID
+		PrismProperty<String> icfNameProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+		assertNotNull("No ICF name attribute in shadow for "+username, icfNameProp);
+		assertEquals("Unexpected ICF name attribute in shadow for "+username, username, icfNameProp.getRealValue());
 	}
 	
 	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {
