@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
+import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -48,15 +49,18 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
         Form form = new Form(ID_FORM);
         add(form);
 
-        DateTextField dateFrom = DateTextField.forDatePattern(ID_DATE_FROM,
-                new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM), "dd/MMM/yyyy");
-        dateFrom.add(new DatePicker());
-        form.add(dateFrom);
+//        DateTextField dateFrom = DateTextField.forDatePattern(ID_DATE_FROM,
+//                new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM), "dd/MMM/yyyy HH:mm:ss");
+//        dateFrom.add(new DatePicker());
+//        form.add(dateFrom);
 
-        DateTextField dateTo = DateTextField.forDatePattern(ID_DATE_TO,
-                new PropertyModel<Date>(getModel(), AuditReportDto.F_TO), "dd/MMM/yyyy");
-        dateTo.add(new DatePicker());
-        form.add(dateTo);
+//        DateTextField dateTo = DateTextField.forDatePattern(ID_DATE_TO,
+//                new PropertyModel<Date>(getModel(), AuditReportDto.F_TO), "dd/MMM/yyyy HH:mm:ss");
+//        dateTo.add(new DatePicker());
+//        form.add(dateTo);
+
+        form.add(new DateTimeField(ID_DATE_FROM, new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM)));
+        form.add(new DateTimeField(ID_DATE_TO, new PropertyModel<Date>(getModel(), AuditReportDto.F_TO)));
 
         AjaxSubmitLinkButton run = new AjaxSubmitLinkButton(ID_RUN, ButtonType.POSITIVE,
                 createStringResource("PageBase.button.run")) {
