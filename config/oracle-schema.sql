@@ -588,11 +588,11 @@ CREATE TABLE m_task_dependent (
 ) INITRANS 30;
 
 CREATE TABLE m_trigger (
-  owner_id   NUMBER(19, 0)     NOT NULL,
-  owner_oid  VARCHAR2(36 CHAR) NOT NULL,
-  handlerUri VARCHAR2(255 CHAR),
-  timestamp  TIMESTAMP,
-  PRIMARY KEY (owner_id, owner_oid)
+  handlerUri     VARCHAR2(255 CHAR) NOT NULL,
+  owner_id       NUMBER(19, 0)      NOT NULL,
+  owner_oid      VARCHAR2(36 CHAR)  NOT NULL,
+  timestampValue TIMESTAMP          NOT NULL,
+  PRIMARY KEY (handlerUri, owner_id, owner_oid, timestampValue)
 ) INITRANS 30;
 
 CREATE TABLE m_user (
@@ -878,7 +878,7 @@ ADD CONSTRAINT fk_task_dependent
 FOREIGN KEY (task_id, task_oid)
 REFERENCES m_task;
 
-CREATE INDEX iTimestamp ON m_trigger (timestamp) INITRANS 30;
+CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue) INITRANS 30;
 
 ALTER TABLE m_trigger
 ADD CONSTRAINT FK6E863FE68FEF355
