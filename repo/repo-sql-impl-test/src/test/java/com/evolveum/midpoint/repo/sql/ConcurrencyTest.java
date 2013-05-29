@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -448,7 +450,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(user, null, result);
 
         repositoryService.searchObjectsIterative(UserType.class,
-                ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, name)),
+                ObjectQuery.createObjectQuery(
+                        EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME,
+                            new PolyString(name), PolyStringOrigMatchingRule.NAME.getLocalPart())),
                 new ResultHandler<UserType>() {
                     @Override
                     public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
