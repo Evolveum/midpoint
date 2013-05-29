@@ -919,6 +919,33 @@ public class ModelController implements ModelService, ModelInteractionService {
 		ResourceType resource = null;
 		try {
 			resource = getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
+
+			if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
+				OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
+				subresult.recordWarning("No synchronization settings in "+resource+", import will probably do nothing");
+				LOGGER.warn("No synchronization settings in "+resource+", import will probably do nothing");
+			} else {
+				ObjectSynchronizationType syncType = resource.getSynchronization().getObjectSynchronization().iterator().next();
+				if (syncType.isEnabled() != null && !syncType.isEnabled()) {
+					OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
+					subresult.recordWarning("Synchronization is disabled for "+resource+", import will probably do nothing");
+					LOGGER.warn("Synchronization is disabled for "+resource+", import will probably do nothing");
+				}
+			}
+			
+			result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
+
+			importAccountsFromResourceTaskHandler.launch(resource, objectClass, task, result);
+
+			// The launch should switch task to asynchronous. It is in/out, so no
+			// other action is needed
+
+			if (!task.isAsynchronous()) {
+				result.recordSuccess();
+			}
+			
+			result.cleanupResult();
+		
 		} catch (ObjectNotFoundException ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
@@ -931,35 +958,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 		} catch (SecurityViolationException ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
+		} catch (RuntimeException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
 		} finally {
 			RepositoryCache.exit();
 		}
 		
-		if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
-			OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
-			subresult.recordWarning("No synchronization settings in "+resource+", import will probably do nothing");
-			LOGGER.warn("No synchronization settings in "+resource+", import will probably do nothing");
-		} else {
-			ObjectSynchronizationType syncType = resource.getSynchronization().getObjectSynchronization().iterator().next();
-			if (syncType.isEnabled() != null && !syncType.isEnabled()) {
-				OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
-				subresult.recordWarning("Synchronization is disabled for "+resource+", import will probably do nothing");
-				LOGGER.warn("Synchronization is disabled for "+resource+", import will probably do nothing");
-			}
-		}
-		
-		result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
-
-		importAccountsFromResourceTaskHandler.launch(resource, objectClass, task, result);
-
-		// The launch should switch task to asynchronous. It is in/out, so no
-		// other action is needed
-
-		if (!task.isAsynchronous()) {
-			result.recordSuccess();
-		}
-		RepositoryCache.exit();
-		result.cleanupResult();
 	}
 
 	@Override
