@@ -107,22 +107,6 @@
 	</org>
 
 	<!-- Users -->
-
-	<user>
-		<name>elaine</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
-		<fullName>Elaine Marley</fullName>
-		<givenName>Elaine</givenName>
-		<familyName>Marley</familyName>
-		<title>Governor</title>
-		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
-		</assignment>
-		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
-		</assignment>
-	</user>
 	
 	<user>
 		<name>cheese</name>
@@ -140,6 +124,21 @@
 		</assignment>
 	</user>
 
+	<user>
+		<name>elaine</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
+		<fullName>Elaine Marley</fullName>
+		<givenName>Elaine</givenName>
+		<familyName>Marley</familyName>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
+		</assignment>	
+	</user>
+	
 	<user>
 		<name>chef</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
