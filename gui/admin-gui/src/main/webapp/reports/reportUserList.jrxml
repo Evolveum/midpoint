@@ -127,7 +127,9 @@
 					<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="300" y="0" width="100" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="300" y="0" width="100" height="13">
+						<printWhenExpression><![CDATA[!$F{activation}.getAdministrativeStatus().getSchemaValue().value().isEmpty()]]></printWhenExpression>
+					</reportElement>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{activation}.getAdministrativeStatus().getSchemaValue()]]></textFieldExpression>
 				</textField>
