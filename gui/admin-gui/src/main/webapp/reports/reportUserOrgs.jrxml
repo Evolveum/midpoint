@@ -9,7 +9,7 @@
 	<style name="Column header" mode="Transparent" forecolor="#000000" backcolor="#CCFFFF" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
 	<parameter name="USER_OID" class="java.lang.String"/>
 	<queryString language="hql">
-		<![CDATA[select o.name.orig as orgName from RAssignment as a, ROrg as o where a.targetRef.type = 16 and a.targetRef.targetOid = o.oid and a.owner.oid = $P{USER_OID}]]>
+		<![CDATA[select o.displayName.orig as orgName from RAssignment as a, ROrg as o where a.targetRef.type = 16 and a.targetRef.targetOid = o.oid and a.owner.oid = $P{USER_OID}]]>
 	</queryString>
 	<field name="orgName" class="java.lang.String"/>
 	<detail>
