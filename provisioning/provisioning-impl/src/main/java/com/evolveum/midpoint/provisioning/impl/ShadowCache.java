@@ -408,17 +408,17 @@ public abstract class ShadowCache {
 
 		afterModifyOnResource(shadow, modifications, parentResult);
 
-		PropertyDelta<?> renameDelta = checkShadowName(modifications, shadow);
+		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow);
 
-		// if (!sideEffectChanges.isEmpty()) {
 		Collection<? extends ItemDelta> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
-		if (renameDelta != null) {
-			((Collection) sideEffectDelta).add(renameDelta);
+		if (renameDeltas != null) {
+			((Collection) sideEffectDelta).addAll(renameDeltas);
 		}
 		if (!sideEffectDelta.isEmpty()) {
 			try {
 
 				repositoryService.modifyObject(shadow.getCompileTimeClass(), oid, sideEffectDelta, parentResult);
+				
 			} catch (ObjectAlreadyExistsException ex) {
 				parentResult.recordFatalError("Side effect changes could not be applied", ex);
 				LOGGER.error("Side effect changes could not be applied. " + ex.getMessage(), ex);
@@ -434,26 +434,28 @@ public abstract class ShadowCache {
 		return oid;
 	}
 
-	private PropertyDelta<?> checkShadowName(Collection<? extends ItemDelta> modifications, 
+	private Collection<PropertyDelta<?>> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
 			PrismObject<ShadowType> shadow) throws SchemaException {
-		ItemDelta<?> nameDelta = ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
-		String newName = null;//ShadowCacheUtil.determineShadowName(shadow);
-		
+		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
 		if (nameDelta == null){
 			return null;
 		}
+
+		PrismProperty<String> name = nameDelta.getPropertyNew();
+		String newName = name.getRealValue();
 		
-		if (nameDelta.isReplace()){
-			Item name = nameDelta.getItemNew();
-			newName = (String) ((PrismPropertyValue) name.getValue(0)).getValue();
+		Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
+		
+		// $shadow/attributes/icfs:name
+		deltas.add(nameDelta.clone());
+		
+		// $shadow/name
+		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
+			deltas.add(shadowNameDelta);
 		}
 		
-		if (newName.equals(shadow.asObjectable().getName().getOrig())){
-			return null;
-		}
-		 
-		PropertyDelta<?> renameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
-		return renameDelta;
+		return deltas;
 	}
 
 	private Collection<? extends ItemDelta> convertToPropertyDelta(

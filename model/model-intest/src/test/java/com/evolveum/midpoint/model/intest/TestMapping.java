@@ -941,7 +941,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test144ModifyAccountLocationReplaceEmpty() throws Exception {
-		final String TEST_NAME = "test124ModifyAccountShipReplaceEmpty";
+		final String TEST_NAME = "test144ModifyAccountLocationReplaceEmpty";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -983,7 +983,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 
 	@Test
     public void test145ModifyAccountLocationDelete() throws Exception {
-		final String TEST_NAME = "test146ModifyAccountLocationDelete";
+		final String TEST_NAME = "test145ModifyAccountLocationDelete";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1031,7 +1031,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test148ModifyUserRename() throws Exception {
-		final String TEST_NAME = "test146ModifyUserRename";
+		final String TEST_NAME = "test148ModifyUserRename";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1051,7 +1051,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
 		
-		assertAccountRename(userJack, "renamedJack", "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+		assertAccountRename(userJack, "renamedJack", "Captain Jack Sparrow", dummyResourceCtl, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1121,38 +1121,38 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expectedShip, true, resourceCtl, task);
 	}
 	
-	private void assertAccountRename(PrismObject<UserType> userJack, String name, String expectedFullName, String expectedShip,
+	private void assertAccountRename(PrismObject<UserType> userJack, String name, String expectedFullName,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-		assertAccount(userJack, name, expectedFullName, "name", null, true, resourceCtl, task);
+		assertAccount(userJack, name, expectedFullName, null, null, true, resourceCtl, task);
 	}
 	
-	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String attributeName, String expectedShip,
+	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String shipAttributeName, String expectedShip,
 			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		// ship inbound mapping is used, it is strong 
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, task.getResult());
+        display("Repo shadow", accountShadow);
         assertShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
         
         // Check account
         // All the changes should be reflected to the account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, task.getResult());
+        display("Model shadow", accountModel);
         assertShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
         PrismAsserts.assertPropertyValue(accountModel, 
         		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
         		expectedFullName);
-		if ("name".equals(attributeName)) {
-			PrismAsserts.assertPropertyValue(accountModel, new ItemPath(
-					ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), name);
-		}
-        if (expectedShip == null) {
-        	PrismAsserts.assertNoItem(accountModel, 
-            		resourceCtl.getAttributePath(attributeName));        	
-        } else {
-        	PrismAsserts.assertPropertyValue(accountModel, 
-        		resourceCtl.getAttributePath(attributeName),
-        		expectedShip);
+        if (shipAttributeName != null) {
+	        if (expectedShip == null) {
+	        	PrismAsserts.assertNoItem(accountModel, 
+	            		resourceCtl.getAttributePath(shipAttributeName));        	
+	        } else {
+	        	PrismAsserts.assertPropertyValue(accountModel, 
+	        		resourceCtl.getAttributePath(shipAttributeName),
+	        		expectedShip);
+	        }
         }
         
         // Check account in dummy resource

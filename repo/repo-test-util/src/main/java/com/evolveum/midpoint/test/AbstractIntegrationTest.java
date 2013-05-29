@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.test;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -23,10 +24,14 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -34,6 +39,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -42,6 +48,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
@@ -58,6 +65,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -402,4 +410,65 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No activation in "+focus, activationType);
 		assertEquals("Wrong validityStatus in activation in "+focus, expected, activationType.getValidityStatus());
 	}
+	
+	protected void assertShadow(PrismObject<? extends ShadowType> shadow) {
+		assertObject(shadow);
+	}
+	
+	protected void assertObject(PrismObject<? extends ObjectType> object) {
+		object.checkConsistence(true, true);
+		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
+		assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
+		assertNotNull("Null name in "+object, object.asObjectable().getName());
+	}
+	
+	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
+    	assertUser(user, oid, name, fullName, givenName, familyName, null);
+    }
+		
+	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
+		assertObject(user);
+		assertEquals("Wrong "+user+" OID (prism)", oid, user.getOid());
+		UserType userType = user.asObjectable();
+		assertEquals("Wrong "+user+" OID (jaxb)", oid, userType.getOid());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" name", name, userType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
+		
+		if (location != null) {
+			PrismAsserts.assertEqualsPolyString("Wrong " + user + " location", location,
+					userType.getLocality());
+		}
+	}
+	
+	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+		assertShadow(accountShadow);
+		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
+		assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+		assertEquals("Account shadow objectclass", new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"), ResourceObjectShadowType.getObjectClass());
+		assertEquals("Account shadow resourceRef OID", resourceType.getOid(), accountShadow.asObjectable().getResourceRef().getOid());
+		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
+		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
+		PrismProperty<String> icfNameProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+		assertNotNull("No ICF name attribute in shadow for "+username, icfNameProp);
+		assertEquals("Unexpected ICF name attribute in shadow for "+username, username, icfNameProp.getRealValue());
+	}
+	
+	protected void assertShadowRepo(String oid, String username, ResourceType resourceType) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowRepo");
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, result);
+		result.computeStatus();
+		assertSuccess(result);
+		assertShadowRepo(shadow, oid, username, resourceType);
+	}
+	
+	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+		assertShadowCommon(accountShadow, oid, username, resourceType);
+		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
+	}	
 }

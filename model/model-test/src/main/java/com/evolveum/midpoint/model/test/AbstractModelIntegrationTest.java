@@ -264,37 +264,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (verbose) display("Users", users);
         assertEquals("Unexpected number of users", expectedNumberOfUsers, users.size());
     }
-    
-    protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
-    	assertUser(user, oid, name, fullName, givenName, familyName, null);
-    }
-		
-	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
-		assertObject(user);
-		assertEquals("Wrong "+user+" OID (prism)", oid, user.getOid());
-		UserType userType = user.asObjectable();
-		assertEquals("Wrong "+user+" OID (jaxb)", oid, userType.getOid());
-		PrismAsserts.assertEqualsPolyString("Wrong "+user+" name", name, userType.getName());
-		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
-		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
-		PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
-		
-		if (location != null) {
-			PrismAsserts.assertEqualsPolyString("Wrong " + user + " location", location,
-					userType.getLocality());
-		}
-	}
-	
-	protected void assertShadow(PrismObject<? extends ShadowType> shadow) {
-		assertObject(shadow);
-	}
-	
-	protected void assertObject(PrismObject<? extends ObjectType> object) {
-		object.checkConsistence(true, true);
-		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
-		assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
-		assertNotNull("Null name in "+object, object.asObjectable().getName());
-	}
 
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("getObject");
@@ -1126,32 +1095,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
-    
-    protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-		assertShadowCommon(accountShadow, oid, username, resourceType);
-		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		List<Item<?>> attributes = attributesContainer.getValue().getItems();
-		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
-	}	
 	
 	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
 		assertShadowCommon(accountShadow, oid, username, resourceType);
 		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceType, RefinedAttributeDefinition.class);
-	}
-
-	private void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-		assertShadow(accountShadow);
-		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
-		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
-		assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
-		assertEquals("Account shadow objectclass", new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"), ResourceObjectShadowType.getObjectClass());
-		assertEquals("Account shadow resourceRef OID", resourceType.getOid(), accountShadow.asObjectable().getResourceRef().getOid());
-		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
-		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
-		PrismProperty<String> icfNameProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
-		assertNotNull("No ICF name attribute in shadow for "+username, icfNameProp);
-		assertEquals("Unexpected ICF name attribute in shadow for "+username, username, icfNameProp.getRealValue());
 	}
 	
 	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {

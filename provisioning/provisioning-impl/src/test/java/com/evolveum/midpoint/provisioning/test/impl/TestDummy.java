@@ -2589,6 +2589,44 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
+	
+	@Test
+	public void test300AccountRename() throws Exception {
+		final String TEST_NAME = "test300AccountRename";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
+				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH, prismContext, "cptmorgan");
+		provisioningService.applyDefinition(delta, result);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+		
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
+		delta.checkConsistence();
+		assertDummyAccountAttributeValues("cptmorgan", RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Captain Morgan");
+		
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, result);
+		assertShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
+		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, "cptmorgan");
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
+	}
 
 	@Test
 	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,
