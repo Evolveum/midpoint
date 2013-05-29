@@ -15,10 +15,11 @@
 	</style>
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
 	<parameter name="RESOURCE_OID" class="java.lang.String"/>
+	<parameter name="RESOURCE_NAME" class="java.lang.String"/>
 	<parameter name="CLASS" class="javax.xml.namespace.QName"/>
 	<parameter name="INTENT" class="java.lang.String"/>
 	<queryString language="hql">
-		<![CDATA[select distinct u.name.orig as username, s.name.orig as name, s.synchronizationSituation as situation, ss.situation as situationDescription, r.name.orig as resourceName from RUser as u, RShadow as s join u.linkRef as linkRef, RResource as r join s.resourceRef as resRef, RSynchronizationSituationDescription as ss join s.synchronizationSituationDescription as ssd where s.intent = $P{INTENT} and s.objectClass = $P{CLASS} and s.oid = linkRef.targetOid and resRef.type = 8 and r.oid = resRef.targetOid and r.oid = $P{RESOURCE_OID} and ssd.shadowOid = ss.shadowOid and s.kind = 0]]>
+		<![CDATA[select distinct u.name.orig as username, s.name.orig as name, s.synchronizationSituation as situation, ss.situation as situationDescription from RUser as u, RShadow as s join u.linkRef as linkRef, RResource as r join s.resourceRef as resRef, RSynchronizationSituationDescription as ss join s.synchronizationSituationDescription as ssd where s.intent = $P{INTENT} and s.objectClass = $P{CLASS} and s.oid = linkRef.targetOid and resRef.type = 8 and r.oid = resRef.targetOid and r.oid = $P{RESOURCE_OID} and ssd.shadowOid = ss.shadowOid and s.kind = 0]]>
 	</queryString>
 	<field name="username" class="java.lang.String"/>
 	<field name="name" class="java.lang.String"/>
@@ -28,7 +29,6 @@
 	<field name="situationDescription" class="com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation">
 		<fieldDescription><![CDATA[situationDescription]]></fieldDescription>
 	</field>
-	<field name="resourceName" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -49,9 +49,7 @@
 				</image>
 			</frame>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="70" width="120" height="20" forecolor="#000000">
-					<printWhenExpression><![CDATA[!$F{resourceName}.isEmpty()]]></printWhenExpression>
-				</reportElement>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="70" width="120" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
@@ -62,12 +60,10 @@
 				<textElement verticalAlignment="Middle">
 					<font size="14" isBold="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{resourceName}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{RESOURCE_NAME}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="90" width="120" height="20" forecolor="#000000">
-					<printWhenExpression><![CDATA[!$P{INTENT}.isEmpty()]]></printWhenExpression>
-				</reportElement>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="90" width="120" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
@@ -81,9 +77,7 @@
 				<textFieldExpression><![CDATA[$P{INTENT}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="110" width="120" height="20" forecolor="#000000">
-					<printWhenExpression><![CDATA[!$P{CLASS}.getLocalPart().isEmpty()]]></printWhenExpression>
-				</reportElement>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="110" width="120" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
