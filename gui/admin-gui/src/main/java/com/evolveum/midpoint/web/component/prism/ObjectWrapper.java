@@ -454,37 +454,45 @@ public class ObjectWrapper implements Serializable {
 
                     PrismPropertyValue newValCloned = clone(valueWrapper.getValue());
                     PrismPropertyValue oldValCloned = clone(valueWrapper.getOldValue());
-					switch (valueWrapper.getStatus()) {
-					case ADDED:
-						if (SchemaConstants.PATH_PASSWORD.equals(path)) {
-							// password change will always look like add,
-							// therefore we push replace
-							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-						} else {
-							pDelta.addValueToAdd(newValCloned);
-						}
-						break;
-					case DELETED:
-						pDelta.addValueToDelete(newValCloned);
-						break;
-					case NOT_CHANGED:
-						// this is modify...
-						if (propertyDef.isSingleValue()) {
-							if (newValCloned != null && newValCloned.getValue() != null) {
-								pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-							} else {
-								pDelta.addValueToDelete(oldValCloned);
-							}
-						} else {
-							if (newValCloned != null && newValCloned.getValue() != null) {
-								pDelta.addValueToAdd(newValCloned);
-							}
-							pDelta.addValueToDelete(oldValCloned);
-						}
-						break;
-					}
-				}
-				if (!pDelta.isEmpty()) {
+                    switch (valueWrapper.getStatus()) {
+                        case ADDED:
+                            if (newValCloned != null) {
+                                if (SchemaConstants.PATH_PASSWORD.equals(path)) {
+                                    // password change will always look like add,
+                                    // therefore we push replace
+                                    pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+                                } else {
+                                    pDelta.addValueToAdd(newValCloned);
+                                }
+                            }
+                            break;
+                        case DELETED:
+                            if (newValCloned != null) {
+                                pDelta.addValueToDelete(newValCloned);
+                            }
+                            break;
+                        case NOT_CHANGED:
+                            // this is modify...
+                            if (propertyDef.isSingleValue()) {
+                                if (newValCloned != null && newValCloned.getValue() != null) {
+                                    pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+                                } else {
+                                    if (oldValCloned != null) {
+                                        pDelta.addValueToDelete(oldValCloned);
+                                    }
+                                }
+                            } else {
+                                if (newValCloned != null && newValCloned.getValue() != null) {
+                                    pDelta.addValueToAdd(newValCloned);
+                                }
+                                if (oldValCloned != null) {
+                                    pDelta.addValueToDelete(oldValCloned);
+                                }
+                            }
+                            break;
+                    }
+                }
+                if (!pDelta.isEmpty()) {
 					delta.addModification(pDelta);
 				}
 			}
