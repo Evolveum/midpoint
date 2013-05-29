@@ -666,8 +666,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	public void cleanup() {
 		super.cleanup();
 		synchronizationPolicyDecision = null;
-		isLegal = null;
-		isLegalOld = null;
+//		isLegal = null;
+//		isLegalOld = null;
 		isAssigned = false;
 		isActive = false;
 	}
