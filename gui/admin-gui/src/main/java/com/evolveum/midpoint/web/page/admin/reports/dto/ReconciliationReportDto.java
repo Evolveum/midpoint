@@ -24,6 +24,7 @@ import java.io.Serializable;
 public class ReconciliationReportDto implements Serializable {
 
     private String resourceOid;
+    private String resourceName;
 
     public String getResourceOid() {
         return resourceOid;
@@ -31,5 +32,13 @@ public class ReconciliationReportDto implements Serializable {
 
     public void setResourceOid(String resourceOid) {
         this.resourceOid = resourceOid;
+    }
+
+    public String getResourceName() {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
     }
 }

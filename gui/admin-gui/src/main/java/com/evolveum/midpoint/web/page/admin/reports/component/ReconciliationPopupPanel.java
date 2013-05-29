@@ -107,6 +107,7 @@ public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDt
                 ReconciliationReportDto dto = getModel().getObject();
 
                 dto.setResourceOid(object != null ? object.getOid() : null);
+                dto.setResourceName(object != null ? object.getName() : null);
             }
 
             @Override

@@ -265,7 +265,7 @@ public class PageReports extends PageAdminReports {
             ReconciliationReportDto dto = (ReconciliationReportDto) object;
 
             QName objectClass = getObjectClass(dto.getResourceOid());
-            return createReconciliationReport(dto.getResourceOid(), objectClass, "default");
+            return createReconciliationReport(dto.getResourceOid(), dto.getResourceName(), objectClass, "default");
         }
 
         return new byte[]{};
@@ -308,12 +308,14 @@ public class PageReports extends PageAdminReports {
         return createReport("/reports/reportAuditLogs.jrxml", params);
     }
 
-    private byte[] createReconciliationReport(String resourceOid, QName objectClass, String intent) {
+    private byte[] createReconciliationReport(String resourceOid, String resourceName, QName objectClass,
+                                              String intent) {
         LOGGER.debug("Creating reconciliation report for resource {} with object class {} and intent {}.",
                 new Object[]{resourceOid, objectClass, intent});
         Map params = new HashMap();
 
         params.put("RESOURCE_OID", resourceOid);
+        params.put("RESOURCE_NAME", resourceName);
         params.put("CLASS", objectClass);
         params.put("INTENT", intent);
 
