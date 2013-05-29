@@ -155,7 +155,9 @@
 					<textFieldExpression><![CDATA[$F{eventStage}.getStage()]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="340" y="0" width="200" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="340" y="0" width="200" height="13">
+						<printWhenExpression><![CDATA[!$F{targetType}.equals(null)]]></printWhenExpression>
+					</reportElement>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{targetName} + " (" + $F{targetType} + ") "]]></textFieldExpression>
 				</textField>
