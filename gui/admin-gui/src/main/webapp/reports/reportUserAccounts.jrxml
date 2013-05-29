@@ -1,263 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report2" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportUserOrgs" columnCount="2" pageWidth="110" pageHeight="16" whenNoDataType="AllSectionsNoDetail" columnWidth="54" columnSpacing="1" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
 	<property name="ireport.zoom" value="1.6105100000000019"/>
-	<property name="ireport.x" value="34"/>
+	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
-	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
-	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
-	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
-	<style name="Detail" mode="Transparent" fontName="DejaVu Sans"/>
-	<style name="Row" mode="Transparent" fontName="DejaVu Sans">
-		<conditionalStyle>
-			<style mode="Opaque" backcolor="#F0EFEF"/>
-		</conditionalStyle>
-	</style>
-	<parameter name="LOGO_PATH" class="java.lang.String"/>
-	<parameter name="USER_NAME" class="java.util.List">
-		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
-	</parameter>
-	<parameter name="RESOURCE_OID" class="java.lang.String"/>
+	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
+	<style name="Detail" mode="Transparent" forecolor="#000000" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
+	<style name="Column header" mode="Transparent" forecolor="#000000" backcolor="#CCFFFF" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
+	<parameter name="USER_OID" class="java.lang.String"/>
 	<queryString language="hql">
-		<![CDATA[select u.name.orig as userName, s.name.orig as accName, u.familyName.orig as lastName, u.givenName.orig as firstName, r.name.orig as resourceName, s.intent as accType, s.objectClass as objectClass, u.emailAddress as email, u.employeeNumber as emplNum, u.activation as activation from RUser as u join u.accountRefs as accRef, RResourceObjectShadow as s join s.resourceRef as resRef, RResource as r where u.name.orig in $P{USER_NAME} and resRef.targetOid = $P{RESOURCE_OID} and accRef.targetOid = s.oid and resRef.targetOid = r.oid]]>
+		<![CDATA[select s.name.orig as accountName from RObjectReference as o, RShadow as s where o.owner.oid = $P{USER_OID} and o.type = 9 and o.targetOid = s.oid and s.kind = 0]]>
 	</queryString>
-	<field name="userName" class="java.lang.String"/>
-	<field name="accName" class="java.lang.String"/>
-	<field name="lastName" class="java.lang.String"/>
-	<field name="firstName" class="java.lang.String"/>
-	<field name="resourceName" class="java.lang.String"/>
-	<field name="accType" class="java.lang.String"/>
-	<field name="objectClass" class="javax.xml.namespace.QName"/>
-	<field name="email" class="java.lang.String"/>
-	<field name="emplNum" class="java.lang.String"/>
-	<field name="activation" class="com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation">
-		<fieldDescription><![CDATA[activation]]></fieldDescription>
-	</field>
-	<variable name="id" class="java.lang.Long"/>
-	<background>
-		<band splitType="Stretch"/>
-	</background>
-	<title>
-		<band height="138" splitType="Stretch">
-			<frame>
-				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" mode="Opaque" x="1" y="0" width="799" height="67" backcolor="#267994"/>
-				<staticText>
-					<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
-					<textElement verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="26" isBold="true"/>
-					</textElement>
-					<text><![CDATA[Reports Results]]></text>
-				</staticText>
-				<image>
-					<reportElement uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c" x="589" y="13" width="203" height="45"/>
-					<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
-				</image>
-			</frame>
-			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="SubTitle" x="2" y="84" width="88" height="20" forecolor="#000000">
-					<printWhenExpression><![CDATA[!$F{resourceName}.isEmpty()]]></printWhenExpression>
-				</reportElement>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Resource:]]></text>
-			</staticText>
-			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss" isBlankWhenNull="true">
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="92" y="84" width="708" height="20" forecolor="#000000"/>
-				<textElement verticalAlignment="Middle">
-					<font size="14" isBold="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{resourceName}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="170" height="20">
-					<!--<printWhenExpression><![CDATA[!$F{userName}.isEmpty()]]></printWhenExpression>-->
-				</reportElement>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Report generated on:]]></text>
-			</staticText>
-			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="172" y="115" width="644" height="20" forecolor="#000000"/>
-				<textElement verticalAlignment="Middle">
-					<font size="14" isBold="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-			</textField>
-		</band>
-	</title>
-	<pageHeader>
-		<band splitType="Stretch"/>
-	</pageHeader>
-	<columnHeader>
-		<band height="31">
-			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="11" width="802" height="19" isRemoveLineWhenBlank="true"/>
-				<staticText>
-					<reportElement uuid="9de6d6fa-3366-4313-83c6-4b98e0b1bef1" style="Column header" mode="Opaque" x="717" y="0" width="85" height="18" forecolor="#FFFFFF"/>
-					<textElement textAlignment="Justified" verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[Account type]]></text>
-				</staticText>
-				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="1" y="0" width="91" height="18" forecolor="#FFFFFF" backcolor="#333333"/>
-					<textElement verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[User name]]></text>
-				</staticText>
-				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="92" y="0" width="91" height="18" forecolor="#FFFFFF" backcolor="#333333"/>
-					<textElement verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[First name]]></text>
-				</staticText>
-				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="183" y="0" width="91" height="18" forecolor="#FFFFFF" backcolor="#333333"/>
-					<textElement verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[Last name]]></text>
-				</staticText>
-				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="274" y="0" width="69" height="18" forecolor="#FFFFFF" backcolor="#333333"/>
-					<textElement verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[Enabled]]></text>
-				</staticText>
-				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="343" y="0" width="98" height="18" forecolor="#FFFFFF" backcolor="#333333"/>
-					<textElement verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[E. Number]]></text>
-				</staticText>
-				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="441" y="0" width="166" height="18" forecolor="#FFFFFF" backcolor="#333333"/>
-					<textElement verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[Account name]]></text>
-				</staticText>
-				<staticText>
-					<reportElement uuid="9de6d6fa-3366-4313-83c6-4b98e0b1bef1" style="Column header" mode="Opaque" x="607" y="0" width="110" height="18" forecolor="#FFFFFF"/>
-					<textElement textAlignment="Justified" verticalAlignment="Middle">
-						<font isBold="true"/>
-					</textElement>
-					<text><![CDATA[Object class]]></text>
-				</staticText>
-			</frame>
-		</band>
-	</columnHeader>
+	<field name="accountName" class="java.lang.String"/>
 	<detail>
-		<band height="24" splitType="Stretch">
+		<band height="16" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="802" height="23"/>
-				<textField isStretchWithOverflow="true" pattern="">
-					<reportElement uuid="ce5dda3a-5a1a-440a-b875-b194986e56cd" style="Detail" positionType="Float" mode="Transparent" x="607" y="0" width="110" height="20" isPrintWhenDetailOverflows="true"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{objectClass}.getLocalPart()]]></textFieldExpression>
-				</textField>
-				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false">
-					<reportElement uuid="ce5dda3a-5a1a-440a-b875-b194986e56cd" style="Detail" positionType="Float" mode="Transparent" x="717" y="0" width="85" height="20"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{accType}]]></textFieldExpression>
-				</textField>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="100" height="14"/>
 				<textField isStretchWithOverflow="true">
-					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" positionType="Float" mode="Transparent" x="441" y="0" width="166" height="20"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10" isStrikeThrough="false"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{accName}]]></textFieldExpression>
+					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="0" width="100" height="13"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{accountName}]]></textFieldExpression>
 				</textField>
-				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="183" y="0" width="91" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="false"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
-				</textField>
-				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="92" y="0" width="91" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="false"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
-				</textField>
-				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="1" y="0" width="91" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="false"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{userName}]]></textFieldExpression>
-				</textField>
-				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="274" y="0" width="69" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="false"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{activation}.isEnabled()]]></textFieldExpression>
-				</textField>
-				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss" isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="343" y="0" width="98" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="false"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{emplNum}]]></textFieldExpression>
-				</textField>
-				<line>
-					<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToBottom" mode="Opaque" x="1" y="20" width="799" height="1" forecolor="#333333"/>
-				</line>
 			</frame>
 		</band>
 	</detail>
-	<columnFooter>
-		<band height="7" splitType="Stretch">
-			<line>
-				<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1"/>
-				<graphicElement>
-					<pen lineWidth="0.5" lineColor="#999999"/>
-				</graphicElement>
-			</line>
-		</band>
-	</columnFooter>
-	<pageFooter>
-		<band height="32" splitType="Stretch">
-			<frame>
-				<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" mode="Transparent" x="0" y="1" width="802" height="24" forecolor="#000000" backcolor="#267994"/>
-				<textField>
-					<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Column header" x="680" y="1" width="80" height="20" forecolor="#000000"/>
-					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
-				</textField>
-				<textField pattern="EEEEE dd MMMMM yyyy">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" x="2" y="1" width="197" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-				</textField>
-				<textField evaluationTime="Report">
-					<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Column header" x="760" y="1" width="40" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
-				</textField>
-			</frame>
-		</band>
-	</pageFooter>
-	<summary>
-		<band splitType="Stretch"/>
-	</summary>
 </jasperReport>

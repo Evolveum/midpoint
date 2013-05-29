@@ -333,6 +333,11 @@ public class PageReports extends PageAdminReports {
             JasperDesign designOrgs = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserOrgs.jrxml"));
             JasperReport reportOrgs = JasperCompileManager.compileReport(designOrgs);
             params.put("orgReport", reportOrgs);
+            
+            JasperDesign designAccounts = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccounts.jrxml"));
+            JasperReport reportAccounts = JasperCompileManager.compileReport(designAccounts);
+            params.put("accountReport", reportAccounts);
+            
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't create jasper subreport.", ex);
             throw new RestartResponseException(PageReports.class);
