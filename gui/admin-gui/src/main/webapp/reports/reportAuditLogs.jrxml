@@ -17,7 +17,7 @@
 	<parameter name="DATE_FROM" class="java.sql.Timestamp"/>	
 	<parameter name="DATE_TO" class="java.sql.Timestamp"/>
 	<queryString language="hql">
-		<![CDATA[select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, coalesce(aer.targetName,'') as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, coalesce(aer.message,'') as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO}]]>
+		<![CDATA[select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, coalesce(aer.targetName,'') as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, coalesce(aer.message,'') as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp]]>
 	</queryString>
 	<field name="timestamp" class="java.sql.Timestamp"/>
 	<field name="initiator" class="java.lang.String"/>

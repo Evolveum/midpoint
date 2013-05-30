@@ -18,7 +18,7 @@
 	<parameter name="orgReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<parameter name="accountReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<queryString language="hql">
-		<![CDATA[select u.oid as oid, u.name.orig as name, coalesce(u.givenName.orig, '') as firstName, coalesce(u.familyName.orig, '') as lastName, u.activation as activation from RUser as u]]>
+		<![CDATA[select u.oid as oid, u.name.orig as name, coalesce(u.givenName.orig, '') as firstName, coalesce(u.familyName.orig, '') as lastName, u.activation as activation from RUser as u order by u.name.orig]]>
 	</queryString>
 	<field name="oid" class="java.lang.String"/>
 	<field name="name" class="java.lang.String"/>
