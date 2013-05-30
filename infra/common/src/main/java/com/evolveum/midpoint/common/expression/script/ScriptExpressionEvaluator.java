@@ -276,7 +276,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				}
 				if (!hasPlus && !hasMinus && !hasZero && 
 						!(pvalues.size() == 1 && pvalues.iterator().next() == null)) {
-					throw new IllegalStateException("Internal error! The impossible has happened!");
+					throw new IllegalStateException("Internal error! The impossible has happened! pvalues="+pvalues+"; source triples: "+sourceTriples+"; in "+contextDescription);
 				}
 				if (hasPlus && hasMinus) {
 					// Both plus and minus. Ignore this combination. It should not appear in output

@@ -581,6 +581,9 @@ public class TestMappingDynamic {
     	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
     }
     
+    /**
+     * Change an unrelated property. See that it does not die.
+     */
     @Test
     public void testScriptFullNameReplaceEmployeeNumber() throws Exception {
     	// WHEN
@@ -780,6 +783,32 @@ public class TestMappingDynamic {
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
 	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    /**
+     * Change property that is not a source in this mapping
+     */
+    @Test
+    public void testScriptSystemVariablesConditionModifyObjectTrueGroovyUnrelated() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectTrueGroovyUnrelated";
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			evaluator.toPath("employeeNumber"), evaluator.getPrismContext(), "666");
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				"mapping-script-system-variables-condition-groovy.xml", 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
     }
     
     @Test

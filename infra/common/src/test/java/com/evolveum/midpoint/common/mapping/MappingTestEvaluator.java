@@ -147,15 +147,33 @@ public class MappingTestEvaluator {
 		return createMapping(filename, testName, policy, toPath(defaultTargetPropertyName), userDelta);
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, 
+			ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
 		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
+	}
+	
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, 
+			ObjectDelta<UserType> userDelta, PrismObject<UserType> userOld) throws SchemaException, FileNotFoundException, JAXBException  {
+		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta, userOld);
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, ItemPath defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
 		return createMapping(filename, testName, null, defaultTargetPropertyName, userDelta);
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, 
+			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta) 
+					throws SchemaException, FileNotFoundException, JAXBException  {
+		PrismObject<UserType> userOld = null;
+        if (userDelta == null || !userDelta.isAdd()) {
+        	userOld = getUserOld();
+        }
+		return createMapping(filename, testName, policy, defaultTargetPropertyPath, userDelta, userOld);
+	}
+	
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, 
+			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta,  PrismObject<UserType> userOld) 
+					throws SchemaException, FileNotFoundException, JAXBException  {
     
         JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, filename), MappingType.class);
@@ -164,10 +182,6 @@ public class MappingTestEvaluator {
         Mapping<PrismPropertyValue<T>> mapping = mappingFactory.createMapping(valueConstructionType, testName);
         
         // Source context: user
-        PrismObject<UserType> userOld = null;
-        if (userDelta == null || !userDelta.isAdd()) {
-        	userOld = getUserOld();
-        }
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<UserType>(userOld , userDelta, null);
         userOdo.recompute();
 		mapping.setSourceContext(userOdo);
