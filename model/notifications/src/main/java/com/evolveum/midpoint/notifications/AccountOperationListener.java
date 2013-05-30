@@ -29,7 +29,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -71,17 +72,32 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     @Override
     public void notifySuccess(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
-        notifyAny(OperationStatus.SUCCESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifySuccess"));
+        if (notificationsEnabled()) {
+            notifyAny(OperationStatus.SUCCESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifySuccess"));
+        }
+    }
+
+    private boolean notificationsEnabled() {
+        if (notificationManager.isDisabled()) {
+            LOGGER.trace("Notifications are temporarily disabled, exiting the hook.");
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override
     public void notifyInProgress(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
-        notifyAny(OperationStatus.IN_PROGRESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifyInProgress"));
+        if (notificationsEnabled()) {
+            notifyAny(OperationStatus.IN_PROGRESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifyInProgress"));
+        }
     }
 
     @Override
     public void notifyFailure(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
-        notifyAny(OperationStatus.FAILURE, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifyFailure"));
+        if (notificationsEnabled()) {
+            notifyAny(OperationStatus.FAILURE, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifyFailure"));
+        }
     }
 
     private void notifyAny(OperationStatus status, ResourceOperationDescription operationDescription, Task task, OperationResult result) {
@@ -128,9 +144,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         }
 
         AccountEvent request = createRequest(status, operationDescription, task, result);
-        if (request != null) {
-            notificationManager.processEvent(request, result);
-        }
+        notificationManager.processEvent(request, result);
     }
 
     private AccountEvent createRequest(OperationStatus status,
@@ -146,17 +160,15 @@ public class AccountOperationListener implements ResourceOperationListener {
         String accountOid = operationDescription.getObjectDelta().getOid();
 
         PrismObject<UserType> user = findRequestee(accountOid, task, result, operationDescription.getObjectDelta().isDelete());
-        if (user == null) {
-            return null;        // appropriate message is already logged
-        }
+        if (user != null) {
+            event.setRequestee(user.asObjectable());
+        }   // otherwise, appropriate messages were already logged
 
         if (task.getOwner() != null) {
             event.setRequester(task.getOwner().asObjectable());
         } else {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
-        event.setRequestee(user.asObjectable());
-        event.setAccountOwner(user.asObjectable());
         return event;
     }
 
@@ -178,7 +190,7 @@ public class AccountOperationListener implements ResourceOperationListener {
                     LOGGER.trace("listAccountShadowOwner for account " + accountOid + " yields " + user);
                 }
             } catch (ObjectNotFoundException e) {
-                LOGGER.trace("There's a problem finding account " + accountOid + ", no notification will be sent", e);
+                LOGGER.trace("There's a problem finding account " + accountOid, e);
                 return null;
             }
 
@@ -189,7 +201,7 @@ public class AccountOperationListener implements ResourceOperationListener {
 
         String userOid = task.getRequesteeOid();
         if (userOid == null) {
-            LOGGER.warn("There is no owner of account " + accountOid + " (in repo nor in task), cannot send the notification.");
+            LOGGER.warn("There is no owner of account " + accountOid + " (in repo nor in task).");
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Task = " + task.dump());
             }
@@ -202,62 +214,16 @@ public class AccountOperationListener implements ResourceOperationListener {
             return cacheRepositoryService.getObject(UserType.class, userOid, result);
         } catch (ObjectNotFoundException e) {
             if (!isDelete) {
-                LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid + ", no notification will be sent", e);
+                LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
             } else {
-                LOGGER.info("Owner of account " + accountOid + " (user oid " + userOid + ") was probably already deleted, no notification will be sent");
+                LOGGER.info("Owner of account " + accountOid + " (user oid " + userOid + ") was probably already deleted.");
                 result.removeLastSubresult();       // to suppress the error message (in GUI + in tests)
             }
             return null;
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid + ", no notification will be sent", e);
+            LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
             return null;
         }
     }
 
-//    private boolean typeMatches(ChangeType type, List<QName> filter, ResourceOperationDescription operationDescription) {
-//        if (type == ChangeType.ADD) {
-//            return filter.contains(NotificationConstants.ACCOUNT_CREATION_QNAME);
-//        } else if (type == ChangeType.MODIFY) {
-//            return filter.contains(NotificationConstants.ACCOUNT_MODIFICATION_QNAME) && changedNotOnlySyncSituation(operationDescription);
-//        } else if (type == ChangeType.DELETE) {
-//            return filter.contains(NotificationConstants.ACCOUNT_DELETION_QNAME);
-//        } else {
-//            LOGGER.warn("Unknown account change type: " + type + ", no notification will be sent.");
-//            return false;
-//        }
-//    }
-//
-//    // assuming: change type is MODIFY
-//    private boolean changedNotOnlySyncSituation(ResourceOperationDescription operationDescription) {
-//        if (operationDescription.getObjectDelta() == null) {
-//            return true;        // dubious, but let's have it this way
-//        } else {
-//            for (ItemDelta id : operationDescription.getObjectDelta().getModifications()) {
-//                if (!ShadowType.F_SYNCHRONIZATION_SITUATION.equals(id.getName()) &&
-//                        !ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION.equals(id.getName())) {
-//                    return true;
-//                }
-//            }
-//            return false;
-//        }
-//    }
-//
-//    private boolean statusMatches(OperationStatus status, List<QName> filter) {
-//        boolean allowSuccess = filter.contains(NotificationConstants.SUCCESS_QNAME);
-//        boolean allowInProgress = filter.contains(NotificationConstants.IN_PROGRESS_QNAME);
-//        boolean allowFailure = filter.contains(NotificationConstants.FAILURE_QNAME);
-//
-//        if (!allowSuccess && !allowInProgress && !allowFailure) {
-//            return true;
-//        }
-//
-//        switch (status) {
-//            case SUCCESS: return allowSuccess;
-//            case IN_PROGRESS: return allowInProgress;
-//            case FAILURE: return allowFailure;
-//            default:
-//                LOGGER.warn("Unknown operation status type: " + status + ", no notification will be sent.");
-//                return false;
-//        }
-//    }
 }

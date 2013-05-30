@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.WorkflowServiceImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngineDataHelper;
@@ -250,7 +249,7 @@ public class ProcessInstanceProvider {
         try {
             vars = rs.getVariables(instance.getProcessInstanceId());
             pi.setVariables(vars);
-            pi.setName((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_NAME));
+            pi.setName((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
             pi.setStartTime((Date) vars.get(CommonProcessVariableNames.VARIABLE_START_TIME));
         } catch (ActivitiException e) {
             result.recordFatalError("Couldn't get process instance variables for instance " + instance.getProcessInstanceId(), e);
@@ -287,7 +286,7 @@ public class ProcessInstanceProvider {
         try {
             Map<String,Object> vars = activitiEngineDataHelper.getHistoricVariables(instance.getId(), result);
             pi.setVariables(vars);
-            pi.setName((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_NAME));
+            pi.setName((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
             result.recordSuccessIfUnknown();
             return pi;
         } catch (RuntimeException e) {

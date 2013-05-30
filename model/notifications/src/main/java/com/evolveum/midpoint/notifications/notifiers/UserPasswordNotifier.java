@@ -18,17 +18,18 @@ package com.evolveum.midpoint.notifications.notifiers;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.notifications.events.AccountEvent;
+import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.notifications.events.ModelEvent;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserPasswordNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,9 @@ public class UserPasswordNotifier extends GeneralNotifier {
 
     @Autowired
     private MidpointFunctions midpointFunctions;
+
+    @Autowired
+    private NotificationsUtil notificationsUtil;
 
     @PostConstruct
     public void init() {
@@ -66,6 +70,12 @@ public class UserPasswordNotifier extends GeneralNotifier {
         ModelEvent modelEvent = (ModelEvent) event;
         if (modelEvent.getUserDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
+            return false;
+        }
+
+        if (modelEvent.getRequesteeOid() == null) {
+            LOGGER.trace("No requestee, exiting.");
+            return false;
         }
         return getPasswordFromDeltas(modelEvent.getUserDeltas()) != null;
     }
@@ -89,7 +99,7 @@ public class UserPasswordNotifier extends GeneralNotifier {
 
         ModelEvent modelEvent = (ModelEvent) event;
         List<ObjectDelta<UserType>> deltas = modelEvent.getUserDeltas();
-        return "Password for user " + event.getRequestee().getName() + " is: " + getPasswordFromDeltas(deltas);
+        return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), result).getName() + " is: " + getPasswordFromDeltas(deltas);
     }
 
 }

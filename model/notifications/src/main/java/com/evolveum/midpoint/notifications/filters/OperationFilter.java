@@ -22,7 +22,9 @@ import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -50,7 +52,9 @@ public class OperationFilter extends BaseHandler {
         boolean retval = false;
 
         for (EventOperationType eventOperationType : eventOperationFilterType.getOperation()) {
-            if (event.isOperationType(eventOperationType)) {
+            if (eventOperationType == null) {
+                LOGGER.warn("Filtering on null eventOperationType; filter = " + eventHandlerType);
+            } else if (event.isOperationType(eventOperationType)) {
                 retval = true;
                 break;
             }

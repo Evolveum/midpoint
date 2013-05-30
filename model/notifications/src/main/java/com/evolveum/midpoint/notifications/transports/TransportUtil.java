@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.notifications.transports;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 

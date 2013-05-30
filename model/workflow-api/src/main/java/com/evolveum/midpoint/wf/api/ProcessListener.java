@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.handlers;
+package com.evolveum.midpoint.wf.api;
 
-import com.evolveum.midpoint.notifications.NotificationManager;
-import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+
+import java.util.Map;
 
 /**
  * @author mederly
  */
-public interface EventHandler {
+public interface ProcessListener {
 
-    // true if we should continue with processing, false otherwise
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) throws SchemaException;
+    void onProcessInstanceStart(String instanceName, Map<String, Object> variables, OperationResult result);
+
+    // beware, 'approved' depends on WF_ANSWER process variable, which may or may not be present!
+    void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, Boolean approved, OperationResult result);
+
 }

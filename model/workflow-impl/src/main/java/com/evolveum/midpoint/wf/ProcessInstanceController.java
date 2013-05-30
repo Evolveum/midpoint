@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
+import com.evolveum.midpoint.notifications.WorkflowListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -29,10 +30,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
+import com.evolveum.midpoint.wf.api.ProcessListener;
+import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
 import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareChildOperationTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
@@ -44,10 +48,9 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.text.DateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Manages everything related to a activiti process instance, including the task that monitors that process instance.
@@ -76,6 +79,18 @@ public class ProcessInstanceController {
 
     @Autowired(required = true)
     private RepositoryService repositoryService;
+
+    @Autowired
+    private WorkflowListener workflowListener;
+
+    private Set<ProcessListener> processListeners = new HashSet<ProcessListener>();
+    private Set<WorkItemListener> workItemListeners = new HashSet<WorkItemListener>();
+
+    @PostConstruct
+    public void init() {
+        registerProcessListener(workflowListener);
+        registerWorkItemListener(workflowListener);
+    }
 
     public void startProcessInstance(StartProcessInstruction instruction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
@@ -197,6 +212,7 @@ public class ProcessInstanceController {
 
         try {
             activitiInterface.midpoint2activiti(spc, task, result);
+            notifyProcessStart(spc, task, result);
         } catch (RuntimeException e) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to start a process instance to workflow management system", e);
@@ -211,6 +227,11 @@ public class ProcessInstanceController {
         LOGGER.trace("startWorkflowProcessInstance finished");
     }
 
+    private void notifyProcessStart(StartProcessCommand spc, Task task, OperationResult result) {
+        for (ProcessListener processListener : processListeners) {
+            processListener.onProcessInstanceStart(spc.getProcessName(), spc.getVariables(), result);
+        }
+    }
 
 
     /**
@@ -257,6 +278,8 @@ public class ProcessInstanceController {
             changeProcessor.finishProcess(event, task, result);
             wfTaskUtil.setProcessInstanceFinishedImmediate(task, true, result);
 
+            notifyProcessEnd(event, task, result);
+
             // passive tasks can be 'let go' at this point
             if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
 
@@ -276,6 +299,12 @@ public class ProcessInstanceController {
                     taskManager.unpauseTask(task, result);
                 }
             }
+        }
+    }
+
+    private void notifyProcessEnd(ProcessEvent event, Task task, OperationResult result) {
+        for (ProcessListener processListener : processListeners) {
+            processListener.onProcessInstanceEnd((String) event.getVariables().get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME), event.getVariables(), (Boolean) event.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER), result);
         }
     }
 
@@ -403,5 +432,30 @@ public class ProcessInstanceController {
         return sb.toString();
     }
 
+    public void registerProcessListener(ProcessListener processListener) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Registering process listener " + processListener);
+        }
+        processListeners.add(processListener);
+    }
+
+    public void registerWorkItemListener(WorkItemListener workItemListener) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Registering work item listener " + workItemListener);
+        }
+        workItemListeners.add(workItemListener);
+    }
+
+    public void notifyWorkItemCreated(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables) {
+        for (WorkItemListener workItemListener : workItemListeners) {
+            workItemListener.onWorkItemCreation(workItemName, assigneeOid, processInstanceName, processVariables);
+        }
+    }
+
+    public void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, Boolean approved) {
+        for (WorkItemListener workItemListener : workItemListeners) {
+            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, processInstanceName, processVariables, approved);
+        }
+    }
 
 }

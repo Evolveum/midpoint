@@ -26,14 +26,25 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 /**
  * @author mederly
  */
+@Component
 public class NotificationsUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationsUtil.class);
+
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService cacheRepositoryService;
 
     public static PrismObject<SystemConfigurationType> getSystemConfiguration(RepositoryService repositoryService, OperationResult result) {
         PrismObject<SystemConfigurationType> systemConfiguration;
@@ -64,6 +75,29 @@ public class NotificationsUtil {
             LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
             return null;
         }
+    }
+
+    public ObjectType getObjectType(SimpleObjectRef simpleObjectRef, OperationResult result) {
+        if (simpleObjectRef == null) {
+            return null;
+        }
+        if (simpleObjectRef.getObjectType() != null) {
+            return simpleObjectRef.getObjectType();
+        }
+        if (simpleObjectRef.getOid() == null) {
+            return null;
+        }
+
+        ObjectType objectType;
+        try {
+            objectType = cacheRepositoryService.getObject(ObjectType.class, simpleObjectRef.getOid(), result).asObjectable();
+        } catch (ObjectNotFoundException e) {   // todo correct error handling
+            throw new SystemException(e);
+        } catch (SchemaException e) {
+            throw new SystemException(e);
+        }
+        simpleObjectRef.setObjectType(objectType);
+        return objectType;
     }
 
 }

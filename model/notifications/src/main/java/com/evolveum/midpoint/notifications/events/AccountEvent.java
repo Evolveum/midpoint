@@ -16,19 +16,26 @@
 
 package com.evolveum.midpoint.notifications.events;
 
-import com.evolveum.midpoint.notifications.events.Event;
+import com.evolveum.midpoint.notifications.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author mederly
  */
 public class AccountEvent extends Event {
 
-    private UserType accountOwner;
+    private static final Trace LOGGER = TraceManager.getTrace(AccountEvent.class);
+
+    private OperationStatus operationStatus;        // status of the operation
 
     private ResourceOperationDescription accountOperationDescription;
 
@@ -70,27 +77,14 @@ public class AccountEvent extends Event {
         this.changeType = changeType;
     }
 
-    public UserType getAccountOwner() {
-        return accountOwner;
-    }
-
-    public void setAccountOwner(UserType accountOwner) {
-        this.accountOwner = accountOwner;
-    }
-
     @Override
     public boolean isOperationType(EventOperationType eventOperationType) {
-        switch (eventOperationType) {
-            case ADD: return changeType == ChangeType.ADD;
-            case MODIFY: return changeType == ChangeType.MODIFY;
-            case DELETE: return changeType == ChangeType.DELETE;
-            default: throw new IllegalStateException("Unexpected EventOperationType: " + eventOperationType);
-        }
+        return changeTypeMatchesOperationType(changeType, eventOperationType);
     }
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.ACCOUNT_OPERATION
+        return eventCategoryType == EventCategoryType.ACCOUNT_EVENT
                 && ShadowUtil.isAccount(accountOperationDescription.getCurrentShadow().asObjectable());
     }
 
@@ -98,12 +92,25 @@ public class AccountEvent extends Event {
         return (ObjectDelta<ShadowType>) accountOperationDescription.getObjectDelta();
     }
 
+    public OperationStatus getOperationStatus() {
+        return operationStatus;
+    }
+
+    public void setOperationStatus(OperationStatus operationStatus) {
+        this.operationStatus = operationStatus;
+    }
+
+    @Override
+    public boolean isStatusType(EventStatusType eventStatusType) {
+        return operationStatus.matchesEventStatusType(eventStatusType);
+    }
+
     @Override
     public String toString() {
         return "AccountEvent{" +
                 "base=" + super.toString() +
-                ", accountOwner=" + accountOwner +
                 ", changeType=" + changeType +
+                ", operationStatus=" + operationStatus +
                 '}';
     }
 }

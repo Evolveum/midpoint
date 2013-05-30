@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.notifications;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
+
 /**
  * Created with IntelliJ IDEA.
  * User: mederly
@@ -25,4 +27,16 @@ package com.evolveum.midpoint.notifications;
  */
 public enum OperationStatus {
     SUCCESS, IN_PROGRESS, FAILURE;
+
+    public boolean matchesEventStatusType(EventStatusType eventStatusType) {
+        switch (eventStatusType) {
+            case ONLY_SUCCESS:
+            case SUCCESS: return this == OperationStatus.SUCCESS;
+            case ONLY_FAILURE:
+            case FAILURE: return this == OperationStatus.FAILURE;
+            case IN_PROGRESS: return this == OperationStatus.IN_PROGRESS;
+            default: throw new IllegalStateException("Invalid eventStatusType: " + eventStatusType);
+        }
+    }
+
 }

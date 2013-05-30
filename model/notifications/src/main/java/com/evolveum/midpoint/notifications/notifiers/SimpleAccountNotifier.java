@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.OperationStatus;
 import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.events.Event;
@@ -34,7 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author mederly
@@ -105,12 +106,16 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
         AccountEvent accountEvent = (AccountEvent) event;
 
-        UserType owner = accountEvent.getAccountOwner();
+        UserType owner = (UserType) notificationsUtil.getObjectType(accountEvent.getRequestee(), result);
         ResourceOperationDescription rod = accountEvent.getAccountOperationDescription();
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
         body.append("Notification about account-related operation\n\n");
-        body.append("User: " + owner.getFullName() + " (" + owner.getName() + ", oid " + owner.getOid() + ")\n");
+        if (owner != null) {
+            body.append("User: " + owner.getFullName() + " (" + owner.getName() + ", oid " + owner.getOid() + ")\n");
+        } else {
+            body.append("User: unknown\n");
+        }
         body.append("Notification created on: " + new Date() + "\n\n");
         body.append("Resource: " + rod.getResource().asObjectable().getName() + " (oid " + rod.getResource().getOid() + ")\n");
         boolean named;
@@ -123,7 +128,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
         body.append("\n");
 
         body.append((named ? "The" : "An") + " account ");
-        switch (event.getOperationStatus()) {
+        switch (accountEvent.getOperationStatus()) {
             case SUCCESS: body.append("has been successfully "); break;
             case IN_PROGRESS: body.append("has been ATTEMPTED to be "); break;
             case FAILURE: body.append("FAILED to be "); break;
@@ -141,7 +146,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
             body.append("removed from the resource.\n\n");
         }
 
-        if (event.getOperationStatus() == OperationStatus.IN_PROGRESS) {
+        if (accountEvent.getOperationStatus() == OperationStatus.IN_PROGRESS) {
             body.append("The operation will be retried.\n\n");
         }
 

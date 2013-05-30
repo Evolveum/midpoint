@@ -126,4 +126,8 @@ public interface WorkflowService {
     public PrismContext getPrismContext();
 
     String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
+
+    void registerProcessListener(ProcessListener processListener);
+
+    void registerWorkItemListener(WorkItemListener workItemListener);
 }

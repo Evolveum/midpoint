@@ -59,6 +59,9 @@ public class WorkflowServiceImpl implements WorkflowService {
     private ProcessInstanceManager processInstanceManager;
 
     @Autowired
+    private ProcessInstanceController processInstanceController;
+
+    @Autowired
     private WorkItemProvider workItemProvider;
 
     @Autowired
@@ -152,5 +155,15 @@ public class WorkflowServiceImpl implements WorkflowService {
         String processor = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
         Validate.notNull(processor, "There's no change processor name among the process instance variables");
         return wfConfiguration.findChangeProcessor(processor).getProcessInstanceDetailsPanelName(processInstance);
+    }
+
+    @Override
+    public void registerProcessListener(ProcessListener processListener) {
+        processInstanceController.registerProcessListener(processListener);
+    }
+
+    @Override
+    public void registerWorkItemListener(WorkItemListener workItemListener) {
+        processInstanceController.registerWorkItemListener(workItemListener);
     }
 }

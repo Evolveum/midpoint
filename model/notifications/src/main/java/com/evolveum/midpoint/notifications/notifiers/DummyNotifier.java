@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.notifications.handlers.BaseHandler;
-import com.evolveum.midpoint.notifications.handlers.EventHandler;
-import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -27,7 +24,6 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.DummyNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
 import org.springframework.stereotype.Component;
 

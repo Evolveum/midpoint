@@ -18,20 +18,19 @@ package com.evolveum.midpoint.notifications.notifiers;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.notifications.OperationStatus;
-import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.notifications.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SimpleUserNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -92,20 +91,22 @@ public class SimpleUserNotifier extends GeneralNotifier {
         body.append("User: " + userType.getFullName() + " (" + userType.getName() + ", oid " + userType.getOid() + ")\n");
         body.append("Notification created on: " + new Date() + "\n\n");
 
-        if (delta.isAdd()) {
+        // todo describe the change
+
+        if (event.isAdd()) {
             body.append("The user record was created.\n\n");
-        } else if (delta.isModify()) {
+        } else if (event.isModify()) {
             body.append("The user record was modified. Modified attributes are:\n");
             for (ItemDelta itemDelta : delta.getModifications()) {
                 body.append(" - " + itemDelta.getName().getLocalPart() + "\n");
             }
             body.append("\n");
-        } else if (delta.isDelete()) {
+        } else if (event.isDelete()) {
             body.append("The user record was removed.\n\n");
         }
 
-        // todo what about the status?
-        body.append("Operation status: " + event.getOperationStatus() + "\n\n");
+//        // todo what about the status?
+//        body.append("Operation status: " + event.getOperationStatus() + "\n\n");
 
         if (techInfo) {
             body.append("----------------------------------------\n");

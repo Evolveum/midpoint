@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.notifications.NotificationManager;
+import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.notifications.transports.Message;
@@ -48,6 +48,9 @@ public abstract class GeneralNotifier extends BaseHandler {
 
     @Autowired
     protected NotificationManager notificationManager;
+
+    @Autowired
+    protected NotificationsUtil notificationsUtil;
 
     @PostConstruct
     public void init() {
@@ -83,12 +86,12 @@ public abstract class GeneralNotifier extends BaseHandler {
         }
         else {
 
-            Map<QName,Object> variables = getDefaultVariables(event);
+            Map<QName,Object> variables = getDefaultVariables(event, result);
 
             for (String transport : generalNotifierType.getTransport()) {
 
                 variables.put(SchemaConstants.C_TRANSPORT, transport);
-                List<String> recipients = getRecipients(event, generalNotifierType, variables, getDefaultRequestee(event, generalNotifierType, result), result);
+                List<String> recipients = getRecipients(event, generalNotifierType, variables, getDefaultRecipient(event, generalNotifierType, result), result);
 
                 if (!recipients.isEmpty()) {
 
@@ -133,8 +136,13 @@ public abstract class GeneralNotifier extends BaseHandler {
         return null;
     }
 
-    protected UserType getDefaultRequestee(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        return event.getRequestee();
+    protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+        ObjectType objectType = notificationsUtil.getObjectType(event.getRequestee(), result);
+        if (objectType instanceof UserType) {
+            return (UserType) objectType;
+        } else {
+            return null;
+        }
     }
 
     protected Trace getLogger() {
@@ -198,7 +206,4 @@ public abstract class GeneralNotifier extends BaseHandler {
             return null;
         }
     }
-
-
-
 }

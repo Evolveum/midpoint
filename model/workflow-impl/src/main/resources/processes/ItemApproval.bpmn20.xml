@@ -111,6 +111,8 @@
                         -->
                         <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
+                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.processes.general.MidPointTaskListener" />
+                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.processes.general.MidPointTaskListener" />
                     </extensionElements>
                 </userTask>
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.approve" targetRef="loopLevels.loopApprovers.recordDecision" />

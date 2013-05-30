@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.activiti;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.wf.ProcessInstanceController;
 import com.evolveum.midpoint.wf.dao.MiscDataUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -67,6 +68,10 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 
     public static PrismContext getPrismContext() {
         return getBean("prismContext", PrismContext.class);
+    }
+
+    public static ProcessInstanceController getProcessInstanceController() {
+        return getBean("processInstanceController", ProcessInstanceController.class);
     }
 }
 

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,13 +73,18 @@ public class NotificationChangeHook implements ChangeHook {
     @Override
     public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Entering notifier change hook in state " + context.getState());
-        }
-
         // todo in the future we should perhaps act in POSTEXECUTION state, but currently the clockwork skips this state
         if (context.getState() != ModelState.FINAL) {
             return HookOperationMode.FOREGROUND;
+        }
+
+        if (notificationManager.isDisabled()) {
+            LOGGER.trace("Notifications are temporarily disabled, exiting the hook.");
+            return HookOperationMode.FOREGROUND;
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Notification change hook called with model context: " + context.debugDump());
         }
 
         if (context.getFocusContext() == null) {
@@ -99,22 +105,20 @@ public class NotificationChangeHook implements ChangeHook {
             return HookOperationMode.FOREGROUND;
         }
 
-        if (!UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Focus object is not a User, exiting the hook.");
-            }
-            return HookOperationMode.FOREGROUND;
-        }
+//        if (!UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("Focus object is not a User, exiting the hook.");
+//            }
+//            return HookOperationMode.FOREGROUND;
+//        }
 
         Event event = createRequest(object, task, context);
-        if (event != null) {
-            notificationManager.processEvent(event, result);
-        }
+        notificationManager.processEvent(event, result);
 
         return HookOperationMode.FOREGROUND;
     }
 
-    private Event createRequest(PrismObject<UserType> user, Task task,
+    private Event createRequest(PrismObject<? extends ObjectType> object, Task task,
                                 ModelContext<UserType, ShadowType> modelContext) {
 
         ModelEvent event = new ModelEvent();
@@ -126,8 +130,7 @@ public class NotificationChangeHook implements ChangeHook {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
 
-        event.setRequestee(user.asObjectable());
-        event.setOperationStatus(OperationStatus.SUCCESS);          // todo recognize other states, if necessary
+        event.setRequestee(object.asObjectable());
         return event;
     }
 }

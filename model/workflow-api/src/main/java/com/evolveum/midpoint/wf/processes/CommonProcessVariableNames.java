@@ -21,7 +21,7 @@ package com.evolveum.midpoint.wf.processes;
  */
 public class CommonProcessVariableNames {
 
-    public static final String VARIABLE_PROCESS_NAME = "processName";
+    public static final String VARIABLE_PROCESS_INSTANCE_NAME = "processInstanceName";
     public static final String VARIABLE_START_TIME = "startTime";
     public static final String VARIABLE_MIDPOINT_TASK_OID = "midPointTaskOid";
     public static final String VARIABLE_MIDPOINT_PROCESS_WRAPPER = "midPointProcessWrapper";

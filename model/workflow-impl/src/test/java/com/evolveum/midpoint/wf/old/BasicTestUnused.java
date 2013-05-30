@@ -111,7 +111,7 @@ public class BasicTestUnused extends AbstractTestNGSpringContextTests {
 //        OperationResult result = createResult("010StartProcessInstance");
 //        Map<String, Object> variableMap = new HashMap<String, Object>();
 //
-//        variableMap.put(WfConstants.VARIABLE_PROCESS_NAME, "Adding some roles to a user");
+//        variableMap.put(WfConstants.VARIABLE_PROCESS_INSTANCE_NAME, "Adding some roles to a user");
 //        variableMap.put(WfConstants.VARIABLE_START_TIME, new Date());
 //        variableMap.put(AddRolesWrapper.USER_NAME, "jack");
 //

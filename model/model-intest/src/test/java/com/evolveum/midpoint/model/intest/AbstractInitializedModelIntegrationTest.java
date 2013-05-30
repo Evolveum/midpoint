@@ -214,7 +214,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		// Orgstruct
 		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILENAME, OrgType.class, initResult);
-		
+
 	}
 	
 	protected void postInitDummyResouce() {

@@ -244,6 +244,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		dummyAuditService.clear();
         dummyNotifier.clearRecords();
         dummyTransport.clearMessages();
+        notificationManager.setDisabled(false);
         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -287,12 +288,22 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 
+        notificationManager.setDisabled(true);
+
         // Check notifications
-//        display("Notifier", dummyNotifier);
-//        checkTest100NotificationRecords("newAccounts");
-//        checkTest100NotificationRecords("newAccountsViaExpression");
-//
-//        List<Message> messages = dummyTransport.getMessages("dummy:newAccounts");
+        display("Notifier", dummyNotifier);
+        checkTest100NotificationRecords("newAccounts");
+        checkTest100NotificationRecords("newAccountsViaExpression");
+
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+//        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
 //        assertNotNull("No messages recorded in dummy transport", messages);
 //        assertEquals("Invalid number of messages recorded in dummy transport", 1, messages.size());
 //        Message message = messages.get(0);
@@ -308,14 +319,26 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	}
 
-//    private void checkTest100NotificationRecords(String notifierName) {
-//        assertEquals("Invalid number of notification records [" + notifierName + "]", 1, dummyNotifier.getRecords(notifierName).size());
-//        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords(notifierName).get(0);
-//        assertEquals("Wrong user in notification record [" + notifierName + "]", USER_JACK_OID, ((AccountEvent) record.getEvent()).getAccountOwner().getOid());
-//        assertEquals("Wrong number of account OIDs in notification record [" + notifierName + "]", 1, record.getAccountsOids().size());
-//        assertEquals("Wrong account OID in notification record [" + notifierName + "]", accountOid, record.getAccountsOids().iterator().next());
-//        assertEquals("Wrong change type in notification record [" + notifierName + "]", ChangeType.ADD, record.getFirstChangeType());
-//    }
+    private void checkDummyTransportMessages(String name, int expectedCount) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        if (expectedCount == 0) {
+            if (messages != null && !messages.isEmpty()) {
+                assertFalse(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'", true);
+            }
+        } else {
+            assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+            assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
+        }
+    }
+
+    private void checkTest100NotificationRecords(String notifierName) {
+        assertEquals("Invalid number of notification records [" + notifierName + "]", 1, dummyNotifier.getRecords(notifierName).size());
+        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords(notifierName).get(0);
+        assertEquals("Wrong user in notification record [" + notifierName + "]", USER_JACK_OID, ((AccountEvent) record.getEvent()).getRequestee().getOid());
+        assertEquals("Wrong number of account OIDs in notification record [" + notifierName + "]", 1, record.getAccountsOids().size());
+        assertEquals("Wrong account OID in notification record [" + notifierName + "]", accountOid, record.getAccountsOids().iterator().next());
+        assertEquals("Wrong change type in notification record [" + notifierName + "]", ChangeType.ADD, record.getFirstChangeType());
+    }
 
     @Test
     public void test101GetAccount() throws Exception {
@@ -424,7 +447,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
 		dummyAuditService.clear();
-        
+
 		try {
 			
 			// WHEN
@@ -447,8 +470,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-		
-	}
+    }
 	
 	@Test
     public void test109ModifyUserAddAccountAgain() throws Exception {
@@ -632,8 +654,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-        
-		// WHEN
+
+        prepareNotifications();
+
+        // WHEN
 		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
@@ -670,9 +694,26 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
-	
-	@Test
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+    }
+
+    private void prepareNotifications() {
+        notificationManager.setDisabled(false);
+        dummyTransport.clearMessages();
+        dummyNotifier.clearRecords();
+    }
+
+    @Test
     public void test120AddAccount() throws Exception {
         displayTestTile(this, "test120AddAccount");
 
@@ -681,6 +722,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+
+        prepareNotifications();
+
         purgeScriptHistory();
         
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
@@ -724,7 +768,18 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);          // there's no password for that account
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);               // account has no owner
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 	
 	@Test
     public void test121ModifyUserAddAccountRef() throws Exception {
@@ -735,7 +790,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
-        
+
+        prepareNotifications();
+
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		userDelta.addModification(accountDelta);
@@ -772,7 +829,18 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);                // some attributes on the account are changed
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 
 
 	
@@ -785,6 +853,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        prepareNotifications();
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
@@ -826,7 +895,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 	
 	@Test
     public void test129DeleteAccount() throws Exception {
@@ -837,6 +918,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        prepareNotifications();
         purgeScriptHistory();
         
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
@@ -870,7 +952,18 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);           // there's no link user->account (removed in test128)
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+    }
 
 	
 	@Test
@@ -925,6 +1018,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        prepareNotifications();
         purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
@@ -965,8 +1059,18 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+    }
 	
 	/**
 	 * Modify the account. Some of the changes should be reflected back to the user by inbound mapping.
@@ -981,6 +1085,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -1037,7 +1142,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 	
 	@Test
     public void test139ModifyUserJackUnassignAccount() throws Exception {
@@ -1049,6 +1166,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
@@ -1083,7 +1201,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 	
 	/**
 	 * Assignment enforcement is set to POSITIVE for this test. The account should be added.
@@ -1099,6 +1229,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -1141,7 +1272,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 	
 	/**
 	 * Assignment enforcement is set to POSITIVE for this test. The account should remain as it is.
@@ -1158,7 +1301,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
-        
+        prepareNotifications();
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
@@ -1204,7 +1348,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
         deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, false);
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 
 	/**
 	 * Assignment enforcement is set to POSITIVE for this test as it was for the previous test.
@@ -1220,6 +1376,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -1260,7 +1417,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 
 	@Test
     public void test150ModifyUserAddAccountFullEnforcement() throws Exception {
@@ -1454,6 +1623,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -1502,7 +1672,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 
     /**
      * We try to modify an assignment of the account and see whether changes will be recorded in the account itself.
@@ -1613,7 +1795,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
-                        
+        prepareNotifications();
+
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
         		PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
@@ -1649,7 +1832,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
     
     @Test
     public void test166ModifyUserJackLocationEmpty() throws Exception {
@@ -1662,7 +1857,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
-                        
+        prepareNotifications();
+
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result);
 		
@@ -1698,7 +1894,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 
     @Test
     public void test167ModifyUserJackLocationNull() throws Exception {
@@ -1742,7 +1950,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
-        
+
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
         		PrismTestUtil.createPolyString("Marvelous Captain Jack Sparrow"));
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(objectDelta);
@@ -1780,7 +1988,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+    }
 		
 	@Test
     public void test169DeleteUserJack() throws Exception {
@@ -1792,6 +2000,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_JACK_OID, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -1827,7 +2036,20 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        checkDummyTransportMessages("simpleUserNotifier-DELETE", 1);
+
+    }
 	
 	@Test
     public void test200AddUserBlackbeardWithAccount() throws Exception {
@@ -1841,6 +2063,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -1887,7 +2110,20 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 1);
+        checkDummyTransportMessages("simpleUserNotifier-DELETE", 0);
+
+    }
 
 	
 	@Test
@@ -1900,6 +2136,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
+        prepareNotifications();
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -1942,7 +2179,20 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-	}
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 1);
+        checkDummyTransportMessages("simpleUserNotifier-DELETE", 0);
+
+    }
 	
 	/**
 	 * This basically tests for correct auditing.

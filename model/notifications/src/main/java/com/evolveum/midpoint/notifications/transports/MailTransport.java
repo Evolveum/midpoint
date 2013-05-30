@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailConfigurationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailTransportSecurityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,7 +38,6 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;

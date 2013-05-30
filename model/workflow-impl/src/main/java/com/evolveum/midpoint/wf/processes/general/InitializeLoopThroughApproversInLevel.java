@@ -98,7 +98,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
                 LOGGER.trace("Approvers at the level " + level + " are: " + approverRefs);
             }
             if (approverRefs.isEmpty()) {
-                LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_NAME) + " (id " + execution.getProcessInstanceId() + ")");
+                LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME) + " (id " + execution.getProcessInstanceId() + ")");
             }
         }
 

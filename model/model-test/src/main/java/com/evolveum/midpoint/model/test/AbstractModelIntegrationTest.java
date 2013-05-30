@@ -34,6 +34,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.transports.DummyTransport;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,6 +193,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @Autowired(required = false)
     protected DummyTransport dummyTransport;
+
+    @Autowired(required = false)
+    protected NotificationManager notificationManager;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -209,6 +213,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		dummyAuditService = DummyAuditService.getInstance();
 		// Make sure the checks are turned on
 		InternalsConfig.turnOnChecks();
+        // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.
+        if (notificationManager != null) {
+            notificationManager.setDisabled(true);
+        }
 	}
 
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {
@@ -296,7 +304,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				found = true;
 			}
 		}
-		assertTrue("User "+user+" is not linked to account "+accountOid, found);
+		assertTrue("User " + user + " is not linked to account " + accountOid, found);
 	}
 	
 	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
@@ -310,7 +318,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		String accountOid = getAccountRef(user, resourceOid);
-		assertNotNull("User "+user+" has no account on resource "+resourceOid, accountOid);
+		assertNotNull("User " + user + " has no account on resource " + resourceOid, accountOid);
 	}
 	
 	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
@@ -325,7 +333,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			assert numAccounts == 0 : "Expected "+numAccounts+" but "+user+" has no accountRef";
 			return;
 		}
-		assertEquals("Wrong number of accounts linked to "+user, numAccounts, accountRef.size());
+		assertEquals("Wrong number of accounts linked to " + user, numAccounts, accountRef.size());
 	}
 	
 	protected void assertAdministrativeEnabled(PrismObject<UserType> user) {
@@ -401,7 +409,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
 		return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
-				attributeDefinition, newRealValue);
+                attributeDefinition, newRealValue);
 	}
 	
 	protected <T> PropertyDelta<T> createAttributeAddDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
@@ -427,7 +435,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
 		return PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
-				attributeDefinition, newRealValue);
+                attributeDefinition, newRealValue);
 	}
 	
 	protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {
@@ -907,7 +915,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				}
 			}
 		}
-		AssertJUnit.fail(user.toString()+" does not have account assignment for resource "+resourceOid);
+		AssertJUnit.fail(user.toString() + " does not have account assignment for resource " + resourceOid);
 	}
 	
 	protected void assertAssignedNoAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {

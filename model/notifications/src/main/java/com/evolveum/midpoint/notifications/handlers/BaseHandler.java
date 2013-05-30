@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.notifications.NotificationManager;
+import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -35,7 +36,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +54,9 @@ public abstract class BaseHandler implements EventHandler {
 
     @Autowired
     protected NotificationManager notificationManager;
+
+    @Autowired
+    protected NotificationsUtil notificationsUtil;
 
     @Autowired
     protected PrismContext prismContext;
@@ -156,16 +161,10 @@ public abstract class BaseHandler implements EventHandler {
         return retval;
     }
 
-    protected Map<QName, Object> getDefaultVariables(Event event) {
+    protected Map<QName, Object> getDefaultVariables(Event event, OperationResult result) {
 
         Map<QName, Object> variables = new HashMap<QName, Object>();
-
-        variables.put(SchemaConstants.C_EVENT, event);
-        variables.put(SchemaConstants.C_REQUESTER, event.getRequester());
-        variables.put(SchemaConstants.C_REQUESTEE, event.getRequestee());
-
-        // TODO other variables
-
+        event.createExpressionVariables(variables, notificationsUtil, result);
         return variables;
     }
 

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.handlers;
+package com.evolveum.midpoint.notifications.events;
 
-import com.evolveum.midpoint.notifications.NotificationManager;
-import com.evolveum.midpoint.notifications.events.Event;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
 
 /**
  * @author mederly
  */
-public interface EventHandler {
+public class WorkflowProcessEvent extends WorkflowEvent {
 
-    // true if we should continue with processing, false otherwise
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) throws SchemaException;
+
+    @Override
+    public boolean isCategoryType(EventCategoryType eventCategoryType) {
+        return eventCategoryType == EventCategoryType.WORKFLOW_PROCESS_EVENT || eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
+    }
+
 }

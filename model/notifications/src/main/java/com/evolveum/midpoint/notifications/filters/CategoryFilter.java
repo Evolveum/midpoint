@@ -22,7 +22,9 @@ import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -50,7 +52,10 @@ public class CategoryFilter extends BaseHandler {
         logStart(LOGGER, event, eventHandlerType, eventCategoryFilterType.getCategory());
 
         for (EventCategoryType eventCategoryType : eventCategoryFilterType.getCategory()) {
-            if (event.isCategoryType(eventCategoryType)) {
+
+            if (eventCategoryType == null) {
+                LOGGER.warn("Filtering on null EventCategoryType: " + eventHandlerType);
+            } else if (event.isCategoryType(eventCategoryType)) {
                 retval = true;
                 break;
             }

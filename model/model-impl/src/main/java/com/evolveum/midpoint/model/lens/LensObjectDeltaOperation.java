@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import java.io.Serializable;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -25,6 +23,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
+
+import java.io.Serializable;
 
 /**
  * @author semancik

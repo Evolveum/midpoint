@@ -7373,24 +7373,38 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="accountOperation">
+            <xsd:enumeration value="accountEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ACCOUNT_OPERATION"/>
+                        <jaxb:typesafeEnumMember name="ACCOUNT_EVENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="userOperation">
+            <xsd:enumeration value="userEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="USER_OPERATION"/>
+                        <jaxb:typesafeEnumMember name="USER_EVENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="workItemOperation">
+            <xsd:enumeration value="workItemEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="WORK_ITEM_OPERATION"/>
+                        <jaxb:typesafeEnumMember name="WORK_ITEM_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workflowProcessEvent">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORKFLOW_PROCESS_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workflowEvent">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORKFLOW_EVENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -7425,10 +7439,24 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="onlySuccess">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_SUCCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="failure">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FAILURE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="onlyFailure">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_FAILURE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -7591,6 +7619,19 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="SimpleWorkflowNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" substitutionGroup="tns:handler" />
 
     <xsd:complexType name="UserPasswordNotifierType">
         <xsd:annotation>
