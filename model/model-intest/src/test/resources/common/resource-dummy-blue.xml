@@ -113,8 +113,9 @@
 	</schema>
 
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -215,7 +216,7 @@
             		</outbound>
             	</validTo>
             </activation>
-		</accountType>
+		</objectType>
 	</schemaHandling>
 	
 	<synchronization>

@@ -309,7 +309,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-		String accountOid = getUserAccountRef(user, resourceOid);
+		String accountOid = getAccountRef(user, resourceOid);
 		assertNotNull("User "+user+" has no account on resource "+resourceOid, accountOid);
 	}
 	
@@ -768,7 +768,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return accountOid;
 	}
 	
-	protected String getUserAccountRef(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected String getAccountRef(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         UserType userType = user.asObjectable();
         for (ObjectReferenceType accountRefType: userType.getLinkRef()) {
         	String accountOid = accountRefType.getOid();

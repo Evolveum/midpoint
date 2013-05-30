@@ -15,9 +15,13 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
 
 import java.io.File;
+import java.util.Collection;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -25,10 +29,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -94,6 +106,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         
         // THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
         assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
@@ -109,7 +124,6 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
 	}
 	
-	@Test
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
         displayTestTile(this, TEST_NAME);
 
@@ -120,6 +134,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         unassignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         
         // THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignedNoRole(user);
         
@@ -129,4 +146,98 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));        
 	}
 	
+    @Test
+    public void test200AddAndAssignRelative() throws Exception {
+		final String TEST_NAME = "test200AddAndAssignRelative";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Add default dummy account to jack without assigning it.
+        // In relative mode this account should shay untouched while we play with assignments and
+        // unsassignements of other accounts
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        modelService.executeChanges(deltas, null, task, result);
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after default dummy account add", userJack);
+		assertUserJack(userJack);
+		assertAccount(userJack, RESOURCE_DUMMY_OID);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+		
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+        userJack = getUser(USER_JACK_OID);
+		display("User after red dummy assignment", userJack);
+		assertUserJack(userJack);
+		assertAccount(userJack, RESOURCE_DUMMY_OID);
+		assertAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+		assertAccounts(userJack, 2);
+        String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_BLUE_OID);
+        
+        // Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlueType);
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlueType);
+        
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack", "Jack Sparrow", true);
+        
+	}
+    
+    @Test
+    public void test210AddedAccountAndUnassignRelative() throws Exception {
+		final String TEST_NAME = "test210AddedAccountAndUnassignRelative";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after red dummy unassignment", userJack);
+		assertUserJack(userJack);
+		assertAccount(userJack, RESOURCE_DUMMY_OID);
+		assertAccounts(userJack, 1);
+        String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+        
+        // Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack");
+        
+	}
+    
 }

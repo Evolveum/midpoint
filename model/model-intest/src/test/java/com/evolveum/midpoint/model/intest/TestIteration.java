@@ -249,7 +249,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		
-		String accountPinkOid = getUserAccountRef(userJack, RESOURCE_DUMMY_PINK_OID);
+		String accountPinkOid = getAccountRef(userJack, RESOURCE_DUMMY_PINK_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, result);
@@ -311,7 +311,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 		
-		String accountPinkOid = getUserAccountRef(userGuybrush, RESOURCE_DUMMY_PINK_OID);
+		String accountPinkOid = getAccountRef(userGuybrush, RESOURCE_DUMMY_PINK_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, result);
@@ -375,7 +375,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
 		
-		String accountVioletOid = getUserAccountRef(userJack, RESOURCE_DUMMY_VIOLET_OID);
+		String accountVioletOid = getAccountRef(userJack, RESOURCE_DUMMY_VIOLET_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, result);
@@ -434,7 +434,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
 		
-		String accountVioletOid = getUserAccountRef(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
+		String accountVioletOid = getAccountRef(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, result);
@@ -492,7 +492,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccounts(userHerman, 1);
 		assertAccount(userHerman, RESOURCE_DUMMY_VIOLET_OID);
 		
-		String accountVioletOid = getUserAccountRef(userHerman, RESOURCE_DUMMY_VIOLET_OID);
+		String accountVioletOid = getAccountRef(userHerman, RESOURCE_DUMMY_VIOLET_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, result);

@@ -328,7 +328,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getUserAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+        accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
                 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
