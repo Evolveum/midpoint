@@ -25,8 +25,15 @@ import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
+import org.apache.wicket.markup.html.form.validation.IFormValidator;
+import org.apache.wicket.markup.html.panel.ComponentFeedbackPanel;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
 
 import java.util.Date;
 
@@ -38,6 +45,7 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
     private static final String ID_FORM = "form";
     private static final String ID_DATE_FROM = "dateFrom";
     private static final String ID_DATE_TO = "dateTo";
+    private static final String ID_FEEDBACK = "feedback";
     private static final String ID_RUN = "run";
 
     public AuditPopupPanel(String id, IModel<AuditReportDto> model) {
@@ -49,25 +57,39 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
         Form form = new Form(ID_FORM);
         add(form);
 
-//        DateTextField dateFrom = DateTextField.forDatePattern(ID_DATE_FROM,
-//                new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM), "dd/MMM/yyyy HH:mm:ss");
-//        dateFrom.add(new DatePicker());
-//        form.add(dateFrom);
+        final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        form.add(feedback);
 
-//        DateTextField dateTo = DateTextField.forDatePattern(ID_DATE_TO,
-//                new PropertyModel<Date>(getModel(), AuditReportDto.F_TO), "dd/MMM/yyyy HH:mm:ss");
-//        dateTo.add(new DatePicker());
-//        form.add(dateTo);
+        DateTimeField dateFrom = new DateTimeField(ID_DATE_FROM, new PropertyModel<Date>(getModel(),
+                AuditReportDto.F_FROM)) {
 
-        form.add(new DateTimeField(ID_DATE_FROM, new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM)));
-        form.add(new DateTimeField(ID_DATE_TO, new PropertyModel<Date>(getModel(), AuditReportDto.F_TO)));
+            @Override
+            protected boolean use12HourFormat() {
+                return false;
+            }
+        };
+        dateFrom.setRequired(true);
+        form.add(dateFrom);
+
+        DateTimeField dateTo = new DateTimeField(ID_DATE_TO, new PropertyModel<Date>(getModel(), AuditReportDto.F_TO)) {
+
+            @Override
+            protected boolean use12HourFormat() {
+                return false;
+            }
+        };
+        dateTo.setRequired(true);
+        form.add(dateTo);
+
+        form.add(new DateValidator(dateFrom, dateTo));
 
         AjaxSubmitLinkButton run = new AjaxSubmitLinkButton(ID_RUN, ButtonType.POSITIVE,
                 createStringResource("PageBase.button.run")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getPageBase().getFeedbackPanel());
+                target.add(feedback);
             }
 
             @Override
@@ -80,5 +102,35 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
     protected void onRunPerformed(AjaxRequestTarget target) {
 
+    }
+
+    private static class DateValidator extends AbstractFormValidator {
+
+        private DateTimeField dateFrom;
+        private DateTimeField dateTo;
+
+        private DateValidator(DateTimeField dateFrom, DateTimeField dateTo) {
+            this.dateFrom = dateFrom;
+            this.dateTo = dateTo;
+        }
+
+        @Override
+        public FormComponent<?>[] getDependentFormComponents() {
+            return new FormComponent[]{dateFrom, dateTo};
+        }
+
+        @Override
+        public void validate(Form<?> form) {
+            Date from = dateFrom.getConvertedInput();
+            Date to = dateTo.getConvertedInput();
+
+            if (from == null || to == null) {
+                return;
+            }
+
+            if (from.after(to)) {
+                form.error(form.getString("AuditPopupPanel.message.fromAfterTo"));
+            }
+        }
     }
 }
