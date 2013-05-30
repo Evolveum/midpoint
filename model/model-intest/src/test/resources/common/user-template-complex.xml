@@ -127,6 +127,27 @@
 		</condition>
     </mapping>
     
+    <!-- Negative condition. This is tricky to evaluate. -->
+    <mapping>
+    	<name>telephone number negative</name>
+    	<authoritative>true</authoritative>
+    	<strength>strong</strength>
+    	<source>
+    		<path>telephoneNumber</path>
+    	</source>
+    	<expression>
+            <value>Happy Pirate</value>    	
+    	</expression>
+    	<target>
+    		<path>title</path>
+    	</target>
+    	<condition>
+    		<script>
+            	<code>telephoneNumber == null || telephoneNumber.isEmpty()</code>
+            </script>
+		</condition>
+    </mapping>
+    
     <!-- Automatically generate employee number if there is none (note the "initial" flag) -->
     <mapping>
     	<strength>weak</strength>

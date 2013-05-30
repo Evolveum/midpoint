@@ -37,13 +37,13 @@
 	
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
-	<logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.ShadowConstraintsChecker" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.expression" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.mapping" level="TRACE" />
+	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.mapping" level="DEBUG" />
 
 	<root level="INFO">
 		<appender-ref ref="X" />

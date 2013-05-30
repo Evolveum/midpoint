@@ -99,7 +99,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
         	} else {
         		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources(), scriptType.isIncludeNullInputs());
         		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isRegress(), 
-        				context.getContextDescription(), context.getResult());
+        				scriptType.isIncludeNullInputs(), context.getContextDescription(), context.getResult());
         	}
         	
         } else {
@@ -140,6 +140,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				}
 			}
 			sourceTriples.add(sourceTriple);
+			LOGGER.trace("Processes source tripple\n{}",sourceTriple.dump());
 		}
 		return sourceTriples;
 	}
@@ -231,14 +232,15 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 	}
 
 	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<? extends PrismValue>> sourceTriples,
-			final Map<QName, Object> variables, boolean regress, final String contextDescription, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			final Map<QName, Object> variables, boolean regress, final Boolean includeNulls, 
+			final String contextDescription, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		List<Collection<? extends PrismValue>> valueCollections = new ArrayList<Collection<? extends PrismValue>>(sourceTriples.size());
 		for (SourceTriple<? extends PrismValue> sourceTriple: sourceTriples) {
 			Collection<? extends PrismValue> values = sourceTriple.union();
 			if (values.isEmpty()) {
 				// No values for this source. Add null instead. It will make sure that the expression will
-				// evaluate at least once.
+				// be evaluate at least once.
 				values.add(null);
 			}
 			valueCollections.add(values);
@@ -249,7 +251,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		Processor<Collection<? extends PrismValue>> processor = new Processor<Collection<? extends PrismValue>>() {
 			@Override
 			public void process(Collection<? extends PrismValue> pvalues) {
-				if (MiscUtil.isAllNull(pvalues)) {
+				if (includeNulls != null && includeNulls && MiscUtil.isAllNull(pvalues)) {
 					// The case that all the sources are null. There is no point executing the expression.
 					return;
 				}
