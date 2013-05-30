@@ -58,6 +58,7 @@ public abstract class RObject extends RContainer {
         return metadata;
     }
 
+    @ForeignKey(name = "fk_trigger_owner")
     @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RTrigger> getTrigger(){

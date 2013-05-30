@@ -1060,16 +1060,10 @@ REFERENCES m_task (id, oid);
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
 
 ALTER TABLE m_trigger
-ADD INDEX FK6E863FE68FEF355 (owner_id, owner_oid),
-ADD CONSTRAINT FK6E863FE68FEF355
-FOREIGN KEY (owner_id, owner_oid)
-REFERENCES m_object (id, oid);
-
-ALTER TABLE m_trigger
 ADD INDEX fk_trigger_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_trigger_owner
 FOREIGN KEY (owner_id, owner_oid)
-REFERENCES m_container (id, oid);
+REFERENCES m_object (id, oid);
 
 CREATE INDEX iFullName ON m_user (fullName_norm);
 

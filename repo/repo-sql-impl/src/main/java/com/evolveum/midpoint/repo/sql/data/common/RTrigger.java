@@ -25,7 +25,7 @@ public class RTrigger implements Serializable {
     public static final String F_OWNER = "owner";
 
     //owner
-    private RContainer owner;
+    private RObject owner;
     private Long ownerId;
     private String ownerOid;
 
@@ -33,7 +33,7 @@ public class RTrigger implements Serializable {
     private XMLGregorianCalendar timestamp;
 
 
-    @ForeignKey(name = "fk_trigger_owner")
+    @ForeignKey(name = "none")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
@@ -41,7 +41,7 @@ public class RTrigger implements Serializable {
             @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid")
 
     })
-    public RContainer getOwner() {
+    public RObject getOwner() {
         return owner;
     }
 
@@ -83,7 +83,7 @@ public class RTrigger implements Serializable {
         this.handlerUri = handlerUri;
     }
 
-    public void setOwner(RContainer owner) {
+    public void setOwner(RObject owner) {
         this.owner = owner;
     }
 
@@ -123,7 +123,7 @@ public class RTrigger implements Serializable {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static RTrigger copyFromJAXB(RContainer owner, TriggerType jaxb) {
+    public static RTrigger copyFromJAXB(RObject owner, TriggerType jaxb) {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         RTrigger repo = new RTrigger();

@@ -53,9 +53,9 @@ AS
     DELETE FROM m_abstract_role;
     DELETE FROM m_system_configuration;
     DELETE FROM m_generic_object;
-	DELETE FROM m_trigger;
+    DELETE FROM m_trigger;
 
-	DELETE FROM m_org_incorrect;
+    DELETE FROM m_org_incorrect;
     DELETE FROM m_org_closure;
 
     DELETE FROM m_metadata;

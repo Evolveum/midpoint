@@ -296,7 +296,7 @@ return toJAXB(parentClass, path, value, clazz, null, prismContext);
         return list;
     }
     
-    public static Set<RTrigger> listTriggerToSet(RContainer owner, List<TriggerType> list) {
+    public static Set<RTrigger> listTriggerToSet(RObject owner, List<TriggerType> list) {
 		Set<RTrigger> set = new HashSet<RTrigger>();
 		if (list != null) {
 			for (TriggerType str : list) {
