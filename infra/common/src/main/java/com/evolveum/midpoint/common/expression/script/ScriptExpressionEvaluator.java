@@ -97,7 +97,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
         		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
         		outputTriple = evaluateAbsoluteExpression(null, context.getVariables(), context.getContextDescription(), context.getResult());
         	} else {
-        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources());
+        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources(), scriptType.isIncludeNullInputs());
         		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isRegress(), 
         				context.getContextDescription(), context.getResult());
         	}
@@ -110,7 +110,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
         return outputTriple;        
     }
 	
-	private List<SourceTriple<? extends PrismValue>> processSources(Collection<Source<? extends PrismValue>> sources) {
+	private List<SourceTriple<? extends PrismValue>> processSources(Collection<Source<? extends PrismValue>> sources, Boolean includeNulls) {
 		List<SourceTriple<? extends PrismValue>> sourceTriples = 
 			new ArrayList<SourceTriple<? extends PrismValue>>(sources == null ? 0 : sources.size());
 		if (sources == null) {
@@ -124,6 +124,19 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 			} else {
 				if (source.getItemOld() != null) {
 					sourceTriple.addAllToZeroSet((Collection)source.getItemOld().getValues());
+				}
+			}
+			if (includeNulls == null || includeNulls) {
+				Item<? extends PrismValue> itemOld = source.getItemOld();
+				Item<? extends PrismValue> itemNew = source.getItemNew();
+				if (itemOld == null || itemOld.isEmpty()) {
+					if (!(itemNew == null || itemNew.isEmpty())) {
+						sourceTriple.addToMinusSet(null);
+					}
+				} else {
+					if (itemNew == null || itemNew.isEmpty()) {
+						sourceTriple.addToPlusSet(null);
+					}
 				}
 			}
 			sourceTriples.add(sourceTriple);

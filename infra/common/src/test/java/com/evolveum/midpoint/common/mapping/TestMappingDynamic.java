@@ -972,7 +972,7 @@ public class TestMappingDynamic {
     
     public void testScriptSystemVariablesConditionTrueToTrue(String filename) throws Exception {
     	// GIVEN
-    	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrueXPath";
+    	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrue";
     	System.out.println("===[ "+TEST_NAME+"]===");
     	
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
@@ -1102,6 +1102,186 @@ public class TestMappingDynamic {
 	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
     }
     
+    @Test
+    public void testScriptSystemVariablesConditionEmptyTrue() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptyTrue";
+    	testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptyTrueFunction() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptyTrueFunction";
+    	testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-function.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleTrue() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrue";
+    	testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleTrueFunction() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrueFunction";
+    	testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionEmptyTrue(final String TEST_NAME, String filename) throws Exception {
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		user.asObjectable().getEmployeeType().clear();
+		user.asObjectable().setEmployeeNumber(null);
+		mapping.getSourceContext().recompute();
+    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber Jack"));
+	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleFalseToTrue() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalseToTrue";
+    	testScriptSystemVariablesConditionEmptyFalseToTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleFalseToTrueFunction() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalseToTrueFunction";
+    	testScriptSystemVariablesConditionEmptyFalseToTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionEmptyFalseToTrue(final String TEST_NAME, String filename) throws Exception {
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			evaluator.toPath("employeeNumber"), evaluator.getPrismContext());
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		user.asObjectable().setEmployeeNumber("666");
+		mapping.getSourceContext().recompute();
+    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
+    @Test
+    public void testScriptSystemVariablesConditionEmptyFalse() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptyFalse";
+    	testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptyFalseFunction() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptyFalse";
+    	testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-function.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleFalse() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalse";
+    	testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleFalseFunction() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalseFunction";
+    	testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionEmptyFalse(final String TEST_NAME, String filename) throws Exception {
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		user.asObjectable().getEmployeeType().add("SAILOR");
+		user.asObjectable().setEmployeeNumber("666");
+		mapping.getSourceContext().recompute();
+    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleTrueToFalse() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrueToFalse";
+    	testScriptSystemVariablesConditionEmptyTrueToFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionEmptySingleTrueToFalseFunction() throws Exception {
+    	final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrueToFalseFunction";
+    	testScriptSystemVariablesConditionEmptyTrueToFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionEmptyTrueToFalse(final String TEST_NAME, String filename) throws Exception {
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			evaluator.toPath("employeeNumber"), evaluator.getPrismContext(), "666");
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		user.asObjectable().setEmployeeNumber(null);
+		mapping.getSourceContext().recompute();
+    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTripleNoPlus(outputTriple);
+	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+    }
+
     public void testScriptTransformMulti() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrueXPath";

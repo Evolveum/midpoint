@@ -198,6 +198,22 @@ public class BasicExpressionFunctions {
 //		return whatever.toString();
 	}
 	
+	public boolean isEmpty(Object whatever) {
+		if (whatever == null) {
+			return true;
+		}
+		if (whatever instanceof String) {
+			return ((String)whatever).isEmpty();
+		}
+		if (whatever instanceof Collection) {
+			return ((Collection)whatever).isEmpty();
+		}
+		String whateverString = stringify(whatever);
+		if (whateverString == null) {
+			return true;
+		}
+		return whateverString.isEmpty();
+	}
 	
 	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
 		return getExtensionPropertyValues(object, new javax.xml.namespace.QName(namespace, localPart));

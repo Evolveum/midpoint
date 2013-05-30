@@ -54,7 +54,7 @@ import java.util.Map.Entry;
  */
 public class ScriptExpression {
 
-    private ScriptExpressionEvaluatorType expressionType;
+    private ScriptExpressionEvaluatorType scriptType;
     private ScriptEvaluator evaluator;
     private ItemDefinition outputDefinition;
     private ObjectResolver objectResolver;
@@ -62,8 +62,8 @@ public class ScriptExpression {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
 
-    ScriptExpression(ScriptEvaluator evaluator, ScriptExpressionEvaluatorType expressionType) {
-        this.expressionType = expressionType;
+    ScriptExpression(ScriptEvaluator evaluator, ScriptExpressionEvaluatorType scriptType) {
+        this.scriptType = scriptType;
         this.evaluator = evaluator;
     }
 
@@ -100,7 +100,7 @@ public class ScriptExpression {
 		try {
 			context.setupThreadLocal();
 			
-			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(expressionType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, result);
+			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, result);
 			
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;
@@ -127,10 +127,11 @@ public class ScriptExpression {
         	LOGGER.trace("Script expression trace:\n"+
             		"---[ SCRIPT expression {}]---------------------------\n"+
             		"Language: {}\n"+
+            		"Relativity mode: {}\n"+
             		"Variables:\n{}\n"+
             		"Code:\n{}\n"+
             		"Result: {}", new Object[]{
-                    shortDesc, evaluator.getLanguageName(), formatVariables(variables), formatCode(),
+                    shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables), formatCode(),
                     SchemaDebugUtil.prettyPrint(returnValue)
             });
         }
@@ -142,10 +143,11 @@ public class ScriptExpression {
             LOGGER.trace("Script expression failure:\n"+
             		"---[ SCRIPT expression {}]---------------------------\n"+
             		"Language: {}\n"+
+            		"Relativity mode: {}\n"+
             		"Variables:\n{}\n"+
             		"Code:\n{}\n"+
             		"Error: {}", new Object[]{
-                    shortDesc, evaluator.getLanguageName(), formatVariables(variables), formatCode(),
+                    shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables), formatCode(),
                     SchemaDebugUtil.prettyPrint(exception)
             });
         }
@@ -159,14 +161,14 @@ public class ScriptExpression {
 	}
 
 	private String formatCode() {
-        return DOMUtil.serializeDOMToString(expressionType.getCode());
+        return DOMUtil.serializeDOMToString(scriptType.getCode());
     }
 	
 	public ItemPath parsePath(String path) {
 		if (path == null) {
 			return null;
 		}
-		Element codeElement = expressionType.getCode();
+		Element codeElement = scriptType.getCode();
 		XPathHolder xPathHolder = new XPathHolder(path, codeElement);
 		if (xPathHolder == null) {
 			return null;
