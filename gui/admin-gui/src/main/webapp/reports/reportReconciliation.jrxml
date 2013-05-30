@@ -19,7 +19,7 @@
 	<parameter name="CLASS" class="javax.xml.namespace.QName"/>
 	<parameter name="INTENT" class="java.lang.String"/>
 	<queryString language="hql">
-		<![CDATA[select distinct u.name.orig as username, s.name.orig as name, s.synchronizationSituation as situation, ss.situation as situationDescription from RUser as u, RShadow as s join u.linkRef as linkRef, RResource as r join s.resourceRef as resRef, RSynchronizationSituationDescription as ss join s.synchronizationSituationDescription as ssd where s.objectClass = $P{CLASS} and s.oid = linkRef.targetOid and resRef.type = 8 and r.oid = resRef.targetOid and r.oid = $P{RESOURCE_OID} and ssd.shadowOid = ss.shadowOid and s.kind = 0 order by s.name.orig]]>
+		<![CDATA[select distinct (select u.name.orig from RUser as u join u.linkRef as ref where ref.targetOid = s.oid) as username, s.name.orig as name, s.synchronizationSituation as situation, ssd.situation as situationDescription from RShadow as s join s.resourceRef as resRef left join s.synchronizationSituationDescription as ssd where s.objectClass = $P{CLASS} and resRef.type = 8 and resRef.targetOid = $P{RESOURCE_OID} and s.kind = 0 order by s.name.orig]]>
 	</queryString>
 	<field name="username" class="java.lang.String"/>
 	<field name="name" class="java.lang.String"/>
@@ -114,22 +114,22 @@
 			<frame>
 				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="150" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="300" height="18"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center" />
 					<text><![CDATA[Name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="150" y="0" width="200" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="300" y="0" width="150" height="18"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center" />
 					<text><![CDATA[Situation]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="350" y="0" width="200" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="450" y="0" width="200" height="18"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center" />
 					<text><![CDATA[Owner]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="550" y="0" width="250" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="650" y="0" width="150" height="18"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center" />
 					<text><![CDATA[Situation description]]></text>
 				</staticText>
@@ -141,22 +141,22 @@
 			<frame>
 				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="0" width="800" height="14"/>
 				<textField isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="0" y="0" width="150" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="0" y="0" width="300" height="13"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center"/>
 					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true"> 
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="150" y="0" width="200" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="300" y="0" width="150" height="13"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center"/>
 					<textFieldExpression><![CDATA[$F{situation}.getSchemaValue()]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="350" y="0" width="200" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="450" y="0" width="200" height="13"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center"/>
 					<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="550" y="0" width="250" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="650" y="0" width="150" height="13"/>
 					<textElement verticalAlignment="Middle" textAlignment="Center"/>
 					<textFieldExpression><![CDATA[$F{situationDescription}.getSchemaValue()]]></textFieldExpression>
 				</textField>
