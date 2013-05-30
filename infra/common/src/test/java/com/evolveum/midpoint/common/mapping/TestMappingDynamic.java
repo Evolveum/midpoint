@@ -580,6 +580,22 @@ public class TestMappingDynamic {
     	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Jackie Sparrow"));
     	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
     }
+    
+    @Test
+    public void testScriptFullNameReplaceEmployeeNumber() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-fullname.xml",
+    			"testScriptVariablesPolyStringGroovy",
+    			"fullName",					// target
+    			"employeeNumber",				// changed property
+    			"666");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
 
 
     @Test

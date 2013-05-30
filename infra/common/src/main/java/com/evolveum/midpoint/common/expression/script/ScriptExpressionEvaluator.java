@@ -284,17 +284,15 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				}
 				
 				ScriptVariables scriptVariables = new ScriptVariables();
+				scriptVariables.addVariableDefinitions(sourceVariables);
 				if (hasPlus) {
-					// Pluses and zeroes: Result goes to plus set
-					scriptVariables.addVariableDefinitions(sourceVariables);
+					// Pluses and zeroes: Result goes to plus set, use NEW values for variables
 					scriptVariables.addVariableDefinitionsNew(variables);
 				} else if (hasMinus) {
-					// Minuses and zeroes: Result goes to minus set
-					scriptVariables.addVariableDefinitions(sourceVariables);
+					// Minuses and zeroes: Result goes to minus set, use OLD values for variables
 					scriptVariables.addVariableDefinitionsOld(variables);
 				} else {
-					// All zeros: Result goes to zero set
-					scriptVariables.addVariableDefinitions(sourceVariables);
+					// All zeros: Result goes to zero set, use NEW values for variables
 					scriptVariables.addVariableDefinitionsNew(variables);
 				}
 				
