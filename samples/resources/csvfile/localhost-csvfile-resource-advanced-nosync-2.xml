@@ -225,9 +225,9 @@ else {
                         	</iteration>
 
 				<activation>
-					<enabled>
+					<administrativeStatus>
 						<outbound/>
-					</enabled>
+					</administrativeStatus>
 				</activation>
 				
 				<credentials>

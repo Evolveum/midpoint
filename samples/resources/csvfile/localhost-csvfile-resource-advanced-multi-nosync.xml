@@ -166,9 +166,9 @@ using an Identity Connector Framework connector.
 				</attribute>
 				
 				<activation>
-					<enabled>
+					<administrativeStatus>
 						<outbound/>
-					</enabled>
+					</administrativeStatus>
 				</activation>
 				
 				<credentials>

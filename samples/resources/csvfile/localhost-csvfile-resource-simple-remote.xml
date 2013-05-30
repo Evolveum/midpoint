@@ -113,9 +113,9 @@ connector server.
                           -->
 				</c:attribute>
 				<activation>
-					<enabled>
+					<administrativeStatus>
 						<outbound/>
-					</enabled>
+					</administrativeStatus>
 				</activation>
 				<credentials>
 					<password>

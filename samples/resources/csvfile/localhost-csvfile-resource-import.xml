@@ -116,12 +116,12 @@ This definition is tailored for import from the CSV File.
                 </attribute>
                 
                 <activation>
-                    <enabled>
+                    <administrativeStatus>
                         <outbound/>
                         <inbound>
 							<strength>weak</strength>
                         </inbound>
-                    </enabled>
+                    </administrativeStatus>
                 </activation>
                 
                 <credentials>
