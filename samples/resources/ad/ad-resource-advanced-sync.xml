@@ -216,9 +216,9 @@ to "false". The only way of resetting the flag is to change user's password.
                 	<icfs:name>cn=Administrator,cn=Users,dc=example,dc=com</icfs:name>
             	</protected>
                 <activation>
-                    <enabled>
+                    <administrativeStatus>
                         <outbound/>
-                    </enabled>
+                    </administrativeStatus>
                 </activation>
                 <credentials>
                     <password>

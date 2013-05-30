@@ -149,7 +149,7 @@ using an Identity Connector Framework Solaris connector.
 			</attribute>
             
             <activation>
-                <enabled>
+                <administrativeStatus>
                     <outbound/>
                     <inbound>
                     	<strength>weak</strength>
@@ -157,7 +157,7 @@ using an Identity Connector Framework Solaris connector.
                             <asIs/>
                         </expression>
                     </inbound>
-                </enabled>
+                </administrativeStatus>
             </activation>
             
             <credentials>

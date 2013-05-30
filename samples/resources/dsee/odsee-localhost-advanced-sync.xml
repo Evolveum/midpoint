@@ -276,11 +276,11 @@ object.
                 </attribute>
                 
                 <activation>
-                    <enabled>
+                    <administrativeStatus>
                         <outbound>
                         	<strength>weak</strength>
                         </outbound>
-                    </enabled>
+                    </administrativeStatus>
                 </activation>
                 
                 <credentials>

@@ -249,12 +249,12 @@
 					</inbound>
 				</attribute>
 				<activation>
-					<enabled>
+					<administrativeStatus>
 						<outbound/>
 						<inbound>
 							<strength>weak</strength>
 						</inbound>
-					</enabled>
+					</administrativeStatus>
 				</activation>
 				<credentials>
 					<password>

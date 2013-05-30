@@ -203,9 +203,9 @@ icfs:name = icfs:uid so this not yet possible -->
 			      </attribute>
 
 				<activation>
-					<enabled>
+					<administrativeStatus>
 						<outbound/>
-					</enabled>
+					</administrativeStatus>
 				</activation>
 
 				<credentials>

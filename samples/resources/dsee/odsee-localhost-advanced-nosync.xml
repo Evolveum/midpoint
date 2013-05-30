@@ -274,9 +274,9 @@ object.
                 </attribute>
                 
                	<activation>
-                    <enabled>
+                    <administrativeStatus>
                         <outbound/>
-                    </enabled>
+                    </administrativeStatus>
                 </activation>
                 
                 <credentials>

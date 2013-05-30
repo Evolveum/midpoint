@@ -127,12 +127,12 @@ This resource definition contains only the very basic definitions for midPoint t
             </protected>
 			
 			<activation>
-                    <enabled>
+                    <administrativeStatus>
                         <outbound/>
                         <inbound>
 				<strength>weak</strength>
                         </inbound>
-                    </enabled>
+                    </administrativeStatus>
                 </activation>
                 
                 <credentials>

@@ -175,9 +175,9 @@ using an Identity Connector Framework DBTable connector.
 				</attribute>
 				
 				<activation>
-					<enabled>
+					<administrativeStatus>
 						<outbound/>
-					</enabled>
+					</administrativeStatus>
 				</activation>
 				
 				<credentials>
