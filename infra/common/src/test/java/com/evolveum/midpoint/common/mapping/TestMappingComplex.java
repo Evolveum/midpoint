@@ -227,5 +227,29 @@ public class TestMappingComplex {
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
     }
+    
+    @Test
+    public void testAddObjectUnrelatedEmptyFalse() throws Exception {
+    	final String TEST_NAME = "testAddObjectUnrelatedEmptyFalse";
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	// GIVEN
+    	PrismObject<UserType> user = evaluator.getUserOld();
+		user.asObjectable().getEmployeeType().clear();
+		ObjectDelta<UserType> delta = user.createAddDelta();
+		
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				MAPPING_COMPLEX_FILENAME, 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
+    }
             
 }

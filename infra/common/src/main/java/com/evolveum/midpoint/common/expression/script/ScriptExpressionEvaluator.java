@@ -274,8 +274,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 						hasPlus = true;
 					}
 				}
-				if (!hasPlus && !hasMinus && !hasZero && 
-						!(pvalues.size() == 1 && pvalues.iterator().next() == null)) {
+				if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(pvalues)) {
 					throw new IllegalStateException("Internal error! The impossible has happened! pvalues="+pvalues+"; source triples: "+sourceTriples+"; in "+contextDescription);
 				}
 				if (hasPlus && hasMinus) {
