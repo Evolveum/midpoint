@@ -202,6 +202,7 @@
 				<inbound>
 					<expression>
 						<script>
+							<includeNullInputs>false</includeNullInputs>
 							<code>'The crew of ' + input</code>
 						</script>
 					</expression>

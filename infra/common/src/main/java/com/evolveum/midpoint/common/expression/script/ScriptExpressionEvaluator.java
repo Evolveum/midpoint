@@ -251,7 +251,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		Processor<Collection<? extends PrismValue>> processor = new Processor<Collection<? extends PrismValue>>() {
 			@Override
 			public void process(Collection<? extends PrismValue> pvalues) {
-				if (includeNulls != null && includeNulls && MiscUtil.isAllNull(pvalues)) {
+				if (includeNulls != null && !includeNulls && MiscUtil.isAllNull(pvalues)) {
 					// The case that all the sources are null. There is no point executing the expression.
 					return;
 				}
