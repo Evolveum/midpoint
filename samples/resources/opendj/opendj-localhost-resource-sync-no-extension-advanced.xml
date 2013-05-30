@@ -435,7 +435,7 @@ object.
             </protected>
 			
 			<activation>
-                <enabled>
+                <administrativeStatus>
                     <outbound/>
                     <inbound>
                     	<strength>weak</strength>
@@ -443,7 +443,7 @@ object.
                             <asIs/>
                         </expression>
                     </inbound>
-                </enabled>
+                </administrativeStatus>
             </activation>
 			
             <credentials>
