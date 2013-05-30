@@ -18,7 +18,7 @@
 	<parameter name="orgReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<parameter name="accountReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<queryString language="hql">
-		<![CDATA[select u.oid as oid, u.name.orig as name, coalesce(u.givenName.orig, '') as firstName, coalesce(u.familyName.orig, '') as lastName, u.activation as activation from RUser as u order by u.name.orig]]>
+		<![CDATA[select u.oid as oid, u.name.orig as name, u.givenName.orig as firstName, u.familyName.orig as lastName, u.activation as activation from RUser as u order by u.name.orig]]>
 	</queryString>
 	<field name="oid" class="java.lang.String"/>
 	<field name="name" class="java.lang.String"/>
@@ -111,22 +111,22 @@
 		<band height="16" splitType="Stretch">
 			<frame>
 				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="700" height="15"/>
-				<textField isStretchWithOverflow="true">
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
 					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="0" width="100" height="13"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true">
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="100" y="0" width="100" height="13"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true">
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="200" y="0" width="100" height="13"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true">
+				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="300" y="0" width="100" height="13">
 						<printWhenExpression><![CDATA[!$F{activation}.getAdministrativeStatus().getSchemaValue().value().isEmpty()]]></printWhenExpression>
 					</reportElement>
