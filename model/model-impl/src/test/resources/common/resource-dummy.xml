@@ -220,6 +220,12 @@
 						<value>10000</value>
 					</expression>
 				</outbound>
+				<inbound>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#liveSync</channel>
+					<target>
+						<path>costCenter</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:weapon</ref>

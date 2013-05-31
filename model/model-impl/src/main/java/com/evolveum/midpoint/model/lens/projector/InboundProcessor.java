@@ -180,6 +180,14 @@ public class InboundProcessor {
 
             for (MappingType inboundMappingType : inboundMappingTypes) {
             	
+            	// There are two processing options:
+            	//
+            	//  * If we have a delta as an input we will proceed in relative mode, applying mappings on the delta.
+            	//    This usually happens when a delta comes from a sync notification or if there is a primary projection delta.
+            	//
+            	//  * if we do NOT have a delta then we will proceed in absolute mode. In that mode we will apply the
+            	//    mappings to the absolute projection state that we got from provisioning. This is a kind of "inbound reconciliation".
+            	
                 PropertyDelta<?> userPropertyDelta = null;
                 if (aPrioriDelta != null) {
                     LOGGER.trace("Processing inbound from a priori delta.");
@@ -355,6 +363,21 @@ public class InboundProcessor {
 		            LOGGER.trace("We don't have to create delta, everything is alright.");
 		        }
 	        }
+	        
+    	} else { // tripple == null
+    		
+    		if (accountAttributeDelta == null) {
+    			
+    			// This is the case of "inbound reconciliation" which is quite special. The tripple returned null
+    			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty
+    			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the
+    			// re-sets of projection values to empty values and cannot propagate them.
+    			
+    			if (targetUserProperty != null && !targetUserProperty.isEmpty()) {
+    				outputUserPropertydelta.setValuesToReplace();
+    			}
+    		}
+    		
     	}
 
         // if no changes were generated return null

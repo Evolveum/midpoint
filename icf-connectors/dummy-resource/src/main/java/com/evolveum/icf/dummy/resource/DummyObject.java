@@ -18,6 +18,7 @@ package com.evolveum.icf.dummy.resource;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -131,6 +132,20 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		}
 		currentValues.addAll(values);
 		checkSchema(name, values, "relace");
+		recordModify();
+	}
+	
+	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException {
+		Set<Object> currentValues = attributes.get(name);
+		if (currentValues == null) {
+			currentValues = new HashSet<Object>();
+			attributes.put(name, currentValues);
+		} else {
+			currentValues.clear();
+		}
+		List<Object> valuesList = Arrays.asList(values);
+		currentValues.addAll(valuesList);
+		checkSchema(name, valuesList, "relace");
 		recordModify();
 	}
 	
