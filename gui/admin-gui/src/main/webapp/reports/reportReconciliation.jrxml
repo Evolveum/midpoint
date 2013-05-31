@@ -19,7 +19,7 @@
 	<parameter name="CLASS" class="javax.xml.namespace.QName"/>
 	<parameter name="INTENT" class="java.lang.String"/>
 	<queryString language="hql">
-		<![CDATA[select distinct (select u.name.orig from RUser as u join u.linkRef as ref where ref.targetOid = s.oid) as username, s.name.orig as name, s.synchronizationSituation as situation, ssd.situation as situationDescription from RShadow as s join s.resourceRef as resRef left join s.synchronizationSituationDescription as ssd where s.objectClass = $P{CLASS} and resRef.type = 8 and resRef.targetOid = $P{RESOURCE_OID} and s.kind = 0 order by s.name.orig]]>
+		<![CDATA[select distinct (select u.name.orig from RUser as u join u.linkRef as ref where ref.targetOid = s.oid) as username, s.name.orig as name, s.synchronizationSituation as situation, ssd.situation as situationDescription from RShadow as s join s.resourceRef as resRef left join s.synchronizationSituationDescription as ssd where s.objectClass = $P{CLASS} and resRef.type = 8 and resRef.targetOid = $P{RESOURCE_OID} and s.kind = 0 order by s.synchronizationSituation, s.name.orig]]>
 	</queryString>
 	<field name="username" class="java.lang.String"/>
 	<field name="name" class="java.lang.String"/>
