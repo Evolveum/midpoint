@@ -682,7 +682,8 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				"expression in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "expression in "+getMappingContextDescription(), result);
 		params.setDefaultSource(defaultSource);
-		params.setRegress(!conditionResultNew);
+		params.setSkipEvaluationMinus(!conditionResultOld);
+		params.setSkipEvaluationPlus(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		outputTriple = expression.evaluate(params);
 		

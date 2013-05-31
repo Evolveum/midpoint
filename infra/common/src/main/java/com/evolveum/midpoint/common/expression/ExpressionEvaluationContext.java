@@ -35,7 +35,8 @@ public class ExpressionEvaluationContext {
 	private Collection<Source<?>> sources;
 	private Source<?> defaultSource;
 	private Map<QName, Object> variables;
-	private boolean regress = false;
+	private boolean skipEvaluationPlus = false;
+	private boolean skipEvaluationMinus = false;
 	private StringPolicyResolver stringPolicyResolver;
 	private String contextDescription;
 	private OperationResult result;
@@ -74,14 +75,22 @@ public class ExpressionEvaluationContext {
 		this.variables = variables;
 	}
 	
-	public boolean isRegress() {
-		return regress;
+	public boolean isSkipEvaluationPlus() {
+		return skipEvaluationPlus;
 	}
-	
-	public void setRegress(boolean regress) {
-		this.regress = regress;
+
+	public void setSkipEvaluationPlus(boolean skipEvaluationPlus) {
+		this.skipEvaluationPlus = skipEvaluationPlus;
 	}
-	
+
+	public boolean isSkipEvaluationMinus() {
+		return skipEvaluationMinus;
+	}
+
+	public void setSkipEvaluationMinus(boolean skipEvaluationMinus) {
+		this.skipEvaluationMinus = skipEvaluationMinus;
+	}
+
 	public StringPolicyResolver getStringPolicyResolver() {
 		return stringPolicyResolver;
 	}
@@ -108,7 +117,8 @@ public class ExpressionEvaluationContext {
 	
 	public ExpressionEvaluationContext shallowClone() {
 		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, result);
-		clone.regress = this.regress;
+		clone.skipEvaluationMinus = this.skipEvaluationMinus;
+		clone.skipEvaluationPlus = this.skipEvaluationPlus;
 		clone.stringPolicyResolver = this.stringPolicyResolver;
 		clone.defaultSource = this.defaultSource;
 		return clone;

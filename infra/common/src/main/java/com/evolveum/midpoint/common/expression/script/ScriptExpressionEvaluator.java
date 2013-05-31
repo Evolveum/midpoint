@@ -98,7 +98,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
         		outputTriple = evaluateAbsoluteExpression(null, context.getVariables(), context.getContextDescription(), context.getResult());
         	} else {
         		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources(), scriptType.isIncludeNullInputs());
-        		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isRegress(), 
+        		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isSkipEvaluationMinus(), context.isSkipEvaluationPlus(), 
         				scriptType.isIncludeNullInputs(), context.getContextDescription(), context.getResult());
         	}
         	
@@ -232,8 +232,9 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 	}
 
 	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<? extends PrismValue>> sourceTriples,
-			final Map<QName, Object> variables, boolean regress, final Boolean includeNulls, 
-			final String contextDescription, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			final Map<QName, Object> variables, final boolean skipEvaluationMinus, final boolean skipEvaluationPlus, 
+			final Boolean includeNulls, final String contextDescription, final OperationResult result) 
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		List<Collection<? extends PrismValue>> valueCollections = new ArrayList<Collection<? extends PrismValue>>(sourceTriples.size());
 		for (SourceTriple<? extends PrismValue> sourceTriple: sourceTriples) {
@@ -279,6 +280,14 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				}
 				if (hasPlus && hasMinus) {
 					// Both plus and minus. Ignore this combination. It should not appear in output
+					return;
+				}
+				
+				if (hasPlus && skipEvaluationPlus) {
+					// The results will end up in the plus set, therefore we can skip it
+					return;
+				} else if (hasMinus && skipEvaluationMinus) {
+					// The results will end up in the minus set, therefore we can skip it
 					return;
 				}
 				

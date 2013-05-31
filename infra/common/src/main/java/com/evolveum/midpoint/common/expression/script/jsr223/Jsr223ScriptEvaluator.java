@@ -193,8 +193,15 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		if (expectedType.equals(PolyString.class) && rawValue instanceof PolyStringType) {
 			return (T) ((PolyStringType)rawValue).toPolyString();
 		}
+		if (expectedType.equals(PolyString.class) && rawValue instanceof Integer) {
+			return (T) new PolyString(((Integer)rawValue).toString());
+		}
 		if (expectedType.equals(PolyStringType.class) && rawValue instanceof PolyString) {
 			PolyStringType polyStringType = new PolyStringType((PolyString)rawValue);
+			return (T) polyStringType;
+		}
+		if (expectedType.equals(PolyStringType.class) && rawValue instanceof Integer) {
+			PolyStringType polyStringType = new PolyStringType(((Integer)rawValue).toString());
 			return (T) polyStringType;
 		}
 		throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription);

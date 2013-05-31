@@ -43,7 +43,8 @@
 			<class name="com.evolveum.midpoint.common.expression.TestMidPointFunctions" />
 			<class name="com.evolveum.midpoint.common.expression.TestStaticValues" />
 			<class name="com.evolveum.midpoint.common.expression.TestExpressionUtil" />
-			<class name="com.evolveum.midpoint.common.mapping.TestMappingDynamic" />
+			<class name="com.evolveum.midpoint.common.mapping.TestMappingDynamicSimple" />
+			<class name="com.evolveum.midpoint.common.mapping.TestMappingDynamicSysVar" />
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingStatic" />
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingComplex" />
 		</classes>

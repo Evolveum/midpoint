@@ -143,6 +143,10 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public PolyString getAt(int index) {
 		return new PolyString(this.orig.substring(index, index+1));
 	}
+	
+	public int length() {
+		return orig.length();
+	}
 
 	@Override
 	public int hashCode() {
