@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAuthorizationDecision;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
@@ -34,6 +35,7 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@JaxbType(type = AuthorizationType.class)
 @Entity
 @ForeignKey(name = "fk_authorization")
 public class RAuthorization extends RContainer implements ROwnable {

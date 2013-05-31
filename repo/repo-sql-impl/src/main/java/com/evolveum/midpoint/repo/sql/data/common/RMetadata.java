@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.id.RMetadataId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
@@ -40,6 +41,7 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@JaxbType(type = MetadataType.class)
 @Entity
 @IdClass(RMetadataId.class)
 public class RMetadata implements Serializable {

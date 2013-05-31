@@ -108,17 +108,17 @@ public final class RUtil {
             JAXBException {
         return toJAXB(null, null, value, clazz, prismContext);
     }
-    
+
     public static <T> T toJAXB(String value, Class<T> clazz, QName type, PrismContext prismContext) throws SchemaException,
-    JAXBException {
-return toJAXB(null, null, value, clazz, type, prismContext);
-}
+            JAXBException {
+        return toJAXB(null, null, value, clazz, type, prismContext);
+    }
 
     public static <T> T toJAXB(Class<?> parentClass, ItemPath path, String value,
-            Class<T> clazz,PrismContext prismContext) throws SchemaException, JAXBException {
-return toJAXB(parentClass, path, value, clazz, null, prismContext);
-}
-    
+                               Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException {
+        return toJAXB(parentClass, path, value, clazz, null, prismContext);
+    }
+
     public static <T> T toJAXB(Class<?> parentClass, ItemPath path, String value,
                                Class<T> clazz, QName complexType, PrismContext prismContext) throws SchemaException, JAXBException {
         if (StringUtils.isEmpty(value)) {
@@ -154,20 +154,20 @@ return toJAXB(parentClass, path, value, clazz, null, prismContext);
                 return null;
             }
             SchemaRegistry registry = prismContext.getSchemaRegistry();
-            
-            
+
+
             PrismContainerDefinition definition = null;
-            if (parentClass != null){
-            	PrismContainerDefinition parentDefinition = registry.determineDefinitionFromClass(parentClass);
-            	definition = parentDefinition.findContainerDefinition(path);
-            } else if (complexType != null){
-            	definition = registry.findContainerDefinitionByType(complexType);
+            if (parentClass != null) {
+                PrismContainerDefinition parentDefinition = registry.determineDefinitionFromClass(parentClass);
+                definition = parentDefinition.findContainerDefinition(path);
+            } else if (complexType != null) {
+                definition = registry.findContainerDefinitionByType(complexType);
             } else {
-            	definition = registry.determineDefinitionFromClass(clazz);
+                definition = registry.determineDefinitionFromClass(clazz);
             }
-            
-            if (definition == null){
-            	throw new SchemaException("Could not find definition for " + QNameUtil.getNodeQName(firstChild));
+
+            if (definition == null) {
+                throw new SchemaException("Could not find definition for " + QNameUtil.getNodeQName(firstChild));
             }
 
             PrismContainer container = domProcessor.parsePrismContainer(firstChild, definition);
@@ -295,31 +295,6 @@ return toJAXB(parentClass, path, value, clazz, null, prismContext);
         }
         return list;
     }
-    
-    public static Set<RTrigger> listTriggerToSet(RObject owner, List<TriggerType> list) {
-		Set<RTrigger> set = new HashSet<RTrigger>();
-		if (list != null) {
-			for (TriggerType str : list) {
-				if (str == null) {
-					continue;
-				}
-				set.add(RTrigger.copyFromJAXB(owner, str));
-			}
-		}
-
-		return set;
-	}
-
-	public static List<TriggerType> safeSetTriggerToList(Set<RTrigger> set) {
-		List<TriggerType> list = new ArrayList<TriggerType>();
-		for (RTrigger str : set) {
-			if (str == null) {
-				continue;
-			}
-			list.add(RTrigger.copyToJAXB(str));
-		}
-		return list;
-	}
 
     public static <T> List<T> safeSetToList(Set<T> set) {
         if (set == null || set.isEmpty()) {
@@ -406,12 +381,12 @@ return toJAXB(parentClass, path, value, clazz, null, prismContext);
     public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyContainer.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyPolyString.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyReference.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyLong.class);
 
@@ -424,6 +399,7 @@ return toJAXB(parentClass, path, value, clazz, null, prismContext);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
         for (RContainerType type : ClassMapper.getKnownTypes()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
         }

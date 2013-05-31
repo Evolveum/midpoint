@@ -42,7 +42,8 @@ public enum RContainerType {
     ORG(ROrg.class),
     ABSTRACT_ROLE(RAbstractRole.class),
     AUTHORIZATION(RAuthorization.class),
-    FOCUS(RFocus.class);
+    FOCUS(RFocus.class),
+    TRIGGER(RTrigger.class);
 
     private Class<? extends RContainer> clazz;
 

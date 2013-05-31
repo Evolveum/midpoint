@@ -22,8 +22,10 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -58,7 +60,8 @@ public abstract class RObject extends RContainer {
         return metadata;
     }
 
-    @ForeignKey(name = "fk_trigger_owner")
+//    @ForeignKey(name = "fk_trigger_owner")
+    @ForeignKey(name = "none")
     @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RTrigger> getTrigger(){
@@ -201,10 +204,11 @@ public abstract class RObject extends RContainer {
         if (!orgRefs.isEmpty()) {
             jaxb.getParentOrgRef().addAll(orgRefs);
         }
-        
-        List trigger = RUtil.safeSetTriggerToList(repo.getTrigger());
-        if (!trigger.isEmpty()) {
-            jaxb.getTrigger().addAll(trigger);
+
+        if (repo.getTrigger() != null) {
+            for (RTrigger trigger : repo.getTrigger()) {
+                jaxb.getTrigger().add(trigger.toJAXB(prismContext));
+            }
         }
 
         if (repo.getMetadata() != null) {
@@ -235,12 +239,16 @@ public abstract class RObject extends RContainer {
             RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
         }
 
-       
-        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext, repo, RReferenceOwner.OBJECT_PARENT_ORG));
+        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext,
+                repo, RReferenceOwner.OBJECT_PARENT_ORG));
 
-		if (jaxb.getTrigger() != null) {
-			repo.getTrigger().addAll(RUtil.listTriggerToSet(repo, jaxb.getTrigger()));
-		}
+        for (TriggerType trigger : jaxb.getTrigger()) {
+            RTrigger rTrigger = new RTrigger(repo);
+            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, prismContext);
+
+            repo.getTrigger().add(rTrigger);
+        }
+
         if (jaxb.getMetadata() != null) {
             RMetadata metadata = new RMetadata();
             metadata.setOwner(repo);

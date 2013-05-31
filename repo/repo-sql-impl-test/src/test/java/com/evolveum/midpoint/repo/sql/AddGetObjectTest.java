@@ -174,10 +174,17 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
     }
 
+    private Integer size(PrismContainerValue value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.getItems() != null ? value.getItems().size() : 0;
+    }
+
     private void checkContainerValuesSize(QName parentName, PrismContainerValue newValue, PrismContainerValue oldValue) {
         LOGGER.info("Checking: " + parentName);
-        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "'",
-                oldValue.getItems().size(), newValue.getItems().size());
+        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "'", size(oldValue), size(newValue));
 
         List<QName> checked = new ArrayList<QName>();
 

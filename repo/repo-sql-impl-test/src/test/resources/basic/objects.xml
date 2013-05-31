@@ -31,7 +31,7 @@
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00002</name>
         
-        <trigger>
+        <trigger id="2">
             <handlerUri>http://triggerUri</handlerUri>
             <timestamp>2013-05-07T10:38:21.350+02:00</timestamp>
         </trigger>

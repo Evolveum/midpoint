@@ -1,8 +1,10 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RTriggerId;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -12,41 +14,46 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
 
 @JaxbType(type = TriggerType.class)
 @Entity
-@IdClass(RTriggerId.class)
+@ForeignKey(name = "fk_trigger")
 @org.hibernate.annotations.Table(appliesTo = "m_trigger",
         indexes = {@Index(name = "iTriggerTimestamp", columnNames = RTrigger.C_TIMESTAMP)})
-public class RTrigger implements Serializable {
+public class RTrigger extends RContainer implements ROwnable {
 
     public static final String C_TIMESTAMP = "timestampValue";
     public static final String F_OWNER = "owner";
 
     //owner
     private RObject owner;
-    private Long ownerId;
     private String ownerOid;
+    private Long ownerId;
 
     private String handlerUri;
     private XMLGregorianCalendar timestamp;
 
+    public RTrigger() {
+        this(null);
+    }
 
-    @ForeignKey(name = "none")
+    public RTrigger(RObject owner) {
+        this.owner = owner;
+    }
+
+    //    @ForeignKey(name = "none")
+    @ForeignKey(name = "fk_trigger_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id"),
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid")
-
+    @JoinColumns({
+            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
+            @JoinColumn(name = "owner_id", referencedColumnName = "id")
     })
     public RObject getOwner() {
         return owner;
     }
 
-    @Id
-    @Column(name = "owner_id")
+    @Column(name = "owner_id", nullable = false)
     public Long getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
@@ -54,8 +61,7 @@ public class RTrigger implements Serializable {
         return ownerId;
     }
 
-    @Id
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();
@@ -63,13 +69,10 @@ public class RTrigger implements Serializable {
         return ownerOid;
     }
 
-    @Id
-    @Column(name = "handlerUri")
     public String getHandlerUri() {
         return handlerUri;
     }
 
-    @Id
     @Column(name = C_TIMESTAMP)
     public XMLGregorianCalendar getTimestamp() {
         return timestamp;
@@ -93,6 +96,12 @@ public class RTrigger implements Serializable {
 
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
+    }
+
+    @Transient
+    @Override
+    public RContainer getContainerOwner() {
+        return getOwner();
     }
 
     @Override
@@ -123,25 +132,33 @@ public class RTrigger implements Serializable {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static RTrigger copyFromJAXB(RObject owner, TriggerType jaxb) {
+    public static void copyToJAXB(RTrigger repo, TriggerType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        RTrigger repo = new RTrigger();
-
-        repo.setTimestamp(jaxb.getTimestamp());
-        repo.setHandlerUri(jaxb.getHandlerUri());
-        repo.setOwner(owner);
-        return repo;
-    }
-
-    public static TriggerType copyToJAXB(RTrigger repo) {
-        Validate.notNull(repo, "Repo object must not be null.");
-
-        TriggerType jaxb = new TriggerType();
+        jaxb.setId(repo.getId());
 
         jaxb.setHandlerUri(repo.getHandlerUri());
         jaxb.setTimestamp(repo.getTimestamp());
 
-        return jaxb;
+    }
+
+    public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, ObjectType parent,
+                                    PrismContext prismContext) throws DtoTranslationException {
+        Validate.notNull(repo, "Repo object must not be null.");
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        repo.setOid(parent.getOid());
+        repo.setId(jaxb.getId());
+
+        repo.setHandlerUri(jaxb.getHandlerUri());
+        repo.setTimestamp(jaxb.getTimestamp());
+    }
+
+    public TriggerType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        TriggerType object = new TriggerType();
+        RTrigger.copyToJAXB(this, object, prismContext);
+        return object;
     }
 }
