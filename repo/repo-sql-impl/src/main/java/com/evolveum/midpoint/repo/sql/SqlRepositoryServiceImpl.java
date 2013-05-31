@@ -472,11 +472,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return oid;
     }
 
+    private boolean existOrgCLosure(Session session, String descendantOid, String ancestorOid, int depth)
+    {
+    	  // if not exist pair with same depth, then create else nothing
+        // do
+        Query qExistClosure = session
+                .createQuery("select count(*) from ROrgClosure as o where "
+                        + "o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid "
+                        + "and o.descendantId = :descendantId and o.descendantOid = :descendantOid "
+                        + "and o.depth = :depth");
+        qExistClosure.setParameter("ancestorId", 0L);
+        qExistClosure.setParameter("ancestorOid", ancestorOid);
+        qExistClosure.setParameter("descendantId", 0L);
+        qExistClosure.setParameter("descendantOid", descendantOid);
+        qExistClosure.setParameter("depth", depth);
 
+        return (Long) qExistClosure.uniqueResult() != 0;
+
+    }
     private <T extends ObjectType> void fillHierarchy(RObject rOrg, Session session, boolean withIncorrect) throws SchemaException {
 
-        ROrgClosure closure = new ROrgClosure(rOrg, rOrg, 0);
-        session.save(closure);
+    	if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid(), 0))
+    	{
+    		ROrgClosure closure = new ROrgClosure(rOrg, rOrg, 0);
+    		session.save(closure);
+    	}
 
         for (RObjectReference orgRef : rOrg.getParentOrgRef()) {
             fillTransitiveHierarchy(rOrg, orgRef.getTargetOid(), session, withIncorrect);
@@ -519,22 +539,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         new Object[]{o.getAncestor().getOid(),
                                 descendant.getOid(), o.getDepth() + 1});
 
-                // if not exist pair with same depth, then create else nothing
-                // do
-                Query qExistClosure = session
-                        .createQuery("select count(*) from ROrgClosure as o where "
-                                + "o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid "
-                                + "and o.descendantId = :descendantId and o.descendantOid = :descendantOid "
-                                + "and o.depth = :depth");
-                qExistClosure.setParameter("ancestorId", 0L);
-                qExistClosure.setParameter("ancestorOid", o.getAncestor().getOid());
-                qExistClosure.setParameter("descendantId", 0L);
-                qExistClosure.setParameter("descendantOid", descendant.getOid());
-                qExistClosure.setParameter("depth", o.getDepth() + 1);
-
-                boolean existClosure = (Long) qExistClosure.uniqueResult() == 0;
-
-                if (existClosure)
+                boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(), descendant.getOid(), o.getDepth() + 1);
+                if (!existClosure)
                     session.save(new ROrgClosure(o.getAncestor(), descendant, o
                             .getDepth() + 1));
             }
