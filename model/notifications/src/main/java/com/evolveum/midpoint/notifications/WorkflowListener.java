@@ -52,15 +52,30 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 
     private static final String DOT_CLASS = WorkflowListener.class.getName() + ".";
 
-    @Autowired(required = true)
+    @Autowired
     private NotificationManager notificationManager;
 
     @Autowired
     private PrismContext prismContext;
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+
+    // WorkflowService is not required, because e.g. within model-test and model-intest we have no workflows present
+    // However, during normal operation, it is expected to be present
+    @Autowired(required = false)
+    private WorkflowService workflowService;
+
+    @PostConstruct
+    public void init() {
+        if (workflowService != null) {
+            workflowService.registerProcessListener(this);
+            workflowService.registerWorkItemListener(this);
+        } else {
+            LOGGER.warn("WorkflowService not present, notifications for workflows will not be enabled.");
+        }
+    }
 
     @Override
     public void onProcessInstanceStart(String instanceName, Map<String, Object> variables, OperationResult result) {
@@ -70,7 +85,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 
     @Override
     public void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, Boolean approved, OperationResult result) {
-        WorkflowProcessEvent event = createWorkflowProcessEvent(instanceName, variables, ChangeType.DELETE, null, result);
+        WorkflowProcessEvent event = createWorkflowProcessEvent(instanceName, variables, ChangeType.DELETE, (Boolean) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER), result);
         processEvent(event, result);
     }
 
@@ -95,6 +110,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     private void fillInEvent(WorkflowEvent event, String instanceName, Map<String, Object> variables, ChangeType changeType, Boolean answer, OperationResult result) {
         event.setProcessName(instanceName);
         event.setOperationStatus(resultToStatus(changeType, answer));
+        event.setChangeType(changeType);
         event.setVariables(variables);
 
         String objectXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);

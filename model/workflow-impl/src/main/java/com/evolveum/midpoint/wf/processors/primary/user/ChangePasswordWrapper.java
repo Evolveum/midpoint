@@ -125,7 +125,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
 
         instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
-        instruction.setSimple(true);
+        instruction.setSimple(false);
 
         instruction.setTaskName(new PolyStringType("Workflow for approving password change for " + userName));
         instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, "Changing password for " + userName);

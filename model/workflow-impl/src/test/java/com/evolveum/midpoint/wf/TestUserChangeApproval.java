@@ -149,6 +149,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                @Override
                void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                    assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
+                   checkDummyTransportMessages("simpleUserNotifier", 1);
                }
 
                @Override
@@ -203,6 +204,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
             }
 
             @Override
@@ -242,6 +245,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
                 assertAssignedRole(jack, ROLE_R3_OID);
+
+                checkDummyTransportMessages("simpleUserNotifier", 2);
             }
 
             @Override
@@ -293,6 +298,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertAssignedRole(jack, ROLE_R3_OID);
                 assertAssignedRole(jack, ROLE_R4_OID);
                 assertEquals("activation has not been changed", ActivationStatusType.DISABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
             }
 
             @Override
@@ -340,6 +347,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertAssignedRole(jack, ROLE_R3_OID);
                 assertAssignedRole(jack, ROLE_R4_OID);
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
+
+                checkDummyTransportMessages("simpleUserNotifier", 2);
             }
 
             @Override
@@ -381,6 +390,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
             }
 
             @Override
@@ -435,6 +446,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
+
+                checkDummyTransportMessages("simpleUserNotifier", 2);
             }
 
             @Override
@@ -481,6 +494,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
                 //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
                 assertTrue("password was changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
+
+                checkDummyTransportMessages("simpleUserNotifier", 0);
             }
 
             @Override
@@ -522,6 +537,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
                 //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
                 assertFalse("password was not changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
             }
         });
     }
@@ -561,6 +578,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
                 //assertFalse("password was not changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
                 assertAssignedRole(jack, ROLE_R1_OID);
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
             }
         });
     }
@@ -592,9 +611,13 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         }
     }
 	
-	private void executeTest(String testName, String oid, int sensitiveRolesAdded, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {
+	private void executeTest(String testName, String oid, int subtaskCount, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {
+
+        int workflowSubtaskCount = immediate ? subtaskCount-1 : subtaskCount;
 
 		// GIVEN
+        prepareNotifications();
+
         Task rootTask = taskManager.createTaskInstance(TestUserChangeApproval.class.getName() + "."+testName);
 
         OperationResult result = new OperationResult("execution");
@@ -641,7 +664,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         //assertEquals("Invalid current task handler", Wait, uriStack.getUriStackEntry().get(1).getHandlerUri());
 
         List<Task> subtasks = rootTask.listSubtasks(result);
-        assertEquals("Incorrect number of subtasks", sensitiveRolesAdded, subtasks.size());
+        assertEquals("Incorrect number of subtasks", subtaskCount, subtasks.size());
 
         Task task0 = null;
 
@@ -658,6 +681,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         }
 
         contextCreator.assertsAfterClockworkRun(rootTask, result);
+
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
+        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount);
 
         if (immediate) {
             waitForTaskClose(task0, 20000);
@@ -706,6 +732,10 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         if (!oid.equals(DONT_CHECK)) {
             assertObjectInTaskTree(rootTask, oid, checkObjectOnSubtasks, result);
         }
+
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount*2);
+        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount*2);
+        notificationManager.setDisabled(true);
 
         display("Output context", context);
 	}

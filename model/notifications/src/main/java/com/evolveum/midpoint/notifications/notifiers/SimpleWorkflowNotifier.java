@@ -84,7 +84,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         body.append(getSubject(event, generalNotifierType, transport, result));
         body.append("\n\n");
 
-        body.append("Process instance name: " + workflowEvent.getProcessName());
+        body.append("Process instance name: " + workflowEvent.getProcessName() + "\n");
         if (workflowEvent instanceof WorkItemEvent) {
             WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
             body.append("Work item: " + workItemEvent.getWorkItemName() + "\n");

@@ -36,6 +36,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.transports.DummyTransport;
+import com.evolveum.midpoint.notifications.transports.Message;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -1433,5 +1434,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		attrContainer.add(nameAttr);
 		return shadow;
 	}
+
+    protected void prepareNotifications() {
+        notificationManager.setDisabled(false);
+        dummyTransport.clearMessages();
+        dummyNotifier.clearRecords();
+    }
+
+    protected void checkDummyTransportMessages(String name, int expectedCount) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        if (expectedCount == 0) {
+            if (messages != null && !messages.isEmpty()) {
+                assertFalse(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'", true);
+            }
+        } else {
+            assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+            assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
+        }
+    }
+
+    protected void checkDummyTransportMessagesAtLeast(String name, int expectedCount) {
+        if (expectedCount == 0) {
+            return;
+        }
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        assertTrue("Number of messages recorded in dummy transport '" + name + "' (" + messages.size() + ") is not at least " + expectedCount, messages.size() >= expectedCount);
+    }
 
 }

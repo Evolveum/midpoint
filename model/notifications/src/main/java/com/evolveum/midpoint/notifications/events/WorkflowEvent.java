@@ -86,4 +86,15 @@ abstract public class WorkflowEvent extends Event {
     public boolean isRejected() {
         return isFailure();             // for now
     }
+
+    @Override
+    public String toString() {
+        return "WorkflowEvent{" +
+                "event=" + super.toString() +
+                ", processName='" + processName + '\'' +
+                ", changeType=" + changeType +
+                ", operationStatus=" + operationStatus +
+                '}';
+    }
+
 }

@@ -60,4 +60,15 @@ public class WorkItemEvent extends WorkflowEvent {
         variables.put(SchemaConstants.C_ASSIGNEE, notificationsUtil.getObjectType(assignee, result));
     }
 
+    @Override
+    public String toString() {
+        return "WorkflowProcessEvent{" +
+                "workflowEvent=" + super.toString() +
+                ", workItemName=" + workItemName +
+                ", assignee=" + assignee +
+                '}';
+
+    }
+
+
 }

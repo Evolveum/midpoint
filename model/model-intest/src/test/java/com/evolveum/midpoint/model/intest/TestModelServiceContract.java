@@ -319,18 +319,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	}
 
-    private void checkDummyTransportMessages(String name, int expectedCount) {
-        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
-        if (expectedCount == 0) {
-            if (messages != null && !messages.isEmpty()) {
-                assertFalse(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'", true);
-            }
-        } else {
-            assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
-            assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
-        }
-    }
-
     private void checkTest100NotificationRecords(String notifierName) {
         assertEquals("Invalid number of notification records [" + notifierName + "]", 1, dummyNotifier.getRecords(notifierName).size());
         DummyNotifier.NotificationRecord record = dummyNotifier.getRecords(notifierName).get(0);
@@ -705,12 +693,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-    }
-
-    private void prepareNotifications() {
-        notificationManager.setDisabled(false);
-        dummyTransport.clearMessages();
-        dummyNotifier.clearRecords();
     }
 
     @Test

@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.wf.processes.general;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.activiti.engine.delegate.DelegateTask;
@@ -26,8 +28,15 @@ import org.activiti.engine.delegate.TaskListener;
  */
 public class MidPointTaskListener implements TaskListener {
 
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointTaskListener.class);
+
     @Override
     public void notify(DelegateTask delegateTask) {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("notify called; event name = {}, name = {}", delegateTask.getEventName(), delegateTask.getName());
+        }
+
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
             SpringApplicationContextHolder.getProcessInstanceController().notifyWorkItemCreated(
                     delegateTask.getName(),

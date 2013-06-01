@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
-import com.evolveum.midpoint.notifications.WorkflowListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -48,7 +47,6 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.text.DateFormat;
 import java.util.*;
 
@@ -80,17 +78,14 @@ public class ProcessInstanceController {
     @Autowired(required = true)
     private RepositoryService repositoryService;
 
-    @Autowired
-    private WorkflowListener workflowListener;
-
     private Set<ProcessListener> processListeners = new HashSet<ProcessListener>();
     private Set<WorkItemListener> workItemListeners = new HashSet<WorkItemListener>();
 
-    @PostConstruct
-    public void init() {
-        registerProcessListener(workflowListener);
-        registerWorkItemListener(workflowListener);
-    }
+//    @PostConstruct
+//    public void init() {
+//        registerProcessListener(workflowListener);
+//        registerWorkItemListener(workflowListener);
+//    }
 
     public void startProcessInstance(StartProcessInstruction instruction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
@@ -229,7 +224,7 @@ public class ProcessInstanceController {
 
     private void notifyProcessStart(StartProcessCommand spc, Task task, OperationResult result) {
         for (ProcessListener processListener : processListeners) {
-            processListener.onProcessInstanceStart(spc.getProcessName(), spc.getVariables(), result);
+            processListener.onProcessInstanceStart((String) spc.getVariables().get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME), spc.getVariables(), result);
         }
     }
 

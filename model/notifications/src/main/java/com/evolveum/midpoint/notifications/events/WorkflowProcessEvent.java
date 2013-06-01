@@ -23,10 +23,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
  */
 public class WorkflowProcessEvent extends WorkflowEvent {
 
-
     @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
         return eventCategoryType == EventCategoryType.WORKFLOW_PROCESS_EVENT || eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
+    }
+
+    @Override
+    public String toString() {
+        return "WorkflowProcessEvent{" +
+                "workflowEvent=" + super.toString() +
+                '}';
+
     }
 
 }
