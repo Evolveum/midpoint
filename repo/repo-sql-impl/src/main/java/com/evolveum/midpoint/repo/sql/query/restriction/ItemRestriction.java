@@ -140,6 +140,22 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
     }
 
+    /**
+     * This method scans {@link ItemPath} in {@link ValueFilter} and looks for virtual properties, collections
+     * or entities in {@link QueryDefinitionRegistry}.
+     * <p/>
+     * Virtual definitions offer additional query params, which can be used for filtering - this method updates
+     * criteria based on {@link VirtualQueryParam}. For example assignments and inducements are defined in two
+     * collections in schema ({@link com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType}),
+     * but in repository ({@link com.evolveum.midpoint.repo.sql.data.common.RAbstractRole}) they are stored in
+     * single {@link java.util.Set}.
+     * <p/>
+     * TODO: implement definition handlers to get rid of these methods with many instanceOf comparisons.
+     *
+     * @param path
+     * @return {@link Criterion} based on {@link VirtualQueryParam}
+     * @throws QueryException
+     */
     private Criterion createVirtualCriterion(ItemPath path) throws QueryException {
         LOGGER.trace("Scanning path for virtual definitions to create criteria {}", new Object[]{path.toString()});
         QueryContext context = getContext();
@@ -216,14 +232,18 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
 
         return andCriterions(criterions);
-//        if (criterions.size() == 1) {
-//            getContext().getCriteria(null).add(criterions.get(0));
-//        } else if (criterions.size() > 1) {
-//            Criterion c = Restrictions.and(criterions.toArray(new Criterion[criterions.size()]));
-//            getContext().getCriteria(null).add(c);
-//        }
     }
 
+    /**
+     * This method provides transformation from {@link String} value defined in
+     * {@link com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam#value()} to real object. Currently only
+     * to simple types and enum values.
+     *
+     * @param param
+     * @param propPath
+     * @return real value
+     * @throws QueryException
+     */
     private Object createQueryParamValue(VirtualQueryParam param, ItemPath propPath) throws QueryException {
         Class type = param.type();
         String value = param.value();
@@ -261,6 +281,8 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             lastPropPath = null;
         }
 
+        // Virtual path is defined for example for virtual collections. {c:role/c:assignment} and {c:role/c:iducement}
+        // must use the same criteria, therefore {c:role/assigmnents} is also path under which is this criteria saved.
         final ItemPath virtualPath = lastPropPath != null ? new ItemPath(lastPropPath, new QName("", realName)) :
                 new ItemPath(new QName("", realName));
 
@@ -269,6 +291,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             return;
         }
 
+        // If there is already criteria on virtual path, only add new path to aliases and criterias.
         Criteria virtualCriteria = getContext().getCriteria(virtualPath);
         if (virtualCriteria != null) {
             getContext().addAlias(path, virtualCriteria.getAlias());

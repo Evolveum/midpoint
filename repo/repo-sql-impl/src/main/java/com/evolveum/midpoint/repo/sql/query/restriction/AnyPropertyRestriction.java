@@ -108,8 +108,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         try {
             List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
             segments.addAll(path.getSegments());
-            // get any type name (e.g. clobs, strings, dates,...) based
-            // on definition
+            // get any type name (e.g. clobs, strings, dates,...) based on definition
             String anyTypeName = RAnyConverter.getAnySetType(itemDef);
             segments.add(new NameItemPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
 
