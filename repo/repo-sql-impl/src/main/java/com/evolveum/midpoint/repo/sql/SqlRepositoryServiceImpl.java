@@ -472,7 +472,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return oid;
     }
 
-    private boolean existOrgCLosure(Session session, String descendantOid, String ancestorOid, int depth)
+    private boolean existOrgCLosure(Session session, String ancestorOid, String descendantOid, int depth)
     {
     	  // if not exist pair with same depth, then create else nothing
         // do
@@ -543,8 +543,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(),
                         descendant.getOid(), o.getDepth() + 1);
                 if (!existClosure)
-                    session.save(new ROrgClosure(o.getAncestor(), descendant, o
-                            .getDepth() + 1));
+                    session.save(new ROrgClosure(o.getAncestor(), descendant, o.getDepth() + 1));
             }
         } else if (withIncorrect) {
             LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,

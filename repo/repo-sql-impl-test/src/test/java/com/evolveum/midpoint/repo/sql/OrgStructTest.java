@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
@@ -216,7 +217,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(13, results.size());
         */
         // check descendants for F0001 org unit
-        qCount = session.createQuery("select count(*) from ROrgClosure where ancestor_oid = :ancestorOid");
+        qCount = session.createQuery("select count(*) from ROrgClosure where ancestorOid = :ancestorOid");
         qCount.setParameter("ancestorOid", ORG_F001_OID);
         count = (Long) qCount.uniqueResult();
         AssertJUnit.assertEquals(13L, count);
@@ -235,10 +236,11 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, results.size());
         */
         
-        qCount = session.createQuery("select count(*) from ROrgClosure where ancestor_oid = :ancestorOid");
+        qCount = session.createQuery("select count(*) from ROrgClosure where ancestorOid = :ancestorOid and descendantOid = :descendantOid");
         qCount.setParameter("ancestorOid", ORG_F001_OID);
+        qCount.setParameter("descendantOid", ORG_F006_OID);
         count = (Long) qCount.uniqueResult();
-        AssertJUnit.assertEquals(13L, count);
+        AssertJUnit.assertEquals(1, count);
 
         session.getTransaction().commit();
         session.close();
@@ -510,12 +512,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         LOGGER.info("==>before modify - delete<==");
         
-        Query qDelete = session.createQuery("from ROrgClosure where " +
-        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
-        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid and depthValue = :depth");
-        qDelete.setParameter("descendantId",0);
+        Query qDelete = session.createQuery("from ROrgClosure as o where " +
+        		"o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
+        		"and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid and o.depth = :depth");
+        qDelete.setParameter("descendantId",0L);
         qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorId",0L);
         qDelete.setParameter("ancestorOid", ORG_F003_OID);
         qDelete.setParameter("depth", 1);
         
@@ -532,12 +534,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         LOGGER.info("==>after modify - delete<==");
         
-        qDelete = session.createQuery("from ROrgClosure where " +
-        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
-        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid and depthValue = :depth");
-        qDelete.setParameter("descendantId",0);
+        qDelete = session.createQuery("from ROrgClosure as o where " +
+        		"o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
+        		"and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid and o.depth = :depth");
+        qDelete.setParameter("descendantId",0L);
         qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorId",0L);
         qDelete.setParameter("ancestorOid", ORG_F003_OID);
         qDelete.setParameter("depth", 1);
         
@@ -567,12 +569,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         LOGGER.info("==>before modify - delete<==");
         
-        Query qDelete = session.createQuery("from ROrgClosure where " +
-        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
-        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid");
-        qDelete.setParameter("descendantId",0);
+        Query qDelete = session.createQuery("from ROrgClosure as o where " +
+        		"o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
+        		"and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid");
+        qDelete.setParameter("descendantId",0L);
         qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorId",0L);
         qDelete.setParameter("ancestorOid", ORG_F012_OID);
         
         List<ROrgClosure> orgClosure = qDelete.list();
@@ -588,12 +590,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         LOGGER.info("==>after modify - delete<==");
         
-        qDelete = session.createQuery("from ROrgClosure where " +
-        		"descendant_id = :descendantId and descendant_oid = :descendantOid " +
-        		"and ancestor_id = :ancestorId and ancestor_oid = :ancestorOid");
-        qDelete.setParameter("descendantId",0);
+        qDelete = session.createQuery("from ROrgClosure as o where " +
+        		"o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
+        		"and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid");
+        qDelete.setParameter("descendantId",0L);
         qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",0);
+        qDelete.setParameter("ancestorId",0L);
         qDelete.setParameter("ancestorOid", ORG_F012_OID);
         
         orgClosure = qDelete.list();
@@ -640,9 +642,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         LOGGER.info("==>after modify - add user to org<==");
         
-        Query sqlOrgClosure = session.createQuery("from ROrgClosure where descendant_oid = :descendantOid and descendant_id = :descendantId");
+        Query sqlOrgClosure = session.createQuery("from ROrgClosure as o where o.descendantOid = :descendantOid and o.descendantId = :descendantId");
         sqlOrgClosure.setParameter("descendantOid", ELAINE_OID);
-        sqlOrgClosure.setParameter("descendantId", 0);
+        sqlOrgClosure.setParameter("descendantId", 0L);
         List<ROrgClosure> orgClosure = sqlOrgClosure.list();
         
         AssertJUnit.assertEquals(7, orgClosure.size());
@@ -673,10 +675,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         LOGGER.info("==>after delete<==");
         
-        Query sqlOrgClosure = session.createQuery("from ROrgClosure where " +
-        		"(descendant_oid = :deleteOid and descendant_id = :deleteId) or" +
-        		"(ancestor_oid = :deleteOid and ancestor_id = :deleteId)");
-        sqlOrgClosure.setParameter("deleteId", 0);
+        Query sqlOrgClosure = session.createQuery("from ROrgClosure as o where " +
+        		"(o.descendantOid = :deleteOid and o.descendantId = :deleteId) or" +
+        		"(o.ancestorOid = :deleteOid and o.ancestorId = :deleteId)");
+        sqlOrgClosure.setParameter("deleteId", 0L);
         sqlOrgClosure.setParameter("deleteOid", DELETE_ORG_OID);
         
         List<ROrgClosure> orgClosure = sqlOrgClosure.list();
