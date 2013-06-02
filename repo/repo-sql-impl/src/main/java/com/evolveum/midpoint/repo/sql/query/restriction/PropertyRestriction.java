@@ -86,7 +86,7 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         return createCriterion(sb.toString(), value, filter);
     }
 
-    private String createPropertyNamePrefix(ItemPath path) throws QueryException{
+    private String createPropertyNamePrefix(ItemPath path) throws QueryException {
         StringBuilder sb = new StringBuilder();
 
         Class<? extends ObjectType> type = getContext().getType();
@@ -116,8 +116,8 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
             } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition) {
                 break;
             } else {
-                //todo throw something here [lazyman]
-                throw new QueryException("Not implemented yet.");
+                throw new QueryException("Not implemented yet. Create property name prefix for segment '"
+                        + segment + "', path '" + path + "'.");
             }
         }
 

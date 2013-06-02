@@ -88,7 +88,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
             QName anyTypeName = ((NameItemPathSegment) anyItemPath.last()).getName();
             LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
                     new Object[]{anyTypeName.getLocalPart()});
-            addNewCriteriaToContext(anyItemPath, anyTypeName.getLocalPart());
+            addNewCriteriaToContext(anyItemPath, null, anyTypeName.getLocalPart());
         }
         String propertyNamePrefix = getContext().getAlias(anyItemPath) + '.';
 

@@ -21,17 +21,18 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef;
-import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.*;
 
-import javax.persistence.Column;
+import javax.persistence.*;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
-import javax.persistence.OneToMany;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,13 +40,18 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@QueryEntity(collections = {
+        @VirtualCollection(jaxbName = @JaxbName(localPart = "inducement"), jaxbType = Set.class,
+                jpaName = "assignments", jpaType = Set.class, additionalParams = {
+                @VirtualQueryParam(name = "assignmentOwner", type = RAssignmentOwner.class,
+                        value = "ABSTRACT_ROLE")}, collectionType = RAssignment.class)})
+
 @Entity
 @ForeignKey(name = "fk_abstract_role")
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
         indexes = {@Index(name = "iRequestable", columnNames = "requestable")})
 public abstract class RAbstractRole extends RFocus {
 
-    private Set<RAssignment> inducement;
     private Set<RExclusion> exclusion;
     private Boolean requestable;
     private Set<RObjectReference> approverRef;
@@ -95,15 +101,9 @@ public abstract class RAbstractRole extends RFocus {
         return approvalSchema;
     }
 
-    @Where(clause = RAssignment.F_ASSIGNMENT_OWNER + "=1")
-    @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Transient
     public Set<RAssignment> getInducement() {
-        if (inducement == null) {
-            inducement = new HashSet<RAssignment>();
-        }
-        return inducement;
+        return getAssignments(RAssignmentOwner.ABSTRACT_ROLE);
     }
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
@@ -133,10 +133,6 @@ public abstract class RAbstractRole extends RFocus {
 
     public void setExclusion(Set<RExclusion> exclusion) {
         this.exclusion = exclusion;
-    }
-
-    public void setInducement(Set<RAssignment> inducement) {
-        this.inducement = inducement;
     }
 
     public void setApprovalProcess(String approvalProcess) {
@@ -174,8 +170,6 @@ public abstract class RAbstractRole extends RFocus {
 
         RAbstractRole that = (RAbstractRole) o;
 
-        if (inducement != null ? !inducement.equals(that.inducement) : that.inducement != null)
-            return false;
         if (exclusion != null ? !exclusion.equals(that.exclusion) : that.exclusion != null)
             return false;
         if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null)
@@ -263,7 +257,7 @@ public abstract class RAbstractRole extends RFocus {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
             RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext);
 
-            repo.getInducement().add(rInducement);
+            repo.getAssignments().add(rInducement);
         }
 
         for (ExclusionType exclusion : jaxb.getExclusion()) {

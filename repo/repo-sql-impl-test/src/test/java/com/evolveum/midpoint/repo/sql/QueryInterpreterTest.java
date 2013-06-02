@@ -29,8 +29,9 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -488,21 +489,97 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryAssignmentActivationAdministrativeStatus() throws Exception {
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
-        Criteria a = main.createCriteria("assignment", "a");
-        a.add(Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED));
+        Criteria a = main.createCriteria("assignments", "a");
+        a.add(Restrictions.and(
+                Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS),
+                Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
+        ));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-        ItemPath triggerPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
+        ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
 
-        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
 
-        ObjectFilter filter = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
+        ObjectFilter filter = EqualsFilter.createEqual(activationPath, activationDef,
                 ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, UserType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryInducementActivationAdministrativeStatus() throws Exception {
+        Session session = open();
+        Criteria main = session.createCriteria(RRole.class, "r");
+        Criteria a = main.createCriteria("assignments", "a");
+        a.add(Restrictions.and(
+                Restrictions.eq("a.assignmentOwner", RAssignmentOwner.ABSTRACT_ROLE),
+                Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
+        ));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+        ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION);
+
+        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
+
+        ObjectFilter filter = EqualsFilter.createEqual(activationPath, activationDef,
+                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        String real = getInterpretedQuery(session, RoleType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryInducementAndAssignmentActivationAdministrativeStatus() throws Exception {
+        Session session = open();
+        Criteria main = session.createCriteria(RRole.class, "r");
+        Criteria a = main.createCriteria("assignments", "a");
+
+        Criterion and1 = Restrictions.and(
+                Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS),
+                Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
+        );
+
+        Criterion and2 = Restrictions.and(
+                Restrictions.eq("a.assignmentOwner", RAssignmentOwner.ABSTRACT_ROLE),
+                Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
+        );
+
+        a.add(Restrictions.or(and1, and2));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+
+        //filter1
+        ItemPath activationPath1 = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
+        PrismContainerDefinition activationDef1 = objectDef.findContainerDefinition(activationPath1);
+        ObjectFilter filter1 = EqualsFilter.createEqual(activationPath1, activationDef1,
+                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+
+        //filter2
+        ItemPath activationPath2 = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION);
+        PrismContainerDefinition activationDef2 = objectDef.findContainerDefinition(activationPath2);
+        ObjectFilter filter2 = EqualsFilter.createEqual(activationPath2, activationDef2,
+                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(filter1, filter2));
+        String real = getInterpretedQuery(session, RoleType.class, query);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
@@ -545,23 +622,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryTriggerTimestampDouble() throws Exception {
-//        AND:
-//        GREATER:
-//        PATH:
-//        {.../common/common-2a}trigger
-//        DEF: PPD:{.../common/common-2a}
-//
-//        timestamp
-//        {xsd:}dateTime[0,1],RCU,I
-//        VALUE: PPV():XMLGregorianCalendarImpl:2013-05-27T18:10:02.169+02:00
-//        LESS:
-//        PATH: {.../common/common-2a}trigger
-//        DEF: PPD:{.../common/common-2a}timestamp {xsd}
-//
-//        dateTime[0,1],RCU,I
-//        VALUE: PPV():XMLGregorianCalendarImpl:2013-05-27T18:10:03.945+02:00
-
-
         final Date NOW = new Date();
 
         Session session = open();

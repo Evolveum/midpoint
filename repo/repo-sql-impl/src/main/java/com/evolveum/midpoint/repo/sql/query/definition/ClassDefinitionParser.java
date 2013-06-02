@@ -57,8 +57,9 @@ public class ClassDefinitionParser {
     }
 
     private void updateEntityDefinition(EntityDefinition entity) {
-        Method[] methods = entity.getJpaType().getMethods();
         LOGGER.trace("### {}", new Object[]{entity.getJpaName()});
+        addVirtualDefinitions(entity);
+        Method[] methods = entity.getJpaType().getMethods();
 
         entity.setEmbedded(entity.getJpaType().getAnnotation(Embeddable.class) != null);
 
@@ -67,6 +68,10 @@ public class ClassDefinitionParser {
             if (Modifier.isStatic(method.getModifiers()) || "getClass".equals(methodName) ||
                     !methodName.startsWith("is") && !methodName.startsWith("get")) {
                 //it's not getter for property
+                continue;
+            }
+
+            if (method.isAnnotationPresent(Transient.class)) {
                 continue;
             }
 
@@ -82,6 +87,50 @@ public class ClassDefinitionParser {
         Collections.sort(entity.getDefinitions(), new DefinitionComparator());
     }
 
+    private void addVirtualDefinitions(EntityDefinition entityDef) {
+        Class jpaType = entityDef.getJpaType();
+        addVirtualDefinitionsForClass(entityDef, jpaType);
+
+        while ((jpaType = jpaType.getSuperclass()) != null) {
+            addVirtualDefinitionsForClass(entityDef, jpaType);
+        }
+    }
+
+    private void addVirtualDefinitionsForClass(EntityDefinition entityDef, Class jpaType) {
+        if (!jpaType.isAnnotationPresent(QueryEntity.class)) {
+            return;
+        }
+
+        QueryEntity qEntity = (QueryEntity) jpaType.getAnnotation(QueryEntity.class);
+        for (VirtualProperty property : qEntity.properties()) {
+
+        }
+
+        for (VirtualReference reference : qEntity.references()) {
+
+        }
+
+        for (VirtualCollection collection : qEntity.collections()) {
+            QName jaxbName = createQName(collection.jaxbName());
+
+            VirtualCollectionDefinition def = new VirtualCollectionDefinition(jaxbName,
+                    collection.jaxbType(), collection.jpaName(), collection.jpaType());
+            def.setAdditionalParams(collection.additionalParams());
+            updateCollectionDefinition(def, collection.collectionType(), jaxbName, collection.jpaName());
+
+            entityDef.getDefinitions().add(def);
+        }
+
+        for (VirtualEntity entity : qEntity.entities()) {
+
+        }
+    }
+
+    private QName createQName(JaxbName name) {
+        return new QName(name.namespace(), name.localPart());
+    }
+
+
     private Definition createDefinition(QName jaxbName, Class jaxbType, String jpaName, AnnotatedElement object) {
         Class jpaType = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
 
@@ -93,7 +142,7 @@ public class ClassDefinitionParser {
             definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
         } else if (Set.class.isAssignableFrom(jpaType)) {
             CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            updateCollectionDefinition(collDef, object);
+            updateCollectionDefinition(collDef, object, null, null);
             definition = collDef;
         } else if (isEntity(object)) {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
@@ -109,25 +158,27 @@ public class ClassDefinitionParser {
         return definition;
     }
 
-    private CollectionDefinition updateCollectionDefinition(CollectionDefinition definition, AnnotatedElement object) {
+    private CollectionDefinition updateCollectionDefinition(CollectionDefinition definition, AnnotatedElement object,
+                                                            QName jaxbName, String jpaName) {
         Definition collDef;
         if (object instanceof Method) {
             Method method = (Method) object;
             ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
             Class clazz = (Class) type.getActualTypeArguments()[0];
 
-            QName jaxbName = getJaxbName(method);
+            QName realJaxbName = getJaxbName(method);
             Class jaxbType = getJaxbType(clazz);
-            String jpaName = getJpaName(method);
-            collDef = createDefinition(jaxbName, jaxbType, jpaName, clazz);
-
-            if (collDef instanceof EntityDefinition) {
-                updateEntityDefinition((EntityDefinition) collDef);
-            }
+            String realJpaName = getJpaName(method);
+            collDef = createDefinition(realJaxbName, jaxbType, realJpaName, clazz);
         } else {
-            // todo what to do here, when we're looking at collection in collection (if there is something
-            // like collection in entity which is in collection)
-            throw new UnsupportedOperationException("Not implemented yet.");
+            Class clazz = (Class) object;
+
+            Class jaxbType = getJaxbType(clazz);
+            collDef = createDefinition(jaxbName, jaxbType, jpaName, clazz);
+        }
+
+        if (collDef instanceof EntityDefinition) {
+            updateEntityDefinition((EntityDefinition) collDef);
         }
 
         definition.setDefinition(collDef);

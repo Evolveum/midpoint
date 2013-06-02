@@ -73,7 +73,7 @@ public class QueryDefinitionRegistry implements Dumpable {
     private QueryDefinitionRegistry() {
     }
 
-    public static QueryDefinitionRegistry getInstance() throws QueryException {
+    public static QueryDefinitionRegistry getInstance() {
         if (registry == null) {
             registry = new QueryDefinitionRegistry();
         }

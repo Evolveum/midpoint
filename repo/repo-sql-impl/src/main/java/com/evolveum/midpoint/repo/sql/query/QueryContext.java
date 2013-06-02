@@ -18,10 +18,13 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query.definition.Definition;
+import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 
@@ -50,7 +53,9 @@ public class QueryContext {
         this.prismContext = prismContext;
         this.session = session;
 
-        String alias = addAlias(null);
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+
+        String alias = addAlias(null, registry.findDefinition(type, null, EntityDefinition.class));
         addCriteria(null, session.createCriteria(ClassMapper.getHQLTypeClass(type), alias));
     }
 
@@ -95,7 +100,7 @@ public class QueryContext {
         aliases.put(path, alias);
     }
 
-    public String addAlias(ItemPath path) {
+    public String addAlias(ItemPath path, Definition def) {
         QName qname;
         if (path == null) {
             //get qname from class type
@@ -109,24 +114,31 @@ public class QueryContext {
             }
         }
 
-        String alias = createAlias(qname);
+        String alias = createAlias(def, qname);
         aliases.put(path, alias);
 
         return alias;
     }
 
-    private String createAlias(QName qname) {
-        String prefix = Character.toString(qname.getLocalPart().charAt(0)).toLowerCase();
-        int index = 1;
+    private String createAlias(Definition def, QName qname) {
+        String prefix;
+        if (def != null) {
+            //we want to skip 'R' prefix for entity definition names
+            int prefixIndex = (def instanceof EntityDefinition) ? 1 : 0;
+            prefix = Character.toString(def.getJpaName().charAt(prefixIndex)).toLowerCase();
+        } else {
+            prefix = Character.toString(qname.getLocalPart().charAt(0)).toLowerCase();
+        }
 
+        int index = 1;
         String alias = prefix;
         while (hasAlias(alias)) {
             alias = prefix + Integer.toString(index);
             index++;
 
-            if (index > 20) {
-                throw new IllegalStateException("Alias index for segment '" + qname
-                        + "' is more than 20? This probably should not happen.");
+            if (index > 5) {
+                throw new IllegalStateException("Alias index for definition '" + def
+                        + "' is more than 5? This probably should not happen.");
             }
         }
 

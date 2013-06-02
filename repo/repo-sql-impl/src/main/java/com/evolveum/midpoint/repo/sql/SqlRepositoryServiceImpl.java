@@ -490,7 +490,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return (Long) qExistClosure.uniqueResult() != 0;
 
     }
-    private <T extends ObjectType> void fillHierarchy(RObject rOrg, Session session, boolean withIncorrect) throws SchemaException {
+    private <T extends ObjectType> void fillHierarchy(RObject rOrg, Session session, boolean withIncorrect)
+            throws SchemaException {
 
     	if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid(), 0))
     	{
@@ -539,7 +540,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         new Object[]{o.getAncestor().getOid(),
                                 descendant.getOid(), o.getDepth() + 1});
 
-                boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(), descendant.getOid(), o.getDepth() + 1);
+                boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(),
+                        descendant.getOid(), o.getDepth() + 1);
                 if (!existClosure)
                     session.save(new ROrgClosure(o.getAncestor(), descendant, o
                             .getDepth() + 1));
@@ -774,8 +776,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{
                 (query == null ? "undefined" : query.dump()),
                 (paging != null ? paging.dump() : "undefined")});
+
         if (iterative) {
-            LOGGER.trace("Iterative search by paging: {}, batch size {}", getConfiguration().isIterativeSearchByPaging(), getConfiguration().getIterativeSearchByPagingBatchSize());
+            LOGGER.trace("Iterative search by paging: {}, batch size {}",
+                    getConfiguration().isIterativeSearchByPaging(),
+                    getConfiguration().getIterativeSearchByPagingBatchSize());
         }
     }
 
@@ -1217,32 +1222,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return query;
         }
 
-        try {
-            QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-            // PropertyPath path = new
-            // XPathHolder(paging.getOrderBy()).toPropertyPath();
-            if (paging.getOrderBy() == null) {
-                LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
-                        + "'.");
-                return query;
-            }
-            EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
-            Definition def = definition.findDefinition(paging.getOrderBy(), Definition.class);
-            if (def == null) {
-                LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
-                        + "list will not be ordered by it.");
-                return query;
-            }
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        // PropertyPath path = new
+        // XPathHolder(paging.getOrderBy()).toPropertyPath();
+        if (paging.getOrderBy() == null) {
+            LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
+                    + "'.");
+            return query;
+        }
+        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+        Definition def = definition.findDefinition(paging.getOrderBy(), Definition.class);
+        if (def == null) {
+            LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
+                    + "list will not be ordered by it.");
+            return query;
+        }
 
-            switch (paging.getDirection()) {
-                case ASCENDING:
-                    query = query.addOrder(Order.asc(def.getJpaName()));
-                    break;
-                case DESCENDING:
-                    query = query.addOrder(Order.desc(def.getJpaName()));
-            }
-        } catch (QueryException ex) {
-            throw new SystemException(ex.getMessage(), ex);
+        switch (paging.getDirection()) {
+            case ASCENDING:
+                query = query.addOrder(Order.asc(def.getJpaName()));
+                break;
+            case DESCENDING:
+                query = query.addOrder(Order.desc(def.getJpaName()));
         }
 
         return query;

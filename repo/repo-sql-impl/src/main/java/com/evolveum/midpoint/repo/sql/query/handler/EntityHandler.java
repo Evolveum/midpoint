@@ -19,5 +19,10 @@ package com.evolveum.midpoint.repo.sql.query.handler;
 /**
  * @author lazyman
  */
-public class EntityHandler implements DefinitionHandler  {
+public class EntityHandler extends DefinitionHandler  {
+
+    @Override
+    public boolean updateQueryContext() {
+        return false;
+    }
 }

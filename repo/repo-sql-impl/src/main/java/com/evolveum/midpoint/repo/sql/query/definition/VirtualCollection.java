@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query.handler;
+package com.evolveum.midpoint.repo.sql.query.definition;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author lazyman
  */
-public class CollectionHandler extends DefinitionHandler {
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface VirtualCollection {
 
-    @Override
-    public boolean updateQueryContext() {
-        return false;
-    }
+    JaxbName jaxbName();
+
+    Class jaxbType();
+
+    String jpaName();
+
+    Class jpaType();
+
+    VirtualQueryParam[] additionalParams() default {};
+
+    Class collectionType();
 }

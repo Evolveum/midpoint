@@ -321,4 +321,40 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertNotNull(assignment.getValue(1L));
     }
+
+    /**
+     * Test for MID-1374
+     */
+    @Test
+    public void test40RenameAssignmentToInducement() throws Exception {
+        //given
+
+        //when
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+                new File(TEST_DIR, "modify-delete-add-assignment.xml"), ObjectModificationType.class);
+
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+
+        OperationResult result = new OperationResult("delete add assignment");
+        repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
+        result.recomputeStatus();
+        result.recordSuccessIfUnknown();
+
+        //then
+        AssertJUnit.assertTrue(result.isSuccess());
+
+        result = new OperationResult("get role");
+        PrismObject repoRole = repositoryService.getObject(RoleType.class, ROLE_OID, result);
+        result.recomputeStatus();
+        result.recordSuccessIfUnknown();
+        AssertJUnit.assertTrue(result.isSuccess());
+
+        PrismContainer inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        AssertJUnit.assertNotNull(inducement);
+        AssertJUnit.assertEquals(3, inducement.getValues().size());
+
+        AssertJUnit.assertNotNull(inducement.getValue(1L));
+        AssertJUnit.assertNotNull(inducement.getValue(2L));
+        AssertJUnit.assertNotNull(inducement.getValue(5L));
+    }
 }

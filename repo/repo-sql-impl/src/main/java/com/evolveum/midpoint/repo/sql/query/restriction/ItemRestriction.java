@@ -38,6 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -68,14 +69,20 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             updateQueryContext(path);
         }
 
-        return interpretInternal(filter);
+        Criterion main = interpretInternal(filter);
+        Criterion virtual = createVirtualCriterion(path);
+        if (virtual != null) {
+            return Restrictions.and(virtual, main);
+        }
+
+        return main;
     }
 
     public abstract Criterion interpretInternal(T filter) throws QueryException;
 
     //todo reimplement, use DefinitionHandlers or maybe another great concept
     private void updateQueryContext(ItemPath path) throws QueryException {
-        LOGGER.trace("Updating query context based on path\n{}", new Object[]{path.toString()});
+        LOGGER.trace("Updating query context based on path {}", new Object[]{path.toString()});
         Class<? extends ObjectType> type = getContext().getType();
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
@@ -105,7 +112,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                     //create new criteria
                     LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
                             new Object[]{entityDef.getJpaName(), propPath.toString()});
-                    addNewCriteriaToContext(propPath, entityDef.getJpaName());
+                    addNewCriteriaToContext(propPath, entityDef, entityDef.getJpaName());
                 } else {
                     // we don't create new sub criteria, just add this new item path to aliases
                     addPathAliasToContext(propPath);
@@ -114,12 +121,12 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             } else if (childDef instanceof AnyDefinition) {
                 LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
                         new Object[]{childDef.getJpaName(), propPath.toString()});
-                addNewCriteriaToContext(propPath, childDef.getJpaName());
+                addNewCriteriaToContext(propPath, childDef, childDef.getJpaName());
                 break;
             } else if (childDef instanceof CollectionDefinition) {
                 LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
                         new Object[]{childDef.getJpaName(), propPath.toString()});
-                addNewCriteriaToContext(propPath, childDef.getJpaName());
+                addNewCriteriaToContext(propPath, childDef, childDef.getJpaName());
                 Definition def = ((CollectionDefinition) childDef).getDefinition();
                 if (def instanceof EntityDefinition) {
                     definition = (EntityDefinition) def;
@@ -133,6 +140,111 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
     }
 
+    private Criterion createVirtualCriterion(ItemPath path) throws QueryException {
+        LOGGER.trace("Scanning path for virtual definitions to create criteria {}", new Object[]{path.toString()});
+        QueryContext context = getContext();
+        Class<? extends ObjectType> type = context.getType();
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+
+        List<Criterion> criterions = new ArrayList<Criterion>();
+
+        List<ItemPathSegment> segments = path.getSegments();
+
+        List<ItemPathSegment> propPathSegments = new ArrayList<ItemPathSegment>();
+        ItemPath propPath;
+        for (ItemPathSegment segment : segments) {
+            QName qname = ItemPath.getName(segment);
+            // create new property path
+            propPathSegments.add(new NameItemPathSegment(qname));
+            propPath = new ItemPath(propPathSegments);
+            // get entity query definition
+
+            Definition childDef = definition.findDefinition(qname, Definition.class);
+            if (childDef == null) {
+                throw new QueryException("Definition '" + definition + "' doesn't contain child definition '"
+                        + qname + "'. Please check your path in query, or query entity/attribute mappings. "
+                        + "Full path was '" + path + "'.");
+            }
+
+            //todo change this if instanceof and use DefinitionHandler [lazyman]
+            if (childDef instanceof EntityDefinition) {
+                definition = (EntityDefinition) childDef;
+            } else if (childDef instanceof CollectionDefinition) {
+                CollectionDefinition collection = (CollectionDefinition) childDef;
+                if (childDef instanceof VirtualCollectionDefinition) {
+                    VirtualCollectionDefinition virtual = (VirtualCollectionDefinition) childDef;
+
+                    criterions.add(updateMainCriterionQueryParam(virtual.getAdditionalParams(), propPath));
+                }
+
+                Definition def = collection.getDefinition();
+                if (def instanceof EntityDefinition) {
+                    definition = (EntityDefinition) def;
+                }
+            } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition
+                    || childDef instanceof AnyDefinition) {
+                break;
+            } else {
+                //todo throw something here [lazyman]
+                throw new QueryException("Not implemented yet.");
+            }
+        }
+
+        return andCriterions(criterions);
+    }
+
+    private Criterion andCriterions(List<Criterion> criterions) {
+        switch (criterions.size()) {
+            case 0:
+                return null;
+            case 1:
+                return criterions.get(0);
+            default:
+                return Restrictions.and(criterions.toArray(new Criterion[criterions.size()]));
+        }
+    }
+
+    private Criterion updateMainCriterionQueryParam(VirtualQueryParam[] params, ItemPath propPath)
+            throws QueryException {
+        List<Criterion> criterions = new ArrayList<Criterion>();
+
+        String alias = getContext().getAlias(propPath);
+        for (VirtualQueryParam param : params) {
+            Criterion criterion = Restrictions.eq(alias + "." + param.name(), createQueryParamValue(param, propPath));
+            criterions.add(criterion);
+        }
+
+        return andCriterions(criterions);
+//        if (criterions.size() == 1) {
+//            getContext().getCriteria(null).add(criterions.get(0));
+//        } else if (criterions.size() > 1) {
+//            Criterion c = Restrictions.and(criterions.toArray(new Criterion[criterions.size()]));
+//            getContext().getCriteria(null).add(c);
+//        }
+    }
+
+    private Object createQueryParamValue(VirtualQueryParam param, ItemPath propPath) throws QueryException {
+        Class type = param.type();
+        String value = param.value();
+
+        try {
+            if (type.isPrimitive()) {
+                return type.getMethod("valueOf", new Class[]{String.class}).invoke(null, new Object[]{value});
+            }
+
+            if (type.isEnum()) {
+                return Enum.valueOf(type, value);
+            }
+        } catch (Exception ex) {
+            throw new QueryException("Couldn't transform virtual query parameter '"
+                    + param.name() + "' from String to '" + type + "', reason: " + ex.getMessage(), ex);
+        }
+
+        throw new QueryException("Couldn't transform virtual query parameter '"
+                + param.name() + "' from String to '" + type + "', it's not yet implemented.");
+    }
+
     private void addPathAliasToContext(ItemPath path) {
         ItemPath lastPropPath = path.allExceptLast();
         if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
@@ -143,24 +255,36 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         getContext().addAlias(path, alias);
     }
 
-    protected void addNewCriteriaToContext(ItemPath path, String realName) {
+    protected void addNewCriteriaToContext(ItemPath path, Definition def, String realName) {
         ItemPath lastPropPath = path.allExceptLast();
         if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
             lastPropPath = null;
         }
+
+        final ItemPath virtualPath = lastPropPath != null ? new ItemPath(lastPropPath, new QName("", realName)) :
+                new ItemPath(new QName("", realName));
 
         Criteria existing = getContext().getCriteria(path);
         if (existing != null) {
             return;
         }
 
+        Criteria virtualCriteria = getContext().getCriteria(virtualPath);
+        if (virtualCriteria != null) {
+            getContext().addAlias(path, virtualCriteria.getAlias());
+            getContext().addCriteria(path, virtualCriteria);
+            return;
+        }
+
         // get parent criteria
         Criteria pCriteria = getContext().getCriteria(lastPropPath);
-        // create new criteria and alias for this relationship
 
-        String alias = getContext().addAlias(path);
+        // create new criteria and alias for this relationship
+        String alias = getContext().addAlias(path, def);
         Criteria criteria = pCriteria.createCriteria(realName, alias);
         getContext().addCriteria(path, criteria);
+        //also add virtual path to criteria map
+        getContext().addCriteria(virtualPath, criteria);
     }
 
     protected Criterion createCriterion(String propertyName, Object value, ValueFilter filter) throws QueryException {

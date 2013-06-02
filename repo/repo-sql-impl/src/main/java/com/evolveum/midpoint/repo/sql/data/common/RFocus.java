@@ -21,7 +21,10 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
-import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -34,13 +37,20 @@ import org.hibernate.annotations.Where;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 /**
  * @author lazyman
  */
+@QueryEntity(collections = {
+        @VirtualCollection(jaxbName = @JaxbName(localPart = "assignment"), jaxbType = Set.class,
+                jpaName = "assignments", jpaType = Set.class, additionalParams = {
+                @VirtualQueryParam(name = "assignmentOwner", type = RAssignmentOwner.class,
+                        value = "FOCUS")}, collectionType = RAssignment.class)})
 @Entity
 @ForeignKey(name = "fk_focus")
 @org.hibernate.annotations.Table(appliesTo = "m_focus",
@@ -49,7 +59,7 @@ import java.util.Set;
 public abstract class RFocus extends RObject {
 
     private Set<RObjectReference> linkRef;
-    private Set<RAssignment> assignment;
+    private Set<RAssignment> assignments;
     private RActivation activation;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RAccountRef.DISCRIMINATOR)
@@ -63,15 +73,38 @@ public abstract class RFocus extends RObject {
         return linkRef;
     }
 
-    @Where(clause = RAssignment.F_ASSIGNMENT_OWNER + "=0")
+    @Transient
+    protected Set<RAssignment> getAssignments(RAssignmentOwner owner) {
+        Set<RAssignment> assignments = getAssignments();
+        Set<RAssignment> wanted = new HashSet<RAssignment>();
+        if (assignments == null) {
+            return wanted;
+        }
+
+        Iterator<RAssignment> iterator = assignments.iterator();
+        while (iterator.hasNext()) {
+            RAssignment ass = iterator.next();
+            if (owner.equals(ass.getAssignmentOwner())) {
+                wanted.add(ass);
+            }
+        }
+
+        return wanted;
+    }
+
+    @Transient
+    public Set<RAssignment> getAssignment() {
+        return getAssignments(RAssignmentOwner.FOCUS);
+    }
+
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAssignment> getAssignment() {
-        if (assignment == null) {
-            assignment = new HashSet<RAssignment>();
+    public Set<RAssignment> getAssignments() {
+        if (assignments == null) {
+            assignments = new HashSet<RAssignment>();
         }
-        return assignment;
+        return assignments;
     }
 
     @Embedded
@@ -79,8 +112,8 @@ public abstract class RFocus extends RObject {
         return activation;
     }
 
-    public void setAssignment(Set<RAssignment> assignment) {
-        this.assignment = assignment;
+    public void setAssignments(Set<RAssignment> assignments) {
+        this.assignments = assignments;
     }
 
     public void setLinkRef(Set<RObjectReference> linkRef) {
@@ -99,7 +132,7 @@ public abstract class RFocus extends RObject {
 
         RFocus other = (RFocus) o;
 
-        if (assignment != null ? !assignment.equals(other.assignment) : other.assignment != null) return false;
+        if (assignments != null ? !assignments.equals(other.assignments) : other.assignments != null) return false;
         if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) return false;
         if (activation != null ? !activation.equals(other.activation) : other.activation != null) return false;
 
@@ -121,12 +154,11 @@ public abstract class RFocus extends RObject {
         repo.getLinkRef().addAll(
                 RUtil.safeListReferenceToSet(jaxb.getLinkRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
 
-        ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
 
-            repo.getAssignment().add(rAssignment);
+            repo.getAssignments().add(rAssignment);
         }
 
         if (jaxb.getActivation() != null) {

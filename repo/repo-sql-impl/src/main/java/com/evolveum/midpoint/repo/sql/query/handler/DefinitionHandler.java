@@ -16,8 +16,20 @@
 
 package com.evolveum.midpoint.repo.sql.query.handler;
 
+import com.evolveum.midpoint.repo.sql.query.definition.Definition;
+
 /**
  * @author lazyman
  */
-public interface DefinitionHandler {
+public abstract class DefinitionHandler<D extends Definition> {
+
+    private D definition;
+
+    protected D getDefinition() {
+        return definition;
+    }
+
+    public abstract boolean updateQueryContext();
+//
+//    public void updateVirtualQueryParams();
 }
