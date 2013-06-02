@@ -713,11 +713,13 @@ CREATE TABLE m_task_dependent (
   ENGINE =InnoDB;
 
 CREATE TABLE m_trigger (
-  handlerUri     VARCHAR(255) NOT NULL,
-  owner_id       BIGINT       NOT NULL,
-  owner_oid      VARCHAR(36)  NOT NULL,
-  timestampValue DATETIME(6)  NOT NULL,
-  PRIMARY KEY (handlerUri, owner_id, owner_oid, timestampValue)
+  handlerUri     VARCHAR(255),
+  owner_id       BIGINT      NOT NULL,
+  owner_oid      VARCHAR(36) NOT NULL,
+  timestampValue DATETIME(6),
+  id             BIGINT      NOT NULL,
+  oid            VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_general_ci
@@ -1058,6 +1060,12 @@ FOREIGN KEY (task_id, task_oid)
 REFERENCES m_task (id, oid);
 
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
+
+ALTER TABLE m_trigger
+ADD INDEX fk_trigger (id, oid),
+ADD CONSTRAINT fk_trigger
+FOREIGN KEY (id, oid)
+REFERENCES m_container (id, oid);
 
 ALTER TABLE m_trigger
 ADD INDEX fk_trigger_owner (owner_id, owner_oid),

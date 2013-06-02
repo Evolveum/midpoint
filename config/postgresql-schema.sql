@@ -585,11 +585,13 @@ CREATE TABLE m_task_dependent (
 );
 
 CREATE TABLE m_trigger (
-  handlerUri     VARCHAR(255) NOT NULL,
-  owner_id       INT8         NOT NULL,
-  owner_oid      VARCHAR(36)  NOT NULL,
-  timestampValue TIMESTAMP    NOT NULL,
-  PRIMARY KEY (handlerUri, owner_id, owner_oid, timestampValue)
+  handlerUri     VARCHAR(255),
+  owner_id       INT8        NOT NULL,
+  owner_oid      VARCHAR(36) NOT NULL,
+  timestampValue TIMESTAMP,
+  id             INT8        NOT NULL,
+  oid            VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_user (
@@ -876,6 +878,11 @@ FOREIGN KEY (task_id, task_oid)
 REFERENCES m_task;
 
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
+
+ALTER TABLE m_trigger
+ADD CONSTRAINT fk_trigger
+FOREIGN KEY (id, oid)
+REFERENCES m_container;
 
 ALTER TABLE m_trigger
 ADD CONSTRAINT fk_trigger_owner
