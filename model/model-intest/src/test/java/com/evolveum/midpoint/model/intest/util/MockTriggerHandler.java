@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.intest.util;
 import com.evolveum.midpoint.model.trigger.TriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
@@ -27,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 public class MockTriggerHandler implements TriggerHandler {
 	
 	public static final String HANDLER_URI = SchemaConstants.NS_MIDPOINT_TEST + "/mock-trigger-handler";
+	
+	protected static final Trace LOGGER = TraceManager.getTrace(MockTriggerHandler.class);
 	
 	private PrismObject<?> lastObject;
 	
@@ -39,6 +43,7 @@ public class MockTriggerHandler implements TriggerHandler {
 	 */
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> object) {
+		LOGGER.info("Mock trigger handler called with {}", object);
 		lastObject = object.clone();
 	}
 	

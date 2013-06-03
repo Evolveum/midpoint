@@ -166,7 +166,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 	
 	@Test

@@ -154,6 +154,9 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 								fireTrigger(handlerUri, object);
 								removeTrigger(object, triggerCVal);
 							}
+						} else {
+							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})", 
+									new Object[]{triggerType, timestamp, thisScanTimestamp, lastScanTimestamp});
 						}
 					}
 				}
@@ -168,7 +171,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		if (thisScanTimestamp.compare(timestamp) == DatatypeConstants.LESSER) {
 			return false;
 		}
-		return lastScanTimestamp == null || lastScanTimestamp.compare(timestamp) == DatatypeConstants.GREATER;
+		return lastScanTimestamp == null || lastScanTimestamp.compare(timestamp) == DatatypeConstants.LESSER;
 	}
 
 	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object) {
