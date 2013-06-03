@@ -30,6 +30,7 @@
     		<attribute>
                 <ref>ri:title</ref>
                 <outbound>
+                	<strength>strong</strength>
                 	<expression>
 						<value>Bloody Pirate</value>
 					</expression>

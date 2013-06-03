@@ -35,6 +35,7 @@
     		<attribute>
                 <ref>ri:title</ref>
       			<outbound>
+      				<strength>strong</strength>
                 	<expression>
 						<value>Honorable Captain</value>
 					</expression>
