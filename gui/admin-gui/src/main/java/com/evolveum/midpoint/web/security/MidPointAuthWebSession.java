@@ -20,6 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -78,6 +79,14 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
     public Roles getRoles() {
         Roles roles = new Roles();
         //todo - used for wicket auth roles...
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal == null){
+        	return roles;
+        }
+        for (Authorization authz : principal.getAuthorities()){
+        	roles.addAll(authz.getAction());
+        }
+        
         return roles;
     }
 

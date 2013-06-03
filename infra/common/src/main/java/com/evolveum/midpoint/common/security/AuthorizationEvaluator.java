@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -45,6 +46,7 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 	
 	private static final String WILDCARD = "*";
 	
+	@Autowired(required = true)
 	private ActivationComputer activationComputer;
 
 	public ActivationComputer getActivationComputer() {
@@ -70,9 +72,13 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 		} else {
 			throw new IllegalArgumentException("Unknown type of secure object "+object.getClass());
 		}
-
+		
 		Object principalObject = authentication.getPrincipal();
 		if (!(principalObject instanceof MidPointPrincipal)) {
+
+				if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
+					throw new InsufficientAuthenticationException("Not logged in.");
+				}
 			throw new IllegalArgumentException("Expected that spring security principal will be of type "+
 					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
 		}

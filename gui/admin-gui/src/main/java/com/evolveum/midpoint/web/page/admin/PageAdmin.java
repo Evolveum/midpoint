@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -34,9 +35,15 @@ import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.MidPointAuthenticationProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 
 /**
  * @author lazyman
@@ -46,24 +53,53 @@ public class PageAdmin extends PageBase {
     @Override
     public List<TopMenuItem> getTopMenuItems() {
         List<TopMenuItem> items = new ArrayList<TopMenuItem>();
+         
         items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageDashboard.class));
+        Roles roles = new Roles(AuthorizationConstants.AUTZ_UI_USERS_URL);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
                 PageUsers.class, PageAdminUsers.class));
+        }
+        roles = new Roles(AuthorizationConstants.AUTZ_UI_ROLES_URL);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",
                 PageRoles.class, PageAdminRoles.class));
+        }
+        roles = new Roles(AuthorizationConstants.AUTZ_UI_RESOURCES_URL);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
                 PageResources.class, PageAdminResources.class));
+        }
         //todo fix with visible behaviour [lazyman]
+        roles = new Roles(AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         if (getWorkflowService().isEnabled()) {
             items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
                     PageWorkItems.class, PageAdminWorkItems.class));
         }
+        }
+        roles = new Roles(AuthorizationConstants.AUTZ_UI_TASKS_URL);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description",
                 PageTasks.class, PageAdminTasks.class));
+        }
+        roles = new Roles(AuthorizationConstants.AUTZ_UI_REPORTS_URL);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         items.add(new TopMenuItem("pageAdmin.reports", "pageAdmin.reports.description",
                 PageReports.class, PageAdminReports.class));
+        }
+        roles = new Roles(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",
                 PageDebugList.class, PageAdminConfiguration.class));
+        }
 
         return items;
     }

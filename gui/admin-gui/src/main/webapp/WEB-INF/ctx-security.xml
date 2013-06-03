@@ -35,7 +35,7 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
     <!-- todo fix later with some mounting-->
     <http pattern="/wicket/resource/**" security="none"/>
 
-    <http create-session="never" auto-config="true" use-expressions="true">
+    <http create-session="never" auto-config="true" use-expressions="false" access-decision-manager-ref="accessDecisionManager">
         <!-- pages not finished yet -->
         <intercept-url pattern="/admin/resourceWizard" access="denyAll"/>
         <intercept-url pattern="/admin/users/bulk" access="denyAll"/>
@@ -47,22 +47,36 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <!-- todo move reports to WEB-INF or even better probably to midpoint.home folder -->
         <intercept-url pattern="/reports/**" access="denyAll"/>
 
-        <intercept-url pattern="/j_spring_security_check" access="permitAll"/>
-        <intercept-url pattern="/spring_security_login" access="permitAll"/>
-        <intercept-url pattern="/login" access="permitAll"/>
-        <intercept-url pattern="/**" access="isAuthenticated()"/>
+        <intercept-url pattern="/j_spring_security_check" />
+        <intercept-url pattern="/spring_security_login" />
+        <intercept-url pattern="/admin/users" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#users"/>
+        <intercept-url pattern="/login" />
+        <!--<intercept-url pattern="/home" access="isAuthenticated()"/>   access="isAuthenticated()"/>  -->
+        <intercept-url pattern="/admin/**" access="isFullyAuthenticated()"/>  <!-- access="isAuthenticated()"/>  -->
+        <intercept-url pattern="/admin/resources" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#resources')"/>
+        <intercept-url pattern="/admin/config/**" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#configuration')"/>
+        <intercept-url pattern="/admin/tasks" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#tasks')"/>
+        <!--<intercept-url pattern="/home" access="isAuthenticated()"/>   access="isAuthenticated()"/>  -->
+        <intercept-url pattern="/admin/reports" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#reports')"/>
+        <intercept-url pattern="/admin/workItem" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#workItem')"/>
 
         <logout logout-url="/j_spring_security_logout" invalidate-session="true"
-                success-handler-ref="logoutHandler"/>
 
+                success-handler-ref="logoutHandler" />
         <session-management>
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
         </session-management>
 
         <form-login login-page="/login" default-target-url="/home" />
     </http>
-
-    <beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler" />
+    
+    <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.common.security.AuthorizationEvaluator"/>
+    
+    <beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler">
+<!--     <beans:property name="defaultTargetUrl"> -->
+<!--     <beans:value>/login</beans:value> -->
+<!--     </beans:property> -->
+    </beans:bean>
 
     <beans:bean id="midPointAuthenticationProvider"
                 class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
