@@ -1651,12 +1651,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         createTemporaryTable(session, dialect, tempTable);
         LOGGER.trace("Created temporary table '{}'.", new Object[]{tempTable});
 
-        //fill temporary table
+        //fill temporary table, we don't need to join task on object on container, oid and id is already in task table
         StringBuilder sb = new StringBuilder();
-        sb.append("insert into ").append(tempTable).append(' ');            //todo improve this insert
+        sb.append("insert into ").append(tempTable).append(' ');
         sb.append("select t.oid as oid from ").append(taskTableName).append(" t");
-        sb.append(" inner join ").append(objectTableName).append(" o on t.id = o.id and t.oid = o.oid");
-        sb.append(" inner join ").append(containerTableName).append(" c on t.id = c.id and t.oid = c.oid");
         sb.append(" where t.").append(completionTimestampColumn).append(" < ?");
 
         SQLQuery query = session.createSQLQuery(sb.toString());
