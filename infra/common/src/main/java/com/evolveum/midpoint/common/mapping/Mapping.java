@@ -25,6 +25,9 @@ import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
@@ -80,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionVariableD
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingSourceDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingTargetDeclarationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingTimeDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -119,6 +123,9 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private ObjectType originObject = null;
 	private FilterManager<Filter> filterManager;
 	private StringPolicyResolver stringPolicyResolver;
+	private XMLGregorianCalendar now;
+	private XMLGregorianCalendar defaultReferenceTime = null;
+	private XMLGregorianCalendar nextRecomputeTime = null;
 	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
@@ -374,11 +381,43 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return applicableChannels.contains(channelUri);
 	}
 
+	public XMLGregorianCalendar getNow() {
+		return now;
+	}
+
+	public void setNow(XMLGregorianCalendar now) {
+		this.now = now;
+	}
+
+	public XMLGregorianCalendar getDefaultReferenceTime() {
+		return defaultReferenceTime;
+	}
+
+	public void setDefaultReferenceTime(XMLGregorianCalendar defaultReferenceTime) {
+		this.defaultReferenceTime = defaultReferenceTime;
+	}
+
+	public XMLGregorianCalendar getNextRecomputeTime() {
+		return nextRecomputeTime;
+	}
+
+	public void setNextRecomputeTime(XMLGregorianCalendar nextRecomputeTime) {
+		this.nextRecomputeTime = nextRecomputeTime;
+	}
+
 	public void evaluate(OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 		
 		try {
+			boolean timeConstraintValid = parseTimeConstraints(result);
+			
+			if (!timeConstraintValid) {
+				outputTriple = null;
+				traceDeferred();
+				return;
+			}
+			
 			parseSources(result);
 			parseTarget();
 	
@@ -446,6 +485,23 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		LOGGER.trace(sb.toString());
 	}
 	
+	private void traceDeferred() {
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("Mapping trace:\n");
+		appendTraceHeader(sb);
+		sb.append("\nEvaluation DEFERRED to: ");
+		if (nextRecomputeTime == null) {
+			sb.append("null");
+		} else {
+			sb.append(nextRecomputeTime);
+		}
+		appendTraceFooter(sb);
+		LOGGER.trace(sb.toString());
+	}
+	
 	private void traceFailure(Exception e) {
 		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
 		if (!LOGGER.isTraceEnabled()) {
@@ -508,6 +564,106 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		// No value or all values null. Return default.
 		return true;
+	}
+
+	private boolean parseTimeConstraints(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		MappingTimeDeclarationType timeFromType = mappingType.getTimeFrom();
+		MappingTimeDeclarationType timeToType = mappingType.getTimeTo();
+		if (timeFromType == null && timeToType == null) {
+			return true;
+		}
+		
+		XMLGregorianCalendar timeFrom = parseTime(timeFromType, result);
+		if (timeFrom == null && timeFromType != null) {
+			// Time is specified but there is no value for it.
+			// The mapping is incomplete. Skip processing of the mapping.
+			return false;
+		}
+		XMLGregorianCalendar timeTo = parseTime(timeToType, result);
+		if (timeTo == null && timeToType != null) {
+			// Time is specified but there is no value for it.
+			// The mapping is incomplete. Skip processing of the mapping.
+			return false;
+		}
+		
+		if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
+			// before timeFrom
+			nextRecomputeTime = timeFrom;
+			return false;
+		}
+		
+		if (timeTo != null && timeTo.compare(now) == DatatypeConstants.GREATER) {
+			// between timeFrom and timeTo (also no timeFrom and before timeTo)
+			nextRecomputeTime = timeTo;
+			return true;
+		}
+
+		if (timeTo == null) {
+			// after timeFrom and no timeTo
+			// no nextRecomputeTime set, there is nothing to recompute in the future
+			return true;
+			
+		} else {
+			// after timeTo
+			// no nextRecomputeTime set, there is nothing to recompute in the future
+			return false;
+		}
+		
+	}
+	
+	private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeType, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (timeType == null) {
+			return null;
+		}
+		XMLGregorianCalendar time = null;
+		MappingSourceDeclarationType referenceTimeType = timeType.getReferenceTime();
+		if (referenceTimeType == null) {
+			if (time == null) {
+				throw new SchemaException("No reference time specified (and there is also no default) in time specification in "+getMappingContextDescription());
+			} else {
+				time = (XMLGregorianCalendar) defaultReferenceTime.clone();
+			}
+		} else {
+			time = parseTimeSource(referenceTimeType, result);
+			if (time == null) {
+				// Reference time is specified but the value is not present.
+				return null;
+			}
+			time = (XMLGregorianCalendar) time.clone();
+		}
+		Duration offset = timeType.getOffset();
+		if (offset != null) {
+			time.add(offset);
+		}
+		return time;
+	}
+
+	private XMLGregorianCalendar parseTimeSource(MappingSourceDeclarationType sourceType, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		Element pathElement = sourceType.getPath();
+		if (pathElement == null) {
+			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
+		}
+		ItemPath path = new XPathHolder(pathElement).toItemPath();
+		if (path.isEmpty()) {
+			throw new SchemaException("Empty source path in "+getMappingContextDescription());
+		}
+		
+		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "reference time definition in "+getMappingContextDescription(), result);
+		if (sourceObject == null) {
+			return null;
+		}
+		PrismProperty<XMLGregorianCalendar> timeProperty;
+		if (sourceObject instanceof ItemDeltaItem<?>) {
+			timeProperty = (PrismProperty<XMLGregorianCalendar>) ((ItemDeltaItem<?>)sourceObject).getItemNew();
+		} else if (sourceObject instanceof Item<?>) {
+			timeProperty = (PrismProperty<XMLGregorianCalendar>) sourceObject;
+		} else {
+			throw new IllegalStateException("Unknown resolve result "+sourceObject);
+		}
+		if (timeProperty == null) {
+			return null;
+		}
+		return timeProperty.getRealValue();
 	}
 
 	private Collection<Source<?>> parseSources(OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -940,7 +1096,14 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "M(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + outputTriple + toStringStrength() + ")";
+		return "M(" + getOutputDefName() + " = " + outputTriple + toStringStrength() + ")";
+	}
+
+	private String getOutputDefName() {
+		if (outputDefinition == null) {
+			return null;
+		}
+		return SchemaDebugUtil.prettyPrint(outputDefinition.getName());
 	}
 
 	private String toStringStrength() {

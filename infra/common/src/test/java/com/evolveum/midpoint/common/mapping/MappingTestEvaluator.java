@@ -177,9 +177,9 @@ public class MappingTestEvaluator {
     
         JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, filename), MappingType.class);
-        MappingType valueConstructionType = mappingTypeElement.getValue();
+        MappingType mappingType = mappingTypeElement.getValue();
         
-        Mapping<PrismPropertyValue<T>> mapping = mappingFactory.createMapping(valueConstructionType, testName);
+        Mapping<PrismPropertyValue<T>> mapping = mappingFactory.createMapping(mappingType, testName);
         
         // Source context: user
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<UserType>(userOld , userDelta, null);

@@ -47,6 +47,7 @@
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingDynamicSysVar" />
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingStatic" />
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingComplex" />
+			<class name="com.evolveum.midpoint.common.mapping.TestMappingTime" />
 		</classes>
 	</test>
 		<test name="Schema" preserve-order="false">

@@ -112,7 +112,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 
 	public void recompute() throws SchemaException {
 		if (delta == null) {
-			// Nothing to recompute
+			newObject = oldObject.clone();
 			return;
 		}
 		if (delta.isAdd()) {
