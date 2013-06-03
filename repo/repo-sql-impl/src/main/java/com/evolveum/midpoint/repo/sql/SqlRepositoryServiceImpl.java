@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -1620,6 +1621,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return 0;
         }
 
+        //do simple cleanup when not using H2 or SQL Server database (with usage two columns withing in clause)
+        if (!getConfiguration().isUsingH2() && !getConfiguration().isUsingSQLServer()) {
+            Query query = session.createQuery("delete from " + entity.getSimpleName()
+                    + " as t where t.completionTimestamp < :timestamp");
+            query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
+            return query.executeUpdate();
+        }
+
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
         final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
@@ -1685,7 +1694,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 sb.append(dialect.getCreateTemporaryTableString());
                 sb.append(' ').append(tempTable).append(" (oid ");
                 sb.append(dialect.getTypeName(Types.VARCHAR, RUtil.COLUMN_LENGTH_OID, 0, 0));
-                if (isUsingSQLServer(dialect)) {
+                if (getConfiguration().isUsingSQLServer()) {
                     sb.append(" collate database_default");
                 }
                 sb.append(" not null)");
@@ -1703,9 +1712,5 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
 
         return sb.toString();
-    }
-
-    private boolean isUsingSQLServer(Dialect dialect) {
-        return UnicodeSQLServer2008Dialect.class.equals(dialect.getClass());
     }
 }

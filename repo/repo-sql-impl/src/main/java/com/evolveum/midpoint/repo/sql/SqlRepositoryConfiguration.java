@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer;
+import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
 import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -120,28 +121,27 @@ public class SqlRepositoryConfiguration {
     }
 
     private void computeDefaultConcurrencyParameters() {
-        if (hibernateDialect == null || H2Dialect.class.getName().equals(hibernateDialect)) {
+        if (isUsingH2()) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
-        } else if (MySQL5InnoDBDialect.class.getName().equals(hibernateDialect)) {
+        } else if (isUsingMySQL()) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
-        } else if (Oracle10gDialect.class.getName().equals(hibernateDialect)) {
+        } else if (isUsingOracle()) {
             transactionIsolation = TransactionIsolation.READ_COMMITTED;
             lockForUpdateViaHibernate = true;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
-        } else if (PostgresPlusDialect.class.getName().equals(hibernateDialect)
-                || PostgreSQLDialect.class.getName().equals(hibernateDialect)) {
+        } else if (isUsingPostgreSQL()) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
-        } else if (UnicodeSQLServer2008Dialect.class.getName().equals(hibernateDialect)) {
+        } else if (isUsingSQLServer()) {
             transactionIsolation = TransactionIsolation.SNAPSHOT;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
@@ -161,7 +161,10 @@ public class SqlRepositoryConfiguration {
     }
 
     private void computeDefaultIterativeSearchParameters() {
-        if (hibernateDialect == null || H2Dialect.class.getName().equals(hibernateDialect)) {
+        if (isUsingH2()) {
+            iterativeSearchByPaging = true;
+            iterativeSearchByPagingBatchSize = 50;
+        } else if (isUsingMySQL()) {
             iterativeSearchByPaging = true;
             iterativeSearchByPagingBatchSize = 50;
         } else {
@@ -422,5 +425,37 @@ public class SqlRepositoryConfiguration {
 
     public void setDataSource(String dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public boolean isUsingH2() {
+        if (hibernateDialect == null) {
+            return true;
+        }
+        return isUsingDialect(H2Dialect.class);
+    }
+
+    public boolean isUsingOracle() {
+        return isUsingDialect(Oracle10gDialect.class);
+    }
+
+    public boolean isUsingMySQL() {
+        return isUsingDialect(MidPointMySQLDialect.class);
+    }
+
+    public boolean isUsingPostgreSQL() {
+        return isUsingDialect(PostgresPlusDialect.class)
+                || isUsingDialect(PostgreSQLDialect.class);
+    }
+
+    public boolean isUsingSQLServer() {
+        return isUsingDialect(UnicodeSQLServer2008Dialect.class);
+    }
+
+    private boolean isUsingDialect(Class<? extends Dialect> dialect) {
+        if (dialect.getName().equals(hibernateDialect)) {
+            return true;
+        }
+
+        return false;
     }
 }
