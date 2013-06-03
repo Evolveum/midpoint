@@ -473,9 +473,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return oid;
     }
 
-    private boolean existOrgCLosure(Session session, String ancestorOid, String descendantOid, int depth)
-    {
-    	  // if not exist pair with same depth, then create else nothing
+    private boolean existOrgCLosure(Session session, String ancestorOid, String descendantOid, int depth) {
+        // if not exist pair with same depth, then create else nothing
         // do
         Query qExistClosure = session
                 .createQuery("select count(*) from ROrgClosure as o where "
@@ -491,14 +490,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return (Long) qExistClosure.uniqueResult() != 0;
 
     }
+
     private <T extends ObjectType> void fillHierarchy(RObject rOrg, Session session, boolean withIncorrect)
             throws SchemaException {
 
-    	if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid(), 0))
-    	{
-    		ROrgClosure closure = new ROrgClosure(rOrg, rOrg, 0);
-    		session.save(closure);
-    	}
+        if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid(), 0)) {
+            ROrgClosure closure = new ROrgClosure(rOrg, rOrg, 0);
+            session.save(closure);
+        }
 
         for (RObjectReference orgRef : rOrg.getParentOrgRef()) {
             fillTransitiveHierarchy(rOrg, orgRef.getTargetOid(), session, withIncorrect);
@@ -1623,11 +1622,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         //do simple cleanup when not using H2 or SQL Server database (with usage two columns withing in clause)
         if (!getConfiguration().isUsingH2() && !getConfiguration().isUsingSQLServer()) {
+            LOGGER.debug("Doing simple cleanup with hibernate.");
             Query query = session.createQuery("delete from " + entity.getSimpleName()
                     + " as t where t.completionTimestamp < :timestamp");
             query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
             return query.executeUpdate();
         }
+
+        LOGGER.debug("Doing tricky manual cleanup.");
 
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
@@ -1647,6 +1649,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         //create temporary table
         final String tempTable = dialect.generateTemporaryTableName(taskTableName);
         createTemporaryTable(session, dialect, tempTable);
+        LOGGER.trace("Created temporary table '{}'.", new Object[]{tempTable});
 
         //fill temporary table
         StringBuilder sb = new StringBuilder();
@@ -1658,7 +1661,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         SQLQuery query = session.createSQLQuery(sb.toString());
         query.setParameter(0, new Timestamp(minValue.getTime()));
-        query.executeUpdate();
+        int insertCount = query.executeUpdate();
+        LOGGER.trace("Inserted {} task ready for deleting.", new Object[]{insertCount});
 
         //drop records from m_task, m_object, m_container
         session.createSQLQuery(createDeleteQuery(taskTableName, tempTable)).executeUpdate();

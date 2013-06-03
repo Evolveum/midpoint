@@ -17,13 +17,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.data.common.RContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,8 +25,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.*;
-import org.hibernate.dialect.Dialect;
+import org.hibernate.PessimisticLockException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +37,6 @@ import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import javax.xml.datatype.Duration;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.Date;
 
 /**
