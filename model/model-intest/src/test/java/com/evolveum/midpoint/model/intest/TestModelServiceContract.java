@@ -35,6 +35,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.transports.Message;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -142,12 +147,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
 		// WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
-        
+
+        // opendj is not started, so we do not want to list it (it returns partial_error)
+        ObjectQuery query = ObjectQuery.createObjectQuery(
+                new NotFilter(
+                        EqualsFilter.createEqual(ResourceType.class, prismContext, ResourceType.F_NAME, new PolyString(RESOURCE_OPENDJ_NAME), PolyStringOrigMatchingRule.NAME.getLocalPart())));
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, query, null, task, result);
+
 		// THEN
         assertNotNull("null rearch return", resources);
         assertFalse("Empty rearch return", resources.isEmpty());
-        assertEquals("Unexpected number of resources found", 8, resources.size());
+        assertEquals("Unexpected number of resources found", 7, resources.size());
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("searchObjects result", result);
