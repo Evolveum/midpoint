@@ -106,7 +106,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
 	
 	public RecomputeTaskHandler() {
-        super(UserType.class, "Recompute users", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
+        super(UserType.class, "Recompute users", OperationConstants.RECOMPUTE);
     }
 
 	@PostConstruct
@@ -142,7 +142,9 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 		LOGGER.trace("Recomputing user {}", user);
 
 		LensContext<UserType, ShadowType> syncContext = LensUtil.createRecomputeContext(UserType.class, user, prismContext, provisioningService);
-		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
+		}
 		clockwork.run(syncContext, task, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}

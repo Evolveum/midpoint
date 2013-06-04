@@ -193,11 +193,29 @@
 			</attribute>
 
 			<activation>
-				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted. -->
+				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.
+				     The accounts are deleted after 1 month -->
             	<existence>
             		<outbound>
+            			<timeTo>
+            				<referenceTime>
+            					<path>$shadow/activation/disableTimestamp</path>
+            				</referenceTime>
+            				<offset>P1M</offset>
+            			</timeTo>
             			<expression>
             				<path>$focusExists</path>
+            			</expression>
+            		</outbound>
+            		<outbound>
+            			<timeFrom>
+            				<referenceTime>
+            					<path>$shadow/activation/disableTimestamp</path>
+            				</referenceTime>
+            				<offset>P1M</offset>
+            			</timeFrom>
+            			<expression>
+            				<value>false</value>
             			</expression>
             		</outbound>
             	</existence>

@@ -130,7 +130,10 @@ public class ShadowUtil {
 
 	
 	public static String getResourceOid(ShadowType shadowType) {
-		PrismObject<ShadowType> shadow = shadowType.asPrismObject();
+		return getResourceOid(shadowType.asPrismObject());
+	}
+	
+	public static String getResourceOid(PrismObject<ShadowType> shadow) {
 		PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
 		if (resourceRef == null) {
 			return null;
