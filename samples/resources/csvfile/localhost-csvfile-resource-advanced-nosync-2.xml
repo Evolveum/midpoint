@@ -128,11 +128,11 @@ using an Identity Connector Framework connector.
 					<outbound>
 						<source>
 							<name>tmpGivenName</name>
-							<path>$user/givenName/t:norm</path>
+							<path>$user/givenName</path>
 						</source>
 						<source>
 							<name>tmpFamilyName</name>
-							<path>$user/familyName/t:norm</path>
+							<path>$user/familyName</path>
 						</source>
 						<expression>
 						<script>
@@ -152,22 +152,22 @@ Marty Verylonglastname: verylonglam1 (notice the family name being shortened)
 <!--
 tmpFamilyName = tmpFamilyName ? tmpFamilyName.getNorm() : ''
 tmpGivenName  = tmpGivenName  ? tmpGivenName.getNorm() : ''-->
-tmpGivenNameInitial = tmpGivenName?.size() &gt; 0 ? (basic.stringify(tmpGivenName)).substring(0,1) : ''
+tmpGivenNameInitial = basic.stringify(tmpGivenName)?.size() &gt; 0 ? (basic.stringify(tmpGivenName)).substring(0,1) : ''
 
 if (iteration == 0) {
 	if (basic.stringify(tmpFamilyName).size() &lt; 11) {
-		basic.stringify(tmpFamilyName + tmpGivenNameInitial)
+		basic.norm(basic.stringify(tmpFamilyName + tmpGivenNameInitial))
 	}
 	else {
-		basic.stringify(tmpFamilyName)?.substring(0, 11) + basic.stringify(tmpGivenNameInitial)
+		basic.norm(basic.stringify(tmpFamilyName)?.substring(0, 11) + basic.stringify(tmpGivenNameInitial))
 	}
 }
 else {
 	if (basic.stringify(tmpFamilyName).size() &lt; 10) {
-		basic.stringify(tmpFamilyName + tmpGivenNameInitial) + iterationToken
+		basic.norm(basic.stringify(tmpFamilyName + tmpGivenNameInitial)) + iterationToken
 	}
 	else {
-		basic.stringify(tmpFamilyName?.substring(0, 10) + tmpGivenNameInitial) + iterationToken
+		basic.norm(basic.stringify(tmpFamilyName?.substring(0, 10) + tmpGivenNameInitial)) + iterationToken
 
 	}
 }
