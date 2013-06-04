@@ -261,7 +261,7 @@ public class ConsolidationProcessor {
 		if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
 			// We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
 			// state and all the values needs to be passed on
-			LOGGER.trace("Skipping consolidaiton with sync delta as there was a replace delta on top of that already");
+			LOGGER.trace("Skipping consolidation with sync delta as there was a replace delta on top of that already");
 		} else {
 			// Also consider a synchronization delta (if it is present). This may filter out some deltas.
             propDelta = consolidateWithSync(accCtx, propDelta, valueMatcher);

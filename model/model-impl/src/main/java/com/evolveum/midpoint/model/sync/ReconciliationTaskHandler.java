@@ -417,7 +417,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 //		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult)
 //				.asObjectable();
-		LOGGER.debug("Scan for unifinished operations starting");
+		LOGGER.debug("Scan for unfinished operations starting");
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
 		opResult.addParam("reconciled", true);
 
@@ -457,7 +457,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		opResult.computeStatus();
 		
-		LOGGER.debug("Scan for unifinished operations finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
+		LOGGER.debug("Scan for unfinished operations finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
 	}
 
 	// private void normalizeShadow(PrismObject<AccountShadowType> shadow,

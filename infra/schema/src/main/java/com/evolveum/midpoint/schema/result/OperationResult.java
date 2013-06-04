@@ -587,7 +587,13 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		return computedStatus;
 	}
 
-	public void recomputeStatus() {
+    public void computeStatusIfUnknown() {
+        if (isUnknown()) {
+            computeStatus();
+        }
+    }
+
+    public void recomputeStatus() {
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {

@@ -3404,10 +3404,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
     
     @Test
     public void test410ListResourcesWithBrokenResource() throws Exception {
-        displayTestTile("test060ListResourcesWithBrokenResource");
+        displayTestTile("test410ListResourcesWithBrokenResource");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test060ListResourcesWithBrokenResource");
+        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test410ListResourcesWithBrokenResource");
         final OperationResult result = task.getResult();
 
         // WHEN
@@ -3425,14 +3425,15 @@ public class TestSanity extends AbstractModelIntegrationTest {
             assertNotNull(resource.getName());
 
             if (resource.getOid().equals(RESOURCE_BROKEN_OID)) {
-                assertEquals("No error in fetchResult in " + ObjectTypeUtil.toShortString(resource), OperationResultStatusType.FATAL_ERROR, resource.getFetchResult().getStatus());
+                assertTrue("No error in fetchResult in " + ObjectTypeUtil.toShortString(resource),
+                        resource.getFetchResult() != null &&
+                                (resource.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR ||
+                                        resource.getFetchResult().getStatus() == OperationResultStatusType.FATAL_ERROR));
             } else {
                 assertTrue("Unexpected error in fetchResult in " + ObjectTypeUtil.toShortString(resource),
                         resource.getFetchResult() == null || resource.getFetchResult().getStatus() == OperationResultStatusType.SUCCESS);
             }
-
         }
-
     }
     
     @Test

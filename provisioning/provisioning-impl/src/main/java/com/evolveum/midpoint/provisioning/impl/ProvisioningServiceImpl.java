@@ -613,7 +613,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					PrismObject<ResourceType> completeResource = resourceManager.getResource(repoResource,
 							objResult);
 					newObjListType.add((PrismObject<T>) completeResource);
-					// TODO: what do to with objResult??
+
+                    objResult.computeStatusIfUnknown();
+                    if (!objResult.isSuccess()) {
+                        completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
+                        result.addSubresult(objResult);
+                    }
+
+					// TODO: what else do to with objResult??
 
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
