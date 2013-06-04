@@ -27,6 +27,9 @@ import java.util.Iterator;
  * @author lazyman
  */
 public class MidPointPageParametersEncoder implements IPageParametersEncoder {
+
+    public static final MidPointPageParametersEncoder ENCODER = new MidPointPageParametersEncoder();
+
     /**
      * Encodes a URL in the form:
      * <p/>

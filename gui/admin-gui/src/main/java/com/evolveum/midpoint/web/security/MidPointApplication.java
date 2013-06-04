@@ -26,33 +26,11 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.GuiComponents;
-import com.evolveum.midpoint.web.page.admin.configuration.*;
-import com.evolveum.midpoint.web.page.admin.help.PageAbout;
-import com.evolveum.midpoint.web.page.admin.help.PageSystem;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
-import com.evolveum.midpoint.web.page.admin.internal.PageAccounts;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.*;
-import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.resource.js.JsResources;
-import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
@@ -128,60 +106,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mountFiles(ImgResources.BASE_PATH, ImgResources.class);
         mountFiles(JsResources.BASE_PATH, JsResources.class);
 
-        //pretty url pages
-        MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
-        mount(new MountedMapper("/login", PageLogin.class, encoder));
-
-        mount(new MountedMapper("/admin", PageDashboard.class, encoder));
-        mount(new MountedMapper("/admin/dashboard", PageDashboard.class, encoder));
-        mount(new MountedMapper("/admin/myPasswords", PageMyPasswords.class, encoder));
-
-        // todo mount used for performance tests, will be implemented properly in next release
-        // mount(new MountedMapperWithoutPageComponentInfo("/admin/users", PageUsers.class, new PageUsersEncoder()));
-        mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
-        mount(new MountedMapper("/admin/user", PageUser.class, encoder));
-//        mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
-        mount(new MountedMapper("/admin/users/bulk", PageBulkUsers.class));
-        mount(new MountedMapper("/admin/userPreview", PageUserPreview.class, encoder));
-        mount(new MountedMapper("/admin/orgStruct", PageOrgStruct.class, encoder));
-
-        mount(new MountedMapper("/admin/task", PageTaskEdit.class, new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_EDIT_ID)));
-        mount(new MountedMapper("/admin/tasks", PageTasks.class, encoder));
-        mount(new MountedMapper("/admin/addTask", PageTaskAdd.class, encoder));
-
-        mount(new MountedMapper("/admin/role", PageRole.class, new OnePageParameterEncoder(PageRole.PARAM_ROLE_ID)));
-        mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
-
-        mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
-        mount(new MountedMapper("/admin/resourceEdit", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID)));
-        mount(new MountedMapper("/admin/resourceWizard", PageResourceWizard.class, new OnePageParameterEncoder(PageResourceWizard.PARAM_RESOURCE_ID)));
-        mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
-        mount(new MountedMapper("/admin/resources/account", PageAccount.class, new OnePageParameterEncoder(PageAccount.PARAM_ACCOUNT_ID)));
-        mount(new MountedMapper("/admin/resources/content/accounts", PageContentAccounts.class, new OnePageParameterEncoder(PageContentAccounts.PARAM_RESOURCE_ID)));
-        mount(new MountedMapper("/admin/resources/content/entitlements", PageContentEntitlements.class, new OnePageParameterEncoder(PageContentEntitlements.PARAM_RESOURCE_ID)));
-
-        mount(new MountedMapper("/admin/workItem", PageWorkItem.class, new OnePageParameterEncoder(PageWorkItem.PARAM_TASK_ID)));
-        mount(new MountedMapper("/admin/workItems", PageWorkItems.class, encoder));
-        mount(new MountedMapper("/admin/workItems/allRequests", PageProcessInstancesAll.class, encoder));
-        mount(new MountedMapper("/admin/workItems/myRequests", PageProcessInstancesRequestedBy.class, encoder));
-        mount(new MountedMapper("/admin/workItems/aboutMeRequests", PageProcessInstancesRequestedFor.class, encoder));
-        mount(new MountedMapper("/admin/workItems/processInstance", PageProcessInstance.class, new OnePageParameterEncoder(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID)));
-
-        mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
-        mount(new MountedMapper("/admin/config/debug", PageDebugView.class, encoder));//new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));
-        mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
-        mount(new MountedMapper("/admin/config/import", PageImportObject.class, encoder));
-        mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
-        mount(new MountedMapper("/admin/config/system", PageSystemConfiguration.class, encoder));
-        //for testing purposes only, access forbidden in ctx-security.xml
-        mount(new MountedMapper("/admin/config/test", PageTest.class, encoder));
-
-        mount(new MountedMapper("/admin/reports", PageReports.class, encoder));
-
-        mount(new MountedMapper("/admin/about/midPoint", PageAbout.class, encoder));
-        mount(new MountedMapper("/admin/about/system", PageSystem.class, encoder));
-
-        mount(new MountedMapper("/admin/internal/accounts", PageAccounts.class, encoder));
+        for (PageUrlMapping m : PageUrlMapping.values()) {
+            mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
+        }
 
         //todo design error pages...
         //error pages
