@@ -52,13 +52,14 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <intercept-url pattern="/admin/users" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#users"/>
         <intercept-url pattern="/login" />
         <!--<intercept-url pattern="/home" access="isAuthenticated()"/>   access="isAuthenticated()"/>  -->
-        <intercept-url pattern="/admin/**" access="isFullyAuthenticated()"/>  <!-- access="isAuthenticated()"/>  -->
-        <intercept-url pattern="/admin/resources" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#resources')"/>
-        <intercept-url pattern="/admin/config/**" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#configuration')"/>
-        <intercept-url pattern="/admin/tasks" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#tasks')"/>
+        <intercept-url pattern="/admin/resources" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#resources"/>
+        <intercept-url pattern="/admin/config/**" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#configuration"/>
+        <intercept-url pattern="/admin/tasks" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#tasks"/>
         <!--<intercept-url pattern="/home" access="isAuthenticated()"/>   access="isAuthenticated()"/>  -->
-        <intercept-url pattern="/admin/reports" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#reports')"/>
-        <intercept-url pattern="/admin/workItem" access="hasRole('http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#workItem')"/>
+        <intercept-url pattern="/admin/reports" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#reports"/>
+        <intercept-url pattern="/admin/workItem" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#workItem"/>
+        <intercept-url pattern="/admin/dashboard" access="http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard"/>  <!-- access="isAuthenticated()"/>  -->
+        <intercept-url pattern="/admin/**" access="isFullyAuthenticated()"/>  <!-- access="isAuthenticated()"/>  -->
 
         <logout logout-url="/j_spring_security_logout" invalidate-session="true"
 

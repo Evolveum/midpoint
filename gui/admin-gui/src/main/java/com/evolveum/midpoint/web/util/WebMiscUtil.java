@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -38,6 +39,8 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -70,6 +73,15 @@ public final class WebMiscUtil {
     private WebMiscUtil() {
     }
 
+    public static boolean isAuthorized(String action){
+    	Roles roles = new Roles(action);
+        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
+        	return true;
+        }
+        return false;
+    }
+    
     public static Integer safeLongToInteger(Long l) {
         if (l == null) {
             return null;

@@ -44,15 +44,18 @@ public class AuthorizationConstants {
 	public static final String AUTZ_UI_CONFIGURATION_URL = QNameUtil.qNameToUri(AUTZ_UI_CONFIGURATION_QNAME);
 	
 	public static final QName AUTZ_UI_ROLES_QNAME = new QName(NS_AUTHORIZATION, "roles");
-	public static final String AUTZ_UI_ROLES_URL = QNameUtil.qNameToUri(AUTZ_UI_CONFIGURATION_QNAME);
+	public static final String AUTZ_UI_ROLES_URL = QNameUtil.qNameToUri(AUTZ_UI_ROLES_QNAME);
 	
 	public static final QName AUTZ_UI_WORK_ITEM_QNAME = new QName(NS_AUTHORIZATION, "workItem");
-	public static final String AUTZ_UI_WORK_ITEM_URL = QNameUtil.qNameToUri(AUTZ_UI_CONFIGURATION_QNAME);
+	public static final String AUTZ_UI_WORK_ITEM_URL = QNameUtil.qNameToUri(AUTZ_UI_WORK_ITEM_QNAME);
 	
 	public static final QName AUTZ_UI_TASKS_QNAME = new QName(NS_AUTHORIZATION, "tasks");
-	public static final String AUTZ_UI_TASKS_URL = QNameUtil.qNameToUri(AUTZ_UI_CONFIGURATION_QNAME);
+	public static final String AUTZ_UI_TASKS_URL = QNameUtil.qNameToUri(AUTZ_UI_TASKS_QNAME);
 	
 	public static final QName AUTZ_UI_REPORTS_QNAME = new QName(NS_AUTHORIZATION, "reports");
-	public static final String AUTZ_UI_REPORTS_URL = QNameUtil.qNameToUri(AUTZ_UI_CONFIGURATION_QNAME);
+	public static final String AUTZ_UI_REPORTS_URL = QNameUtil.qNameToUri(AUTZ_UI_REPORTS_QNAME);
+	
+	public static final QName AUTZ_UI_DASHBOARD_QNAME = new QName(NS_AUTHORIZATION, "dashboard");
+	public static final String AUTZ_UI_DASHBOARD_URL = QNameUtil.qNameToUri(AUTZ_UI_DASHBOARD_QNAME);
 
 }
