@@ -152,22 +152,22 @@ Marty Verylonglastname: verylonglam1 (notice the family name being shortened)
 <!--
 tmpFamilyName = tmpFamilyName ? tmpFamilyName.getNorm() : ''
 tmpGivenName  = tmpGivenName  ? tmpGivenName.getNorm() : ''-->
-tmpGivenNameInitial = (tmpGivenName != null &amp;&amp; tmpGivenName != '') ? tmpGivenName[0] : ''
+tmpGivenNameInitial = (basic.stringify(tmpGivenName)).substring(0,1)
 
 if (iteration == 0) {
-	if (tmpFamilyName.size() &lt; 11) {
-		tmpFamilyName + tmpGivenNameInitial
+	if (basic.stringify(tmpFamilyName).size() &lt; 11) {
+		basic.stringify(tmpFamilyName) + tmpGivenNameInitial
 	}
 	else {
-		tmpFamilyName?.substring(0, 11) + tmpGivenNameInitial
+		basic.stringify(tmpFamilyName)?.substring(0, 11) + tmpGivenNameInitial
 	}
 }
 else {
-	if (tmpFamilyName.size() &lt; 10) {
-		tmpFamilyName + tmpGivenNameInitial + iterationToken
+	if (basic.stringify(tmpFamilyName).size() &lt; 10) {
+		basic.stringify(tmpFamilyName + tmpGivenNameInitial) + iterationToken
 	}
 	else {
-		tmpFamilyName?.substring(0, 10) + tmpGivenNameInitial + iterationToken
+		basic.stringify(tmpFamilyName?.substring(0, 10) + tmpGivenNameInitial) + iterationToken
 
 	}
 }
