@@ -698,7 +698,7 @@ public class PageUser extends PageAdminUsers {
                 accountsModel.reset();
                 assignmentsModel.reset();
 
-                return list;
+//                return list;
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
