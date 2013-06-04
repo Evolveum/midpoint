@@ -72,19 +72,20 @@ public class ContainerIdGenerator implements IdentifierGenerator {
                     + container.getClass().getSimpleName() + "' (should not happen).");
         }
 
-        RContainer parent = ((ROwnable) container).getContainerOwner();
-        if (!(parent instanceof RFocus)) {
-            return null;
-        }
 
         Set<RContainer> containers = new HashSet<RContainer>();
+
+        RContainer parent = ((ROwnable) container).getContainerOwner();
+        if (parent instanceof RObject) {
+            containers.addAll(((RObject)parent).getTrigger());
+        }
+
         if (parent instanceof RFocus) {
-            containers.addAll(((RFocus) parent).getAssignment());
+            containers.addAll(((RFocus) parent).getAssignments());
         }
 
         if (parent instanceof RAbstractRole) {
             RAbstractRole role = (RAbstractRole) parent;
-            containers.addAll(role.getInducement());
             containers.addAll(role.getExclusion());
             containers.addAll(role.getAuthorization());
         }
