@@ -301,7 +301,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     }
 
     @Override
-	public ItemDelta createEmptyDelta(ItemPath path) {
+	public ContainerDelta<V> createEmptyDelta(ItemPath path) {
 		return new ContainerDelta(path, this);
 	}
 
@@ -454,6 +454,10 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         addDefinition(def);
         return def;
     }
+    
+	public PrismContainerValue<V> createValue() {
+		return new PrismContainerValue<V>();
+	}
 
     @Override
     public String debugDump(int indent) {
@@ -491,8 +495,6 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 		if (isRuntimeSchema) {
 			sb.append(",runtime");
 		}
-	}
-    
-    
+	}    
 
 }

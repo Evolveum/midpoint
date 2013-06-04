@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.sync;
+package com.evolveum.midpoint.model;
 
 import javax.xml.namespace.QName;
 
@@ -24,7 +24,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  * @author semancik
  *
  */
-public class SynchronizationConstants {
+public class ModelConstants {
+	
+	public static final String NS_MODEL_TRIGGER_PREFIX = SchemaConstants.NS_MODEL +"/trigger";
 	
 	public static final String NS_SYNCHRONIZATION_PREFIX = SchemaConstants.NS_MODEL +"/synchronization";
 	public static final String NS_SYNCHRONIZATION_TASK_PREFIX = NS_SYNCHRONIZATION_PREFIX + "/task";

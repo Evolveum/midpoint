@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -141,7 +142,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 	
-	public void addToSecondaryDelta(PropertyDelta accountPasswordDelta) throws SchemaException {
+	public void addToSecondaryDelta(ItemDelta accountPasswordDelta) throws SchemaException {
         if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             secondaryDelta.setOid(oid);
@@ -228,9 +229,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
     
-    protected PrismObjectDefinition<O> getObjectDefinition() {
+    public PrismObjectDefinition<O> getObjectDefinition() {    	
 		if (objectDefinition == null) {
-			objectDefinition = getNotNullPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
+			if (objectOld != null) {
+				objectDefinition = objectOld.getDefinition();
+	    	} else if (objectNew != null) {
+	    		objectDefinition = objectNew.getDefinition();
+	    	} else {
+	    		objectDefinition = getNotNullPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
+	    	}
 		}
 		return objectDefinition;
 	}
@@ -458,7 +465,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 			CryptoUtil.checkEncrypted(secondaryDelta);
 		}
 	}
-	
+    
 	protected abstract String getElementDefaultDesc();
 	
 	protected String getElementDesc() {

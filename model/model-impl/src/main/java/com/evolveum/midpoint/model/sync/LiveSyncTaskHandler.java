@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -54,7 +55,7 @@ import java.util.List;
 @Component
 public class LiveSyncTaskHandler implements TaskHandler {
 	
-	public static final String HANDLER_URI = SynchronizationConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-2";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-2";
 
     @Autowired(required=true)
 	private TaskManager taskManager;

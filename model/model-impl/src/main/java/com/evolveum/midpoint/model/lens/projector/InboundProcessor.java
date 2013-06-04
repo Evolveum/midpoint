@@ -442,19 +442,32 @@ public class InboundProcessor {
     	processSpecialPropertyInbound(biMappingType.getInbound(), sourcePath, newUser, accContext, accountDefinition, context, opResult);
     }
 
-    /**
-     * Processing for special (fixed-schema) properties such as credentials and activation. 
-     */
     private void processSpecialPropertyInbound(MappingType inboundMappingType, ItemPath sourcePath,
             PrismObject<UserType> newUser, LensProjectionContext<ShadowType> accContext, 
             RefinedObjectClassDefinition accountDefinition, LensContext<UserType,ShadowType> context, 
             OperationResult opResult) throws SchemaException {
+    	if (inboundMappingType == null) {
+    		return;
+    	}
+    	Collection<MappingType> inboundMappingTypes = new ArrayList<MappingType>(1);
+    	inboundMappingTypes.add(inboundMappingType);
+    	processSpecialPropertyInbound(inboundMappingTypes, sourcePath, newUser, accContext, accountDefinition, context, opResult);
+    }
+    
+    /**
+     * Processing for special (fixed-schema) properties such as credentials and activation. 
+     */
+    private void processSpecialPropertyInbound(Collection<MappingType> inboundMappingTypes, ItemPath sourcePath,
+            PrismObject<UserType> newUser, LensProjectionContext<ShadowType> accContext, 
+            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,ShadowType> context, 
+            OperationResult opResult) throws SchemaException {
     	
-        if (inboundMappingType == null || newUser == null || !accContext.isFullShadow()) {
+        if (inboundMappingTypes == null || inboundMappingTypes.isEmpty() || newUser == null || !accContext.isFullShadow()) {
             return;
         }
 
-        Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingType, 
+        // TODO: fix multiple inbounds
+        Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingTypes.iterator().next(), 
         		"inbound mapping for "+sourcePath+" in "+accContext.getResource());
         
         if (!mapping.isApplicableToChannel(context.getChannel())) {

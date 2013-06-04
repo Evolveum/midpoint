@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,11 +48,14 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
+import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -60,6 +64,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -79,6 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -496,11 +502,22 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 2, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
         PropertyDelta<ActivationStatusType> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, 
         		ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertReplace(enabledDelta, ActivationStatusType.DISABLED);
         PrismAsserts.assertOrigin(enabledDelta, OriginType.OUTBOUND);
+        
+        ContainerDelta<TriggerType> triggerDelta = accountSecondaryDelta.findContainerDelta(ObjectType.F_TRIGGER);
+        assertNotNull("No trigger delta in account secondary delta", triggerDelta);
+        assertEquals("Wrong trigger delta size", 1, triggerDelta.getValuesToAdd().size());
+        TriggerType triggerType = triggerDelta.getValuesToAdd().iterator().next().asContainerable();
+        assertEquals("Wrong trigger URL", RecomputeTriggerHandler.HANDLER_URI, triggerType.getHandlerUri());
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+        end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
+        IntegrationTestTools.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
     }
 	
 	/**

@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -97,7 +98,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 @Component
 public class ReconciliationTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = SynchronizationConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/reconciliation/handler-2";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/reconciliation/handler-2";
 	public static final long DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL = 5 * 60 * 1000;
 
 	@Autowired(required = true)

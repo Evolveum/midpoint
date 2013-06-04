@@ -273,6 +273,30 @@
             </protected>
             
             <activation>
+            	<existence>
+            		<outbound>
+            			<timeTo>
+            				<referenceTime>
+            					<path>$shadow/activation/disableTimestamp</path>
+            				</referenceTime>
+            				<offset>P1M</offset>
+            			</timeTo>
+            			<expression>
+            				<asIs/>
+            			</expression>
+            		</outbound>
+            		<outbound>
+            			<timeFrom>
+            				<referenceTime>
+            					<path>$shadow/activation/disableTimestamp</path>
+            				</referenceTime>
+            				<offset>P1M</offset>
+            			</timeFrom>
+            			<expression>
+            				<value>false</value>
+            			</expression>
+            		</outbound>
+            	</existence>
             	<administrativeStatus>
             		<outbound>
                     	<expression>

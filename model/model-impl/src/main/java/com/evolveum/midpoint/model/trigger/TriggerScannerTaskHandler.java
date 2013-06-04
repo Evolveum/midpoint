@@ -151,7 +151,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 							if (handlerUri == null) {
 								LOGGER.warn("Trigger without handler URI in {}", object);
 							} else {
-								fireTrigger(handlerUri, object);
+								fireTrigger(handlerUri, object, task, result);
 								removeTrigger(object, triggerCVal);
 							}
 						} else {
@@ -174,13 +174,13 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		return lastScanTimestamp == null || lastScanTimestamp.compare(timestamp) == DatatypeConstants.LESSER;
 	}
 
-	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object) {
+	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object, Task task, OperationResult result) {
 		LOGGER.debug("Firing trigger {} in {}", handlerUri, object);
 		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 		if (handler == null) {
 			LOGGER.warn("No registered trigger handler for URI {}", handlerUri);
 		} else {
-			handler.handle(object);
+			handler.handle(object, task, result);
 		}
 	}
 

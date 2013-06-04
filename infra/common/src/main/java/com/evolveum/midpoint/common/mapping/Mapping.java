@@ -125,6 +125,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private StringPolicyResolver stringPolicyResolver;
 	private XMLGregorianCalendar now;
 	private XMLGregorianCalendar defaultReferenceTime = null;
+	private Boolean timeConstraintValid = null;
 	private XMLGregorianCalendar nextRecomputeTime = null;
 	
 	// This is single-use only. Once evaluated it is not used any more
@@ -410,10 +411,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 		
 		try {
-			boolean timeConstraintValid = parseTimeConstraints(result);
+			evaluateTimeConstraintValid(result);
 			
 			if (!timeConstraintValid) {
 				outputTriple = null;
+				result.recordNotApplicableIfUnknown();
 				traceDeferred();
 				return;
 			}
@@ -566,47 +568,64 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return true;
 	}
 
-	private boolean parseTimeConstraints(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public Boolean evaluateTimeConstraintValid(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (timeConstraintValid == null) {
+			parseTimeConstraints(result);
+		}
+		return timeConstraintValid;
+	}
+
+	private void parseTimeConstraints(OperationResult result) throws SchemaException, ObjectNotFoundException {
 		MappingTimeDeclarationType timeFromType = mappingType.getTimeFrom();
 		MappingTimeDeclarationType timeToType = mappingType.getTimeTo();
 		if (timeFromType == null && timeToType == null) {
-			return true;
+			timeConstraintValid = true;
+			return;
 		}
 		
 		XMLGregorianCalendar timeFrom = parseTime(timeFromType, result);
 		if (timeFrom == null && timeFromType != null) {
 			// Time is specified but there is no value for it.
-			// The mapping is incomplete. Skip processing of the mapping.
-			return false;
+			// This means that event that should start validity haven't happened yet
+			// therefore the mapping is not yet valid. 
+			timeConstraintValid = false;
+			return;
 		}
 		XMLGregorianCalendar timeTo = parseTime(timeToType, result);
-		if (timeTo == null && timeToType != null) {
-			// Time is specified but there is no value for it.
-			// The mapping is incomplete. Skip processing of the mapping.
-			return false;
-		}
 		
 		if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
 			// before timeFrom
 			nextRecomputeTime = timeFrom;
-			return false;
+			timeConstraintValid = false;
+			return;
+		}
+		
+		if (timeTo == null && timeToType != null) {
+			// Time is specified but there is no value for it.
+			// This means that event that should stop validity haven't happened yet
+			// therefore the mapping is still valid. 
+			timeConstraintValid = true;
+			return;
 		}
 		
 		if (timeTo != null && timeTo.compare(now) == DatatypeConstants.GREATER) {
 			// between timeFrom and timeTo (also no timeFrom and before timeTo)
 			nextRecomputeTime = timeTo;
-			return true;
+			timeConstraintValid = true;
+			return;
 		}
 
 		if (timeTo == null) {
 			// after timeFrom and no timeTo
 			// no nextRecomputeTime set, there is nothing to recompute in the future
-			return true;
+			timeConstraintValid = true;
+			return;
 			
 		} else {
 			// after timeTo
 			// no nextRecomputeTime set, there is nothing to recompute in the future
-			return false;
+			timeConstraintValid = false;
+			return;
 		}
 		
 	}

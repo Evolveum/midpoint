@@ -3346,14 +3346,14 @@
     <xsd:complexType name="ResourceBidirectionalMappingType">
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
-            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Maps information outbound from midpoint to the resource.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
             			Maps information inbound to midpoint from the resource.
@@ -3803,16 +3803,7 @@
     </xsd:complexType>
 
 
-
-
-
-
-
-
-
-
-
-    <xsd:complexType name="MappingType">
+	<xsd:complexType name="MappingType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines how a value of a property (or attribute) should be

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
@@ -82,7 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @Component
 public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<UserType> {
 
-	public static final String HANDLER_URI = SynchronizationConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-2";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-2";
 
     @Autowired(required=true)
 	private TaskManager taskManager;

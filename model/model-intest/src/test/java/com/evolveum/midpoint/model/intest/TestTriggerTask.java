@@ -30,9 +30,9 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
-import com.evolveum.midpoint.model.sync.SynchronizationConstants;
 import com.evolveum.midpoint.model.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;

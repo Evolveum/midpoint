@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
@@ -98,7 +99,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @Component
 public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<UserType> {
 
-	public static final String HANDLER_URI = SynchronizationConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/focus-validation-scanner/handler-2";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/focus-validation-scanner/handler-2";
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;

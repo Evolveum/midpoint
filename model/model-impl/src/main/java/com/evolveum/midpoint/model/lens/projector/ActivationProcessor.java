@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -88,7 +90,7 @@ public class ActivationProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private MappingFactory valueConstructionFactory;
+    private MappingHelper mappingHelper;
 
     public <F extends ObjectType, P extends ObjectType> void processActivation(LensContext<F,P> context, 
     		LensProjectionContext<P> projectionContext, XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
@@ -100,10 +102,11 @@ public class ActivationProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processActivationUser((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
+    	processActivationUserCurrent((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
+    	processActivationUserFuture((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
     }
 
-    public void processActivationUser(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
+    public void processActivationUserCurrent(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
     		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	String accCtxDesc = accCtx.toHumanReadableString();
     	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
@@ -130,13 +133,11 @@ public class ActivationProcessor {
     		return;
     	}
     	
-    	boolean shadowShouldExist = evaluateExistenceMapping(context, accCtx, result);
+    	boolean shadowShouldExist = evaluateExistenceMapping(context, accCtx, now, true, result);
     	
     	LOGGER.trace("Evaluated intended existence of projection {} to {}", accCtxDesc, shadowShouldExist);
     	
     	// Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
-    	
-    	
     	
     	if (synchronizationIntent == null || synchronizationIntent == SynchronizationIntent.SYNCHRONIZE) {
 	    	if (shadowShouldExist) {
@@ -218,9 +219,10 @@ public class ActivationProcessor {
         
         if (capStatus != null) {
         	
-	    	PropertyDelta<ActivationStatusType> statusDelta = evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    	PropertyDelta<ActivationStatusType> statusDelta = evaluateActivationMapping(context, accCtx, 
+	    			activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
-	    			capActivation, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), result);
+	    			capActivation, now, true, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), result);
 	    	
 	    	if (statusDelta != null) {
 	    		ActivationStatusType statusNew = statusDelta.getPropertyNew().getRealValue();
@@ -235,7 +237,7 @@ public class ActivationProcessor {
         if (capValidFrom != null) {
 	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM, 
-	    			null, ActivationType.F_VALID_FROM.getLocalPart(), result);
+	    			null, now, true, ActivationType.F_VALID_FROM.getLocalPart(), result);
         } else {
         	LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability", accCtx.getResource());
         }
@@ -243,14 +245,78 @@ public class ActivationProcessor {
         if (capValidTo != null) {
 	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO, 
-	    			null, ActivationType.F_VALID_FROM.getLocalPart(), result);
+	    			null, now, true, ActivationType.F_VALID_FROM.getLocalPart(), result);
 	    } else {
 	    	LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability", accCtx.getResource());
 	    }
     	
     }
+
+    public void processActivationUserFuture(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
+    		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    	String accCtxDesc = accCtx.toHumanReadableString();
+    	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
+    	SynchronizationIntent synchronizationIntent = accCtx.getSynchronizationIntent();
+    	
+    	if (accCtx.isThombstone() || decision == SynchronizationPolicyDecision.BROKEN || decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
+    		return;
+    	}
+    	
+    	accCtx.recompute();
+    	
+    	evaluateExistenceMapping(context, accCtx, now, false, result);
+    	
+        PrismObject<UserType> focusNew = context.getFocusContext().getObjectNew();
+        if (focusNew == null) {
+            // This must be a user delete or something similar. No point in proceeding
+            LOGGER.trace("focusNew is null, skipping activation processing of {}", accCtxDesc);
+            return;
+        }
+    	    	
+    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
+        if (resourceAccountDefType == null) {
+            return;
+        }
+        ResourceActivationDefinitionType activationType = resourceAccountDefType.getActivation();
+        if (activationType == null) {
+            return;
+        }
+        
+        ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(accCtx.getResource(), ActivationCapabilityType.class);
+        if (capActivation == null) {
+        	return;
+        }
+
+        ActivationStatusCapabilityType capStatus = capActivation.getStatus();
+        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
+        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
+        
+        if (capStatus != null) {
+        	
+	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
+	    			capActivation, now, false, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), result);	    	
+        }
+
+        if (capValidFrom != null) {
+	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM, 
+	    			null, now, false, ActivationType.F_VALID_FROM.getLocalPart(), result);
+        }
+	
+        if (capValidTo != null) {
+	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO, 
+	    			null, now, false, ActivationType.F_VALID_FROM.getLocalPart(), result);
+	    }
+    	
+    }
+
     
-    private boolean evaluateExistenceMapping(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    private boolean evaluateExistenceMapping(final LensContext<UserType,ShadowType> context, 
+    		final LensProjectionContext<ShadowType> accCtx, final XMLGregorianCalendar now, final boolean current, 
+    		final OperationResult result) 
+    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	String accCtxDesc = accCtx.toHumanReadableString();
     	
     	Boolean legal = accCtx.isLegal();
@@ -270,59 +336,83 @@ public class ActivationProcessor {
         if (existenceType == null) {
             return legal;
         }
-        MappingType outbound = existenceType.getOutbound();
-        if (outbound == null) {
+        List<MappingType> outbound = existenceType.getOutbound();
+        if (outbound == null || outbound.isEmpty()) {
+        	// "default mapping"
             return legal;
         }
+        
+        MappingClosures<PrismPropertyValue<Boolean>> closure = new MappingClosures<PrismPropertyValue<Boolean>>() {
+			@Override
+			public void initialize(Mapping<PrismPropertyValue<Boolean>> existenceMapping) throws SchemaException {
+		        // Target
+		        PrismPropertyDefinition<Boolean> shadowExistsDef = new PrismPropertyDefinition<Boolean>(SHADOW_EXISTS_PROPERTY_NAME,
+		        		SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		        shadowExistsDef.setMinOccurs(1);
+		        shadowExistsDef.setMaxOccurs(1);
+				existenceMapping.setDefaultTargetDefinition(shadowExistsDef);
+				
+				// Source: legal
+		        ItemDeltaItem<PrismPropertyValue<Boolean>> legalSourceIdi = getLegalIdi(accCtx); 
+		        Source<PrismPropertyValue<Boolean>> legalSource 
+		        	= new Source<PrismPropertyValue<Boolean>>(legalSourceIdi, ExpressionConstants.VAR_LEGAL);
+				existenceMapping.setDefaultSource(legalSource);
+
+				// Source: focusExists
+		        ItemDeltaItem<PrismPropertyValue<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext()); 
+		        Source<PrismPropertyValue<Boolean>> focusExistsSource 
+		        	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
+				existenceMapping.addSource(focusExistsSource);
+				
+				// Variable: focus
+				existenceMapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
+
+		        // Variable: user (for convenience, same as "focus")
+				existenceMapping.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+				
+				// Variable: shadow
+				existenceMapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accCtx.getObjectDeltaObject());
+				
+		        existenceMapping.setOriginType(OriginType.OUTBOUND);
+		        existenceMapping.setOriginObject(accCtx.getResource());				
+			}
+
+			@Override
+			public boolean willEvaluate(Mapping<PrismPropertyValue<Boolean>> mapping) throws SchemaException, ObjectNotFoundException {
+				Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(result);
+				if (current) {
+					return timeConstraintValid;
+				} else {
+					return !timeConstraintValid;
+				}
+			}
+        };
+        
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mappingHelper.evaluateMappingSetProjection(
+				outbound, "outbound existence mapping in projection " + accCtxDesc,
+        		now, closure, null, context, accCtx, result);
     	
-    	Mapping<PrismPropertyValue<Boolean>> existenceMapping =
-        	valueConstructionFactory.createMapping(outbound, 
-        		"outbound existence mapping in projection " + accCtxDesc);
-
-        if (!existenceMapping.isApplicableToChannel(context.getChannel())) {
-        	return legal;
-        }
-        
-        // Target
-        PrismPropertyDefinition<Boolean> shadowExistsDef = new PrismPropertyDefinition<Boolean>(SHADOW_EXISTS_PROPERTY_NAME,
-        		SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
-        shadowExistsDef.setMinOccurs(1);
-        shadowExistsDef.setMaxOccurs(1);
-		existenceMapping.setDefaultTargetDefinition(shadowExistsDef);
-		
-		// Source: legal
-        ItemDeltaItem<PrismPropertyValue<Boolean>> legalSourceIdi = getLegalIdi(accCtx); 
-        Source<PrismPropertyValue<Boolean>> legalSource 
-        	= new Source<PrismPropertyValue<Boolean>>(legalSourceIdi, ExpressionConstants.VAR_LEGAL);
-		existenceMapping.setDefaultSource(legalSource);
-
-		// Source: focusExists
-        ItemDeltaItem<PrismPropertyValue<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext()); 
-        Source<PrismPropertyValue<Boolean>> focusExistsSource 
-        	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
-		existenceMapping.addSource(focusExistsSource);
-		
-		// Variable: focus
-		existenceMapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
-
-        // Variable: user (for convenience, same as "focus")
-		existenceMapping.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
-		
-        existenceMapping.setOriginType(OriginType.OUTBOUND);
-        existenceMapping.setOriginObject(accCtx.getResource());
-        existenceMapping.evaluate(result);
-        
-        PrismProperty<Boolean> shadowExistsProp = (PrismProperty<Boolean>) existenceMapping.getOutput();
-        if (shadowExistsProp == null || shadowExistsProp.isEmpty()) {
+		if (outputTriple == null) {
+			// The "default existence mapping"
+			return legal;
+		}
+		        
+		Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
+        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
         	throw new ExpressionEvaluationException("Activation existence expression resulted in null or empty value for projection " + accCtxDesc);
         }
+        if (nonNegativeValues.size() > 1) {
+        	throw new ExpressionEvaluationException("Activation existence expression resulted in too many values ("+nonNegativeValues.size()+") for projection " + accCtxDesc);
+        }
     	
-        return shadowExistsProp.getRealValue();
+        return nonNegativeValues.iterator().next().getValue();
     }
     
-	private <T> PropertyDelta<T> evaluateActivationMapping(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
-   			ResourceBidirectionalMappingType bidirectionalMappingType, ItemPath focusPropertyPath, ItemPath projectionPropertyPath,
-   			ActivationCapabilityType capActivation, String desc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private <T> PropertyDelta<T> evaluateActivationMapping(final LensContext<UserType,ShadowType> context, 
+			final LensProjectionContext<ShadowType> accCtx, ResourceBidirectionalMappingType bidirectionalMappingType, 
+			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
+   			final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final boolean current, 
+   			String desc, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         
    		String accCtxDesc = accCtx.toHumanReadableString();
 
@@ -330,113 +420,116 @@ public class ActivationProcessor {
             LOGGER.trace("No '{}' definition in activation in projection {}, skipping", desc, accCtxDesc);
             return null;
         }
-        MappingType outbound = bidirectionalMappingType.getOutbound();
-        if (outbound == null) {
+        List<MappingType> outbound = bidirectionalMappingType.getOutbound();
+        if (outbound == null || outbound.isEmpty()) {
             LOGGER.trace("No outbound definition in '{}' definition in activation in projection {}, skipping", desc, accCtxDesc);
             return null;
         }
+        
+        ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
+        PropertyDelta<T> shadowPropertyDelta = null;
+        if (projectionDelta != null) {
+        	shadowPropertyDelta = projectionDelta.findPropertyDelta(projectionPropertyPath);
+        }
    		
-        // Mapping
-        Mapping<PrismPropertyValue<T>> mapping =
-        	valueConstructionFactory.createMapping(outbound, 
-        		desc + " outbound activation mapping in projection " + accCtxDesc);
+        MappingClosures<PrismPropertyValue<T>> closures = new MappingClosures<PrismPropertyValue<T>>() {
+			@Override
+			public void initialize(Mapping<PrismPropertyValue<T>> mapping) throws SchemaException {
+				// Source: administrativeStatus, validFrom or validTo
+		        ItemDeltaItem<PrismPropertyValue<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
+		        
+		        if (capActivation != null) {
+			        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
+			        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
+			        
+			        // Source: computedShadowStatus
+			        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>> computedIdi;
+			        if (capValidFrom != null && capValidTo != null) {
+			        	// "Native" validFrom and validTo, directly use administrativeStatus
+			        	computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
+			        	
+			        } else {
+			        	// Simulate validFrom and validTo using effectiveStatus
+			        	computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
+			        	
+			        }
+			        
+			        Source<PrismPropertyValue<ActivationStatusType>> computedSource = new Source<PrismPropertyValue<ActivationStatusType>>(computedIdi, ExpressionConstants.VAR_INPUT);
+			        
+			        mapping.setDefaultSource(computedSource);
+			        
+			        Source<PrismPropertyValue<T>> source = new Source<PrismPropertyValue<T>>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS);
+			        mapping.addSource(source);
+			        
+		        } else {
+		        	Source<PrismPropertyValue<T>> source = new Source<PrismPropertyValue<T>>(sourceIdi, ExpressionConstants.VAR_INPUT);
+		        	mapping.setDefaultSource(source);
+		        }
+		        
+				// Source: legal
+		        ItemDeltaItem<PrismPropertyValue<Boolean>> legalIdi = getLegalIdi(accCtx);
+		        Source<PrismPropertyValue<Boolean>> legalSource = new Source<PrismPropertyValue<Boolean>>(legalIdi, ExpressionConstants.VAR_LEGAL);
+		        mapping.addSource(legalSource);
+		        
+		        // Source: focusExists
+		        ItemDeltaItem<PrismPropertyValue<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext()); 
+		        Source<PrismPropertyValue<Boolean>> focusExistsSource 
+		        	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
+		        mapping.addSource(focusExistsSource);
+		        
+		        // Variable: focus
+		        mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
 
-        if (!mapping.isApplicableToChannel(context.getChannel())) {
-        	return null;
-        }
+		        // Variable: user (for convenience, same as "focus")
+		        mapping.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+
+				// Target
+		        PrismObjectDefinition<ShadowType> shadowDefinition = 
+		            	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		            PrismPropertyDefinition<T> shadowPropertyDefinition = 
+		            	shadowDefinition.findPropertyDefinition(projectionPropertyPath);
+		        mapping.setDefaultTargetDefinition(shadowPropertyDefinition);
+				
+		        mapping.setOriginType(OriginType.OUTBOUND);
+		        mapping.setOriginObject(accCtx.getResource());
+			}
+
+			@Override
+			public boolean willEvaluate(Mapping<PrismPropertyValue<T>> mapping) throws SchemaException, ObjectNotFoundException {
+				Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(result);
+				if (current) {
+					return timeConstraintValid;
+				} else {
+					return !timeConstraintValid;
+				}
+			}
+		};
         
-        if (mapping.getStrength() != MappingStrengthType.STRONG) {
-			ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
-	        PropertyDelta<T> shadowPropertyDelta = null;
-	        if (projectionDelta != null) {
-	        	shadowPropertyDelta = projectionDelta.findPropertyDelta(projectionPropertyPath);
-	        }
-        	if (shadowPropertyDelta != null && !shadowPropertyDelta.isEmpty()) {
-        		return null;
-        	}
-        }
-                
-        // Source: administrativeStatus, validFrom or validTo
-        ItemDeltaItem<PrismPropertyValue<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
-        
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mappingHelper.evaluateMappingSetProjection(
+				outbound, desc + " outbound activation mapping in projection " + accCtxDesc,
+        		now, closures, shadowPropertyDelta, context, accCtx, result);
+            
+		if (outputTriple == null) {
+    		LOGGER.trace("Activation '{}' expression resulted in null triple for projection {}, skipping", desc, accCtxDesc);
+            return null;
+    	}
 		
-        if (capActivation != null) {
-	        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
-	        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
-	        
-	        // Source: computedShadowStatus
-	        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>> computedIdi;
-	        if (capValidFrom != null && capValidTo != null) {
-	        	// "Native" validFrom and validTo, directly use administrativeStatus
-	        	computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
-	        	
-	        } else {
-	        	// Simulate validFrom and validTo using effectiveStatus
-	        	computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
-	        	
-	        }
-	        
-	        Source<PrismPropertyValue<ActivationStatusType>> computedSource = new Source<PrismPropertyValue<ActivationStatusType>>(computedIdi, ExpressionConstants.VAR_INPUT);
-	        
-	        mapping.setDefaultSource(computedSource);
-	        
-	        Source<PrismPropertyValue<T>> source = new Source<PrismPropertyValue<T>>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS);
-	        mapping.addSource(source);
-	        
-        } else {
-        	Source<PrismPropertyValue<T>> source = new Source<PrismPropertyValue<T>>(sourceIdi, ExpressionConstants.VAR_INPUT);
-        	mapping.setDefaultSource(source);
-        }
-        
-		// Source: legal
-        ItemDeltaItem<PrismPropertyValue<Boolean>> legalIdi = getLegalIdi(accCtx);
-        Source<PrismPropertyValue<Boolean>> legalSource = new Source<PrismPropertyValue<Boolean>>(legalIdi, ExpressionConstants.VAR_LEGAL);
-        mapping.addSource(legalSource);
-        
-        // Source: focusExists
-        ItemDeltaItem<PrismPropertyValue<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext()); 
-        Source<PrismPropertyValue<Boolean>> focusExistsSource 
-        	= new Source<PrismPropertyValue<Boolean>>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
-        mapping.addSource(focusExistsSource);
-        
-        // Variable: focus
-        mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
-
-        // Variable: user (for convenience, same as "focus")
-        mapping.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
-
-		// Target
-        PrismObjectDefinition<ShadowType> shadowDefinition = 
-            	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-            PrismPropertyDefinition<T> shadowPropertyDefinition = 
-            	shadowDefinition.findPropertyDefinition(projectionPropertyPath);
-        mapping.setDefaultTargetDefinition(shadowPropertyDefinition);
-		
-        mapping.setOriginType(OriginType.OUTBOUND);
-        mapping.setOriginObject(accCtx.getResource());
-        
-        // Evaluate
-        mapping.evaluate(result);
-        
         PropertyDelta<T> projectionPropertyDelta = PropertyDelta.createDelta(projectionPropertyPath, ShadowType.class, prismContext);
         
         if (accCtx.isAdd()) {
         	
-	        PrismProperty<T> projectionPropertyNew = (PrismProperty<T>) mapping.getOutput();
-	        if (projectionPropertyNew == null || projectionPropertyNew.isEmpty()) {
+        	Collection<PrismPropertyValue<T>> nonNegativeValues = outputTriple.getNonNegativeValues();
+	        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 	            LOGGER.trace("Activation '{}' expression resulted in null or empty value for projection {}, skipping", desc, accCtxDesc);
 	            return null;
 	        }
-	        projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(projectionPropertyNew.getValues()));
+	        projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(nonNegativeValues));
 	        
         } else {
         	
-        	PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
-        	if (outputTriple != null) {
-	        	Collection<PrismPropertyValue<T>> plusSet = outputTriple.getPlusSet();
-	        	if (plusSet != null && !plusSet.isEmpty()) {
-	        		projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(plusSet));
-	        	}
+        	Collection<PrismPropertyValue<T>> plusSet = outputTriple.getPlusSet();
+        	if (plusSet != null && !plusSet.isEmpty()) {
+        		projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(plusSet));
         	}
         	
         }

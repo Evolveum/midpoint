@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.trigger;
+package com.evolveum.midpoint.model.lens.projector;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author Radovan Semancik
  *
  */
-public interface TriggerHandler {
-	
-	<O extends ObjectType> void handle(PrismObject<O> object, Task task, OperationResult result);
+public interface MappingClosures<V extends PrismValue> {
 
+	void initialize(Mapping<V> mapping) throws SchemaException;
+	
+	boolean willEvaluate(Mapping<V> mapping) throws SchemaException, ObjectNotFoundException;
+	
 }
