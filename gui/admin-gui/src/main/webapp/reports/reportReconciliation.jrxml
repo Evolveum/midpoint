@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report2" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
 	<property name="ireport.zoom" value="1.6105100000000019"/>
-	<property name="ireport.x" value="34"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="2"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
 	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
 	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
-	<style name="Detail" mode="Transparent" fontName="DejaVu Sans" fontSize="9" isBold="false" forecolor="#000000"/>
-	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="9" isBold="false">
+	<style name="Detail" mode="Transparent" forecolor="#000000" fontName="DejaVu Sans" fontSize="12" isBold="false"/>
+	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="12" isBold="false">
 		<conditionalStyle>
 			<style mode="Opaque" backcolor="#F0EFEF"/>
 		</conditionalStyle>
@@ -97,10 +97,24 @@
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
 				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" x="550" y="70" width="250" height="20" forecolor="#000000"/>
-				<textElement verticalAlignment="Middle" textAlignment="Right">
+				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="12" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="8599b2c5-3a24-4594-98b9-5b3f38f39e24" x="400" y="90" width="150" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Number of records:]]></text>
+			</staticText>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement uuid="f6b01016-2406-4195-8b3b-35dca232ce68" x="550" y="90" width="250" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>
@@ -113,22 +127,22 @@
 				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
 				<staticText>
 					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="300" height="18"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Name]]></text>
 				</staticText>
 				<staticText>
 					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="300" y="0" width="150" height="18"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Situation]]></text>
 				</staticText>
 				<staticText>
 					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="450" y="0" width="200" height="18"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Owner]]></text>
 				</staticText>
 				<staticText>
 					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="650" y="0" width="150" height="18"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center" />
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Timestamp]]></text>
 				</staticText>
 			</frame>
@@ -137,25 +151,25 @@
 	<detail>
 		<band height="15" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="0" width="800" height="14"/>
-				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="0" y="0" width="300" height="13"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="800" height="14"/>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="0" y="0" width="300" height="13" isPrintWhenDetailOverflows="true"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 				</textField>
-				<textField isBlankWhenNull="true" isStretchWithOverflow="true"> 
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="300" y="0" width="150" height="13"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center" />
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="300" y="0" width="150" height="13" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{situation}.getSchemaValue()]]></textFieldExpression>
 				</textField>
-				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="450" y="0" width="200" height="13"/>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="450" y="0" width="200" height="13" isPrintWhenDetailOverflows="true"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
 				</textField>
-				<textField pattern="dd.MM.yy, HH:mm:ss" isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="650" y="0" width="150" height="13"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+				<textField isStretchWithOverflow="true" pattern="dd.MM.yy, HH:mm:ss" isBlankWhenNull="true">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="650" y="0" width="150" height="13" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{situationTimestamp}.toGregorianCalendar().getTime()]]></textFieldExpression>
 				</textField>
 				<line>
