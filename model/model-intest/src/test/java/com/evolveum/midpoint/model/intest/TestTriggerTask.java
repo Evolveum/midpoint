@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,7 +56,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
@@ -72,6 +78,9 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
 
 	private MockTriggerHandler testTriggerHandler;
+	
+	private XMLGregorianCalendar drakeValidFrom;
+	private XMLGregorianCalendar drakeValidTo;
 	
 	@Autowired(required=true)
 	private TriggerHandlerRegistry triggerHandlerRegistry;
@@ -204,89 +213,5 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
-
-	/**
-	 * Note: red resource disables account on unsassign, does NOT delete it.
-	 * Just the recompute trigger is set
-	 */
-	@Test
-    public void test200JackAssignAndUnassignAccountRed() throws Exception {
-		final String TEST_NAME = "test200JackAssignAndUnassignAccountRed";
-        displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        
-        // assign
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, 
-        		RESOURCE_DUMMY_RED_OID, null, true);
-        deltas.add(userDelta);
-                
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
-		
-		// THEN
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-        
-		// unassign
-        deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
-        deltas.add(userDelta);
-                
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
-		
-		// THEN
-		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
-        
-        // Let's wait for the task to give it a change to screw up
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
-        
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
-		
-		String accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
-		PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
-		
-		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
-        start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
-        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
-        end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
-		assertTrigger(accountRed, RecomputeTriggerHandler.HANDLER_URI, start, end);
-		assertAdministrativeStatusDisabled(accountRed);
-
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
-	}
 	
-	/**
-	 * Move time a month ahead. The account that was disabled in a previous test should be
-	 * deleted now. 
-	 */
-	@Test
-    public void test210JackDummyAccountDeleteAfterMonth() throws Exception {
-		final String TEST_NAME = "test210JackDummyAccountDeleteAfterMonth";
-        displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        
-        XMLGregorianCalendar time = clock.currentTimeXMLGregorianCalendar();
-        // A month and a day, to make sure we move past the trigger
-        time.add(XmlTypeConverter.createDuration(true, 0, 1, 1, 0, 0, 0));
-        
-        // WHEN
-        displayWhen(TEST_NAME);
-        clock.override(time);
-        
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
-        
-        // THEN
-        displayThen(TEST_NAME);
-        
-        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-	}
 }

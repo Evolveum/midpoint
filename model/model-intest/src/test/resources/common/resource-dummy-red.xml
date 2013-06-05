@@ -204,6 +204,26 @@
             			</expression>
             		</outbound>
             		<outbound>
+            			<name>pre-create</name>
+            			<timeTo>
+            				<referenceTime>
+            					<path>$focus/activation/validFrom</path>
+            				</referenceTime>
+            				<offset>-P5D</offset>
+            			</timeTo>
+            			<source>
+            				<path>$focus/activation/validFrom</path>
+            			</source>
+            			<expression>
+            				<value>false</value>
+            			</expression>
+            			<condition>
+            				<script>
+            					<code>validFrom != null</code>
+            				</script>
+            			</condition>
+            		</outbound>
+            		<outbound>
             			<name>delayed delete</name>
             			<timeFrom>
             				<referenceTime>

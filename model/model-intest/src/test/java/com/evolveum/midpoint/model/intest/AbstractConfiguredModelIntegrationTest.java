@@ -197,6 +197,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_CAPSIZE_OID = "c0c010c0-d34d-b33f-f00d-11c1c1c1c11c";
 	protected static final String USER_CAPSIZE_USERNAME = "capsize";
 	
+	protected static final File USER_DRAKE_FILE = new File(COMMON_DIR_NAME, "user-drake.xml");
+	protected static final String USER_DRAKE_OID = "c0c010c0-d34d-b33f-f00d-11d1d1d1d1d1";
+	protected static final String USER_DRAKE_USERNAME = "drake";
+	
 	public static final String ACCOUNT_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy.xml";
 	public static final String ACCOUNT_JACK_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy-red.xml";
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";

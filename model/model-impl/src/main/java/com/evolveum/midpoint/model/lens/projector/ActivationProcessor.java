@@ -148,7 +148,16 @@ public class ActivationProcessor {
 	    			decision = SynchronizationPolicyDecision.ADD;
 	    		}
 	    	} else {
-	    		decision = SynchronizationPolicyDecision.DELETE;
+	    		// Delete
+	    		if (accCtx.isExists()) {
+	    			decision = SynchronizationPolicyDecision.DELETE;
+	    		} else {
+	    			// we should delete the entire context, but then we will lost track of what
+	    			// happended. So just ignore it.
+	    			decision = SynchronizationPolicyDecision.IGNORE;
+	    			// if there are any triggers then move them to focus. We may still need them.
+	    			LensUtil.moveTriggers(accCtx, context.getFocusContext());
+	    		}
 	    	}
 	    	
     	} else if (synchronizationIntent == SynchronizationIntent.ADD) {
@@ -258,7 +267,9 @@ public class ActivationProcessor {
     	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
     	SynchronizationIntent synchronizationIntent = accCtx.getSynchronizationIntent();
     	
-    	if (accCtx.isThombstone() || decision == SynchronizationPolicyDecision.BROKEN || decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
+    	if (accCtx.isThombstone() || decision == SynchronizationPolicyDecision.BROKEN 
+    			|| decision == SynchronizationPolicyDecision.IGNORE 
+    			|| decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
     		return;
     	}
     	

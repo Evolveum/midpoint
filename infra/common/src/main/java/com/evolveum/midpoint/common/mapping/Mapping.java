@@ -477,6 +477,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		sb.append("Mapping trace:\n");
 		appendTraceHeader(sb);
 		sb.append("\nCondition: ").append(conditionResultOld).append(" -> ").append(conditionResultNew);
+		if (nextRecomputeTime != null) {
+			sb.append("\nNext recompute: ");
+			sb.append(nextRecomputeTime);
+		}
 		sb.append("\nResult: ");
 		if (outputTriple == null) {
 			sb.append("null");

@@ -14,18 +14,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
+<user oid="c0c010c0-d34d-b33f-f00d-11d1d1d1d1d1" 
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-    <c:name>drake</c:name>
-    <c:extension>
+    <name>drake</name>
+    <extension>
         <piracy:ship xsi:type="xsd:string">Golden Hind</piracy:ship>
-    </c:extension>
-    <i:givenName>Fancis</i:givenName>
-    <i:familyName>Drake</i:familyName>
-    <i:honorificPrefix>Sir</i:honorificPrefix>    
-</i:user>
+    </extension>
+    <fullName>Francis Drake</fullName>
+    <givenName>Fancis</givenName>
+    <familyName>Drake</familyName>
+    <honorificPrefix>Sir</honorificPrefix>    
+</user>

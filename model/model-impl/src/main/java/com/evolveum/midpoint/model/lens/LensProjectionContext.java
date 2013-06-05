@@ -620,18 +620,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	
 	public void checkConsistence(String contextDesc, boolean fresh, boolean force) {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
+			// No not check these. they may be quite wild.
+			return;
+		}
 		super.checkConsistence(contextDesc);
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
-			// OID is all we need for broken context
-//			System.out.println("is add delta: " + isAdd());
-//		System.out.println("primaty delta: " + getPrimaryDelta().dump());
-//		System.out.println("secondary delta: " + getSecondaryDelta().dump());
-//			if (isAdd()){
-//				return;
-//			}
-//			if (getOid() == null) {
-//				throw new IllegalStateException("No OID in broken context in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-//			}
 			return;
 		}
     	if (fresh && !force) {

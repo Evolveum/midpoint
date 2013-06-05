@@ -55,6 +55,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
+import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Containerable;
@@ -93,6 +94,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
@@ -958,11 +962,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         addObject(USER_HERMAN_FILE);
         
         // THEN
-        // Make sure that it is effectivelly disabled
+        // Make sure that it is effectivelly enabled
         PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
 	}
-	
+		
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}

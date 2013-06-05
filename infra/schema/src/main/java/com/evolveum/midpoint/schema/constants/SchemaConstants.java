@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 
 /**
@@ -112,6 +113,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ACTIVATION_VALID_FROM = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_FROM);
 	public static final ItemPath PATH_ACTIVATION_VALID_TO = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_TO);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
+	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";

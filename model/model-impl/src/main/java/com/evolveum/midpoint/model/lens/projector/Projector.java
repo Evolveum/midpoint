@@ -165,8 +165,8 @@ public class Projector {
 		
 		        // User-related processing is over. Now we will process accounts in a loop.
 		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-						
+		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
+		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						continue;
 		        	}
 		        	if (projectionContext.getWave() != context.getProjectionWave()) {
@@ -184,6 +184,11 @@ public class Projector {
 		        	projectionContext.recompute();
 		        	
 		        	LensUtil.traceContext(LOGGER, activityDescription, "activation", false, context, false);
+		        	
+		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
+		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+						continue;
+		        	}
 		        	
 		        	// TODO: decide if we need to continue
 		        	

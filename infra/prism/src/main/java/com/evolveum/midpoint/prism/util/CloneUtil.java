@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.prism.util;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import org.apache.commons.lang.SerializationUtils;
 
@@ -59,11 +61,37 @@ public class CloneUtil {
 		if (orig instanceof Definition) {
 			return (T) ((Definition)orig).clone();
 		}
+		if (orig instanceof Cloneable) {
+			T clone = javaLangClone(orig);
+			if (clone != null) {
+				return clone;
+			}
+		}
 		if (orig instanceof Serializable) {
 			// Brute force
 			return (T)SerializationUtils.clone((Serializable)orig);
 		}
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
+	}
+	
+	public static <T> T javaLangClone(T orig) {
+		try {
+			Method cloneMethod = Object.class.getMethod("clone");
+			Object clone = cloneMethod.invoke(orig);
+			return (T) clone;
+		} catch (SecurityException e) {
+			return null;
+		} catch (NoSuchMethodException e) {
+			return null;
+		} catch (IllegalArgumentException e) {
+			return null;
+		} catch (IllegalAccessException e) {
+			return null;
+		} catch (InvocationTargetException e) {
+			return null;
+		} catch (RuntimeException e) {
+			return null;
+		}
 	}
 
 }

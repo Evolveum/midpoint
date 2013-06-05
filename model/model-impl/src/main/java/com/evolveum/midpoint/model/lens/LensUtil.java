@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -460,5 +462,22 @@ public class LensUtil {
 		timestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now, origin, null));
 		return timestampDelta;
     }
+
+	public static void moveTriggers(LensProjectionContext<ShadowType> projCtx, LensFocusContext<UserType> focusCtx) throws SchemaException {
+		ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
+		if (projSecondaryDelta == null) {
+			return;
+		}
+		Collection<? extends ItemDelta> modifications = projSecondaryDelta.getModifications();
+		Iterator<? extends ItemDelta> iterator = modifications.iterator();
+		while (iterator.hasNext()) {
+			ItemDelta projModification = iterator.next();
+			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.dump());
+			if (projModification.getPath().equals(SchemaConstants.PATH_TRIGGER)) {
+				focusCtx.swallowToProjectionWaveSecondaryDelta(projModification);
+				iterator.remove();
+			}
+		}
+	}
     
 }
