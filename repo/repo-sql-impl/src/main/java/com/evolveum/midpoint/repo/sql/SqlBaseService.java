@@ -25,9 +25,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.PessimisticLockException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -222,6 +220,10 @@ public class SqlBaseService {
         }
 
         if (readOnly) {
+            // we don't want to flush changes during readonly transactions (they should never occur,
+            // but if they occur transaction commit would still fail)
+            session.setFlushMode(FlushMode.MANUAL);
+
             LOGGER.trace("Marking transaction as read only.");
             session.doWork(new Work() {
                 @Override

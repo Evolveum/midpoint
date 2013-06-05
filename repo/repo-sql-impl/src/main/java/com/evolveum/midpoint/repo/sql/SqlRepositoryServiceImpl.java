@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -763,15 +764,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> void logSearchInputParameters(Class<T> type, ObjectQuery query, boolean iterative) {
+        ObjectPaging paging = query != null ? query.getPaging() : null;
+        LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}, iterative {}.",
+                new Object[]{type.getSimpleName(), (paging != null ? paging.getOffset() : "undefined"),
+                        (paging != null ? paging.getMaxSize() : "undefined"), iterative});
+
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
 
-        ObjectPaging paging = query != null ? query.getPaging() : null;
-
-        LOGGER.trace("Searching objects of type '{}', query (on trace level), offset {}, count {}, iterative {}.",
-                new Object[]{type.getSimpleName(), (paging != null ? paging.getOffset() : "undefined"),
-                        (paging != null ? paging.getMaxSize() : "undefined"), iterative});
         LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{
                 (query == null ? "undefined" : query.dump()),
                 (paging != null ? paging.dump() : "undefined")});
@@ -1516,6 +1517,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 Iterator<RObject> iterator = new ScrollableResultsIterator(results);
                 while (iterator.hasNext()) {
                     RObject object = iterator.next();
+                    LOGGER.debug("Before\n{}", ReflectionToStringBuilder.toString(object));
 
                     ObjectType objectType = object.toJAXB(getPrismContext());
                     PrismObject<T> prismObject = objectType.asPrismObject();
@@ -1524,6 +1526,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }
+                    LOGGER.debug("After\n{}", ReflectionToStringBuilder.toString(object));
                 }
             } finally {
                 if (results != null) {

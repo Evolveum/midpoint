@@ -7,8 +7,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
@@ -41,7 +39,6 @@ public class RTrigger extends RContainer implements ROwnable {
         this.owner = owner;
     }
 
-    //    @ForeignKey(name = "none")
     @ForeignKey(name = "fk_trigger_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -124,12 +121,6 @@ public class RTrigger extends RContainer implements ROwnable {
         int result = handlerUri != null ? handlerUri.hashCode() : 0;
         result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
         return result;
-    }
-
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     public static void copyToJAXB(RTrigger repo, TriggerType jaxb, PrismContext prismContext) throws
