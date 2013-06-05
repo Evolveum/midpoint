@@ -54,51 +54,51 @@
 	<columnHeader>
 		<band height="24" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="1" width="700" height="19" isRemoveLineWhenBlank="true"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="100" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="200" height="18"/>
 					<textElement verticalAlignment="Middle">
 						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[Name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="100" y="0" width="100" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="200" y="0" width="100" height="18"/>
 					<textElement verticalAlignment="Middle">
 						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[First name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="200" y="0" width="100" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="300" y="0" width="100" height="18"/>
 					<textElement verticalAlignment="Middle">
 						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[Last name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="300" y="0" width="100" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="400" y="0" width="100" height="18"/>
 					<textElement verticalAlignment="Middle">
 						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[Activation]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="2ffd228b-8b87-4bc6-a9d2-31e8a2d5dbb7" style="Column header" mode="Opaque" x="400" y="0" width="100" height="18"/>
+					<reportElement uuid="2ffd228b-8b87-4bc6-a9d2-31e8a2d5dbb7" style="Column header" mode="Opaque" x="500" y="0" width="100" height="18"/>
 					<textElement verticalAlignment="Middle">
 						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[Role]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="2c4faeb3-d19c-4c1e-bfbf-1b10cece8ae8" style="Column header" mode="Opaque" x="500" y="0" width="100" height="18"/>
+					<reportElement uuid="2c4faeb3-d19c-4c1e-bfbf-1b10cece8ae8" style="Column header" mode="Opaque" x="600" y="0" width="100" height="18"/>
 					<textElement verticalAlignment="Middle">
 						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[Organization]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="442eeb24-6e46-48f7-8aa0-cb3ab3b8cb83" style="Column header" mode="Opaque" x="600" y="0" width="100" height="18"/>
+					<reportElement uuid="442eeb24-6e46-48f7-8aa0-cb3ab3b8cb83" style="Column header" mode="Opaque" x="700" y="0" width="100" height="18"/>
 					<textElement verticalAlignment="Middle">
 						<font isBold="true"/>
 					</textElement>
@@ -110,31 +110,31 @@
 	<detail>
 		<band height="16" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="700" height="15"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="800" height="15"/>
 				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="0" width="100" height="13"/>
+					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="0" width="200" height="13"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="100" y="0" width="100" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="200" y="0" width="100" height="13"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="200" y="0" width="100" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="300" y="0" width="100" height="13"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true" isStretchWithOverflow="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="300" y="0" width="100" height="13">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="400" y="0" width="100" height="13">
 						<printWhenExpression><![CDATA[!$F{activation}.getAdministrativeStatus().getSchemaValue().value().isEmpty()]]></printWhenExpression>
 					</reportElement>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{activation}.getAdministrativeStatus().getSchemaValue()]]></textFieldExpression>
 				</textField>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="400" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="500" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -145,7 +145,7 @@
 					<subreportExpression><![CDATA[$P{roleReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="500" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="600" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -156,7 +156,7 @@
 					<subreportExpression><![CDATA[$P{orgReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="600" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="700" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -167,7 +167,7 @@
 					<subreportExpression><![CDATA[$P{accountReport}]]></subreportExpression>
 				</subreport>
 				<line>
-					<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="14" width="700" height="1"/>
+					<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="14" width="800" height="1"/>
 					<graphicElement>
 						<pen lineWidth="0.5" lineColor="#999999"/>
 					</graphicElement>
@@ -178,7 +178,7 @@
 	<columnFooter>
 		<band height="7" splitType="Stretch">
 			<line>
-				<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="700" height="1"/>
+				<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1"/>
 				<graphicElement>
 					<pen lineWidth="0.5" lineColor="#999999"/>
 				</graphicElement>
