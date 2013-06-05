@@ -178,7 +178,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
         assertAccounts(userMancomb, 1);
-        assertAdministrativeEnabled(userMancomb);
+        assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         

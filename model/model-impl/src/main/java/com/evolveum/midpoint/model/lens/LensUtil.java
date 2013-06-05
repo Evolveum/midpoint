@@ -440,19 +440,6 @@ public class LensUtil {
         }
         return pvwos;
     }
-    
-    public static <F extends FocusType> LensContext<F, ShadowType> createRecomputeContext(
-    		Class<F> focusType, PrismObject<F> focus,
-    		PrismContext prismContext, ProvisioningService provisioningService) {
-    	LensContext<F, ShadowType> syncContext = new LensContext<F, ShadowType>(focusType,
-				ShadowType.class, prismContext, provisioningService);
-		LensFocusContext<F> focusContext = syncContext.createFocusContext();
-		focusContext.setObjectOld(focus);
-		focusContext.setOid(focus.getOid());
-		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
-		syncContext.setDoReconciliationForAllProjections(true);
-		return syncContext;
-    }
 
     public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status, XMLGregorianCalendar now,
     		PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin) {

@@ -69,6 +69,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -939,8 +940,10 @@ public class IntegrationTestTools {
 	public static void assertBetween(String message, XMLGregorianCalendar start, XMLGregorianCalendar end,
 			XMLGregorianCalendar actual) {
 		assertNotNull(message + " is null", actual);
-		assertTrue(message+": expected time to be after "+start+" but it was "+actual, actual.compare(start) == 1 || actual.compare(start) == 0);
-		assertTrue(message+": expected time to be before "+end+" but it was "+actual, actual.compare(end) == -1 || actual.compare(end) == 0);
+		assertTrue(message+": expected time to be after "+start+" but it was "+actual, 
+				actual.compare(start) == DatatypeConstants.GREATER || actual.compare(start) == DatatypeConstants.EQUAL);
+		assertTrue(message+": expected time to be before "+end+" but it was "+actual, 
+				actual.compare(end) == DatatypeConstants.LESSER || actual.compare(end) == DatatypeConstants.EQUAL);
 	}
 
 	public static void assertEqualsTimestamp(String message, XMLGregorianCalendar expected, XMLGregorianCalendar actual) {

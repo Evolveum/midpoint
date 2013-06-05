@@ -424,7 +424,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			
 			LOGGER.trace("Recomputing {}", focus);
 
-			LensContext<F, ShadowType> syncContext = LensUtil.createRecomputeContext(type, focus, prismContext, provisioning); 
+			LensContext<F, ShadowType> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
 			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.dump());
 			clockwork.run(syncContext, task, result);
 			

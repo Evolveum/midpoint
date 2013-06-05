@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -74,7 +75,7 @@ public class RecomputeTriggerHandler implements TriggerHandler {
     private ProvisioningService provisioningService;
 	
 	@Autowired(required = true)
-	private ChangeNotificationDispatcher changeNotificationDispatcher;
+	private ContextFactory contextFactory;
 	
 	@PostConstruct
 	private void initialize() {
@@ -87,13 +88,15 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> object, Task task, OperationResult result) {
 		try {
-			if (object.canRepresent(UserType.class)) {
-				recomputeUser((PrismObject<UserType>)object, task, result);
-			} else if (object.canRepresent(ShadowType.class)) {
-				recomputeShadow((PrismObject<ShadowType>)object, task, result);
-			} else {
-				LOGGER.error("Cannot recompute {}", object);
+			
+			LOGGER.trace("Recomputing {}", object);
+			LensContext<UserType, ShadowType> syncContext = contextFactory.createRecomputeContext(object, task, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recomputing of {}: context:\n{}", object, syncContext.dump());
 			}
+			clockwork.run(syncContext, task, result);
+			LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
+			
 		} catch (SchemaException e) {
 			LOGGER.error(e.getMessage(), e);
 		} catch (ObjectNotFoundException e) {
@@ -112,39 +115,6 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 			LOGGER.error(e.getMessage(), e);
 		}
 
-	}
-	
-	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		LOGGER.trace("Recomputing user {}", user);
-		LensContext<UserType, ShadowType> syncContext = LensUtil.createRecomputeContext(UserType.class, user, prismContext, provisioningService);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
-		}
-		clockwork.run(syncContext, task, result);
-		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
-	}
-
-	private void recomputeShadow(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws SchemaException, 
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		LOGGER.trace("Recomputing shadow {}", shadow);
-
-		String resourceOid = ShadowUtil.getResourceOid(shadow);
-		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
-		
-		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
-		change.setResource(resource);
-		change.setOldShadow(shadow);
-		
-		PrismObject<ShadowType> fullShadow = provisioningService.getObject(ShadowType.class, shadow.getOid(), null, result);
-		change.setCurrentShadow(fullShadow);
-		
-		changeNotificationDispatcher.notifyChange(change, task, result);
-		
-		LOGGER.trace("Recomputing of shadow {}: {}", shadow, result.getStatus());
 	}
 
 }

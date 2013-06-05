@@ -39,6 +39,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -342,6 +343,11 @@ public class MiscUtil {
 		  lines.add(scanner.nextLine());
 		}
 		return lines;
+	}
+	
+	public static boolean isBetween(XMLGregorianCalendar date, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+		return (date.compare(start) == DatatypeConstants.GREATER || date.compare(start) == DatatypeConstants.EQUAL)
+				&& (date.compare(end) == DatatypeConstants.LESSER || date.compare(end) == DatatypeConstants.EQUAL);
 	}
 
 }

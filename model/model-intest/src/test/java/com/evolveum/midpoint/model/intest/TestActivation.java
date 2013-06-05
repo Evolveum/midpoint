@@ -56,6 +56,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
+import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -145,7 +146,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertAdministrativeEnabled(userJack);
+		assertAdministrativeStatusEnabled(userJack);
 		// Cannot assert validity or effective status here. The user was added through repo and was not recomputed yet.
 	}
 
@@ -172,7 +173,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertDisabled(userJack);
+		assertAdministrativeStatusDisabled(userJack);
 		assertValidity(userJack, null);
 		assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
 		IntegrationTestTools.assertBetween("disable timestamp", start, end, userJack.asObjectable().getActivation().getDisableTimestamp());
@@ -203,7 +204,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertAdministrativeEnabled(userJack);
+		assertAdministrativeStatusEnabled(userJack);
 		assertValidity(userJack, null);
 		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
 		IntegrationTestTools.assertBetween("enable timestamp", start, end, userJack.asObjectable().getActivation().getEnableTimestamp());
@@ -262,10 +263,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test101ModifyUserJackDisable() throws Exception {
-        displayTestTile(this, "test051ModifyUserJackDisable");
+		final String TEST_NAME = "test101ModifyUserJackDisable";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test051ModifyUserJackDisable");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -280,7 +282,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertDisabled(userJack);
+		assertAdministrativeStatusDisabled(userJack);
 		assertDummyDisabled("jack");
 	}
 	
@@ -304,7 +306,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertAdministrativeEnabled(userJack);
+		assertAdministrativeStatusEnabled(userJack);
 		assertDummyEnabled("jack");
 	}
 	
@@ -332,7 +334,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertAdministrativeEnabled(userJack);
+		assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");
 	}
 	
@@ -359,7 +361,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertAdministrativeEnabled(userJack);
+		assertAdministrativeStatusEnabled(userJack);
 		assertDummyEnabled("jack");
 	}
 	
@@ -392,8 +394,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
-        
-		assertAdministrativeEnabled(userJack);
+		
+		assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");
 	}
 	
@@ -425,11 +427,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack);
 		assertAccounts(USER_JACK_OID, 2);
         accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        assertShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
+        assertAdministrativeStatusEnabled(accountRed);
                 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
         
-        assertAdministrativeEnabled(userJack);
+        assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
@@ -452,7 +457,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
         
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy, 
-        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);        
+        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         
@@ -466,8 +471,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
-
-        assertDisabled(userJack);
+		
+        assertAdministrativeStatusDisabled(userJack);
 		assertDummyDisabled("jack");
 		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
@@ -498,7 +503,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
 
-        assertDisabled(userJack);
+        assertAdministrativeStatusDisabled(userJack);
 		assertDummyEnabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
@@ -532,7 +537,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
 
-        assertAdministrativeEnabled(userJack);
+        assertAdministrativeStatusEnabled(userJack);
 		assertDummyEnabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
@@ -566,13 +571,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack);
 		assertAccounts(USER_JACK_OID, 2);
         accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        assertShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
+        assertAdministrativeStatusDisabled(accountRed);
                 
         // Check account in dummy resource
-        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", false);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
         
-        assertAdministrativeEnabled(userJack);
+        assertAdministrativeStatusEnabled(userJack);
         assertDummyEnabled("jack");
-		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
+		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	@Test
@@ -909,7 +917,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         assertUsers(6);
         
-        assertAdministrativeEnabled(userMancomb);
+        assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
 	}
@@ -979,14 +987,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	private void assertDummyDisabled(String instance, String userId) {
 		assertDummyActivationEnabledState(instance, userId, false);
-	}
-	
-	private void assertDisabled(PrismObject<UserType> user) {
-		PrismProperty<ActivationStatusType> statusProperty = user.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
-		assert statusProperty != null : "No status property in "+user;
-		ActivationStatusType status = statusProperty.getRealValue();
-		assert status != null : "No status property is null in "+user;
-		assert status != ActivationStatusType.ENABLED : "status property is "+status+" in "+user;
 	}
 	
 	private void assertValidity(PrismObject<UserType> user, TimeIntervalStatusType expectedValidityStatus) {

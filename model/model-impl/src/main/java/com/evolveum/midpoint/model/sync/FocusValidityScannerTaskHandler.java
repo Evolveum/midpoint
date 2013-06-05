@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
@@ -104,6 +105,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 	
+	@Autowired(required = true)
+	private ContextFactory contextFactory;
+	
     @Autowired(required = true)
     private Clockwork clockwork;
         
@@ -170,7 +174,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing user {}", user);
 
-		LensContext<UserType, ShadowType> syncContext = LensUtil.createRecomputeContext(UserType.class, user, prismContext, provisioningService);
+		LensContext<UserType, ShadowType> syncContext = contextFactory.createRecomputeContext(user, task, result);
 		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
 		clockwork.run(syncContext, task, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());

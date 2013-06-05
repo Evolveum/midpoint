@@ -15,9 +15,11 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -59,9 +62,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  *
  */
 @Component
-public class MappingHelper {
+public class MappingEvaluationHelper {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(MappingHelper.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluationHelper.class);
 	
 	@Autowired(required = true)
     private PrismContext prismContext;
@@ -70,37 +73,54 @@ public class MappingHelper {
     private MappingFactory valueConstructionFactory;
 	
 	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluateMappingSetProjection(Collection<MappingType> mappingTypes, String mappingDesc,
-			XMLGregorianCalendar now, MappingClosures<V> closures, ItemDelta<V> aPrioriDelta,
+			XMLGregorianCalendar now, MappingInitializer<V> initializer, Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta,
+			Boolean evaluateCurrent,
 			LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		PrismValueDeltaSetTriple<V> outputTriple = null;
-		Collection<XMLGregorianCalendar> recomputeTimes = new HashSet<XMLGregorianCalendar>();
+		XMLGregorianCalendar nextRecomputeTime = null;
+		Collection<Mapping<V>> mappings = new ArrayList<Mapping<V>>(mappingTypes.size());
 		
 		for (MappingType mappingType: mappingTypes) {
 			
 			Mapping<V> mapping = valueConstructionFactory.createMapping(mappingType, mappingDesc);
-			
+		
 			if (!mapping.isApplicableToChannel(context.getChannel())) {
 	        	continue;
 	        }
 			
-			// TODO: WEAK and aPrioriValue
+			mapping.setNow(now);
+			
+			// Initialize mapping (using Inversion of Control)
+			initializer.initialize(mapping);
+			
+			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(result);
+			
+			if (evaluateCurrent != null) {
+				if (evaluateCurrent && !timeConstraintValid) {
+					continue;
+				}
+				if (!evaluateCurrent && timeConstraintValid) {
+					continue;
+				}
+			}
+			
+			mappings.add(mapping);
+		}
+		
+		for (Mapping<V> mapping: mappings) {
+			
+			if (mapping.getStrength() == MappingStrengthType.WEAK) {
+				// Evaluate weak mappings in a second run.
+				continue;
+			}
 			
 			if (mapping.getStrength() != MappingStrengthType.STRONG) {
 	        	if (aPrioriDelta != null && !aPrioriDelta.isEmpty()) {
 	        		continue;
 	        	}
 	        }
-			
-			mapping.setNow(now);
-			
-			// Initialize mapping (using Inversion of Control)
-			closures.initialize(mapping);
-			
-			if (!closures.willEvaluate(mapping)) {
-				continue;
-			}
-			
+						
 			mapping.evaluate(result);
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
@@ -112,28 +132,52 @@ public class MappingHelper {
 				}
 			}
 			
-			XMLGregorianCalendar nextRecomputeTime = mapping.getNextRecomputeTime();
-			if (nextRecomputeTime != null) {
-				recomputeTimes.add(nextRecomputeTime);
+		}
+		
+		if ((aPrioriValue == null || aPrioriValue.isEmpty()) && outputTriple == null) {
+			// Second pass, evaluate only weak mappings
+			for (Mapping<V> mapping: mappings) {
+				
+				if (mapping.getStrength() != MappingStrengthType.WEAK) {
+					continue;
+				}
+				
+				mapping.evaluate(result);
+				
+				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
+				if (mappingOutputTriple != null) {
+					if (outputTriple == null) {
+						outputTriple = mappingOutputTriple;
+					} else {
+						outputTriple.merge(mappingOutputTriple);
+					}
+				}
+				
 			}
 		}
 		
-		if (!recomputeTimes.isEmpty()) {
-			for (XMLGregorianCalendar recomputeTime: recomputeTimes) {
-				PrismObjectDefinition<ShadowType> objectDefinition = accCtx.getObjectDefinition();
-				PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
-				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
-				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
-				triggerDelta.addValueToAdd(triggerCVal);
-				TriggerType triggerType = triggerCVal.asContainerable();
-				triggerType.setTimestamp(recomputeTime);
-				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
-				
-				// TODO: check for existing triggers
-	
-				accCtx.addToSecondaryDelta(triggerDelta);
+		for (Mapping<V> mapping: mappings) {
+			XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
+			if (mappingNextRecomputeTime != null) {
+				if (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
+					nextRecomputeTime = mappingNextRecomputeTime;
+				}
 			}
+		}
 			
+		if (nextRecomputeTime != null) {
+			PrismObjectDefinition<ShadowType> objectDefinition = accCtx.getObjectDefinition();
+			PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
+			ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
+			PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
+			triggerDelta.addValueToAdd(triggerCVal);
+			TriggerType triggerType = triggerCVal.asContainerable();
+			triggerType.setTimestamp(nextRecomputeTime);
+			triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
+			
+			// TODO: check for existing triggers
+
+			accCtx.addToSecondaryDelta(triggerDelta);			
 		}		
 		
 		return outputTriple;

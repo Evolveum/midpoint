@@ -24,10 +24,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public interface MappingClosures<V extends PrismValue> {
+public interface MappingInitializer<V extends PrismValue> {
 
 	void initialize(Mapping<V> mapping) throws SchemaException;
-	
-	boolean willEvaluate(Mapping<V> mapping) throws SchemaException, ObjectNotFoundException;
 	
 }

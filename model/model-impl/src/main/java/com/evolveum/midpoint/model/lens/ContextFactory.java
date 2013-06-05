@@ -29,15 +29,19 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -132,6 +136,44 @@ public class ContextFactory {
 		
 		return context;
 	}
+	
+	
+	public <F extends FocusType, O extends ObjectType> LensContext<F, ShadowType> createRecomputeContext(
+    		PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		Class<O> typeClass = object.getCompileTimeClass();
+		if (isFocalClass(typeClass)) {
+			return (LensContext<F, ShadowType>) createRecomputeFocusContext((Class<FocusType>)typeClass, (PrismObject<FocusType>) object, task, result);
+		} else if (ShadowType.class.isAssignableFrom(typeClass)) {
+			return (LensContext<F, ShadowType>) createRecomputeProjectionContext((PrismObject<ShadowType>) object, task, result);
+		} else {
+			throw new IllegalArgumentException("Cannot create recompute context for "+object);
+		}
+	}
+	
+	public <F extends FocusType> LensContext<F, ShadowType> createRecomputeFocusContext(
+    		Class<F> focusType, PrismObject<F> focus, Task task, OperationResult result) {
+    	LensContext<F, ShadowType> syncContext = new LensContext<F, ShadowType>(focusType,
+				ShadowType.class, prismContext, provisioningService);
+		LensFocusContext<F> focusContext = syncContext.createFocusContext();
+		focusContext.setObjectOld(focus);
+		focusContext.setOid(focus.getOid());
+		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
+		syncContext.setDoReconciliationForAllProjections(true);
+		return syncContext;
+    }
+	
+	public LensContext<FocusType, ShadowType> createRecomputeProjectionContext(
+    		PrismObject<ShadowType> shadow, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		provisioningService.applyDefinition(shadow, result);
+    	LensContext<FocusType, ShadowType> syncContext = new LensContext<FocusType, ShadowType>(null,
+				ShadowType.class, prismContext, provisioningService);
+    	LensProjectionContext<ShadowType> projectionContext = syncContext.createProjectionContext();
+    	projectionContext.setObjectOld(shadow);
+    	projectionContext.setOid(shadow.getOid());
+    	projectionContext.setDoReconciliation(true);
+		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
+		return syncContext;
+    }
 	
 	public static <F extends ObjectType, P extends ObjectType> Class<F> determineFocusClass(Class<P> projectionClass) {
 		if (projectionClass == ShadowType.class) {

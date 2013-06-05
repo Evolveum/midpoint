@@ -22,6 +22,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,12 +32,14 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
+import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -681,6 +685,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -689,8 +695,22 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		
+		String accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+		PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+		
+		XMLGregorianCalendar trigStart = clock.currentTimeXMLGregorianCalendar();
+        trigStart.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
+        XMLGregorianCalendar trigEnd = clock.currentTimeXMLGregorianCalendar();
+        trigEnd.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
+		assertTrigger(accountRed, RecomputeTriggerHandler.HANDLER_URI, trigStart, trigEnd);
+		
+		XMLGregorianCalendar disableTimestamp = accountRed.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong disableTimestamp", start, end, disableTimestamp);
 
 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", false, dummyResourceCtlRed, task);
                 

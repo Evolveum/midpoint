@@ -190,4 +190,22 @@
             <interval>900</interval>
         </schedule>
     </task>
+    
+    <task oid="00000000-0000-0000-0000-000000000007"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+        <name>Trigger Scanner</name>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+
+        <category>System</category>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-2</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <interval>300</interval>
+        </schedule>
+    </task>
 </c:objects>

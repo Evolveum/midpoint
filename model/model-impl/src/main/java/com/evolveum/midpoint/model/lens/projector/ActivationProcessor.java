@@ -90,7 +90,7 @@ public class ActivationProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private MappingHelper mappingHelper;
+    private MappingEvaluationHelper mappingHelper;
 
     public <F extends ObjectType, P extends ObjectType> void processActivation(LensContext<F,P> context, 
     		LensProjectionContext<P> projectionContext, XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
@@ -342,7 +342,7 @@ public class ActivationProcessor {
             return legal;
         }
         
-        MappingClosures<PrismPropertyValue<Boolean>> closure = new MappingClosures<PrismPropertyValue<Boolean>>() {
+        MappingInitializer<PrismPropertyValue<Boolean>> initializer = new MappingInitializer<PrismPropertyValue<Boolean>>() {
 			@Override
 			public void initialize(Mapping<PrismPropertyValue<Boolean>> existenceMapping) throws SchemaException {
 		        // Target
@@ -377,20 +377,11 @@ public class ActivationProcessor {
 		        existenceMapping.setOriginObject(accCtx.getResource());				
 			}
 
-			@Override
-			public boolean willEvaluate(Mapping<PrismPropertyValue<Boolean>> mapping) throws SchemaException, ObjectNotFoundException {
-				Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(result);
-				if (current) {
-					return timeConstraintValid;
-				} else {
-					return !timeConstraintValid;
-				}
-			}
         };
         
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mappingHelper.evaluateMappingSetProjection(
 				outbound, "outbound existence mapping in projection " + accCtxDesc,
-        		now, closure, null, context, accCtx, result);
+        		now, initializer, null, null, current, context, accCtx, result);
     	
 		if (outputTriple == null) {
 			// The "default existence mapping"
@@ -431,8 +422,14 @@ public class ActivationProcessor {
         if (projectionDelta != null) {
         	shadowPropertyDelta = projectionDelta.findPropertyDelta(projectionPropertyPath);
         }
+        
+        PrismObject<ShadowType> shadowNew = accCtx.getObjectNew();
+        PrismProperty<T> shadowPropertyNew = null;
+        if (shadowNew != null) {
+        	shadowPropertyNew = shadowNew.findProperty(projectionPropertyPath);
+        }
    		
-        MappingClosures<PrismPropertyValue<T>> closures = new MappingClosures<PrismPropertyValue<T>>() {
+        MappingInitializer<PrismPropertyValue<T>> initializer = new MappingInitializer<PrismPropertyValue<T>>() {
 			@Override
 			public void initialize(Mapping<PrismPropertyValue<T>> mapping) throws SchemaException {
 				// Source: administrativeStatus, validFrom or validTo
@@ -494,20 +491,11 @@ public class ActivationProcessor {
 		        mapping.setOriginObject(accCtx.getResource());
 			}
 
-			@Override
-			public boolean willEvaluate(Mapping<PrismPropertyValue<T>> mapping) throws SchemaException, ObjectNotFoundException {
-				Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(result);
-				if (current) {
-					return timeConstraintValid;
-				} else {
-					return !timeConstraintValid;
-				}
-			}
 		};
         
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mappingHelper.evaluateMappingSetProjection(
 				outbound, desc + " outbound activation mapping in projection " + accCtxDesc,
-        		now, closures, shadowPropertyDelta, context, accCtx, result);
+        		now, initializer, shadowPropertyNew, shadowPropertyDelta, current, context, accCtx, result);
             
 		if (outputTriple == null) {
     		LOGGER.trace("Activation '{}' expression resulted in null triple for projection {}, skipping", desc, accCtxDesc);

@@ -230,7 +230,6 @@
             	</existence>
             	<administrativeStatus>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>

@@ -106,6 +106,7 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -337,12 +338,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong number of accounts linked to " + user, numAccounts, accountRef.size());
 	}
 	
-	protected void assertAdministrativeEnabled(PrismObject<UserType> user) {
-		PrismProperty<ActivationStatusType> statusProperty = user.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
-		assert statusProperty != null : "No status property in "+user;
+	protected void assertAdministrativeStatusEnabled(PrismObject<? extends ObjectType> user) {
+		assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+	}
+	
+	protected void assertAdministrativeStatusDisabled(PrismObject<? extends ObjectType> user) {
+		assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
+	}
+	
+	protected void assertAdministrativeStatus(PrismObject<? extends ObjectType> object, ActivationStatusType expected) {
+		PrismProperty<ActivationStatusType> statusProperty = object.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
+		assert statusProperty != null : "No status property in "+object;
 		ActivationStatusType status = statusProperty.getRealValue();
-		assert status != null : "status property is null in "+user;
-		assert status == ActivationStatusType.ENABLED : "status property is "+status+" in "+user+", expected ENABLED";
+		assert status != null : "No status property is null in "+object;
+		assert status == expected : "status property is "+status+", expected "+expected+" in "+object;
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {
@@ -1397,6 +1406,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertSuccess(result);
 	}
 	
+	protected <O extends ObjectType> void assertTrigger(PrismObject<O> object, String handlerUri, XMLGregorianCalendar start, XMLGregorianCalendar end) throws ObjectNotFoundException, SchemaException {
+		for (TriggerType trigger: object.asObjectable().getTrigger()) {
+			if (handlerUri.equals(trigger.getHandlerUri()) 
+					&& MiscUtil.isBetween(trigger.getTimestamp(), start, end)) {
+				return;
+			}
+		}
+		AssertJUnit.fail("Expected that "+object+" will have a trigger but it has not");
+	}
+	
 	protected <O extends ObjectType> void assertNoTrigger(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoTrigger");
 		PrismObject<O> object = repositoryService.getObject(type, oid, result);
@@ -1461,5 +1480,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
         assertTrue("Number of messages recorded in dummy transport '" + name + "' (" + messages.size() + ") is not at least " + expectedCount, messages.size() >= expectedCount);
     }
+    
+    
 
 }
