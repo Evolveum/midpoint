@@ -32,7 +32,7 @@
 		<band height="30" splitType="Stretch"/>
 	</background>
 	<title>
-		<band height="138" splitType="Stretch">
+		<band height="110" splitType="Stretch">
 			<frame>
 				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" mode="Opaque" x="1" y="0" width="799" height="67" backcolor="#267994"/>
 				<staticText>
@@ -137,33 +137,33 @@
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="16" splitType="Stretch">
+		<band height="20" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="800" height="15"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="800" height="19"/>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="0" width="120" height="13"/>
+					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="1" width="120" height="18"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="120" y="0" width="100" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="120" y="1" width="100" height="18"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="220" y="0" width="100" height="13"/>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="220" y="1" width="100" height="18"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="320" y="0" width="100" height="13">
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="320" y="1" width="100" height="18">
 						<printWhenExpression><![CDATA[!$F{activation}.getAdministrativeStatus().getSchemaValue().value().isEmpty()]]></printWhenExpression>
 					</reportElement>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{activation}.getAdministrativeStatus().getSchemaValue()]]></textFieldExpression>
 				</textField>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="420" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -174,7 +174,7 @@
 					<subreportExpression><![CDATA[$P{roleReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="520" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="520" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -185,7 +185,7 @@
 					<subreportExpression><![CDATA[$P{orgReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="620" y="0" width="180" height="13" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="620" y="0" width="180" height="18" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -196,7 +196,7 @@
 					<subreportExpression><![CDATA[$P{accountReport}]]></subreportExpression>
 				</subreport>
 				<line>
-					<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="14" width="800" height="1"/>
+					<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1"/>
 					<graphicElement>
 						<pen lineWidth="0.5" lineColor="#999999"/>
 					</graphicElement>
