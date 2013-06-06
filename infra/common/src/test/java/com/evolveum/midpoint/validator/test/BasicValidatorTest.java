@@ -205,7 +205,7 @@ public class BasicValidatorTest {
         assertFalse(result.isSuccess());
         assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'foo'"));
         assertTrue(result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element 'givenName'"));
-        assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'familyName'"));
+        assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'fullName'"));
     }
 
     /**

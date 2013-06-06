@@ -62,7 +62,7 @@ public class SchemaTestUtil {
 		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, ObjectType.F_DESCRIPTION, "Description");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, ObjectType.F_DESCRIPTION, 10);
-		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_FULL_NAME, "Full Name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_FULL_NAME, 100);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);

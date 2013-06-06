@@ -211,7 +211,7 @@ public class TestParseUser {
 		assertPropertyValue(user, "name", PrismTestUtil.createPolyString("jack"));
 		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 		assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
-		assertPropertyDefinition(user, "fullName", PolyStringType.COMPLEX_TYPE, 1, 1);
+		assertPropertyDefinition(user, "fullName", PolyStringType.COMPLEX_TYPE, 0, 1);
 		assertPropertyValue(user, "givenName", new PolyString("Jack", "jack"));
 		assertPropertyDefinition(user, "givenName", PolyStringType.COMPLEX_TYPE, 0, 1);
 		assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
