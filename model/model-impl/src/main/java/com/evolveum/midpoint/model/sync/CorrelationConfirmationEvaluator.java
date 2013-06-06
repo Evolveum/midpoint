@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.UnaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -199,7 +200,7 @@ public class CorrelationConfirmationEvaluator {
 //		List<PrismObject<UserType>> users = null;
 //		try {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}",
+				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
 						new Object[] { currentShadow, SchemaDebugUtil.prettyPrint(query) });
 			}
 //			PagingType paging = new PagingType();
@@ -275,8 +276,8 @@ public class CorrelationConfirmationEvaluator {
 	
 	private void evaluateFilterExpressions(ObjectFilter filter, ShadowType currentShadow, ResourceType resource, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
-		if (filter instanceof NaryLogicalFilter){
-			List<ObjectFilter> conditions = ((NaryLogicalFilter) filter).getCondition();
+		if (filter instanceof LogicalFilter){
+			List<ObjectFilter> conditions = ((LogicalFilter) filter).getCondition();
 			
 			for (ObjectFilter condition : conditions){
 				evaluateFilterExpressions(condition, currentShadow, resource, shortDesc, result);

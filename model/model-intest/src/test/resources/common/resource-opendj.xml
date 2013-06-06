@@ -19,7 +19,7 @@
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -43,7 +43,7 @@
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
 			xmlns:my="http://myself.me/schemas/whatever">
 		<icfc:configurationProperties>
-			<icfcldap:port>1389</icfcldap:port>
+			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
@@ -53,31 +53,10 @@
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 		</icfc:configurationProperties>
-		<icfc:connectorPoolConfiguration>
-			<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
-			<icfc:minIdle>1</icfc:minIdle>
-			<icfc:maxIdle>10</icfc:maxIdle>
-			<icfc:maxObjects>10</icfc:maxObjects>
-			<icfc:maxWait>150000</icfc:maxWait>
-		</icfc:connectorPoolConfiguration>
-		<icfc:producerBufferSize>100</icfc:producerBufferSize>
-		<icfc:timeouts>
-			<icfc:create>-1</icfc:create>
-			<icfc:get>-1</icfc:get>
-			<icfc:update>-1</icfc:update>
-			<icfc:delete>-1</icfc:delete>
-			<icfc:test>-1</icfc:test>
-			<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-			<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-			<icfc:authentication>-1</icfc:authentication>
-			<icfc:search>-1</icfc:search>
-			<icfc:validate>-1</icfc:validate>
-			<icfc:sync>-1</icfc:sync>
-			<icfc:schema>-1</icfc:schema>
-		</icfc:timeouts>
 	</connectorConfiguration>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
+	
 	<schema>
 		<!-- Storing schema here and don't letting midpoint to generate it. Some tests work without running resource,
 			generating a schema would fail. -->
@@ -87,7 +66,7 @@
       </cachingMetadata>
 	  <definition>
 		<xsd:schema elementFormDefault="qualified"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
@@ -123,13 +102,14 @@
 			<xsd:complexType name="AccountObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>
-						 <ra:resourceObject/>
-	                     <ra:identifier>icfs:uid</ra:identifier>
-	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-	                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-	                     <ra:account/>
-	                     <ra:default/>
+						<ra:resourceObject/>
+                     	<ra:identifier>icfs:uid</ra:identifier>
+                     	<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     	<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     	<ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     	<ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                     	<ra:account/>
+                     	<ra:default/>
 					</xsd:appinfo>
 				</xsd:annotation>
 				<xsd:sequence>
@@ -187,6 +167,7 @@
 					<xsd:element minOccurs="0" ref="icfs:password" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
 					<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
+					<xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string" />
 				</xsd:sequence>
 			</xsd:complexType>
 		</xsd:schema>
@@ -205,15 +186,13 @@
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-				    <strength>weak</strength>
 				    <source>
 				    	<path>$user/name</path>
 				    </source>
 					<expression>
 						<script>
-							<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 							<code>
-								'uid=' + name + ',ou=people,dc=example,dc=com'
+								'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
 							</code>
 						</script>
 					</expression>
@@ -290,9 +269,17 @@
 				<access>create</access>
 				<access>read</access>
 				<outbound>
+					<strength>weak</strength>
 					<source>
 						<path>name</path>
 					</source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
 				</outbound>
 				<inbound>
 					<target>
@@ -342,6 +329,11 @@
 					</expression>
 				</outbound>
 			</attribute>
+			
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			
 			<activation>
 				<administrativeStatus>
 					<outbound/>
@@ -350,9 +342,9 @@
 		</accountType>
 	</schemaHandling>
 	
-	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
-		Some tests work without running resource, generating fetching capabilities would fail. -->	
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
+		Some tests work without running resource, generating fetching capabilities would fail. -->
 		<native>
 	      <cap:credentials>
 	         <cap:password/>
@@ -365,23 +357,40 @@
 	         </cap:host>
 	      </cap:script>
       </native>
-   </capabilities>
+      <configured>
+	        <cap:activation>
+	            <cap:status>
+	                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+	                <cap:enableValue/>
+	                <cap:disableValue>true</cap:disableValue>
+	            </cap:status>
+	        </cap:activation>
+		</configured>
+    </capabilities>
 	
 	<synchronization>
 		<objectSynchronization>
 			<enabled>true</enabled>
 			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<valueExpression>
-						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>
-								$c:account/c:attributes/ri:uid
-							</code>
-						</script>
-					</valueExpression>
-				</q:equal>
+				<q:and>
+					<q:equal>
+						<q:path>c:employeeNumber</q:path>
+						<valueExpression>
+							<script>
+								<language>http://www.w3.org/TR/xpath/</language>
+								<code>
+									$c:account/c:attributes/ri:employeeNumber
+								</code>
+							</script>
+						</valueExpression>
+					</q:equal>
+					<q:not>
+						<q:equal>
+							<q:path>c:employeeNumber</q:path>
+							<value/>
+						</q:equal>
+					</q:not>
+				</q:and>
 			</correlation>
 			
 			<reaction>

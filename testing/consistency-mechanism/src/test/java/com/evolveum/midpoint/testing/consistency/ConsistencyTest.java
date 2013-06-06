@@ -357,8 +357,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	 * Initialize embedded OpenDJ instance Note: this is not in the abstract
 	 * superclass so individual tests may avoid starting OpenDJ.
 	 */
-	@BeforeClass
-	public static void startResources() throws Exception {
+	@Override
+	public void startResources() throws Exception {
 		openDJController.startCleanServer();
 		derbyController.startCleanServer();
 	}

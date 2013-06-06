@@ -317,4 +317,20 @@ public class ResourceTypeUtil {
 		return MidPointConstants.NS_RI;
 	}
 
+	public static boolean isSynchronizationOpportunistic(ResourceType resourceType) {
+		SynchronizationType synchronization = resourceType.getSynchronization();
+		if (synchronization == null) {
+			return false;
+		}
+		if (synchronization.getObjectSynchronization().isEmpty()) {
+			return false;
+		}
+		ObjectSynchronizationType objectSynchronizationType = synchronization.getObjectSynchronization().iterator().next();
+		if (objectSynchronizationType.isEnabled() != null && !objectSynchronizationType.isEnabled()) {
+			return false;
+		}
+		Boolean isOpportunistic = objectSynchronizationType.isOpportunistic();
+		return isOpportunistic == null || isOpportunistic;
+	}
+
 }

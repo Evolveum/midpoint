@@ -30,18 +30,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.transports.DummyTransport;
 import com.evolveum.midpoint.notifications.transports.Message;
 import org.apache.commons.lang.StringUtils;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
@@ -212,6 +218,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		startResources();
 		dummyAuditService = DummyAuditService.getInstance();
 		// Make sure the checks are turned on
 		InternalsConfig.turnOnChecks();
@@ -221,6 +228,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 	}
 
+	protected void startResources() throws Exception {
+		// Nothing to do by default
+	}
+	
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {
 		importObjectFromFile(new File(filename));
 	}
@@ -588,14 +599,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
 		
-		AssignmentType assignmentType = new AssignmentType();//.asContainerable();
-		ConstructionType accountConstructionType = new ConstructionType();
-		accountConstructionType.setKind(ShadowKindType.ACCOUNT);
-		assignmentType.setConstruction(accountConstructionType);
-		ObjectReferenceType resourceRef = new ObjectReferenceType();
-		resourceRef.setOid(resourceOid);
-		accountConstructionType.setResourceRef(resourceRef);
-		accountConstructionType.setIntent(intent);
+		AssignmentType assignmentType = createAccountAssignment(resourceOid, intent);
 		
 		if (add) {
 			assignmentDelta.addValueToAdd(assignmentType.asPrismContainerValue());
@@ -607,6 +611,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignmentDelta.applyDefinition(assignmentDef);
 		
 		return assignmentDelta;
+	}
+	
+	protected AssignmentType createAccountAssignment(String resourceOid, String intent) {
+		AssignmentType assignmentType = new AssignmentType();//.asContainerable();
+		ConstructionType accountConstructionType = new ConstructionType();
+		accountConstructionType.setKind(ShadowKindType.ACCOUNT);
+		assignmentType.setConstruction(accountConstructionType);
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resourceOid);
+		accountConstructionType.setResourceRef(resourceRef);
+		accountConstructionType.setIntent(intent);
+		return assignmentType;
 	}
 
     protected ConstructionType createAccountConstruction(String resourceOid, String intent) throws SchemaException {
@@ -972,10 +988,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 	}
 	
+	
 	protected PrismObject<UserType> createUser(String name, String fullName) throws SchemaException {
+		return createUser(name, fullName, null);
+	}
+	
+	protected PrismObject<UserType> createUser(String name, String fullName, Boolean enabled) throws SchemaException {
 		PrismObject<UserType> user = getUserDefinition().instantiate();
-		user.asObjectable().setName(PrismTestUtil.createPolyStringType(name));
-		user.asObjectable().setFullName(PrismTestUtil.createPolyStringType(fullName));
+		UserType userType = user.asObjectable();
+		userType.setName(PrismTestUtil.createPolyStringType(name));
+		userType.setFullName(PrismTestUtil.createPolyStringType(fullName));
+		if (enabled != null) {
+			ActivationType activation = new ActivationType();
+			userType.setActivation(activation);
+			if (enabled) {
+				activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+			} else {
+				activation.setAdministrativeStatus(ActivationStatusType.DISABLED);
+			}
+		}
 		return user;
 	}
 	
@@ -993,6 +1024,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		accountConstruntion.setKind(ShadowKindType.ACCOUNT);
 		assignmentType.setConstruction(accountConstruntion);
 		user.asObjectable().getAssignment().add(assignmentType);
+	}
+	
+	protected PrismObject<ShadowType> createAccount(PrismObject<ResourceType> resource, String name, boolean enabled) throws SchemaException {
+		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
+		ShadowType shadowType = shadow.asObjectable();
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		shadowType.setResourceRef(resourceRef);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		shadowType.setObjectClass(objectClassDefinition.getTypeName());
+		shadowType.setKind(ShadowKindType.ACCOUNT);
+		ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+		RefinedAttributeDefinition icfsNameDef = objectClassDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
+		ResourceAttribute icfsNameAttr = icfsNameDef.instantiate();
+		icfsNameAttr.setRealValue(name);
+		attrCont.add(icfsNameAttr);
+		ActivationType activation = new ActivationType();
+		shadowType.setActivation(activation);
+		if (enabled) {
+			activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+		} else {
+			activation.setAdministrativeStatus(ActivationStatusType.DISABLED);
+		}
+		return shadow;
 	}
 	
 	protected void setDefaultUserTemplate(String userTemplateOid)
@@ -1391,6 +1447,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), null, task, result);
         result.computeStatus();
         assertSuccess(result);
+        object.setOid(addDelta.getOid());
 	}
 	
 	protected void addTrigger(String oid, XMLGregorianCalendar timestamp, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -1481,6 +1538,61 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertTrue("Number of messages recorded in dummy transport '" + name + "' (" + messages.size() + ") is not at least " + expectedCount, messages.size() >= expectedCount);
     }
     
-    
+    protected DummyAccount getDummyAccount(String dummyInstanceName, String username) {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		return dummyResource.getAccountByUsername(username);
+	}
+	
+	protected void assertDummyAccount(String username, String fullname, boolean active) {
+		assertDummyAccount(null, username, fullname, active);
+	}
+	
+	protected void assertDummyAccount(String dummyInstanceName, String username, String fullname, boolean active) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
+		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
+		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
+	}
 
+	protected void assertNoDummyAccount(String username) {
+		assertNoDummyAccount(null, username);
+	}
+	
+	protected void assertNoDummyAccount(String dummyInstanceName, String username) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNull("Dummy account for username "+username+" exists while not expecting it ("+dummyInstanceName+")", account);
+	}
+	
+	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) {
+		assertDummyAccountAttribute(null, username, attributeName, expectedAttributeValues);
+	}
+	
+	protected void assertDummyAccountAttribute(String dummyInstanceName, String username, String attributeName, Object... expectedAttributeValues) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy account for username "+username, account);
+		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		assertNotNull("No values for attribute "+attributeName+" of dummy account "+username, values);
+		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username+": "+values, expectedAttributeValues.length, values.size());
+		for (Object expectedValue: expectedAttributeValues) {
+			if (!values.contains(expectedValue)) {
+				AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy account "+username+
+						" but not found. Values found: "+values);
+			}
+		}
+	}
+    
+	protected void assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
+		SearchResultEntry entry = openDJController.searchByUid(uid);
+		assertNotNull("OpenDJ accoun with uid "+uid+" not found", entry);
+		openDJController.assertAttribute(entry, "cn", cn);
+		if (active != null) {
+			openDJController.assertActive(entry, active);
+		}
+	}
+	
+	protected void assertNoOpenDjAccount(String uid) throws DirectoryException {
+		SearchResultEntry entry = openDJController.searchByUid(uid);
+		assertNull("Expected that OpenDJ account with uid "+uid+" will be gone, but it is still there", entry);
+	}
+	
 }

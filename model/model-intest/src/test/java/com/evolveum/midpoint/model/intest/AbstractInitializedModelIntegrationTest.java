@@ -262,49 +262,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertShadowModel(accountShadow, oid, username, resourceDummyType);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
 	}
-
-	protected DummyAccount getDummyAccount(String dummyInstanceName, String username) {
-		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
-		return dummyResource.getAccountByUsername(username);
-	}
-	
-	protected void assertDummyAccount(String username, String fullname, boolean active) {
-		assertDummyAccount(null, username, fullname, active);
-	}
-	
-	protected void assertDummyAccount(String dummyInstanceName, String username, String fullname, boolean active) {
-		DummyAccount account = getDummyAccount(dummyInstanceName, username);
-		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
-		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
-		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
-	}
-
-	protected void assertNoDummyAccount(String username) {
-		assertNoDummyAccount(null, username);
-	}
-	
-	protected void assertNoDummyAccount(String dummyInstanceName, String username) {
-		DummyAccount account = getDummyAccount(dummyInstanceName, username);
-		assertNull("Dummy account for username "+username+" exists while not expecting it ("+dummyInstanceName+")", account);
-	}
-	
-	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) {
-		assertDummyAccountAttribute(null, username, attributeName, expectedAttributeValues);
-	}
-	
-	protected void assertDummyAccountAttribute(String dummyInstanceName, String username, String attributeName, Object... expectedAttributeValues) {
-		DummyAccount account = getDummyAccount(dummyInstanceName, username);
-		assertNotNull("No dummy account for username "+username, account);
-		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
-		assertNotNull("No values for attribute "+attributeName+" of dummy account "+username, values);
-		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username+": "+values, expectedAttributeValues.length, values.size());
-		for (Object expectedValue: expectedAttributeValues) {
-			if (!values.contains(expectedValue)) {
-				AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy account "+username+
-						" but not found. Values found: "+values);
-			}
-		}
-	}
 		
 	protected void setDefaultUserTemplate(String userTemplateOid)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

@@ -4476,6 +4476,16 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="opportunistic" type="xsd:boolean" minOccurs="0" default="true">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			If set to true midPoint will try to link and synchronize objects whenever possible.
+            			E.g. it will link accounts in a case if an account with a conflicting account is found
+            			and correlation expression matches. MidPoint can be quite aggressive in this mode therefore
+            			this switch is used to turn it off. It is on by default.  
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="reaction" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

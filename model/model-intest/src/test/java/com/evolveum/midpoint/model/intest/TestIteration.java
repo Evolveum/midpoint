@@ -118,6 +118,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_VIOLET_OID = "10000000-0000-0000-0000-00000000a204";
 	protected static final String RESOURCE_DUMMY_VIOLET_NAME = "violet";
 	protected static final String RESOURCE_DUMMY_VIOLET_NAMESPACE = MidPointConstants.NS_RI;
+
+	private static final String USER_LECHUCK_NAME = "lechuck";
+	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
 	protected static DummyResource dummyResourcePink;
 	protected static DummyResourceContoller dummyResourceCtlPink;
@@ -516,5 +519,36 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
+	}
+	
+	@Test
+    public void test400RenameLeChuckConflicting() throws Exception {
+		final String TEST_NAME = "test400RenameLeChuckConflicting";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userLechuck = createUser(USER_LECHUCK_NAME, "LeChuck", true);
+        userLechuck.asObjectable().getAssignment().add(createAccountAssignment(RESOURCE_DUMMY_PINK_OID, null));
+        addObject(userLechuck);
+        String userLechuckOid = userLechuck.getOid();
+        
+        PrismObject<ShadowType> accountCharles = createAccount(resourceDummyPink, ACCOUNT_CHARLES_NAME, true);
+        addObject(accountCharles);
+        
+        // preconditions
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_LECHUCK_NAME, "LeChuck", true);
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_CHARLES_NAME, null, true);
+        
+        // WHEN
+        modifyUserReplace(userLechuckOid, UserType.F_NAME, task, result,
+        		PrismTestUtil.createPolyString(ACCOUNT_CHARLES_NAME));
+        
+        // THEN
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_CHARLES_NAME, null, true);
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_CHARLES_NAME+"1", "LeChuck", true);
+        assertNoDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_LECHUCK_NAME);
 	}
 }

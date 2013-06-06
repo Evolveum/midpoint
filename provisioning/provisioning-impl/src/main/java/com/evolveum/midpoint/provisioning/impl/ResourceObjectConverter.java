@@ -889,6 +889,9 @@ public class ResourceObjectConverter {
 				}
 				ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
 						objectClassDefinition, result);
+				if (activationSimulateAttribute == null) {
+					return;
+				}
 				ActivationStatusType status = shadow.getActivation().getAdministrativeStatus();
 				PrismPropertyValue activationValue = null;
 				if (status == ActivationStatusType.ENABLED) {

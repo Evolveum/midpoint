@@ -194,11 +194,16 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		}
 		
 		Item<?> item = object.findItem(path);
+		if (item == null && getValues() == null) {
+			return true;
+		}
 		Item filterItem = getDefinition().instantiate();
-		try {
-			filterItem.addAll(getValues());
-		} catch (SchemaException e) {
-			throw new IllegalArgumentException(e.getMessage(), e);
+		if (getValues() != null) {
+			try {
+				filterItem.addAll(getValues());
+			} catch (SchemaException e) {
+				throw new IllegalArgumentException(e.getMessage(), e);
+			}
 		}
 		
 		return item.equals(filterItem);

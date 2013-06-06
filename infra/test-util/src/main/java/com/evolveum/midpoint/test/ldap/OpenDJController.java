@@ -479,7 +479,11 @@ public class OpenDJController extends AbstractResourceController {
 				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
 				100, false, "(uid=" + string + ")", getSearchAttributes());
 
-		assertEquals("Entry with uid "+string+" not found",1, op.getEntriesSent());
+		if (op.getEntriesSent() == 0) {
+			return null;
+		} else if (op.getEntriesSent() > 1) {
+			AssertJUnit.fail("Found too many entries ("+op.getEntriesSent()+") for uid "+string);
+		}
 		return op.getSearchEntries().get(0);
 	}
 
@@ -561,6 +565,10 @@ public class OpenDJController extends AbstractResourceController {
 			return;
 		}
 		AssertJUnit.fail("Attribute "+name+" exists while not expecting it: "+attribute);
+	}
+	
+	public void assertActive(SearchResultEntry response, boolean active) {
+		assertEquals("Unexpected activation of entry "+response, active, isAccountEnabled(response));
 	}
 	
 	public Entry addEntryFromLdifFile(String filename) throws IOException, LDIFException {
