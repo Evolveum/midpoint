@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -234,6 +235,11 @@ public class ConsolidationProcessor {
                     
         RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
+        
+        if (attributeDefinition.isIgnored(LayerType.MODEL)) {
+        	LOGGER.trace("Skipping processing mappings for attribute {} because it is ignored", attributeName);
+        	return null;
+        }
         
         boolean forceAddUnchangedValues = false;
         PropertyDelta<?> existingAttributeDelta = null;

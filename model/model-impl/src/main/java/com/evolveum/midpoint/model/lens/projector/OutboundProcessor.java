@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -114,6 +115,11 @@ public class OutboundProcessor {
 			final MappingType outboundMappingType = refinedAttributeDefinition.getOutboundMappingType();
 			if (outboundMappingType == null) {
 			    continue;
+			}
+			
+			if (refinedAttributeDefinition.isIgnored(LayerType.MODEL)) {
+				LOGGER.trace("Skipping processing outbound mapping for attribute {} because it is ignored", attributeName);
+				continue;
 			}
 			
 			// TODO: check access

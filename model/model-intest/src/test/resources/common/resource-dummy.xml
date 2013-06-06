@@ -206,6 +206,12 @@
             <attribute>
                 <ref>ri:water</ref>
                 <ignore>true</ignore>
+                <outbound>
+                	<!-- Make sure this mapping is really ignored -->
+					<expression>
+						<value>fishy</value>
+					</expression>
+				</outbound>
             </attribute>
 
 			<iteration>
