@@ -4,6 +4,7 @@
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
 	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
 	<style name="Detail" mode="Transparent" forecolor="#000000" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
 	<style name="Column header" mode="Transparent" forecolor="#000000" backcolor="#CCFFFF" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
