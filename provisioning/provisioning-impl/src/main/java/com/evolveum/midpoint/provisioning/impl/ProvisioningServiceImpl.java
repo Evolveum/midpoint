@@ -1164,38 +1164,87 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
-		result.addParam("delta", delta);
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 		
-		applyDefinition(delta, null, result);
-		 
-		result.recordSuccessIfUnknown();
+			applyDefinition(delta, null, parentResult);
 	}
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){
-            getShadowCache(Mode.STANDARD).applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, parentResult);
-        } else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())){
-            resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, parentResult);
-        } else {
-            throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
-        }
+    	
+    	OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
+		result.addParam("delta", delta);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		try {
+    	
+	        if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){
+	            getShadowCache(Mode.STANDARD).applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, result);
+	        } else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())){
+	            resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, result);
+	        } else {
+	            throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
+	        }
+	        
+	        result.recordSuccessIfUnknown();
+			result.cleanupResult();
+	        
+		} catch (ObjectNotFoundException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (CommunicationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (ConfigurationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (SchemaException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (RuntimeException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} 
     }
 
     @SuppressWarnings("unchecked")
 	public <T extends ObjectType> void applyDefinition(PrismObject<T> object, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())){	
-			getShadowCache(Mode.STANDARD).applyDefinition((PrismObject<ShadowType>) object, parentResult);
-		} else if (ResourceType.class.isAssignableFrom(object.getCompileTimeClass())){
-			resourceManager.applyDefinition((PrismObject<ResourceType>) object, parentResult);
-		} else {
-			throw new IllegalArgumentException("Could not apply definition to object type: " + object.getCompileTimeClass());
-		}
+    	
+    	OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
+		result.addParam(OperationResult.PARAM_OBJECT, object);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		try {
+			
+			if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())){	
+				getShadowCache(Mode.STANDARD).applyDefinition((PrismObject<ShadowType>) object, result);
+			} else if (ResourceType.class.isAssignableFrom(object.getCompileTimeClass())){
+				resourceManager.applyDefinition((PrismObject<ResourceType>) object, result);
+			} else {
+				throw new IllegalArgumentException("Could not apply definition to object type: " + object.getCompileTimeClass());
+			}
+			
+			result.recordSuccessIfUnknown();
+			result.cleanupResult();
+			
+		} catch (ObjectNotFoundException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (CommunicationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (ConfigurationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (SchemaException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (RuntimeException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} 
 	}
 	
 
