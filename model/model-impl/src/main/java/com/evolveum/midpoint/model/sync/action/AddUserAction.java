@@ -137,7 +137,7 @@ public class AddUserAction extends BaseAction {
     }
 
     private ObjectTemplateType getUserTemplate(OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Element templateRef = getParameterElement(new QName(SchemaConstants.NS_C, "userTemplateRef"));
+        Element templateRef = getParameterElement(new QName(SchemaConstants.NS_C, "objectTemplateRef"));
         if (templateRef == null) {
             return null;
         }
