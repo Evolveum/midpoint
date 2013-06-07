@@ -212,6 +212,15 @@
 						<value>fishy</value>
 					</expression>
 				</outbound>
+				<inbound>
+                	<!-- Make sure this mapping is really ignored -->
+					<expression>
+						<value>very FISHY</value>
+					</expression>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
             </attribute>
 
 			<iteration>

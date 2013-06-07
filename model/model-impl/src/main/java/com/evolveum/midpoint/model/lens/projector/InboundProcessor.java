@@ -158,8 +158,6 @@ public class InboundProcessor {
             return;
         }
 
-        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
-        
         PrismObject<ShadowType> accountOld = accContext.getObjectOld();
         PrismObject<ShadowType> accountNew = accContext.getObjectNew();
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
@@ -174,6 +172,13 @@ public class InboundProcessor {
             }
 
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(accountAttributeName);
+            
+            if (attrDef.isIgnored(LayerType.MODEL)) {
+            	LOGGER.trace("Skipping inbound for attribute {} in {} because the attribute is ignored", new Object[]{
+                		PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator()});
+            	continue;
+            }
+            
             List<MappingType> inboundMappingTypes = attrDef.getInboundMappingTypes();
             LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
             		PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
