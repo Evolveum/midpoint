@@ -55,29 +55,29 @@ public class PageAdmin extends PageBase {
     public List<TopMenuItem> getTopMenuItems() {
 		List<TopMenuItem> items = new ArrayList<TopMenuItem>();
 
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL)) {
+		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL, AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
 			items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageDashboard.class));
 		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL)) {
+		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_USERS_ALL_URL)) {
 			items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description", PageUsers.class,
 					PageAdminUsers.class));
 		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL)) {
+		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL, AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL)) {
 			items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description", PageRoles.class,
 					PageAdminRoles.class));
 		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL)) {
+		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL)) {
 			items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
 					PageResources.class, PageAdminResources.class));
 		}
 		// todo fix with visible behaviour [lazyman]
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
+		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL)) {
 			if (getWorkflowService().isEnabled()) {
 				items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
 						PageWorkItems.class, PageAdminWorkItems.class));
 			}
 		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
+		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL)) {
 			items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description",
 					PageTasks.class, PageAdminTasks.class));
 		}
@@ -85,7 +85,7 @@ public class PageAdmin extends PageBase {
 			items.add(new TopMenuItem("pageAdmin.reports", "pageAdmin.reports.description",
 					PageReports.class, PageAdminReports.class));
 		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL)) {
+		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL)) {
 			items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",
 					PageDebugList.class, PageAdminConfiguration.class));
 		}

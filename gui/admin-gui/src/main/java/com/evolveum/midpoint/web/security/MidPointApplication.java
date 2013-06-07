@@ -107,7 +107,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mountFiles(JsResources.BASE_PATH, JsResources.class);
 
         for (PageUrlMapping m : PageUrlMapping.values()) {
-            mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
+        	
+        	//usually m.getPage() will not return null, this is only the case we set the url with wildcard which is then used by spring security
+			if (m.getPage() != null) {
+				mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
+			}
         }
 
         //todo design error pages...

@@ -65,6 +65,9 @@
                          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
         <name>SystemConfiguration</name>
+<!--         <globalAccountSynchronizationSettings> -->
+<!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
+<!--         </globalAccountSynchronizationSettings> -->
         <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
         <logging>
             <classLogger>
@@ -108,6 +111,16 @@
         <name>Superuser</name>
         <authorization>
             <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all</action>
+        </authorization>
+    </role>
+    
+    <role oid="00000000-0000-0000-0000-000000000005"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <name>End user</name>
+        <authorization>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard</action>
         </authorization>
     </role>
 

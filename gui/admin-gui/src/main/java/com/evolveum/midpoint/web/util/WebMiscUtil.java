@@ -73,9 +73,10 @@ public final class WebMiscUtil {
     private WebMiscUtil() {
     }
 
-    public static boolean isAuthorized(String action){
-    	Roles roles = new Roles(action);
-        roles.add(AuthorizationConstants.AUTZ_ALL_URL);
+    public static boolean isAuthorized(String... action){
+    	List<String> actions = Arrays.asList(action);
+    	Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
+        roles.addAll(actions);
         if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
         	return true;
         }
