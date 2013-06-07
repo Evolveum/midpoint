@@ -18,7 +18,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-	<div wicket:id="confirmDeletePopup" />
+	<div wicket:id="deleteResourcesPopup" />
+    <div wicket:id="deleteHostsPopup" />
+
     <form wicket:id="mainForm">
         <div wicket:id="table"/>
         <h2>
@@ -38,6 +40,7 @@
                 <span class="operatingFormText">
                     <wicket:message key="pageResources.button.label.connector"/>
                 </span>
+                <a wicket:id="deleteHost"/>
                 <a wicket:id="discoveryRemote"/>
             </div>
         </div>

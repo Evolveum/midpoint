@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -37,22 +38,16 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceState;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.web.page.admin.resources.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -76,7 +71,12 @@ public class PageResources extends PageAdminResources {
     private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
     private static final String OPERATION_SYNC_STATUS = DOT_CLASS + "syncStatus";
     private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
+    private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
     private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
+
+    private static final String ID_DELETE_HOST = "deleteHost";
+    private static final String ID_DELETE_RESOURCES_POPUP = "deleteResourcesPopup";
+    private static final String ID_DELETE_HOSTS_POPUP = "deleteHostsPopup";
 
     public PageResources() {
         initLayout();
@@ -99,20 +99,34 @@ public class PageResources extends PageAdminResources {
 
         initButtons(mainForm);
 
-        add(new ConfirmationDialog("confirmDeletePopup", createStringResource("pageResources.dialog.title.confirmDelete"),
-                createDeleteConfirmString()) {
+        add(new ConfirmationDialog(ID_DELETE_RESOURCES_POPUP,
+                createStringResource("pageResources.dialog.title.confirmDeleteResource"),
+                createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
+                        "pageResources.message.deleteResourcesConfirm", true)) {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
-                deleteConfirmedPerformed(target);
+                deleteResourceConfirmedPerformed(target);
+            }
+        });
+
+        add(new ConfirmationDialog(ID_DELETE_HOSTS_POPUP,
+                createStringResource("pageResources.dialog.title.confirmDelete"),
+                createDeleteConfirmString("pageResources.message.deleteHostConfirm",
+                        "pageResources.message.deleteHostsConfirm", false)) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteHostConfirmedPerformed(target);
             }
         });
     }
 
     private void initButtons(Form mainForm) {
         AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource", ButtonType.NEGATIVE,
-                createStringResource("pageResources.button.deleteResource")) {
+                createStringResource("PageBase.button.delete")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -120,6 +134,16 @@ public class PageResources extends PageAdminResources {
             }
         };
         mainForm.add(deleteResource);
+
+        AjaxLinkButton deleteHost = new AjaxLinkButton(ID_DELETE_HOST, ButtonType.NEGATIVE,
+                createStringResource("PageBase.button.delete")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteHostPerformed(target);
+            }
+        };
+        mainForm.add(deleteHost);
 
         AjaxLinkButton discoveryRemote = new AjaxLinkButton("discoveryRemote",
                 createStringResource("pageResources.button.discoveryRemote")) {
@@ -179,7 +203,7 @@ public class PageResources extends PageAdminResources {
                 });
             }
         });
-   
+
         column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
 
             @Override
@@ -187,13 +211,13 @@ public class PageResources extends PageAdminResources {
                 return new AbstractReadOnlyModel<ResourceReference>() {
 
                     @Override
-                    public ResourceReference getObject() {   
-                    	ResourceDto dto = rowModel.getObject();
+                    public ResourceReference getObject() {
+                        ResourceDto dto = rowModel.getObject();
                         ResourceController.updateLastAvailabilityState(dto.getState(),
-        						dto.getLastAvailabilityStatus());
+                                dto.getLastAvailabilityStatus());
                         ResourceState state = dto.getState();
                         return new PackageResourceReference(PageResources.class, state
-								.getLastAvailability().getIcon());
+                                .getLastAvailability().getIcon());
                     }
                 };
             }
@@ -204,83 +228,21 @@ public class PageResources extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                    	ResourceState state = rowModel.getObject().getState();
+                        ResourceState state = rowModel.getObject().getState();
                         return PageResources.this.getString(ResourceStatus.class.getSimpleName() + "." + state
-								.getLastAvailability().name());
-                    }
-                };
-            }
-            
-			@Override
-			protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel,
-					AjaxLink link) {
-				testResourcePerformed(target, rowModel);
-				target.add(link);
-			}
-        };
-        columns.add(column);
-
-        /*column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.sync")) {
-
-            @Override
-            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
-                return new AbstractReadOnlyModel<ResourceReference>() {
-
-                    @Override
-                    public ResourceReference getObject() {
-                        ResourceDto dto = rowModel.getObject();
-                        ResourceSyncStatus status = dto.getSyncStatus();
-                        if (status == null) {
-                            status = ResourceSyncStatus.DISABLE;
-                        }
-                        return new PackageResourceReference(PageResources.class, status.getIcon());
+                                .getLastAvailability().name());
                     }
                 };
             }
 
             @Override
-            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
-                showSyncStatus(target, rowModel);
+            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel,
+                                            AjaxLink link) {
+                testResourcePerformed(target, rowModel);
                 target.add(link);
             }
         };
-        columns.add(column);*/
-
-        //todo import
-//        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.import")) {
-//
-//            @Override
-//            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
-//                return new AbstractReadOnlyModel<ResourceReference>() {
-//
-//                    @Override
-//                    public ResourceReference getObject() {
-//                        ResourceDto dto = rowModel.getObject();
-//                        ResourceImportStatus status = dto.getResImport();
-//                        if (status == null) {
-//                            status = ResourceImportStatus.DISABLE;
-//                        }
-//                        return new PackageResourceReference(PageResources.class, status.getIcon());
-//                    }
-//                };
-//            }
-//
-//            @Override
-//            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
-//                ResourceDto resource = rowModel.getObject();
-//                resourceImportPerformed(target, resource.getOid());
-//                target.add(link);
-//            }
-//        };
-//        columns.add(column);
-
-        //todo sync import progress
-//        column = new PropertyColumn(createStringResource("pageResources.sync"), "value.connector.connectorVersion");
-//        columns.add(column);
-//        column = new PropertyColumn(createStringResource("pageResources.import"), "value.connector.connectorVersion");
-//        columns.add(column);
-//        column = new PropertyColumn(createStringResource("pageResources.progress"), "value.connector.connectorVersion");
-//        columns.add(column);
+        columns.add(column);
 
         return columns;
     }
@@ -326,15 +288,27 @@ public class PageResources extends PageAdminResources {
         setResponsePage(PageResourceImport.class, parameters);
     }
 
-    private void deleteResourcePerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
+    private void deleteHostPerformed(AjaxRequestTarget target) {
+        List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(getConnectorHostTable());
         if (selected.isEmpty()) {
-            warn(getString("pageResources.message.nothingSelected"));
+            warn(getString("pageResources.message.noHostSelected"));
             target.add(getFeedbackPanel());
             return;
         }
 
-        ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
+        ModalWindow dialog = (ModalWindow) get(ID_DELETE_HOSTS_POPUP);
+        dialog.show(target);
+    }
+
+    private void deleteResourcePerformed(AjaxRequestTarget target) {
+        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
+        if (selected.isEmpty()) {
+            warn(getString("pageResources.message.noResourceSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        ModalWindow dialog = (ModalWindow) get(ID_DELETE_RESOURCES_POPUP);
         dialog.show(target);
     }
 
@@ -346,32 +320,73 @@ public class PageResources extends PageAdminResources {
         return (TablePanel) get("mainForm:connectorTable");
     }
 
-    private IModel<String> createDeleteConfirmString() {
+    /**
+     * @param oneDeleteKey  message if deleting one item
+     * @param moreDeleteKey message if deleting more items
+     * @param resources     if true selecting resources if false selecting from hosts
+     */
+    private IModel<String> createDeleteConfirmString(final String oneDeleteKey, final String moreDeleteKey,
+                                                     final boolean resources) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-            	List<ResourceDto> selectedResources = WebMiscUtil.getSelectedData(getResourceTable());
-            	if (selectedResources.size() == 1){
-            		return createStringResource("pageResources.message.deleteResourceConfirm",
-                            selectedResources.get(0).getName()).getString();
-				} else {
-					return createStringResource("pageResources.message.deleteResourcesConfirm",
-							WebMiscUtil.getSelectedData(getResourceTable()).size()).getString();
-				}
+                TablePanel table = resources ? getResourceTable() : getConnectorHostTable();
+                List selected = WebMiscUtil.getSelectedData(table);
+                switch (selected.size()) {
+                    case 1:
+                        Object first = selected.get(0);
+                        String name = resources ? ((ResourceDto) first).getName() :
+                                WebMiscUtil.getName(((SelectableBean<ConnectorHostType>) first).getValue());
+                        return createStringResource(oneDeleteKey, name).getString();
+                    default:
+                        return createStringResource(moreDeleteKey, selected.size()).getString();
+                }
             }
         };
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
+    private void deleteHostConfirmedPerformed(AjaxRequestTarget target) {
+        TablePanel hostTable = getConnectorHostTable();
+        List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(hostTable);
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_HOSTS);
+        for (SelectableBean<ConnectorHostType> selectable : selected) {
+            try {
+                Task task = createSimpleTask(OPERATION_DELETE_HOSTS);
+
+                ObjectDelta<ConnectorHostType> delta = ObjectDelta.createDeleteDelta(ConnectorHostType.class,
+                        selectable.getValue().getOid(), getPrismContext());
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            } catch (Exception ex) {
+                result.recordPartialError("Couldn't delete host.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't delete host", ex);
+            }
+        }
+
+        result.recomputeStatus();
+        if (result.isSuccess()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, "The resource(s) have been successfully deleted.");
+        }
+
+        BaseSortableDataProvider provider = (BaseSortableDataProvider) hostTable.getDataTable().getDataProvider();
+        provider.clearCache();
+
+        showResult(result);
+        target.add(getFeedbackPanel(), hostTable);
+    }
+
+    private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
+        TablePanel resourceTable = getResourceTable();
+        List<ResourceDto> selected = WebMiscUtil.getSelectedData(resourceTable);
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
         for (ResourceDto resource : selected) {
             try {
                 Task task = createSimpleTask(OPERATION_DELETE_RESOURCES);
 
-                ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, resource.getOid(), getPrismContext()); 
+                ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, resource.getOid(),
+                        getPrismContext());
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete resource.", ex);
@@ -379,21 +394,16 @@ public class PageResources extends PageAdminResources {
             }
         }
 
-        if (result.isUnknown()) {
-            result.recomputeStatus("Error occurred during resource deleting.");
-        }
-
+        result.recomputeStatus();
         if (result.isSuccess()) {
             result.recordStatus(OperationResultStatus.SUCCESS, "The resource(s) have been successfully deleted.");
         }
 
-        DataTable table = getResourceTable().getDataTable();
-        ResourceDtoProvider provider = (ResourceDtoProvider) table.getDataProvider();
+        ResourceDtoProvider provider = (ResourceDtoProvider) resourceTable.getDataTable().getDataProvider();
         provider.clearCache();
 
         showResult(result);
-        target.add(getFeedbackPanel());
-        target.add(getResourceTable());
+        target.add(getFeedbackPanel(), resourceTable);
     }
 
     private void showSyncStatus(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
@@ -420,7 +430,7 @@ public class PageResources extends PageAdminResources {
             try {
                 getModelService().discoverConnectors(host, result);
             } catch (Exception ex) {
-                result.recordFatalError("Fail to discover connectors on host '"+host.getHostname()
+                result.recordFatalError("Fail to discover connectors on host '" + host.getHostname()
                         + ":" + host.getPort() + "'", ex);
             }
         }
@@ -428,31 +438,31 @@ public class PageResources extends PageAdminResources {
         result.recomputeStatus();
         showResult(result);
     }
-    
-	private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
 
-		OperationResult result = null;
+    private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
 
-		ResourceDto dto = rowModel.getObject();
-		if (StringUtils.isEmpty(dto.getOid())) {
-			result.recordFatalError("Resource oid not defined in request");
-		}
+        OperationResult result = null;
 
-		try {
-			result = getModelService().testResource(dto.getOid(), createSimpleTask(OPERATION_TEST_RESOURCE));
-			ResourceController.updateResourceState(dto.getState(), result);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Fail to test resource connection", ex);
-		}
+        ResourceDto dto = rowModel.getObject();
+        if (StringUtils.isEmpty(dto.getOid())) {
+            result.recordFatalError("Resource oid not defined in request");
+        }
 
-		if (result == null) {
-			result = new OperationResult(OPERATION_TEST_RESOURCE);
-		}
+        try {
+            result = getModelService().testResource(dto.getOid(), createSimpleTask(OPERATION_TEST_RESOURCE));
+            ResourceController.updateResourceState(dto.getState(), result);
+        } catch (ObjectNotFoundException ex) {
+            result.recordFatalError("Fail to test resource connection", ex);
+        }
 
-		if (!result.isSuccess()) {
-			showResult(result);
-			target.add(getFeedbackPanel());
-		}
+        if (result == null) {
+            result = new OperationResult(OPERATION_TEST_RESOURCE);
+        }
 
-	}
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
+
+    }
 }
