@@ -21,6 +21,7 @@ import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.extensions.yui.calendar.DateField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
@@ -34,17 +35,20 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
  */
 public class DatePanel extends InputPanel {
 
+    private static final String ID_INPUT = "input";
+
     public DatePanel(String id, IModel<XMLGregorianCalendar> model) {
         super(id);
 
-        DateTextField date = DateTextField.forDatePattern("input", createDateModel(model), "dd/MMM/yyyy");
-        date.add(new DatePicker());
+//        DateField date = DateTextField.forDatePattern("input", createDateModel(model), "dd/MMM/yyyy");
+        DateField date = new DateField(ID_INPUT, createDateModel(model));
+//        date.add(new DatePicker());
         add(date);
     }
 
     @Override
     public FormComponent getBaseFormComponent() {
-        return (FormComponent) get("input");
+        return (FormComponent) get(ID_INPUT);
     }
 
     private IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {

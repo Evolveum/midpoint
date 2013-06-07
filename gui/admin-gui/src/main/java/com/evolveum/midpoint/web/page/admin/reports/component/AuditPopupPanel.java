@@ -20,20 +20,13 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
+import com.evolveum.midpoint.web.util.DateValidator;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
-import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
-import org.apache.wicket.markup.html.form.validation.IFormValidator;
-import org.apache.wicket.markup.html.panel.ComponentFeedbackPanel;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 
 import java.util.Date;
 
@@ -102,35 +95,5 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
     protected void onRunPerformed(AjaxRequestTarget target) {
 
-    }
-
-    private static class DateValidator extends AbstractFormValidator {
-
-        private DateTimeField dateFrom;
-        private DateTimeField dateTo;
-
-        private DateValidator(DateTimeField dateFrom, DateTimeField dateTo) {
-            this.dateFrom = dateFrom;
-            this.dateTo = dateTo;
-        }
-
-        @Override
-        public FormComponent<?>[] getDependentFormComponents() {
-            return new FormComponent[]{dateFrom, dateTo};
-        }
-
-        @Override
-        public void validate(Form<?> form) {
-            Date from = dateFrom.getConvertedInput();
-            Date to = dateTo.getConvertedInput();
-
-            if (from == null || to == null) {
-                return;
-            }
-
-            if (from.after(to)) {
-                form.error(form.getString("AuditPopupPanel.message.fromAfterTo"));
-            }
-        }
     }
 }

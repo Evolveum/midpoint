@@ -19,12 +19,14 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
@@ -36,11 +38,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListView;
@@ -263,6 +265,16 @@ public class PrismValuePanel extends Panel {
 
         InputPanel component = createTypedInputComponent(id);
 
+        //adding valid from/to date range validator, if necessary
+        ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
+        if (ActivationType.F_VALID_FROM.equals(property.getName())) {
+            DateValidator validator = getActivationRangeValidator(form, activation);
+            validator.setDateFrom((DateTimeField) component.getBaseFormComponent());
+        } else if (ActivationType.F_VALID_TO.equals(property.getName())) {
+            DateValidator validator = getActivationRangeValidator(form, activation);
+            validator.setDateTo((DateTimeField) component.getBaseFormComponent());
+        }
+
         final List<FormComponent> formComponents = component.getFormComponents();
         for (FormComponent formComponent : formComponents) {
             formComponent.setLabel(label);
@@ -286,6 +298,27 @@ public class PrismValuePanel extends Panel {
 //            }
         }
         return component;
+    }
+
+    private DateValidator getActivationRangeValidator(Form form, ItemPath path) {
+        DateValidator validator = null;
+        List<DateValidator> validators = form.getBehaviors(DateValidator.class);
+        if (validators != null) {
+            for (DateValidator val : validators) {
+                if (path.equals(val.getIdentifier())) {
+                    validator = val;
+                    break;
+                }
+            }
+        }
+
+        if (validator == null) {
+            validator = new DateValidator();
+            validator.setIdentifier(path);
+            form.add(validator);
+        }
+
+        return validator;
     }
 
     private InputPanel createTypedInputComponent(String id) {
