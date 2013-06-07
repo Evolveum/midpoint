@@ -332,11 +332,18 @@ public final class WebMiscUtil {
     }
 
     public static String formatDate(Date date) {
+        return formatDate(null, date);
+    }
+
+    public static String formatDate(String format, Date date) {
+        if (StringUtils.isEmpty(format)) {
+            format = "EEEE, d. MMM yyyy HH:mm:ss";
+        }
         Locale locale = Session.get().getLocale();
         if (locale == null) {
             locale = Locale.US;
         }
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss", locale);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format, locale);
         return dateFormat.format(date);
     }
 

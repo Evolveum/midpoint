@@ -65,8 +65,6 @@ import org.apache.wicket.util.file.File;
 
 import javax.xml.namespace.QName;
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -472,8 +470,7 @@ public class PageAccounts extends PageAdmin {
     }
 
     private void exportPerformed(AjaxRequestTarget target) {
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-        String fileName = "accounts-" + format.format(new Date()) + ".xml";
+        String fileName = "accounts-" + WebMiscUtil.formatDate("yyyy-MM-dd-HH-mm-ss", new Date()) + ".xml";
 
         OperationResult result = new OperationResult(OPERATION_EXPORT);
         Writer writer = null;
