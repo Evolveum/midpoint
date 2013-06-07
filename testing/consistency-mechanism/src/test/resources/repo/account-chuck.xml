@@ -26,7 +26,7 @@
 	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<c:objectClass>ri:AccountObjectClass</c:objectClass>
 	<c:attributes>
-		<icfs:name>uid=chuck,ou=People,dc=example,dc=com</icfs:name>
+		<icfs:name>uid=chuck,ou=people,dc=example,dc=com</icfs:name>
 		<ri:uid>chuck</ri:uid>
 		<ri:cn>Chuck Norris</ri:cn>
 		<ri:givenName>Chuck</ri:givenName>

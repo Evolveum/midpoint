@@ -1,4 +1,4 @@
-dn: uid=morgan,ou=People,dc=example,dc=com
+dn: uid=morgan,ou=people,dc=example,dc=com
 uid: morgan
 cn: Captain Henry Morgan
 sn: Morgan
