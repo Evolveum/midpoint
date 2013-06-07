@@ -134,7 +134,7 @@ public class PageWorkItems extends PageAdminWorkItems {
                         if (started == null) {
                             return "?";
                         } else {
-                            return WebMiscUtil.getFormatedDate(started);
+                            return WebMiscUtil.formatDate(started);
                         }
                     }
                 }));

@@ -39,6 +39,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.Session;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -330,8 +331,12 @@ public final class WebMiscUtil {
         return !result.isSuccess() && !result.isHandledError() && !result.isInProgress();
     }
 
-    public static String getFormatedDate(Date date) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+    public static String formatDate(Date date) {
+        Locale locale = Session.get().getLocale();
+        if (locale == null) {
+            locale = Locale.US;
+        }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss", locale);
         return dateFormat.format(date);
     }
 

@@ -20,8 +20,6 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkItem;
 
-import java.text.DateFormat;
-
 /**
  * @author lazyman
  */
@@ -55,7 +53,7 @@ public class WorkItemDto extends Selectable {
 
     public String getCreated() {
         if (workItem.getCreateTime() != null) {
-            return WebMiscUtil.getFormatedDate(workItem.getCreateTime());
+            return WebMiscUtil.formatDate(workItem.getCreateTime());
         } else {
             return null;
         }

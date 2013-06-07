@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -29,14 +30,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
-import java.text.SimpleDateFormat;
-
 /**
  * @author lazyman
  */
 public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
-
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
 
     private static final String ID_LAST_LOGIN_DATE = "lastLoginDate";
     private static final String ID_LAST_LOGIN_FROM = "lastLoginFrom";
@@ -91,7 +88,7 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
             public String getObject() {
                 PersonalInfoDto dto = getModel().getObject();
 
-                return dto.getLastLoginDate() != null ? DATE_FORMAT.format(dto.getLastLoginDate()) :
+                return dto.getLastLoginDate() != null ? WebMiscUtil.formatDate(dto.getLastLoginDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
             }
         });
@@ -115,7 +112,7 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
             public String getObject() {
                 PersonalInfoDto dto = getModel().getObject();
 
-                return dto.getLastFailDate() != null ? DATE_FORMAT.format(dto.getLastFailDate()) :
+                return dto.getLastFailDate() != null ? WebMiscUtil.formatDate(dto.getLastFailDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
             }
         });
@@ -139,7 +136,7 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
             public String getObject() {
                 PersonalInfoDto dto = getModel().getObject();
 
-                return dto.getPasswordExp() != null ? DATE_FORMAT.format(dto.getPasswordExp()) :
+                return dto.getPasswordExp() != null ? WebMiscUtil.formatDate(dto.getPasswordExp()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
             }
         });

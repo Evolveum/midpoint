@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
@@ -40,11 +39,11 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getStartedTime() {
-        return processInstance.getStartTime() == null ? "-" : WebMiscUtil.getFormatedDate(processInstance.getStartTime());
+        return processInstance.getStartTime() == null ? "-" : WebMiscUtil.formatDate(processInstance.getStartTime());
     }
 
     public String getFinishedTime() {
-        return processInstance.getEndTime() == null ? "-" : WebMiscUtil.getFormatedDate(processInstance.getEndTime());
+        return processInstance.getEndTime() == null ? "-" : WebMiscUtil.formatDate(processInstance.getEndTime());
     }
 
     public String getName() {

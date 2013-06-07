@@ -176,7 +176,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                         if (started == null) {
                             return "?";
                         } else {
-                        	return WebMiscUtil.getFormatedDate(started);
+                        	return WebMiscUtil.formatDate(started);
                         }
                     }
                 }));
@@ -197,7 +197,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                         if (finished == null) {
                             return getString("pageProcessInstances.notYet");
                         } else {
-                            return WebMiscUtil.getFormatedDate(finished);
+                            return WebMiscUtil.formatDate(finished);
                         }
                     }
                 }));

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatusFilter;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -61,8 +59,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-
-import java.text.SimpleDateFormat;
 
 /**
  * @author mederly
@@ -379,8 +375,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 if (dto.getProcessInstance().getStartTime() == null) {
                     return "";
                 }
-                SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
-                return dateFormat.format(dto.getProcessInstance().getStartTime());
+                return WebMiscUtil.formatDate(dto.getProcessInstance().getStartTime());
             }
 
         });
@@ -394,15 +389,14 @@ public class PageWorkItem extends PageAdminWorkItems {
                 if (dto.getWorkItem().getCreateTime() == null) {
                     return "";
                 }
-                SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
-                return dateFormat.format(dto.getWorkItem().getCreateTime());
+                return WebMiscUtil.formatDate(dto.getWorkItem().getCreateTime());
             }
 
         });
         mainForm.add(workItemCreatedOn);
-        
+
         PrismObjectPanel requestSpecificForm = new PrismObjectPanel("requestSpecificForm", requestSpecificModel,
-        		new PackageResourceReference(ImgResources.class, ImgResources.DECISION_PRISM), mainForm) {
+                new PackageResourceReference(ImgResources.class, ImgResources.DECISION_PRISM), mainForm) {
 
             @Override
             protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
@@ -415,7 +409,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             }
         };
         mainForm.add(requestSpecificForm);
-        
+
         additionalInfoAccordion = new Accordion(ID_ACCORDION);
         additionalInfoAccordion.setOutputMarkupId(true);
         additionalInfoAccordion.setMultipleSelect(true);
@@ -433,8 +427,8 @@ public class PageWorkItem extends PageAdminWorkItems {
         additionalInfoAccordion.getBodyContainer().add(additionalInfoAccordionItem);
 
         PrismObjectPanel requesterForm = new PrismObjectPanel("requesterForm", requesterModel,
-        		new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
-        requesterForm.add(new VisibleEnableBehaviour(){
+                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
+        requesterForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
                 return requesterModel != null && !requesterModel.getObject().getObject().isEmpty();
@@ -443,7 +437,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         additionalInfoAccordionItem.getBodyContainer().add(requesterForm);
 
         PrismObjectPanel objectOldForm = new PrismObjectPanel("objectOldForm", objectOldModel,
-        		new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
+                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
         objectOldForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -453,7 +447,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         additionalInfoAccordionItem.getBodyContainer().add(objectOldForm);
 
         PrismObjectPanel objectNewForm = new PrismObjectPanel("objectNewForm", objectNewModel,
-        		new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
+                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
         objectNewForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -463,11 +457,11 @@ public class PageWorkItem extends PageAdminWorkItems {
         additionalInfoAccordionItem.getBodyContainer().add(objectNewForm);
 
         PrismObjectPanel additionalDataForm = new PrismObjectPanel("additionalDataForm", additionalDataModel,
-        		new PackageResourceReference(ImgResources.class, ImgResources.ROLE_PRISM), mainForm);
+                new PackageResourceReference(ImgResources.class, ImgResources.ROLE_PRISM), mainForm);
         additionalInfoAccordionItem.getBodyContainer().add(additionalDataForm);
 
         PrismObjectPanel trackingDataForm = new PrismObjectPanel("trackingDataForm", trackingDataModel,
-        		new PackageResourceReference(ImgResources.class, ImgResources.TRACKING_PRISM), mainForm) {
+                new PackageResourceReference(ImgResources.class, ImgResources.TRACKING_PRISM), mainForm) {
 
             @Override
             protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
