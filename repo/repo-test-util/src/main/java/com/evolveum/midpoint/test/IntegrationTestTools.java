@@ -96,14 +96,6 @@ public class IntegrationTestTools {
 	// public and not final - to allow changing it in tests
 	public static Trace LOGGER = TraceManager.getTrace(IntegrationTestTools.class);
 	
-	private static final String TEST_OUT_PREFIX = "\n\n=====[ ";
-	private static final String TEST_OUT_SUFFIX = " ]======================================\n";
-	private static final String TEST_LOG_PREFIX = "=====[ ";
-	private static final String TEST_LOG_SUFFIX = " ]======================================";
-	private static final String TEST_OUT_SECTION_PREFIX = "\n\n----- ";
-	private static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
-	private static final String TEST_LOG_SECTION_PREFIX = "----- ";
-	private static final String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
 	private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
 	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
 	private static final String LOG_MESSAGE_PREFIX = "";
@@ -552,27 +544,7 @@ public class IntegrationTestTools {
 		return values.iterator().next();
 	}
 
-	public static void displayTestTile(String testName) {
-		System.out.println(TEST_OUT_PREFIX + testName + TEST_OUT_SUFFIX);
-		LOGGER.info(TEST_LOG_PREFIX + testName + TEST_LOG_SUFFIX);
-	}
-
-	public static void displayTestTile(Object testCase, String testName) {
-		System.out.println(TEST_OUT_PREFIX + testCase.getClass().getSimpleName() + "." + testName + TEST_OUT_SUFFIX);
-		LOGGER.info(TEST_LOG_PREFIX + testCase.getClass().getSimpleName() + "." + testName + TEST_LOG_SUFFIX);
-	}
-	
-	public static void displayWhen(String testName) {
-		System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + testName + TEST_OUT_SECTION_SUFFIX);
-		LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + TEST_LOG_SECTION_SUFFIX);
-	}
-
-	public static void displayThen(String testName) {
-		System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
-		LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
-	}
-
-    public static void waitFor(String message, Checker checker, int timeoutInterval) throws Exception {
+	public static void waitFor(String message, Checker checker, int timeoutInterval) throws Exception {
         waitFor(message, checker, timeoutInterval, WAIT_FOR_LOOP_SLEEP_MILIS);
     }
 

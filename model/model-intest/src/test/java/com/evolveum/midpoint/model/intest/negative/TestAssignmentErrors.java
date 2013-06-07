@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.intest.negative;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -73,7 +73,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test100UserJackAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test100UserJackAssignBlankAccount";
-        displayTestTile(this, "TEST_NAME");
+        TestUtil.displayTestTile(this, "TEST_NAME");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -105,7 +105,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-        displayTestTile(this, "TEST_NAME");
+        TestUtil.displayTestTile(this, "TEST_NAME");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);

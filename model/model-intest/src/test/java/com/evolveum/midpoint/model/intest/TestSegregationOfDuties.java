@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
@@ -30,6 +28,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -54,7 +53,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test001SimpleExclusion1() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test001SimpleExclusion1");
+        TestUtil.displayTestTile(this, "test001SimpleExclusion1");
 
         Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + ".test001AssignAccountToJack");
         OperationResult result = task.getResult();
@@ -84,7 +83,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test002SimpleExclusion2() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test002SimpleExclusion2");
+        TestUtil.displayTestTile(this, "test002SimpleExclusion2");
         
         Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + ".test002SimpleExclusion2");
         OperationResult result = task.getResult();

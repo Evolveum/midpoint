@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.intest.negative;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
@@ -47,6 +46,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -144,7 +144,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test010TestResourceBroken() throws Exception {
-        displayTestTile(this, "test010TestResourceBroken");
+        TestUtil.displayTestTile(this, "test010TestResourceBroken");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test010TestResourceBroken");
@@ -160,7 +160,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test020GetResourceBroken() throws Exception {
-        displayTestTile(this, "test020GetResourceBroken");
+        TestUtil.displayTestTile(this, "test020GetResourceBroken");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test020GetResourceBroken");
@@ -184,7 +184,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 
 	@Test
     public void test100GetAccountMurray() throws Exception {
-        displayTestTile(this, "test100GetAccountMurray");
+        TestUtil.displayTestTile(this, "test100GetAccountMurray");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100GetAccountMurray");
@@ -209,7 +209,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test101GetAccountMurrayNoFetch() throws Exception {
-        displayTestTile(this, "test101GetAccountMurrayNoFetch");
+        TestUtil.displayTestTile(this, "test101GetAccountMurrayNoFetch");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test101GetAccountMurrayNoFetch");
@@ -231,7 +231,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test102GetAccountMurrayRaw() throws Exception {
-        displayTestTile(this, "test102GetAccountMurrayRaw");
+        TestUtil.displayTestTile(this, "test102GetAccountMurrayRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountMurrayRaw");
@@ -254,7 +254,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test120SearchAccountByUsernameJack() throws Exception {
-        displayTestTile(this, "test120SearchAccountByUsernameJack");
+        TestUtil.displayTestTile(this, "test120SearchAccountByUsernameJack");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120SearchAccountByUsernameJack");
@@ -279,7 +279,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test210TestResourceNotFound() throws Exception {
-        displayTestTile(this, "test210TestResourceNotFound");
+        TestUtil.displayTestTile(this, "test210TestResourceNotFound");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210TestResourceNotFound");
@@ -297,7 +297,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test220GetResourceNotFound() throws Exception {
 		final String TEST_NAME = "test220GetResourceNotFound";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "."+TEST_NAME);
@@ -323,7 +323,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test221GetResourceNotFoundResolveConnector() throws Exception {
 		final String TEST_NAME = "test221GetResourceNotFoundResolveConnector";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "."+TEST_NAME);
@@ -354,7 +354,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test310TestResourceNoJars() throws Exception {
-        displayTestTile(this, "test310TestResourceNoJars");
+        TestUtil.displayTestTile(this, "test310TestResourceNoJars");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test310TestResourceNoJars");
@@ -369,7 +369,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test320GetResourceNoJars() throws Exception {
-        displayTestTile(this, "test320GetResourceNoJars");
+        TestUtil.displayTestTile(this, "test320GetResourceNoJars");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test320GetResourceNoJars");
@@ -420,7 +420,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	 * the account on the good resource is created.
 	 */
 	private void testAssignTwoResoures(final String TEST_NAME, String badResourceOid) throws Exception {
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);

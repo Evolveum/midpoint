@@ -20,7 +20,6 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -38,6 +37,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,7 +85,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	}
 	
 	public void testGetResourceBrokenSchema(BreakMode breakMode, String testName) throws Exception {
-		displayTestTile(testName);
+		TestUtil.displayTestTile(testName);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ "."+testName);
@@ -122,7 +122,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test200AddAccountNullAttributes() throws Exception {
-		displayTestTile("test200AddAccountNullAttributes");
+		TestUtil.displayTestTile("test200AddAccountNullAttributes");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ ".test200AddAccountNullAttributes");
@@ -153,7 +153,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test201AddAccountEmptyAttributes() throws Exception {
-		displayTestTile("test201AddAccountEmptyAttributes");
+		TestUtil.displayTestTile("test201AddAccountEmptyAttributes");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ ".test201AddAccountEmptyAttributes");
@@ -184,7 +184,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test210AddAccountNoObjectclass() throws Exception {
-		displayTestTile("test210AddAccountNoObjectclass");
+		TestUtil.displayTestTile("test210AddAccountNoObjectclass");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ ".test210AddAccountNoObjectclass");
@@ -217,7 +217,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test220AddAccountNoResourceRef() throws Exception {
-		displayTestTile("test220AddAccountNoResourceRef");
+		TestUtil.displayTestTile("test220AddAccountNoResourceRef");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ ".test220AddAccountNoResourceRef");
@@ -249,7 +249,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test221DeleteAccountResourceNotFound() throws Exception {
-		displayTestTile("test221DeleteAccountResourceNotFound");
+		TestUtil.displayTestTile("test221DeleteAccountResourceNotFound");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ ".test221DeleteAccountResourceNotFound");

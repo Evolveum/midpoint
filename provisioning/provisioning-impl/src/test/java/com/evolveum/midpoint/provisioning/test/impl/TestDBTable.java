@@ -33,6 +33,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.DerbyController;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -125,7 +126,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test000Integrity");
+		TestUtil.displayTestTile("test000Integrity");
 		
 		OperationResult result = new OperationResult(TestDBTable.class.getName()+".test000Integrity");
 		
@@ -138,7 +139,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	
 	@Test
 	public void test001Connection() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test001Connection");
+		TestUtil.displayTestTile("test001Connection");
 		OperationResult result = new OperationResult(TestDBTable.class.getName()+".test001Connection");
 		
 		OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID);
@@ -161,7 +162,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	@Test
 	public void test002AddAccount() throws Exception {
 		final String TEST_NAME = "test002AddAccount";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDBTable.class.getName()
 				+ "." + TEST_NAME);
@@ -211,7 +212,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	@Test(enabled=false)
 	public void test005GetAccount() throws Exception {
 		final String TEST_NAME = "test005GetAccount";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDBTable.class.getName()
 				+ "." + TEST_NAME);

@@ -17,9 +17,6 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -67,6 +64,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -123,7 +121,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict() throws Exception {
 		final String TEST_NAME = "test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -194,7 +192,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test180DeleteHalfAssignmentFromUser() throws Exception {
 		String TEST_NAME = "test180DeleteHalfAssignmentFromUser";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -218,7 +216,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
@@ -246,7 +244,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test190DeleteHalfAssignedUser() throws Exception {
 		String TEST_NAME = "test190DeleteHalfAssignedUser";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -266,11 +264,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
@@ -297,7 +295,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ModifyUserJackBrokenAccountRef() throws Exception {
 		final String TEST_NAME = "test200ModifyUserJackBrokenAccountRef";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -308,7 +306,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         addBrokenAccountRef(USER_JACK_OID);
                         
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
         		PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
 		
@@ -337,7 +335,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300ExtensionSanity() throws Exception {
 		final String TEST_NAME = "test300ExtensionSanity";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismContainerDefinition<Containerable> extensionContainerDef = userDef.findContainerDefinition(UserType.F_EXTENSION);
@@ -358,7 +356,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test301AddUserDeGhoulash() throws Exception {
 		final String TEST_NAME = "test301AddUserDeGhoulash";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -442,7 +440,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 	
     private <T> void searchDeGhoulash(String testName, QName propName, T propValue) throws Exception {
-        displayTestTile(this, testName);
+        TestUtil.displayTestTile(this, testName);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + testName);

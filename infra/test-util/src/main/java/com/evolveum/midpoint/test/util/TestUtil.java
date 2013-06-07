@@ -56,6 +56,15 @@ public class TestUtil {
 	
 	public static final int MAX_EXCEPTION_MESSAGE_LENGTH = 500;
 	
+	public static final String TEST_LOG_PREFIX = "=====[ ";
+	public static final String TEST_LOG_SUFFIX = " ]======================================";
+	public static final String TEST_OUT_PREFIX = "\n\n=====[ ";
+	public static final String TEST_OUT_SUFFIX = " ]======================================\n";
+	public static final String TEST_OUT_SECTION_PREFIX = "\n\n----- ";
+	public static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
+	public static final String TEST_LOG_SECTION_PREFIX = "----- ";
+	public static final String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
+	
 	private static final Trace LOGGER = TraceManager.getTrace(TestUtil.class);
 
     public static <T> void assertPropertyValueSetEquals(Collection<PrismPropertyValue<T>> actual, T... expected) {
@@ -130,4 +139,25 @@ public class TestUtil {
 		assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("
 				+e.getMessage().length()+" characters): "+e.getMessage();
 	}
+
+	public static void displayTestTile(String testName) {
+		System.out.println(TEST_OUT_PREFIX + testName + TEST_OUT_SUFFIX);
+		LOGGER.info(TEST_LOG_PREFIX + testName + TEST_LOG_SUFFIX);
+	}
+
+	public static void displayTestTile(Object testCase, String testName) {
+		System.out.println(TEST_OUT_PREFIX + testCase.getClass().getSimpleName() + "." + testName + TEST_OUT_SUFFIX);
+		LOGGER.info(TEST_LOG_PREFIX + testCase.getClass().getSimpleName() + "." + testName + TEST_LOG_SUFFIX);
+	}
+
+	public static void displayWhen(String testName) {
+		System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + testName + TEST_OUT_SECTION_SUFFIX);
+		LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + TEST_LOG_SECTION_SUFFIX);
+	}
+
+	public static void displayThen(String testName) {
+		System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
+		LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
+	}
+	
 }

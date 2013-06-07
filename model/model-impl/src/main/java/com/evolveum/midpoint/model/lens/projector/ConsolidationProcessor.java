@@ -48,6 +48,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -150,7 +151,7 @@ public class ConsolidationProcessor {
     	// (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
     	Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes = sqeezeAttributes(accCtx); 
     	accCtx.setSqueezedAttributes(squeezedAttributes);
-        
+    	
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
         ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
         objectDelta.setOid(accCtx.getOid());

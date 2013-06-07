@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -88,7 +89,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void test000Integrity() {
-		displayTestTile(this,"test000Integrity");
+		TestUtil.displayTestTile(this,"test000Integrity");
 		assertNotNull(modelService);
 		assertNotNull(repositoryService);
 
@@ -96,7 +97,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void test001GoodRefImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		displayTestTile(this,"test001GoodRefImport");
+		TestUtil.displayTestTile(this,"test001GoodRefImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportRefTest.class.getName() + "test001GoodRefImport");

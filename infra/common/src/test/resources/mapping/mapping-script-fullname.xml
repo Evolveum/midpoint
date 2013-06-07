@@ -29,7 +29,13 @@
 		<script>
 			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 			<code>
-				givenName + ' ' + familyName
+				if (givenName == null &amp;&amp; familyName == null) {
+					return "John Doe";
+				} else if (givenName == null) {
+					return familyName;
+				} else {
+					return givenName + ' ' + familyName;
+				}
 			</code>
 		</script>
 	</expression>

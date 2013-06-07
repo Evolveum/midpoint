@@ -166,7 +166,9 @@ public class ShadowConstraintsChecker {
 //				resourceType, prismContext);
 		
 		List<?> identifierValues = identifier.getValues();
-		Validate.notEmpty(identifierValues, "Empty identifiers while checking uniqueness of "+context);
+		if (identifierValues.isEmpty()) {
+			throw new SchemaException("Empty identifier "+identifier+" while checking uniqueness of "+oid+" ("+resourceType+")");
+		}
 		
 		OrFilter isNotDead = OrFilter.createOr(EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, null));

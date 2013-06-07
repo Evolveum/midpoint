@@ -16,84 +16,32 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.notifications.events.AccountEvent;
-import com.evolveum.midpoint.notifications.transports.Message;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
-import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -159,7 +107,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100JackAssignAccountDummyConflicting() throws Exception {
 		final String TEST_NAME = "test100JackAssignAccountDummyConflicting";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -179,11 +127,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                   
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -217,7 +165,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200JackAssignAccountDummyPinkConflicting() throws Exception {
 		final String TEST_NAME = "test200JackAssignAccountDummyPinkConflicting";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -237,11 +185,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                   
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -286,7 +234,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210GuybrushAssignAccountDummyPink() throws Exception {
 		final String TEST_NAME = "test210GuybrushAssignAccountDummyPink";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -298,11 +246,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                   
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -342,7 +290,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300JackAssignAccountDummyVioletConflicting() throws Exception {
 		final String TEST_NAME = "test300JackAssignAccountDummyVioletConflicting";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -362,11 +310,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                   
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -409,7 +357,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test350GuybrushAssignAccountDummyViolet() throws Exception {
 		final String TEST_NAME = "test350GuybrushAssignAccountDummyViolet";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -421,11 +369,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                   
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -466,7 +414,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test360HermanAssignAccountDummyViolet() throws Exception {
 		final String TEST_NAME = "test360HermanAssignAccountDummyViolet";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -481,11 +429,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                   
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -524,7 +472,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400RenameLeChuckConflicting() throws Exception {
 		final String TEST_NAME = "test400RenameLeChuckConflicting";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);

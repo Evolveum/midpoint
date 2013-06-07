@@ -57,6 +57,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -169,7 +170,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyHacks.class.getName()
 				+ "." + TEST_NAME);

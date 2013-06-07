@@ -16,9 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -85,6 +82,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -137,7 +135,7 @@ public class TestLdap extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400RenameLeChuckConflicting() throws Exception {
 		final String TEST_NAME = "test400RenameLeChuckConflicting";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -168,12 +166,12 @@ public class TestLdap extends AbstractInitializedModelIntegrationTest {
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME, "Charles L. Charles", true);
         
         // WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(userLechuckOid, UserType.F_NAME, task, result,
         		PrismTestUtil.createPolyString(ACCOUNT_CHARLES_NAME));
         
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME, "Charles L. Charles", true);
         assertNoOpenDjAccount(ACCOUNT_LECHUCK_NAME);
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME + "1", "LeChuck", true);

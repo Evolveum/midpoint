@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.expr;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -53,6 +52,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -104,7 +104,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 	@Test
 	public void testHello() throws Exception {
 		final String TEST_NAME = "testHello";
-		displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTile(this, TEST_NAME);
 		
 		// GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
@@ -142,7 +142,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
     @Test
     public void testGetUserByOid() throws Exception {
         final String TEST_NAME = "testGetUserByOid";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
@@ -169,7 +169,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
     @Test
     public void testGetManagersOids() throws Exception {
         final String TEST_NAME = "testGetManagersOids";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
@@ -201,7 +201,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
     @Test
     public void testGetOrgByName() throws Exception {
         final String TEST_NAME = "testGetOrgByName";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);

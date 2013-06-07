@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.sync;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -38,6 +37,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -66,7 +66,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Test
 	public void testCorrelationOrFilter() throws Exception{
 		String TEST_NAME = "testCorrelationOrFilter";
-		displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTile(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();

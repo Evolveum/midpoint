@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -61,6 +60,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ObjectSource;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -168,7 +168,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicit(String bundleName, ObjectSource<PrismObject<ShadowType>> accountSource, 
     		ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "Implicit";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -189,7 +189,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountExplicit(String bundleName, ObjectSource<PrismObject<ShadowType>> accountSource, 
     		ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "Explicit";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -207,7 +207,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitSame(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitSame";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -229,7 +229,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitSameReverse(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitSameReverse";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -251,7 +251,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitEqual(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitEqual";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -273,7 +273,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitEqualReverse(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitEqualReverse";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 	
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -295,7 +295,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitNotEqual(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitNotEqual";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
     
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -319,7 +319,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitNotEqualReverse(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType,ShadowType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitNotEqualReverse";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -421,7 +421,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test200ModifyUserDeleteAccount() throws Exception {
 		final String TEST_NAME = "test200ModifyUserDeleteAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -468,7 +468,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test210AddAccount() throws Exception {
 		final String TEST_NAME = "test210AddAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -517,7 +517,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test221ModifyUserAddAccountRef() throws Exception {
         final String TEST_NAME = "test221ModifyUserAddAccountRef";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -574,7 +574,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test300ModifyElaineAccountDummyReplace() throws Exception {
         final String TEST_NAME = "test300ModifyElaineAccountDummyReplace";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -630,7 +630,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test301ModifyElaineAccountDummyDeleteAdd() throws Exception {
         final String TEST_NAME = "test301ModifyElaineAccountDummyDeleteAdd";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -691,7 +691,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test400ModifyElaineAccountDummyRedReplace() throws Exception {
         final String TEST_NAME = "test400ModifyElaineAccountDummyRedReplace";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -727,7 +727,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test401ModifyElaineAccountDummyRedDeleteAdd() throws Exception {
         final String TEST_NAME = "test401ModifyElaineAccountDummyRedDeleteAdd";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -765,7 +765,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test500ModifyElaineAccountDummyBlueReplace() throws Exception {
         final String TEST_NAME = "test500ModifyElaineAccountDummyBlueReplace";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -821,7 +821,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test501ModifyElaineAccountDummyBlueDeleteAdd() throws Exception {
         final String TEST_NAME = "test501ModifyElaineAccountDummyBlueDeleteAdd";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -883,7 +883,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test600ModifyElaineUserDummyReplace() throws Exception {
         final String TEST_NAME = "test600ModifyElaineUserDummyReplace";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -971,7 +971,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test610ModifyElaineUserAccountDummyReplace() throws Exception {
         final String TEST_NAME = "test610ModifyElaineUserAccountDummyReplace";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -1070,7 +1070,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test620AddUserCapsize() throws Exception {
         final String TEST_NAME = "test620AddUserCapsize";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
@@ -1164,7 +1164,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test700DisableElaineAccountTwoResources() throws Exception {
         final String TEST_NAME = "test700DisableElaineAccountTwoResources";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);

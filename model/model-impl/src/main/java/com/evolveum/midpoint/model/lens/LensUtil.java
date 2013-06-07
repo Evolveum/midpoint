@@ -158,6 +158,10 @@ public class LensUtil {
     		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer, ValueMatcher<?> valueMatcher,
     		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
     	
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Consolidating {} triple:\n{}", itemPath, triple.dump());
+		}
+		
 		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
 		
 		Item<V> itemExisting = null;

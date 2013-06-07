@@ -15,94 +15,46 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author semancik
@@ -146,7 +98,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test010ListConnectors() throws Exception {
-        displayTestTile(this, "test010ListConnectors");
+        TestUtil.displayTestTile(this, "test010ListConnectors");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test010ListConnectors");
@@ -183,7 +135,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test020ImportFakeResource() throws Exception {
-        displayTestTile(this, "test020ImportFakeResource");
+        TestUtil.displayTestTile(this, "test020ImportFakeResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test020ImportFakeResource");
@@ -207,7 +159,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test021TestFakeResource() throws Exception {
-        displayTestTile(this, "test021TestFakeResource");
+        TestUtil.displayTestTile(this, "test021TestFakeResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test021TestFakeResource");
@@ -223,7 +175,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test022ListAccountsFakeResource() throws Exception {
-        displayTestTile(this, "test022ListAccountsFakeResource");
+        TestUtil.displayTestTile(this, "test022ListAccountsFakeResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test022ListAccountsFakeResource");
@@ -242,7 +194,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 
 	@Test
     public void test030ImportDummyResource() throws Exception {
-        displayTestTile(this, "test030ImportDummyResource");
+        TestUtil.displayTestTile(this, "test030ImportDummyResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test030ImportDummyResource");
@@ -266,7 +218,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test031TestDummyResource() throws Exception {
-        displayTestTile(this, "test031TestDummyResource");
+        TestUtil.displayTestTile(this, "test031TestDummyResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test031TestDummyResource");
@@ -282,7 +234,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test032ListAccountsDummyResource() throws Exception {
-        displayTestTile(this, "test032ListAccountsDummyResource");
+        TestUtil.displayTestTile(this, "test032ListAccountsDummyResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test032ListAccountsDummyResource");
@@ -301,7 +253,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test100UpgradeModelAddDelete() throws Exception {
-        displayTestTile(this, "test100UpgradeModelAddDelete");
+        TestUtil.displayTestTile(this, "test100UpgradeModelAddDelete");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test100UpgradeModelAddDelete");
@@ -334,7 +286,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test150DowngradeModelAddDelete() throws Exception {
-        displayTestTile(this, "test150DowngradeModelAddDelete");
+        TestUtil.displayTestTile(this, "test150DowngradeModelAddDelete");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test150DowngradeModelAddDelete");
@@ -365,7 +317,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test200UpgradeModelReplace() throws Exception {
-        displayTestTile(this, "test200UpgradeModelReplace");
+        TestUtil.displayTestTile(this, "test200UpgradeModelReplace");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test200UpgradeModelReplace");
@@ -394,7 +346,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test250DowngradeModelReplace() throws Exception {
-        displayTestTile(this, "test250DowngradeModelReplace");
+        TestUtil.displayTestTile(this, "test250DowngradeModelReplace");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test250DowngradeModelReplace");
@@ -422,7 +374,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test300UpgradeRawAddDelete() throws Exception {
-        displayTestTile(this, "test100UpgradeModelAddDelete");
+        TestUtil.displayTestTile(this, "test100UpgradeModelAddDelete");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test100UpgradeModelAddDelete");
@@ -456,7 +408,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test350DowngradeRawAddDelete() throws Exception {
-        displayTestTile(this, "test150DowngradeModelAddDelete");
+        TestUtil.displayTestTile(this, "test150DowngradeModelAddDelete");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test150DowngradeModelAddDelete");
@@ -489,7 +441,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test400UpgradeRawReplace() throws Exception {
-        displayTestTile(this, "test400UpgradeRawReplace");
+        TestUtil.displayTestTile(this, "test400UpgradeRawReplace");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test400UpgradeRawReplace");
@@ -520,7 +472,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test450DowngradeRawReplace() throws Exception {
-        displayTestTile(this, "test450DowngradeRawReplace");
+        TestUtil.displayTestTile(this, "test450DowngradeRawReplace");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test450DowngradeRawReplace");

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -77,7 +77,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ModifyUserAssignAccountDummyBlue() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackAssignAccountDummyBlue";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -126,7 +126,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test101ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test101ModifyUserFullName";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -160,7 +160,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test102ModifyUserOrganizationalUnit() throws Exception {
 		final String TEST_NAME = "test102ModifyUserOrganizationalUnit";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -195,7 +195,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test103ModifyAccountShip() throws Exception {
 		final String TEST_NAME = "test103ModifyAccountShip";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -237,7 +237,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test104ModifyAccountShipReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test104ModifyAccountShipReplaceEmpty";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -279,7 +279,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test105ModifyAccountShipAgain() throws Exception {
 		final String TEST_NAME = "test105ModifyAccountShipAgain";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -321,7 +321,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test106ModifyAccountShipDelete() throws Exception {
 		final String TEST_NAME = "test106ModifyAccountShipDelete";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -363,7 +363,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test109ModifyUserUnassignAccountBlue() throws Exception {
 		final String TEST_NAME = "test109ModifyUserUnassignAccountBlue";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -409,7 +409,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test120ModifyUserAssignAccountDummyRed() throws Exception {
 		final String TEST_NAME = "test120ModifyUserAssignAccountDummyRed";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -458,7 +458,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test121ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test121ModifyUserFullName";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -493,7 +493,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test122ModifyUserOrganizationalUnit() throws Exception {
 		final String TEST_NAME = "test122ModifyUserOrganizationalUnit";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -528,7 +528,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test123ModifyAccountShip() throws Exception {
 		final String TEST_NAME = "test123ModifyAccountShip";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -581,7 +581,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test124ModifyAccountShipReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test124ModifyAccountShipReplaceEmpty";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -623,7 +623,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test126ModifyAccountShipDelete() throws Exception {
 		final String TEST_NAME = "test126ModifyAccountShipDelete";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -675,7 +675,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test128ModifyUserUnassignAccountRed() throws Exception {
 		final String TEST_NAME = "test128ModifyUserUnassignAccountRed";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -735,7 +735,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test129DeleteAccountRed() throws Exception {
 		final String TEST_NAME = "test129DeleteAccountRed";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -782,7 +782,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test140ModifyUserAssignAccountDummyDefault() throws Exception {
 		final String TEST_NAME = "test140ModifyUserAssignAccountDummyDefault";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -836,7 +836,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test141ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test141ModifyUserFullName";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -874,7 +874,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test142ModifyUserLocality() throws Exception {
 		final String TEST_NAME = "test142ModifyUserLocality";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -909,7 +909,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test143ModifyAccountLocation() throws Exception {
 		final String TEST_NAME = "test143ModifyAccountLocation";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -962,7 +962,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test144ModifyAccountLocationReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test144ModifyAccountLocationReplaceEmpty";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -1004,7 +1004,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test145ModifyAccountLocationDelete() throws Exception {
 		final String TEST_NAME = "test145ModifyAccountLocationDelete";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -1052,7 +1052,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test148ModifyUserRename() throws Exception {
 		final String TEST_NAME = "test148ModifyUserRename";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -1088,7 +1088,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test149ModifyUserUnassignAccountDummy() throws Exception {
 		final String TEST_NAME = "test149ModifyUserUnassignAccountDummy";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);

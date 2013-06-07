@@ -15,13 +15,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,34 +33,17 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelCrudService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -74,13 +52,9 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -111,7 +85,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     public void test100ModifyUserAddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test100ModifyUserAddAccount");
+        TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test100ModifyUserAddAccount");
@@ -158,7 +132,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test119ModifyUserDeleteAccount");
+        TestUtil.displayTestTile(this, "test119ModifyUserDeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test119ModifyUserDeleteAccount");
@@ -200,7 +174,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test120AddAccount");
+        TestUtil.displayTestTile(this, "test120AddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test120AddAccount");
@@ -235,7 +209,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     public void test121ModifyUserAddAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test121ModifyUserAddAccountRef");
+        TestUtil.displayTestTile(this, "test121ModifyUserAddAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test121ModifyUserAddAccountRef");
@@ -273,7 +247,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     public void test128ModifyUserDeleteAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test128ModifyUserDeleteAccountRef");
+        TestUtil.displayTestTile(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test128ModifyUserDeleteAccountRef");
@@ -313,7 +287,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     public void test129DeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException, ConsistencyViolationException {
-        displayTestTile(this, "test129DeleteAccount");
+        TestUtil.displayTestTile(this, "test129DeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test129DeleteAccount");
@@ -338,7 +312,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test150AddUserBlackbeardWithAccount() throws Exception {
-        displayTestTile(this, "test150AddUserBlackbeardWithAccount");
+        TestUtil.displayTestTile(this, "test150AddUserBlackbeardWithAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test150AddUserBlackbeardWithAccount");
@@ -374,7 +348,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test210AddUserMorganWithAssignment() throws Exception {
-        displayTestTile(this, "test210AddUserMorganWithAssignment");
+        TestUtil.displayTestTile(this, "test210AddUserMorganWithAssignment");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test210AddUserMorganWithAssignment");

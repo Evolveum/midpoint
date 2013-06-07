@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
@@ -45,6 +44,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -89,7 +89,7 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 	@Test
     public void test010GetResourceRaw() throws Exception {
 		final String TEST_NAME = "test040GetResourceRaw";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
@@ -116,7 +116,7 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 	@Test
     public void test020SingleDescriptionModify() throws Exception {
 		final String TEST_NAME = "test020SingleDescriptionModify";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
     	
         Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -127,7 +127,7 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 	@Test
     public void test040RadomModifySequence() throws Exception {
     	final String TEST_NAME = "test040RadomModifySequence";
-    	displayTestTile(this, TEST_NAME);
+    	TestUtil.displayTestTile(this, TEST_NAME);
     	
     	Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

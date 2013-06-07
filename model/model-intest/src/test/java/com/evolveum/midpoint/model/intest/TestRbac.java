@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -98,7 +97,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test010SearchReuqestableRoles() throws Exception {
 		final String TEST_NAME = "test010SearchReuqestableRoles";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -119,7 +118,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test101JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test101JackAssignRolePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -128,7 +127,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
-        IntegrationTestTools.displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -149,7 +148,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test102JackModifyUserLocality() throws Exception {
 		final String TEST_NAME = "test102JackModifyUserLocality";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -163,7 +162,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
         
         // THEN
-        IntegrationTestTools.displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -179,7 +178,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110UnAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test110UnAssignRolePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -188,7 +187,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
-        IntegrationTestTools.displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -199,7 +198,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test120JackAssignRolePirateWhileAlreadyHasAccount() throws Exception {
 		final String TEST_NAME = "test120JackAssignRolePirateWhileAlreadyHasAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -235,11 +234,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
   				EXISTING_GOSSIP);
         
         // WHEN
-  		IntegrationTestTools.displayWhen(TEST_NAME);
+  		TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
-        IntegrationTestTools.displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -264,7 +263,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test121JackAssignAccountImplicitIntent() throws Exception {
 		final String TEST_NAME = "test121JackAssignAccountImplicitIntent";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -296,7 +295,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test122JackAssignAccountExplicitIntent() throws Exception {
 		final String TEST_NAME = "test122JackAssignAccountExplicitIntent";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -328,7 +327,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test127UnAssignAccountImplicitIntent() throws Exception {
 		final String TEST_NAME = "test127UnAssignAccountImplicitIntent";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -355,7 +354,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test128UnAssignAccountExplicitIntent() throws Exception {
 		final String TEST_NAME = "test128UnAssignAccountExplicitIntent";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -382,7 +381,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test129UnAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test129UnAssignRolePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -403,7 +402,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test130JackAssignRolePirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test130JackAssignRolePirateWithSeaInAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -437,7 +436,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test132JackUnAssignRolePirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test132JackUnAssignRolePirateWithSeaInAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -468,7 +467,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test134JackAssignRoleAdriaticPirate() throws Exception {
 		final String TEST_NAME = "test134JackAssignRoleAdriaticPirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -495,7 +494,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test136JackUnAssignRoleAdriaticPirate() throws Exception {
 		final String TEST_NAME = "test136JackUnAssignRoleAdriaticPirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -520,7 +519,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test137JackAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test137JackAssignRoleAdriaticPirateWithSeaInAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -554,7 +553,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -582,7 +581,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test144JackAssignRoleBlackSeaPirate() throws Exception {
 		final String TEST_NAME = "test144JackAssignRoleBlackSeaPirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -609,7 +608,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test146JackUnAssignRoleBlackSeaPirate() throws Exception {
 		final String TEST_NAME = "test146JackUnAssignRoleBlackSeaPirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -630,7 +629,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test147JackAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test147JackAssignRoleBlackSeaPirateWithSeaInAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -664,7 +663,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -692,7 +691,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test154JackAssignRoleIndianOceanPirate() throws Exception {
 		final String TEST_NAME = "test154JackAssignRoleIndianOceanPirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -719,7 +718,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test156JackUnAssignRoleIndianOceanPirate() throws Exception {
 		final String TEST_NAME = "test156JackUnAssignRoleIndianOceanPirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -744,7 +743,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test501JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test501JackAssignRolePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -776,7 +775,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test502JackModifyUserLocality() throws Exception {
 		final String TEST_NAME = "test502JackModifyUserLocality";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -805,7 +804,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test510UnAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test510UnAssignRolePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -829,7 +828,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test511DeleteAccount() throws Exception {
 		final String TEST_NAME = "test511DeleteAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -856,7 +855,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test520JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test520JackAssignRolePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -881,7 +880,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test521JackUnassignRolePirateDeleteAccount() throws Exception {
 		final String TEST_NAME = "test521JackUnassignRolePirateDeleteAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);

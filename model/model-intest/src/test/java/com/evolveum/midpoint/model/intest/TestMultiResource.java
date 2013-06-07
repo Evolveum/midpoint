@@ -16,9 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
 
 import java.io.File;
 import java.util.Collection;
@@ -37,6 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -97,7 +95,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
 	 */
     public void jackAssignRoleDummies(final String TEST_NAME) throws Exception {
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -125,7 +123,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 	
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -174,11 +172,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
 		
         // WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
         
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         
@@ -212,11 +210,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         		
         // WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
         
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
         

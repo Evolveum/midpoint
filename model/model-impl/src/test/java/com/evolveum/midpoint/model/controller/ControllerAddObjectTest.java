@@ -62,6 +62,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -111,20 +112,20 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullObject() throws Exception {
-		displayTestTile("nullObject");
+		TestUtil.displayTestTile("nullObject");
 		controller.addObject(null, taskManager.createTaskInstance(), new OperationResult("Test Operation"));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		displayTestTile("nullResult");
+		TestUtil.displayTestTile("nullResult");
 		controller.addObject(new UserType().asPrismObject(), taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithoutName() throws Exception {
-		displayTestTile("addUserWithoutName");
+		TestUtil.displayTestTile("addUserWithoutName");
 		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
 				"add-user-without-name.xml"), UserType.class);
 
@@ -142,7 +143,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserCorrect() throws Exception {
-		displayTestTile("addUserCorrect");
+		TestUtil.displayTestTile("addUserCorrect");
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
@@ -186,7 +187,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
 			SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException,
 			FileNotFoundException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		displayTestTile("addResourceCorrect");
+		TestUtil.displayTestTile("addResourceCorrect");
 		
 		
 		Task task = taskManager.createTaskInstance();

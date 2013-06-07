@@ -15,10 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.util.ArrayList;
@@ -31,27 +27,18 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestMapping;
 import com.evolveum.midpoint.model.intest.TestTriggerTask;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -60,7 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -80,7 +66,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test100ImportValidityScannerTask() throws Exception {
 		final String TEST_NAME = "test100ImportValidityScannerTask";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
@@ -98,14 +84,14 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         
 		/// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         importObjectFromFile(TASK_VALIDITY_SCANNER_FILENAME);
 		
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
         waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
         
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
         
@@ -117,7 +103,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test110HermanGoesInvalid() throws Exception {
 		final String TEST_NAME = "test110HermanGoesInvalid";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
@@ -135,11 +121,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         clock.override(validTo);
         
 		/// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
 		
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -154,7 +140,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test200ImportTriggerScannerTask() throws Exception {
 		final String TEST_NAME = "test200ImportTriggerScannerTask";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
@@ -163,14 +149,14 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         
 		/// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 		
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
         waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
         
@@ -183,7 +169,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test210JackAssignAndUnassignAccountRed() throws Exception {
 		final String TEST_NAME = "test210JackAssignAndUnassignAccountRed";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -239,7 +225,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test215JackDummyAccountDeleteAfterMonth() throws Exception {
 		final String TEST_NAME = "test215JackDummyAccountDeleteAfterMonth";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -250,13 +236,13 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         time.add(XmlTypeConverter.createDuration(true, 0, 1, 1, 0, 0, 0));
         
         // WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         clock.override(time);
         
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
         
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -264,7 +250,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test220AddDrake() throws Exception {
 		final String TEST_NAME = "test220AddDrake";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
         display("Start", start);
@@ -295,7 +281,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		display("Drake before", userDrake);
 		
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         
         addObject(userDrake);
         
@@ -317,7 +303,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test222Drake4DaysBeforeValidFrom() throws Exception {
 		final String TEST_NAME = "test222Drake4DaysBeforeValidFrom";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 4, 0, 0, 0));
@@ -345,7 +331,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test224Drake1DaysAfterValidFrom() throws Exception {
 		final String TEST_NAME = "test224Drake1DaysAfterValidFrom";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
@@ -372,7 +358,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test226Drake1DayBeforeValidTo() throws Exception {
 		final String TEST_NAME = "test226Drake1DayBeforeValidTo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 1, 0, 0, 0));
@@ -399,7 +385,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test228Drake1DayAfterValidTo() throws Exception {
 		final String TEST_NAME = "test228Drake1DayAfterValidTo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
@@ -426,7 +412,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test230Drake20DaysAfterValidTo() throws Exception {
 		final String TEST_NAME = "test230Drake20DaysAfterValidTo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 20, 0, 0, 0));
@@ -453,7 +439,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Test
     public void test232Drake40DaysAfterValidTo() throws Exception {
 		final String TEST_NAME = "test232Drake40DaysAfterValidTo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 40, 0, 0, 0));

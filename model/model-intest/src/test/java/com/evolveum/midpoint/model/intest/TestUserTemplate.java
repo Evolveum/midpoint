@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -74,7 +74,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		
 	@Test
     public void test100ModifyUserGivenName() throws Exception {
-        displayTestTile(this, "test100ModifyUserGivenName");
+        TestUtil.displayTestTile(this, "test100ModifyUserGivenName");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test100ModifyUserGivenName");
@@ -107,7 +107,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test101ModifyUserEmployeeTypePirate() throws Exception {
 		final String TEST_NAME = "test101ModifyUserEmployeeTypePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
@@ -152,7 +152,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
 		final String TEST_NAME = "test102ModifyUserEmployeeTypeBuccaneer";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
@@ -188,7 +188,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test103ModifyUserEmployeeTypeBartender() throws Exception {
 		final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
@@ -228,7 +228,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test104ModifyUserCostCenter() throws Exception {
 		final String TEST_NAME = "test104ModifyUserCostCenter";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
@@ -264,7 +264,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test105ModifyUserTelephoneNumber() throws Exception {
 		final String TEST_NAME = "test105ModifyUserTelephoneNumber";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
@@ -302,7 +302,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test106ModifyUserRemoveTelephoneNumber() throws Exception {
 		final String TEST_NAME = "test106ModifyUserRemoveTelephoneNumber";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
@@ -340,7 +340,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test107ModifyUserSetTelephoneNumber() throws Exception {
 		final String TEST_NAME = "test107ModifyUserSetTelephoneNumber";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
@@ -377,7 +377,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test200AddUserRapp() throws Exception {
-        displayTestTile(this, "test100ModifyUserGivenName");
+        TestUtil.displayTestTile(this, "test100ModifyUserGivenName");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test200AddUserRapp");
@@ -412,7 +412,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test201AddUserLargo() throws Exception {
-        displayTestTile(this, "test201AddUserLargo");
+        TestUtil.displayTestTile(this, "test201AddUserLargo");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test201AddUserLargo");
@@ -450,7 +450,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test202AddUserMonkey() throws Exception {
-        displayTestTile(this, "test202AddUserMonkey");
+        TestUtil.displayTestTile(this, "test202AddUserMonkey");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test202AddUserMonkey");
@@ -487,7 +487,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test900DeleteUser() throws Exception {
-        displayTestTile(this, "test900DeleteUser");
+        TestUtil.displayTestTile(this, "test900DeleteUser");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test900DeleteUser");

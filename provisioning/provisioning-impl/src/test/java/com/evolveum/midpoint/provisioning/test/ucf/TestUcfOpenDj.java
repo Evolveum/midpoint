@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
@@ -152,7 +153,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@BeforeMethod
 	public void initUcf() throws Exception {
-		displayTestTile("initUcf");
+		TestUtil.displayTestTile("initUcf");
 
 		File file = new File(FILENAME_RESOURCE_OPENDJ);
 		FileInputStream fis = new FileInputStream(file);
@@ -198,7 +199,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void testConnectorSchemaSanity() throws Exception {
-		displayTestTile("testConnectorSchemaSanity");
+		TestUtil.displayTestTile("testConnectorSchemaSanity");
 	
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "LDAP connector");		
 	}
@@ -206,7 +207,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void testResourceSchemaSanity() throws Exception {
-		displayTestTile("testResourceSchemaSanity");
+		TestUtil.displayTestTile("testResourceSchemaSanity");
 		
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
@@ -281,7 +282,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testAddDeleteObject() throws Exception {
-		displayTestTile(this, "testDeleteObject");
+		TestUtil.displayTestTile(this, "testDeleteObject");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testDelete");
 
@@ -313,7 +314,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testChangeModifyObject() throws Exception {
-		displayTestTile(this, "testChangeModifyObject");
+		TestUtil.displayTestTile(this, "testChangeModifyObject");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testModify");
 
@@ -356,7 +357,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testFetchChanges() throws Exception {
-		displayTestTile(this, "testFetchChanges");
+		TestUtil.displayTestTile(this, "testFetchChanges");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -373,7 +374,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	// This obviously does not work with LDAP connector
 	@Test(enabled = false)
 	public void testDisableAccount() throws Exception {
-		displayTestTile(this, "testDisableAccount");
+		TestUtil.displayTestTile(this, "testDisableAccount");
 
 		// GIVEN
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testDisableAccount");
@@ -457,7 +458,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void testTestConnection() throws Exception {
-		displayTestTile("testTestConnection");
+		TestUtil.displayTestTile("testTestConnection");
 		// GIVEN
 
 		OperationResult result = new OperationResult("testTestConnection");
@@ -483,7 +484,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void testTestConnectionNegative() throws Exception {
-		displayTestTile("testTestConnectionNegative");
+		TestUtil.displayTestTile("testTestConnectionNegative");
 		// GIVEN
 
 		OperationResult result = new OperationResult("testTestConnectionNegative");
@@ -516,7 +517,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void testFetchResourceSchema() throws CommunicationException, SchemaException {
-		displayTestTile("testFetchResourceSchema");
+		TestUtil.displayTestTile("testFetchResourceSchema");
 		// GIVEN
 
 		// WHEN
@@ -565,7 +566,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testCapabilities() throws Exception {
-		displayTestTile("testCapabilities");
+		TestUtil.displayTestTile("testCapabilities");
 		// GIVEN
 
 		OperationResult result = new OperationResult("testCapabilities");
@@ -586,7 +587,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testFetchObject() throws Exception {
-		displayTestTile("testFetchObject");
+		TestUtil.displayTestTile("testFetchObject");
 
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
@@ -620,7 +621,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testSearch() throws UcfException, SchemaException, CommunicationException {
-		displayTestTile("testSearch");
+		TestUtil.displayTestTile("testSearch");
 		// GIVEN
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -646,7 +647,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testCreateAccountWithPassword() throws Exception {
-		displayTestTile("testCreateAccountWithPassword");
+		TestUtil.displayTestTile("testCreateAccountWithPassword");
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=lechuck,ou=people,dc=example,dc=com", "Ghost Pirate LeChuck", "LeChuck");
@@ -686,7 +687,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testChangePassword() throws Exception {
-		displayTestTile("testChangePassword");
+		TestUtil.displayTestTile("testChangePassword");
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=drake,ou=People,dc=example,dc=com", "Sir Francis Drake", "Drake");

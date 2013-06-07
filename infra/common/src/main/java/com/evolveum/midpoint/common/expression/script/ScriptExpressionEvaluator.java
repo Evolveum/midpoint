@@ -127,14 +127,26 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				}
 			}
 			if (includeNulls == null || includeNulls) {
+				// Make sure that we properly handle the "null" states, i.e. the states when we enter
+				// "empty" value and exit "empty" value for a property
+				// We need this to properly handle "negative" expressions, i.e. expressions that return non-null
+				// value for null input. We need to make sure such expressions receive the null input when needed
 				Item<? extends PrismValue> itemOld = source.getItemOld();
 				Item<? extends PrismValue> itemNew = source.getItemNew();
 				if (itemOld == null || itemOld.isEmpty()) {
-					if (!(itemNew == null || itemNew.isEmpty())) {
+					if (!(itemNew == null || itemNew.isEmpty())) { 
+						// change empty -> non-empty: we are removing "null" value
 						sourceTriple.addToMinusSet(null);
+					} else if (sourceTriple.hasMinusSet()) {
+						// special case: change empty -> empty, but there is still a delete delta
+						// so it seems something was deleted. This is strange case, but we prefer the delta over
+						// the absolute states (which may be out of date).
+						// Similar case than that of non-empty -> empty (see below)
+						sourceTriple.addToPlusSet(null);
 					}
 				} else {
 					if (itemNew == null || itemNew.isEmpty()) {
+						// change non-empty -> empty: we are adding "null" value
 						sourceTriple.addToPlusSet(null);
 					}
 				}

@@ -80,6 +80,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -130,7 +131,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@BeforeClass
 	public void setup() throws SchemaException, SAXException, IOException {
-		displayTestTile("setup");
+		TestUtil.displayTestTile("setup");
 		System.setProperty("midpoint.home", "target/midPointHome/");
 
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -152,7 +153,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 	@Test
 	public void test000PrismContextSanity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test000PrismContextSanity");
+		TestUtil.displayTestTile("test000PrismContextSanity");
 		
 		SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
 		PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION);
@@ -169,7 +170,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test001ResourceSanity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test001ResourceSanity");
+		TestUtil.displayTestTile("test001ResourceSanity");
 		
 		display("Resource", resource);
 		
@@ -201,7 +202,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void test002ConnectorSchema() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test002ConnectorSchema");
+		TestUtil.displayTestTile("test002ConnectorSchema");
 		
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertNotNull("Failed to instantiate connector", cc);
@@ -227,7 +228,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void test010ListConnectors() throws CommunicationException {
-		displayTestTile("test004ListConnectors");
+		TestUtil.displayTestTile("test004ListConnectors");
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".testListConnectors");
 		Set<ConnectorType> listConnectors = manager.listConnectors(null, result);
@@ -253,7 +254,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	public void test020CreateConfiguredConnector() throws FileNotFoundException, JAXBException,
 			ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ConfigurationException {
-		displayTestTile("test004CreateConfiguredConnector");
+		TestUtil.displayTestTile("test004CreateConfiguredConnector");
 		
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertNotNull("Failed to instantiate connector", cc);
@@ -272,7 +273,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test030ResourceSchema() throws ObjectNotFoundException, SchemaException, CommunicationException, GenericFrameworkException, ConfigurationException {
-		displayTestTile("test030ResourceSchema");
+		TestUtil.displayTestTile("test030ResourceSchema");
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
 		
@@ -307,7 +308,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test040AddAccount() throws Exception {
-		displayTestTile(this, "test040AddAccount");
+		TestUtil.displayTestTile(this, "test040AddAccount");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test040AddAccount");
 
@@ -336,7 +337,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test050Search() throws UcfException, SchemaException, CommunicationException {
-		displayTestTile("test050Search");
+		TestUtil.displayTestTile("test050Search");
 		// GIVEN
 
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -374,7 +375,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test100FetchEmptyChanges() throws Exception {
-		displayTestTile(this, "test100FetchEmptyChanges");
+		TestUtil.displayTestTile(this, "test100FetchEmptyChanges");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test100FetchEmptyChanges");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -400,7 +401,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test101FetchAddChange() throws Exception {
-		displayTestTile(this, "test101FetchAddChange");
+		TestUtil.displayTestTile(this, "test101FetchAddChange");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test101FetchAddChange");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);

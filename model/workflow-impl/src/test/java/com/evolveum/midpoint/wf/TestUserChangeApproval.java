@@ -39,6 +39,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,7 +65,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -129,7 +129,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
      */
 	@Test(enabled = true)
     public void test010UserModifyAddRole() throws Exception {
-        displayTestTile(this, "test010UserModifyAddRole");
+        TestUtil.displayTestTile(this, "test010UserModifyAddRole");
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
                @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
@@ -175,7 +175,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test011UserModifyAddRoleChangeGivenName() throws Exception {
-        displayTestTile(this, "test011UserModifyAddRoleChangeGivenName");
+        TestUtil.displayTestTile(this, "test011UserModifyAddRoleChangeGivenName");
         executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -218,7 +218,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test012UserModifyAddRoleChangeGivenNameImmediate() throws Exception {
-        displayTestTile(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
+        TestUtil.displayTestTile(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
         executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, 2, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -260,7 +260,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test020UserModifyAddThreeRoles() throws Exception {
-        displayTestTile(this, "test020UserModifyAddThreeRoles");
+        TestUtil.displayTestTile(this, "test020UserModifyAddThreeRoles");
         executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, 2, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -312,7 +312,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test021UserModifyAddThreeRolesImmediate() throws Exception {
-        displayTestTile(this, "test021UserModifyAddThreeRolesImmediate");
+        TestUtil.displayTestTile(this, "test021UserModifyAddThreeRolesImmediate");
         executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, 3, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -361,7 +361,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test030UserAdd() throws Exception {
-        displayTestTile(this, "test030UserAdd");
+        TestUtil.displayTestTile(this, "test030UserAdd");
         executeTest("test030UserAdd", null, 2, false, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -409,7 +409,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test031UserAddImmediate() throws Exception {
-        displayTestTile(this, "test031UserAddImmediate");
+        TestUtil.displayTestTile(this, "test031UserAddImmediate");
 
         deleteUserFromModel("bill");
 
@@ -464,7 +464,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test040UserModifyPasswordChangeBlocked() throws Exception {
-        displayTestTile(this, "test040UserModifyPasswordChangeBlocked");
+        TestUtil.displayTestTile(this, "test040UserModifyPasswordChangeBlocked");
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
@@ -507,7 +507,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test041UserModifyPasswordChange() throws Exception {
-        displayTestTile(this, "test041UserModifyPasswordChange");
+        TestUtil.displayTestTile(this, "test041UserModifyPasswordChange");
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
@@ -545,7 +545,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Test(enabled = true)
     public void test050UserModifyAddRoleAndPasswordChange() throws Exception {
-        displayTestTile(this, "test050UserModifyAddRoleAndPasswordChange");
+        TestUtil.displayTestTile(this, "test050UserModifyAddRoleAndPasswordChange");
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();

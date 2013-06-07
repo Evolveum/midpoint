@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -40,6 +39,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -75,7 +75,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test001Connectors() throws SchemaException {
-		displayTestTile("test001Connectors");
+		TestUtil.displayTestTile("test001Connectors");
 		
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".test001Connectors");
@@ -100,7 +100,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		
 	@Test
 	public void testListConnectors() throws Exception{
-		displayTestTile("testListConnectors");
+		TestUtil.displayTestTile("testListConnectors");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".listConnectorsTest");
 		
@@ -120,7 +120,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	
 	@Test
 	public void testSearchConnectorSimple() throws SchemaException{
-		displayTestTile("testSearchConnectorSimple");
+		TestUtil.displayTestTile("testSearchConnectorSimple");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".testSearchConnector");
 		
@@ -131,7 +131,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	
 	@Test
 	public void testSearchConnectorAnd() throws SchemaException{
-		displayTestTile("testSearchConnectorAnd");
+		TestUtil.displayTestTile("testSearchConnectorAnd");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".testSearchConnector");
 		

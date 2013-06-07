@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -68,7 +69,7 @@ public class TestAssignmentEvaluator extends AbstractInternalModelIntegrationTes
 
 	@Test
 	public void testDirect() throws ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException {
-		displayTestTile(this, "testDirect");
+		TestUtil.displayTestTile(this, "testDirect");
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestAssignmentEvaluator.class.getName() + ".testDirect");

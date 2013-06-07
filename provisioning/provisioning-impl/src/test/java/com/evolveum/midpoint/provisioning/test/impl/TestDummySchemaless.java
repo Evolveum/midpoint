@@ -23,7 +23,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -60,6 +59,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -156,7 +156,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test000Integrity");
+		TestUtil.displayTestTile("test000Integrity");
 
 		display("Dummy resource instance", dummyResourceSchemaless.toString());
 
@@ -188,7 +188,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test003ConnectionSchemaless() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test003ConnectionSchemaless");
+		TestUtil.displayTestTile("test003ConnectionSchemaless");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test003ConnectionSchemaless");
@@ -226,7 +226,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test005ParsedSchemaSchemaless() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException {
-		displayTestTile("test005ParsedSchemaSchemaless");
+		TestUtil.displayTestTile("test005ParsedSchemaSchemaless");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test005ParsedSchemaSchemaless");
@@ -245,7 +245,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	@Test
 	public void test006GetObjectSchemaless() throws Exception {
-		displayTestTile("test006GetObjectSchemaless");
+		TestUtil.displayTestTile("test006GetObjectSchemaless");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test006GetObjectSchemaless");
@@ -266,7 +266,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test103ConnectionStaticSchema() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test103ConnectionStaticSchema");
+		TestUtil.displayTestTile("test103ConnectionStaticSchema");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test003ConnectionSchemaless");
@@ -302,7 +302,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test105ParsedSchemaStaticSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException {
-		displayTestTile("test105ParsedSchemaStaticSchema");
+		TestUtil.displayTestTile("test105ParsedSchemaStaticSchema");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test105ParsedSchemaStaticSchema");
@@ -322,7 +322,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	@Test
 	public void test106GetObjectStaticSchema() throws Exception {
-		displayTestTile("test106GetObjectStaticSchema");
+		TestUtil.displayTestTile("test106GetObjectStaticSchema");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test106GetObjectStaticSchema");
@@ -344,7 +344,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test107Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			JAXBException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test107Capabilities");
+		TestUtil.displayTestTile("test107Capabilities");
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -400,7 +400,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test200AddAccount() throws Exception {
-		displayTestTile("test110AddAccount");
+		TestUtil.displayTestTile("test110AddAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test110AddAccount");

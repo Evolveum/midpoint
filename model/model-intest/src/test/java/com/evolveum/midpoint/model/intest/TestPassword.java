@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -75,7 +75,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 	@Test
     public void test010AddPasswordPolicy() throws Exception {
-        displayTestTile(this, "test010AddPasswordPolicy");
+        TestUtil.displayTestTile(this, "test010AddPasswordPolicy");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test010AddPasswordPolicy");
@@ -103,7 +103,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test050CheckJackPassword() throws Exception {
-        displayTestTile(this, "test050CheckJackPassword");
+        TestUtil.displayTestTile(this, "test050CheckJackPassword");
 
         // GIVEN, WHEN
         // this happens during test initialization when user-jack.xml is added
@@ -122,7 +122,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 	@Test
     public void test051ModifyUserJackPassword() throws Exception {
-        displayTestTile(this, "test051ModifyUserJackPassword");
+        TestUtil.displayTestTile(this, "test051ModifyUserJackPassword");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test051ModifyUserJackPassword");
@@ -152,7 +152,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
-        displayTestTile(this, "test100ModifyUserJackAssignAccount");
+        TestUtil.displayTestTile(this, "test100ModifyUserJackAssignAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test100ModifyUserJackAssignAccount");
@@ -194,7 +194,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test110ModifyUserJackPassword() throws Exception {
-        displayTestTile(this, "test110ModifyUserJackPassword");
+        TestUtil.displayTestTile(this, "test110ModifyUserJackPassword");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test110ModifyUserJackPassword");
@@ -228,7 +228,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test111ModifyAccountJackPassword() throws Exception {
-        displayTestTile(this, "test111ModifyAccountJackPassword");
+        TestUtil.displayTestTile(this, "test111ModifyAccountJackPassword");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test111ModifyAccountJackPassword");
@@ -266,7 +266,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test112ModifyJackPasswordUserAndAccount() throws Exception {
-        displayTestTile(this, "test112ModifyJackPasswordUserAndAccount");
+        TestUtil.displayTestTile(this, "test112ModifyJackPasswordUserAndAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test112ModifyJackPasswordUserAndAccount");
@@ -306,7 +306,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test120ModifyUserJackAssignAccountDummyRed() throws Exception {
-        displayTestTile(this, "test120ModifyUserJackAssignAccountDummyRed");
+        TestUtil.displayTestTile(this, "test120ModifyUserJackAssignAccountDummyRed");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test120ModifyUserJackAssignAccountDummyRed");
@@ -346,7 +346,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test121ModifyJackPasswordUserAndAccountRed() throws Exception {
-        displayTestTile(this, "test121ModifyJackPasswordUserAndAccountRed");
+        TestUtil.displayTestTile(this, "test121ModifyJackPasswordUserAndAccountRed");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");

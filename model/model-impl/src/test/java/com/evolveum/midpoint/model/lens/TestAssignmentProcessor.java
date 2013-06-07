@@ -66,7 +66,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
@@ -93,7 +92,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
      */
     @Test
     public void test001OutboundEmpty() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        displayTestTile(this, "test001OutboundEmpty");
+        TestUtil.displayTestTile(this, "test001OutboundEmpty");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test001OutboundEmpty");
@@ -116,7 +115,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
     @Test
     public void test002ModifyUser() throws Exception {
-        displayTestTile(this, "test002ModifyUser");
+        TestUtil.displayTestTile(this, "test002ModifyUser");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test002ModifyUser");
@@ -176,7 +175,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
     
 	@Test
     public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        displayTestTile(this, "test011AddAssignmentAddAccountDirect");
+        TestUtil.displayTestTile(this, "test011AddAssignmentAddAccountDirect");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test011AddAssignmentAddAccountDirect");
@@ -216,7 +215,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
     @Test
     public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        displayTestTile(this, "test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
+        TestUtil.displayTestTile(this, "test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
@@ -283,7 +282,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
 	@Test
     public void test021AddAssignmentModifyAccountAssignment() throws Exception {
-        displayTestTile(this, "test021AddAssignmentModifyAccountAssignment");
+        TestUtil.displayTestTile(this, "test021AddAssignmentModifyAccountAssignment");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccountAssignment");
@@ -378,7 +377,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
 	@Test
     public void test031DeleteAssignmentModifyAccount() throws Exception {
-        displayTestTile(this, "test031DeleteAssignmentModifyAccount");
+        TestUtil.displayTestTile(this, "test031DeleteAssignmentModifyAccount");
 
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test031DeleteAssignmentModifyAccount");
@@ -460,7 +459,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 	
 	@Test
 	 public void test032ModifyUserLegalizeAccount() throws Exception {
-	        displayTestTile(this, "test032ModifyUserLegalizeAccount");
+	        TestUtil.displayTestTile(this, "test032ModifyUserLegalizeAccount");
 
 	        // GIVEN
 	        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test032ModifyUserLegalizeAccount");

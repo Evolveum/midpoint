@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 
 import java.util.List;
 
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -67,7 +67,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100GetRepositoryDiag() throws Exception {
 		final String TEST_NAME = "test100GetRepositoryDiag";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -89,7 +89,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110RepositorySelfTest() throws Exception {
 		final String TEST_NAME = "test110RepositorySelfTest";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -107,7 +107,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ExportUsers() throws Exception {
 		final String TEST_NAME = "test200ExportUsers";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);

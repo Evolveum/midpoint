@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.sync;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -71,7 +71,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test010AddedAccountJack() throws Exception {
 		final String TEST_NAME = "test010AddedAccountJack";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -122,7 +122,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test020ModifyLootAbsolute() throws Exception {
 		final String TEST_NAME = "test020ModifyLootAbsolute";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -170,7 +170,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test021ModifyLootAbsoluteEmpty() throws Exception {
 		final String TEST_NAME = "test021ModifyLootAbsoluteEmpty";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);

@@ -27,7 +27,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -157,7 +156,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test000Integrity");
+		TestUtil.displayTestTile("test000Integrity");
 
 		display("Dummy resource instance", dummyResource.toString());
 
@@ -193,7 +192,7 @@ public class TestDummy extends AbstractDummyTest {
 	 */
 	@Test
 	public void test001Connectors() throws SchemaException {
-		displayTestTile("test001Connectors");
+		TestUtil.displayTestTile("test001Connectors");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test001Connectors");
@@ -244,7 +243,7 @@ public class TestDummy extends AbstractDummyTest {
 	 */
 	@Test
 	public void test002ConnectorRediscovery() {
-		displayTestTile("test002ConnectorRediscovery");
+		TestUtil.displayTestTile("test002ConnectorRediscovery");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test002ConnectorRediscovery");
@@ -268,7 +267,7 @@ public class TestDummy extends AbstractDummyTest {
 	 */
 	@Test
 	public void test003Connection() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test003Connection");
+		TestUtil.displayTestTile("test003Connection");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test003Connection");
@@ -335,7 +334,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
-		displayTestTile("test004Configuration");
+		TestUtil.displayTestTile("test004Configuration");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test004Configuration");
@@ -386,7 +385,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException {
-		displayTestTile("test005ParsedSchema");
+		TestUtil.displayTestTile("test005ParsedSchema");
 		// GIVEN
 
 		// THEN
@@ -414,7 +413,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test006RefinedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException {
-		displayTestTile("test006RefinedSchema");
+		TestUtil.displayTestTile("test006RefinedSchema");
 		// GIVEN
 
 		// WHEN
@@ -473,7 +472,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test007Capabilities() throws Exception {
 		final String TEST_NAME = "test007Capabilities";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -540,7 +539,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test008CapabilitiesRepo() throws Exception {
 		final String TEST_NAME = "test008CapabilitiesRepo";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -594,7 +593,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test010ResourceAndConnectorCaching() throws Exception {
-		displayTestTile("test010ResourceAndConnectorCaching");
+		TestUtil.displayTestTile("test010ResourceAndConnectorCaching");
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -674,7 +673,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test011ResourceAndConnectorCachingForceFresh() throws Exception {
-		displayTestTile("test011ResourceAndConnectorCachingForceFresh");
+		TestUtil.displayTestTile("test011ResourceAndConnectorCachingForceFresh");
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -732,7 +731,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test020ApplyDefinitionShadow() throws Exception {
 		final String TEST_NAME = "test020ApplyDefinitionShadow";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -758,7 +757,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test021ApplyDefinitionAddShadowDelta() throws Exception {
 		final String TEST_NAME = "test021ApplyDefinitionAddShadowDelta";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -785,7 +784,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test022ApplyDefinitionResource() throws Exception {
 		final String TEST_NAME = "test022ApplyDefinitionResource";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -815,7 +814,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test023ApplyDefinitionAddResourceDelta() throws Exception {
 		final String TEST_NAME = "test023ApplyDefinitionAddResourceDelta";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -849,7 +848,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -925,7 +924,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test101AddAccountWithoutName() throws Exception {
-		displayTestTile("test101AddAccountWithoutName");
+		TestUtil.displayTestTile("test101AddAccountWithoutName");
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test101AddAccountWithoutName");
@@ -984,7 +983,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test102GetAccount() throws Exception {
 		final String TEST_NAME = "test102GetAccount";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1021,7 +1020,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test103GetAccountNoFetch() throws Exception {
 		final String TEST_NAME="test103GetAccountNoFetch";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "."+TEST_NAME);
@@ -1051,7 +1050,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test105ApplyDefinitionModifyDelta() throws Exception {
-		displayTestTile("test105ApplyDefinitionModifyDelta");
+		TestUtil.displayTestTile("test105ApplyDefinitionModifyDelta");
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -1078,7 +1077,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test112SeachIterative() throws Exception {
-		displayTestTile("test112SeachIterative");
+		TestUtil.displayTestTile("test112SeachIterative");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test112SeachIterative");
@@ -1156,7 +1155,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test113SearchAllShadowsInRepository() throws Exception {
-		displayTestTile("test113SearchAllShadowsInRepository");
+		TestUtil.displayTestTile("test113SearchAllShadowsInRepository");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test113SearchAllShadowsInRepository");
@@ -1182,7 +1181,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test114SearchAllShadows() throws Exception {
-		displayTestTile("test114SearchAllShadows");
+		TestUtil.displayTestTile("test114SearchAllShadows");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test114SearchAllShadows");
@@ -1212,7 +1211,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test115countAllShadows() throws Exception {
-		displayTestTile("test115countAllShadows");
+		TestUtil.displayTestTile("test115countAllShadows");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test115countAllShadows");
@@ -1237,7 +1236,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test116SearchNullQueryResource() throws Exception {
-		displayTestTile("test116SearchNullQueryResource");
+		TestUtil.displayTestTile("test116SearchNullQueryResource");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test116SearchNullQueryResource");
@@ -1261,7 +1260,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test117CountNullQueryResource() throws Exception {
-		displayTestTile("test117CountNullQueryResource");
+		TestUtil.displayTestTile("test117CountNullQueryResource");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test117CountNullQueryResource");
@@ -1288,7 +1287,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test123ModifyObjectReplace() throws Exception {
 		final String TEST_NAME = "test123ModifyObjectReplace";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1320,7 +1319,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test124ModifyObjectAddPirate() throws Exception {
-		displayTestTile("test124ModifyObjectAddPirate");
+		TestUtil.displayTestTile("test124ModifyObjectAddPirate");
 
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test124ModifyObjectAddPirate");
@@ -1353,7 +1352,7 @@ public class TestDummy extends AbstractDummyTest {
 	
 	@Test
 	public void test125ModifyObjectAddCaptain() throws Exception {
-		displayTestTile("test125ModifyObjectAddCaptain");
+		TestUtil.displayTestTile("test125ModifyObjectAddCaptain");
 
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test125ModifyObjectAddCaptain");
@@ -1386,7 +1385,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test126ModifyObjectDeletePirate() throws Exception {
-		displayTestTile("test126ModifyObjectDeletePirate");
+		TestUtil.displayTestTile("test126ModifyObjectDeletePirate");
 
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test126ModifyObjectDeletePirate");
@@ -1424,7 +1423,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test127ModifyObjectAddCaptainAgain() throws Exception {
 		final String TEST_NAME = "test127ModifyObjectAddCaptainAgain";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1460,7 +1459,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test128NullAttributeValue() throws Exception {
 		final String TEST_NAME = "test128NullAttributeValue";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1490,7 +1489,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test131AddScript() throws Exception {
 		final String TEST_NAME = "test131AddScript";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1545,7 +1544,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test132ModifyScript() throws Exception {
 		final String TEST_NAME = "test132ModifyScript";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1594,7 +1593,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test133ModifyScriptNoExec() throws Exception {
 		final String TEST_NAME = "test133ModifyScriptNoExec";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1636,7 +1635,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test134DeleteScript() throws Exception {
 		final String TEST_NAME = "test134DeleteScript";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1673,7 +1672,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test150DisableAccount() throws Exception {
 		final String TEST_NAME = "test150DisableAccount";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1718,7 +1717,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test152EnableAccount() throws Exception {
 		final String TEST_NAME = "test152EnableAccount";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1762,7 +1761,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test155SetValidFrom() throws Exception {
 		final String TEST_NAME = "test155SetValidFrom";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1809,7 +1808,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test156SetValidTo() throws Exception {
 		final String TEST_NAME = "test156SetValidTo";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1857,7 +1856,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test158GetAccount() throws Exception {
 		final String TEST_NAME = "test158GetAccount";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1888,7 +1887,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test200AddGroup() throws Exception {
 		final String TEST_NAME = "test200AddGroup";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1945,7 +1944,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test202GetGroup() throws Exception {
 		final String TEST_NAME = "test200AddGroup";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -1985,7 +1984,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test203GetGroupNoFetch() throws Exception {
 		final String TEST_NAME="test203GetGroupNoFetch";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "."+TEST_NAME);
@@ -2016,7 +2015,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test205ModifyGroupReplace() throws Exception {
 		final String TEST_NAME = "test205ModifyGroupReplace";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2049,7 +2048,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test210AddPrivilege() throws Exception {
 		final String TEST_NAME = "test210AddPrivilege";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2103,7 +2102,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test212GetPriv() throws Exception {
 		final String TEST_NAME = "test212GetPriv";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2142,7 +2141,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test220EntitleAccountWillPirates() throws Exception {
 		final String TEST_NAME = "test220EntitleAccountWillPirates";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2179,7 +2178,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test221GetPirateWill() throws Exception {
 		final String TEST_NAME = "test221GetPirateWill";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2209,7 +2208,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test223EntitleAccountWillPillage() throws Exception {
 		final String TEST_NAME = "test223EntitleAccountWillPillage";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2257,7 +2256,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test224GetPillagingPirateWill() throws Exception {
 		final String TEST_NAME = "test224GetPillagingPirateWill";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2297,7 +2296,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test225DetitleAccountWillPirates() throws Exception {
 		final String TEST_NAME = "test225DetitleAccountWillPirates";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2340,7 +2339,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test228DetitleAccountWillPillage() throws Exception {
 		final String TEST_NAME = "test228DetitleAccountWillPillage";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2386,7 +2385,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test230AddAccountLeChuck() throws Exception {
 		final String TEST_NAME = "test230AddAccountLeChuck";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2462,7 +2461,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test235DeleteAccountLeChuck() throws Exception {
 		final String TEST_NAME = "test235DeleteAccountLeChuck";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2511,7 +2510,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test238DeletePrivPillage() throws Exception {
 		final String TEST_NAME = "test238DeletePrivPillage";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2552,7 +2551,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test239DeleteGroupPirates() throws Exception {
 		final String TEST_NAME = "test239DeleteGroupPirates";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2593,7 +2592,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test300AccountRename() throws Exception {
 		final String TEST_NAME = "test300AccountRename";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2631,7 +2630,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
-		displayTestTile("test500AddProtectedAccount");
+		TestUtil.displayTestTile("test500AddProtectedAccount");
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test500AddProtectedAccount");
@@ -2676,7 +2675,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test501GetProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException,
 			SchemaException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test501GetProtectedAccount");
+		TestUtil.displayTestTile("test501GetProtectedAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test501GetProtectedAccount");
@@ -2696,7 +2695,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test502ModifyProtectedAccountShadow() throws Exception {
-		displayTestTile("test502ModifyProtectedAccountShadow");
+		TestUtil.displayTestTile("test502ModifyProtectedAccountShadow");
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test502ModifyProtectedAccountShadow");
@@ -2737,7 +2736,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test503DeleteProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException,
 			SchemaException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test503DeleteProtectedAccountShadow");
+		TestUtil.displayTestTile("test503DeleteProtectedAccountShadow");
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test503DeleteProtectedAccountShadow");
@@ -2771,7 +2770,7 @@ public class TestDummy extends AbstractDummyTest {
 	public void test800LiveSyncInit() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException {
-		displayTestTile("test800LiveSyncInit");
+		TestUtil.displayTestTile("test800LiveSyncInit");
 		syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
@@ -2801,7 +2800,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test801LiveSyncAddBlackbeard() throws Exception {
-		displayTestTile("test801LiveSyncAddBlackbeard");
+		TestUtil.displayTestTile("test801LiveSyncAddBlackbeard");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test801LiveSyncAddBlackbeard");
@@ -2859,7 +2858,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test802LiveSyncModifyBlackbeard() throws Exception {
-		displayTestTile("test802LiveSyncModifyBlackbeard");
+		TestUtil.displayTestTile("test802LiveSyncModifyBlackbeard");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test802LiveSyncModifyBlackbeard");
@@ -2931,7 +2930,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test803LiveSyncAddDrake() throws Exception {
 		final String TEST_NAME = "test803LiveSyncAddDrake";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2995,7 +2994,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test809LiveSyncDeleteDrake() throws Exception {
 		final String TEST_NAME = "test809LiveSyncDeleteDrake";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -3060,7 +3059,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test810LiveSyncModifyProtectedAccount() throws Exception {
-		displayTestTile("test810LiveSyncModifyProtectedAccount");
+		TestUtil.displayTestTile("test810LiveSyncModifyProtectedAccount");
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test810LiveSyncModifyProtectedAccount");
@@ -3095,7 +3094,7 @@ public class TestDummy extends AbstractDummyTest {
 	public void test901FailResourceNotFound() throws FileNotFoundException, JAXBException,
 			ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
-		displayTestTile("test901FailResourceNotFound");
+		TestUtil.displayTestTile("test901FailResourceNotFound");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test901FailResourceNotFound");

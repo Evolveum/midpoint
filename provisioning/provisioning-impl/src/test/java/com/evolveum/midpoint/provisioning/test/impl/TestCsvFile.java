@@ -54,6 +54,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -142,7 +143,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test000Integrity");
+		TestUtil.displayTestTile("test000Integrity");
 		
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
@@ -171,7 +172,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test003Connection() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test003Connection");
+		TestUtil.displayTestTile("test003Connection");
 		// GIVEN
 		OperationResult result = new OperationResult(TestCsvFile.class.getName()
 				+ ".test003Connection");
@@ -220,7 +221,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 	
 	@Test
 	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test004Configuration");
+		TestUtil.displayTestTile("test004Configuration");
 		// GIVEN
 		OperationResult result = new OperationResult(TestCsvFile.class.getName()
 				+ ".test004Configuration");
@@ -243,7 +244,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 
 	@Test
 	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
-		displayTestTile("test005ParsedSchema");
+		TestUtil.displayTestTile("test005ParsedSchema");
 		// GIVEN
 		OperationResult result = new OperationResult(TestCsvFile.class.getName()
 				+ ".test005ParsedSchema");

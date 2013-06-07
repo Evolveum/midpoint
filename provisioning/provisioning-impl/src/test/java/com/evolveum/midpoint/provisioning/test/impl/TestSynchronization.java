@@ -18,7 +18,6 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
@@ -53,6 +52,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -116,7 +116,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test010Sanity() throws Exception {
 		final String TEST_NAME = "test010Sanity";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 
@@ -140,7 +140,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test100Synchronization() throws Exception {
 		final String TEST_NAME = "test100Synchronization";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 

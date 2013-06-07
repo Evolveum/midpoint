@@ -16,16 +16,12 @@
 package com.evolveum.midpoint.model.intest.sync;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -70,7 +67,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ImportFromResourceDummy() throws Exception {
 		final String TEST_NAME = "test100ImportFromResourceDummy";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
@@ -88,17 +85,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertAccounts(rapp, 0);
         
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
 		
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         IntegrationTestTools.assertInProgress("importAccountsFromResource result", subresult);
         
         waitForTaskFinish(task, true, 40000);
         
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -120,7 +117,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ReconcileDummy() throws Exception {
 		final String TEST_NAME = "test200ReconcileDummy";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
@@ -151,15 +148,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         calypsoDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
         
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         importObjectFromFile(TASK_RECONCILE_DUMMY_FILENAME);
 		
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
         
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);

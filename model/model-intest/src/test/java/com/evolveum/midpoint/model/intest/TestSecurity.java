@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -76,7 +75,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test010GetUserAdministrator() throws Exception {
 		final String TEST_NAME = "test010GetUserAdministrator";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getUser(USER_ADMINISTRATOR_USERNAME);
@@ -93,7 +92,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test050GetUserJack() throws Exception {
 		final String TEST_NAME = "test050GetUserJack";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getUser(USER_JACK_USERNAME);
@@ -109,7 +108,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test051GetUserBarbossa() throws Exception {
 		final String TEST_NAME = "test051GetUserBarbossa";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getUser(USER_BARBOSSA_USERNAME);
@@ -130,7 +129,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test052GetUserGuybrush() throws Exception {
 		final String TEST_NAME = "test052GetUserGuybrush";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getUser(USER_GUYBRUSH_USERNAME);
@@ -152,7 +151,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100JackRolePirate() throws Exception {
 		final String TEST_NAME = "test100JackRolePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -174,7 +173,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110GuybrushRoleNicePirate() throws Exception {
 		final String TEST_NAME = "test110GuybrushRoleNicePirate";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -194,7 +193,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test111GuybrushRoleCaptain() throws Exception {
 		final String TEST_NAME = "test111GuybrushRoleCaptain";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

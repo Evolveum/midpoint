@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import javax.xml.bind.JAXBException;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -55,7 +55,7 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
 	 */
 	@Test
     public void test001GetObject() throws Exception {
-        displayTestTile(this, "test001GetObject");
+        TestUtil.displayTestTile(this, "test001GetObject");
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test001GetObject");
         OperationResult result = task.getResult();
@@ -69,7 +69,7 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
 	
 	@Test
     public void test002TestConnection() throws Exception {
-        displayTestTile(this, "test002TestConnection");
+        TestUtil.displayTestTile(this, "test002TestConnection");
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test002TestConnection");
         

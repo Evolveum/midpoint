@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.ArrayList;
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -61,7 +61,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test001OrgStructSanity() throws Exception {
 		final String TEST_NAME = "test001OrgStructSanity";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         // WHEN
         assertMonkeyIslandOrgSanity();
@@ -70,7 +70,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test002RootOrgQuery() throws Exception {
 		final String TEST_NAME = "test002RootOrgQuery";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -94,7 +94,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test101JackAssignScummBar() throws Exception {
 		final String TEST_NAME = "test101JackAssignScummBar";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -120,7 +120,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test102JackUnassignScummBar() throws Exception {
 		final String TEST_NAME = "test102JackUnassignScummBar";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -145,7 +145,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test201JackAssignScummBarAndSaveElaine() throws Exception {
 		final String TEST_NAME = "test201JackAssignScummBarAndSaveElaine";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -179,7 +179,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test202JackAssignMinistryOfOffense() throws Exception {
 		final String TEST_NAME = "test202JackAssignMinistryOfOffense";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -206,7 +206,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test207JackUnAssignScummBar() throws Exception {
 		final String TEST_NAME = "test207JackUnAssignScummBar";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -231,7 +231,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test208JackUnAssignAll() throws Exception {
 		final String TEST_NAME = "test208JackUnAssignAll";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -252,7 +252,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210JackAssignMinistryOfOffenseMember() throws Exception {
 		final String TEST_NAME = "test210JackAssignMinistryOfOffenseMember";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -275,7 +275,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test211JackAssignMinistryOfOffenseMinister() throws Exception {
 		final String TEST_NAME = "test211JackAssignMinistryOfOffenseMinister";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -300,7 +300,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test212JackUnassignMinistryOfOffenseMember() throws Exception {
 		final String TEST_NAME = "test212JackUnassignMinistryOfOffenseMember";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -323,7 +323,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test213JackUnassignMinistryOfOffenseManager() throws Exception {
 		final String TEST_NAME = "test213JackUnassignMinistryOfOffenseManager";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -347,7 +347,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test301JackAssignMinistryOfOffense() throws Exception {
 		final String TEST_NAME = "test301JackAssignMinistryOfOffense";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -374,7 +374,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test309DeleteJack() throws Exception {
 		final String TEST_NAME = "test309DeleteJack";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

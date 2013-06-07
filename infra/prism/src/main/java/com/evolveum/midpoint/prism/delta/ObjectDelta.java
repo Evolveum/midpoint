@@ -745,6 +745,11 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
     
     public static <O extends Objectable, X> ObjectDelta<O> createModificationDeleteProperty(Class<O> type, String oid, 
+    		QName propertyName, PrismContext prismContext, X... propertyValues) {
+    	return createModificationDeleteProperty(type, oid, new ItemPath(propertyName), prismContext, propertyValues);
+    }
+    
+    public static <O extends Objectable, X> ObjectDelta<O> createModificationDeleteProperty(Class<O> type, String oid, 
     		ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);

@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.intest.importer;
 
 import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getDefaultImportOptions;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,6 +37,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -68,7 +68,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void test000Integrity() {
-		displayTestTile(this,"test000Integrity");
+		TestUtil.displayTestTile(this,"test000Integrity");
 		AssertJUnit.assertNotNull(modelService);
 		AssertJUnit.assertNotNull(repositoryService);
 
@@ -76,7 +76,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void test001BadImport() throws FileNotFoundException, SchemaException {
-		displayTestTile(this,"test001BadImport");
+		TestUtil.displayTestTile(this,"test001BadImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001GoodImport");

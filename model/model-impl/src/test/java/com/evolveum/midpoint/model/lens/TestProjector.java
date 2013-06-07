@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.lens;
 
 import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -72,6 +71,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -117,7 +117,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
 	@Test
     public void test000Sanity() throws Exception {
-        displayTestTile(this, "test000Sanity");
+        TestUtil.displayTestTile(this, "test000Sanity");
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
         
@@ -129,7 +129,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test010BasicContextOperations() throws Exception {
 		final String TEST_NAME = "test010BasicContextOperations";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -213,7 +213,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test100AddAccountToJackDirect() throws Exception {
 		final String TEST_NAME = "test100AddAccountToJackDirect";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -272,7 +272,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test110AssignAccountToJack() throws Exception {
 		final String TEST_NAME = "test110AssignAccountToJack";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -300,7 +300,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test111AssignAccountToJackBroken() throws Exception {
 		final String TEST_NAME = "test111AssignAccountToJackBroken";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -360,7 +360,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test250ModifyUserBarbossaLocality() throws Exception {
 		final String TEST_NAME = "test250ModifyUserBarbossaLocality";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -411,7 +411,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test251ModifyUserBarbossaFullname() throws Exception {
 		final String TEST_NAME = "test251ModifyUserBarbossaFullname";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -463,7 +463,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test254ModifyUserBarbossaDisable() throws Exception {
 		final String TEST_NAME = "test254ModifyUserBarbossaDisable";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -527,7 +527,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test255ModifyUserBarbossaAssignment() throws Exception {
 		final String TEST_NAME = "test255ModifyUserBarbossaAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -581,7 +581,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test260ModifyAccountBarbossaDrinkReplace() throws Exception {
 		final String TEST_NAME = "test260ModifyAccountBarbossaDrinkReplace";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -621,7 +621,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test261ModifyAccountBarbossaQuoteReplace() throws Exception {
 		final String TEST_NAME = "test261ModifyAccountBarbossaQuoteReplace";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -683,7 +683,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test269DeleteBarbossaDummyAccount() throws Exception {
 		final String TEST_NAME = "test269DeleteBarbossaDummyAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -720,7 +720,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test301AssignConflictingAccountToJack() throws Exception {
 		final String TEST_NAME = "test301AssignConflictingAccountToJack";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -769,7 +769,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test400ImportHermanDummy() throws Exception {
 		final String TEST_NAME = "test400ImportHermanDummy";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -827,7 +827,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test401ImportHermanDummy() throws Exception {
 		final String TEST_NAME = "test401ImportHermanDummy";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -874,7 +874,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test450GuybrushInboundFromDelta() throws Exception {
 		final String TEST_NAME = "test450GuybrushInboundFromDelta";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -909,7 +909,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test451GuybrushInboundFromAbsolute() throws Exception {
 		final String TEST_NAME = "test451GuybrushInboundFromAbsolute";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -972,7 +972,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test500ReconcileGuybrushDummy() throws Exception {
 		final String TEST_NAME = "test500ReconcileGuybrushDummy";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
@@ -1036,7 +1036,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test600AddLargo() throws Exception {
 		final String TEST_NAME = "test600AddLargo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);

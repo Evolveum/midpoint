@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.lens;
 import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY;
 import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -66,6 +65,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -113,7 +113,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
     @Test(enabled = true)
     public void test010SerializeAddUserBarbossa() throws Exception {
     	final String TEST_NAME = "test010SerializeAddUserBarbossa";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
@@ -151,7 +151,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test020AssignAccountToJackSync() throws Exception {
 		final String TEST_NAME = "test020AssignAccountToJackSync";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         try {
         	
@@ -201,7 +201,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 
 	@Test
     public void test031AssignAccountToJackAsyncSerialize() throws Exception {
-        displayTestTile(this, "test031AssignAccountToJackAsyncSerialize");
+        TestUtil.displayTestTile(this, "test031AssignAccountToJackAsyncSerialize");
         try {
         	
         	assignAccountToJackAsync("test031AssignAccountToJackAsyncSerialize", true);
@@ -218,7 +218,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	 */
 	@Test
     public void test053ModifyUserBarbossaDisable() throws Exception {
-        displayTestTile(this, "test053ModifyUserBarbossaDisable");
+        TestUtil.displayTestTile(this, "test053ModifyUserBarbossaDisable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test053ModifyUserBarbossaDisable");
@@ -274,7 +274,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
     }
 	
 	private void assignAccountToJackAsync(String testName, boolean serialize) throws SchemaException, ObjectNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ClassNotFoundException {
-		displayTestTile(this, testName);
+		TestUtil.displayTestTile(this, testName);
 		
 		// GIVEN
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "."+testName);

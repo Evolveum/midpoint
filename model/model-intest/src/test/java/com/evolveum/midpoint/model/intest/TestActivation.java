@@ -15,103 +15,48 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
-import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
-import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
  * @author semancik
@@ -137,7 +82,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 			
 	@Test
     public void test050CheckJackEnabled() throws Exception {
-        displayTestTile(this, "test050CheckJackEnabled");
+        TestUtil.displayTestTile(this, "test050CheckJackEnabled");
 
         // GIVEN, WHEN
         // this happens during test initialization when user-jack.xml is added
@@ -156,7 +101,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 	@Test
     public void test051ModifyUserJackDisable() throws Exception {
-        displayTestTile(this, "test051ModifyUserJackDisable");
+        TestUtil.displayTestTile(this, "test051ModifyUserJackDisable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test051ModifyUserJackDisable");
@@ -187,7 +132,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test052ModifyUserJackEnable() throws Exception {
-        displayTestTile(this, "test052ModifyUserJackEnable");
+        TestUtil.displayTestTile(this, "test052ModifyUserJackEnable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
@@ -219,7 +164,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackAssignAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -268,7 +213,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test101ModifyUserJackDisable() throws Exception {
 		final String TEST_NAME = "test101ModifyUserJackDisable";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -292,7 +237,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test102ModifyUserJackEnable() throws Exception {
-        displayTestTile(this, "test052ModifyUserJackEnable");
+        TestUtil.displayTestTile(this, "test052ModifyUserJackEnable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
@@ -320,7 +265,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test111ModifyAccountJackDisable() throws Exception {
-        displayTestTile(this, "test111ModifyAccountJackDisable");
+        TestUtil.displayTestTile(this, "test111ModifyAccountJackDisable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test111ModifyAccountJackDisable");
@@ -347,7 +292,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test112ModifyUserJackEnable() throws Exception {
-        displayTestTile(this, "test112ModifyUserJackEnable");
+        TestUtil.displayTestTile(this, "test112ModifyUserJackEnable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test112ModifyUserJackEnable");
@@ -375,7 +320,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test113ModifyJackActivationUserAndAccount() throws Exception {
-        displayTestTile(this, "test113ModifyJackActivationUserAndAccount");
+        TestUtil.displayTestTile(this, "test113ModifyJackActivationUserAndAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test113ModifyJackActivationUserAndAccount");
@@ -408,7 +353,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test120ModifyUserJackAssignAccountDummyRed() throws Exception {
-        displayTestTile(this, "test120ModifyUserJackAssignAccountDummyRed");
+        TestUtil.displayTestTile(this, "test120ModifyUserJackAssignAccountDummyRed");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test120ModifyUserJackAssignAccountDummyRed");
@@ -450,7 +395,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test121ModifyJackUserAndAccountRed() throws Exception {
 		final String TEST_NAME = "test121ModifyJackUserAndAccountRed";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -483,7 +428,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test130ModifyAccountDefaultAndRed() throws Exception {
-        displayTestTile(this, "test130ModifyAccountDefaultAndRed");
+        TestUtil.displayTestTile(this, "test130ModifyAccountDefaultAndRed");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");
@@ -518,7 +463,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test138ModifyJackEnabled() throws Exception {
 		final String TEST_NAME = "test138ModifyJackEnabled";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -552,7 +497,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test139ModifyUserJackUnAssignAccountDummyRed() throws Exception {
 		final String TEST_NAME = "test139ModifyUserJackUnAssignAccountDummyRed";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -590,7 +535,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test199DeleteUserJack() throws Exception {
 		final String TEST_NAME = "test199DeleteUserJack";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -623,7 +568,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200AddUserLargo() throws Exception {
 		final String TEST_NAME = "test200AddUserLargo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -649,7 +594,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test205ModifyUserLargoAssignAccount() throws Exception {
 		final String TEST_NAME = "test205ModifyUserLargoAssignAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -688,7 +633,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210ModifyLargoValidTo10MinsAgo() throws Exception {
 		final String TEST_NAME = "test210ModifyLargoValidTo10MinsAgo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -726,7 +671,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test211ModifyLargoValidToManana() throws Exception {
 		final String TEST_NAME = "test211ModifyLargoValidToManana";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -768,7 +713,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test212SeeLargoTomorrow() throws Exception {
 		final String TEST_NAME = "test212SeeLargoTomorrow";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -811,7 +756,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test213HastaLaMananaLargo() throws Exception {
 		final String TEST_NAME = "test213HastaLaMananaLargo";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -854,7 +799,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300AddDummyGreenAccountMancomb() throws Exception {
 		final String TEST_NAME = "test300AddDummyGreenAccountMancomb";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -868,12 +813,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
         
 		/// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         
 		dummyResourceGreen.addAccount(account);
         
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyGreen);
         display("Account mancomb", accountMancomb);
@@ -891,7 +836,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test310ImportAccountsFromDummyGreen() throws Exception {
 		final String TEST_NAME = "test310ImportAccountsFromDummyGreen";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -903,17 +848,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected user mancomb before import", userMancomb);
         
         // WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(dummyResourceCtlGreen.getNamespace(), "AccountObjectClass"), task, result);
 		
         // THEN
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         IntegrationTestTools.assertInProgress("importAccountsFromResource result", subresult);
         
         waitForTaskFinish(task, true, 40000);
         
-        displayThen(TEST_NAME);
+        TestUtil.displayThen(TEST_NAME);
         
         userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("No user mancomb after import", userMancomb);
@@ -929,7 +874,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test350AssignMancombBlueAccount() throws Exception {
 		final String TEST_NAME = "test350AssignMancombBlueAccount";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -956,7 +901,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400AddHerman() throws Exception {
 		final String TEST_NAME = "test400AddHerman";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
 		// WHEN
         addObject(USER_HERMAN_FILE);

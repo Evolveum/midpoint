@@ -167,7 +167,15 @@ public class AccountValuesProcessor {
 			String iterationToken = formatIterationToken(context, accountContext, iteration, result);
 			String conflictMessage;
 			
+			// These are normally null. But there may be leftover from the previous iteration.
+			// While that should not affect the algorithm (it should overwrite it) it may confuse
+			// people during debugging and unecessarily clutter the debug output.
+			accountContext.setOutboundAccountConstruction(null);
+			accountContext.setSqueezedAttributes(null);
+			
 			LOGGER.trace("Projection values iteration {}, token '{}' for {}", new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
+			
+//			LensUtil.traceContext(LOGGER, activityDescription, "values (start)", false, context, true);
 			
 			if (!evaluateIterationCondition(context, accountContext, iteration, iterationToken, true, result)) {
 				
@@ -184,6 +192,8 @@ public class AccountValuesProcessor {
 				
 				context.recompute();
 				if (consistencyChecks) context.checkConsistence();
+
+//				LensUtil.traceContext(LOGGER, activityDescription, "values (assignment account values)", false, context, true);
 				
 				// Evaluates the values in outbound mappings
 				outboundProcessor.processOutbound(context, accountContext, result);
@@ -191,15 +201,18 @@ public class AccountValuesProcessor {
 				context.recompute();
 				if (consistencyChecks) context.checkConsistence();
 				
+//				LensUtil.traceContext(LOGGER, activityDescription, "values (outbound)", false, context, true);
+				
 				// Merges the values together, processing exclusions and strong/weak mappings are needed
 				consolidationProcessor.consolidateValues(context, accountContext, result);
 				
 				if (consistencyChecks) context.checkConsistence();
 		        context.recompute();
 		        if (consistencyChecks) context.checkConsistence();
-		
+		        
 		        // Too noisy for now
-	//	        LensUtil.traceContext(LOGGER, activityDescription, "values", context, true);
+//		        LensUtil.traceContext(LOGGER, activityDescription, "values (consolidation)", false, context, true);
+		
 		        
 		        if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.DELETE) {
 		        	// No need to play the iterative game if the account is deleted

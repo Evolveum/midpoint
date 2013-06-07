@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -108,7 +109,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 //	}
 	
 	public <T extends ObjectType> void importSample(File sampleFile, Class<T> type, String objectName) throws FileNotFoundException, SchemaException {
-		displayTestTile(this, "Import sample "+sampleFile.getPath());
+		TestUtil.displayTestTile(this, "Import sample "+sampleFile.getPath());
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(TestSampleImport.class.getName() + ".importSample");

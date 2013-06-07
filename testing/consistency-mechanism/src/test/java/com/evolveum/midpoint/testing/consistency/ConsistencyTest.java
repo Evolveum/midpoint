@@ -22,9 +22,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -101,6 +98,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -382,7 +380,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	 */
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException, CommunicationException {
-		displayTestTile(this, "test000Integrity");
+		TestUtil.displayTestTile(this, "test000Integrity");
 		assertNotNull(modelWeb);
 		assertNotNull(modelService);
 		assertNotNull(repositoryService);
@@ -454,7 +452,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test001TestConnectionOpenDJ() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		displayTestTile("test001TestConnectionOpenDJ");
+		TestUtil.displayTestTile("test001TestConnectionOpenDJ");
 
 		// GIVEN
 
@@ -733,7 +731,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	 */
 	@Test
 	public void test013prepareOpenDjWithAccounts() throws Exception {
-		displayTestTile("test013prepareOpenDjWithAccounts");
+		TestUtil.displayTestTile("test013prepareOpenDjWithAccounts");
 		OperationResult parentResult = new OperationResult("test013prepareOpenDjWithAccounts");
 
 		ShadowType jackeAccount = unmarshallJaxbFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
@@ -864,7 +862,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().getAdministrativeStatus());
 		assertEquals("The account is not enabled in the shadow", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
 
-		displayTestTile("test013prepareOpenDjWithAccounts - add second account");
+		TestUtil.displayTestTile("test013prepareOpenDjWithAccounts - add second account");
 
 		OperationResult secondResult = new OperationResult(
 				"test013prepareOpenDjWithAccounts - add second account");
@@ -888,7 +886,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test014addAccountAlreadyExistLinked() throws Exception {
-		displayTestTile("test014addAccountAlreadyExistLinked");
+		TestUtil.displayTestTile("test014addAccountAlreadyExistLinked");
 		
 		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
@@ -943,7 +941,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test015addAccountAlreadyExistUnlinked() throws Exception {
 		final String TEST_NAME = "test015addAccountAlreadyExistUnlinked";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
@@ -978,11 +976,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		
 		// WHEN
-		displayWhen(TEST_NAME);
+		TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, parentResult);
 
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
 		List<ObjectReferenceType> accountRefs = user.asObjectable().getLinkRef();
@@ -1009,7 +1007,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test017deleteObjectNotFound() throws Exception {
-		displayTestTile("test017deleteObjectNotFound");
+		TestUtil.displayTestTile("test017deleteObjectNotFound");
 		OperationResult parentResult = new OperationResult("Delete object not found");
 
 		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_FILENAME, ShadowType.class, parentResult);
@@ -1052,7 +1050,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void test018AmodifyObjectNotFound() throws Exception {
-		displayTestTile("test018AmodifyObjectNotFound");
+		TestUtil.displayTestTile("test018AmodifyObjectNotFound");
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Delete account");
 
@@ -1101,7 +1099,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test018BmodifyObjectNotFoundAssignedAccount() throws Exception {
-		displayTestTile("test018BmodifyObjectNotFoundAssignedAccount");
+		TestUtil.displayTestTile("test018BmodifyObjectNotFoundAssignedAccount");
 		
 		// GIVEN
 		OperationResult parentResult = new OperationResult(
@@ -1164,7 +1162,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test018CgetObjectNotFoundAssignedAccount() throws Exception {
-		displayTestTile("test018CgetObjectNotFoundAssignedAccount");
+		TestUtil.displayTestTile("test018CgetObjectNotFoundAssignedAccount");
 		
 		// GIVEN
 		OperationResult parentResult = new OperationResult(
@@ -1202,7 +1200,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test019StopOpenDj() throws Exception {
-		displayTestTile("test019TestConnectionOpenDJ");
+		TestUtil.displayTestTile("test019TestConnectionOpenDJ");
 		openDJController.stop();
 
 		assertEquals("Resource is running", false, EmbeddedUtils.isRunning());
@@ -1211,7 +1209,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test020addObjectCommunicationProblem() throws Exception {
-		displayTestTile("test020 add object - communication problem");
+		TestUtil.displayTestTile("test020 add object - communication problem");
 		OperationResult result = new OperationResult("add object communication error.");
 		repoAddObjectFromFile(USER_E_FILENAME, UserType.class, result);
 
@@ -1267,7 +1265,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void test021addModifyObjectCommunicationProblem() throws Exception {
-		displayTestTile("test021 add modify object - communication problem");
+		TestUtil.displayTestTile("test021 add modify object - communication problem");
 		OperationResult result = new OperationResult("add object communication error.");
 
 		PrismObject<UserType> userE = repositoryService.getObject(UserType.class, USER_E_OID, result);
@@ -1314,7 +1312,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test022modifyObjectCommunicationProblem() throws Exception {
 
-		displayTestTile("test022 modify object - communication problem");
+		TestUtil.displayTestTile("test022 modify object - communication problem");
 		OperationResult parentResult = new OperationResult("modify object - communication problem");
 		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, parentResult)
 				.asObjectable();
@@ -1352,7 +1350,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test023deleteObjectCommunicationProblem() throws Exception {
-		displayTestTile("test023 delete object - communication problem");
+		TestUtil.displayTestTile("test023 delete object - communication problem");
 		OperationResult parentResult = new OperationResult("modify object - communication problem");
 		UserType userJack = repositoryService.getObject(UserType.class, USER_DENIELS_OID, parentResult)
 				.asObjectable();
@@ -1399,7 +1397,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	@Test
 	public void test024getAccountCommunicationProblem() throws Exception {
-		displayTestTile("test024getAccountCommunicationProblem");
+		TestUtil.displayTestTile("test024getAccountCommunicationProblem");
 		OperationResult result = new OperationResult("test024 get account communication problem");
 		ShadowType account = modelService.getObject(ShadowType.class, ACCOUNT_DENIELS_OID,
 				null, null, result).asObjectable();
@@ -1475,7 +1473,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test026modifyObjectTwoTimesCommunicationProblem() throws Exception{
 		final String TEST_NAME = "test026modifyObjectTwoTimesCommunicationProblem";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
         
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_JACK2_OID, parentResult);
@@ -1555,7 +1553,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	 */
 	@Test
 	public void test027getDiscoveryAddCommunicationProblem() throws Exception {
-		displayTestTile("test027getDiscoveryAddCommunicationProblem");
+		TestUtil.displayTestTile("test027getDiscoveryAddCommunicationProblem");
 		OperationResult result = new OperationResult("test027getDiscoveryAddCommunicationProblem");
 		repoAddObjectFromFile(USER_ANGELIKA_FILENAME, UserType.class, result);
 
@@ -1634,7 +1632,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	@Test
 	public void test028getDiscoveryModifyCommunicationProblem() throws Exception{
-		displayTestTile("test028getDiscoveryModifyCommunicationProblem");
+		TestUtil.displayTestTile("test028getDiscoveryModifyCommunicationProblem");
 		OperationResult parentResult = new OperationResult("test028getDiscoveryModifyCommunicationProblem");
 		
 		//prepare user 
@@ -1729,7 +1727,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	 */
 	@Test
 	public void test029modifyDiscoveryAddCommunicationProblem() throws Exception {
-		displayTestTile("test029modifyDiscoveryAddCommunicationProblem");
+		TestUtil.displayTestTile("test029modifyDiscoveryAddCommunicationProblem");
 		OperationResult result = new OperationResult("test029modifyDiscoveryAddCommunicationProblem");
 		repoAddObjectFromFile(USER_BOB_NO_FAMILY_NAME_FILENAME, UserType.class, result);
 
@@ -1846,7 +1844,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test030modifyObjectCommunicationProblemWeakMapping() throws Exception{
 //		openDJController.start();
-		displayTestTile("test030modifyObjectCommunicationProblemWeakMapping");
+		TestUtil.displayTestTile("test030modifyObjectCommunicationProblemWeakMapping");
 		OperationResult result = new OperationResult("test30modifyObjectCommunicationProblemWeakMapping");
 		repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, UserType.class, result);
 
@@ -1929,7 +1927,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test031modifyObjectCommunicationProblemWeakAndStrongMapping() throws Exception{
 		openDJController.start();
-		displayTestTile("test031modifyObjectCommunicationProblemWeakAndStrongMapping");
+		TestUtil.displayTestTile("test031modifyObjectCommunicationProblemWeakAndStrongMapping");
 		OperationResult result = new OperationResult("test31modifyObjectCommunicationProblemWeakAndStrongMapping");
 		repoAddObjectFromFile(USER_DONALD_FILENAME, UserType.class, result);
 
@@ -2020,7 +2018,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test100AddUserMorganWithAssignment() throws Exception {
 		final String TEST_NAME = "test100AddUserMorganWithAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         
@@ -2040,11 +2038,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 //		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
         
@@ -2074,7 +2072,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test101AddUserChuckWithAssignment() throws Exception {
 		final String TEST_NAME = "test101AddUserChuckWithAssignment";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN	
         Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
@@ -2093,11 +2091,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        displayWhen(TEST_NAME);
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 //		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
         
@@ -2134,7 +2132,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test102assignAccountToHerman() throws Exception {
 		final String TEST_NAME = "test102assignAccountToHerman";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN	
         Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
@@ -2173,7 +2171,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		displayThen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 //		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
         
@@ -2208,7 +2206,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test800Reconciliation() throws Exception {
 		final String TEST_NAME = "test800Reconciliation";
-        displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTile(this, TEST_NAME);
 
 		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
 

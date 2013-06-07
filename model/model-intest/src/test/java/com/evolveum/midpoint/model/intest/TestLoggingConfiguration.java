@@ -47,6 +47,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -83,7 +84,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	
 	@Test
 	public void test001CreateSystemConfiguration() throws Exception {
-		displayTestTile("test001CreateSystemConfiguration");
+		TestUtil.displayTestTile("test001CreateSystemConfiguration");
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -111,7 +112,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test002InitialConfiguration() throws Exception {
 		final String TEST_NAME = "test002InitialConfiguration";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -175,7 +176,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test010AddModelSubsystemLogger() throws Exception {
 		final String TEST_NAME = "test010AddModelSubsystemLogger";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -238,7 +239,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test020JulLoggingDisabled() throws Exception {
 		final String TEST_NAME = "test020JulLoggingDisabled";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -269,7 +270,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test021JulLoggingEnabled() throws Exception {
 		final String TEST_NAME = "test021JulLoggingEnabled";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -326,7 +327,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test030ConnectorLogging() throws Exception {
 		final String TEST_NAME = "test030ConnectorLogging";
-		displayTestTile(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
@@ -388,7 +389,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	
 	@Test
 	public void test101EnableBasicAudit() throws Exception {
-		displayTestTile("test101EnableBasicAudit");
+		TestUtil.displayTestTile("test101EnableBasicAudit");
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
