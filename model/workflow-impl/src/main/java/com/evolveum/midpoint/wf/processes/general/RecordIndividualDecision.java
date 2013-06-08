@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -43,12 +42,17 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         ApprovalRequest approvalRequest = (ApprovalRequest) execution.getVariable(ProcessVariableNames.APPROVAL_REQUEST);
         Validate.notNull(approvalRequest, "approvalRequest is null");
-        DecisionList decisionList = (DecisionList) execution.getVariable(ProcessVariableNames.DECISION_LIST);
+        approvalRequest.setPrismContext(SpringApplicationContextHolder.getPrismContext());
+
+        List<Decision> decisionList = (List<Decision>) execution.getVariable(ProcessVariableNames.DECISIONS_IN_LEVEL);
         Validate.notNull(decisionList, "decisionList is null");
+
         List<Decision> allDecisions = (List<Decision>) execution.getVariable(ProcessVariableNames.ALL_DECISIONS);
         Validate.notNull(allDecisions, "allDecisions is null");
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(ProcessVariableNames.LEVEL);
+
+        ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "level is null");
+        level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
         Boolean yesOrNo = (Boolean) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION);
         String comment = (String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_COMMENT);
@@ -68,10 +72,9 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         decision.setApproved(yesOrNo == null ? false : yesOrNo);
         decision.setComment(comment == null ? "" : comment);
-        decision.setApprovalRequest(approvalRequest);
         decision.setDate(new Date());
-        decisionList.addDecision(decision);
 
+        decisionList.add(decision);
         allDecisions.add(decision);
 
         // here we carry out level evaluation strategy
@@ -97,7 +100,7 @@ public class RecordIndividualDecision implements JavaDelegate {
             LOGGER.trace("All decisions = " + allDecisions);
         }
 
-        execution.setVariable(ProcessVariableNames.DECISION_LIST, decisionList);
+        execution.setVariable(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
         execution.setVariable(ProcessVariableNames.ALL_DECISIONS, allDecisions);
         if (setLoopApprovesInLevelStop != null) {
             execution.setVariable(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);

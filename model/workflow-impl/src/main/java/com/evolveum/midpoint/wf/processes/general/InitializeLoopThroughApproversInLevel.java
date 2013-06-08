@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.dao.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -62,12 +62,14 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         Map<QName, Object> expressionVariables = null;
 
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(ProcessVariableNames.LEVEL);
+        ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "Variable " + ProcessVariableNames.LEVEL + " is undefined");
+        level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
-        DecisionList decisionList = new DecisionList();
+        List<Decision> decisionList = new ArrayList<Decision>();
+        boolean preApproved = false;
+
         if (level.getAutomaticallyApproved() != null) {
-            boolean preApproved;
             try {
                 expressionVariables = getDefaultVariables(execution, result);
                 preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, result);
@@ -77,18 +79,17 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
             }
-            decisionList.setPreApproved(preApproved);
         }
 
-        Set<ObjectReferenceType> approverRefs = new HashSet<ObjectReferenceType>();
+        Set<LightweightObjectRef> approverRefs = new HashSet<LightweightObjectRef>();
 
-        if (!decisionList.isPreApproved()) {
-            approverRefs.addAll(level.getApproverRef());
+        if (!preApproved) {
+            approverRefs.addAll(level.getApproverRefs());
 
-            if (!level.getApproverExpression().isEmpty()) {
+            if (!level.getApproverExpressions().isEmpty()) {
                 try {
                     expressionVariables = getDefaultVariablesIfNeeded(expressionVariables, execution, result);
-                    approverRefs.addAll(evaluateExpressions(level.getApproverExpression(), expressionVariables, execution, result));
+                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, result));
                 } catch (Exception e) {     // todo
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
@@ -103,26 +104,26 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
 
         Boolean stop;
-        if (approverRefs.isEmpty() || decisionList.isPreApproved()) {
+        if (approverRefs.isEmpty() || preApproved) {
             stop = Boolean.TRUE;
         } else {
             stop = Boolean.FALSE;
         }
 
-        execution.setVariableLocal(ProcessVariableNames.DECISION_LIST, decisionList);
-        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<ObjectReferenceType>(approverRefs));
+        execution.setVariableLocal(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
+        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<LightweightObjectRef>(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
 
-    private Collection<? extends ObjectReferenceType> evaluateExpressions(List<ExpressionType> approverExpressionList, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
+    private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
         for (ExpressionType approverExpression : approverExpressionList) {
             retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, result));
         }
         return retval;
     }
 
-    private Collection<ObjectReferenceType> evaluateExpression(ExpressionType approverExpression, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
             expressionFactory = getExpressionFactory();
@@ -135,10 +136,9 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
-        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
+        List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
-            ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setOid(item.getValue());
+            LightweightObjectRef ort = new LightweightObjectRefImpl(item.getValue());
             retval.add(ort);
         }
         return retval;

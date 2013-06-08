@@ -16,19 +16,15 @@
 
 package com.evolveum.midpoint.wf.processes.general;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import javax.xml.namespace.QName;
 
-import java.io.Serializable;
+/**
+ * @author mederly
+ */
+public interface LightweightObjectRef {
+    String getOid();
 
-public interface ApprovalRequest<I extends Serializable> extends Serializable {
+    QName getType();
 
-    static final long serialVersionUID = 5111362449970050179L;
-
-    public ApprovalSchema getApprovalSchema();
-
-    public I getItemToApprove();
-
-    public void setPrismContext(PrismContext prismContext);
-
-    public PrismContext getPrismContext();
+    String getDescription();
 }

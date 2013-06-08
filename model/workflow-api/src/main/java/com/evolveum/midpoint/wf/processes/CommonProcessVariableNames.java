@@ -37,6 +37,5 @@ public class CommonProcessVariableNames {
     public static final String VARIABLE_MIDPOINT_LISTENER = "midPointListener";
     public static final String FORM_FIELD_DECISION = "[H]decision";
     public static final String FORM_FIELD_COMMENT = "comment";
-    public static final String VARIABLE_DECISION_LIST = "decisionList";
     public static final String VARIABLE_WF_ANSWER = "wfAnswer";
 }

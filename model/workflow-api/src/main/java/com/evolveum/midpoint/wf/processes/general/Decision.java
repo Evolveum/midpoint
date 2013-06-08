@@ -20,18 +20,13 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 7.8.2012
- * Time: 17:42
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public class Decision<I extends Serializable> implements Serializable {
 
     private static final long serialVersionUID = -542549699933865819L;
 
     private String user;
-    private ApprovalRequest<I> approvalRequest;
     private boolean approved;
     private String comment;
     private Date date;
@@ -68,16 +63,8 @@ public class Decision<I extends Serializable> implements Serializable {
         this.date = date;
     }
 
-    public ApprovalRequest<I> getApprovalRequest() {
-        return approvalRequest;
-    }
-
-    public void setApprovalRequest(ApprovalRequest<I> approvalRequest) {
-        this.approvalRequest = approvalRequest;
-    }
-
     @Override
     public String toString() {
-        return "Decision: approvalRequest=" + approvalRequest + ", approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
+        return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
     }
 }

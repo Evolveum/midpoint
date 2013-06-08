@@ -50,7 +50,7 @@
 
         <subProcess id="loopLevels">
             <multiInstanceLoopCharacteristics isSequential="true"
-                    activiti:collection="${approvalRequest.approvalSchema.level}" activiti:elementVariable="level">
+                    activiti:collection="${approvalRequest.approvalSchema.levels}" activiti:elementVariable="level">
                 <completionCondition>${loopLevels_stop}</completionCondition>
             </multiInstanceLoopCharacteristics>
 
@@ -69,7 +69,7 @@
             <sequenceFlow sourceRef="loopLevels.initializeLoopThroughApprovers" targetRef="loopLevels.shouldBeLevelExecutedQ" />
 
             <!-- variables:
-                  - approversInLevel: list of ObjectReferenceTypes for individual approvers
+                  - approversInLevel: list of LightweightObjectRef's for individual approvers
                   - loopApproversInLevel_stop: whether to stop looping through approvers at this level
                   - decisionList: list of decisions done at this level
             -->

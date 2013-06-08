@@ -18,12 +18,15 @@ package com.evolveum.midpoint.wf.processes.general;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
+
+import java.util.List;
 
 /**
  * @author  mederly
@@ -34,17 +37,18 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        DecisionList decisionList = (DecisionList) execution.getVariable(CommonProcessVariableNames.VARIABLE_DECISION_LIST);
-        Validate.notNull(decisionList, "decisionList is null");
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(ProcessVariableNames.LEVEL);
+        List<Decision> decisionList = (List<Decision>) execution.getVariable(ProcessVariableNames.DECISIONS_IN_LEVEL);
+        Validate.notNull(decisionList, ProcessVariableNames.DECISIONS_IN_LEVEL + " is null");
+        ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "level is null");
+        level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("****************************************** Summarizing decisions in level " + level.getName() + " (level evaluation strategy = " + level.getEvaluationStrategy() + "): ");
         }
 
         boolean allApproved = true;
-        for (Decision decision : decisionList.getDecisionList()) {
+        for (Decision decision : decisionList) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(" - " + decision.toString());
             }
@@ -55,7 +59,7 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
         if (level.getEvaluationStrategy() == null || level.getEvaluationStrategy() == LevelEvaluationStrategyType.ALL_MUST_AGREE) {
             approved = allApproved;
         } else if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
-            approved = decisionList.getDecisionList().get(0).isApproved();
+            approved = decisionList.get(0).isApproved();
         } else {
             throw new IllegalStateException("Unknown level evaluation strategy: " + level.getEvaluationStrategy());
         }

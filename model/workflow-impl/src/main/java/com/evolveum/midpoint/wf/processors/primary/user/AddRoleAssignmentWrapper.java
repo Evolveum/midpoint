@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.dao.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
@@ -171,11 +171,11 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     }
 
     private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, RoleType role) {
-        return new ApprovalRequestImpl(a, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved());
+        return new ApprovalRequestImpl(a, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
     }
 
 
-    // approvalRequestList should contain de-referenced roles
+    // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
     private List<StartProcessInstructionForPrimaryStage> prepareStartProcessInstructions(ModelContext<?, ?> modelContext, Task task, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) {
         List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
 
@@ -183,6 +183,8 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         String userName = MiscDataUtil.getObjectName(modelContext);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
+
+            assert(approvalRequest.getPrismContext() != null);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Approval request = " + approvalRequest);
@@ -294,6 +296,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
 
         // todo check type compatibility
         ApprovalRequest request = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
+        request.setPrismContext(prismContext);
         Validate.notNull(request, "Approval request is not present among process variables");
 
         AssignmentType assignment = (AssignmentType) request.getItemToApprove();
@@ -316,6 +319,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         ApprovalRequest<AssignmentType> approvalRequest = (ApprovalRequest<AssignmentType>) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
+        approvalRequest.setPrismContext(prismContext);
         if (approvalRequest == null) {
             throw new IllegalStateException("No approval request in activiti task " + task);
         }

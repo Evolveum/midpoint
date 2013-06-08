@@ -18,17 +18,20 @@ package com.evolveum.midpoint.wf.processes.general;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
-import java.io.Serializable;
+import java.util.List;
 
-public interface ApprovalRequest<I extends Serializable> extends Serializable {
+/**
+ * @author mederly
+ */
+public interface ApprovalSchema {
 
-    static final long serialVersionUID = 5111362449970050179L;
+    String getName();
 
-    public ApprovalSchema getApprovalSchema();
+    String getDescription();
 
-    public I getItemToApprove();
+    List<? extends ApprovalLevel> getLevels();
 
-    public void setPrismContext(PrismContext prismContext);
+    PrismContext getPrismContext();
 
-    public PrismContext getPrismContext();
+    void setPrismContext(PrismContext prismContext);
 }

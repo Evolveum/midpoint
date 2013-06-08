@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,10 +33,9 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
-import com.evolveum.midpoint.wf.StartProcessInstruction;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.dao.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.WfTaskUtil;
@@ -160,9 +158,9 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
             for (StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
                 String objectToBeAdded = null;
                 try {
-                    objectToBeAdded = miscDataUtil.serializeObjectToXml(changeBeingDecomposed.getObjectToAdd());
-                } catch (JAXBException e) {
-                    throw new SystemException("Couldn't serialize object to be added to XML due to JAXB exception", e);
+                    objectToBeAdded = MiscDataUtil.serializeObjectToXml(changeBeingDecomposed.getObjectToAdd());
+                } catch (SystemException e) {
+                    throw new SystemException("Couldn't serialize object to be added to XML", e);
                 }
                 instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
             }

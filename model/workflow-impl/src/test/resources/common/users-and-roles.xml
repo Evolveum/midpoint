@@ -54,7 +54,10 @@
 
     <role oid="00000001-d34d-b33f-f00d-000000000003">
         <name>Role3</name>
-        <approverRef oid="00000000-d34d-b33f-f00d-111111111113" type="UserType"/>
+        <approverExpression>
+            <description>Role3 Boss' OID</description>
+            <value>00000000-d34d-b33f-f00d-111111111113</value>
+        </approverExpression>
     </role>
 
     <role oid="00000001-d34d-b33f-f00d-000000000004">

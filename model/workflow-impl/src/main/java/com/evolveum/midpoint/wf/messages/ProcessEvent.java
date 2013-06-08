@@ -48,7 +48,7 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
     private boolean running;
 
     public Boolean getAnswer() {
-        Object a = variables.get(ProcessVariableNames.WFANSWER);
+        Object a = variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
         if (a == null) {
             return null;
         } if (a instanceof Boolean) {

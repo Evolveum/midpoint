@@ -47,9 +47,11 @@ import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -106,6 +108,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     @Autowired
     private ActivitiEngine activitiEngine;
+
+    @Autowired
+    private MiscDataUtil miscDataUtil;
 
     public static final String USERS_AND_ROLES_FILENAME = COMMON_DIR_NAME + "/users-and-roles.xml";
     public static final String ROLE_R1_OID = "00000001-d34d-b33f-f00d-000000000001";
@@ -595,9 +600,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     }
 
     private boolean decideOnRoleApproval(String executionId) {
-        ApprovalRequest<AssignmentType> approvalRequest = (ApprovalRequest<AssignmentType>)
+        ApprovalRequestImpl<AssignmentType> approvalRequest = (ApprovalRequestImpl<AssignmentType>)
                 activitiEngine.getRuntimeService().getVariable(executionId, ProcessVariableNames.APPROVAL_REQUEST);
         assertNotNull("approval request not found", approvalRequest);
+
+        approvalRequest.setPrismContext(prismContext);
 
         String roleOid = approvalRequest.getItemToApprove().getTargetRef().getOid();
         assertNotNull("requested role OID not found", roleOid);

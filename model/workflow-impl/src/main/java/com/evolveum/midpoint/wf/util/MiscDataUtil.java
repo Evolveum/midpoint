@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.dao;
+package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -23,11 +23,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,7 +39,6 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import java.util.Map;
@@ -57,8 +55,11 @@ public class MiscDataUtil {
     @Autowired
     private RepositoryService repositoryService;
 
+    @Autowired
+    private PrismContext prismContext;
+
     // returns oid when user cannot be retrieved
-    String getUserNameByOid(String oid, OperationResult result) {
+    public String getUserNameByOid(String oid, OperationResult result) {
         try {
             PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
             return user.asObjectable().getName().getOrig();
@@ -116,8 +117,26 @@ public class MiscDataUtil {
         return objectAfter;
     }
 
-    public String serializeObjectToXml(PrismObject<? extends ObjectType> object) throws JAXBException {
-        return object.getPrismContext().getPrismJaxbProcessor().marshalToString(object.asObjectable());
+    public static String serializeObjectToXml(PrismObject<? extends ObjectType> object) {
+        return serializeObjectToXml(object, object.getPrismContext());
+    }
+
+    public static String serializeObjectToXml(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
+        try {
+            return prismContext.getPrismJaxbProcessor().marshalToString(object.asObjectable());
+        } catch (JAXBException e) {
+            throw new SystemException("Couldn't serialize a PrismObject " + object + " into XML", e);
+        }
+    }
+
+    public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
+        try {
+            return prismContext.getPrismJaxbProcessor().unmarshalObject(xml, ObjectType.class);
+        } catch (JAXBException e) {
+            throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
+        }
     }
 
     public void resolveAssignmentTargetReferences(PrismObject<? extends UserType> object, OperationResult result) {

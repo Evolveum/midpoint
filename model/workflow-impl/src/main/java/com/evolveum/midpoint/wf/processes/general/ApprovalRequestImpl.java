@@ -16,6 +16,11 @@
 
 package com.evolveum.midpoint.wf.processes.general;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import java.io.Serializable;
@@ -23,66 +28,64 @@ import java.util.List;
 
 public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequest<I> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ApprovalRequestImpl.class);
+
     private static final long serialVersionUID = 5111362449970050179L;
 
-    private I itemToApprove;
-    private ApprovalSchemaType approvalSchema;
+    SerializationSafeContainer<Serializable> itemToApprove;
 
-    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema) {
-        this.itemToApprove = itemToApprove;
-        this.approvalSchema = approvalSchema;
+    // used for value serialization/deserialization of SerializationSafeContainer'ed items
+    // set by using SpringApplicationContextHolder when unknown
+    private transient PrismContext prismContext;
+
+    private ApprovalSchema approvalSchema;
+
+    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
+
+        setPrismContext(prismContext);
+        setItemToApprove(itemToApprove);
+        setApprovalSchema(new ApprovalSchemaImpl(approvalSchema, approverRef, approverExpression, automaticallyApproved, prismContext));
     }
-
-    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved) {
-
-        this.itemToApprove = itemToApprove;
-        if (approvalSchema != null) {
-            this.approvalSchema = approvalSchema;
-        } else if ((approverRef != null && !approverRef.isEmpty()) || (approverExpression != null && !approverExpression.isEmpty())) {
-            this.approvalSchema = new ApprovalSchemaType();
-            fillInApprovalSchema(this.approvalSchema, approverRef, approverExpression, automaticallyApproved);
-        } else {
-            throw new IllegalArgumentException("Neither approvalSchema nor approverRef/approverExpression is filled-in for itemToApprove = " + itemToApprove);
-        }
-    }
-
-    private void fillInApprovalSchema(ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved) {
-        //default: all approvers in one level, evaluation strategy = allMustApprove
-
-        ApprovalLevelType level = new ApprovalLevelType();
-        if (approverRef != null) {
-            level.getApproverRef().addAll(approverRef);
-        }
-        if (approverExpression != null) {
-            level.getApproverExpression().addAll(approverExpression);
-        }
-        level.setEvaluationStrategy(LevelEvaluationStrategyType.ALL_MUST_AGREE);
-        level.setAutomaticallyApproved(automaticallyApproved);
-
-        approvalSchema.getLevel().add(level);
-    }
-
 
     @Override
-    public ApprovalSchemaType getApprovalSchema() {
+    public ApprovalSchema getApprovalSchema() {
         return approvalSchema;
     }
 
-    public void setApprovalSchema(ApprovalSchemaType approvalSchema) {
+    public void setApprovalSchema(ApprovalSchemaImpl approvalSchema) {
         this.approvalSchema = approvalSchema;
+    }
+
+    public void setItemToApprove(I itemToApprove) {
+        this.itemToApprove = new SerializationSafeContainer<Serializable>(itemToApprove, prismContext);
     }
 
     @Override
     public I getItemToApprove() {
-        return itemToApprove;
-    }
-
-    public void setItemToApprove(I itemToApprove) {
-        this.itemToApprove = itemToApprove;
+        if (prismContext == null) {     // quite a hack, but...
+            setPrismContext(SpringApplicationContextHolder.getPrismContext());
+        }
+        return (I) itemToApprove.getValue();
     }
 
     @Override
     public String toString() {
         return "ApprovalRequest: [itemToApprove=" + itemToApprove + ", approvalSchema=" + approvalSchema + "]";
+    }
+
+    @Override
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+        if (itemToApprove != null) {
+            itemToApprove.setPrismContext(prismContext);
+        }
+        if (approvalSchema != null) {
+            approvalSchema.setPrismContext(prismContext);
+        }
+    }
+
+    @Override
+    public PrismContext getPrismContext() {
+        return prismContext;
     }
 }

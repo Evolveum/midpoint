@@ -19,11 +19,10 @@ package com.evolveum.midpoint.wf.activiti;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
-import com.evolveum.midpoint.wf.dao.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**

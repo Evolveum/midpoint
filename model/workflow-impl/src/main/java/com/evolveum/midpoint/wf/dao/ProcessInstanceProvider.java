@@ -29,6 +29,7 @@ import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
@@ -56,12 +57,6 @@ public class ProcessInstanceProvider {
 
     @Autowired
     private ActivitiEngineDataHelper activitiEngineDataHelper;
-
-    @Autowired
-    private MiscDataUtil miscDataUtil;
-
-    @Autowired
-    private PrismContext prismContext;
 
     @Autowired
     private WorkItemProvider workItemProvider;
