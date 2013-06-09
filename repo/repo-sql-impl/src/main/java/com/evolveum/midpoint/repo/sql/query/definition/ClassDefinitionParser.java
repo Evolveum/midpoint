@@ -34,8 +34,6 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Set;
 
 /**
@@ -81,10 +79,8 @@ public class ClassDefinitionParser {
             Class jaxbType = getJaxbType(method);
             String jpaName = getJpaName(method);
             Definition definition = createDefinition(jaxbName, jaxbType, jpaName, method);
-            entity.getDefinitions().add(definition);
+            entity.addDefinition(definition);
         }
-
-        Collections.sort(entity.getDefinitions(), new DefinitionComparator());
     }
 
     private void addVirtualDefinitions(EntityDefinition entityDef) {
@@ -103,7 +99,11 @@ public class ClassDefinitionParser {
 
         QueryEntity qEntity = (QueryEntity) jpaType.getAnnotation(QueryEntity.class);
         for (VirtualProperty property : qEntity.properties()) {
-
+            QName jaxbName = createQName(property.jaxbName());
+            VirtualPropertyDefinition def = new VirtualPropertyDefinition(jaxbName, property.jaxbType(),
+                    property.jpaName(), property.jpaType());
+            def.setAdditionalParams(property.additionalParams());
+            entityDef.addDefinition(def);
         }
 
         for (VirtualReference reference : qEntity.references()) {
@@ -118,7 +118,7 @@ public class ClassDefinitionParser {
             def.setAdditionalParams(collection.additionalParams());
             updateCollectionDefinition(def, collection.collectionType(), jaxbName, collection.jpaName());
 
-            entityDef.getDefinitions().add(def);
+            entityDef.addDefinition(def);
         }
 
         for (VirtualEntity entity : qEntity.entities()) {
@@ -262,38 +262,5 @@ public class ClassDefinitionParser {
 
         char first = Character.toLowerCase(methodName.charAt(startIndex));
         return Character.toString(first) + StringUtils.substring(methodName, startIndex + 1, methodName.length());
-    }
-
-    private static class DefinitionComparator implements Comparator<Definition> {
-
-        @Override
-        public int compare(Definition o1, Definition o2) {
-            if (o1.getClass().equals(o2.getClass())) {
-                return String.CASE_INSENSITIVE_ORDER.compare(o1.getJaxbName().getLocalPart(),
-                        o2.getJaxbName().getLocalPart());
-            }
-
-            return getType(o1) - getType(o2);
-        }
-
-        private int getType(Definition def) {
-            if (def == null) {
-                return 0;
-            }
-
-            if (def instanceof PropertyDefinition) {
-                return 1;
-            } else if (def instanceof ReferenceDefinition) {
-                return 2;
-            } else if (def instanceof CollectionDefinition) {
-                return 3;
-            } else if (def instanceof AnyDefinition) {
-                return 4;
-            } else if (def instanceof EntityDefinition) {
-                return 5;
-            }
-
-            return 0;
-        }
     }
 }

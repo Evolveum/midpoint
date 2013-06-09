@@ -33,6 +33,8 @@ public @interface VirtualProperty {
 
     Class jaxbType();
 
+    String jpaName();
+
     Class<? extends Serializable> jpaType();
 
     VirtualQueryParam[] additionalParams() default {};

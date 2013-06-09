@@ -791,7 +791,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Criteria criteria = createCriteria(type, query, session);
+            QueryInterpreter interpreter = new QueryInterpreter();
+            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), session);
 
             List<RObject> objects = criteria.list();
             LOGGER.trace("Found {} objects, translating to JAXB.",
@@ -1207,48 +1208,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return rObject;
     }
 
-    private <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, ObjectPaging paging) {
-        if (paging == null) {
-            return query;
-        }
-        if (paging.getOffset() != null) {
-            query = query.setFirstResult(paging.getOffset());
-        }
-        if (paging.getMaxSize() != null) {
-            query = query.setMaxResults(paging.getMaxSize());
-        }
-
-        if (paging.getDirection() == null && paging.getOrderBy() == null) {
-            return query;
-        }
-
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        // PropertyPath path = new
-        // XPathHolder(paging.getOrderBy()).toPropertyPath();
-        if (paging.getOrderBy() == null) {
-            LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
-                    + "'.");
-            return query;
-        }
-        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
-        Definition def = definition.findDefinition(paging.getOrderBy(), Definition.class);
-        if (def == null) {
-            LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
-                    + "list will not be ordered by it.");
-            return query;
-        }
-
-        switch (paging.getDirection()) {
-            case ASCENDING:
-                query = query.addOrder(Order.asc(def.getJpaName()));
-                break;
-            case DESCENDING:
-                query = query.addOrder(Order.desc(def.getJpaName()));
-        }
-
-        return query;
-    }
-
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.repo.api.RepositoryService#getRepositoryDiag()
      */
@@ -1485,25 +1444,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> Criteria createCriteria(Class<T> type, ObjectQuery query, Session session)
-            throws QueryException {
-
-        LOGGER.trace("Updating query criteria.");
-        Criteria criteria;
-        if (query != null && query.getFilter() != null) {
-            QueryInterpreter interpreter = new QueryInterpreter();
-            criteria = interpreter.interpret(query, type, getPrismContext(), session);
-        } else {
-            criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-        }
-
-        if (query != null && query.getPaging() != null) {
-            criteria = updatePagingAndSorting(criteria, type, query.getPaging());
-        }
-
-        return criteria;
-    }
-
     private <T extends ObjectType> void searchObjectsIterativeAttempt(Class<T> type, ObjectQuery query,
                                                                       ResultHandler<T> handler, OperationResult result)
             throws SchemaException {
@@ -1511,7 +1451,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Criteria criteria = createCriteria(type, query, session);
+            QueryInterpreter interpreter = new QueryInterpreter();
+            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), session);
+
             ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
             try {
                 Iterator<RObject> iterator = new ScrollableResultsIterator(results);

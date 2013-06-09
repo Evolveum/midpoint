@@ -17,12 +17,16 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
@@ -41,6 +45,8 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@QueryEntity(properties = {@VirtualProperty(jaxbName = @JaxbName(localPart = "name"), jaxbType = PolyString.class,
+        jpaName = "name", jpaType = RPolyString.class)})
 @Entity
 @ForeignKey(name = "fk_object")
 public abstract class RObject extends RContainer {
@@ -54,27 +60,32 @@ public abstract class RObject extends RContainer {
     private Set<RTrigger> trigger;
     private RMetadata metadata;
 
+    @Transient
+    public abstract RPolyString getName();
+
+    public abstract void setName(RPolyString name);
+
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RMetadata getMetadata() {
         return metadata;
     }
 
-//    @ForeignKey(name = "fk_trigger_owner")
+    //    @ForeignKey(name = "fk_trigger_owner")
     @ForeignKey(name = "none")
     @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RTrigger> getTrigger(){
-    	if (trigger == null){
-    		trigger = new HashSet<RTrigger>();
-    	}
-    	return trigger;
+    public Set<RTrigger> getTrigger() {
+        if (trigger == null) {
+            trigger = new HashSet<RTrigger>();
+        }
+        return trigger;
     }
-    
+
     public void setTrigger(Set<RTrigger> trigger) {
-		this.trigger = trigger;
-	}
-    
+        this.trigger = trigger;
+    }
+
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
@@ -214,7 +225,7 @@ public abstract class RObject extends RContainer {
         if (repo.getMetadata() != null) {
             jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
         }
-    
+
     }
 
     public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)

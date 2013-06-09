@@ -19,12 +19,16 @@ package com.evolveum.midpoint.repo.sql.query;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.query.definition.Definition;
+import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query.matcher.Matcher;
 import com.evolveum.midpoint.repo.sql.query.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query.restriction.Restriction;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -36,6 +40,7 @@ import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -97,18 +102,31 @@ public class QueryInterpreter {
 
     public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,
                               Session session) throws QueryException {
-        Validate.notNull(query, "Object query must not be null.");
-        Validate.notNull(query.getFilter(), "Element filter must not be null.");
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(session, "Session must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
 
-        ObjectFilter filter = query.getFilter();
-
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Interpreting query '{}', query filter:\n{}", new Object[]{filter.getClass(), filter.dump()});
+            LOGGER.trace("Interpreting query for type '{}', query:\n{}", new Object[]{type, query});
         }
 
+        Criteria criteria;
+        if (query != null && query.getFilter() != null) {
+            criteria = interpretQuery(query, type, prismContext, session);
+        } else {
+            criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+        }
+
+        if (query != null && query.getPaging() != null) {
+            criteria = updatePagingAndSorting(criteria, type, query.getPaging());
+        }
+
+        return criteria;
+    }
+
+    private Criteria interpretQuery(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,
+                               Session session) throws QueryException {
+        ObjectFilter filter = query.getFilter();
         try {
             QueryContext context = new QueryContext(this, type, prismContext, session);
 
@@ -125,6 +143,53 @@ public class QueryInterpreter {
             LOGGER.trace(ex.getMessage(), ex);
             throw new QueryException(ex.getMessage(), ex);
         }
+    }
+
+    private <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, ObjectPaging paging) {
+        if (paging == null) {
+            return query;
+        }
+        if (paging.getOffset() != null) {
+            query = query.setFirstResult(paging.getOffset());
+        }
+        if (paging.getMaxSize() != null) {
+            query = query.setMaxResults(paging.getMaxSize());
+        }
+
+        if (paging.getDirection() == null && paging.getOrderBy() == null) {
+            return query;
+        }
+
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        // PropertyPath path = new
+        // XPathHolder(paging.getOrderBy()).toPropertyPath();
+        if (paging.getOrderBy() == null) {
+            LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
+                    + "'.");
+            return query;
+        }
+        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+        Definition def = definition.findDefinition(paging.getOrderBy(), Definition.class);
+        if (def == null) {
+            LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
+                    + "list will not be ordered by it.");
+            return query;
+        }
+
+        String propertyName = def.getJpaName();
+        if (PolyString.class.equals(def.getJaxbType())) {
+            propertyName += ".orig";
+        }
+
+        switch (paging.getDirection()) {
+            case ASCENDING:
+                query = query.addOrder(Order.asc(propertyName));
+                break;
+            case DESCENDING:
+                query = query.addOrder(Order.desc(propertyName));
+        }
+
+        return query;
     }
 
     public <T extends Object> Matcher<T> findMatcher(T value) {

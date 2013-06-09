@@ -23,6 +23,7 @@ import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,7 +53,22 @@ public class EntityDefinition extends Definition {
         if (definitions == null) {
             definitions = new ArrayList<Definition>();
         }
-        return definitions;
+
+        return Collections.unmodifiableList(definitions);
+    }
+
+    public void addDefinition(Definition definition) {
+        if (definitions == null) {
+            definitions = new ArrayList<Definition>();
+        }
+
+        Definition oldDef = findDefinition(definition.getJaxbName(), Definition.class);
+        if (oldDef != null) {
+            definitions.remove(oldDef);
+        }
+        definitions.add(definition);
+
+        Collections.sort(definitions, new DefinitionComparator());
     }
 
     @Override

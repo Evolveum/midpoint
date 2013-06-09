@@ -33,6 +33,8 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query.definition.Definition;
+import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -43,10 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -289,8 +288,34 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void queryObjectByName() throws Exception {
+        Session session = open();
+
+        System.out.println(QueryDefinitionRegistry.getInstance().dump());
+
+        Criteria main = session.createCriteria(RObject.class, "o");
+        main.add(Restrictions.and(
+                Restrictions.eq("o.name.orig", "cpt. Jack Sparrow"),
+                Restrictions.eq("o.name.norm", "cpt jack sparrow")));
+        main.addOrder(Order.asc("o.name.orig"));
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.class, prismContext, ObjectType.F_NAME,
+                new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+
+        String real = getInterpretedQuery(session, ObjectType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
     public void queryUserByFullName() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserByFullName"});
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
