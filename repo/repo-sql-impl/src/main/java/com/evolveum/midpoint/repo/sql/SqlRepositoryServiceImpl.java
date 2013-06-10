@@ -32,11 +32,8 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
-import com.evolveum.midpoint.repo.sql.query.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.LabeledString;
@@ -56,7 +53,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.*;
-import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.dialect.Dialect;
@@ -794,12 +790,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             QueryInterpreter interpreter = new QueryInterpreter();
             Criteria criteria = interpreter.interpret(query, type, getPrismContext(), session);
 
-            List<RObject> objects = criteria.list();
+            List objects = criteria.list();
             LOGGER.trace("Found {} objects, translating to JAXB.",
                     new Object[]{(objects != null ? objects.size() : 0)});
 
-            for (RObject object : objects) {
-                ObjectType objectType = object.toJAXB(getPrismContext());
+            for (Object object : objects) {
+                RObject rObject = updateCriteriaListObject(object);
+
+                ObjectType objectType = rObject.toJAXB(getPrismContext());
                 PrismObject<T> prismObject = objectType.asPrismObject();
                 validateObjectType(prismObject, type);
                 list.add(prismObject);
@@ -817,6 +815,30 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         return list;
+    }
+
+    /**
+     * this is workaround for https://hibernate.atlassian.net/browse/HHH-2893
+     * group property not includes in select is not supported by criteria api [lazyman]
+     * therefore when selecting org. units this will find RObject objects in returned array.
+     *
+     * @param object
+     * @return
+     * @throws QueryException
+     */
+    private RObject updateCriteriaListObject(Object object) throws QueryException {
+        if (object instanceof RObject) {
+            return (RObject) object;
+        }
+
+        Object[] array = (Object[]) object;
+        for (Object item : array) {
+            if (item instanceof RObject) {
+                return (RObject) item;
+            }
+        }
+
+        throw new QueryException("Query result doesn't contain object(s) of type " + RObject.class.getSimpleName());
     }
 
     @Override
@@ -1456,19 +1478,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
             try {
-                Iterator<RObject> iterator = new ScrollableResultsIterator(results);
+                Iterator<Object> iterator = new ScrollableResultsIterator(results);
                 while (iterator.hasNext()) {
-                    RObject object = iterator.next();
-                    LOGGER.debug("Before\n{}", ReflectionToStringBuilder.toString(object));
+                    Object object = iterator.next();
+                    RObject rObject = updateCriteriaListObject(object);
 
-                    ObjectType objectType = object.toJAXB(getPrismContext());
+                    ObjectType objectType = rObject.toJAXB(getPrismContext());
                     PrismObject<T> prismObject = objectType.asPrismObject();
                     validateObjectType(prismObject, type);
 
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }
-                    LOGGER.debug("After\n{}", ReflectionToStringBuilder.toString(object));
                 }
             } finally {
                 if (results != null) {

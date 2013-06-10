@@ -33,10 +33,9 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
-import com.evolveum.midpoint.repo.sql.query.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.Session;
 import org.hibernate.criterion.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -676,6 +676,43 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         String real = getInterpretedQuery(session, ObjectType.class, query);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void queryOrgStructure() throws Exception {
+        Session session = open();
+
+        ProjectionList list = Projections.projectionList();
+        list.add(Projections.groupProperty("closure.descendant"));
+        list.add(Projections.groupProperty("o.name.orig"));
+
+        Criteria main = session.createCriteria(RObject.class, "o");
+        main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
+                .createAlias("closure.ancestor", "anc").setProjection(list);
+        main.addOrder(Order.asc("o.name.orig"));
+
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(Restrictions.eq("anc.oid", "some oid"));
+        conjunction.add(Restrictions.le("closure.depth", 1));
+        conjunction.add(Restrictions.gt("closure.depth", 0));
+        main.add(conjunction);
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        OrgFilter orgFilter = OrgFilter.createOrg("some oid", null, 1);
+        ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
+        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+
+        String real = getInterpretedQuery(session, ObjectType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+
+        OperationResult result = new OperationResult("query org structure");
+        repositoryService.searchObjects(ObjectType.class, query, result);
+
         AssertJUnit.assertEquals(expected, real);
 
         close(session);

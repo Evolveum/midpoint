@@ -95,11 +95,15 @@ public class OrgRestriction extends Restriction<OrgFilter> {
     private void updateCriteria() {
         // get root criteria
         Criteria pCriteria = getContext().getCriteria(null);
-        // create subcriteria on the ROgrClosure table to search through org
-        // struct
-        pCriteria.createCriteria(QUERY_PATH, CLOSURE_ALIAS).setFetchMode(ANCESTOR, FetchMode.DEFAULT)
-                .createAlias(ANCESTOR, ANCESTOR_ALIAS).setProjection(Projections.groupProperty(CLOSURE_ALIAS + ".descendant"));
+        // create subcriteria on the ROgrClosure table to search through org struct
 
+        ProjectionList list = Projections.projectionList();
+        list.add(Projections.groupProperty(CLOSURE_ALIAS + ".descendant"));
+        String alias = getContext().getAlias(null);
+        list.add(Projections.groupProperty(alias + ".name.orig"));     //just used for sorting by name
+
+        pCriteria.createCriteria(QUERY_PATH, CLOSURE_ALIAS).setFetchMode(ANCESTOR, FetchMode.DEFAULT)
+                .createAlias(ANCESTOR, ANCESTOR_ALIAS).setProjection(list);
     }
 
     @Override

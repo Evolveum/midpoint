@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.web.component.orgStruct;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -271,6 +273,7 @@ public class BookmarkableFolderContent extends Content {
 
 		OrgFilter orgFilter = OrgFilter.createOrg(parent.getOid(), null, 1);
 		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
+        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
 		try {
 			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
