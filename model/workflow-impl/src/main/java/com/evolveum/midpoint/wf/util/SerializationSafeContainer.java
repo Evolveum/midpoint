@@ -49,6 +49,8 @@ import java.util.Map;
  */
 public class SerializationSafeContainer<T> implements Serializable {
 
+    private static final long serialVersionUID = 7269803380754945968L;
+
     private static final Trace LOGGER = TraceManager.getTrace(SerializationSafeContainer.class);
     public static final int MAX_WIDTH = 500;
 
