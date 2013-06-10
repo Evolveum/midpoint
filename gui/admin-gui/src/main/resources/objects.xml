@@ -114,7 +114,7 @@
         </authorization>
     </role>
     
-    <role oid="00000000-0000-0000-0000-000000000005"
+    <role oid="00000000-0000-0000-0000-000000000008"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
