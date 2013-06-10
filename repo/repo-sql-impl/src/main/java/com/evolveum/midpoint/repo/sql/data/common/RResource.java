@@ -280,7 +280,7 @@ public class RResource extends RObject {
                 jaxb.setCapabilities(repo.getCapabilities().toJAXB(prismContext));
             }
             jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCRIPTS),
-                    repo.getScripts(), ProvisioningScriptsType.class, prismContext));
+                    repo.getScripts(), OperationProvisioningScriptsType.class, prismContext));
 
             if (!isResourceBusinessConfigurationEmpty(repo)) {
                 ResourceBusinessConfigurationType business = new ResourceBusinessConfigurationType();

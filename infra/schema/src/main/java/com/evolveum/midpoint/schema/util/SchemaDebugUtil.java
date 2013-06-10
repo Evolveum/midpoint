@@ -75,8 +75,8 @@ public class SchemaDebugUtil {
 			sb.append("\n");
 			for (DebugDumpable dd : dumpables) {
 				sb.append(dd.debugDump(indent + 1));
+				sb.append("\n");
 			}
-			sb.append("\n");
 			indentDebugDump(sb, indent);
 		}
 		sb.append(getCollectionClosingSymbol(dumpables));

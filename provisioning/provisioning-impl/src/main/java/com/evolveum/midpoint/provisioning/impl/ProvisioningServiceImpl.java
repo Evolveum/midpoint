@@ -23,6 +23,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,7 +47,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -73,7 +75,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -298,7 +301,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, ProvisioningOperationOptions options,
+	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options,
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
 			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 	
@@ -723,7 +726,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public <T extends ObjectType> String modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectAlreadyExistsException {
 
@@ -800,7 +803,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options, ProvisioningScriptsType scripts,
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts,
 			Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 
@@ -866,6 +869,48 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		result.cleanupResult();
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#executeScript(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public <T extends ObjectType> void executeScript(String resourceOid, ProvisioningScriptType script,
+			Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+		Validate.notNull(resourceOid, "Oid of object for script execution must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
+
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".executeScript");
+		result.addParam("oid", resourceOid);
+		result.addParam("script", script);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		try {
+			
+			resourceManager.executeScript(resourceOid, script, task, result);
+			
+		} catch (CommunicationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (SchemaException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (ConfigurationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (RuntimeException e){
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		}
+		
+		result.computeStatus();
+		result.cleanupResult();
+		
+	}
+
 
 	@Override
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
@@ -1028,8 +1073,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		if (filter instanceof AndFilter){
 			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getCondition();
-			resourceOid = ShadowCacheUtil.getResourceOidFromFilter(conditions);
-			objectClass = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
+			resourceOid = ProvisioningUtil.getResourceOidFromFilter(conditions);
+			objectClass = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
 		}
 		
 		LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}", resourceOid);

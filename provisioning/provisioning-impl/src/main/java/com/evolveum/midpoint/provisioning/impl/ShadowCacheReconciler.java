@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -74,7 +74,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 	private void cleanShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
 		PrismObject<ShadowType> oldShadow = shadow.clone();
 		ShadowUtil.getAttributesContainer(oldShadow).clear();
-		ShadowCacheUtil.normalizeShadow(shadow.asObjectable(), parentResult);
+		ProvisioningUtil.normalizeShadow(shadow.asObjectable(), parentResult);
 
 		// FIXME: ugly hack, need to be fixed (problem with comparing operation
 		// result, because it was changed and in this call it is different as

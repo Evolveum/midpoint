@@ -70,7 +70,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -106,8 +106,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMul
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
@@ -139,8 +139,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
 @Component
 public class ResourceObjectConverter {
 	
-	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
-
 	@Autowired(required=true)
 	private EntitlementConverter entitlementConverter;
 	
@@ -295,7 +293,7 @@ public class ResourceObjectConverter {
 	}
 
 	public PrismObject<ShadowType> addResourceObject(ConnectorInstance connector, ResourceType resource, 
-			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition, ProvisioningScriptsType scripts, OperationResult parentResult)
+			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition, OperationProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
@@ -364,7 +362,7 @@ public class ResourceObjectConverter {
 
 	public void deleteResourceObject(ConnectorInstance connector, ResourceType resource, 
 			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition,
-			ProvisioningScriptsType scripts, OperationResult parentResult)
+			OperationProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -427,7 +425,7 @@ public class ResourceObjectConverter {
 	
 	public Collection<PropertyModificationOperation> modifyResourceObject(
 			ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -555,7 +553,7 @@ public class ResourceObjectConverter {
 	}
 	
 	private void executeEntitlementChangesAdd(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
 		
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
@@ -568,7 +566,7 @@ public class ResourceObjectConverter {
 	}
 	
 	private void executeEntitlementChangesModify(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
 		
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
@@ -587,7 +585,7 @@ public class ResourceObjectConverter {
 	}
 	
 	private void executeEntitlementChangesDelete(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			OperationResult parentResult) throws SchemaException  {
 		
 		try {
@@ -1330,41 +1328,21 @@ public class ResourceObjectConverter {
 	}
 	
 	private void addExecuteScriptOperation(Collection<Operation> operations, ProvisioningOperationTypeType type,
-			ProvisioningScriptsType scripts, ResourceType resource, OperationResult result) throws SchemaException {
+			OperationProvisioningScriptsType scripts, ResourceType resource, OperationResult result) throws SchemaException {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
 			LOGGER.trace("Skipping creating script operation to execute. Scripts was not defined.");
 			return;
 		}
 
-		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
-		for (ProvisioningScriptType script : scripts.getScript()) {
+		for (OperationProvisioningScriptType script : scripts.getScript()) {
 			for (ProvisioningOperationTypeType operationType : script.getOperation()) {
 				if (type.equals(operationType)) {
-					ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
-
-					for (ProvisioningScriptArgumentType argument : script.getArgument()) {
-						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
-								Mapping.getStaticOutput(argument, scriptArgumentDefinition,
-										"script value for " + operationType + " in " + resource, 
-										ExpressionReturnMultiplicityType.SINGLE, prismContext));
-						scriptOperation.getArgument().add(arg);
-					}
-
-					scriptOperation.setLanguage(script.getLanguage());
-					scriptOperation.setTextCode(script.getCode());
+					ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(
+							script, "script value for " + operationType + " in " + resource, prismContext);
 
 					scriptOperation.setScriptOrder(script.getOrder());
 
-					if (script.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
-						scriptOperation.setConnectorHost(true);
-						scriptOperation.setResourceHost(false);
-					}
-					if (script.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
-						scriptOperation.setConnectorHost(false);
-						scriptOperation.setResourceHost(true);
-					}
 					LOGGER.trace("Created script operation: {}", SchemaDebugUtil.prettyPrint(scriptOperation));
 					operations.add(scriptOperation);
 				}

@@ -122,7 +122,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -1302,7 +1303,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1334,7 +1335,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, syncTask, result);
+				new OperationProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1367,7 +1368,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, syncTask, result);
+				new OperationProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1400,7 +1401,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, syncTask, result);
+				new OperationProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1437,7 +1438,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1500,7 +1501,7 @@ public class TestDummy extends AbstractDummyTest {
 		ShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, ShadowType.class);
 		display("Account before add", account);
 
-		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
 
 		// WHEN
@@ -1552,7 +1553,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
@@ -1601,7 +1602,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
@@ -1643,7 +1644,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
 		
 		// WHEN
@@ -1665,6 +1666,37 @@ public class TestDummy extends AbstractDummyTest {
 		beforeScript.addArgMulti("what", "cruel");
 		ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("R.I.P.");
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test135ExecuteScript() throws Exception {
+		final String TEST_NAME = "test135ExecuteScript";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		dummyResource.purgeScriptHistory();
+
+		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		
+		ProvisioningScriptType script = scriptsType.getScript().get(0);
+		
+		// WHEN
+		provisioningService.executeScript(RESOURCE_DUMMY_OID, script, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("executeScript result", result);
+		assertSuccess("executeScript has failed (result)", result);
+		
+		ProvisioningScriptSpec expectedScript = new ProvisioningScriptSpec("Where to go now?");
+		expectedScript.addArgMulti("direction", "left", "right");
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), expectedScript);
 		
 		assertSteadyResource();
 	}
@@ -1697,7 +1729,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-				delta.getModifications(), new ProvisioningScriptsType(), null, task, result);
+				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1741,7 +1773,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1787,7 +1819,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-				delta.getModifications(), new ProvisioningScriptsType(), null, task, result);
+				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1834,7 +1866,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-				delta.getModifications(), new ProvisioningScriptsType(), null, task, result);
+				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2030,7 +2062,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2156,7 +2188,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2223,7 +2255,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2311,7 +2343,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2354,7 +2386,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2608,7 +2640,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, task, result);
+				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();

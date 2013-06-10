@@ -95,6 +95,17 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 		StringBuilder sb = new StringBuilder();
 		SchemaDebugUtil.indentDebugDump(sb, indent);
 		sb.append("Script execution ");
+		sb.append(toStringInternal());
+		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		return "ExecuteProvisioningScriptOperation(" + toStringInternal() + ")";
+	}
+	
+	private String toStringInternal() {
+		StringBuilder sb = new StringBuilder();
 		if (connectorHost) {
 			sb.append("on connector ");
 		}

@@ -2609,7 +2609,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="scripts" type="tns:ProvisioningScriptsType" minOccurs="0"/>
+                    <xsd:element name="scripts" type="tns:OperationProvisioningScriptsType" minOccurs="0"/>
                     <xsd:element name="projection" type="tns:ProjectionPolicyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3546,14 +3546,14 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ProvisioningScriptsType">
+    <xsd:complexType name="OperationProvisioningScriptsType">
         <xsd:annotation>
             <xsd:documentation>
                 Collection of scripts to be executed for various provisioning operations.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="script" type="tns:ProvisioningScriptType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="script" type="tns:OperationProvisioningScriptType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specific script definition.
@@ -3563,50 +3563,64 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="provisioningScripts" type="tns:ProvisioningScriptsType"/>
+    <xsd:element name="provisioningScripts" type="tns:OperationProvisioningScriptsType"/>
 
-    <xsd:complexType name="ProvisioningScriptType">
+    <xsd:complexType name="OperationProvisioningScriptType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies how and when a script is executed during provisioning.
             </xsd:documentation>
         </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ProvisioningScriptType">
+        	        <xsd:sequence>
+			            <xsd:element name="operation" type="tns:ProvisioningOperationTypeType" minOccurs="0" maxOccurs="unbounded">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Defines a set of operations for which the script should be executed.
+			                        If more than one operation is specified, the same
+			                        script should be executed for each of them.
+			                        If no operation is specified, the script will not be
+			                        executed (this is meant as poor man's disable feature)
+			                    </xsd:documentation>
+			                </xsd:annotation>
+			            </xsd:element>
+			            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="unbounded">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Constraints script execution only to resource objects of a specified kind.
+			                        If not present then the scrip will be executed for objects of all kinds.
+			                    </xsd:documentation>
+			                </xsd:annotation>
+			            </xsd:element>
+			            <xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Constraints script execution only to resource objects with a specified intent.
+			                        If not present then the scrip will be executed for objects with any intent.
+			                    </xsd:documentation>
+			                </xsd:annotation>
+			            </xsd:element>
+			            <xsd:element name="order" type="tns:ProvisioningScriptOrderType">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Defines the order in which a script is executed.
+			                        (before or after an operation).
+			                    </xsd:documentation>
+			                </xsd:annotation>
+			            </xsd:element>
+			        </xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProvisioningScriptType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a script to be executed during provisioning.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="operation" type="tns:ProvisioningOperationTypeType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines a set of operations for which the script should be executed.
-                        If more than one operation is specified, the same
-                        script should be executed for each of them.
-                        If no operation is specified, the script will not be
-                        executed (this is meant as poor man's disable feature)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Constraints script execution only to resource objects of a specified kind.
-                        If not present then the scrip will be executed for objects of all kinds.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Constraints script execution only to resource objects with a specified intent.
-                        If not present then the scrip will be executed for objects with any intent.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="order" type="tns:ProvisioningScriptOrderType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines the order in which a script is executed.
-                        (before or after an operation).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="host" type="tns:ProvisioningScriptHostType" minOccurs="0" default="resource">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3652,7 +3666,6 @@
             <xsd:documentation>
                 Type of an operation (change). It defines operations to change
                 object, it is not limited to object modifications.
-                TODO: How to handle renames?
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -3681,6 +3694,17 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reconcile">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Not stritcly a provisioning operation. But we understand it
+                		in a broader sense of "comparing states".
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RECONCILE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

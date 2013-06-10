@@ -721,7 +721,7 @@ public class ChangeExecutor {
             }
         }
 
-        ProvisioningScriptsType scripts = prepareScripts(object, context, ProvisioningOperationTypeType.ADD, resource, result);
+        OperationProvisioningScriptsType scripts = prepareScripts(object, context, ProvisioningOperationTypeType.ADD, resource, result);
         String oid = provisioning.addObject(object, scripts, options, task, result);
         return oid;
     }
@@ -731,7 +731,7 @@ public class ChangeExecutor {
             OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
-		ProvisioningScriptsType scripts = null;
+		OperationProvisioningScriptsType scripts = null;
 		try {
 			PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid,
 					GetOperationOptions.createNoFetch(), result);
@@ -750,12 +750,12 @@ public class ChangeExecutor {
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
     	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), result);
-    	ProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);
+    	OperationProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
         return changedOid;
     }
 
-    private <F extends ObjectType, P extends ObjectType> ProvisioningScriptsType prepareScripts(
+    private <F extends ObjectType, P extends ObjectType> OperationProvisioningScriptsType prepareScripts(
     		PrismObject<? extends ObjectType> changedObject, LensContext<F, P> context, 
     		ProvisioningOperationTypeType operation, ResourceType resource, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -768,7 +768,7 @@ public class ChangeExecutor {
     		LOGGER.warn("Resource does not exist. Skipping processing scripts.");
     		return null;
     	}
-    	ProvisioningScriptsType resourceScripts = resource.getScripts();
+    	OperationProvisioningScriptsType resourceScripts = resource.getScripts();
     	PrismObject<? extends ShadowType> resourceObject = (PrismObject<? extends ShadowType>) changedObject;
         
         PrismObject<F> user = null;
@@ -818,10 +818,10 @@ public class ChangeExecutor {
 //	}
 	
 	
-	private ProvisioningScriptsType evaluateScript(ProvisioningScriptsType resourceScripts, ProvisioningOperationTypeType operation, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
-		  ProvisioningScriptsType outScripts = new ProvisioningScriptsType();
+	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts, ProvisioningOperationTypeType operation, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+		  OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 	        if (resourceScripts != null) {
-	        	for (ProvisioningScriptType script: resourceScripts.getScript()) {
+	        	for (OperationProvisioningScriptType script: resourceScripts.getScript()) {
 	        		if (script.getOperation().contains(operation)) {
 	        			for (ProvisioningScriptArgumentType argument : script.getArgument()){
 	        				evaluateScript(argument, variables, result);

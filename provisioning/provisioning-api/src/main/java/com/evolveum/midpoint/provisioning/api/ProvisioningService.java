@@ -43,7 +43,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
@@ -160,7 +161,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, ProvisioningOperationOptions options,
+	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options,
 			Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, 
 			ConfigurationException, SecurityViolationException;
@@ -298,7 +299,7 @@ public interface ProvisioningService {
      *             if resulting object would have name which already exists in another object of the same type
 	 */
 	public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-			ProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
+			OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
 			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 
 	/**
@@ -325,9 +326,33 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, ProvisioningScriptsType scripts, Task task, OperationResult parentResult)
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
+	/**
+	 * Executes a single provisioning script.
+	 * 
+	 * @param script
+	 *            script to execute
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * 
+	 * @throws ObjectNotFoundException
+	 *             specified object does not exist
+	 * @throws SchemaException
+	 *             resulting object would violate the schema
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, described change is not applicable
+	 * @throws GenericConnectorException
+	 *             unknown connector framework error
+	 * @throws SecurityViolationException 
+	 * 				Security violation while communicating with the connector or processing provisioning policies
+	 * @throws ObjectAlreadyExistsException
+     *             if resulting object would have name which already exists in another object of the same type
+	 */
+	public <T extends ObjectType> void executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
+			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
+	
 	/**
 	 * Test the resource connection and basic resource connector functionality.
 	 * 

@@ -156,21 +156,7 @@ public interface ConnectorInstance {
 			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 		SecurityViolationException, ConfigurationException;
-	
-	/**
-	 * Schema aware-version of the fetchObject.
-	 * 
-	 * TODO
-	 * 
-	 * @param resourceObjectDefinition
-	 * @param identifiers
-	 * @return
-	 * @throws CommunicationException 
-	 */
-	//public ResourceObject fetchObject(ResourceObjectDefinition resourceObjectDefinition, Set<ResourceObjectAttribute> identifiers) throws CommunicationException;
-	
-	// TODO schema-aware version of the operations
-	
+
 	/**
 	 * Execute iterative search operation.
 	 * 
@@ -180,10 +166,7 @@ public interface ConnectorInstance {
 	 * 
 	 * The call to this method will return only after all the callbacks were
 	 * called, therefore it is not asynchronous in a strict sense.
-	 * 
-	 * 
-	 * TODO: filter
-	 * 
+	 *  
 	 * @param objectClass
 	 * @param handler
 	 * @throws CommunicationException 
@@ -245,6 +228,8 @@ public interface ConnectorInstance {
 	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, 
 			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	
+	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.

@@ -53,7 +53,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -489,7 +489,7 @@ public class ShadowManager {
 		}
 
 		if (repoShadowType.getName() == null) {
-			repoShadowType.setName(ShadowCacheUtil.determineShadowName(shadow));
+			repoShadowType.setName(ProvisioningUtil.determineShadowName(shadow));
 		}
 
 		if (repoShadowType.getObjectClass() == null) {

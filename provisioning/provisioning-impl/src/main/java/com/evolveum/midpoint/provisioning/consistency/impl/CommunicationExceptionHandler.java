@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -117,7 +117,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			if (shadow.getFailedOperationType() == null) {
 //				ResourceType resource = shadow.getResource();
 				if (shadow.getName() == null) {
-					shadow.setName(ShadowCacheUtil.determineShadowName(shadow.asPrismObject()));
+					shadow.setName(ProvisioningUtil.determineShadowName(shadow.asPrismObject()));
 				}
 				if (shadow.getResourceRef() == null || shadow.getResourceRef().getOid() == null){
 					if (resource != null){

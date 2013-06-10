@@ -1137,7 +1137,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	 */
 	public void cleanupResult(Throwable e) {
 		if (status == OperationResultStatus.UNKNOWN) {
-			throw new IllegalStateException("Attempt to cleanup result of opertation "+operation+" that is still UNKNOWN");
+			throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
 		}
 		if (subresults == null) {
 			return;

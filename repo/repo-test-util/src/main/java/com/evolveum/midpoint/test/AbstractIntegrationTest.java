@@ -252,6 +252,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObject<T> prismObject = prismContext.parseObject(file);
 		return prismObject.asObjectable();
 	}
+	
+	protected static <T> T unmarshallJaxbFromFile(File file, Class<T> clazz)
+			throws FileNotFoundException, JAXBException, SchemaException {
+		return PrismTestUtil.unmarshalObject(file, clazz);
+	}
 
 	protected static <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz)
 			throws FileNotFoundException, JAXBException, SchemaException {

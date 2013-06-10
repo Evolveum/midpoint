@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -43,6 +46,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -58,11 +66,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class ShadowCacheUtil {
-
-	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheUtil.class);
-
+public class ProvisioningUtil {
 	
+	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
+
+	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
 	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute, ShadowType shadow,
 			ResourceType resource) {
@@ -217,5 +225,34 @@ public class ShadowCacheUtil {
 			
 			return null;
 	}
+	
+	public static ExecuteProvisioningScriptOperation convertToScriptOperation(ProvisioningScriptType scriptType, 
+			String desc, PrismContext prismContext) throws SchemaException {
+		ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
+		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		
+		for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
+			ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
+					Mapping.getStaticOutput(argument, scriptArgumentDefinition,
+							desc, 
+							ExpressionReturnMultiplicityType.SINGLE, prismContext));
+			scriptOperation.getArgument().add(arg);
+		}
+
+		scriptOperation.setLanguage(scriptType.getLanguage());
+		scriptOperation.setTextCode(scriptType.getCode());
+
+		if (scriptType.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
+			scriptOperation.setConnectorHost(true);
+			scriptOperation.setResourceHost(false);
+		}
+		if (scriptType.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
+			scriptOperation.setConnectorHost(false);
+			scriptOperation.setResourceHost(true);
+		}
+		
+		return scriptOperation;
+	}
 }

@@ -79,7 +79,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
-import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -120,8 +120,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
@@ -291,7 +291,7 @@ public abstract class ShadowCache {
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 	
-	public String addShadow(PrismObject<ShadowType> shadow, ProvisioningScriptsType scripts,
+	public String addShadow(PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			ResourceType resource, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
@@ -299,8 +299,6 @@ public abstract class ShadowCache {
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start adding shadow object:\n{}", shadow.dump());
-			LOGGER.trace("Scripts: {}",
-					SchemaDebugUtil.dumpJaxbObject(scripts, "scripts", shadow.getPrismContext()));
 		}
 	
 		if (resource == null) {
@@ -356,7 +354,7 @@ public abstract class ShadowCache {
 	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException;
 	
 	public String modifyShadow(PrismObject<ShadowType> shadow, ResourceType resource, String oid,
-				Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+				Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 				throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
 				ConfigurationException, SecurityViolationException {
 
@@ -470,7 +468,7 @@ public abstract class ShadowCache {
 		return sideEffectDelta;
 	}
 
-	public void deleteShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningScriptsType scripts,
+	public void deleteShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts,
 			ResourceType resource, Task task, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectNotFoundException, SchemaException, ConfigurationException,
 			SecurityViolationException {
@@ -1092,8 +1090,8 @@ public abstract class ShadowCache {
 		String intent = null;
 		if (query != null && query.getFilter() != null) {
 			List<? extends ObjectFilter> conditions = ((AndFilter) query.getFilter()).getCondition();
-			kind = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_KIND);
-			intent = ShadowCacheUtil.getValueFromFilter(conditions, ShadowType.F_INTENT);
+			kind = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_KIND);
+			intent = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_INTENT);
 		}
 		RefinedObjectClassDefinition objectClassDefinition;
 		if (kind == null) {
@@ -1151,7 +1149,7 @@ public abstract class ShadowCache {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
 		}
 		if (resultShadowType.getName() == null) {
-			resultShadowType.setName(ShadowCacheUtil.determineShadowName(resourceShadow));
+			resultShadowType.setName(ProvisioningUtil.determineShadowName(resourceShadow));
 		}
 		if (resultShadowType.getResource() == null) {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));

@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
@@ -128,7 +129,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static final String FILENAME_ENABLE_ACCOUNT = TEST_DIR + "modify-will-enable.xml";
 	protected static final String FILENAME_DISABLE_ACCOUNT = TEST_DIR + "modify-will-disable.xml";
 	protected static final String FILENAME_MODIFY_ACCOUNT = TEST_DIR + "modify-will-fullname.xml";
-	protected static final String FILENAME_SCRIPT_ADD = TEST_DIR + "script-add.xml";
+	protected static final File FILE_SCRIPTS = new File(TEST_DIR, "scripts.xml");
 	
 	protected static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
 	

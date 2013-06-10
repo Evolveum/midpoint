@@ -16,6 +16,17 @@
   -->
 
 <c:provisioningScripts xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	<c:script>
+        <c:operation>reconcile</c:operation>
+        <c:host>resource</c:host>
+        <c:language>Gibberish</c:language>
+        <c:argument>
+            <c:value>left</c:value>
+            <c:value>right</c:value>
+            <c:name>direction</c:name>
+        </c:argument>
+        <c:code>Where to go now?</c:code>
+    </c:script>
     <c:script>
         <c:operation>add</c:operation>
         <c:order>before</c:order>

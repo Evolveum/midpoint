@@ -1030,18 +1030,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalStateException("Couldn't set attributes for icf.");
 		}
 
-		// Look for a password change operation
-		// if (additionalOperations != null) {
-		// for (Operation op : additionalOperations) {
-		// if (op instanceof PasswordChangeOperation) {
-		// PasswordChangeOperation passwordChangeOperation =
-		// (PasswordChangeOperation) op;
-		// // Activation change means modification of attributes
-		// convertFromPassword(attributes, passwordChangeOperation);
-		// }
-		//
-		// }
-		// }
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		icfResult.addParam("objectClass", objectClass);
@@ -1052,12 +1041,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Uid uid = null;
 		try {
 
-			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE);
-
 			// CALL THE ICF FRAMEWORK
 			uid = icfConnectorFacade.create(objectClass, attributes, new OperationOptionsBuilder().build());
-
-			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER);
 
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
@@ -1083,6 +1068,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
+		
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER, result);
 
 		if (uid == null || uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
 			icfResult.recordFatalError("ICF did not returned UID after create");
@@ -1243,7 +1230,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// icfResult for each operation
 		// and handle the faults individually
 
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE);
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
 
 		OperationResult icfResult = null;
 		try {
@@ -1416,8 +1403,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER);
-		result.recordSuccess();
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER, result);
+		
+		result.computeStatus();
 
 		Set<PropertyModificationOperation> sideEffectChanges = new HashSet<PropertyModificationOperation>();
 		if (!originalUid.equals(uid.getUidValue())) {
@@ -1467,6 +1455,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass objClass = objectClassToIcf(objectClass);
 		Uid uid = getUid(identifiers);
 
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
+		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
 		icfResult.addParam("uid", uid);
 		icfResult.addParam("objectClass", objClass);
@@ -1474,13 +1464,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 
-			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE);
-
 			icfConnectorFacade.delete(objClass, uid, new OperationOptionsBuilder().build());
-
 			
-			
-			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER);
 			icfResult.recordSuccess();
 
 		} catch (Exception ex) {
@@ -1503,8 +1488,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
+		
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER, result);
 
-		result.recordSuccess();
+		result.computeStatus();
 	}
 
 	@Override
@@ -2231,13 +2218,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	/**
-	 * check additional operation order, according to the order are scrip
+	 * check additional operation order, according to the order are script
 	 * executed before or after operation..
-	 * 
-	 * @param additionalOperations
-	 * @param order
 	 */
-	private void checkAndExecuteAdditionalOperation(Collection<Operation> additionalOperations, ProvisioningScriptOrderType order) {
+	private void checkAndExecuteAdditionalOperation(Collection<Operation> additionalOperations, ProvisioningScriptOrderType order, OperationResult result) throws CommunicationException, GenericFrameworkException {
 
 		if (additionalOperations == null) {
 			// TODO: add warning to the result
@@ -2246,40 +2230,105 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		for (Operation op : additionalOperations) {
 			if (op instanceof ExecuteProvisioningScriptOperation) {
-
 				ExecuteProvisioningScriptOperation executeOp = (ExecuteProvisioningScriptOperation) op;
 				LOGGER.trace("Find execute script operation: {}", SchemaDebugUtil.prettyPrint(executeOp));
 				// execute operation in the right order..
 				if (order.equals(executeOp.getScriptOrder())) {
-					executeScript(executeOp);
+					executeScriptIcf(executeOp, result);
 				}
 			}
 		}
 
 	}
+	
+	@Override
+	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+		
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
+				+ ".executeScript");
+		
+		Object output = null;
+		try {
+			
+			output = executeScriptIcf(scriptOperation, result);
+			
+		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (GenericFrameworkException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		
+		result.computeStatus();
+		
+		return output;
+	}
 
-	private void executeScript(ExecuteProvisioningScriptOperation executeOp) {
-
+	private Object executeScriptIcf(ExecuteProvisioningScriptOperation scriptOperation, OperationResult result) throws CommunicationException, GenericFrameworkException {
+		
+		String icfOpName = null;
+		if (scriptOperation.isConnectorHost()) {
+			icfOpName = "runScriptOnConnector";
+		} else if (scriptOperation.isResourceHost()) {
+			icfOpName = "runScriptOnResource";
+		} else {
+			throw new IllegalArgumentException("Where to execute the script?");
+		}
+		
 		// convert execute script operation to the script context required from
-		// the connector
-		ScriptContext scriptContext = convertToScriptContext(executeOp);
-		// check if the script should be executed on the connector or the
-		// resoruce...
-		if (executeOp.isConnectorHost()) {
-			LOGGER.debug("Start running script on connector.");
-			Object output = icfConnectorFacade.runScriptOnConnector(scriptContext, new OperationOptionsBuilder().build());
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Finish running script on connector, script result: {}", PrettyPrinter.prettyPrint(output));
+			// the connector
+			ScriptContext scriptContext = convertToScriptContext(scriptOperation);
+			
+			OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + "." + icfOpName);
+			icfResult.addContext("connector", icfConnectorFacade);
+			
+			Object output = null;
+			
+			try {
+				
+				LOGGER.debug("Running script ({})", icfOpName);
+				
+				if (scriptOperation.isConnectorHost()) {
+					output = icfConnectorFacade.runScriptOnConnector(scriptContext, new OperationOptionsBuilder().build());
+				} else if (scriptOperation.isResourceHost()) {
+					output = icfConnectorFacade.runScriptOnResource(scriptContext, new OperationOptionsBuilder().build());
+				}
+				
+				icfResult.recordSuccess();
+				
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Finished running script ({}), script result: {}", icfOpName, PrettyPrinter.prettyPrint(output));
+				}
+				
+			} catch (Exception ex) {
+				
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
+				}
+				
+				Exception midpointEx = processIcfException(ex, icfResult);
+				result.computeStatus();
+				// Do some kind of acrobatics to do proper throwing of checked
+				// exception
+				if (midpointEx instanceof CommunicationException) {
+					throw (CommunicationException) midpointEx;
+				} else if (midpointEx instanceof GenericFrameworkException) {
+					throw (GenericFrameworkException) midpointEx;
+				} else if (midpointEx instanceof SchemaException) {
+					// Schema exception during delete? It must be a missing UID
+					throw new IllegalArgumentException(midpointEx.getMessage(), midpointEx);
+				} else if (midpointEx instanceof RuntimeException) {
+					throw (RuntimeException) midpointEx;
+				} else {
+					throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+				}
 			}
-		}
-		if (executeOp.isResourceHost()) {
-			LOGGER.debug("Start running script on resource.");
-			Object output = icfConnectorFacade.runScriptOnResource(scriptContext, new OperationOptionsBuilder().build());
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Finish running script on resource, script result: {}", PrettyPrinter.prettyPrint(output));
-			}
-		}
-
+			
+			return output;
 	}
 
 	private ScriptContext convertToScriptContext(ExecuteProvisioningScriptOperation executeOp) {
