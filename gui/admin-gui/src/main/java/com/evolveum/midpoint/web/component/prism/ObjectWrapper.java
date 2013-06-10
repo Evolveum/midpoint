@@ -498,6 +498,9 @@ public class ObjectWrapper implements Serializable {
 			}
 		}
 
+        //returning container to previous order
+        Collections.sort(containers, new ItemWrapperComparator());
+
 		return delta;
 	}
 
@@ -595,6 +598,9 @@ public class ObjectWrapper implements Serializable {
 		cleanupEmptyContainers(object);
 
 		ObjectDelta delta = ObjectDelta.createAddDelta(object);
+
+        //returning container to previous order
+        Collections.sort(containers, new ItemWrapperComparator());
 
 		return delta;
 	}
