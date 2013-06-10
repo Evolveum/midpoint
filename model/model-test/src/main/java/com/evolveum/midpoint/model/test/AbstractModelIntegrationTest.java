@@ -1308,7 +1308,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 //				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp) 
 //						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 				if (verbose) display("Check result", result);
-				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+				if (isError(result, checkSubresult)) {
+                    assert false : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result)+"\n\n"+result.debugDump();
+                }
 				if (isUknown(result, checkSubresult)) {
 					return false;
 				}
