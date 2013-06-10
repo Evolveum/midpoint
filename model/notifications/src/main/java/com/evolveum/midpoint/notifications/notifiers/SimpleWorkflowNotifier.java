@@ -77,7 +77,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 
         WorkflowEvent workflowEvent = (WorkflowEvent) event;
 
-        boolean techInfo = generalNotifierType.getLevelOfDetail() != null && generalNotifierType.getLevelOfDetail() >= LEVEL_TECH_INFO;
+        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 

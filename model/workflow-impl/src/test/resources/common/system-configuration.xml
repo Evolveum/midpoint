@@ -44,7 +44,7 @@
             <recipientExpression>
                 <value>recipient@evolveum.com</value>
             </recipientExpression>
-            <levelOfDetail>10</levelOfDetail>
+            <showTechnicalInformation>true</showTechnicalInformation>
             <transport>dummy:simpleWorkflowNotifier-Processes</transport>
         </simpleWorkflowNotifier>
         <simpleWorkflowNotifier>

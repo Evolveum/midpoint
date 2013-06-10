@@ -232,8 +232,13 @@ public class ItemPath implements Serializable {
 	public boolean isSuperPath(ItemPath otherPath) {
 		return compareComplex(otherPath) == CompareResult.SUPERPATH;
 	}
-	
-	public boolean equivalent(ItemPath otherPath) {
+
+    public boolean isSubPathOrEquivalent(ItemPath otherPath) {
+        CompareResult result = compareComplex(otherPath);
+        return result == CompareResult.SUBPATH || result == CompareResult.EQUIVALENT;
+    }
+
+    public boolean equivalent(ItemPath otherPath) {
 		return compareComplex(otherPath) == CompareResult.EQUIVALENT;
 	}
 	

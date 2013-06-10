@@ -21,8 +21,15 @@ import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.notifications.transports.Message;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,6 +42,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +59,18 @@ public abstract class GeneralNotifier extends BaseHandler {
 
     @Autowired
     protected NotificationsUtil notificationsUtil;
+
+    protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
+            new ItemPath(ShadowType.F_METADATA),
+            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
+            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+            new ItemPath(UserType.F_LINK_REF)
+    );
+
 
     @PostConstruct
     public void init() {
@@ -205,5 +225,87 @@ public abstract class GeneralNotifier extends BaseHandler {
         } else {
             return null;
         }
+    }
+
+    // TODO implement more efficiently
+    // precondition: delta is MODIFY delta
+    protected boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
+
+        for (ItemDelta itemDelta : delta.getModifications()) {
+            if (!isAmongHiddenPaths(itemDelta.getPath(), paths)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
+        for (ItemPath hiddenPath : hiddenPaths) {
+            if (hiddenPath.isSubPathOrEquivalent(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean isWatchAuxiliaryAttributes(GeneralNotifierType generalNotifierType) {
+        return Boolean.TRUE.equals((generalNotifierType).isWatchAuxiliaryAttributes());
+    }
+
+    protected void appendModifications(StringBuilder body, ObjectDelta<? extends ObjectType> delta, List<ItemPath> hiddenPaths, Boolean showValuesBoolean) {
+
+        boolean showValues = !Boolean.FALSE.equals(showValuesBoolean);
+        for (ItemDelta<? extends PrismValue> itemDelta : delta.getModifications()) {
+            if (isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+                continue;
+            }
+            body.append(" - ");
+            body.append(formatPath(itemDelta));
+
+            if (showValues) {
+                body.append(":\n");
+
+                if (itemDelta.isAdd()) {
+                    for (PrismValue prismValue : itemDelta.getValuesToAdd()) {
+                        body.append(" --- ADD: ");
+                        body.append(prismValue.debugDump(2));
+                        body.append("\n");
+                    }
+                }
+                if (itemDelta.isDelete()) {
+                    for (PrismValue prismValue : itemDelta.getValuesToDelete()) {
+                        body.append(" --- DELETE: ");
+                        body.append(prismValue.debugDump(2));
+                        body.append("\n");
+                    }
+                }
+                if (itemDelta.isReplace()) {
+                    for (PrismValue prismValue : itemDelta.getValuesToReplace()) {
+                        body.append(" --- REPLACE: ");
+                        body.append(prismValue.debugDump(2));
+                        body.append("\n");
+                    }
+                }
+            } else {
+                body.append("\n");
+            }
+        }
+    }
+
+    private String formatPath(ItemDelta itemDelta) {
+        if (itemDelta.getDefinition() != null && itemDelta.getDefinition().getDisplayName() != null) {
+            return itemDelta.getDefinition().getDisplayName();
+        }
+        StringBuilder sb = new StringBuilder();
+        for (ItemPathSegment itemPathSegment : itemDelta.getPath().getSegments()) {
+            if (itemPathSegment instanceof NameItemPathSegment) {
+                NameItemPathSegment nameItemPathSegment = (NameItemPathSegment) itemPathSegment;
+                if (sb.length() > 0) {
+                    sb.append("/");
+                }
+                sb.append(nameItemPathSegment.getName().getLocalPart());
+            }
+        }
+        return sb.toString();
     }
 }

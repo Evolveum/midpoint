@@ -23,18 +23,18 @@ import com.evolveum.midpoint.notifications.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SimpleUserNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author mederly
@@ -56,7 +56,23 @@ public class SimpleUserNotifier extends GeneralNotifier {
             LOGGER.trace("SimpleUserNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
         }
-        return !(((ModelEvent) event).getUserDeltas()).isEmpty();
+
+        List<ObjectDelta<UserType>> deltas = ((ModelEvent) event).getUserDeltas();
+        if (deltas.isEmpty()) {
+            return false;
+        }
+
+        if (isWatchAuxiliaryAttributes(generalNotifierType)) {
+            return true;
+        }
+
+        for (ObjectDelta<UserType> delta : deltas) {
+            if (!delta.isModify() || deltaContainsOtherPathsThan(delta, auxiliaryPaths)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -76,7 +92,7 @@ public class SimpleUserNotifier extends GeneralNotifier {
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) throws SchemaException {
 
-        boolean techInfo = generalNotifierType.getLevelOfDetail() != null && generalNotifierType.getLevelOfDetail() >= LEVEL_TECH_INFO;
+        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
         ModelContext<UserType,? extends ObjectType> modelContext = (ModelContext) ((ModelEvent) event).getModelContext();
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
@@ -91,17 +107,14 @@ public class SimpleUserNotifier extends GeneralNotifier {
         body.append("User: " + userType.getFullName() + " (" + userType.getName() + ", oid " + userType.getOid() + ")\n");
         body.append("Notification created on: " + new Date() + "\n\n");
 
-        // todo describe the change
-
-        if (event.isAdd()) {
+        if (delta.isAdd()) {
             body.append("The user record was created.\n\n");
-        } else if (event.isModify()) {
+        } else if (delta.isModify()) {
             body.append("The user record was modified. Modified attributes are:\n");
-            for (ItemDelta itemDelta : delta.getModifications()) {
-                body.append(" - " + itemDelta.getName().getLocalPart() + "\n");
-            }
+            List<ItemPath> hiddenPaths = isWatchAuxiliaryAttributes(generalNotifierType) ? new ArrayList<ItemPath>() : auxiliaryPaths;
+            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
             body.append("\n");
-        } else if (event.isDelete()) {
+        } else if (delta.isDelete()) {
             body.append("The user record was removed.\n\n");
         }
 

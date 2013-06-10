@@ -26,13 +26,11 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SimpleAccountNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -55,6 +53,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
             new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION),
             new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION));
 
+
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof AccountEvent)) {
@@ -64,18 +63,26 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
             AccountEvent accountEvent = (AccountEvent) event;
             ObjectDelta<ShadowType> delta = accountEvent.getShadowDelta();
-            if (!delta.isModify() || Boolean.TRUE.equals(((SimpleAccountNotifierType) generalNotifierType).isWatchSynchronizationAttributes())) {
+            if (!delta.isModify()) {
                 return true;
             }
 
-            for (ItemDelta itemDelta : delta.getModifications()) {
-                if (!synchronizationPaths.contains(itemDelta.getPath())) {
-                    return true;
-                }
+            boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, synchronizationPaths);
+            boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, auxiliaryPaths);
+            boolean watchSync = isWatchSynchronizationAttributes((SimpleAccountNotifierType) generalNotifierType);
+            boolean watchAux = isWatchAuxiliaryAttributes(generalNotifierType);
+            if ((watchSync || otherThanSyncPresent) && (watchAux || otherThanAuxPresent)) {
+                return true;
             }
-            LOGGER.trace("Only synchronization-related attributes in delta, skipping the notifier.");
+
+            LOGGER.trace("No relevant attributes in delta, skipping the notifier (watchSync = " + watchSync + ", otherThanSyncPresent = " + otherThanSyncPresent +
+                    ", watchAux = " + watchAux + ", otherThanAuxPresent = " + otherThanAuxPresent + ")");
             return false;
         }
+    }
+
+    private boolean isWatchSynchronizationAttributes(SimpleAccountNotifierType generalNotifierType) {
+        return Boolean.TRUE.equals((generalNotifierType).isWatchSynchronizationAttributes());
     }
 
     @Override
@@ -100,7 +107,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
 
-        boolean techInfo = generalNotifierType.getLevelOfDetail() != null && generalNotifierType.getLevelOfDetail() >= LEVEL_TECH_INFO;
+        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 
@@ -138,9 +145,14 @@ public class SimpleAccountNotifier extends GeneralNotifier {
             body.append("created on the resource.\n\n");
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");
-            for (ItemDelta itemDelta : delta.getModifications()) {
-                body.append(" - " + itemDelta.getName().getLocalPart() + "\n");
+            List<ItemPath> hiddenPaths = new ArrayList<ItemPath>();
+            if (!isWatchSynchronizationAttributes((SimpleAccountNotifierType) generalNotifierType)) {
+                hiddenPaths.addAll(synchronizationPaths);
             }
+            if (!isWatchAuxiliaryAttributes(generalNotifierType)) {
+                hiddenPaths.addAll(auxiliaryPaths);
+            }
+            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("removed from the resource.\n\n");
@@ -148,6 +160,8 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
         if (accountEvent.getOperationStatus() == OperationStatus.IN_PROGRESS) {
             body.append("The operation will be retried.\n\n");
+        } else if (accountEvent.getOperationStatus() == OperationStatus.FAILURE) {
+            body.append("Error: " + accountEvent.getAccountOperationDescription().getResult().getMessage() + "\n\n");
         }
 
         if (techInfo) {

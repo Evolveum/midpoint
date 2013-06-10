@@ -7618,7 +7618,30 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="levelOfDetail" type="xsd:int" minOccurs="0" />
+                    <xsd:element name="watchAuxiliaryAttributes" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether to send a notification when only auxiliary attributes (namely: validityStatus,
+                                validityChangeTimestamp, effectiveStatus, disableTimestamp, modifyChannel, modifyTimestamp,
+                                modifierRef and maybe others) are modified. If set to false (default), these attributes
+                                are hidden from list of modified attributes as well.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="showModifiedValues" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether to show modified values (or only names of changed attributes). Default: true.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="showTechnicalInformation" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether to show technical information (e.g. model context or account operation details).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:extension>

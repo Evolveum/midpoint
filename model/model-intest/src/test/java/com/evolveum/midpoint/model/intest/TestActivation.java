@@ -966,7 +966,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		XMLGregorianCalendar validityChangeTimestamp = activation.getValidityChangeTimestamp();
 		assertNotNull("No validityChangeTimestamp in "+user, validityChangeTimestamp);
 		long validityMillis = XmlTypeConverter.toMillis(validityChangeTimestamp);
-		if (validityMillis > lowerBound && validityMillis < upperBound) {
+		if (validityMillis >= lowerBound && validityMillis <= upperBound) {
 			return;
 		}
 		AssertJUnit.fail("Expected validityChangeTimestamp to be between "+lowerBound+" and "+upperBound+", but it was "+validityMillis);
