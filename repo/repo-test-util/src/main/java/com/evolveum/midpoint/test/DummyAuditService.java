@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.*;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import net.sf.saxon.tree.wrapper.SiblingCountingNode;
@@ -139,8 +140,24 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		assert records.size() == expectedNumber : "Unexpected number of audit records; expected "+expectedNumber+
 				" but was "+records.size();
 	}
-	
-	public AuditEventRecord getRequestRecord() {
+
+    public List<AuditEventRecord> getRecordsOfType(AuditEventType type) {
+        List<AuditEventRecord> retval = new ArrayList<AuditEventRecord>();
+        for (AuditEventRecord record : records) {
+            if (record.getEventType() == type) {
+                retval.add(record);
+            }
+        }
+        return retval;
+    }
+
+    public void assertRecords(AuditEventType type, int expectedNumber) {
+        List<AuditEventRecord> filtered = getRecordsOfType(type);
+        assert filtered.size() == expectedNumber : "Unexpected number of audit records of type " + type + "; expected " + expectedNumber +
+                " but was " + filtered.size();
+    }
+
+    public AuditEventRecord getRequestRecord() {
 		assertSingleBatch();
 		AuditEventRecord requestRecord = records.get(0);
 		assert requestRecord != null : "The first audit record is null";

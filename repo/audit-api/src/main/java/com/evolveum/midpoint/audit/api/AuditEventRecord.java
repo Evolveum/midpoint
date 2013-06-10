@@ -86,6 +86,9 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	private OperationResultStatus outcome;
 
 	// result (e.g. number of entries, returned object???)
+    // we use OperationResult, because it is able to embed almost any kind of result
+    // outcome should be in sync with result.getStatus(), if result is used
+    private OperationResult result;
 
     private String parameter;
 
@@ -234,7 +237,12 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	
 	public void setResult(OperationResult result) {
 		outcome = result.getStatus();
+        this.result = result;
 	}
+
+    public OperationResult getResult() {
+        return result;
+    }
 
     public String getMessage() {
         return message;
@@ -265,6 +273,12 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		if (deltas != null) {
 			ObjectDeltaOperation.checkConsistence(deltas);
 		}
+//        //TODO: should this be here?
+//        if (result != null && result.getStatus() != null) {
+//            if (result.getStatus() != outcome) {
+//                throw new IllegalStateException("Status in result (" + result.getStatus() + ") differs from outcome (" + outcome + ")");
+//            }
+//        }
 	}
 	
 	public AuditEventRecord clone() {
@@ -283,6 +297,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		clone.taskIdentifier = this.taskIdentifier;
 		clone.taskOID = this.taskOID;
 		clone.timestamp = this.timestamp;
+        clone.result = this.result != null ? this.result.clone() : null;
         clone.parameter = this.parameter;
         clone.message = this.message;
 		return clone;
@@ -294,11 +309,27 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
 				+ ", T=" + formatObject(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
-				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + ", p=" + parameter
+				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + ", r=" + formatResult(result) + ", p=" + parameter
                 + ", m=" + message + "]";
 	}
 
-	private static String formatTimestamp(Long timestamp) {
+    private String formatResult(OperationResult result) {
+        if (result == null || result.getReturns() == null || result.getReturns().isEmpty()) {
+            return "nothing";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String key : result.getReturns().keySet()) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(key);
+            sb.append("=");
+            sb.append(result.getReturns().get(key));
+        }
+        return sb.toString();
+    }
+
+    private static String formatTimestamp(Long timestamp) {
 		if (timestamp == null) {
 			return "null";
 		}
@@ -336,6 +367,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Stage", eventStage, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Channel", channel, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Outcome", outcome, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Result", result, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
@@ -352,5 +384,4 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	public String dump() {
 		return debugDump();
 	}
-		
 }

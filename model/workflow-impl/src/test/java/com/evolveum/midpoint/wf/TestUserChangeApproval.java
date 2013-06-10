@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.wf;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -24,6 +27,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -32,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -46,11 +51,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
-import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
+import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,10 +65,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
@@ -155,6 +156,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                    assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
                    checkDummyTransportMessages("simpleUserNotifier", 1);
+                   checkAuditRecords(createResultMap(ROLE_R1_OID, true));
                }
 
                @Override
@@ -163,6 +165,42 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                }
            });
 	}
+
+    private Map<String, Boolean> createResultMap(String oid, boolean approved) {
+        Map<String,Boolean> retval = new HashMap<String,Boolean>();
+        retval.put(oid, approved);
+        return retval;
+    }
+
+    private Map<String, Boolean> createResultMap(String oid, boolean approved, String oid2, boolean approved2) {
+        Map<String,Boolean> retval = new HashMap<String,Boolean>();
+        retval.put(oid, approved);
+        retval.put(oid2, approved2);
+        return retval;
+    }
+
+    private Map<String, Boolean> createResultMap(String oid, boolean approved, String oid2, boolean approved2, String oid3, boolean approved3) {
+        Map<String,Boolean> retval = new HashMap<String,Boolean>();
+        retval.put(oid, approved);
+        retval.put(oid2, approved2);
+        retval.put(oid3, approved3);
+        return retval;
+    }
+
+    private void checkAuditRecords(Map<String,Boolean> expectedResults) {
+        List<AuditEventRecord> workItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
+        assertEquals("Unexpected number of work item audit records", expectedResults.size()*2, workItemRecords.size());
+        for (AuditEventRecord record : workItemRecords) {
+            if (record.getEventStage() != AuditEventStage.EXECUTION) {
+                continue;
+            }
+            ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
+            AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
+            String oid = assignmentType.getTargetRef().getOid();
+            assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
+            assertEquals("Unexpected result for " + oid, expectedResults.get(oid), record.getResult().getReturn(Constants.AUDIT_RESULT_APPROVAL));
+        }
+    }
 
     private void removeAllRoles(String oid, OperationResult result) throws Exception {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
@@ -211,6 +249,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R2_OID, false));
             }
 
             @Override
@@ -252,6 +291,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertAssignedRole(jack, ROLE_R3_OID);
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
+                checkAuditRecords(createResultMap(ROLE_R3_OID, true));
             }
 
             @Override
@@ -305,6 +345,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("activation has not been changed", ActivationStatusType.DISABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
             }
 
             @Override
@@ -354,6 +395,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
+                checkAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
             }
 
             @Override
@@ -397,6 +439,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
             }
 
             @Override
@@ -453,6 +496,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
             }
 
             @Override
@@ -624,6 +668,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
 		// GIVEN
         prepareNotifications();
+        dummyAuditService.clear();
 
         Task rootTask = taskManager.createTaskInstance(TestUserChangeApproval.class.getName() + "."+testName);
 
@@ -743,6 +788,10 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount*2);
         checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount*2);
         notificationManager.setDisabled(true);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
 
         display("Output context", context);
 	}

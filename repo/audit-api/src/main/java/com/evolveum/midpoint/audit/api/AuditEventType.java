@@ -43,19 +43,22 @@ public enum AuditEventType {
 	 * E.g. logout
 	 */
 	TERMINATE_SESSION,
-	
-	/**
-	 * Queury session, modify session
-	 */
+
+    /**
+     * Workflow actions
+     */
+    WORK_ITEM,
+
+    WORKFLOW_PROCESS_INSTANCE
+
+    /**
+     * Queury session, modify session
+     */
 	
 	/**
 	 * Task states??? 
 	 */
-	
-	/**
-	 * Workflow actions? e.g. approvals?
-	 */
-	
+
 	/**
 	 * Startup, shutdown, critical failure (whole system)
 	 */

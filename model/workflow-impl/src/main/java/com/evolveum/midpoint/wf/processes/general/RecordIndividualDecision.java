@@ -21,12 +21,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Date;
 import java.util.List;
@@ -59,7 +58,7 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         Decision decision = new Decision();
 
-        MidPointPrincipal user = getPrincipalUser();
+        MidPointPrincipal user = MiscDataUtil.getPrincipalUser();
         if (user != null) {
             decision.setUser(user.getName().getOrig());  //TODO: probably not correct setting
         } else {
@@ -108,23 +107,6 @@ public class RecordIndividualDecision implements JavaDelegate {
         execution.setVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE, "User " + decision.getUser() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
         SpringApplicationContextHolder.getActivitiInterface().notifyMidpoint(execution);
-    }
-
-    // todo fixme: copied from web SecurityUtils
-    public MidPointPrincipal getPrincipalUser() {
-        SecurityContext ctx = SecurityContextHolder.getContext();
-        if (ctx != null && ctx.getAuthentication() != null && ctx.getAuthentication().getPrincipal() != null) {
-            Object principal = ctx.getAuthentication().getPrincipal();
-            if (!(principal instanceof MidPointPrincipal)) {
-                LOGGER.warn("Principal user in security context holder is {} but not type of {}",
-                        new Object[]{principal, MidPointPrincipal.class.getName()});
-                return null;
-            }
-            return (MidPointPrincipal) principal;
-        } else {
-            LOGGER.warn("No spring security context or authentication or principal.");
-            return null;
-        }
     }
 
 }

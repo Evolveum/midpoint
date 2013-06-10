@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -1316,5 +1317,10 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			sb.append("\n");
 		}
 	}
+
+    // primitive implementation
+    public OperationResult clone() {
+        return CloneUtil.clone(this);
+    }
 
 }

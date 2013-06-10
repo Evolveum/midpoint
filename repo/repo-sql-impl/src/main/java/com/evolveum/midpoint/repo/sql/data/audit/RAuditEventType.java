@@ -37,7 +37,11 @@ public enum RAuditEventType {
 
     CREATE_SESSION(AuditEventType.CREATE_SESSION),
 
-    TERMINATE_SESSION(AuditEventType.TERMINATE_SESSION);
+    TERMINATE_SESSION(AuditEventType.TERMINATE_SESSION),
+
+    WORK_ITEM(AuditEventType.WORK_ITEM),
+
+    WORKFLOW_PROCESS_INSTANCE(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
 
     private AuditEventType type;
 
