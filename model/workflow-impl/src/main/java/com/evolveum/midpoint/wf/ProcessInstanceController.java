@@ -16,9 +16,19 @@
 
 package com.evolveum.midpoint.wf;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -29,6 +39,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
+import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -39,14 +51,20 @@ import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareChildOperationTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.activiti.engine.delegate.DelegateTask;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBException;
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.*;
 
@@ -63,20 +81,26 @@ public class ProcessInstanceController {
     private static final long TASK_START_DELAY = 5000L;
     private static final boolean USE_WFSTATUS = true;
 
-    @Autowired(required = true)
+    @Autowired
     private WfConfiguration wfConfiguration;
 
-    @Autowired(required = true)
+    @Autowired
     private WfTaskUtil wfTaskUtil;
 
-    @Autowired(required = true)
+    @Autowired
     private TaskManager taskManager;
 
-    @Autowired(required = true)
+    @Autowired
     private ActivitiInterface activitiInterface;
 
-    @Autowired(required = true)
+    @Autowired
     private RepositoryService repositoryService;
+
+    @Autowired
+    private AuditService auditService;
+
+    @Autowired
+    private MiscDataUtil miscDataUtil;
 
     private Set<ProcessListener> processListeners = new HashSet<ProcessListener>();
     private Set<WorkItemListener> workItemListeners = new HashSet<WorkItemListener>();
@@ -207,6 +231,7 @@ public class ProcessInstanceController {
 
         try {
             activitiInterface.midpoint2activiti(spc, task, result);
+            auditProcessStart(spc, task, result);
             notifyProcessStart(spc, task, result);
         } catch (RuntimeException e) {
             LoggingUtils.logException(LOGGER,
@@ -220,6 +245,64 @@ public class ProcessInstanceController {
         result.recordSuccessIfUnknown();
 
         LOGGER.trace("startWorkflowProcessInstance finished");
+    }
+
+    private void auditProcessStart(StartProcessCommand spc, Task task, OperationResult result) {
+        auditProcessStartEnd(spc.getVariables(), task, AuditEventStage.REQUEST, result);
+    }
+
+    private void auditProcessEnd(ProcessEvent event, Task task, OperationResult result) {
+        auditProcessStartEnd(event.getVariables(), task, AuditEventStage.EXECUTION, result);
+    }
+
+    private void auditProcessStartEnd(Map<String,Object> variables, Task task, AuditEventStage stage, OperationResult result) {
+
+        AuditEventRecord auditEventRecord = new AuditEventRecord();
+        auditEventRecord.setEventType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
+        auditEventRecord.setEventStage(stage);
+
+        String requesterOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
+        if (requesterOid != null) {
+            try {
+                auditEventRecord.setInitiator(miscDataUtil.getRequester(variables, result));
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
+            }
+        }
+
+        PrismObject<GenericObjectType> processInstanceObject = new PrismObject<GenericObjectType>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
+        processInstanceObject.asObjectable().setName(new PolyStringType((String) variables.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
+        processInstanceObject.asObjectable().setOid(wfTaskUtil.getProcessId(task));
+        auditEventRecord.setTarget(processInstanceObject);
+
+        List<ObjectDelta<Objectable>> deltas = null;
+        try {
+            if (stage == AuditEventStage.REQUEST) {
+                deltas = wfTaskUtil.retrieveDeltasToProcess(task);
+            } else {
+                deltas = wfTaskUtil.retrieveResultingDeltas(task);
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta(s) from task " + task, e);
+        }
+        if (deltas != null) {
+            for (ObjectDelta delta : deltas) {
+                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+            }
+        }
+
+        if (stage == AuditEventStage.REQUEST) {
+            auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
+        } else {
+            OperationResult eventResult = new OperationResult(Constants.AUDIT_RESULT_METHOD);
+            eventResult.recordSuccess();
+            eventResult.addReturn(Constants.AUDIT_RESULT_APPROVAL, (Serializable) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
+            auditEventRecord.setResult(eventResult);
+        }
+
+        auditService.audit(auditEventRecord, task);
     }
 
     private void notifyProcessStart(StartProcessCommand spc, Task task, OperationResult result) {
@@ -273,6 +356,7 @@ public class ProcessInstanceController {
             changeProcessor.finishProcess(event, task, result);
             wfTaskUtil.setProcessInstanceFinishedImmediate(task, true, result);
 
+            auditProcessEnd(event, task, result);
             notifyProcessEnd(event, task, result);
 
             // passive tasks can be 'let go' at this point

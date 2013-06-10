@@ -15,11 +15,13 @@
  */
 package com.evolveum.midpoint.prism;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public interface Containerable {
+public interface Containerable extends Serializable {
 	
 	
 	public PrismContainerValue asPrismContainerValue();

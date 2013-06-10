@@ -16,9 +16,13 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
-public class ProvisioningOperationOptions {
+import java.io.Serializable;
 
-	/**
+public class ProvisioningOperationOptions implements Serializable {
+
+    private static final long serialVersionUID = -6960273605308871338L;
+
+    /**
 	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
 	 * any expressions, etc.
 	 */

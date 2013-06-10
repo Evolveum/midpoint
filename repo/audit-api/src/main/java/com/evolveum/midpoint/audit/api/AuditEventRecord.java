@@ -368,6 +368,9 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Channel", channel, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Outcome", outcome, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Result", result, indent + 1);
+        if (result != null && result.getReturns() != null) {
+            DebugUtil.debugDumpMapMultiLine(sb, result.getReturns(), indent + 2);
+        }
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);

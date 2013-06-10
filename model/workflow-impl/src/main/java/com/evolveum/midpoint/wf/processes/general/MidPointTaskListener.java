@@ -46,6 +46,7 @@ import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
 import javax.xml.bind.JAXBException;
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -151,8 +152,8 @@ public class MidPointTaskListener implements TaskListener {
         } else {
             OperationResult eventResult = new OperationResult(Constants.AUDIT_RESULT_METHOD);
             eventResult.recordSuccess();
-            eventResult.addReturn(Constants.AUDIT_RESULT_APPROVAL, variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
-            eventResult.addReturn(Constants.AUDIT_RESULT_COMMENT, variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
+            eventResult.addReturn(Constants.AUDIT_RESULT_APPROVAL, (Serializable) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
+            eventResult.addReturn(Constants.AUDIT_RESULT_COMMENT, (Serializable) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
             auditEventRecord.setResult(eventResult);
         }
 

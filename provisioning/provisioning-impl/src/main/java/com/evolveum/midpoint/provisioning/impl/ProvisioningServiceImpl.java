@@ -57,7 +57,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -372,7 +371,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".synchronize");
 		result.addParam(OperationResult.PARAM_OID, resourceOid);
-		result.addParam(OperationResult.PARAM_TASK, task);
+		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
 		int processedChanges = 0;
 
@@ -743,7 +742,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".modifyObject");
-		result.addParam("modifications", modifications);
+		result.addCollectionOfSerializablesAsParam("modifications", modifications);
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam("scripts", scripts);
 		result.addParam("options", options);

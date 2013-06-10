@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
+import java.io.Serializable;
+
 /**
  * Describes a change of a specific resource object together with definitions of the source and possibly
  * also other information. This is useful to completely describe a change that was detected on the resource.
@@ -37,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDumpable {
+public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDumpable, Serializable {
 
     private ObjectDelta<? extends ShadowType> objectDelta;
     private PrismObject<? extends ShadowType> currentShadow;

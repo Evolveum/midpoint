@@ -614,7 +614,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
         PrismProperty<T> prop = object.findProperty(propQName);
         Collection<T> actualValues = prop.getRealValues();
-        result.addParam("actualValues", actualValues);
+        result.addArbitraryCollectionAsParam("actualValues", actualValues);
         assertMultivalue("User, property '" + propName + "'", expectedValues, actualValues, result);
         result.recordSuccessIfUnknown();
     }
@@ -689,7 +689,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
         PrismProperty<PolyString> prop = object.findProperty(propQName);
         Collection<PolyString> actualValues = prop.getRealValues();
-        result.addParam("actualValues", actualValues);
+        result.addArbitraryCollectionAsParam("actualValues", actualValues);
         assertMultivaluePolyString("User, property '" + propName + "'", expectedValues, actualValues, result);
         result.recordSuccessIfUnknown();
     }

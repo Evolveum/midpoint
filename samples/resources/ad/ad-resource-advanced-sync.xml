@@ -238,8 +238,6 @@ to "false". The only way of resetting the flag is to change user's password.
         -->
         <scripts>
             <script>
-                <operation>modify</operation>
-                <order>after</order>
                 <host>resource</host>
                 <language>Shell</language>
                 <argument>
@@ -250,6 +248,8 @@ to "false". The only way of resetting the flag is to change user's password.
                     echo "after modify," >> C:\a.txt
                     exit
                 </code>
+                <operation>modify</operation>
+                <order>after</order>
             </script>
             <!--
            <script>

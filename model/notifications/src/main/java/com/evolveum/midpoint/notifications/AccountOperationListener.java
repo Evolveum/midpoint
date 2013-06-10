@@ -23,6 +23,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,6 +47,9 @@ public class AccountOperationListener implements ResourceOperationListener {
     private static final Trace LOGGER = TraceManager.getTrace(AccountOperationListener.class);
 
     private static final String DOT_CLASS = AccountOperationListener.class.getName() + ".";
+
+    @Autowired
+    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     @Autowired
     private ChangeNotificationDispatcher provisioningNotificationDispatcher;
@@ -152,7 +156,7 @@ public class AccountOperationListener implements ResourceOperationListener {
                                                      Task task,
                                                      OperationResult result) {
 
-        AccountEvent event = new AccountEvent();
+        AccountEvent event = new AccountEvent(lightweightIdentifierGenerator);
         event.setAccountOperationDescription(operationDescription);
         event.setOperationStatus(status);
         event.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping

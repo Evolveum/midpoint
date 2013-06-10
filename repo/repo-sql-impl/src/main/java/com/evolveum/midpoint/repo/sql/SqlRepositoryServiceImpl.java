@@ -859,7 +859,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
-        subResult.addParam("modifications", modifications);
+        subResult.addCollectionOfSerializablesAsParam("modifications", modifications);
 
         if (modifications.isEmpty()) {
             LOGGER.debug("Modification list is empty, nothing was modified.");

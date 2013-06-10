@@ -26,6 +26,7 @@ import com.evolveum.midpoint.notifications.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,6 +52,9 @@ public class NotificationChangeHook implements ChangeHook {
     private static final Trace LOGGER = TraceManager.getTrace(NotificationChangeHook.class);
 
     public static final String HOOK_URI = "http://midpoint.evolveum.com/wf/notifier-hook-2";
+
+    @Autowired
+    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     @Autowired(required = true)
     private HookRegistry hookRegistry;
@@ -121,7 +125,7 @@ public class NotificationChangeHook implements ChangeHook {
     private Event createRequest(PrismObject<? extends ObjectType> object, Task task,
                                 ModelContext<UserType, ShadowType> modelContext) {
 
-        ModelEvent event = new ModelEvent();
+        ModelEvent event = new ModelEvent(lightweightIdentifierGenerator);
         event.setModelContext(modelContext);
 
         if (task.getOwner() != null) {

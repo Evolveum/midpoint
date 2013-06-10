@@ -16,12 +16,17 @@
 
 package com.evolveum.midpoint.notifications.events;
 
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
 
 /**
  * @author mederly
  */
 public class WorkflowProcessEvent extends WorkflowEvent {
+
+    public WorkflowProcessEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+        super(lightweightIdentifierGenerator);
+    }
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {

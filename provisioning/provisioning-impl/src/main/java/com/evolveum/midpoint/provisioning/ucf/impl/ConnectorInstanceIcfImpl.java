@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -65,8 +66,6 @@ import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.Filter;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -105,8 +104,6 @@ import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -782,7 +779,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
 				+ ".fetchObject");
 		result.addParam("resourceObjectDefinition", objectClassDefinition);
-		result.addParam("identifiers", identifiers);
+		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
 		result.addContext("connector", connectorType);
 
 		if (icfConnectorFacade == null) {
@@ -876,7 +873,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".getObject");
 		icfResult.addParam("objectClass", icfObjectClass.toString());
 		icfResult.addParam("uid", uid.getUidValue());
-		icfResult.addParam("options", options);
+		icfResult.addArbitraryObjectAsParam("options", options);
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
 		
 		if (LOGGER.isTraceEnabled()) {
@@ -978,7 +975,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
 		result.addParam("resourceObject", object);
-		result.addParam("additionalOperations", additionalOperations);
+		result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
 		// getting icf object class from resource object class
 		ObjectClass objectClass = objectClassToIcf(object);
@@ -1033,10 +1030,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
-		icfResult.addParam("objectClass", objectClass);
-		icfResult.addParam("attributes", attributes);
+		icfResult.addArbitraryObjectAsParam("objectClass", objectClass);
+		icfResult.addArbitraryCollectionAsParam("attributes", attributes);
 		icfResult.addParam("options", null);
-		icfResult.addContext("connector", icfConnectorFacade);
+		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		Uid uid = null;
 		try {
@@ -1123,8 +1120,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".modifyObject");
 		result.addParam("objectClass", objectClass);
-		result.addParam("identifiers", identifiers);
-		result.addParam("changes", changes);
+		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
+		result.addArbitraryCollectionAsParam("changes", changes);
 		
 		if (changes.isEmpty()){
 			LOGGER.info("No modifications for connector object specified. Skipping processing.");
@@ -1248,9 +1245,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".addAttributeValues");
 				icfResult.addParam("objectClass", objectClass);
 				icfResult.addParam("uid", uid.getUidValue());
-				icfResult.addParam("attributes", attributes);
-				icfResult.addParam("options", options);
-				icfResult.addContext("connector", icfConnectorFacade);
+				icfResult.addArbitraryCollectionAsParam("attributes", attributes);
+				icfResult.addArbitraryObjectAsParam("options", options);
+				icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(
@@ -1315,9 +1312,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
 			icfResult.addParam("objectClass", objectClass);
 			icfResult.addParam("uid", uid.getUidValue());
-			icfResult.addParam("attributes", updateAttributes);
-			icfResult.addParam("options", options);
-			icfResult.addContext("connector", icfConnectorFacade);
+			icfResult.addArbitraryCollectionAsParam("attributes", updateAttributes);
+			icfResult.addArbitraryObjectAsParam("options", options);
+			icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Invoking ICF update(), objectclass={}, uid={}, attributes=\n{}", new Object[] {
@@ -1368,9 +1365,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
 				icfResult.addParam("objectClass", objectClass);
 				icfResult.addParam("uid", uid.getUidValue());
-				icfResult.addParam("attributes", attributes);
-				icfResult.addParam("options", options);
-				icfResult.addContext("connector", icfConnectorFacade);
+				icfResult.addArbitraryCollectionAsParam("attributes", attributes);
+				icfResult.addArbitraryObjectAsParam("options", options);
+				icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(
@@ -1450,7 +1447,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".deleteObject");
-		result.addParam("identifiers", identifiers);
+		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
 
 		ObjectClass objClass = objectClassToIcf(objectClass);
 		Uid uid = getUid(identifiers);
@@ -1458,9 +1455,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
-		icfResult.addParam("uid", uid);
-		icfResult.addParam("objectClass", objClass);
-		icfResult.addContext("connector", icfConnectorFacade);
+		icfResult.addArbitraryObjectAsParam("uid", uid);
+		icfResult.addArbitraryObjectAsParam("objectClass", objClass);
+		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		try {
 
@@ -1510,14 +1507,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
-		icfResult.addContext("connector", icfConnectorFacade);
-		icfResult.addParam("icfObjectClass", icfObjectClass);
+		icfResult.addContext("connector", icfConnectorFacade.getClass());
+		icfResult.addArbitraryObjectAsParam("icfObjectClass", icfObjectClass);
 		
 		SyncToken syncToken = null;
 		try {
 			syncToken = icfConnectorFacade.getLatestSyncToken(icfObjectClass);
 			icfResult.recordSuccess();
-			icfResult.addReturn("syncToken", syncToken==null?null:syncToken.getValue());
+			icfResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
@@ -1579,10 +1576,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		};
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
-		icfResult.addContext("connector", icfConnectorFacade);
-		icfResult.addParam("icfObjectClass", icfObjectClass);
-		icfResult.addParam("syncToken", syncToken);
-		icfResult.addParam("syncHandler", syncHandler);
+		icfResult.addContext("connector", icfConnectorFacade.getClass());
+		icfResult.addArbitraryObjectAsParam("icfObjectClass", icfObjectClass);
+		icfResult.addArbitraryObjectAsParam("syncToken", syncToken);
+		icfResult.addArbitraryObjectAsParam("syncHandler", syncHandler);
 
 		try {
 			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
@@ -1707,7 +1704,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
-		icfResult.addParam("objectClass", icfObjectClass);
+		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		try {
@@ -2284,7 +2281,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ScriptContext scriptContext = convertToScriptContext(scriptOperation);
 			
 			OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + "." + icfOpName);
-			icfResult.addContext("connector", icfConnectorFacade);
+			icfResult.addContext("connector", icfConnectorFacade.getClass());
 			
 			Object output = null;
 			

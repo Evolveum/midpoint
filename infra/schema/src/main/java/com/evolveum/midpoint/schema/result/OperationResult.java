@@ -16,13 +16,8 @@
 package com.evolveum.midpoint.schema.result;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 
@@ -93,14 +88,14 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
-	private Map<String, Object> params;
-	private Map<String, Object> context;
-	private Map<String, Object> returns;
+	private Map<String, Serializable> params;
+	private Map<String, Serializable> context;
+	private Map<String, Serializable> returns;
 	private long token;
 	private String messageCode;
 	private String message;
 	private String localizationMessage;
-	private List<Object> localizationArguments;
+	private List<Serializable> localizationArguments;
 	private Throwable cause;
 	private int count = 1;
 	private List<OperationResult> subresults;
@@ -142,26 +137,26 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		this(operation, null, status, token, messageCode, message, null, cause, null);
 	}
 
-	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
 			long token, String messageCode, String message) {
 		this(operation, params, status, token, messageCode, message, null, null, null);
 	}
 
-	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
 			long token, String messageCode, String message, List<OperationResult> subresults) {
 		this(operation, params, status, token, messageCode, message, null, null, subresults);
 	}
 
-	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage, Throwable cause,
 			List<OperationResult> subresults) {
 		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
 	}
 
-	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
-			List<Object> localizationArguments, Throwable cause, List<OperationResult> subresults) {
+			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
 		if (StringUtils.isEmpty(operation)) {
 			throw new IllegalArgumentException("Operation argument must not be null or empty.");
 		}
@@ -636,18 +631,40 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	 * 
 	 * @return never returns null
 	 */
-	public Map<String, Object> getParams() {
+	public Map<String, Serializable> getParams() {
 		if (params == null) {
-			params = new HashMap<String, Object>();
+			params = new HashMap<String, Serializable>();
 		}
 		return params;
 	}
 
-	public void addParam(String paramName, Object paramValue) {
+	public void addParam(String paramName, Serializable paramValue) {
 		getParams().put(paramName, paramValue);
 	}
 
-	public void addParams(String[] names, Object... objects) {
+    public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
+        addParam(paramName, String.valueOf(paramValue));
+    }
+
+    // Copies a collection to a OperationResult's param field. Primarily used to overcome the fact that Collection is not Serializable
+    public void addCollectionOfSerializablesAsParam(String paramName, Collection<? extends Serializable> paramValue) {
+        addParam(paramName, paramValue != null ? new ArrayList(paramValue) : null);
+    }
+
+    public void addArbitraryCollectionAsParam(String paramName, Collection values) {
+        if (values != null) {
+            ArrayList<String> valuesAsStrings = new ArrayList<String>();
+            for (Object value : values) {
+                valuesAsStrings.add(String.valueOf(value));
+            }
+            addParam(paramName, valuesAsStrings);
+        } else {
+            addParam(paramName, null);
+        }
+    }
+
+
+    public void addParams(String[] names, Serializable... objects) {
 		if (names.length != objects.length) {
 			throw new IllegalArgumentException("Bad result parameters size, names '" + names.length
 					+ "', objects '" + objects.length + "'.");
@@ -658,9 +675,9 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		}
 	}
 
-	public Map<String, Object> getContext() {
+	public Map<String, Serializable> getContext() {
 		if (context == null) {
-			context = new HashMap<String, Object>();
+			context = new HashMap<String, Serializable>();
 		}
 		return context;
 	}
@@ -670,22 +687,22 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		return (T) getContext().get(contextName);
 	}
 
-	public void addContext(String contextName, Object value) {
+	public void addContext(String contextName, Serializable value) {
 		getContext().put(contextName, value);
 	}
 
-	public Map<String, Object> getReturns() {
+	public Map<String, Serializable> getReturns() {
 		if (returns == null) {
-			returns = new HashMap<String, Object>();
+			returns = new HashMap<String, Serializable>();
 		}
 		return returns;
 	}
 
-	public void addReturn(String returnName, Object value) {
+	public void addReturn(String returnName, Serializable value) {
 		getReturns().put(returnName, value);
 	}
 
-	public Object getReturn(String returnName) {
+	public Serializable getReturn(String returnName) {
 		return getReturns().get(returnName);
 	}
 
@@ -726,7 +743,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	/**
 	 * @return Method returns arguments if needed for localization, can be null.
 	 */
-	public List<Object> getLocalizationArguments() {
+	public List<Serializable> getLocalizationArguments() {
 		return localizationArguments;
 	}
 
@@ -886,11 +903,11 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	public static OperationResult createOperationResult(OperationResultType result) {
 		Validate.notNull(result, "Result type must not be null.");
 
-		Map<String, Object> params = null;
+		Map<String, Serializable> params = null;
 		if (result.getParams() != null) {
-			params = new HashMap<String, Object>();
+			params = new HashMap<String, Serializable>();
 			for (EntryType entry : result.getParams().getEntry()) {
-				params.put(entry.getKey(), entry.getAny());
+				params.put(entry.getKey(), (Serializable) entry.getAny());
 			}
 		}
 
@@ -904,7 +921,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 
 		LocalizedMessageType message = result.getLocalizedMessage();
 		String localizedMessage = message == null ? null : message.getKey();
-		List<Object> localizedArguments = message == null ? null : message.getArgument();
+		List<Serializable> localizedArguments = message == null ? null : (List<Serializable>) (List) message.getArgument();         // FIXME: brutal hack
 
 		return new OperationResult(result.getOperation(), params,
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
@@ -961,12 +978,12 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			result.setLocalizedMessage(message);
 		}
 
-		Set<Entry<String, Object>> params = opResult.getParams().entrySet();
+		Set<Entry<String, Serializable>> params = opResult.getParams().entrySet();
 		if (!params.isEmpty()) {
 			ParamsType paramsType = new ParamsType();
 			result.setParams(paramsType);
 
-			for (Entry<String, Object> entry : params) {
+			for (Entry<String, Serializable> entry : params) {
 				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
 			}
 		}
@@ -993,7 +1010,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	 * @param entry
 	 * @return
 	 */
-	private EntryType createEntryElement(String key, Object value) {
+	private EntryType createEntryElement(String key, Serializable value) {
 		EntryType entryType = new EntryType();
 		entryType.setKey(key);
 		if (value != null) {
@@ -1004,7 +1021,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 				setObjectReferenceEntry(entryType, ((ObjectType)value));
 			// these values should be put 'as they are', in order to be deserialized into themselves
 			} else if (value instanceof String || value instanceof Integer || value instanceof Long) {
-				entryType.setAny(new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, value));
+				entryType.setAny(new JAXBElement<Serializable>(SchemaConstants.C_VALUE, Serializable.class, value));
 			} else if (XmlTypeConverter.canConvert(value.getClass())) {
 				try {
 					entryType.setAny(XmlTypeConverter.toXsdElement(value, SchemaConstants.C_VALUE, doc, true));
@@ -1037,7 +1054,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		entryType.setAny(element);
 	}
 
-	private void setUnknownJavaObjectEntry(EntryType entryType, Object value) {
+	private void setUnknownJavaObjectEntry(EntryType entryType, Serializable value) {
 		UnknownJavaObjectType ujo = new UnknownJavaObjectType();
 		ujo.setClazz(value.getClass().getName());
 		ujo.setToString(value.toString());
@@ -1078,14 +1095,14 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		target.incrementCount();
 	}
 
-	private void mergeMap(Map<String, Object> targetMap, Map<String, Object> sourceMap) {
-		for (Entry<String, Object> targetEntry: targetMap.entrySet()) {
+	private void mergeMap(Map<String, Serializable> targetMap, Map<String, Serializable> sourceMap) {
+		for (Entry<String, Serializable> targetEntry: targetMap.entrySet()) {
 			String targetKey = targetEntry.getKey();
-			Object targetValue = targetEntry.getValue();
+			Serializable targetValue = targetEntry.getValue();
 			if (targetValue != null && targetValue instanceof VariousValues) {
 				continue;
 			}
-			Object sourceValue = sourceMap.get(targetKey);
+			Serializable sourceValue = sourceMap.get(targetKey);
 			if (MiscUtil.equals(targetValue, sourceValue)) {
 				// Entries match, nothing to do
 				continue;
@@ -1093,7 +1110,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			// Entries do not match. The target entry needs to be marked as VariousValues
 			targetEntry.setValue(new VariousValues());
 		}
-		for (Entry<String, Object> sourceEntry: sourceMap.entrySet()) {
+		for (Entry<String, Serializable> sourceEntry: sourceMap.entrySet()) {
 			String sourceKey = sourceEntry.getKey();
 			if (!targetMap.containsKey(sourceKey)) {
 				targetMap.put(sourceKey, new VariousValues());
@@ -1207,7 +1224,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		}
 		sb.append("\n");
 
-		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
+		for (Map.Entry<String, Serializable> entry : getParams().entrySet()) {
 			for (int i = 0; i < indent + 2; i++) {
 				sb.append(INDENT_STRING);
 			}
@@ -1218,7 +1235,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			sb.append("\n");
 		}
 
-		for (Map.Entry<String, Object> entry : getContext().entrySet()) {
+		for (Map.Entry<String, Serializable> entry : getContext().entrySet()) {
 			for (int i = 0; i < indent + 2; i++) {
 				sb.append(INDENT_STRING);
 			}
@@ -1229,7 +1246,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			sb.append("\n");
 		}
 		
-		for (Map.Entry<String, Object> entry : getReturns().entrySet()) {
+		for (Map.Entry<String, Serializable> entry : getReturns().entrySet()) {
 			for (int i = 0; i < indent + 2; i++) {
 				sb.append(INDENT_STRING);
 			}
@@ -1269,7 +1286,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		}
 	}
 
-	private String dumpEntry(Object value) {
+	private String dumpEntry(Serializable value) {
 		if (value instanceof Element) {
 			Element element = (Element)value;
 			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {

@@ -62,6 +62,10 @@ public class DebugUtil {
 	}
 	
 	public static void debugDump(StringBuilder sb, Collection<?> dumpables, int indent, boolean openCloseSymbols) {
+        if (dumpables == null) {
+            return;
+        }
+
 		if (openCloseSymbols) {
 			indentDebugDump(sb, indent);
 			sb.append(getCollectionOpeningSymbol(dumpables));

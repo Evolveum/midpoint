@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
@@ -44,6 +45,10 @@ public class AccountEvent extends Event {
     // the following two are currently unused
     private boolean activationRequested;
     private boolean deactivationRequested;
+
+    public AccountEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+        super(lightweightIdentifierGenerator);
+    }
 
     public ResourceOperationDescription getAccountOperationDescription() {
         return accountOperationDescription;

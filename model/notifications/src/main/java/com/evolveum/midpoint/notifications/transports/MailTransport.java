@@ -70,7 +70,7 @@ public class MailTransport implements Transport {
     public void send(Message mailMessage, String transportName, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
-        result.addParam("mailMessage recipient(s)", mailMessage.getTo());
+        result.addCollectionOfSerializablesAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
         PrismObject<SystemConfigurationType> systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));

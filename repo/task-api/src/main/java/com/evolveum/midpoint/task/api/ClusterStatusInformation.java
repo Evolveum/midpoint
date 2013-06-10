@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.task.api;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -23,9 +24,14 @@ import java.util.*;
  *
  * @author Pavol Mederly
  */
-public class ClusterStatusInformation {
+public class ClusterStatusInformation implements Serializable {
 
-    public static class TaskInfo {
+    private static final long serialVersionUID = -2955916510215061664L;
+
+    public static class TaskInfo implements Serializable {
+
+        private static final long serialVersionUID = -6863271365758398279L;
+
         private String oid;
 
         public TaskInfo(String taskOid) {

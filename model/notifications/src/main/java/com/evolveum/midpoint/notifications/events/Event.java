@@ -21,6 +21,8 @@ import com.evolveum.midpoint.notifications.SimpleObjectRef;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import javax.xml.namespace.QName;
@@ -31,7 +33,7 @@ import java.util.Map;
  */
 public abstract class Event {
 
-    private String id;                              // randomly generated event ID
+    private LightweightIdentifier id;               // randomly generated event ID
     private SimpleObjectRef requester;              // who requested this operation (null if unknown)
 
     // about who is this operation (null if unknown);
@@ -41,11 +43,11 @@ public abstract class Event {
 
     private SimpleObjectRef requestee;
 
-    public Event() {
-        id = System.currentTimeMillis() + ":" + (long) (Math.random() * 100000000);
+    public Event(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+        id = lightweightIdentifierGenerator.generate();
     }
 
-    public String getId() {
+    public LightweightIdentifier getId() {
         return id;
     }
 

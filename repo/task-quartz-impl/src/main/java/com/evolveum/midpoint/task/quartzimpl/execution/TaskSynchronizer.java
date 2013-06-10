@@ -187,7 +187,7 @@ public class TaskSynchronizer {
         String message = "";
 
         OperationResult result = parentResult.createSubresult(TaskSynchronizer.class.getName() + ".synchronizeTask");
-        result.addParam("task", task);
+        result.addArbitraryObjectAsParam("task", task);
 
         try {
 

@@ -20,11 +20,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 
 /**
  * @author Pavol Mederly
  */
-public class Node {
+public class Node implements Serializable {
+
+    private static final long serialVersionUID = -6075806867811082935L;
+
     private PrismObject<NodeType> nodeTypePrismObject;
 
     private String connectionError;

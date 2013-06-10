@@ -94,7 +94,7 @@ public class SimpleSmsTransport implements Transport {
     public void send(Message message, String transportName, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
-        result.addParam("message recipient(s)", message.getTo());
+        result.addCollectionOfSerializablesAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
         PrismObject<SystemConfigurationType> systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));

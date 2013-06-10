@@ -217,14 +217,6 @@ public class TaskQuartzImplUtil {
     }
 
 
-    public static List<String> tasksToOperationResult(Collection<Task> tasks) {
-        List<String> retval = new ArrayList<String>();
-        for (Task t : tasks) {
-            retval.add(t.getOid() + ": " + t.getName());
-        }
-        return retval;
-    }
-
     public static ParseException validateCronExpression(String cron) {
 
         try {

@@ -83,7 +83,7 @@ public class ExecutionManager {
     public boolean stopSchedulersAndTasks(List<String> nodeList, long timeToWait, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".stopSchedulersAndTasks");
-        result.addParam("nodeList", nodeList);
+        result.addCollectionOfSerializablesAsParam("nodeList", nodeList);
         result.addParam("timeToWait", timeToWait);
 
         LOGGER.info("Stopping schedulers and tasks on nodes: {}, waiting {} ms for task(s) shutdown.", nodeList, timeToWait);
@@ -229,7 +229,7 @@ public class ExecutionManager {
     public boolean stopTasksRunAndWait(Collection<Task> tasks, ClusterStatusInformation csi, long waitTime, boolean clusterwide, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopTasksRunAndWait");
-        result.addParam("tasks", TaskQuartzImplUtil.tasksToOperationResult(tasks));
+        result.addArbitraryCollectionAsParam("tasks", tasks);
         result.addParam("waitTime", waitTime);
         result.addParam("clusterwide", clusterwide);
 
@@ -265,7 +265,7 @@ public class ExecutionManager {
     private boolean waitForTaskRunCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".waitForTaskRunCompletion");
-        result.addParam("tasks", tasks);
+        result.addArbitraryCollectionAsParam("tasks", tasks);
         result.addParam("maxWaitTime", maxWaitTime);
         result.addParam("clusterwide", clusterwide);
 

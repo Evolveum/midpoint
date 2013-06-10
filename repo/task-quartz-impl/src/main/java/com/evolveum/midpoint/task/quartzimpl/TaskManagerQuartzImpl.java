@@ -313,7 +313,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public boolean suspendTasks(Collection<Task> tasks, long waitTime, boolean doNotStop, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendTasks");
-        result.addParam("tasks", tasks);
+        result.addArbitraryCollectionAsParam("tasks", tasks);
         result.addParam("waitTime", waitTime);
         result.addParam("doNotStop", doNotStop);
 
@@ -355,7 +355,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public void pauseTask(Task task, TaskWaitingReason reason, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "pauseTask");
-        result.addParam("task", task);
+        result.addArbitraryObjectAsParam("task", task);
 
         if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
             String message = "Attempted to pause a task that is not in the RUNNABLE state (task = " + task + ", state = " + task.getExecutionStatus();
@@ -390,7 +390,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public void unpauseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "unpauseTask");
-        result.addParam("task", task);
+        result.addArbitraryObjectAsParam("task", task);
 
         if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
             String message = "Attempted to unpause a task that is not in the WAITING state (task = " + task + ", state = " + task.getExecutionStatus();
@@ -406,7 +406,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "resumeTask");
-        result.addParam("task", task);
+        result.addArbitraryObjectAsParam("task", task);
 
         if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED) {
             String message = "Attempted to resume a task that is not in the SUSPENDED state (task = " + task + ", state = " + task.getExecutionStatus();
@@ -480,7 +480,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     void updateTaskInstance(Task task, PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "updateTaskInstance");
-        result.addParam("task", task);
+        result.addArbitraryObjectAsParam("task", task);
         result.addParam("taskPrism", taskPrism);
 
         TaskQuartzImpl taskQuartz = (TaskQuartzImpl) task;
@@ -593,7 +593,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	private String addTaskToRepositoryAndQuartz(Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + "addTaskToRepositoryAndQuartz");
-        result.addParam("task", task);
+        result.addArbitraryObjectAsParam("task", task);
 
 		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
         String oid;

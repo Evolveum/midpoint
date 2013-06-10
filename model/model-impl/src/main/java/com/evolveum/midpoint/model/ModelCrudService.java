@@ -369,7 +369,7 @@ public class ModelCrudService {
 		// TODO: check definitions, but tolerate missing definitions in <attributes>
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
-		result.addParams(new String[] { "modifications" }, modifications);
+		result.addCollectionOfSerializablesAsParam("modifications", modifications);
 
 		RepositoryCache.enter();
 

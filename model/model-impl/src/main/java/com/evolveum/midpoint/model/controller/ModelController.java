@@ -208,8 +208,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		PrismObject<T> object = null;
 		OperationResult result = parentResult.createMinorSubresult(GET_OBJECT);
-		result.addParams(new String[] { "oid", "options", "class" }, oid, options, clazz);
-		
+        result.addParam("oid", oid);
+        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addParam("class", clazz);
+
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		
 		try {	
@@ -911,8 +913,9 @@ public class ModelController implements ModelService, ModelInteractionService {
                 resourceOid, objectClass});
 
 		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
-		result.addParams(new String[] { "resourceOid", "objectClass", "task" }, resourceOid, objectClass,
-				task);
+        result.addParam("resourceOid", resourceOid);
+        result.addParam("objectClass", objectClass);
+        result.addArbitraryObjectAsParam("task", task);
 		// TODO: add context to the result
 
 		// Fetch resource definition from the repo/provisioning

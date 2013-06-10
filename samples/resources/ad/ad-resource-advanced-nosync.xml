@@ -33,9 +33,9 @@ This resource definition contains only the very basic definitions for midPoint t
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
-	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
+	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
     
     	<!-- Resource name. It will be displayed in GUI.  -->
 		<name>Active Directory Advanced</name>
@@ -211,8 +211,6 @@ to "false". The only way of resetting the flag is to change user's password.
 		</schemaHandling>
 		<scripts>
 			<script>
-				<operation>modify</operation>
-				<order>after</order>
 				<host>resource</host>
 				<language>Shell</language>
 				<argument>
@@ -223,6 +221,8 @@ to "false". The only way of resetting the flag is to change user's password.
 echo "after modify," >> C:\a.txt
 exit
 		</code>
+                <operation>modify</operation>
+                <order>after</order>
 			</script>
 <!--
 		<script>
@@ -270,6 +270,6 @@ exit
 		</code>
 		</script>-->
 		</scripts>
-	</resource>
+	</c:resource>
 
 </objects>

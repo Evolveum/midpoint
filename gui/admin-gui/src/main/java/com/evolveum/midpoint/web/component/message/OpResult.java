@@ -69,7 +69,7 @@ public class OpResult extends PageAdmin implements Serializable {
         }
 
         if (result.getParams() != null) {
-            for (Map.Entry<String, Object> entry : result.getParams().entrySet()) {
+            for (Map.Entry<String, Serializable> entry : result.getParams().entrySet()) {
                 String paramValue = null;
                 Object value = entry.getValue();
                 if (value != null) {
@@ -81,7 +81,7 @@ public class OpResult extends PageAdmin implements Serializable {
         }
         
         if(result.getContext() != null){
-        	for (Map.Entry<String, Object> entry : result.getContext().entrySet()) {
+        	for (Map.Entry<String, Serializable> entry : result.getContext().entrySet()) {
                 String contextValue = null;
                 Object value = entry.getValue();
                 if (value != null) {

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,6 +52,9 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     private static final Trace LOGGER = TraceManager.getTrace(WorkflowListener.class);
 
     private static final String DOT_CLASS = WorkflowListener.class.getName() + ".";
+
+    @Autowired
+    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     @Autowired
     private NotificationManager notificationManager;
@@ -102,7 +106,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     }
 
     private WorkflowProcessEvent createWorkflowProcessEvent(String instanceName, Map<String, Object> variables, ChangeType changeType, Boolean answer, OperationResult result) {
-        WorkflowProcessEvent event = new WorkflowProcessEvent();
+        WorkflowProcessEvent event = new WorkflowProcessEvent(lightweightIdentifierGenerator);
         fillInEvent(event, instanceName, variables, changeType, answer, result);
         return event;
     }
@@ -142,7 +146,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     }
 
     private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, ChangeType changeType, Boolean answer) {
-        WorkItemEvent event = new WorkItemEvent();
+        WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator);
         event.setWorkItemName(workItemName);
         event.setAssigneeOid(assigneeOid);
         fillInEvent(event, processInstanceName, processVariables, changeType, answer, new OperationResult("dummy"));

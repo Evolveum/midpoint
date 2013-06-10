@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
@@ -39,6 +40,10 @@ public class ModelEvent extends Event {
 
     // we can expect that modelContext != null and focus context != null as well
     private ModelContext modelContext;
+
+    public ModelEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+        super(lightweightIdentifierGenerator);
+    }
 
     public ModelContext getModelContext() {
         return modelContext;

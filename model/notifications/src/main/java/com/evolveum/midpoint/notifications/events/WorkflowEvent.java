@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.events;
 
 import com.evolveum.midpoint.notifications.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
 
@@ -32,6 +33,10 @@ abstract public class WorkflowEvent extends Event {
     private Map<String,Object> variables;
     private OperationStatus operationStatus;            // success = approval, failure = refusal (for now); in-progress = unknown
     private ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
+
+    public WorkflowEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+        super(lightweightIdentifierGenerator);
+    }
 
     public String getProcessName() {
         return processName;

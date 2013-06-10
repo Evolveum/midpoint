@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -156,7 +155,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                    assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
                    checkDummyTransportMessages("simpleUserNotifier", 1);
-                   checkAuditRecords(createResultMap(ROLE_R1_OID, true));
+                   checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, true));
                }
 
                @Override
@@ -187,7 +186,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         return retval;
     }
 
-    private void checkAuditRecords(Map<String,Boolean> expectedResults) {
+    private void checkAuditRecords(Map<String, Boolean> expectedResults) {
+        checkWorkItemAuditRecords(expectedResults);
+        checkWfProcessAuditRecords(expectedResults);
+    }
+
+    private void checkWorkItemAuditRecords(Map<String, Boolean> expectedResults) {
         List<AuditEventRecord> workItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
         assertEquals("Unexpected number of work item audit records", expectedResults.size()*2, workItemRecords.size());
         for (AuditEventRecord record : workItemRecords) {
@@ -199,6 +203,23 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             String oid = assignmentType.getTargetRef().getOid();
             assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
             assertEquals("Unexpected result for " + oid, expectedResults.get(oid), record.getResult().getReturn(Constants.AUDIT_RESULT_APPROVAL));
+        }
+    }
+
+    private void checkWfProcessAuditRecords(Map<String, Boolean> expectedResults) {
+        List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
+        assertEquals("Unexpected number of workflow process instance audit records", expectedResults.size() * 2, records.size());
+        for (AuditEventRecord record : records) {
+            if (record.getEventStage() != AuditEventStage.EXECUTION) {
+                continue;
+            }
+            ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
+            if (!delta.getModifications().isEmpty()) {
+                AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
+                String oid = assignmentType.getTargetRef().getOid();
+                assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
+                assertEquals("Unexpected result for " + oid, expectedResults.get(oid), record.getResult().getReturn(Constants.AUDIT_RESULT_APPROVAL));
+            }
         }
     }
 
@@ -249,7 +270,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkAuditRecords(createResultMap(ROLE_R2_OID, false));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, false));
             }
 
             @Override
@@ -291,7 +312,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertAssignedRole(jack, ROLE_R3_OID);
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkAuditRecords(createResultMap(ROLE_R3_OID, true));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, true));
             }
 
             @Override
@@ -345,7 +366,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("activation has not been changed", ActivationStatusType.DISABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
             }
 
             @Override
@@ -395,7 +416,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
             }
 
             @Override
@@ -439,7 +460,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
             }
 
             @Override
@@ -496,7 +517,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
             }
 
             @Override
