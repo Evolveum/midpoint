@@ -430,11 +430,11 @@ public class ChangeExecutor {
 			return;
     	}
     	
-    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, situation, task.getChannel());
-		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
-		if (syncSituationDelta != null){
-		syncSituationDeltas.add(syncSituationDelta);
-		}
+    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(account, situation, task.getChannel());
+//		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
+//		if (syncSituationDelta != null){
+//		syncSituationDeltas.add(syncSituationDelta);
+//		}
 		try {
 			String changedOid = provisioning.modifyObject(ShadowType.class, accountRef,
 					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),

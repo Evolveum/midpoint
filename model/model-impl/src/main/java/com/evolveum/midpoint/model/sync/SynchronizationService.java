@@ -148,9 +148,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 							object = change.getOldShadow();
 						}
 						
-						Collection modifications = MiscUtil.createCollection(SynchronizationSituationUtil
-								.createSynchronizationTimestampDelta(object), SynchronizationSituationUtil
-								.createSynchronizationSituationDelta(object, situation.getSituation()));
+						Collection modifications = SynchronizationSituationUtil
+								.createSynchronizationSituationAndDescriptionDelta(object,
+										situation.getSituation(), task.getChannel());
 						repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
 						subResult.recordSuccess();
 						return;
@@ -454,15 +454,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		T objectType = object.asObjectable();
 		// new situation description
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil
-				.createSynchronizationSituationDescriptionDelta(object, situation.getSituation(),
+				.createSynchronizationSituationAndDescriptionDelta(object, situation.getSituation(),
 						change.getSourceChannel());
 		// refresh situation
-		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
-				situation.getSituation());
-		if (syncSituationDelta != null){
-		syncSituationDeltas.add(syncSituationDelta);
-		}
-		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object));
+//		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
+//				situation.getSituation());
+//		if (syncSituationDelta != null){
+//		syncSituationDeltas.add(syncSituationDelta);
+//		}
+//		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object));
 		
 		try {
 
