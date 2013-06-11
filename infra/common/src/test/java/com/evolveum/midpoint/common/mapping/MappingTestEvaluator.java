@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
 import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluatorFactory;
@@ -44,11 +45,14 @@ import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluatorF
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -65,6 +69,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -232,6 +237,52 @@ public class MappingTestEvaluator {
 		
         return mapping;
     }
+	
+	public  <T> Mapping<PrismPropertyValue<T>> createInboudMapping(String filename, String testName, ItemDelta delta, UserType user, ShadowType account, ResourceType resource, final StringPolicyType policy) throws SchemaException, FileNotFoundException, JAXBException{
+		
+		JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
+                new File(TEST_DIR, filename), MappingType.class);
+        MappingType mappingType = mappingTypeElement.getValue();
+        
+		Mapping<PrismPropertyValue<T>> mapping = mappingFactory.createMapping(mappingType,testName);
+    	
+    	
+    	Source<PrismPropertyValue<T>> defaultSource = new Source<PrismPropertyValue<T>>(null, delta, null, ExpressionConstants.VAR_INPUT);
+    	defaultSource.recompute();
+		mapping.setDefaultSource(defaultSource);
+		mapping.setTargetContext(getUserDefinition());
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, user);
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject());
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject());
+		
+    	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			ItemPath outputPath;
+			ItemDefinition outputDefinition;
+			
+			@Override
+			public void setOutputPath(ItemPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				return policy;
+			}
+		};
+		
+		mapping.setStringPolicyResolver(stringPolicyResolver);
+
+		mapping.setOriginType(OriginType.INBOUND);
+		mapping.setOriginObject(resource);
+		
+		return mapping;
+	}
 	
 	protected PrismObject<UserType> getUserOld() throws SchemaException {
 		return PrismTestUtil.parseObject(USER_OLD_FILE);
