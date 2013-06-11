@@ -729,6 +729,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		if (name == null) {
 			name = ItemPath.getName(path.last());
 		}
+		ItemPath resolvePath = path;
 		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), result);
 		Item<X> itemOld = null;
 		ItemDelta<X> delta = null;
@@ -740,6 +741,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				delta = ((ItemDeltaItem<X>)sourceObject).getDelta();
 				itemNew = ((ItemDeltaItem<X>)sourceObject).getItemNew();
 				residualPath = ((ItemDeltaItem<X>)sourceObject).getResidualPath();
+				resolvePath = ((ItemDeltaItem<X>)sourceObject).getResolvePath();
 			} else if (sourceObject instanceof Item<?>) {
 				itemOld = (Item<X>) sourceObject;
 				itemNew = (Item<X>) sourceObject;
@@ -749,6 +751,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		Source<X> source = new Source<X>(itemOld, delta, itemNew, name);
 		source.setResidualPath(residualPath);
+		source.setResolvePath(resolvePath);
 		return source;
 	}
 	

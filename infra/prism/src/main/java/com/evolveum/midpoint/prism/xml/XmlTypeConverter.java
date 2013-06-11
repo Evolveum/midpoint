@@ -32,6 +32,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.XMLConstants;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
@@ -39,6 +40,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -508,6 +510,44 @@ public class XmlTypeConverter {
 			Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
 			origElement.setTextContent(polyString.getNorm());
 		}		
+	}
+	
+	public static <T> T toXmlEnum(Class<T> expectedType, String stringValue) {
+		if (stringValue == null) {
+			return null;
+		}
+		for (T enumConstant: expectedType.getEnumConstants()) {
+			Field field;
+			try {
+				field = expectedType.getField(((Enum)enumConstant).name());
+			} catch (SecurityException e) {
+				throw new IllegalArgumentException("Error getting field from '"+enumConstant+"' in "+expectedType, e);
+			} catch (NoSuchFieldException e) {
+				throw new IllegalArgumentException("Error getting field from '"+enumConstant+"' in "+expectedType, e);
+			}
+			XmlEnumValue annotation = field.getAnnotation(XmlEnumValue.class);
+			if (annotation.value().equals(stringValue)) {
+				return enumConstant;
+			}
+		}
+		throw new IllegalArgumentException("No enum value '"+stringValue+"' in "+expectedType);
+	}
+	
+	public static <T> String fromXmlEnum(T enumValue) {
+		if (enumValue == null) {
+			return null;
+		}
+		String fieldName = ((Enum)enumValue).name();
+		Field field;
+		try {
+			field = enumValue.getClass().getField(fieldName);
+		} catch (SecurityException e) {
+			throw new IllegalArgumentException("Error getting field from "+enumValue, e);
+		} catch (NoSuchFieldException e) {
+			throw new IllegalArgumentException("Error getting field from "+enumValue, e);
+		}
+		XmlEnumValue annotation = field.getAnnotation(XmlEnumValue.class);
+		return annotation.value();
 	}
 
 }

@@ -263,6 +263,26 @@ public class ItemPath implements Serializable {
 	}
 
 	
+	public ItemPath remainder(ItemPath otherPath) {
+		ItemPath thisNormalized = this.normalize();
+		ItemPath otherNormalized = otherPath.normalize();
+		if (thisNormalized.size() < otherNormalized.size()) {
+			throw new IllegalArgumentException("Cannot compute remaninder of path '"+this+"' after '"+otherPath+"' because this path is not a superset");
+		}
+		int i = 0;
+		while (i < otherNormalized.segments.size()) {
+			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
+			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
+			if (!thisSegment.equals(otherSegment)) {
+				throw new IllegalArgumentException("Cannot substract segment '"+otherSegment+"' from path '"+this+
+						"' because it does not contain corresponding segment; it has '"+thisSegment+"' instead.");
+			}
+			i++;
+		}
+		List<ItemPathSegment> substractSegments = thisNormalized.segments.subList(i, thisNormalized.segments.size());
+		return new ItemPath(substractSegments);
+	}
+	
 	/**
 	 * Convenience static method with checks
 	 * @throw IllegalArgumentException

@@ -107,6 +107,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		}
 		ItemDeltaItem<V> subIdi = new ItemDeltaItem<V>(subItemOld, itemDelta, subItemNew);
 		subIdi.setResidualPath(subResidualPath);
+		subIdi.setResolvePath(path);
 		return subIdi;
 	}
 

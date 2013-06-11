@@ -20,6 +20,9 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -95,6 +99,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         waitForTaskFinish(task, true, 40000);
         
+        // THEN
         TestUtil.displayThen(TEST_NAME);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -147,6 +152,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         DummyAccount calypsoDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         calypsoDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
         
+        dummyResource.purgeScriptHistory();
+        
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         importObjectFromFile(TASK_RECONCILE_DUMMY_FILENAME);
@@ -193,8 +200,39 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         		"Calypso");
         
         assertEquals("Unexpected number of users", 7, users.size());
+        
+        display("Dummy resource", dummyResource.dump());
+        
+        display("Script history", dummyResource.getScriptHistory());
+        
+        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, true);
+        addReconScripts(scripts, USER_RAPP_USERNAME, false);
+        addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, false);
+        addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, false);
+        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
 	}
 	
+	private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, boolean modified) {
+		// before recon
+		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The vorpal blade went snicker-snack!");
+		script.addArgSingle("who", username);
+		scripts.add(script);
+		
+		if (modified) {
+			script = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
+			script.addArgSingle("howMuch", "a lot");
+			script.addArgSingle("howLong", "from here to there");
+			script.addArgSingle("who", username);
+			scripts.add(script);
+		}
+		
+		// after recon
+		script = new ProvisioningScriptSpec("He left it dead, and with its head");
+		script.addArgSingle("how", "enabled");
+		scripts.add(script);
+	}
+
 	private void assertNoImporterUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<UserType> user = findUserByUsername(username);
         assertNull("User "+username+" sneaked in", user);

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -42,6 +43,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -59,49 +62,49 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  */
 public class ExpressionUtil {
 	
-    // Black magic hack follows. This is TODO to refactor to a cleaner state.
     public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(PrismValueDeltaSetTriple<V> resultTriple, 
     		ItemDefinition outputDefinition, final ItemPath residualPath, final PrismContext prismContext) {
-    	Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
+    	final Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
     	if (resultTripleValueClass == null) {
     		// triple is empty. type does not matter.
     		return resultTriple;
     	}
+    	Class<?> expectedJavaType = XsdTypeMapper.toJavaType(outputDefinition.getTypeName());
+    	if (expectedJavaType == null) {
+    		expectedJavaType = prismContext.getPrismJaxbProcessor().getCompileTimeClass(outputDefinition.getTypeName());
+    	}
+    	if (resultTripleValueClass == expectedJavaType) {
+    		return resultTriple;
+    	}
+    	final Class<?> finalExpectedJavaType = expectedJavaType;
+    	
     	PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
-    	if (resultTripleValueClass.equals(String.class) && outputDefinition.getTypeName().equals(PrismConstants.POLYSTRING_TYPE_QNAME)) {
-    		// Have String, want PolyString
-    		clonedTriple.accept(new Visitor() {
-				@Override
-				public void visit(Visitable visitable) {
-					if (visitable instanceof PrismPropertyValue<?>) {
-						PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>)visitable;
-						String realVal = (String)pval.getValue();
-						PolyString polyStringVal = new PolyString(realVal);
-						polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
-						pval.setValue(polyStringVal);
-					}
-				}
-			});
-    	}
-    	if (Structured.class.isAssignableFrom(resultTripleValueClass) && outputDefinition.getTypeName().equals(DOMUtil.XSD_STRING)) {
-    		// Have PolyString, want String
-    		clonedTriple.accept(new Visitor() {
-				@Override
-				public void visit(Visitable visitable) {
-					if (visitable instanceof PrismPropertyValue<?>) {
-						PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>)visitable;
-						Structured realVal = (Structured)pval.getValue();
-						if (realVal != null) {
+    	clonedTriple.accept(new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof PrismPropertyValue<?>) {
+					PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>)visitable;
+					Object realVal = pval.getValue();
+					if (realVal != null) {
+						if (Structured.class.isAssignableFrom(resultTripleValueClass)) {
 							if (residualPath != null && !residualPath.isEmpty()) {
-								pval.setValue(realVal.resolve(residualPath));
-							} else {
-								pval.setValue(realVal.toString());
+								realVal = ((Structured)realVal).resolve(residualPath);
 							}
-						}						
+						}
+						Object convertedVal = realVal;
+						if (finalExpectedJavaType != null) {
+							convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, realVal);
+							
+							// HACK, TODO: convert to Recomputable interface
+							if (convertedVal != null && convertedVal instanceof PolyString) {
+								((PolyString)convertedVal).recompute(prismContext.getDefaultPolyStringNormalizer());
+							}
+						}
+						pval.setValue(convertedVal);
 					}
 				}
-			});
-    	}
+			}
+		});
     	return clonedTriple;
     }
 
@@ -221,6 +224,10 @@ public class ExpressionUtil {
 
 	public static <V extends PrismValue> ItemDeltaItem<V> toItemDeltaItem(Object object, ObjectResolver objectResolver,
 			String string, OperationResult result) {
+		if (object == null) {
+			return null;
+		}
+		
 		if (object instanceof ItemDeltaItem<?>) {
 			return (ItemDeltaItem<V>) object;
 		}

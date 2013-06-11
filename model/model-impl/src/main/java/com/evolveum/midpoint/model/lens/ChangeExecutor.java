@@ -133,6 +133,8 @@ public class ChangeExecutor {
     	
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
     	
+    	// FOCUS
+    	
     	LensFocusContext<F> focusContext = syncContext.getFocusContext();
     	if (focusContext != null) {
 	        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
@@ -186,6 +188,8 @@ public class ChangeExecutor {
 	        }
     	}
 
+    	// PROJECTIONS
+    	
         for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
         	if (accCtx.getWave() != syncContext.getExecutionWave()) {
         		continue;
@@ -196,6 +200,9 @@ public class ChangeExecutor {
 				subResult.addParam("resource", accCtx.getResource().getName());
 			}
 			try {
+				
+				executeReconciliationScript(accCtx, syncContext, ProvisioningScriptOrderType.BEFORE, task, subResult);
+				
 				ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
 				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
 					if (syncContext.getFocusContext().getDelta() != null
@@ -211,9 +218,9 @@ public class ChangeExecutor {
 
 						executeDelta(accDelta, accCtx, syncContext, accCtx.getResource(), task, subResult);
 
-						// accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 					}
 				} else {
+					
 					if (accDelta == null || accDelta.isEmpty()) {
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace("No change for account "
@@ -224,9 +231,14 @@ public class ChangeExecutor {
 							updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
 									subResult);
 						}
+						
+						// Make sure post-reconcile delta is always executed, even if there is no change
+						executeReconciliationScript(accCtx, syncContext, ProvisioningScriptOrderType.AFTER, task, subResult);
+						
 						subResult.computeStatus();
 						subResult.recordNotApplicableIfUnknown();
 						continue;
+						
 					}
 
 					executeDelta(accDelta, accCtx, syncContext, accCtx.getResource(), task, subResult);
@@ -236,6 +248,8 @@ public class ChangeExecutor {
 				if (focusContext != null) {
 					updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, subResult);
 				}
+				
+				executeReconciliationScript(accCtx, syncContext, ProvisioningScriptOrderType.AFTER, task, subResult);
 				
 				subResult.computeStatus();
 				subResult.recordNotApplicableIfUnknown();
@@ -781,52 +795,22 @@ public class ChangeExecutor {
 		}
         
         Map<QName, Object> variables = getDefaultExpressionVariables((PrismObject<UserType>) user, resourceObject, resource.asPrismObject());
-        return evaluateScript(resourceScripts, operation, variables, result);
+        return evaluateScript(resourceScripts, operation, null, variables, result);
       
     }
-//    
-//	private <F extends ObjectType, P extends ObjectType> ProvisioningScriptsType getScripts(
-//			String oid, LensContext<F, P> context, ProvisioningOperationTypeType operation,
-//			OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-//			ConfigurationException, SecurityViolationException {
-//		
-//		PrismObject user = null;
-//		if (context.getFocusContext() != null && context.getFocusContext().getClass().isAssignableFrom(UserType.class)){
-//			if (context.getFocusContext().getObjectNew() != null){
-//			user = context.getFocusContext().getObjectNew();
-//			} else if (context.getFocusContext().getObjectNew() != null){
-//				user = context.getFocusContext().getObjectOld();
-//			}
-//			
-//		}
-//		
-//		LensProjectionContext projectionContext = context.findProjectionContextByOid(oid);
-//		PrismObject<AccountShadowType> shadow = null;
-//		if (projectionContext.getObjectNew() != null){
-//			shadow = projectionContext.getObjectNew();
-//		} else if (projectionContext.getObjectOld() != null){
-//			shadow = projectionContext.getObjectOld();
-//		}
-//		
-//		ResourceType resource = projectionContext.getResource();
-//		
-//		ProvisioningScriptsType resourceScripts = resource.getScripts();
-//		
-//		Map<QName, Object> variables = getDefaultXPathVariables(user, shadow, resource.asPrismObject());
-//		
-//		return evaluateScript(resourceScripts, operation, variables, result);
-//	}
 	
-	
-	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts, ProvisioningOperationTypeType operation, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts, 
+			ProvisioningOperationTypeType operation, ProvisioningScriptOrderType order, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 		  OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 	        if (resourceScripts != null) {
 	        	for (OperationProvisioningScriptType script: resourceScripts.getScript()) {
 	        		if (script.getOperation().contains(operation)) {
-	        			for (ProvisioningScriptArgumentType argument : script.getArgument()){
-	        				evaluateScript(argument, variables, result);
+	        			if (order == null || order == script.getOrder()) {
+		        			for (ProvisioningScriptArgumentType argument : script.getArgument()){
+		        				evaluateScriptArgument(argument, variables, result);
+		        			}
+		        			outScripts.getScript().add(script);
 	        			}
-	        			outScripts.getScript().add(script);
 	        		}
 	        	}
 	        }
@@ -834,7 +818,7 @@ public class ChangeExecutor {
 	        return outScripts;
 	}
     
-    private void evaluateScript(ProvisioningScriptArgumentType argument, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+    private void evaluateScriptArgument(ProvisioningScriptArgumentType argument, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
     	
     	QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
     	
@@ -868,9 +852,60 @@ public class ChangeExecutor {
     		PrismObject<? extends ShadowType> account, PrismObject<ResourceType> resource) {		
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		variables.put(ExpressionConstants.VAR_USER, user);
+		variables.put(ExpressionConstants.VAR_FOCUS, user);
 		variables.put(ExpressionConstants.VAR_ACCOUNT, account);
+		variables.put(ExpressionConstants.VAR_SHADOW, account);
 		variables.put(ExpressionConstants.VAR_RESOURCE, resource);
 		return variables;
 	}
+    
+    private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
+	void executeReconciliationScript(LensProjectionContext<P> projContext, LensContext<F,P> context,
+			ProvisioningScriptOrderType order, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+    	
+    	if (!projContext.isDoReconciliation()) {
+    		return;
+    	}
+    	
+    	ResourceType resource = projContext.getResource();
+    	if (resource == null){
+    		LOGGER.warn("Resource does not exist. Skipping processing reconciliation scripts.");
+    		return;
+    	}
+    	
+    	OperationProvisioningScriptsType resourceScripts = resource.getScripts();
+    	if (resourceScripts == null) {
+    		return;
+    	}
+        
+        PrismObject<F> user = null;
+        PrismObject<ShadowType> shadow = null;
+        
+		if (context.getFocusContext() != null){
+			if (order == ProvisioningScriptOrderType.BEFORE) {
+				user = context.getFocusContext().getObjectOld();
+			} else if (order == ProvisioningScriptOrderType.AFTER) {
+				user = context.getFocusContext().getObjectNew();
+			} else {
+				throw new IllegalArgumentException("Unknown order "+order);
+			}	
+		}
+		
+		if (order == ProvisioningScriptOrderType.BEFORE) {
+			shadow = (PrismObject<ShadowType>) projContext.getObjectOld();
+		} else if (order == ProvisioningScriptOrderType.AFTER) {
+			shadow = (PrismObject<ShadowType>) projContext.getObjectNew();
+		} else {
+			throw new IllegalArgumentException("Unknown order "+order);
+		}
+        
+		Map<QName, Object> variables = getDefaultExpressionVariables((PrismObject<UserType>) user, shadow, resource.asPrismObject());
+        OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts, 
+        		ProvisioningOperationTypeType.RECONCILE, order, variables, parentResult);
+        
+        for (OperationProvisioningScriptType script: evaluatedScript.getScript()) {
+        	provisioning.executeScript(resource.getOid(), script, task, parentResult);
+        }
+    }
 
 }

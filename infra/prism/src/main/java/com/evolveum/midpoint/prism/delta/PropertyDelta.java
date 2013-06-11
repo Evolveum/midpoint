@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -123,10 +124,19 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     
     @Override
 	public void applyTo(Item item) throws SchemaException {
-		if (!(item instanceof PrismProperty)) {
+		if (item instanceof PrismProperty) {
+			super.applyTo(item);
+		} else if (item instanceof PrismContainer<?>) {
+			PrismContainer<?> container = (PrismContainer<?>)item;
+			ItemPath remainderPath = getPath().remainder(item.getPath());
+			PrismProperty<?> property = container.findProperty(remainderPath);
+			if (property == null) {
+				throw new SchemaException("Cannot apply property delta "+this+" to item "+item+" because there is no property with path "+remainderPath);
+			}
+			applyTo(property);
+    	} else {
 			throw new SchemaException("Cannot apply property delta "+this+" to item "+item+" of type "+item.getClass());
 		}
-		super.applyTo(item);
 	}
     
 	@Override

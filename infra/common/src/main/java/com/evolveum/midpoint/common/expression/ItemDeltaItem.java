@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -47,6 +48,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 	Item<V> itemOld;
 	ItemDelta<V> delta;
 	Item<V> itemNew;
+	ItemPath resolvePath = ItemPath.EMPTY_PATH;
 	ItemPath residualPath = null;
 	
 	public ItemDeltaItem() {
@@ -113,6 +115,14 @@ public class ItemDeltaItem<V extends PrismValue> {
 		this.residualPath = residualPath;
 	}
 
+	public ItemPath getResolvePath() {
+		return resolvePath;
+	}
+
+	public void setResolvePath(ItemPath resolvePath) {
+		this.resolvePath = resolvePath;
+	}
+
 	public boolean isNull() {
 		return itemOld == null && itemNew == null && delta == null;
 	}
@@ -153,6 +163,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		}
 		Item<X> subItemOld = null;
 		ItemPath subResidualPath = null;
+		ItemPath newResolvePath = resolvePath.subPath(path);
 		if (itemOld != null) {
 			PartiallyResolvedValue<X> partialItemOld = itemOld.findPartial(path);
 			if (partialItemOld != null) {
@@ -174,10 +185,16 @@ public class ItemDeltaItem<V extends PrismValue> {
 		if (delta != null) {
 			if (delta instanceof ContainerDelta<?>) {
 				subItemDelta = (ItemDelta<X>) ((ContainerDelta<?>)delta).findItemDelta(path);
+			} else {
+				CompareResult compareComplex = delta.getPath().compareComplex(newResolvePath);
+				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
+					subItemDelta = (ItemDelta<X>) delta;	
+				}
 			}
 		}
 		ItemDeltaItem<X> subIdi = new ItemDeltaItem<X>(subItemOld, subItemDelta, subItemNew);
 		subIdi.setResidualPath(subResidualPath);
+		subIdi.resolvePath = newResolvePath;
 		return subIdi;
 	}
 	

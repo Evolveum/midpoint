@@ -122,6 +122,10 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         	resolvePath = path.rest();
         }
         
+        if (resolveContext == null) {
+        	return null;
+        }
+        
         while (!resolvePath.isEmpty()) {
         	if (resolveContext.isContainer()) {
         		resolveContext = resolveContext.findIdi(resolvePath.head());

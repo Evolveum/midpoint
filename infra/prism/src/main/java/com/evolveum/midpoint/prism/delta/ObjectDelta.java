@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -274,11 +275,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             return new PartiallyResolvedDelta<V>(itemDelta, partialValue.getResidualPath());
         } else if (changeType == ChangeType.MODIFY) {
         	for (ItemDelta<?> modification: modifications) {
-        		if (modification.getPath().equals(propertyPath)) {
+        		CompareResult compareComplex = modification.getPath().compareComplex(propertyPath);
+        		if (compareComplex == CompareResult.EQUIVALENT) {
         			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification, null);
-        		} else if (modification.getPath().isSubPath(propertyPath)) {
+        		} else if (compareComplex == CompareResult.SUPERPATH) {
+        			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification, null);
+        		} else if (compareComplex == CompareResult.SUBPATH) {
         			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification,
-        					propertyPath.substract(modification.getPath()));
+        					propertyPath.remainder(modification.getPath()));
         		}
         	}
             return null;

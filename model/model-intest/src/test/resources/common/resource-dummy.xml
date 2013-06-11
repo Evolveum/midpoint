@@ -365,7 +365,7 @@ end
 			<host>resource</host>
 			<language>Gibberish</language>
 			<argument>
-				<path>$projection/activation/administrativeStatus</path>
+				<path>$shadow/activation/administrativeStatus</path>
 				<name>how</name>
 			</argument>
 			<code>He left it dead, and with its head</code>

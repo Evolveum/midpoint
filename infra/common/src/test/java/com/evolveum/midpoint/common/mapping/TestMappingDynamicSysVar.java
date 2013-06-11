@@ -657,4 +657,31 @@ public class TestMappingDynamicSysVar {
 	  	PrismAsserts.assertTripleNoPlus(outputTriple);
 	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("23"));
     }
+    
+    @Test
+    public void testPathEnum() throws Exception {
+    	final String TEST_NAME = "testPathEnum";
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, evaluator.getPrismContext(), ActivationStatusType.DISABLED);
+    	
+		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+				"mapping-path-enum.xml", 
+    			TEST_NAME, "costCenter", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
+		System.out.println("Output triple");
+		System.out.println(outputTriple.dump());
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, ActivationStatusType.DISABLED.value());
+	  	PrismAsserts.assertTripleMinus(outputTriple, ActivationStatusType.ENABLED.value());
+    }
 }

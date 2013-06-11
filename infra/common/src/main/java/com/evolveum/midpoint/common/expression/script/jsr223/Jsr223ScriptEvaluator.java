@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -145,66 +146,11 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	}
 	
 	private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
-		if (rawValue == null || expectedType.isInstance(rawValue)) {
-			return (T)rawValue;
+		try {
+			return JavaTypeConverter.convert(expectedType, rawValue);
+		} catch (IllegalArgumentException e) {
+			throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription, e);
 		}
-		if (rawValue instanceof PrismPropertyValue<?>) {
-			rawValue = ((PrismPropertyValue<?>)rawValue).getValue();
-		}
-		// This really needs to be checked twice
-		if (rawValue == null || expectedType.isInstance(rawValue)) {
-			return (T)rawValue;
-		}
-		
-		// Primitive types
-		if (expectedType == boolean.class && rawValue instanceof Boolean) {
-			return (T) ((Boolean)rawValue);
-		}
-		if (expectedType.equals(int.class) && rawValue instanceof Integer) {
-			return (T)((Integer)rawValue);
-		}
-		if (expectedType.equals(long.class) && rawValue instanceof Long) {
-			return (T)((Long)rawValue);
-		}
-		if (expectedType.equals(float.class) && rawValue instanceof Float) {
-			return (T)((Float)rawValue);
-		}
-		if (expectedType.equals(double.class) && rawValue instanceof Double) {
-			return (T)((Double)rawValue);
-		}
-		if (expectedType.equals(byte.class) && rawValue instanceof Byte) {
-			return (T)((Byte)rawValue);
-		}
-
-		if (expectedType.equals(PolyString.class) && rawValue instanceof String) {
-			return (T) new PolyString((String)rawValue);
-		}
-		if (expectedType.equals(PolyStringType.class) && rawValue instanceof String) {
-			PolyStringType polyStringType = new PolyStringType();
-			polyStringType.setOrig((String)rawValue);
-			return (T) polyStringType;
-		}
-		if (expectedType.equals(String.class) && rawValue instanceof PolyString) {
-			return (T)((PolyString)rawValue).getOrig();
-		}
-		if (expectedType.equals(String.class) && rawValue instanceof PolyStringType) {
-			return (T)((PolyStringType)rawValue).getOrig();
-		}
-		if (expectedType.equals(PolyString.class) && rawValue instanceof PolyStringType) {
-			return (T) ((PolyStringType)rawValue).toPolyString();
-		}
-		if (expectedType.equals(PolyString.class) && rawValue instanceof Integer) {
-			return (T) new PolyString(((Integer)rawValue).toString());
-		}
-		if (expectedType.equals(PolyStringType.class) && rawValue instanceof PolyString) {
-			PolyStringType polyStringType = new PolyStringType((PolyString)rawValue);
-			return (T) polyStringType;
-		}
-		if (expectedType.equals(PolyStringType.class) && rawValue instanceof Integer) {
-			PolyStringType polyStringType = new PolyStringType(((Integer)rawValue).toString());
-			return (T) polyStringType;
-		}
-		throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
 	}
 	
 	private <T> boolean isEmpty(T val) {

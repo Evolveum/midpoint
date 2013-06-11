@@ -123,6 +123,26 @@ public class TestPath {
 		assert pathFooBar.equivalent(pathFooNullBar);
 		
 	}
+	
+	@Test
+    public void testPathRemainder() throws Exception {
+		System.out.println("\n\n===[ testPathRemainder ]===\n");
+		
+		// GIVEN
+		ItemPath pathFoo = new ItemPath(new QName(NS, "foo"));
+		ItemPath pathBar = new ItemPath(new QName(NS, "bar"));
+		ItemPath pathFooNull = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment());
+		ItemPath pathFoo123 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
+		ItemPath pathFooBar = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
+		ItemPath pathFooNullBar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(), 
+												new NameItemPathSegment(new QName(NS, "bar")));
+				
+		// WHEN
+		ItemPath remainder1 = pathFooBar.remainder(pathFooNull);
+		
+		// THEN
+		assertEquals("Remainder fooBar, fooNull", pathBar, remainder1);
+	}
 
 	private void assertNormalizedPath(ItemPath normalized, Object... expected) {
 		assertEquals("wrong path length",normalized.size(), expected.length);
