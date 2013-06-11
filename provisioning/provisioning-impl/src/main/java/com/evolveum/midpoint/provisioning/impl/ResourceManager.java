@@ -685,9 +685,9 @@ public class ResourceManager {
 		}
 		ActivationCapabilityType activationCapability = CapabilityUtil.getCapability(resourceType
 				.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
-		if (activationCapability != null && activationCapability.getEnableDisable() != null) {
-			QName attributeName = activationCapability.getEnableDisable().getAttribute();
-			Boolean ignore = activationCapability.getEnableDisable().isIgnoreAttribute();
+		if (activationCapability != null && activationCapability.getStatus() != null) {
+			QName attributeName = activationCapability.getStatus().getAttribute();
+			Boolean ignore = activationCapability.getStatus().isIgnoreAttribute();
 			if (attributeName != null) {
 				// The attribute used for enable/disable simulation should be ignored in the schema
 				// otherwise strange things may happen, such as changing the same attribute both from
