@@ -19,6 +19,7 @@ import org.springframework.security.web.access.intercept.FilterInvocationSecurit
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.util.AntPathRequestMatcher;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -39,6 +40,10 @@ public class MidPointGuiAuthorizationEvaluator extends AuthorizationEvaluator {
 				if (matcher.matches(filterInvocation.getRequest()) && urlMapping.getAction() != null){
 					for (String action : urlMapping.getAction()){
 						if (StringUtils.isNotBlank(action)) {
+							//all users has permission to access these resources
+							if (action.equals(AuthorizationConstants.AUTZ_UI_PERMIT_ALL_URL)){
+								return;
+							}
 							guiConfigAttr.add(new SecurityConfig(action));
 						}
 					}

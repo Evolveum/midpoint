@@ -66,8 +66,8 @@ public class PageAdminResources extends PageAdmin {
                 new PageVisibleDisabledBehaviour(this, PageResource.class)));
         items.add(new BottomMenuItem(createResourceWizardLabel(), PageResourceEdit.class,
                 createWizardVisibleBehaviour()));
-        items.add(new BottomMenuItem(createStringResource("pageAdminResources.importResource"),
-                PageResourceImport.class, new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.importResource"),
+//                PageResourceImport.class, new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
         items.add(new BottomMenuItem(createStringResource("pageAdminResources.contentAccounts"),
                 PageContentAccounts.class, new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
         items.add(new BottomMenuItem(createStringResource("pageAdminResources.accountDetails"), PageAccount.class,

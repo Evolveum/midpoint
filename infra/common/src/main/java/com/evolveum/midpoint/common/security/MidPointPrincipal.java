@@ -133,7 +133,7 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
         }
         if (activation.getValidTo() != null) {
             long to = MiscUtil.asDate(activation.getValidTo()).getTime();
-            if (to > time) {
+            if (to < time) {
                 return ActivationStatusType.DISABLED;
             }
         }

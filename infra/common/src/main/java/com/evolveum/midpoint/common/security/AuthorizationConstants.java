@@ -164,14 +164,18 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_HOME_ALL_QNAME = new QName(NS_AUTHORIZATION, "home");
 	public static final String AUTZ_UI_HOME_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_HOME_ALL_QNAME);
 	
+	//permitAll  - it means, no authorization is required, everyone can access these resources, this is user for about system and about midpoint pages..
+	public static final QName AUTZ_UI_PERMIT_ALL_QNAME = new QName(NS_AUTHORIZATION, "permitAll");
+	public static final String AUTZ_UI_PERMIT_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_PERMIT_ALL_QNAME);
+	
 	
 
 	
 	//About
-	public static final QName AUTZ_UI_ABOUT_MIDPOINT_QNAME = new QName(NS_AUTHORIZATION, "aboutMidpoint");
-	public static final String AUTZ_UI_ABOUT_MIDPOINT_URL = QNameUtil.qNameToUri(AUTZ_UI_ABOUT_MIDPOINT_QNAME);
-	
-	public static final QName AUTZ_UI_ABOUT_SYSTEM_QNAME = new QName(NS_AUTHORIZATION, "abountSystem");
-	public static final String AUTZ_UI_ABOUT_SYSTEM_URL = QNameUtil.qNameToUri(AUTZ_UI_ABOUT_SYSTEM_QNAME);
+//	public static final QName AUTZ_UI_ABOUT_MIDPOINT_QNAME = new QName(NS_AUTHORIZATION, "aboutMidpoint");
+//	public static final String AUTZ_UI_ABOUT_MIDPOINT_URL = QNameUtil.qNameToUri(AUTZ_UI_ABOUT_MIDPOINT_QNAME);
+//	
+//	public static final QName AUTZ_UI_ABOUT_SYSTEM_QNAME = new QName(NS_AUTHORIZATION, "abountSystem");
+//	public static final String AUTZ_UI_ABOUT_SYSTEM_URL = QNameUtil.qNameToUri(AUTZ_UI_ABOUT_SYSTEM_QNAME);
 	
 }

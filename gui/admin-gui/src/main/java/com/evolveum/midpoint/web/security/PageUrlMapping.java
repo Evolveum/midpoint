@@ -82,8 +82,8 @@ public enum PageUrlMapping {
 
     REPORTS("/admin/reports", PageReports.class, MidPointPageParametersEncoder.ENCODER, new String[]{AuthorizationConstants.AUTZ_UI_REPORTS_URL}),
 
-    ABOUT_MIDPOINT("/admin/about/midPoint", PageAbout.class, MidPointPageParametersEncoder.ENCODER, null),
-    ABOUT_SYSTEM("/admin/about/system", PageSystem.class, MidPointPageParametersEncoder.ENCODER, null),
+    ABOUT_MIDPOINT("/admin/about/midPoint", PageAbout.class, MidPointPageParametersEncoder.ENCODER, new String[]{AuthorizationConstants.AUTZ_UI_PERMIT_ALL_URL}),
+    ABOUT_SYSTEM("/admin/about/system", PageSystem.class, MidPointPageParametersEncoder.ENCODER, new String[]{AuthorizationConstants.AUTZ_UI_PERMIT_ALL_URL}),
 
     INTERNAL_ACCOUNTS("/admin/internal/accounts", PageAccounts.class, MidPointPageParametersEncoder.ENCODER, null),
 
