@@ -16,7 +16,12 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
+import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.PageUrlMapping;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Page;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -80,9 +85,19 @@ public class TopMenu extends Panel {
                 }
                 loopItem.add(link);
 
-                if (item.getVisible() != null) {
-                    loopItem.add(item.getVisible());
-                }
+                
+				loopItem.add(new VisibleEnableBehaviour() {
+					
+					public boolean isVisible() {
+						String[] actions = PageUrlMapping.findActions(item.getPage());
+						return WebMiscUtil.isAuthorized(actions);
+					}
+				});
+                
+                
+//                if (item.getVisible() != null) {
+//                    loopItem.add(item.getVisible());
+//                }
             }
         };
 

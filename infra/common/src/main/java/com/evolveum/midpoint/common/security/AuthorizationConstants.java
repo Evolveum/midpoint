@@ -114,7 +114,7 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_WORK_ITEMS_ALL_QNAME = new QName(NS_AUTHORIZATION, "workItemsAll");
 	public static final String AUTZ_UI_WORK_ITEMS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_WORK_ITEMS_ALL_QNAME);
 	
-	public static final QName AUTZ_UI_WORK_ITEMS_QNAME = new QName(NS_AUTHORIZATION, "workItemsAll");
+	public static final QName AUTZ_UI_WORK_ITEMS_QNAME = new QName(NS_AUTHORIZATION, "workItems");
 	public static final String AUTZ_UI_WORK_ITEMS_URL = QNameUtil.qNameToUri(AUTZ_UI_WORK_ITEMS_QNAME);
 	
 	public static final QName AUTZ_UI_WORK_ITEM_QNAME = new QName(NS_AUTHORIZATION, "workItem");

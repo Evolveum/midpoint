@@ -105,6 +105,15 @@ public enum PageUrlMapping {
         this.action = action;
     }
 
+    public static String[] findActions(Class page){
+    	for (PageUrlMapping urlMapping : values()){
+    		if (page.equals(urlMapping.getPage())){
+    			return urlMapping.getAction();
+    		}
+    	}
+    	return null;
+    }
+    
     public IPageParametersEncoder getEncoder() {
         return encoder;
     }

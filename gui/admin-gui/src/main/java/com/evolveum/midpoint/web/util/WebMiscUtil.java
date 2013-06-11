@@ -75,6 +75,9 @@ public final class WebMiscUtil {
     }
 
     public static boolean isAuthorized(String... action){
+    	if (action ==  null){
+    		return true;
+    	}
     	List<String> actions = Arrays.asList(action);
     	Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.addAll(actions);
