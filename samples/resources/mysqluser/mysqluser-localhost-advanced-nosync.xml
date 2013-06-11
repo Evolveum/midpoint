@@ -98,10 +98,15 @@ This resource definition contains only the very basic definitions for midPoint t
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>MySQL username</displayName>
-				<access>create</access>
-				<access>read</access>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
 				<outbound>
-				    <strength>weak</strength>
 				    <source>
 				    	<path>$user/name</path>
 				    </source>
