@@ -88,9 +88,21 @@ public class TopMenu extends Panel {
                 
 				loopItem.add(new VisibleEnableBehaviour() {
 					
+					@Override
 					public boolean isVisible() {
 						String[] actions = PageUrlMapping.findActions(item.getPage());
+						if (item.getVisible() != null){
+							return WebMiscUtil.isAuthorized(actions) && item.getVisible().isVisible();
+						}
 						return WebMiscUtil.isAuthorized(actions);
+					}
+					
+					@Override
+					public boolean isEnabled(){
+						if (item.getVisible() != null){
+							return item.getVisible().isEnabled();
+						}
+						return true;
 					}
 				});
                 
