@@ -308,7 +308,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
 //        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
@@ -699,7 +699,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
     }
 
@@ -827,7 +827,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);                // some attributes on the account are changed
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
     }
@@ -894,7 +894,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
     }
@@ -1416,7 +1416,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
     }

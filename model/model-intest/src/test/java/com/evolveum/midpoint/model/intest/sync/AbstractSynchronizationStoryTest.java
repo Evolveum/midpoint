@@ -643,7 +643,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
     }
