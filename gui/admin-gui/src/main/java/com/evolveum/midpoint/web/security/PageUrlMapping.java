@@ -37,8 +37,8 @@ public enum PageUrlMapping {
 
     LOGIN("/login", PageLogin.class, MidPointPageParametersEncoder.ENCODER, null),
 
-    ADMIN("/admin", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, null),
     ADMIN_DASHBOARD("/admin/dashboard", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AuthorizationConstants.AUTZ_UI_DASHBOARD_URL, AuthorizationConstants.AUTZ_UI_HOME_ALL_URL}),
+    
     ADMIN_MY_PASSWORDS("/admin/myPasswords", PageMyPasswords.class, MidPointPageParametersEncoder.ENCODER, new String[]{AuthorizationConstants.AUTZ_UI_MY_PASSWORDS_URL, AuthorizationConstants.AUTZ_UI_HOME_ALL_URL}),
 
     ADMIN_USER("/admin/user", PageUser.class, MidPointPageParametersEncoder.ENCODER, new String[]{AuthorizationConstants.AUTZ_UI_USER_URL, AuthorizationConstants.AUTZ_UI_USERS_ALL_URL}),
@@ -87,7 +87,10 @@ public enum PageUrlMapping {
 
     INTERNAL_ACCOUNTS("/admin/internal/accounts", PageAccounts.class, MidPointPageParametersEncoder.ENCODER, null),
 
+    ADMIN("/admin", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AuthorizationConstants.AUTZ_UI_DASHBOARD_URL, AuthorizationConstants.AUTZ_UI_HOME_ALL_URL}),
+    
     CONFIG_TEST("/admin/config/test", PageTest.class, MidPointPageParametersEncoder.ENCODER, new String[]{"denyAll"});
+    
 
     private String url;
 
@@ -111,6 +114,19 @@ public enum PageUrlMapping {
     			return urlMapping.getAction();
     		}
     	}
+    	return null;
+    }
+    
+    public static Class findClassForAction(String action){
+		for (PageUrlMapping urlMapping : values()) {
+			if (urlMapping.getAction() != null) {
+				for (String act : urlMapping.getAction()) {
+					if (act.equals(action)) {
+						return urlMapping.getPage();
+					}
+				}
+			}
+		}
     	return null;
     }
     
