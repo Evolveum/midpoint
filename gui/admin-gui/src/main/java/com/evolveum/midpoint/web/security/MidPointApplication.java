@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.security.Authorization;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -31,6 +34,7 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.resource.js.JsResources;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
@@ -47,6 +51,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -81,7 +86,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Override
     public Class<PageDashboard> getHomePage() {
-        return PageDashboard.class;
+    	return WebMiscUtil.getHomePage();
     }
 
     @Override

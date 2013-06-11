@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -33,7 +35,10 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.PageUrlMapping;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -85,6 +90,27 @@ public final class WebMiscUtil {
         	return true;
         }
         return false;
+    }
+    
+    public static Class getHomePage(){
+    	if (isAuthorized(PageUrlMapping.findActions(PageDashboard.class))){
+    		return PageDashboard.class;
+    	}
+    	
+    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+    	if (principal != null){
+    		Collection<Authorization> authorizations = principal.getAuthorities();
+    		for (Authorization auth : authorizations){
+    			for (String action : auth.getAction()){
+    				Class homePage = PageUrlMapping.findClassForAction(action);
+    				if (homePage != null){
+    					return homePage;
+    				}
+    			}
+    		}
+    	}
+    	
+        return PageDashboard.class;
     }
     
     public static Integer safeLongToInteger(Long l) {

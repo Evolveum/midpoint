@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.form.Form;
@@ -60,7 +62,7 @@ public class PageLogin extends PageBase {
                 PasswordTextField password = (PasswordTextField) get(ID_PASSWORD);
                 if (session.authenticate(username.getModelObject(), password.getModelObject())) {
                     //continueToOriginalDestination();
-                    setResponsePage(PageDashboard.class);
+                    setResponsePage(WebMiscUtil.getHomePage());
                 }
             }
         };

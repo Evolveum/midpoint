@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -43,6 +44,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -190,6 +192,18 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		if (StringUtils.isEmpty(password)) {
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
+		
+			Collection<Authorization> authorizations = user.getAuthorities();
+    		if (authorizations == null || authorizations.isEmpty()){
+    			throw new BadCredentialsException("web.security.provider.access.denied");
+    		}
+    		
+			for (Authorization auth : authorizations){
+    			if (auth.getAction() == null || auth.getAction().isEmpty()){
+    				throw new BadCredentialsException("web.security.provider.access.denied");
+    			}
+			}
+    	
 
 		try {
 			String decoded;
