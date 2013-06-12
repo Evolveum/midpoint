@@ -101,7 +101,7 @@ public class QueryInterpreter {
     }
 
     public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,
-                              Session session) throws QueryException {
+                              boolean interpretPagingAndSorting, Session session) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(session, "Session must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
@@ -117,7 +117,7 @@ public class QueryInterpreter {
             criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
         }
 
-        if (query != null && query.getPaging() != null) {
+        if (interpretPagingAndSorting && query != null && query.getPaging() != null) {
             criteria = updatePagingAndSorting(criteria, type, query.getPaging());
         }
 
@@ -125,7 +125,7 @@ public class QueryInterpreter {
     }
 
     private Criteria interpretQuery(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,
-                               Session session) throws QueryException {
+                                    Session session) throws QueryException {
         ObjectFilter filter = query.getFilter();
         try {
             QueryContext context = new QueryContext(this, type, prismContext, session);
@@ -145,7 +145,7 @@ public class QueryInterpreter {
         }
     }
 
-    private <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, ObjectPaging paging) {
+    public <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, ObjectPaging paging) {
         if (paging == null) {
             return query;
         }

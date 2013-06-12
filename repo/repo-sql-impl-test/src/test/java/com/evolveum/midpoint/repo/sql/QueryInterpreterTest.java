@@ -30,14 +30,12 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -54,11 +52,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -291,8 +287,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryObjectByName() throws Exception {
         Session session = open();
 
-        System.out.println(QueryDefinitionRegistry.getInstance().dump());
-
         Criteria main = session.createCriteria(RObject.class, "o");
         main.add(Restrictions.and(
                 Restrictions.eq("o.name.orig", "cpt. Jack Sparrow"),
@@ -439,19 +433,32 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         close(session);
     }
 
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query) throws
-            QueryException, SchemaException, FileNotFoundException, JAXBException {
+    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query)
+            throws Exception {
+        return getInterpretedQuery(session, type, query, false);
+    }
+
+    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
+                                                              boolean interpretCount) throws Exception {
 
         QueryInterpreter interpreter = new QueryInterpreter();
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", query.getFilter().debugDump(3));
+        LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 
-        Criteria criteria = interpreter.interpret(query, type, prismContext, session);
+        Criteria criteria = interpreter.interpret(query, type, prismContext, !interpretCount, session);
+        if (interpretCount) {
+            criteria.setProjection(Projections.rowCount());
+        }
 
         return HibernateToSqlTranslator.toSql(criteria);
     }
 
     private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
-            QueryException, SchemaException, FileNotFoundException, JAXBException {
+            Exception {
+        return getInterpretedQuery(session, type, file, false);
+    }
+
+    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file,
+                                                              boolean interpretCount) throws Exception {
 
         QueryInterpreter interpreter = new QueryInterpreter();
 
@@ -467,7 +474,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         } catch (Exception ex) {
             LOGGER.info("error while converting query: " + ex.getMessage(), ex);
         }
-        Criteria criteria = interpreter.interpret(query, type, prismContext, session);
+        Criteria criteria = interpreter.interpret(query, type, prismContext, !interpretCount, session);
+        if (interpretCount) {
+            criteria.setProjection(Projections.rowCount());
+        }
         return HibernateToSqlTranslator.toSql(criteria);
     }
 
@@ -713,6 +723,50 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("query org structure");
         repositoryService.searchObjects(ObjectType.class, query, result);
 
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void countObjectOrderByName() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RObject.class, "o");
+        main.add(Restrictions.and(
+                Restrictions.eq("o.name.orig", "cpt. Jack Sparrow"),
+                Restrictions.eq("o.name.norm", "cpt jack sparrow")));
+        main.setProjection(Projections.rowCount());
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.class, prismContext, ObjectType.F_NAME,
+                new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+
+        String real = getInterpretedQuery(session, ObjectType.class, query, true);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void countObjectOrderByNameWithoutFilter() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RObject.class, "o");
+        main.setProjection(Projections.rowCount());
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        ObjectPaging paging = ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING);
+        ObjectQuery query = ObjectQuery.createObjectQuery(null, paging);
+
+        String real = getInterpretedQuery(session, ObjectType.class, query, true);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
 
         close(session);

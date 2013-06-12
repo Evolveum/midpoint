@@ -707,7 +707,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Criteria criteria;
             if (query != null && query.getFilter() != null) {
                 QueryInterpreter interpreter = new QueryInterpreter();
-                criteria = interpreter.interpret(query, type, getPrismContext(), session);
+                criteria = interpreter.interpret(query, type, getPrismContext(), false, session);
             } else {
                 criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             }
@@ -788,7 +788,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
             QueryInterpreter interpreter = new QueryInterpreter();
-            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), session);
+            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), true, session);
 
             List objects = criteria.list();
             LOGGER.trace("Found {} objects, translating to JAXB.",
@@ -1474,7 +1474,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
             QueryInterpreter interpreter = new QueryInterpreter();
-            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), session);
+            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), true, session);
 
             ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
             try {
