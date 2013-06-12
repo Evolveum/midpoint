@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -148,9 +150,16 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 							object = change.getOldShadow();
 						}
 						
+						XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 						Collection modifications = SynchronizationSituationUtil
-								.createSynchronizationSituationAndDescriptionDelta(object,
-										situation.getSituation(), task.getChannel());
+								.createSynchronizationSituationDescriptionDelta(object,
+										situation.getSituation(), timestamp, task.getChannel());
+						PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
+								situation.getSituation());
+						if (syncSituationDelta != null){
+							modifications.add(syncSituationDelta);
+						}
+						modifications.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
 						repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
 						subResult.recordSuccess();
 						return;
@@ -453,16 +462,17 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		
 		T objectType = object.asObjectable();
 		// new situation description
+		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil
-				.createSynchronizationSituationAndDescriptionDelta(object, situation.getSituation(),
+				.createSynchronizationSituationDescriptionDelta(object, situation.getSituation(), timestamp,
 						change.getSourceChannel());
 		// refresh situation
-//		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
-//				situation.getSituation());
-//		if (syncSituationDelta != null){
-//		syncSituationDeltas.add(syncSituationDelta);
-//		}
-//		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object));
+		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
+				situation.getSituation());
+		if (syncSituationDelta != null){
+		syncSituationDeltas.add(syncSituationDelta);
+		}
+		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
 		
 		try {
 
