@@ -85,10 +85,8 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	// outcome (success, failure)
 	private OperationResultStatus outcome;
 
-	// result (e.g. number of entries, returned object???)
-    // we use OperationResult, because it is able to embed almost any kind of result
-    // outcome should be in sync with result.getStatus(), if result is used
-    private OperationResult result;
+	// result (e.g. number of entries, returned object, business result of workflow task or process instance - approved, rejected)
+    private String result;
 
     private String parameter;
 
@@ -235,12 +233,11 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		this.outcome = outcome;
 	}
 	
-	public void setResult(OperationResult result) {
-		outcome = result.getStatus();
+	public void setResult(String result) {
         this.result = result;
 	}
 
-    public OperationResult getResult() {
+    public String getResult() {
         return result;
     }
 
@@ -297,7 +294,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		clone.taskIdentifier = this.taskIdentifier;
 		clone.taskOID = this.taskOID;
 		clone.timestamp = this.timestamp;
-        clone.result = this.result != null ? this.result.clone() : null;
+        clone.result = this.result;
         clone.parameter = this.parameter;
         clone.message = this.message;
 		return clone;
@@ -309,7 +306,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
 				+ ", T=" + formatObject(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
-				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + ", r=" + formatResult(result) + ", p=" + parameter
+				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message + "]";
 	}
 
@@ -368,10 +365,6 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Channel", channel, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Outcome", outcome, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Result", result, indent + 1);
-        if (result != null && result.getReturns() != null) {
-            DebugUtil.debugDumpMapMultiLine(sb, result.getReturns(), indent + 2);
-            sb.append("\n");
-        }
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);

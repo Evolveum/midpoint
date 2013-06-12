@@ -1335,9 +1335,9 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		}
 	}
 
-    // primitive implementation
-    public OperationResult clone() {
-        return CloneUtil.clone(this);
-    }
+    // primitive implementation - uncomment it if needed
+//    public OperationResult clone() {
+//        return CloneUtil.clone(this);
+//    }
 
 }

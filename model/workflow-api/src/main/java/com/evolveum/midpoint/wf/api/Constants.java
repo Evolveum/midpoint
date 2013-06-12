@@ -33,7 +33,7 @@ public class Constants {
     public static final QName WFLAST_DETAILS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "lastDetails");
     public static final QName WFSTATUS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "status");
 
-    public static final String AUDIT_RESULT_APPROVAL = "approved";
-    public static final String AUDIT_RESULT_COMMENT = "comment";
-    public static final String AUDIT_RESULT_METHOD = WorkItem.class.getName() + ".do";
+//    public static final String AUDIT_RESULT_APPROVAL = "approved";
+//    public static final String AUDIT_RESULT_COMMENT = "comment";
+//    public static final String AUDIT_RESULT_METHOD = WorkItem.class.getName() + ".do";
 }

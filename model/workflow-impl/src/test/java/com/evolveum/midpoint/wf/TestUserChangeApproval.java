@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
@@ -155,7 +156,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                    assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
                    checkDummyTransportMessages("simpleUserNotifier", 1);
-                   checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, true));
+                   checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                }
 
                @Override
@@ -165,33 +166,33 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
            });
 	}
 
-    private Map<String, Boolean> createResultMap(String oid, boolean approved) {
-        Map<String,Boolean> retval = new HashMap<String,Boolean>();
-        retval.put(oid, approved);
+    private Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
+        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
+        retval.put(oid, result);
         return retval;
     }
 
-    private Map<String, Boolean> createResultMap(String oid, boolean approved, String oid2, boolean approved2) {
-        Map<String,Boolean> retval = new HashMap<String,Boolean>();
+    private Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2, WorkflowResult approved2) {
+        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
         retval.put(oid, approved);
         retval.put(oid2, approved2);
         return retval;
     }
 
-    private Map<String, Boolean> createResultMap(String oid, boolean approved, String oid2, boolean approved2, String oid3, boolean approved3) {
-        Map<String,Boolean> retval = new HashMap<String,Boolean>();
+    private Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2, WorkflowResult approved2, String oid3, WorkflowResult approved3) {
+        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
         retval.put(oid, approved);
         retval.put(oid2, approved2);
         retval.put(oid3, approved3);
         return retval;
     }
 
-    private void checkAuditRecords(Map<String, Boolean> expectedResults) {
+    private void checkAuditRecords(Map<String, WorkflowResult> expectedResults) {
         checkWorkItemAuditRecords(expectedResults);
         checkWfProcessAuditRecords(expectedResults);
     }
 
-    private void checkWorkItemAuditRecords(Map<String, Boolean> expectedResults) {
+    private void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults) {
         List<AuditEventRecord> workItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
         assertEquals("Unexpected number of work item audit records", expectedResults.size()*2, workItemRecords.size());
         for (AuditEventRecord record : workItemRecords) {
@@ -202,11 +203,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
             String oid = assignmentType.getTargetRef().getOid();
             assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-            assertEquals("Unexpected result for " + oid, expectedResults.get(oid), record.getResult().getReturn(Constants.AUDIT_RESULT_APPROVAL));
+            assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.valueOf(record.getResult()));
         }
     }
 
-    private void checkWfProcessAuditRecords(Map<String, Boolean> expectedResults) {
+    private void checkWfProcessAuditRecords(Map<String, WorkflowResult> expectedResults) {
         List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
         assertEquals("Unexpected number of workflow process instance audit records", expectedResults.size() * 2, records.size());
         for (AuditEventRecord record : records) {
@@ -218,7 +219,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
                 String oid = assignmentType.getTargetRef().getOid();
                 assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-                assertEquals("Unexpected result for " + oid, expectedResults.get(oid), record.getResult().getReturn(Constants.AUDIT_RESULT_APPROVAL));
+                assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.valueOf(record.getResult()));
             }
         }
     }
@@ -270,7 +271,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, false));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED));
             }
 
             @Override
@@ -312,7 +313,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertAssignedRole(jack, ROLE_R3_OID);
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, true));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));
             }
 
             @Override
@@ -366,7 +367,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("activation has not been changed", ActivationStatusType.DISABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
             }
 
             @Override
@@ -416,7 +417,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, false, ROLE_R3_OID, true));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
             }
 
             @Override
@@ -460,7 +461,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
             }
 
             @Override
@@ -517,7 +518,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, true, ROLE_R2_OID, false));
+                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
             }
 
             @Override

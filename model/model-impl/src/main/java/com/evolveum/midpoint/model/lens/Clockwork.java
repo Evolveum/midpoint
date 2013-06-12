@@ -295,7 +295,6 @@ public class Clockwork {
 		if (stage == AuditEventStage.REQUEST) {
 			auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(context.getAllChanges()));
 		} else if (stage == AuditEventStage.EXECUTION) {
-			auditRecord.setResult(result);
 			auditRecord.setOutcome(result.getComputeStatus());
 			Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
 			if ((unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty()) && auditRecord.getOutcome() == OperationResultStatus.SUCCESS) {

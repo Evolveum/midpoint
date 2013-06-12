@@ -37,6 +37,7 @@ import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.api.*;
 import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -147,14 +148,10 @@ public class MidPointTaskListener implements TaskListener {
             auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
         }
 
-        if (stage == AuditEventStage.REQUEST) {
-            auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
-        } else {
-            OperationResult eventResult = new OperationResult(Constants.AUDIT_RESULT_METHOD);
-            eventResult.recordSuccess();
-            eventResult.addReturn(Constants.AUDIT_RESULT_APPROVAL, (Serializable) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
-            eventResult.addReturn(Constants.AUDIT_RESULT_COMMENT, (Serializable) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
-            auditEventRecord.setResult(eventResult);
+        auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
+        if (stage == AuditEventStage.EXECUTION) {
+            auditEventRecord.setResult(WorkflowResult.fromBooleanAsString(Boolean.valueOf((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION))));
+            auditEventRecord.setMessage((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
         }
 
         Task shadowTask = null;

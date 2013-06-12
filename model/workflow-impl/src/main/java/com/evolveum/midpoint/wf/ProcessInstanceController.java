@@ -48,6 +48,7 @@ import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
 import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareChildOperationTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
@@ -293,15 +294,10 @@ public class ProcessInstanceController {
             }
         }
 
-        if (stage == AuditEventStage.REQUEST) {
-            auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
-        } else {
-            OperationResult eventResult = new OperationResult(Constants.AUDIT_RESULT_METHOD);
-            eventResult.recordSuccess();
-            eventResult.addReturn(Constants.AUDIT_RESULT_APPROVAL, (Serializable) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
-            auditEventRecord.setResult(eventResult);
+        if (stage == AuditEventStage.EXECUTION) {
+            auditEventRecord.setResult(WorkflowResult.fromBooleanAsString((Boolean) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER)));
         }
-
+        auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
         auditService.audit(auditEventRecord, task);
     }
 
