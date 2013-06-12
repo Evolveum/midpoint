@@ -16,19 +16,17 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import java.util.Date;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.wicket.extensions.yui.calendar.DateField;
-import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -41,7 +39,7 @@ public class DatePanel extends InputPanel {
         super(id);
 
 //        DateField date = DateTextField.forDatePattern("input", createDateModel(model), "dd/MMM/yyyy");
-        DateField date = new DateField(ID_INPUT, createDateModel(model));
+        DateField date = new DateField(ID_INPUT, new DatePanelModel(model, true));
 //        date.add(new DatePicker());
         add(date);
     }
@@ -51,26 +49,52 @@ public class DatePanel extends InputPanel {
         return (FormComponent) get(ID_INPUT);
     }
 
-    private IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
-        return new Model<Date>() {
+    private static class DatePanelModel extends Model<Date> {
 
-            @Override
-            public Date getObject() {
-                XMLGregorianCalendar calendar = model.getObject();
-                if (calendar == null) {
-                    return null;
+        private IModel<XMLGregorianCalendar> model;
+        private boolean copyTime;
+
+        private DatePanelModel(IModel<XMLGregorianCalendar> model, boolean copyTime) {
+            this.model = model;
+            this.copyTime = copyTime;
+        }
+
+        @Override
+        public Date getObject() {
+            XMLGregorianCalendar calendar = model.getObject();
+            if (calendar == null) {
+                return null;
+            }
+            return MiscUtil.asDate(calendar);
+        }
+
+        @Override
+        public void setObject(Date object) {
+            if (object == null) {
+                model.setObject(null);
+            } else {
+                if (copyTime) {
+                    Date d = getObject();
+                    object = copyTime(d, object);
                 }
-                return MiscUtil.asDate(calendar);
+                model.setObject(MiscUtil.asXMLGregorianCalendar(object));
+            }
+        }
+
+        private Date copyTime(Date from, Date to) {
+            if (from == null || to == null) {
+                return to;
             }
 
-            @Override
-            public void setObject(Date object) {
-                if (object == null) {
-                    model.setObject(null);
-                } else {
-                    model.setObject(MiscUtil.asXMLGregorianCalendar(object));
-                }
-            }
-        };
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(from);
+
+            to = DateUtils.setHours(to, calendar.get(Calendar.HOUR_OF_DAY));
+            to = DateUtils.setMinutes(to, calendar.get(Calendar.MINUTE));
+            to = DateUtils.setSeconds(to, calendar.get(Calendar.SECOND));
+            to = DateUtils.setMilliseconds(to, calendar.get(Calendar.MILLISECOND));
+
+            return to;
+        }
     }
 }
