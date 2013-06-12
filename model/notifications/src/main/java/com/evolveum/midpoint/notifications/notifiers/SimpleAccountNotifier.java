@@ -51,7 +51,8 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
     private static final List<ItemPath> synchronizationPaths = Arrays.asList(
             new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION),
-            new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION));
+            new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION),
+            new ItemPath(ShadowType.F_SYNCHRONIZATION_TIMESTAMP));
 
 
     @Override
