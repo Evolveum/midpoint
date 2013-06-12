@@ -397,12 +397,14 @@ public class ModifyTest extends BaseSQLRepoTest {
 				oid, parentResult);
 		System.out.println("\nAfter modify");
 		System.out.println(afterModify.dump());
-
+		
+		
+		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		 List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
-	                createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null);
-//	        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
-//	                createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
-//	        syncSituationDeltas.add(syncSituationDelta);
+	                createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, timestamp, null);
+	        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
+	                createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
+	        syncSituationDeltas.add(syncSituationDelta);
 
 	        repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, parentResult);
 //        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
@@ -594,11 +596,12 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<ShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
         repositoryService.addObject(account, null, result);
 
+        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
-                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null);
-//        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
-//                createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
-//        syncSituationDeltas.add(syncSituationDelta);
+                createSynchronizationSituationDescriptionDelta(account, SynchronizationSituationType.LINKED, timestamp, null);
+        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
+                createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
+        syncSituationDeltas.add(syncSituationDelta);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, result);
 
@@ -610,14 +613,16 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
 
 
-        syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null);
-//        syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(afterFirstModify, null);
-//        syncSituationDeltas.add(syncSituationDelta);
+        timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(afterFirstModify, null, timestamp, null);
+        syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(afterFirstModify, null);
+        syncSituationDeltas.add(syncSituationDelta);
 
 //        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-//        PropertyDelta syncTimestap = PropertyDelta.createModificationReplaceProperty(
+        PropertyDelta syncTimestap = SynchronizationSituationUtil.createSynchronizationTimestampDelta(afterFirstModify, timestamp);
+//        PropertyDelta.createModificationReplaceProperty(
 //                ShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterFirstModify.getDefinition(), timestamp);
-//        syncSituationDeltas.add(syncTimestap);
+        syncSituationDeltas.add(syncTimestap);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, result);
 
@@ -627,12 +632,12 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, afterSecondModifyType.getSynchronizationSituationDescription().size());
         description = afterSecondModifyType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertNull(description.getSituation());
-        XMLGregorianCalendar timestamp = afterSecondModifyType.getSynchronizationTimestamp();
-        AssertJUnit.assertNotNull(timestamp);
+        XMLGregorianCalendar afterModifytimestamp = afterSecondModifyType.getSynchronizationTimestamp();
+        AssertJUnit.assertNotNull(afterModifytimestamp);
         AssertJUnit.assertEquals(afterSecondModifyType.getSynchronizationTimestamp(), description.getTimestamp());
 
         LessFilter filter = LessFilter.createLessFilter(null, afterSecondModify.findItem(
-                ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), timestamp, true);
+                ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), afterModifytimestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, result);
