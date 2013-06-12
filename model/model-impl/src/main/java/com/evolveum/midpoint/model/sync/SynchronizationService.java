@@ -152,14 +152,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						
 						XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 						Collection modifications = SynchronizationSituationUtil
-								.createSynchronizationSituationDescriptionDelta(object,
-										situation.getSituation(), timestamp, task.getChannel());
-						PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
-								situation.getSituation());
-						if (syncSituationDelta != null){
-							modifications.add(syncSituationDelta);
-						}
-						modifications.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
+								.createSynchronizationSituationAndDescriptionDelta(object,
+										situation.getSituation(), task.getChannel());
+//						PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
+//								situation.getSituation());
+//						if (syncSituationDelta != null){
+//							modifications.add(syncSituationDelta);
+//						}
+//						modifications.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
 						repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
 						subResult.recordSuccess();
 						return;
@@ -464,16 +464,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		// new situation description
 		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil
-				.createSynchronizationSituationDescriptionDelta(object, situation.getSituation(), timestamp,
-						change.getSourceChannel());
+				.createSynchronizationSituationAndDescriptionDelta(object, situation.getSituation(), change.getSourceChannel());
 		// refresh situation
-		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
-				situation.getSituation());
-		if (syncSituationDelta != null){
-		syncSituationDeltas.add(syncSituationDelta);
-		}
-		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
-		
+//		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
+//				situation.getSituation());
+//		if (syncSituationDelta != null){
+//		syncSituationDeltas.add(syncSituationDelta);
+//		}
+//		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
+//		
 		try {
 
 			repositoryService.modifyObject(objectType.getClass(), object.getOid(), syncSituationDeltas, parentResult);

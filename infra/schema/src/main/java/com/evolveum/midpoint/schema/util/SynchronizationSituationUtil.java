@@ -92,30 +92,24 @@ public class SynchronizationSituationUtil {
 		return syncSituationDelta;
 	}
 	
-//	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject object, SynchronizationSituationType situation, String sourceChannel){
-//		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-//		
-//		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(object, situation, timestamp, sourceChannel);
-//		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object, situation);
-//		if (syncSituationDelta != null){
-//		syncSituationDeltas.add(syncSituationDelta);
-//		}
+	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject object, SynchronizationSituationType situation, String sourceChannel){
+		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		
-//		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(object, situation, timestamp, sourceChannel);
-//		
-//		if (!syncSituationDeltas.isEmpty()) {
-//			PropertyDelta timestampDelta = createSynchronizationTimestampDelta(object, timestamp);
-//			syncSituationDeltas.add(timestampDelta);
-//		}
-//		
-//		PropertyDelta syncSituationDelta = createSynchronizationSituationDelta(object, situation);
-//		
-//		if (syncSituationDelta != null) {
-//			delta.add(syncSituationDelta);
-//		}
-//		
-//		return syncSituationDeltas;
-//	}
+		
+		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(object, situation, timestamp, sourceChannel);
+		
+	
+			PropertyDelta timestampDelta = createSynchronizationTimestampDelta(object, timestamp);
+			delta.add(timestampDelta);
+		
+		PropertyDelta syncSituationDelta = createSynchronizationSituationDelta(object, situation);
+		
+		if (syncSituationDelta != null) {
+			delta.add(syncSituationDelta);
+		}
+		
+		return delta;
+	}
 	
 	public static List<PropertyDelta<?>> createSynchronizationSituationDescriptionDelta(PrismObject object, SynchronizationSituationType situation, XMLGregorianCalendar timestamp, String sourceChannel){
 		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
