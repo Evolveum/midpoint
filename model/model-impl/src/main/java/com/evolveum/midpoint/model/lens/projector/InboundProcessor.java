@@ -325,10 +325,10 @@ public class InboundProcessor {
 	                //if property is not multi value replace existing attribute
 	                if (targetUserProperty != null && !targetUserProperty.getDefinition().isMultiValue() && !targetUserProperty.isEmpty()) {
 	                    Collection<PrismPropertyValue<U>> replace = new ArrayList<PrismPropertyValue<U>>();
-	                    replace.add(value);
+	                    replace.add(value.clone());
 	                    outputUserPropertydelta.setValuesToReplace(replace);
 	                } else {
-	                    outputUserPropertydelta.addValueToAdd(value);
+	                    outputUserPropertydelta.addValueToAdd(value.clone());
 	                }
 	            }
 	        }
