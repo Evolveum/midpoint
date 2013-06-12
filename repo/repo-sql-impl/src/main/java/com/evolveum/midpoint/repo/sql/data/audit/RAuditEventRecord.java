@@ -76,6 +76,12 @@ public class RAuditEventRecord implements Serializable {
     private String parameter;
     private String message;
 
+    private String result;
+
+    public String getResult() {
+        return result;
+    }
+
     public String getMessage() {
         return message;
     }
@@ -260,6 +266,10 @@ public class RAuditEventRecord implements Serializable {
         this.timestamp = timestamp;
     }
 
+    public void setResult(String result) {
+        this.result = result;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -294,6 +304,7 @@ public class RAuditEventRecord implements Serializable {
         if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
         if (parameter != null ? !parameter.equals(that.parameter) : that.parameter != null) return false;
         if (message != null ? !message.equals(that.message) : that.message != null) return false;
+        if (result != null ? !result.equals(that.result) : that.result != null) return false;
 
         return true;
     }
@@ -320,6 +331,7 @@ public class RAuditEventRecord implements Serializable {
         result = 31 * result + (outcome != null ? outcome.hashCode() : 0);
         result = 31 * result + (parameter != null ? parameter.hashCode() : 0);
         result = 31 * result + (message != null ? message.hashCode() : 0);
+        result = 31 * result + (this.result != null ? this.result.hashCode() : 0);
         return result;
     }
 
@@ -346,6 +358,7 @@ public class RAuditEventRecord implements Serializable {
         }
         repo.setTaskIdentifier(record.getTaskIdentifier());
         repo.setTaskOID(record.getTaskOID());
+        repo.setResult(record.getResult());
 
         try {
             if (record.getTarget() != null) {

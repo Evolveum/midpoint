@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -43,6 +45,8 @@ public class RObjectDeltaOperation implements OperationResult {
     //delta
     private String delta;
     private String checksum;
+    private String deltaOid;
+    private RChangeType deltaType;
     //operation result
     private String operation;
     private ROperationResultStatus status;
@@ -94,6 +98,16 @@ public class RObjectDeltaOperation implements OperationResult {
     @Type(type = RUtil.LOB_STRING_TYPE)
     public String getDelta() {
         return delta;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public RChangeType getDeltaType() {
+        return deltaType;
+    }
+
+    @Column(length = RUtil.COLUMN_LENGTH_OID)
+    public String getDeltaOid() {
+        return deltaOid;
     }
 
     @Lob
@@ -208,6 +222,14 @@ public class RObjectDeltaOperation implements OperationResult {
         recomputeChecksum();
     }
 
+    public void setDeltaType(RChangeType deltaType) {
+        this.deltaType = deltaType;
+    }
+
+    public void setDeltaOid(String deltaOid) {
+        this.deltaOid = deltaOid;
+    }
+
     @Transient
     private void recomputeChecksum() {
         checksum = RUtil.computeChecksum(delta, operation, message, details, partialResults);
@@ -234,6 +256,8 @@ public class RObjectDeltaOperation implements OperationResult {
             return false;
         if (status != that.status) return false;
         if (token != null ? !token.equals(that.token) : that.token != null) return false;
+        if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) return false;
+        if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) return false;
 
         return true;
     }
@@ -251,6 +275,8 @@ public class RObjectDeltaOperation implements OperationResult {
         result1 = 31 * result1 + (localizedMessage != null ? localizedMessage.hashCode() : 0);
         result1 = 31 * result1 + (params != null ? params.hashCode() : 0);
         result1 = 31 * result1 + (partialResults != null ? partialResults.hashCode() : 0);
+        result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
+        result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
         return result1;
     }
 
@@ -261,8 +287,12 @@ public class RObjectDeltaOperation implements OperationResult {
 
         try {
             if (operation.getObjectDelta() != null) {
-                ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(operation.getObjectDelta());
+                ObjectDelta delta = operation.getObjectDelta();
+                ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
                 auditDelta.setDelta(RUtil.toRepo(xmlDelta, prismContext));
+
+                auditDelta.setDeltaOid(delta.getOid());
+                auditDelta.setDeltaType(RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
             }
 
             if (operation.getExecutionResult() != null) {
