@@ -150,7 +150,7 @@ public class MidPointTaskListener implements TaskListener {
 
         auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
         if (stage == AuditEventStage.EXECUTION) {
-            auditEventRecord.setResult(WorkflowResult.fromBooleanAsString(Boolean.valueOf((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION))));
+            auditEventRecord.setResult(WorkflowResult.fromBooleanAsString((Boolean) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION)));
             auditEventRecord.setMessage((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
         }
 
