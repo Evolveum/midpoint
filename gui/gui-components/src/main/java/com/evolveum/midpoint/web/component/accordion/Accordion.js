@@ -75,10 +75,14 @@ TINY.accordion = function() {
                                 content.opened = 1;
                                 header.className = this.selectedAttr;
                                 timer(content, 1);
+
+                            $(content).css('overflow', 'visible');
                         } else if (currentHeight > 0 && (state == -1 || this.multipleSelect || i == component)) {
                                 content.opened = -1;
                                 header.className = '';
                                 timer(content, -1);
+
+                            $(content).css('overflow', 'hidden');
                         }
                 }
         };
