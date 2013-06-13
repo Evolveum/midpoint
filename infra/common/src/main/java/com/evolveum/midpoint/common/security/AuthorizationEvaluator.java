@@ -172,15 +172,16 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 
 	private boolean appliesTo(Authorization authorization, String action) {
 		List<String> autzActions = authorization.getAction();
+		
+		if (action.equals(AuthorizationConstants.AUTZ_DENY_ALL_URL)) {
+			// no one can access
+			return false;
+		}
+		
 		for (String autzAction: autzActions) {
 			if (autzAction.equals(AuthorizationConstants.AUTZ_ALL_URL)) {
 				// This is a placeholder for all the actions
 				return true;
-			}
-			
-			if (action.equals(AuthorizationConstants.AUTZ_DENY_ALL_URL)) {
-				// no one can access
-				return false;
 			}
 			
 			if (autzAction.equals(action)) {
