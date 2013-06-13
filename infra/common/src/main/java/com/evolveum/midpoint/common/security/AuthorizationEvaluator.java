@@ -177,6 +177,12 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 				// This is a placeholder for all the actions
 				return true;
 			}
+			
+			if (action.equals(AuthorizationConstants.AUTZ_DENY_ALL_URL)) {
+				// no one can access
+				return false;
+			}
+			
 			if (autzAction.equals(action)) {
 				return true;
 			}
