@@ -124,6 +124,11 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
         }
 
         ActivationType activation = user.getActivation();
+        
+        if (activation.getAdministrativeStatus() != null) {
+            return activation.getAdministrativeStatus();
+        }
+        
         long time = System.currentTimeMillis();
         if (activation.getValidFrom() != null) {
             long from = MiscUtil.asDate(activation.getValidFrom()).getTime();
@@ -137,6 +142,7 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
                 return ActivationStatusType.DISABLED;
             }
         }
+        
         if (activation.getAdministrativeStatus() == null) {
             return ActivationStatusType.DISABLED;
         }
