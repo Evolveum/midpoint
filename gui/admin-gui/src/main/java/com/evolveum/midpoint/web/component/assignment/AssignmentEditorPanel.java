@@ -188,14 +188,8 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                     return "-";
                 }
 
-                Boolean enabled = activation.isEnabled();
-                String strEnabled;
-                if (enabled != null) {
-                    strEnabled = enabled ? getString("AssignmentEditorPanel.active")
-                            : getString("AssignmentEditorPanel.inactive");
-                } else {
-                    strEnabled = getString("AssignmentEditorPanel.undefined");
-                }
+                ActivationStatusType status = activation.getAdministrativeStatus();
+                String strEnabled = createStringResource(status, "lower", "ActivationStatusType.null").getString();
 
                 if (activation.getValidFrom() != null && activation.getValidTo() != null) {
                     return getString("AssignmentEditorPanel.enabledFromTo", strEnabled,

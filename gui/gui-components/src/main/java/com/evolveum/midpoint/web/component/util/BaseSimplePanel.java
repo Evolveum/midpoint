@@ -56,8 +56,31 @@ public class BaseSimplePanel<T> extends Panel {
     }
 
     public StringResourceModel createStringResource(Enum e) {
-        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
-        return createStringResource(resourceKey);
+        return createStringResource(e, null);
+    }
+
+    public StringResourceModel createStringResource(Enum e, String prefix) {
+        return createStringResource(e, prefix, null);
+    }
+
+    public StringResourceModel createStringResource(Enum e, String prefix, String nullKey) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(prefix)) {
+            sb.append(prefix).append('.');
+        }
+
+        if (e == null) {
+            if (StringUtils.isNotEmpty(nullKey)) {
+                sb.append(nullKey);
+            } else {
+                sb = new StringBuilder();
+            }
+        } else {
+            sb.append(e.getDeclaringClass().getSimpleName()).append('.');
+            sb.append(e.name());
+        }
+
+        return createStringResource(sb.toString());
     }
 
     protected String createComponentPath(String... components) {
