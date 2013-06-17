@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
@@ -732,5 +733,38 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
         session.getTransaction().commit();
         session.close();
+    }
+
+    @Test
+    public void modifyRoleAddInducements() throws Exception {
+        OperationResult result = new OperationResult("MODIFY");
+
+        File roleFile = new File(TEST_DIR, "role-modify.xml");
+        //add first user
+        PrismObject<RoleType> role = prismContext.getPrismDomProcessor().parseObject(roleFile);
+        String oid = repositoryService.addObject(role, null, result);
+
+        //modify second user name to "existingName"
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+                new File(TEST_DIR, "role-modify-change.xml"),
+                ObjectModificationType.class);
+        modification.setOid(oid);
+        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
+                RoleType.class, prismContext);
+
+        repositoryService.modifyObject(RoleType.class, oid, deltas, result);
+
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+
+        role = repositoryService.getObject(RoleType.class, oid, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+
+        PrismContainer container = role.findContainer(RoleType.F_INDUCEMENT);
+        AssertJUnit.assertEquals(2, container.size());
+
+        AssertJUnit.assertNotNull(container.getValue(2L));
+        AssertJUnit.assertNotNull(container.getValue(3L));
     }
 }

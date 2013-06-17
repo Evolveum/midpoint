@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
@@ -72,27 +73,24 @@ public class ContainerIdGenerator implements IdentifierGenerator {
                     + container.getClass().getSimpleName() + "' (should not happen).");
         }
 
-
-        Set<RContainer> containers = new HashSet<RContainer>();
-
         RContainer parent = ((ROwnable) container).getContainerOwner();
-        if (parent instanceof RObject) {
-            containers.addAll(((RObject)parent).getTrigger());
-        }
-
-        if (parent instanceof RFocus) {
-            containers.addAll(((RFocus) parent).getAssignments());
-        }
-
-        if (parent instanceof RAbstractRole) {
-            RAbstractRole role = (RAbstractRole) parent;
-            containers.addAll(role.getExclusion());
-            containers.addAll(role.getAuthorization());
-        }
+        Set<RContainer> containers = getChildrenContainers(parent);
 
         Long id = getNextId(containers);
         LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
         return id;
+    }
+
+    private Long getNextId(SessionImplementor session, String oid) {
+        Query query = session.getNamedQuery(RContainer.QUERY_NEXT_ID);
+        query.setString("oid", oid);
+        query.setReadOnly(true);
+        Long id = (Long) query.uniqueResult();
+        if (id == null) {
+            id = 0L;
+        }
+
+        return ++id;
     }
 
     private String toString(Object object) {
@@ -121,5 +119,60 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         }
 
         return id + 1;
+    }
+
+    /**
+     * This method provides simplyfied id generator (without DB selects)
+     * Improve it later (fixes MID-1430).
+     *
+     * @param container
+     */
+    public void generateIdForObject(RObject container) {
+        if (container == null) {
+            return;
+        }
+
+        container.setId(0L);
+
+        Set<RContainer> containers = getChildrenContainers(container);
+        Set<Long> usedIds = new HashSet<Long>();
+        for (RContainer c : containers) {
+            if (c.getId() != null) {
+                usedIds.add(c.getId());
+            }
+        }
+
+        Long nextId = 1L;
+        for (RContainer c : containers) {
+            if (c.getId() != null) {
+                continue;
+            }
+
+            while (usedIds.contains(nextId)) {
+                nextId++;
+            }
+
+            c.setId(nextId);
+            usedIds.add(nextId);
+        }
+    }
+
+    private Set<RContainer> getChildrenContainers(RContainer parent) {
+        Set<RContainer> containers = new HashSet<RContainer>();
+        if (parent instanceof RObject) {
+            containers.addAll(((RObject) parent).getTrigger());
+        }
+
+        if (parent instanceof RFocus) {
+            containers.addAll(((RFocus) parent).getAssignments());
+        }
+
+        if (parent instanceof RAbstractRole) {
+            RAbstractRole role = (RAbstractRole) parent;
+            containers.addAll(role.getExclusion());
+            containers.addAll(role.getAuthorization());
+        }
+
+        return containers;
     }
 }

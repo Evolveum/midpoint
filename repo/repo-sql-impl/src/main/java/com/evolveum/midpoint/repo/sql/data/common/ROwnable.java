@@ -26,4 +26,8 @@ public interface ROwnable {
      *         return instance of subclass {@link RFocus}
      */
     RContainer getContainerOwner();
+
+    String getOwnerOid();
+
+    Long getOwnerId();
 }

@@ -1219,6 +1219,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rObject = clazz.newInstance();
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
             method.invoke(clazz, object, rObject, getPrismContext());
+
+            ContainerIdGenerator gen = new ContainerIdGenerator();
+            gen.generateIdForObject(rObject);
         } catch (Exception ex) {
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {

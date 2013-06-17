@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.*;
+import org.hibernate.annotations.NamedQuery;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -27,10 +28,14 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
+@NamedQuery(name = RContainer.QUERY_NEXT_ID,
+        query = "select max(c.id) from RContainer as c where c.oid = :oid", readOnly = true)
 @Entity
 @IdClass(RContainerId.class)
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RContainer implements Serializable {
+
+    public static final String QUERY_NEXT_ID = "queryNextId";
 
     private String oid;
     private Long id;

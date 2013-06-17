@@ -17,13 +17,11 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -321,8 +319,8 @@ public class RAssignment extends RContainer implements ROwnable {
             repo.setMetadata(metadata);
         }
 
-        ContainerIdGenerator gen = new ContainerIdGenerator();
-        repo.setId((Long) gen.generate(null, repo));
+//        ContainerIdGenerator gen = new ContainerIdGenerator();
+//        repo.setId((Long) gen.generate(null, repo));
     }
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
