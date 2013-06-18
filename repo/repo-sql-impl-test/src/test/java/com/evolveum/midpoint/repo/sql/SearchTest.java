@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -154,6 +155,32 @@ public class SearchTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertEquals(size, objects.size());
+    }
+
+    @Test
+    public void caseSensitiveSearchTest() throws Exception {
+        final String existingNameOrig = "Test UserX00003";
+        final String nonExistingNameOrig = "test UserX00003";
+        final String nameNorm = "test userx00003";
+
+        EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
+                new PolyString(existingNameOrig, nameNorm), PolyStringOrigMatchingRule.NAME.getLocalPart());
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals(1, users.size());
+
+        filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
+                new PolyString(nonExistingNameOrig, nameNorm), PolyStringOrigMatchingRule.NAME.getLocalPart());
+        query = ObjectQuery.createObjectQuery(filter);
+
+        users = repositoryService.searchObjects(UserType.class, query, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals(0, users.size());
     }
 
 }

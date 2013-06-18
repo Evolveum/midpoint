@@ -90,9 +90,9 @@ public class ObjectQuery implements Dumpable, Serializable {
 			sb.append(filter.dump());
 		}
 		if (paging == null) {
-			sb.append("paging is null");
+			sb.append(" paging is null");
 		} else {
-			sb.append(paging.dump());
+			sb.append(' ').append(paging.dump());
 		}
 		return sb.toString();
 	}
