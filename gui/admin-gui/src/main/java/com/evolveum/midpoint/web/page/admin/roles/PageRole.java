@@ -209,11 +209,10 @@ public class PageRole extends PageAdminRoles {
 
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             }
-
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save role.", ex);
         }
+        result.recomputeStatus();
 
         showResult(result);
         target.add(getFeedbackPanel());
