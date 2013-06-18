@@ -171,7 +171,7 @@ public class SearchTest extends BaseSQLRepoTest {
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
-        AssertJUnit.assertEquals(1, users.size());
+        AssertJUnit.assertEquals("Should find one user", 1, users.size());
 
         filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
                 new PolyString(nonExistingNameOrig, nameNorm), PolyStringOrigMatchingRule.NAME.getLocalPart());
@@ -180,7 +180,7 @@ public class SearchTest extends BaseSQLRepoTest {
         users = repositoryService.searchObjects(UserType.class, query, result);
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
-        AssertJUnit.assertEquals(0, users.size());
+        AssertJUnit.assertEquals("Found user (shouldn't) because case insensitive search was used", 0, users.size());
     }
 
 }
