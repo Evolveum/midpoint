@@ -25,19 +25,12 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -240,7 +233,11 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		return findPropertyDefinitionByElementName(elementName, PrismPropertyDefinition.class);
 	}
 
-	private <T extends PrismPropertyDefinition> T findPropertyDefinitionByElementName(QName elementName, Class<T> type) {
+    public PrismReferenceDefinition findReferenceDefinitionByElementName(QName elementName) {
+        return findReferenceDefinitionByElementName(elementName, PrismReferenceDefinition.class);
+    }
+
+    private <T extends PrismPropertyDefinition> T findPropertyDefinitionByElementName(QName elementName, Class<T> type) {
 		if (elementName == null) {
 			throw new IllegalArgumentException("elementName must be supplied");
 		}
@@ -252,9 +249,23 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 			}
 		}
 		return null;
-	}	
-	
-	/**
+	}
+
+    private <T extends PrismReferenceDefinition> T findReferenceDefinitionByElementName(QName elementName, Class<T> type) {
+        if (elementName == null) {
+            throw new IllegalArgumentException("elementName must be supplied");
+        }
+        // TODO: check for multiple definition with the same type
+        for (Definition definition : definitions) {
+            if (type.isAssignableFrom(definition.getClass())
+                    && elementName.equals(definition.getDefaultName())) {
+                return (T) definition;
+            }
+        }
+        return null;
+    }
+
+    /**
 	 * Finds complex type definition by type name.
 	 */
 	public ComplexTypeDefinition findComplexTypeDefinition(QName typeName) {

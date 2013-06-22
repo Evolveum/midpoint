@@ -30,7 +30,7 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
     /**
      * Workflow process instance variables.
      */
-    private Map<String,Object> variables;
+    private Map<String,Object> variables = new HashMap<String,Object>();
 
     /**
      * Workflow process instance ID.
@@ -80,6 +80,10 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
 
     public Map<String, Object> getVariables() {
         return variables;
+    }
+
+    public Object getVariable(String name) {
+        return variables.get(name);
     }
 
     public void setVariables(Map<String, Object> variables) {

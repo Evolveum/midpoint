@@ -595,4 +595,19 @@ public class SimpleTaskAdapter implements Task {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
+
+    @Override
+    public PrismReference getExtensionReference(QName propertyName) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public void addExtensionReference(PrismReference reference) throws SchemaException {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
 }

@@ -36,6 +36,7 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.validation.SchemaFactory;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
@@ -49,17 +50,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
@@ -788,8 +778,17 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return schema.findPropertyDefinitionByElementName(elementName);
 	}
-	
-	public ComplexTypeDefinition findComplexTypeDefinition(QName typeName) {
+
+    public PrismReferenceDefinition findReferenceDefinitionByElementName(QName elementName) {
+        PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+        if (schema == null) {
+            return null;
+        }
+        return schema.findReferenceDefinitionByElementName(elementName);
+    }
+
+
+    public ComplexTypeDefinition findComplexTypeDefinition(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
 			return null;

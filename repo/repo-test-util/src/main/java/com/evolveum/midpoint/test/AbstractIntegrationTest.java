@@ -96,7 +96,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
 	
-	protected static final String COMMON_DIR_NAME = "src/test/resources/common";
+	public static final String COMMON_DIR_NAME = "src/test/resources/common";
 	protected static final String DEFAULT_INTENT = "default";
 	
 	protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";

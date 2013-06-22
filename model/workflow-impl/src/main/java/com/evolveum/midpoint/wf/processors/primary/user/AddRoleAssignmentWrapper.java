@@ -235,9 +235,6 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         return ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
     }
 
-
-    public static final String APPROVER_MAIL_ADDRESS = "approverMailAddress";
-
     private boolean shouldRoleBeApproved(RoleType role) {
         return !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
     }

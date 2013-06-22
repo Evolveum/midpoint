@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.wf.processes.general.RecordIndividualDecision;
@@ -68,8 +69,13 @@ public class MiscDataUtil {
     private TaskManager taskManager;
 
 
-    // todo fixme: copied from web SecurityUtils
+    // todo fixme: copied from web SecurityUtils, little bit tweaked
     public static MidPointPrincipal getPrincipalUser() {
+
+        if (TestAuthenticationInfoHolder.getUserType() != null) {
+            return new MidPointPrincipal(TestAuthenticationInfoHolder.getUserType());
+        }
+
         SecurityContext ctx = SecurityContextHolder.getContext();
         if (ctx != null && ctx.getAuthentication() != null && ctx.getAuthentication().getPrincipal() != null) {
             Object principal = ctx.getAuthentication().getPrincipal();

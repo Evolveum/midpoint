@@ -23,6 +23,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -430,7 +431,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(
 				ShadowType.class, query, opResult);
 
-		LOGGER.trace("Found {} accounts that were not successfully proccessed.", shadows.size());
+		LOGGER.trace("Found {} accounts that were not successfully processed.", shadows.size());
 		
 		for (PrismObject<ShadowType> shadow : shadows) {
 			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
@@ -444,11 +445,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				Collection<? extends ItemDelta> modifications = PropertyDelta
 						.createModificationReplacePropertyCollection(ShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
-				try{
-				repositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
-						provisioningResult);
-				}catch(Exception e){
-					
+				try {
+                    repositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
+                            provisioningResult);
+				} catch(Exception e) {
+                    LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
 				}
 			}
 		}

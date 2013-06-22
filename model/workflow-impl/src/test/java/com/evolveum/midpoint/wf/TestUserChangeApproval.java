@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
+import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
@@ -91,8 +92,6 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password.xml";
     private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password-2.xml";
 
-    protected static final String USER_BILL_FILENAME = COMMON_DIR_NAME + "/user-bill.xml";
-    protected static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
     private static final String DONT_CHECK = "dont-check";
 
     @Autowired(required = true)
@@ -113,13 +112,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Autowired
     private MiscDataUtil miscDataUtil;
 
-    public static final String USERS_AND_ROLES_FILENAME = COMMON_DIR_NAME + "/users-and-roles.xml";
-    public static final String ROLE_R1_OID = "00000001-d34d-b33f-f00d-000000000001";
-    public static final String ROLE_R2_OID = "00000001-d34d-b33f-f00d-000000000002";
-    public static final String ROLE_R3_OID = "00000001-d34d-b33f-f00d-000000000003";
-    public static final String ROLE_R4_OID = "00000001-d34d-b33f-f00d-000000000004";
-
-	public TestUserChangeApproval() throws JAXBException {
+    public TestUserChangeApproval() throws JAXBException {
 		super();
 	}
 
@@ -127,7 +120,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-        repoAddObjectsFromFile(USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
+        repoAddObjectsFromFile(TestConstants.USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
 	}
 
     /**
@@ -149,14 +142,15 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
                    ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
                    assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                   assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
+                   assertNotAssignedRole(USER_JACK_OID, TestConstants.ROLE_R1_OID, task, result);
                }
 
                @Override
                void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                   assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
+                   assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R1_OID, task, result);
                    checkDummyTransportMessages("simpleUserNotifier", 1);
-                   checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                   checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
+                   checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
                }
 
                @Override
@@ -165,6 +159,24 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                }
            });
 	}
+
+    private void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
+        checkUserApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef(), result);
+    }
+
+    private void checkUserApproversForCreate(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
+        checkUserApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getCreateApproverRef(), result);
+    }
+
+    private void checkUserApprovers(PrismObject<UserType> user, List<String> expectedApprovers, List<ObjectReferenceType> realApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        HashSet<String> realApproversSet = new HashSet<String>();
+        for (ObjectReferenceType approver : realApprovers) {
+            realApproversSet.add(approver.getOid());
+        }
+        assertEquals("Mismatch in modifyApproverRef in metadata", new HashSet(expectedApprovers), realApproversSet);
+    }
 
     private Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
         Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
@@ -260,18 +272,19 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertEquals("givenName delta is incorrect (wrong value)", "JACK", ((PrismPropertyValue<PolyString>) givenNameDelta.getValuesToReplace().iterator().next()).getValue().getOrig());
 
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
-                assertNotAssignedRole(jack, ROLE_R2_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
                 assertEquals("Wrong given name before change", "Jack", jack.asObjectable().getGivenName().getOrig());
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
-                assertNotAssignedRole(jack, ROLE_R2_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkUserApprovers(USER_JACK_OID, new ArrayList<String>(), result);
             }
 
             @Override
@@ -303,17 +316,18 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             @Override
             void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
-                assertNotAssignedRole(jack, ROLE_R3_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R3_OID);
                 assertEquals("Wrong given name after immediate execution", "J-A-C-K", jack.asObjectable().getGivenName().getOrig());
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
-                assertAssignedRole(jack, ROLE_R3_OID);
+                assertAssignedRole(jack, TestConstants.ROLE_R3_OID);
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R3BOSS_OID), result);         // given name is changed before role is added, so the approver should be recorded
             }
 
             @Override
@@ -360,14 +374,15 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
-                assertNotAssignedRole(jack, ROLE_R1_OID);
-                assertNotAssignedRole(jack, ROLE_R2_OID);
-                assertAssignedRole(jack, ROLE_R3_OID);
-                assertAssignedRole(jack, ROLE_R4_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R1_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
+                assertAssignedRole(jack, TestConstants.ROLE_R3_OID);
+                assertAssignedRole(jack, TestConstants.ROLE_R4_OID);
                 assertEquals("activation has not been changed", ActivationStatusType.DISABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R2_OID, WorkflowResult.REJECTED, TestConstants.ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R3BOSS_OID), result);
             }
 
             @Override
@@ -400,24 +415,26 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             @Override
             void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
-                assertNotAssignedRole(jack, ROLE_R1_OID);
-                assertNotAssignedRole(jack, ROLE_R2_OID);
-                assertNotAssignedRole(jack, ROLE_R3_OID);
-                assertAssignedRole(jack, ROLE_R4_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R1_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R3_OID);
+                assertAssignedRole(jack, TestConstants.ROLE_R4_OID);
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
+                checkUserApprovers(USER_JACK_OID, new ArrayList<String>(), result);
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
-                assertNotAssignedRole(jack, ROLE_R1_OID);
-                assertNotAssignedRole(jack, ROLE_R2_OID);
-                assertAssignedRole(jack, ROLE_R3_OID);
-                assertAssignedRole(jack, ROLE_R4_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R1_OID);
+                assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
+                assertAssignedRole(jack, TestConstants.ROLE_R3_OID);
+                assertAssignedRole(jack, TestConstants.ROLE_R4_OID);
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R2_OID, WorkflowResult.REJECTED, TestConstants.ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R3BOSS_OID), result);
             }
 
             @Override
@@ -435,7 +452,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
-                PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BILL_FILENAME));
+                PrismObject<UserType> bill = prismContext.parseObject(new File(TestConstants.USER_BILL_FILENAME));
                 fillContextWithAddUserDelta(context, bill);
                 return context;
             }
@@ -445,23 +462,24 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
                 PrismObject<UserType> objectToAdd = taskModelContext.getFocusContext().getPrimaryDelta().getObjectToAdd();
                 assertNotNull("There is no object to add left in primary focus delta", objectToAdd);
-                assertFalse("There is assignment of R1 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R1_OID));
-                assertFalse("There is assignment of R2 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R2_OID));
-                assertFalse("There is assignment of R3 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R3_OID));
-                assertTrue("There is no assignment of R4 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R4_OID));
+                assertFalse("There is assignment of R1 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), TestConstants.ROLE_R1_OID));
+                assertFalse("There is assignment of R2 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), TestConstants.ROLE_R2_OID));
+                assertFalse("There is assignment of R3 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), TestConstants.ROLE_R3_OID));
+                assertTrue("There is no assignment of R4 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), TestConstants.ROLE_R4_OID));
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
-                assertAssignedRole(bill, ROLE_R1_OID);
-                assertNotAssignedRole(bill, ROLE_R2_OID);
-                assertNotAssignedRole(bill, ROLE_R3_OID);
-                assertAssignedRole(bill, ROLE_R4_OID);
+                assertAssignedRole(bill, TestConstants.ROLE_R1_OID);
+                assertNotAssignedRole(bill, TestConstants.ROLE_R2_OID);
+                assertNotAssignedRole(bill, TestConstants.ROLE_R3_OID);
+                assertAssignedRole(bill, TestConstants.ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED, TestConstants.ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkUserApproversForCreate(bill.getOid(), Arrays.asList(TestConstants.R1BOSS_OID), result);
             }
 
             @Override
@@ -487,7 +505,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType, ShadowType> context = createUserAccountContext();
-                PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BILL_FILENAME));
+                PrismObject<UserType> bill = prismContext.parseObject(new File(TestConstants.USER_BILL_FILENAME));
                 fillContextWithAddUserDelta(context, bill);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
                 return context;
@@ -501,24 +519,26 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             @Override
             void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
-                assertNotAssignedRole(bill, ROLE_R1_OID);
-                assertNotAssignedRole(bill, ROLE_R2_OID);
-                assertNotAssignedRole(bill, ROLE_R3_OID);
-                assertAssignedRole(bill, ROLE_R4_OID);
+                assertNotAssignedRole(bill, TestConstants.ROLE_R1_OID);
+                assertNotAssignedRole(bill, TestConstants.ROLE_R2_OID);
+                assertNotAssignedRole(bill, TestConstants.ROLE_R3_OID);
+                assertAssignedRole(bill, TestConstants.ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 3, bill.asObjectable().getAssignment().size());
+                checkUserApproversForCreate(USER_JACK_OID, new ArrayList<String>(), result);
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
-                assertAssignedRole(bill, ROLE_R1_OID);
-                assertNotAssignedRole(bill, ROLE_R2_OID);
-                assertNotAssignedRole(bill, ROLE_R3_OID);
-                assertAssignedRole(bill, ROLE_R4_OID);
+                assertAssignedRole(bill, TestConstants.ROLE_R1_OID);
+                assertNotAssignedRole(bill, TestConstants.ROLE_R2_OID);
+                assertNotAssignedRole(bill, TestConstants.ROLE_R3_OID);
+                assertAssignedRole(bill, TestConstants.ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED, TestConstants.ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkUserApprovers(bill.getOid(), Arrays.asList(TestConstants.R1BOSS_OID), result);
             }
 
             @Override
@@ -567,6 +587,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertTrue("password was changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
 
                 checkDummyTransportMessages("simpleUserNotifier", 0);
+                // we don't check for modifyApproverRef because in this test the value was not changed (no change was executed)
             }
 
             @Override
@@ -648,7 +669,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 // todo why is password value not set?
                 //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
                 //assertFalse("password was not changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
-                assertAssignedRole(jack, ROLE_R1_OID);
+                assertAssignedRole(jack, TestConstants.ROLE_R1_OID);
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
             }
@@ -665,7 +686,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         String getObjectOid(Task task, OperationResult result) throws SchemaException { return null; };
     }
 
-    private boolean decideOnRoleApproval(String executionId) {
+    private boolean decideOnRoleApproval(String executionId) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
         ApprovalRequestImpl<AssignmentType> approvalRequest = (ApprovalRequestImpl<AssignmentType>)
                 activitiEngine.getRuntimeService().getVariable(executionId, ProcessVariableNames.APPROVAL_REQUEST);
         assertNotNull("approval request not found", approvalRequest);
@@ -675,10 +696,15 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         String roleOid = approvalRequest.getItemToApprove().getTargetRef().getOid();
         assertNotNull("requested role OID not found", roleOid);
 
-        if (ROLE_R1_OID.equals(roleOid) || ROLE_R3_OID.equals(roleOid)) {
+        if (TestConstants.ROLE_R1_OID.equals(roleOid)) {
+            TestAuthenticationInfoHolder.setUserType(getUser(TestConstants.R1BOSS_OID).asObjectable());
             return true;
-        } else if (ROLE_R2_OID.equals(roleOid)) {
+        } else if (TestConstants.ROLE_R2_OID.equals(roleOid)) {
+            TestAuthenticationInfoHolder.setUserType(getUser(TestConstants.R2BOSS_OID).asObjectable());
             return false;
+        } else if (TestConstants.ROLE_R3_OID.equals(roleOid)) {
+            TestAuthenticationInfoHolder.setUserType(getUser(TestConstants.R3BOSS_OID).asObjectable());
+            return true;
         } else {
             throw new AssertionError("Unknown role OID in assignment to be approved: " + roleOid);
         }

@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
@@ -118,6 +119,10 @@ public class ChangeExecutor {
     
     @Autowired(required = true)
 	private ExpressionFactory expressionFactory;
+
+    // for inserting workflow-related metadata to changed object
+    @Autowired(required = false)
+    private WorkflowService workflowService;
     
     private PrismObjectDefinition<UserType> userDefinition = null;
     private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -503,7 +508,7 @@ public class ChangeExecutor {
 	        if (objectDelta.getChangeType() == ChangeType.ADD) {
 	            executeAddition(objectDelta, context, resource, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
-	        	executeModification(objectDelta, context, resource, task, result);
+	        	executeModification(objectDelta, objectContext, context, resource, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
 	            executeDeletion(objectDelta, context, resource, task, result);
 	        }
@@ -591,7 +596,7 @@ public class ChangeExecutor {
 
         T objectTypeToAdd = objectToAdd.asObjectable();
 
-    	applyMetadata(context.getChannel(), task, objectTypeToAdd);
+    	applyMetadata(context.getChannel(), task, objectTypeToAdd, result);
     	
         String oid = null;
         if (objectTypeToAdd instanceof TaskType) {
@@ -641,7 +646,8 @@ public class ChangeExecutor {
         }
     }
 
-    private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeModification(ObjectDelta<T> change, 
+    private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeModification(ObjectDelta<T> change,
+            LensElementContext<T> objectContext,
     		LensContext<F, P> context, ResourceType resource, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (change.isEmpty()) {
@@ -650,7 +656,7 @@ public class ChangeExecutor {
         }
         Class<T> objectTypeClass = change.getObjectTypeClass();
         	
-    	applyMetadata(change, objectTypeClass, task, context.getChannel());
+    	applyMetadata(change, objectContext, objectTypeClass, task, context.getChannel(), result);
         
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
@@ -668,18 +674,19 @@ public class ChangeExecutor {
         }
     }
     
-	private <T extends ObjectType> void applyMetadata(String contextChannel, Task task, T objectTypeToAdd) {
+	private <T extends ObjectType> void applyMetadata(String contextChannel, Task task, T objectTypeToAdd, OperationResult result) throws SchemaException {
 		MetadataType metaData = new MetadataType();
 		String channel = getChannel(contextChannel, task);
 		metaData.setCreateChannel(channel);
 		metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		if (task.getOwner() != null) {
 			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
-
 		}
+        if (workflowService != null) {
+            metaData.getCreateApproverRef().addAll(workflowService.getApprovedBy(task, result));
+        }
 
 		objectTypeToAdd.setMetadata(metaData);
-
 	}
     
     private String getChannel(String contextChannel, Task task){
@@ -691,23 +698,61 @@ public class ChangeExecutor {
     	return null;
     }
     
-    private <T extends ObjectType> void applyMetadata(ObjectDelta<T> change, Class objectTypeClass, Task task, String contextChannel){
+    private <T extends ObjectType> void applyMetadata(ObjectDelta<T> change, LensElementContext<T> objectContext, Class objectTypeClass, Task task, String contextChannel, OperationResult result) throws SchemaException {
         String channel = getChannel(contextChannel, task);
-    	
-    
+
     	PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass);
-    	
-    	if (channel != null){	
-        	PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), def, channel);
-        	((Collection)change.getModifications()).add(delta);
-        	}
-        	PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)), def, XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-        	((Collection)change.getModifications()).add(delta);
-    		if (task.getOwner() != null) {
-    			ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
-    					MetadataType.F_MODIFIER_REF)), def, task.getOwner().getOid());
-    			((Collection)change.getModifications()).add(refDelta);
-    		}
+
+        if (channel != null) {
+            PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), def, channel);
+            ((Collection) change.getModifications()).add(delta);
+        }
+        PropertyDelta delta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)), def, XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+        ((Collection) change.getModifications()).add(delta);
+        if (task.getOwner() != null) {
+            ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
+                    MetadataType.F_MODIFIER_REF)), def, task.getOwner().getOid());
+            ((Collection) change.getModifications()).add(refDelta);
+        }
+
+        List<PrismReferenceValue> approverReferenceValues = new ArrayList<PrismReferenceValue>();
+
+        if (workflowService != null) {
+            for (ObjectReferenceType approverRef : workflowService.getApprovedBy(task, result)) {
+                approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
+            }
+        }
+
+        if (!approverReferenceValues.isEmpty()) {
+            ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
+                        MetadataType.F_MODIFY_APPROVER_REF)), def, approverReferenceValues);
+            ((Collection) change.getModifications()).add(refDelta);
+        } else {
+
+            // a bit of hack - we want to replace all existing values with empty set of values;
+            // however, it is not possible to do this using REPLACE, so we have to explicitly remove all existing values
+
+            if (objectContext.getObjectOld() != null) {
+                // a null value of objectOld means that we execute MODIFY delta that is a part of primary ADD operation (in a wave greater than 0)
+                // i.e. there are NO modifyApprovers set (theoretically they could be set in previous waves, but because in these waves the data
+                // are taken from the same source as in this step - so there are none modify approvers).
+
+                if (objectContext.getObjectOld().asObjectable().getMetadata() != null) {
+                    List<ObjectReferenceType> existingModifyApproverRefs = objectContext.getObjectOld().asObjectable().getMetadata().getModifyApproverRef();
+                    LOGGER.trace("Original values of MODIFY_APPROVER_REF: {}", existingModifyApproverRefs);
+
+                    if (!existingModifyApproverRefs.isEmpty()) {
+                        List<PrismReferenceValue> valuesToDelete = new ArrayList<PrismReferenceValue>();
+                        for (ObjectReferenceType approverRef : objectContext.getObjectOld().asObjectable().getMetadata().getModifyApproverRef()) {
+                            valuesToDelete.add(new PrismReferenceValue(approverRef.getOid()));
+                        }
+                        ReferenceDelta refDelta = ReferenceDelta.createModificationDelete((new ItemPath(ObjectType.F_METADATA,
+                                MetadataType.F_MODIFY_APPROVER_REF)), def, valuesToDelete);
+                        ((Collection) change.getModifications()).add(refDelta);
+                    }
+                }
+            }
+        }
 
     }
 

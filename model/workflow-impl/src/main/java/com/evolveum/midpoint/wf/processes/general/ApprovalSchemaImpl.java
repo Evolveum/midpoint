@@ -37,11 +37,12 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
     private transient PrismContext prismContext;
 
     public ApprovalSchemaImpl(ApprovalSchemaType approvalSchemaType, PrismContext prismContext) {
-        initFromApprovalSchemaType(approvalSchemaType);
         setPrismContext(prismContext);
+        initFromApprovalSchemaType(approvalSchemaType);
     }
 
     public ApprovalSchemaImpl(ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRefList, List<ExpressionType> approverExpressionList, ExpressionType automaticallyApproved, PrismContext prismContext) {
+        setPrismContext(prismContext);
         if (approvalSchema != null) {
             initFromApprovalSchemaType(approvalSchema);
         } else if ((approverRefList != null && !approverRefList.isEmpty()) || (approverExpressionList != null && !approverExpressionList.isEmpty())) {
@@ -50,7 +51,6 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
         } else {
             throw new IllegalArgumentException("Neither approvalSchema nor approverRef/approverExpression is filled-in");
         }
-        setPrismContext(prismContext);
     }
 
     private void initFromApprovalSchemaType(ApprovalSchemaType approvalSchemaType) {

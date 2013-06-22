@@ -419,8 +419,14 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
     public void finishProcess(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
         PrimaryApprovalProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, processWrappers);
+
+        // deltaOut
         List<ObjectDelta<Objectable>> deltas = wrapper.prepareDeltaOut(event, task, result);
         wfTaskUtil.storeResultingDeltas(deltas, task);
+
+        // approvedBy
+        wfTaskUtil.addApprovedBy(task, wrapper.getApprovedBy(event));
+
         task.savePendingModifications(result);
     }
 

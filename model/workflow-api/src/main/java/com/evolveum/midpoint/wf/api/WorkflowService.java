@@ -19,8 +19,12 @@ package com.evolveum.midpoint.wf.api;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -130,4 +134,6 @@ public interface WorkflowService {
     void registerProcessListener(ProcessListener processListener);
 
     void registerWorkItemListener(WorkItemListener workItemListener);
+
+    List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 }

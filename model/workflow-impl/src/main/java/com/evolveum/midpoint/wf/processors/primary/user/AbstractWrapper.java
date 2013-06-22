@@ -39,6 +39,8 @@ import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.wf.processes.general.Constants;
+import com.evolveum.midpoint.wf.processes.general.Decision;
+import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
@@ -50,7 +52,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Pavol
@@ -152,10 +153,11 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
 
 
     /*
- * In this case, mapping deltaIn -> deltaOut is extremely simple.
- * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
- * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
- */
+     * In this case, mapping deltaIn -> deltaOut is extremely simple.
+     * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
+     * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
+     */
+
     @Override
     public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException {
         List<ObjectDelta<Objectable>> deltaIn = wfTaskUtil.retrieveDeltasToProcess(task);
@@ -166,6 +168,28 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
         } else {
             throw new IllegalStateException("No wfAnswer variable in process event " + event);      // todo more meaningful message
         }
+    }
+
+    /*
+     * Default implementation of getApprovedBy expects that we are using general item approval process.
+     */
+
+    @Override
+    public List<ObjectReferenceType> getApprovedBy(ProcessEvent event) {
+        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
+        if (!Boolean.TRUE.equals(event.getAnswer())) {
+            return retval;
+        }
+        List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
+        for (Decision decision : allDecisions) {
+            if (decision.isApproved()) {
+                ObjectReferenceType approverRef = new ObjectReferenceType();
+                approverRef.setOid(decision.getApproverOid());
+                retval.add(approverRef);
+            }
+        }
+
+        return retval;
     }
 
     @Override

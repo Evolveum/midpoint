@@ -18,7 +18,9 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.wf.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.dao.WorkItemProvider;
 
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -66,6 +69,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Autowired
     private WorkItemManager workItemManager;
+
+    @Autowired
+    private WfTaskUtil wfTaskUtil;
 
     private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
 
@@ -165,5 +171,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     public void registerWorkItemListener(WorkItemListener workItemListener) {
         processInstanceController.registerWorkItemListener(workItemListener);
+    }
+
+    @Override
+    public List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException {
+        return wfTaskUtil.getApprovedByFromTaskTree(task, result);
     }
 }

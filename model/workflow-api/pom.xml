@@ -36,6 +36,11 @@
             <version>2.2-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-api</artifactId>
+            <version>2.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
 			<version>2.2-SNAPSHOT</version>

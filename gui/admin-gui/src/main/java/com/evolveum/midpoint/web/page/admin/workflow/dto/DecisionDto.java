@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.processes.general.Decision;
 
 import java.io.Serializable;
@@ -43,7 +42,7 @@ public class DecisionDto<I extends Serializable> extends Selectable {
     }
 
     public String getUser() {
-        return decision.getUser();
+        return decision.getApproverName();
     }
 
     public String getResult() {

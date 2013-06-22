@@ -368,9 +368,13 @@ public interface Task extends Dumpable {
 
     public <T extends PrismValue> Item<T> getExtensionItem(QName propertyName);
 
+    public PrismReference getExtensionReference(QName propertyName);
+
     public <C extends Containerable> void setExtensionContainer(PrismContainer<C> item) throws SchemaException;
 
     public void setExtensionReference(PrismReference reference) throws SchemaException;
+
+    public void addExtensionReference(PrismReference reference) throws SchemaException;
 
     public void setExtensionProperty(PrismProperty<?> property) throws SchemaException;
 	
@@ -578,6 +582,8 @@ public interface Task extends Dumpable {
 
     List<Task> listSubtasks(OperationResult parentResult) throws SchemaException;
 
+    List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException;
+
     List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException;
 
     List<Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException;
@@ -607,4 +613,5 @@ public interface Task extends Dumpable {
 
     void setObjectRefImmediate(ObjectReferenceType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
 }

@@ -60,9 +60,11 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         MidPointPrincipal user = MiscDataUtil.getPrincipalUser();
         if (user != null) {
-            decision.setUser(user.getName().getOrig());  //TODO: probably not correct setting
+            decision.setApproverName(user.getName().getOrig());  //TODO: probably not correct setting
+            decision.setApproverOid(user.getOid());
         } else {
-            decision.setUser("?");    // todo
+            decision.setApproverName("?");    // todo
+            decision.setApproverOid("?");
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -104,7 +106,7 @@ public class RecordIndividualDecision implements JavaDelegate {
         if (setLoopApprovesInLevelStop != null) {
             execution.setVariable(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
         }
-        execution.setVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE, "User " + decision.getUser() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
         SpringApplicationContextHolder.getActivitiInterface().notifyMidpoint(execution);
     }

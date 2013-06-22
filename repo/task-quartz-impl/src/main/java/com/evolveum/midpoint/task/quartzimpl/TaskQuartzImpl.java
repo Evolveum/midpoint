@@ -1567,6 +1567,12 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public PrismReference getExtensionReference(QName propertyName) {
+        Item item = getExtensionItem(propertyName);
+        return (PrismReference) item;
+    }
+
+    @Override
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
 	}
@@ -1574,6 +1580,11 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void setExtensionReference(PrismReference reference) throws SchemaException {
         processModificationBatched(setExtensionReferenceAndPrepareDelta(reference.getName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
+    }
+
+    @Override
+    public void addExtensionReference(PrismReference reference) throws SchemaException {
+        processModificationBatched(addExtensionReferenceAndPrepareDelta(reference.getName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
     }
 
     @Override
@@ -1647,6 +1658,11 @@ public class TaskQuartzImpl implements Task {
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
+    private ItemDelta<?> addExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
+        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        return addExtensionItemAndPrepareDeltaCommon(delta, values);
+    }
+
     private ItemDelta<?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition, Collection<? extends PrismContainerValue> values) throws SchemaException {
         ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
@@ -1656,6 +1672,18 @@ public class TaskQuartzImpl implements Task {
 
         // these values should have no parent, otherwise the following will fail
         delta.setValuesToReplace(values);
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        modifications.add(delta);
+        PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
+
+        return isPersistent() ? delta : null;
+    }
+
+    private <V extends PrismValue> ItemDelta<?> addExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Collection<V> values) throws SchemaException {
+
+        // these values should have no parent, otherwise the following will fail
+        delta.addValuesToAdd(values);
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
         modifications.add(delta);
@@ -2188,7 +2216,30 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
+        return listSubtasksInternal(result);
+    }
+
+    private List<Task> listSubtasksInternal(OperationResult result) throws SchemaException {
         return taskManager.resolveTasksFromTaskTypes(listSubtasksRaw(result), result);
+    }
+
+    @Override
+    public List<Task> listSubtasksDeeply(OperationResult parentResult) throws SchemaException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasksDeeply");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+
+        ArrayList<Task> retval = new ArrayList<Task>();
+        addSubtasks(retval, this, result);
+        return retval;
+    }
+
+    private void addSubtasks(ArrayList<Task> tasks, TaskQuartzImpl taskToProcess, OperationResult result) throws SchemaException {
+        for (Task task : taskToProcess.listSubtasksInternal(result)) {
+            tasks.add(task);
+            addSubtasks(tasks, (TaskQuartzImpl) task, result);
+        }
     }
 
     @Override

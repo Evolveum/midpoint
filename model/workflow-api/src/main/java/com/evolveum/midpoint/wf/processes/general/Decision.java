@@ -26,7 +26,8 @@ public class Decision<I extends Serializable> implements Serializable {
 
     private static final long serialVersionUID = -542549699933865819L;
 
-    private String user;
+    private String approverName;
+    private String approverOid;
     private boolean approved;
     private String comment;
     private Date date;
@@ -47,12 +48,20 @@ public class Decision<I extends Serializable> implements Serializable {
         this.approved = approved;
     }
 
-    public String getUser() {
-        return user;
+    public String getApproverName() {
+        return approverName;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public String getApproverOid() {
+        return approverOid;
+    }
+
+    public void setApproverName(String approverName) {
+        this.approverName = approverName;
+    }
+
+    public void setApproverOid(String approverOid) {
+        this.approverOid = approverOid;
     }
 
     public Date getDate() {
@@ -65,6 +74,6 @@ public class Decision<I extends Serializable> implements Serializable {
 
     @Override
     public String toString() {
-        return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
+        return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", approver=" + getApproverName() + "/" + getApproverOid() + ", date=" + getDate();
     }
 }

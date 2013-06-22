@@ -29,6 +29,7 @@ import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricDetail;
 import org.activiti.engine.history.HistoricDetailQuery;
 import org.activiti.engine.history.HistoricVariableUpdate;
+import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.engine.impl.interceptor.SessionFactory;
@@ -87,8 +88,10 @@ public class ActivitiEngine {
                 ((StandaloneProcessEngineConfiguration) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration())
                 .setDatabaseSchemaUpdate(wfConfiguration.isActivitiSchemaUpdate() ?
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
-                        ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
-                .setCustomSessionFactories(sessionFactories)
+                        ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE);
+
+        pec = ((ProcessEngineConfigurationImpl) pec)
+                .setCustomSessionFactories(sessionFactories)            // ugly hack - in 5.13 they removed setCustomSessionFactories from ProcessEngineConfiguration abstract class
                 .setJdbcUrl(wfConfiguration.getJdbcUrl())
                 .setJdbcDriver(wfConfiguration.getJdbcDriver())
                 .setJdbcUsername(wfConfiguration.getJdbcUser())
