@@ -150,12 +150,12 @@ public class ChangeExecutor {
 	        		
 		            executeDelta(userDelta, focusContext, syncContext, null, task, subResult);
 		
-	                if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
-	                    task.setRequesteeOidImmediate(userDelta.getOid(), subResult);
-	                    if (LOGGER.isTraceEnabled()) {
-	                        LOGGER.trace("Set requestee OID to " + userDelta.getOid() + "; task = " + task.dump());
-	                    }
-	                }
+//	                if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
+//	                    task.setRequesteeOidImmediate(userDelta.getOid(), subResult);
+//	                    if (LOGGER.isTraceEnabled()) {
+//	                        LOGGER.trace("Set requestee OID to " + userDelta.getOid() + "; task = " + task.dump());
+//	                    }
+//	                }
 	                
 	                subResult.computeStatus();
 	                
@@ -352,7 +352,7 @@ public class ChangeExecutor {
             //update account situation only if the account was not deleted
         	if (accCtx != null && !accCtx.isDelete()) {
 				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);	
-				updateSituationInAccount(task, null, accountOid, result);
+				updateSituationInAccount(task, null, focusContext, accountOid, result);
 				LOGGER.trace("Situation in the account was updated to {}.", "null");
 			}
             // Not linked, that's OK
@@ -364,7 +364,7 @@ public class ChangeExecutor {
                 if (accountOid.equals(accountRef.getOid())) {
                     // Already linked, nothing to do, only be sure, the situation is set with the good value
                 	LOGGER.trace("Updating situation in already linked account.");
-                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountOid, result);
+                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accountOid, result);
                 	LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
                 	return;
                 }
@@ -373,7 +373,7 @@ public class ChangeExecutor {
             linkAccount(userTypeNew.getOid(), accountOid, (LensFocusContext<UserType>) focusContext, task, result);
             //be sure, that the situation is set correctly
             LOGGER.trace("Updating situation after account was linked.");
-            updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountOid, result);
+            updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accountOid, result);
             LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
         }
     }
@@ -435,17 +435,17 @@ public class ChangeExecutor {
  
     }
 	
-    private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
+    private <F extends ObjectType> void updateSituationInAccount(Task task, SynchronizationSituationType situation, LensFocusContext<F> focusContext, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
     	OperationResult result = new OperationResult(OPERATION_UPDATE_SITUATION_ACCOUNT);
     	result.addParam("situation", situation);
     	result.addParam("accountRef", accountRef);
 		
     	PrismObject<ShadowType> account = null;
-    	try{
+    	try {
     		account = provisioning.getObject(ShadowType.class, accountRef, GetOperationOptions.createNoFetch(), result);
     	} catch (Exception ex){
-    		LOGGER.trace("Problem with getting account, skipping modifying siatuation in account.");
+    		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;
     	}
 //    	XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
@@ -454,6 +454,7 @@ public class ChangeExecutor {
 //		if (syncSituationDelta != null){
 //		syncSituationDeltas.add(syncSituationDelta);
 //		}
+        setRequestee(task, focusContext, result);
 		try {
 			String changedOid = provisioning.modifyObject(ShadowType.class, accountRef,
 					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
@@ -781,6 +782,7 @@ public class ChangeExecutor {
         }
 
         OperationProvisioningScriptsType scripts = prepareScripts(object, context, ProvisioningOperationTypeType.ADD, resource, result);
+        setRequestee(task, context.getFocusContext(), result);
         String oid = provisioning.addObject(object, scripts, options, task, result);
         return oid;
     }
@@ -801,6 +803,7 @@ public class ChangeExecutor {
 			// will fail if something is wrong)
 			result.muteLastSubresultError();
 		}
+        setRequestee(task, context.getFocusContext(), result);
 		provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
     }
 
@@ -810,8 +813,13 @@ public class ChangeExecutor {
 
     	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), result);
     	OperationProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);
+        setRequestee(task, context.getFocusContext(), result);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
         return changedOid;
+    }
+
+    private <F extends ObjectType> void setRequestee(Task task, LensFocusContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        task.setRequesteeOidImmediate(context != null ? context.getOid() : null, result);
     }
 
     private <F extends ObjectType, P extends ObjectType> OperationProvisioningScriptsType prepareScripts(

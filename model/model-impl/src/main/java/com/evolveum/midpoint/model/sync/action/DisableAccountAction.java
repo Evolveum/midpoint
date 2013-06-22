@@ -121,7 +121,8 @@ public class DisableAccountAction extends ModifyUserAction {
 	        }
 			
 			Collection<? extends ItemDelta> modifications = MiscUtil.createCollection(delta);
-			
+
+            task.setRequesteeOidImmediate(userOid, result);
 			getProvisioningService().modifyObject(ShadowType.class, accOid, modifications, null, null, task, subResult);
 			subResult.recordSuccess();
 			return null;

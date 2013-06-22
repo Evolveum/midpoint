@@ -73,6 +73,7 @@ public class DeleteAccountAction extends ModifyUserAction {
 				throw new SchemaException(message);
 			}
 
+            task.setRequesteeOidImmediate(userOid, result);
 			getProvisioningService().deleteObject(ShadowType.class, accOid, null, null, task, subResult);
 			subResult.recordSuccess();
 			return null;

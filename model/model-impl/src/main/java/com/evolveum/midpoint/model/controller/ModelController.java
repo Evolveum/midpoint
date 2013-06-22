@@ -329,7 +329,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		});
 		
 		RepositoryCache.enter();
-        setRequesteeIfNecessary(task, deltas, result);
+        //setRequesteeIfNecessary(task, deltas, result);
 		
 		try {
 		
@@ -507,6 +507,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 	}
 
+    // currently unused; experimentally replaced by setting requestee just before entering provisioning
 	private void setRequesteeIfNecessary(Task task, Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) throws ObjectNotFoundException, SchemaException {
 
         if (task.getRequesteeOid() != null) {

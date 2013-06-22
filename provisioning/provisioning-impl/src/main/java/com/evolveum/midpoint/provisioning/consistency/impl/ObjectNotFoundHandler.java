@@ -120,7 +120,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			result.addParam("exception", ex.getMessage());
 		}
 
-		LOGGER.trace("Start compensationg object not found situation while execution operation: {}", op.name());
+		LOGGER.trace("Start compensating object not found situation while execution operation: {}", op.name());
 //		Task task = taskManager.createTaskInstance();
 		ObjectDelta delta = null;
 		switch (op) {
@@ -178,7 +178,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 					provisioningService.modifyObject(ShadowType.class, oid, modifications, null, options, task, 
 							result);
 					parentResult.recordHandledError(
-							"Account was recreated and modifications were applied to newly cleated account.");
+							"Account was recreated and modifications were applied to newly created account.");
 				} catch (ObjectNotFoundException e) {
 					parentResult.recordHandledError(
 							"Modifications were not applied, because shadow was deleted by discovery. Repository state were refreshed and unused shadow was deleted.");
