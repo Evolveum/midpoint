@@ -62,6 +62,7 @@ public class TaskManagerConfiguration {
     private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
     private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
     private static final String CHECK_WAITING_TASKS_INTERVAL_CONFIG_ENTRY = "checkWaitingTasksInterval";
+    private static final String RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY = "runNowKeepsOriginalSchedule";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
@@ -81,6 +82,7 @@ public class TaskManagerConfiguration {
     private static final String JMX_USERNAME_DEFAULT = "midpoint";
     private static final String JMX_PASSWORD_DEFAULT = "secret";
     private static final int CHECK_WAITING_TASKS_INTERVAL_DEFAULT = 600;
+    private static final boolean RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT = false;
 
     private boolean stopOnInitializationFailure;
     private int threads;
@@ -94,6 +96,7 @@ public class TaskManagerConfiguration {
     private int nodeRegistrationCycleTime, nodeTimeout;
     private UseThreadInterrupt useThreadInterrupt;
     private int checkWaitingTasksInterval;
+    private boolean runNowKeepsOriginalSchedule;
 
     // JMX credentials for connecting to remote nodes
     private String jmxUsername;
@@ -184,6 +187,9 @@ public class TaskManagerConfiguration {
 
         jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
         jmxPassword = c.getString(JMX_PASSWORD_CONFIG_ENTRY, JMX_PASSWORD_DEFAULT);
+
+        checkWaitingTasksInterval = c.getInt(CHECK_WAITING_TASKS_INTERVAL_CONFIG_ENTRY, CHECK_WAITING_TASKS_INTERVAL_DEFAULT);
+        runNowKeepsOriginalSchedule = c.getBoolean(RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY, RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT);
     }
 
     private static final Map<String,String> schemas = new HashMap<String,String>();
@@ -390,5 +396,9 @@ public class TaskManagerConfiguration {
 
     public int getCheckWaitingTasksInterval() {
         return checkWaitingTasksInterval;
+    }
+
+    public boolean isRunNowKeepsOriginalSchedule() {
+        return runNowKeepsOriginalSchedule;
     }
 }

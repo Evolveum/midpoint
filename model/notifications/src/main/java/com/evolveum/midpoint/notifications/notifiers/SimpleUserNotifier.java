@@ -43,7 +43,6 @@ import java.util.List;
 public class SimpleUserNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleUserNotifier.class);
-    private static final Integer LEVEL_TECH_INFO = 10;
 
     @PostConstruct
     public void init() {
@@ -108,11 +107,14 @@ public class SimpleUserNotifier extends GeneralNotifier {
         body.append("Notification created on: " + new Date() + "\n\n");
 
         if (delta.isAdd()) {
-            body.append("The user record was created.\n\n");
+            body.append("The user record was created with the following data:\n");
+            body.append(textFormatter.formatObject(delta.getObjectToAdd()));
+            body.append("\n");
         } else if (delta.isModify()) {
             body.append("The user record was modified. Modified attributes are:\n");
             List<ItemPath> hiddenPaths = isWatchAuxiliaryAttributes(generalNotifierType) ? new ArrayList<ItemPath>() : auxiliaryPaths;
-            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
+            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths));
+//            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("The user record was removed.\n\n");

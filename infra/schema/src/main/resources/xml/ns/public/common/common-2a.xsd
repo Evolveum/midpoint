@@ -1976,6 +1976,9 @@
                             <xsd:documentation>
                                 The set of user's credentials (such as passwords).
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Credentials</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -2041,7 +2044,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="password" type="tns:PasswordType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="password" type="tns:PasswordType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Password</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- More credentail types may be here, such as OTP seeds, X.509 credentials, 
 				etc. -->
             <xsd:element name="allowedIdmAdminGuiAccess" type="xsd:boolean" minOccurs="0" default="false">

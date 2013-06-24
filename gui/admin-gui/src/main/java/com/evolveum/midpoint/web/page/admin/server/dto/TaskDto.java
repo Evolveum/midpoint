@@ -65,6 +65,7 @@ public class TaskDto extends Selectable {
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
+    public static final String F_DESCRIPTION = "description";
     public static final String F_CATEGORY = "category";
     public static final String F_PARENT_TASK_NAME = "parentTaskName";
     public static final String F_PARENT_TASK_OID = "parentTaskOid";
@@ -79,6 +80,7 @@ public class TaskDto extends Selectable {
     private String oid;
     private String identifier;
     private String name;
+    private String description;
     private String category;
     private List<String> handlerUriList;
     private String parentTaskName;
@@ -133,6 +135,7 @@ public class TaskDto extends Selectable {
         oid = task.getOid();
         identifier = task.getTaskIdentifier();
         name = WebMiscUtil.getOrigStringFromPoly(task.getName());
+        description = task.getDescription();
         category = task.getCategory();
 
         handlerUriList = new ArrayList<String>();
@@ -415,6 +418,14 @@ public class TaskDto extends Selectable {
 	
 	public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getObjectRefName() {

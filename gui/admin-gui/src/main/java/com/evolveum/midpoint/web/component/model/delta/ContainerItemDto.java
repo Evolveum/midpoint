@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.model.delta;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -61,9 +62,9 @@ public class ContainerItemDto implements Serializable, Comparable {
 
         for (Object o : item.getValues()) {
             if (o instanceof PrismPropertyValue) {
-                retval.add(new ContainerItemDto(attribute, ValueUtil.toStringValue((PrismPropertyValue) o), getOrder(o)));
+                retval.add(new ContainerItemDto(attribute, ValueDisplayUtil.toStringValue((PrismPropertyValue) o), getOrder(o)));
             } else if (o instanceof PrismReferenceValue) {
-                retval.add(new ContainerItemDto(attribute, ValueUtil.toStringValue((PrismReferenceValue) o), getOrder(o)));
+                retval.add(new ContainerItemDto(attribute, ValueDisplayUtil.toStringValue((PrismReferenceValue) o), getOrder(o)));
             } else if (o instanceof PrismContainerValue) {
                 retval.add(new ContainerItemDto(attribute, new ContainerValueDto((PrismContainerValue) o), getOrder(o)));
             }

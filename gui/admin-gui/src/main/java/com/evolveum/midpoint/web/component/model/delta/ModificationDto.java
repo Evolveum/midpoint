@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -71,17 +72,17 @@ public class ModificationDto implements Serializable {
         List<ModificationDto> retval = new ArrayList<ModificationDto>();
         if (delta.getValuesToAdd() != null) {
             for (Object valueToAdd : delta.getValuesToAdd()) {
-                retval.add(new ModificationDto(attribute, ADD, ValueUtil.toStringValue((PrismPropertyValue) valueToAdd)));
+                retval.add(new ModificationDto(attribute, ADD, ValueDisplayUtil.toStringValue((PrismPropertyValue) valueToAdd)));
             }
         }
         if (delta.getValuesToReplace() != null) {
             for (Object valueToAdd : delta.getValuesToReplace()) {
-                retval.add(new ModificationDto(attribute, REPLACE, ValueUtil.toStringValue((PrismPropertyValue) valueToAdd)));
+                retval.add(new ModificationDto(attribute, REPLACE, ValueDisplayUtil.toStringValue((PrismPropertyValue) valueToAdd)));
             }
         }
         if (delta.getValuesToDelete() != null) {
             for (Object valueToAdd : delta.getValuesToDelete()) {
-                retval.add(new ModificationDto(attribute, DELETE, ValueUtil.toStringValue((PrismPropertyValue) valueToAdd)));
+                retval.add(new ModificationDto(attribute, DELETE, ValueDisplayUtil.toStringValue((PrismPropertyValue) valueToAdd)));
             }
         }
         return retval;
@@ -121,17 +122,17 @@ public class ModificationDto implements Serializable {
         List<ModificationDto> retval = new ArrayList<ModificationDto>();
         if (delta.getValuesToAdd() != null) {
             for (Object valueToAdd : delta.getValuesToAdd()) {
-                retval.add(new ModificationDto(attribute, ADD, ValueUtil.toStringValue((PrismReferenceValue) valueToAdd)));
+                retval.add(new ModificationDto(attribute, ADD, ValueDisplayUtil.toStringValue((PrismReferenceValue) valueToAdd)));
             }
         }
         if (delta.getValuesToReplace() != null) {
             for (Object valueToAdd : delta.getValuesToReplace()) {
-                retval.add(new ModificationDto(attribute, REPLACE, ValueUtil.toStringValue((PrismReferenceValue) valueToAdd)));
+                retval.add(new ModificationDto(attribute, REPLACE, ValueDisplayUtil.toStringValue((PrismReferenceValue) valueToAdd)));
             }
         }
         if (delta.getValuesToDelete() != null) {
             for (Object valueToAdd : delta.getValuesToDelete()) {
-                retval.add(new ModificationDto(attribute, DELETE, ValueUtil.toStringValue((PrismReferenceValue) valueToAdd)));
+                retval.add(new ModificationDto(attribute, DELETE, ValueDisplayUtil.toStringValue((PrismReferenceValue) valueToAdd)));
             }
         }
         return retval;

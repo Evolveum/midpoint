@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.notifiers;
 import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.events.Event;
+import com.evolveum.midpoint.notifications.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.notifications.transports.Message;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -59,6 +60,9 @@ public abstract class GeneralNotifier extends BaseHandler {
 
     @Autowired
     protected NotificationsUtil notificationsUtil;
+
+    @Autowired
+    protected TextFormatter textFormatter;
 
     protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
             new ItemPath(ShadowType.F_METADATA),
@@ -232,16 +236,7 @@ public abstract class GeneralNotifier extends BaseHandler {
     protected boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
 
         for (ItemDelta itemDelta : delta.getModifications()) {
-            if (!isAmongHiddenPaths(itemDelta.getPath(), paths)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
-        for (ItemPath hiddenPath : hiddenPaths) {
-            if (hiddenPath.isSubPathOrEquivalent(path)) {
+            if (!NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
                 return true;
             }
         }
@@ -256,7 +251,7 @@ public abstract class GeneralNotifier extends BaseHandler {
 
         boolean showValues = !Boolean.FALSE.equals(showValuesBoolean);
         for (ItemDelta<? extends PrismValue> itemDelta : delta.getModifications()) {
-            if (isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+            if (NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                 continue;
             }
             body.append(" - ");

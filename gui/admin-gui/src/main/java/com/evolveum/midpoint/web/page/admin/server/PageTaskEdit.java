@@ -102,7 +102,10 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
     private static final String ID_WORKFLOW_INFORMATION_LABEL = "workflowInformationLabel";
     private static final String ID_WORKFLOW_INFORMATION_PANEL = "workflowInformationPanel";
+    private static final String ID_NAME = "name";
     private static final String ID_NAME_LABEL = "nameLabel";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
     private static final String ID_PARENT = "parent";
     private static final String ID_OPERATION_RESULT_PANEL = "operationResultPanel";
 
@@ -281,8 +284,8 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private void initMainInfo(Form mainForm) {
-		RequiredTextField<String> name = new RequiredTextField<String>("name", new PropertyModel<String>(
-				model, "name"));
+		RequiredTextField<String> name = new RequiredTextField<String>(ID_NAME, new PropertyModel<String>(
+				model, TaskDto.F_NAME));
 		name.add(new VisibleEnableBehaviour() {
 
 			@Override
@@ -294,7 +297,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		mainForm.add(name);
 
-        Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel(model, "name"));
+        Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel(model, TaskDto.F_NAME));
         nameLabel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -303,7 +306,29 @@ public class PageTaskEdit extends PageAdminTasks {
         });
         mainForm.add(nameLabel);
 
-		Label oid = new Label("oid", new PropertyModel(model, "oid"));
+        TextArea<String> description = new TextArea<String>(ID_DESCRIPTION, new PropertyModel<String>(
+                model, TaskDto.F_DESCRIPTION));
+        description.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return edit;
+            }
+        });
+//        description.add(new AttributeModifier("style", "width: 100%"));
+//        description.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        mainForm.add(description);
+
+        Label descriptionLabel = new Label(ID_DESCRIPTION_LABEL, new PropertyModel(model, TaskDto.F_DESCRIPTION));
+        descriptionLabel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !edit;
+            }
+        });
+        mainForm.add(descriptionLabel);
+
+        Label oid = new Label("oid", new PropertyModel(model, "oid"));
 		mainForm.add(oid);
 
         mainForm.add(new Label(ID_IDENTIFIER, new PropertyModel(model, TaskDto.F_IDENTIFIER)));
@@ -714,24 +739,29 @@ public class PageTaskEdit extends PageAdminTasks {
 		target.add(getFeedbackPanel());
 	}
 
-	private Task updateTask(TaskDto dto, Task loadedTask) {
+	private Task updateTask(TaskDto dto, Task existingTask) {
 
-        if (!loadedTask.getName().equals(dto.getName())) {
-		    loadedTask.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
+        if (!existingTask.getName().equals(dto.getName())) {
+		    existingTask.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
         }   // if they are equal, modifyObject complains ... it's probably a bug in repo; we'll fix it later?
 
-		if (!dto.getRecurring()) {
-			loadedTask.makeSingle();
+        if ((existingTask.getDescription() == null && dto.getDescription() != null) ||
+                (existingTask.getDescription() != null && !existingTask.getDescription().equals(dto.getDescription()))) {
+            existingTask.setDescription(dto.getDescription());
+        }
+
+        if (!dto.getRecurring()) {
+			existingTask.makeSingle();
 		}
-		loadedTask.setBinding(dto.getBound() == true ? TaskBinding.TIGHT : TaskBinding.LOOSE);
+		existingTask.setBinding(dto.getBound() == true ? TaskBinding.TIGHT : TaskBinding.LOOSE);
 
         ScheduleType schedule = new ScheduleType();
 
         schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
         schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
         schedule.setMisfireAction(dto.getMisfire());
-        if (loadedTask.getSchedule() != null) {
-            schedule.setLatestFinishTime(loadedTask.getSchedule().getLatestFinishTime());
+        if (existingTask.getSchedule() != null) {
+            schedule.setLatestFinishTime(existingTask.getSchedule().getLatestFinishTime());
         }
 
         if (dto.getRecurring() == true) {
@@ -741,17 +771,17 @@ public class PageTaskEdit extends PageAdminTasks {
             } else {
                 schedule.setInterval(dto.getInterval());
             }
-            loadedTask.makeRecurrent(schedule);
+            existingTask.makeRecurrent(schedule);
         } else {
-            loadedTask.makeSingle(schedule);
+            existingTask.makeSingle(schedule);
         }
 
         ThreadStopActionType tsa = dto.getThreadStop();
 //        if (tsa == null) {
 //            tsa = dto.getRunUntilNodeDown() ? ThreadStopActionType.CLOSE : ThreadStopActionType.RESTART;
 //        }
-        loadedTask.setThreadStopAction(tsa);
-		return loadedTask;
+        existingTask.setThreadStopAction(tsa);
+		return existingTask;
 	}
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {

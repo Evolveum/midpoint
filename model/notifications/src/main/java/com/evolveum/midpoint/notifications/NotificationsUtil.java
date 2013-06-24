@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.notifications;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @author mederly
@@ -99,5 +102,15 @@ public class NotificationsUtil {
         simpleObjectRef.setObjectType(objectType);
         return objectType;
     }
+
+    public static boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
+        for (ItemPath hiddenPath : hiddenPaths) {
+            if (hiddenPath.isSubPathOrEquivalent(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 }

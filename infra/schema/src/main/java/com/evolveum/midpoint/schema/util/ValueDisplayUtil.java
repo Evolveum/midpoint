@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.model.delta;
+package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -30,7 +30,7 @@ import java.util.Date;
 /**
  * @author mederly
  */
-public class ValueUtil {
+public class ValueDisplayUtil {
     public static String toStringValue(PrismPropertyValue propertyValue) {
         Object value = propertyValue.getValue();
         if (value == null) {
