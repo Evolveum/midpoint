@@ -943,8 +943,7 @@ public class TestMappingDynamicSimple {
 	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("The landluber deck"));
     }
     
-    //TODO: MID-1409 
-    @Test(enabled=false)
+    @Test
     public void testInboundMapping() throws Exception{
     	final String TEST_NAME = "testInboundMapping";
     	TestUtil.displayTestTile(TEST_NAME);
@@ -961,9 +960,9 @@ public class TestMappingDynamicSimple {
     	mapping.evaluate(opResult);
     	
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-    	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("pavolr"));
+    	assertTripleZero(outputTriple, PrismTestUtil.createPolyString("pavolr"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
     	assertTripleNoMinus(outputTriple);
-    	assertTripleNoZero(outputTriple);
     }
     
     @Test

@@ -363,9 +363,34 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 			}
 		}
 		
+		cleanupTriple(outputTriple);
+		
 		return outputTriple;
 	}
 	
+	private void cleanupTriple(PrismValueDeltaSetTriple<V> triple) {
+		if (triple == null) {
+			return;
+		}
+		Collection<V> minusSet = triple.getMinusSet();
+		if (minusSet == null) {
+			return;
+		}
+		Collection<V> plusSet = triple.getPlusSet();
+		if (plusSet == null) {
+			return;
+		}
+		Iterator<V> plusIter = plusSet.iterator();
+		while (plusIter.hasNext()) {
+			V plusVal = plusIter.next();
+			if (minusSet.contains(plusVal)) {
+				plusIter.remove();
+				minusSet.remove(plusVal);
+				triple.addToZeroSet(plusVal);
+			}
+		}
+	}
+
 	private String dumpSourceValues(Map<QName, Object> variables) {
 		StringBuilder sb = new StringBuilder();
 		for (Entry<QName, Object> entry: variables.entrySet()) {
