@@ -49,4 +49,6 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 
     public List<? extends ObjectDeltaOperation> getExecutedDeltas();
 
+    public String getOid();
+
 }

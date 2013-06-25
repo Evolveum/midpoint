@@ -46,7 +46,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof WorkflowEvent)) {
             LOGGER.trace("SimpleWorkflowNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;

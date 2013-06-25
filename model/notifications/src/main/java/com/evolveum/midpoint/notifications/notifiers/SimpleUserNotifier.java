@@ -50,12 +50,18 @@ public class SimpleUserNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof ModelEvent)) {
             LOGGER.trace("SimpleUserNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
+        } else {
+            return true;
         }
+    }
 
+
+    @Override
+    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         List<ObjectDelta<UserType>> deltas = ((ModelEvent) event).getUserDeltas();
         if (deltas.isEmpty()) {
             return false;
@@ -97,13 +103,14 @@ public class SimpleUserNotifier extends GeneralNotifier {
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         PrismObject<UserType> user = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
         UserType userType = user.asObjectable();
+        String oid = focusContext.getOid();
 
         ObjectDelta<UserType> delta = ObjectDelta.summarize(((ModelEvent) event).getUserDeltas());
 
         StringBuilder body = new StringBuilder();
 
         body.append("Notification about user-related operation\n\n");
-        body.append("User: " + userType.getFullName() + " (" + userType.getName() + ", oid " + userType.getOid() + ")\n");
+        body.append("User: " + userType.getFullName() + " (" + userType.getName() + ", oid " + oid + ")\n");
         body.append("Notification created on: " + new Date() + "\n\n");
 
         if (delta.isAdd()) {

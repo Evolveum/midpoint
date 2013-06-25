@@ -56,30 +56,35 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof AccountEvent)) {
             LOGGER.trace("SimpleAccountNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
         } else {
-
-            AccountEvent accountEvent = (AccountEvent) event;
-            ObjectDelta<ShadowType> delta = accountEvent.getShadowDelta();
-            if (!delta.isModify()) {
-                return true;
-            }
-
-            boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, synchronizationPaths);
-            boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, auxiliaryPaths);
-            boolean watchSync = isWatchSynchronizationAttributes((SimpleAccountNotifierType) generalNotifierType);
-            boolean watchAux = isWatchAuxiliaryAttributes(generalNotifierType);
-            if ((watchSync || otherThanSyncPresent) && (watchAux || otherThanAuxPresent)) {
-                return true;
-            }
-
-            LOGGER.trace("No relevant attributes in delta, skipping the notifier (watchSync = " + watchSync + ", otherThanSyncPresent = " + otherThanSyncPresent +
-                    ", watchAux = " + watchAux + ", otherThanAuxPresent = " + otherThanAuxPresent + ")");
-            return false;
+            return true;
         }
+    }
+
+    @Override
+    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+
+        AccountEvent accountEvent = (AccountEvent) event;
+        ObjectDelta<ShadowType> delta = accountEvent.getShadowDelta();
+        if (!delta.isModify()) {
+            return true;
+        }
+
+        boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, synchronizationPaths);
+        boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, auxiliaryPaths);
+        boolean watchSync = isWatchSynchronizationAttributes((SimpleAccountNotifierType) generalNotifierType);
+        boolean watchAux = isWatchAuxiliaryAttributes(generalNotifierType);
+        if ((watchSync || otherThanSyncPresent) && (watchAux || otherThanAuxPresent)) {
+            return true;
+        }
+
+        LOGGER.trace("No relevant attributes in delta, skipping the notifier (watchSync = " + watchSync + ", otherThanSyncPresent = " + otherThanSyncPresent +
+                ", watchAux = " + watchAux + ", otherThanAuxPresent = " + otherThanAuxPresent + ")");
+        return false;
     }
 
     private boolean isWatchSynchronizationAttributes(SimpleAccountNotifierType generalNotifierType) {

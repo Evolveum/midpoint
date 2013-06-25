@@ -134,6 +134,11 @@ public class NotificationChangeHook implements ChangeHook {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
 
+        // if no OID in object (occurs in 'add' operation), we artificially insert it into the object)
+        if (object.getOid() == null && modelContext.getFocusContext() != null && modelContext.getFocusContext().getOid() != null) {
+            object = object.clone();
+            object.setOid(modelContext.getFocusContext().getOid());
+        }
         event.setRequestee(object.asObjectable());
         return event;
     }

@@ -56,11 +56,18 @@ public class UserPasswordNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof ModelEvent)) {
             LOGGER.trace("UserPasswordNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
+        } else {
+            return true;
         }
+    }
+
+
+    @Override
+    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
@@ -69,11 +76,6 @@ public class UserPasswordNotifier extends GeneralNotifier {
         ModelEvent modelEvent = (ModelEvent) event;
         if (modelEvent.getUserDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
-            return false;
-        }
-
-        if (modelEvent.getRequesteeOid() == null) {
-            LOGGER.trace("No requestee, exiting.");
             return false;
         }
         if (getPasswordFromDeltas(modelEvent.getUserDeltas()) != null) {

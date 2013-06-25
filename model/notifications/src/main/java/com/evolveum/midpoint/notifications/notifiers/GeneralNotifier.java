@@ -53,7 +53,7 @@ import java.util.Map;
 @Component
 public abstract class GeneralNotifier extends BaseHandler {
 
-    private static final Trace LOGGER = TraceManager.getTrace(GeneralNotifier.class);
+    private static final Trace DEFAULT_LOGGER = TraceManager.getTrace(GeneralNotifier.class);
 
     @Autowired
     protected NotificationManager notificationManager;
@@ -106,12 +106,12 @@ public abstract class GeneralNotifier extends BaseHandler {
             }
 
             if (filteredOut) {
-                LOGGER.trace("Filtered out by embedded filter");
+                getLogger().trace("Filtered out by embedded filter");
                 retval = true;
             } else if (!checkApplicability(event, generalNotifierType, result)) {
                 retval = true;      // message has to be logged in checkApplicability method
             } else if (generalNotifierType.getTransport().isEmpty()) {
-                LOGGER.warn("No transports for this notifier, exiting without sending any notifications.");
+                getLogger().warn("No transports for this notifier, exiting without sending any notifications.");
                 retval = true;
             }
             else {
@@ -142,10 +142,10 @@ public abstract class GeneralNotifier extends BaseHandler {
                         message.setSubject(subject != null ? subject : "");
                         message.setTo(recipients);                      // todo cc/bcc recipients
 
-                        LOGGER.trace("Sending notification to {} via transport {}", recipients, transport);
+                        getLogger().trace("Sending notification via transport {}:\n{}", transport, message);
                         notificationManager.getTransport(transport).send(message, transport, result);
                     } else {
-                        LOGGER.info("No recipients for transport " + transport + ", message corresponding to event " + event.getId() + " will not be send.");
+                        getLogger().info("No recipients for transport " + transport + ", message corresponding to event " + event.getId() + " will not be send.");
                     }
                 }
 
@@ -182,7 +182,7 @@ public abstract class GeneralNotifier extends BaseHandler {
     }
 
     protected Trace getLogger() {
-        return LOGGER;
+        return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
     protected List<String> getRecipients(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, UserType defaultRecipient, OperationResult result) {
@@ -195,14 +195,14 @@ public abstract class GeneralNotifier extends BaseHandler {
                 }
             }
             if (recipients.isEmpty()) {
-                LOGGER.info("Notification for " + event + " will not be sent, because there are no known recipients.");
+                getLogger().info("Notification for " + event + " will not be sent, because there are no known recipients.");
             }
         } else if (defaultRecipient == null) {
-            LOGGER.info("Unknown default recipient, notification will not be sent.");
+            getLogger().info("Unknown default recipient, notification will not be sent.");
         } else {
             String email = defaultRecipient.getEmailAddress();
             if (StringUtils.isEmpty(email)) {
-                LOGGER.info("Notification to " + defaultRecipient.getName() + " will not be sent, because the user has no mail address set.");
+                getLogger().info("Notification to " + defaultRecipient.getName() + " will not be sent, because the user has no mail address set.");
             } else {
                 recipients.add(email);
             }
@@ -214,11 +214,11 @@ public abstract class GeneralNotifier extends BaseHandler {
         if (generalNotifierType.getSubjectExpression() != null) {
             List<String> subjectList = evaluateExpressionChecked(generalNotifierType.getSubjectExpression(), variables, "subject expression", result);
             if (subjectList == null || subjectList.isEmpty()) {
-                LOGGER.warn("Subject expression for event " + event.getId() + " returned nothing.");
+                getLogger().warn("Subject expression for event " + event.getId() + " returned nothing.");
                 return "";
             }
             if (subjectList.size() > 1) {
-                LOGGER.warn("Subject expression for event " + event.getId() + " returned more than 1 item.");
+                getLogger().warn("Subject expression for event " + event.getId() + " returned more than 1 item.");
             }
             return subjectList.get(0);
         } else {
@@ -230,7 +230,7 @@ public abstract class GeneralNotifier extends BaseHandler {
         if (generalNotifierType.getBodyExpression() != null) {
             List<String> bodyList = evaluateExpressionChecked(generalNotifierType.getBodyExpression(), variables, "body expression", result);
             if (bodyList == null || bodyList.isEmpty()) {
-                LOGGER.warn("Body expression for event " + event.getId() + " returned nothing.");
+                getLogger().warn("Body expression for event " + event.getId() + " returned nothing.");
                 return "";
             }
             StringBuilder body = new StringBuilder();

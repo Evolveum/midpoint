@@ -189,7 +189,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
 		return new ObjectDeltaObject<O>(objectOld, getDelta(), objectNew);
 	}
-    
+
+    @Override
     public String getOid() {
     	if (oid == null) {
     		oid = determineOid();
