@@ -43,7 +43,6 @@ import java.util.List;
 public class UserPasswordNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserPasswordNotifier.class);
-    private static final Integer LEVEL_TECH_INFO = 10;
 
     @Autowired
     private MidpointFunctions midpointFunctions;
@@ -77,7 +76,13 @@ public class UserPasswordNotifier extends GeneralNotifier {
             LOGGER.trace("No requestee, exiting.");
             return false;
         }
-        return getPasswordFromDeltas(modelEvent.getUserDeltas()) != null;
+        if (getPasswordFromDeltas(modelEvent.getUserDeltas()) != null) {
+            LOGGER.trace("Found password in user delta(s), continuing.");
+            return true;
+        } else {
+            LOGGER.trace("No password in user delta(s), exiting.");
+            return false;
+        }
     }
 
     private String getPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) {
@@ -100,6 +105,11 @@ public class UserPasswordNotifier extends GeneralNotifier {
         ModelEvent modelEvent = (ModelEvent) event;
         List<ObjectDelta<UserType>> deltas = modelEvent.getUserDeltas();
         return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), result).getName() + " is: " + getPasswordFromDeltas(deltas);
+    }
+
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
     }
 
 }

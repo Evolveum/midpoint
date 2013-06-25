@@ -52,11 +52,17 @@ public class AccountPasswordNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof AccountEvent)) {
             LOGGER.trace("AccountPasswordNotifier was called with incompatible notification event; class = " + event.getClass());
             return false;
+        } else {
+            return true;
         }
+    }
+
+    @Override
+    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
@@ -102,6 +108,11 @@ public class AccountPasswordNotifier extends GeneralNotifier {
         body.append("on " + rod.getResource().asObjectable().getName());
         body.append(" is: " + getPasswordFromDelta(delta));
         return body.toString();
+    }
+
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
     }
 
 }

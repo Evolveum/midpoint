@@ -132,4 +132,9 @@ public class SimpleUserNotifier extends GeneralNotifier {
         return body.toString();
     }
 
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
+    }
+
 }

@@ -281,6 +281,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         if (!isFresh()) {
         	sb.append(", NOT FRESH");
         }
+        sb.append(", OID=");
+        sb.append(getOid());
         
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent+1);

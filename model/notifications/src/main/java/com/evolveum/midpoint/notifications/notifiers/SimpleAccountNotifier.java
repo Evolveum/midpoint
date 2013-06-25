@@ -217,4 +217,9 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 //        messageText.append(".\n\n");
 //    }
 
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
+    }
+
 }

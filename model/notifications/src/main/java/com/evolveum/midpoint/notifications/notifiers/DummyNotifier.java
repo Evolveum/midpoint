@@ -110,4 +110,10 @@ public class DummyNotifier extends GeneralNotifier implements Dumpable {
     public String dump() {
         return "DummyNotifier{records=" + records.toString() + "}";
     }
+
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
+    }
+
 }

@@ -110,4 +110,9 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         return body.toString();
     }
 
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
+    }
+
 }

@@ -90,62 +90,74 @@ public abstract class GeneralNotifier extends BaseHandler {
 
         boolean retval;
 
-        // executing embedded filters
-        boolean filteredOut = false;
-        for (JAXBElement<? extends EventHandlerType> handlerType : generalNotifierType.getHandler()) {
-            if (!notificationManager.processEvent(event, handlerType.getValue(), result)) {
-                filteredOut = true;
-                break;
-            }
-        }
+        if (!quickCheckApplicability(event, generalNotifierType, result)) {
 
-        if (filteredOut) {
-            LOGGER.trace("Filtered out by embedded filter");
-            retval = true;
-        } else if (!checkApplicability(event, generalNotifierType, result)) {
-            retval = true;      // message has to be logged in checkApplicability method
-        } else if (generalNotifierType.getTransport().isEmpty()) {
-            LOGGER.warn("No transports for this notifier, exiting without sending any notifications.");
-            retval = true;
-        }
-        else {
+            retval = true;      // message has to be logged in quickCheckApplicability method
 
-            Map<QName,Object> variables = getDefaultVariables(event, result);
+        } else {
 
-            for (String transport : generalNotifierType.getTransport()) {
-
-                variables.put(SchemaConstants.C_TRANSPORT, transport);
-                List<String> recipients = getRecipients(event, generalNotifierType, variables, getDefaultRecipient(event, generalNotifierType, result), result);
-
-                if (!recipients.isEmpty()) {
-
-                    String body = getBodyFromExpression(event, generalNotifierType, variables, result);
-                    String subject = getSubjectFromExpression(event, generalNotifierType, variables, result);
-
-                    if (body == null) {
-                        body = getBody(event, generalNotifierType, transport, result);
-                    }
-                    if (subject == null) {
-                        subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
-                        subject += getSubject(event, generalNotifierType, transport, result);
-                    }
-
-                    Message message = new Message();
-                    message.setBody(body != null ? body : "");
-                    message.setContentType("text/plain");           // todo make more flexible
-                    message.setSubject(subject != null ? subject : "");
-                    message.setTo(recipients);                      // todo cc/bcc recipients
-
-                    notificationManager.getTransport(transport).send(message, transport, result);
-                } else {
-                    LOGGER.info("No recipients for transport " + transport + ", message corresponding to event " + event.getId() + " will not be send.");
+            // executing embedded filters
+            boolean filteredOut = false;
+            for (JAXBElement<? extends EventHandlerType> handlerType : generalNotifierType.getHandler()) {
+                if (!notificationManager.processEvent(event, handlerType.getValue(), result)) {
+                    filteredOut = true;
+                    break;
                 }
             }
 
-            retval = true;
+            if (filteredOut) {
+                LOGGER.trace("Filtered out by embedded filter");
+                retval = true;
+            } else if (!checkApplicability(event, generalNotifierType, result)) {
+                retval = true;      // message has to be logged in checkApplicability method
+            } else if (generalNotifierType.getTransport().isEmpty()) {
+                LOGGER.warn("No transports for this notifier, exiting without sending any notifications.");
+                retval = true;
+            }
+            else {
+
+                Map<QName,Object> variables = getDefaultVariables(event, result);
+
+                for (String transport : generalNotifierType.getTransport()) {
+
+                    variables.put(SchemaConstants.C_TRANSPORT, transport);
+                    List<String> recipients = getRecipients(event, generalNotifierType, variables, getDefaultRecipient(event, generalNotifierType, result), result);
+
+                    if (!recipients.isEmpty()) {
+
+                        String body = getBodyFromExpression(event, generalNotifierType, variables, result);
+                        String subject = getSubjectFromExpression(event, generalNotifierType, variables, result);
+
+                        if (body == null) {
+                            body = getBody(event, generalNotifierType, transport, result);
+                        }
+                        if (subject == null) {
+                            subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
+                            subject += getSubject(event, generalNotifierType, transport, result);
+                        }
+
+                        Message message = new Message();
+                        message.setBody(body != null ? body : "");
+                        message.setContentType("text/plain");           // todo make more flexible
+                        message.setSubject(subject != null ? subject : "");
+                        message.setTo(recipients);                      // todo cc/bcc recipients
+
+                        LOGGER.trace("Sending notification to {} via transport {}", recipients, transport);
+                        notificationManager.getTransport(transport).send(message, transport, result);
+                    } else {
+                        LOGGER.info("No recipients for transport " + transport + ", message corresponding to event " + event.getId() + " will not be send.");
+                    }
+                }
+
+                retval = true;
+            }
         }
         logEnd(getLogger(), event, eventHandlerType, retval);
         return retval;
+    }
+
+    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+        return true;
     }
 
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.events;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -107,6 +108,8 @@ public class ModelEvent extends Event {
         }
         return false;
     }
+
+
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {

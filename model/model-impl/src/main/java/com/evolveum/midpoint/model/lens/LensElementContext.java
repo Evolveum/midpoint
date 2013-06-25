@@ -469,7 +469,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	protected abstract String getElementDefaultDesc();
 	
 	protected String getElementDesc() {
-		PrismObject<O> object = getObjectOld();
+		PrismObject<O> object = getObjectNew();
 		if (object == null) {
 			object = getObjectOld();
 		}
