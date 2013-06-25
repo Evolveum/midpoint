@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -300,7 +301,7 @@ public class InboundProcessor {
         
         PropertyDelta<U> outputUserPropertydelta = new PropertyDelta<U>(targetUserPropertyPath, targetPropertyDef);
     	
-        mapping.evaluate(result);
+        LensUtil.evaluateMapping(mapping, context, result);
     	
     	PrismValueDeltaSetTriple<PrismPropertyValue<U>> triple = mapping.getOutputTriple();
     	// Meaning of the resulting triple:
@@ -537,7 +538,7 @@ public class InboundProcessor {
     	
         PrismProperty result;
         try {
-        	mapping.evaluate(opResult);
+        	LensUtil.evaluateMapping(mapping, context, opResult);
             result = (PrismProperty) mapping.getOutput();
         } catch (SchemaException ex) {
             throw ex;

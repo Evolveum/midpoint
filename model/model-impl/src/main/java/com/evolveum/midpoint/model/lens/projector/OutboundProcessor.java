@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -201,7 +202,7 @@ public class OutboundProcessor {
 				mapping.setConditionMaskNew(false);
 			}
 			
-			mapping.evaluate(result);
+			LensUtil.evaluateMapping(mapping, context, result);
 			
 			outboundAccountConstruction.addAttributeConstruction(mapping);
         }

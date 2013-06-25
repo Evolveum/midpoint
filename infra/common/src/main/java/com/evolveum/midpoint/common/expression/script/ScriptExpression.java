@@ -92,10 +92,11 @@ public class ScriptExpression {
 	}
 
 	public <T> List<PrismPropertyValue<T>> evaluate(ScriptVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
-			String contextDescription, OperationResult result) 
+			boolean useNew, String contextDescription, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
+		context.setEvaluateNew(useNew);
 		
 		try {
 			context.setupThreadLocal();

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -121,7 +122,7 @@ public class MappingEvaluationHelper {
 	        	}
 	        }
 						
-			mapping.evaluate(result);
+			LensUtil.evaluateMapping(mapping, context, result);
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 			if (mappingOutputTriple != null) {
@@ -142,7 +143,7 @@ public class MappingEvaluationHelper {
 					continue;
 				}
 				
-				mapping.evaluate(result);
+				LensUtil.evaluateMapping(mapping, context, result);
 				
 				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 				if (mappingOutputTriple != null) {

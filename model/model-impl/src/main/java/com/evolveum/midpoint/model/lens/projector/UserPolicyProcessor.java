@@ -441,7 +441,7 @@ public class UserPolicyProcessor {
 		};
 		mapping.setStringPolicyResolver(stringPolicyResolver);
 
-		mapping.evaluate(result);
+		LensUtil.evaluateMapping(mapping, context, result);
 		
 		return mapping;
 	}

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -197,7 +198,7 @@ public class CredentialsProcessor {
 		};
 		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
 		
-        passwordMapping.evaluate(result);
+		LensUtil.evaluateMapping(passwordMapping, context, result);
         
         PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
         if (accountPasswordNew == null) {

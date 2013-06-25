@@ -116,7 +116,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 		ScriptVariables variables = null;
 		
 		// WHEN
-		List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, TEST_NAME, result);
+		List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
 		
 		// THEN
 		display("Script output", scriptOutputs);
@@ -157,7 +157,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, TEST_NAME, result);
+        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -184,7 +184,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, TEST_NAME, result);
+        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -213,7 +213,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         ScriptVariables variables = new ScriptVariables();
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, TEST_NAME, result);
+        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
 
         // THEN
         display("Script output", scriptOutputs);

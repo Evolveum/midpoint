@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -937,4 +938,13 @@ public class IntegrationTestTools {
 		assertBetween("modifyTimestamp in "+object, start, end, metadata.getModifyTimestamp());
 	}
 
+	public static <T> void assertExtensionProperty(PrismObject<? extends ObjectType> object, QName propertyName, T... expectedValues) {
+		PrismContainer<?> extension = object.getExtension();
+		PrismAsserts.assertPropertyValue(extension, propertyName, expectedValues);
+	}
+
+	public static <T> void assertNoExtensionProperty(PrismObject<? extends ObjectType> object, QName propertyName) {
+		PrismContainer<?> extension = object.getExtension();
+		PrismAsserts.assertNoItem(extension, propertyName);
+	}
 }

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -376,6 +377,75 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test110AssignDummy() throws Exception {
+		final String TEST_NAME = "test110AssignDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 2);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        IntegrationTestTools.assertExtensionProperty(userJack, PIRACY_COLORS, "none");
+	}
+	
+	@Test
+    public void test119UnAssignDummy() throws Exception {
+		final String TEST_NAME = "test119UnAssignDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 1);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
+	}
+	
+	@Test
     public void test200AddUserRapp() throws Exception {
         TestUtil.displayTestTile(this, "test100ModifyUserGivenName");
 
@@ -487,10 +557,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test900DeleteUser() throws Exception {
-        TestUtil.displayTestTile(this, "test900DeleteUser");
+		final String TEST_NAME = "test900DeleteUser";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test900DeleteUser");
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
     
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();

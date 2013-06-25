@@ -146,11 +146,11 @@ public class PrismAsserts {
 		fail("Oid "+oid+" not found in reference "+ref);
 	}
 	
-	public static <T extends Objectable> void assertNoItem(PrismObject<T> object, QName itemName) {
+	public static void assertNoItem(PrismContainer<?> object, QName itemName) {
 		assertNoItem(object, new ItemPath(itemName));
 	}
 
-	public static <T extends Objectable> void assertNoItem(PrismObject<T> object, ItemPath itemPath) {
+	public static void assertNoItem(PrismContainer<?> object, ItemPath itemPath) {
 		Item<?> item = object.findItem(itemPath);
 		assert item == null : "Unexpected item "+item+" in "+object;
 	}

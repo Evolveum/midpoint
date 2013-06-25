@@ -63,6 +63,7 @@ public class AssignmentEvaluator {
 
 	private RepositoryService repository;
 	private ObjectDeltaObject<UserType> userOdo;
+	private LensContext<?, ?> lensContext;
 	private String channel;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
@@ -82,6 +83,14 @@ public class AssignmentEvaluator {
 
 	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
 		this.userOdo = userOdo;
+	}
+
+	public LensContext<?, ?> getLensContext() {
+		return lensContext;
+	}
+
+	public void setLensContext(LensContext<?, ?> lensContext) {
+		this.lensContext = lensContext;
 	}
 
 	public String getChannel() {
@@ -184,6 +193,7 @@ public class AssignmentEvaluator {
 		// We have to clone here as the path is constantly changing during evaluation
 		accContruction.setAssignmentPath(assignmentPath.clone());
 		accContruction.setUserOdo(userOdo);
+		accContruction.setLensContext(lensContext);
 		accContruction.setObjectResolver(objectResolver);
 		accContruction.setPrismContext(prismContext);
 		accContruction.setValueConstructionFactory(valueConstructionFactory);

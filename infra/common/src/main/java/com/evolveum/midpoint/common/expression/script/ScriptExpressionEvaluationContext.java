@@ -30,6 +30,7 @@ public class ScriptExpressionEvaluationContext {
 	private String contextDescription;
 	private OperationResult result;
 	private ScriptExpression scriptExpression;
+	private boolean evaluateNew = false;
 
 	ScriptExpressionEvaluationContext(ScriptVariables variables, String contextDescription,
 			OperationResult result, ScriptExpression scriptExpression) {
@@ -54,6 +55,14 @@ public class ScriptExpressionEvaluationContext {
 
 	public ScriptExpression getScriptExpression() {
 		return scriptExpression;
+	}
+	
+	public boolean isEvaluateNew() {
+		return evaluateNew;
+	}
+
+	public void setEvaluateNew(boolean evaluateNew) {
+		this.evaluateNew = evaluateNew;
 	}
 
 	public void setupThreadLocal() {

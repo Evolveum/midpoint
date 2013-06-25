@@ -277,6 +277,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_BAD_LUCK = new QName(NS_PIRACY, "badLuck");
 	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
 	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
+	protected static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
 	
 	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
 	

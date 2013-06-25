@@ -252,7 +252,7 @@ public abstract class AbstractScriptTest {
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, ItemDefinition outputDefinition, 
 			ScriptVariables variables, String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ScriptExpression scriptExpression = scriptExpressionfactory.createScriptExpression(scriptType, outputDefinition, shortDesc);
-		return scriptExpression.evaluate(variables, null, shortDesc, result);
+		return scriptExpression.evaluate(variables, null, false, shortDesc, result);
 	}
 	
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar, 

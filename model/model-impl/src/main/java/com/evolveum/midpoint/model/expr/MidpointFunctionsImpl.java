@@ -18,6 +18,9 @@ package com.evolveum.midpoint.model.expr;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -34,10 +37,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 
 import java.util.*;
 
@@ -293,5 +301,65 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
     }
+    
+    public boolean hasLinkedAccount(String resourceOid) {
+    	LensContext<ObjectType, ShadowType> ctx = LensContextThreadLocalHolder.get();
+    	if (ctx == null) {
+    		throw new IllegalStateException("No lens context");
+    	}
+    	LensFocusContext<ObjectType> focusContext = ctx.getFocusContext();
+    	if (focusContext == null) {
+    		throw new IllegalStateException("No focus in lens context");
+    	}
+    	ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, null);
+		LensProjectionContext<ShadowType> projectionContext = ctx.findProjectionContext(rat);
+		if (projectionContext == null) {
+			return false;
+		}
+		if (projectionContext.isThombstone()) {
+			return false;
+		}
+		
+		SynchronizationPolicyDecision synchronizationPolicyDecision = projectionContext.getSynchronizationPolicyDecision();
+		SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
+		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+		if (scriptContext.isEvaluateNew()) {
+			// Evaluating new state
+			if (focusContext.isDelete()) {
+				return false;
+			}
+			if (synchronizationPolicyDecision == null) {
+				if (synchronizationIntent == SynchronizationIntent.DELETE || synchronizationIntent == SynchronizationIntent.UNLINK) {
+					return false;
+				} else {
+					return true;
+				}
+			} else {
+				if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+		} else {
+	    	// Evaluating old state
+	    	if (focusContext.isAdd()) {
+	    		return false;
+	    	}
+	    	if (synchronizationPolicyDecision == null) {
+				if (synchronizationIntent == SynchronizationIntent.ADD) {
+					return false;
+				} else {
+					return true;
+				}
+			} else {
+				if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+	    }
+    } 
 
 }

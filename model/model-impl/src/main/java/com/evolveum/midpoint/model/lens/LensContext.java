@@ -181,7 +181,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		}
 		return null;
 	}
-	
+		
 	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat) {
 		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
 			if (compareResourceShadowDiscriminator(rat, projCtx)) {

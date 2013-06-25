@@ -77,6 +77,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private ObjectType source;
 	private OriginType originType;
 	private String channel;
+	private LensContext<?, ?> lensContext;
 	private ObjectDeltaObject<UserType> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
@@ -120,6 +121,14 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 
 	public void setChannel(String channel) {
 		this.channel = channel;
+	}
+	
+	public LensContext<?, ?> getLensContext() {
+		return lensContext;
+	}
+
+	public void setLensContext(LensContext<?, ?> lensContext) {
+		this.lensContext = lensContext;
 	}
 
 	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
@@ -381,7 +390,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			mapping.setConditionMaskNew(false);
 		}
 
-		mapping.evaluate(result);
+		LensUtil.evaluateMapping(mapping, lensContext, result);
 		
 		LOGGER.trace("Evaluated mapping for "+attrName+": "+mapping);
 		return mapping;

@@ -18,7 +18,8 @@
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'>
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>Complex User Template</name>
     
     <includeRef oid="10000000-0000-0000-0000-000000000223"/>
@@ -170,6 +171,23 @@
     	<target>
     		<path>description</path>
     	</target>
+    </mapping>
+    
+    <mapping>
+    	<name>colors:none</name>
+    	<authoritative>true</authoritative>
+    	<strength>strong</strength>
+    	<expression>
+            <value>none</value>    	
+    	</expression>
+    	<target>
+    		<path>extension/piracy:colors</path>
+    	</target>
+    	<condition>
+    		<script>
+            	<code>midpoint.hasLinkedAccount('10000000-0000-0000-0000-000000000004')</code>
+            </script>
+		</condition>
     </mapping>
 
 </objectTemplate>

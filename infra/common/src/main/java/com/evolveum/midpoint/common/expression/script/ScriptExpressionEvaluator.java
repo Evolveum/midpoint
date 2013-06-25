@@ -200,7 +200,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 			}
 		}
 		
-		List<PrismPropertyValue<Object>> scriptResults = scriptExpression.evaluate(scriptVariables, null,
+		List<PrismPropertyValue<Object>> scriptResults = scriptExpression.evaluate(scriptVariables, null, useNew,
 				(useNew ? "(new) " : "(old) " ) + contextDescription, result);
 		
 		if (scriptResults == null || scriptResults.isEmpty()) {
@@ -305,21 +305,24 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				
 				ScriptVariables scriptVariables = new ScriptVariables();
 				scriptVariables.addVariableDefinitions(sourceVariables);
+				boolean useNew = false;
 				if (hasPlus) {
 					// Pluses and zeroes: Result goes to plus set, use NEW values for variables
 					scriptVariables.addVariableDefinitionsNew(variables);
+					useNew = true;
 				} else if (hasMinus) {
 					// Minuses and zeroes: Result goes to minus set, use OLD values for variables
 					scriptVariables.addVariableDefinitionsOld(variables);
 				} else {
 					// All zeros: Result goes to zero set, use NEW values for variables
 					scriptVariables.addVariableDefinitionsNew(variables);
+					useNew = true;
 				}
 				
 				List<V> scriptResults;
 				try {
 					scriptResults = (List<V>) scriptExpression.evaluate(scriptVariables, ScriptExpressionReturnTypeType.SCALAR, 
-							contextDescription, result);
+							useNew, contextDescription, result);
 				} catch (ExpressionEvaluationException e) {
 					throw new TunnelException(new ExpressionEvaluationException(e.getMessage()+
 							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
