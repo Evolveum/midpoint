@@ -129,7 +129,7 @@ public class CleanUpTaskHandler implements TaskHandler{
 		CleanupPolicyType closedTasksPolicy = cleanupPolicies.getClosedTasks();
 		if (closedTasksPolicy != null) {
 			try {
-				repositoryService.cleanupTasks(closedTasksPolicy, opResult);
+				taskManager.cleanupTasks(closedTasksPolicy, opResult);
 			} catch (Exception ex) {
 				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);

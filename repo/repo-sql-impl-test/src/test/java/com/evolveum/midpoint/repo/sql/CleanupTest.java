@@ -61,7 +61,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(CleanupTest.class);
 
-    @Test
+    @Test(enabled = false)
     public void testTasksCleanup() throws Exception {
         // GIVEN
         final File file = new File(FOLDER_BASIC, "tasks.xml");

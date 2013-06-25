@@ -16,25 +16,22 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.hibernate.Session;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -47,7 +44,6 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -91,6 +87,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_INTERFACE + "suspendTasks";
     private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_INTERFACE + "deactivateServiceThreads";
+    private static final String CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
 
     // instances of all the helper classes (see their definitions for their description)
     private TaskManagerConfiguration configuration = new TaskManagerConfiguration();
@@ -641,6 +638,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         } catch (SchemaException e) {
             result.recordFatalError("Cannot delete the task because of schema exception.", e);
             throw e;
+        } catch (RuntimeException e) {
+            result.recordFatalError("Cannot delete the task because of a runtime exception.", e);
+            throw e;
         }
     }
 
@@ -1124,5 +1124,92 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.recordSuccessIfUnknown();
         return tasks;
     }
+
+    @Override
+    public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(CLEANUP_TASKS);
+
+        if (policy.getMaxAge() == null) {
+            return;
+        }
+
+        Duration duration = policy.getMaxAge();
+        if (duration.getSign() > 0) {
+            duration = duration.negate();
+        }
+        Date deleteTasksClosedUpTo = new Date();
+        duration.addTo(deleteTasksClosedUpTo);
+
+        LOGGER.info("Starting cleanup for closed tasks deleting up to {} (duration '{}').",
+                new Object[]{deleteTasksClosedUpTo, duration});
+
+        XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteTasksClosedUpTo.getTime());
+
+        List<PrismObject<TaskType>> obsoleteTasks;
+        try {
+            ObjectQuery obsoleteTasksQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
+                    LessFilter.createLessFilter(TaskType.class, getPrismContext(), TaskType.F_COMPLETION_TIMESTAMP, timeXml, true),
+                    EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null)));
+
+            obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, result);
+        } catch (SchemaException e) {
+            throw new SchemaException("Couldn't get the list of obsolete tasks: " + e.getMessage(), e);
+        }
+
+        LOGGER.debug("Found {} task tree(s) to be cleaned up", obsoleteTasks.size());
+
+        int deleted = 0;
+        int problems = 0;
+        int bigProblems = 0;
+        for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
+
+            // get whole tree
+            Task rootTask = createTaskInstance(rootTaskPrism, result);
+            List<Task> taskTreeMembers = rootTask.listSubtasksDeeply(result);
+            taskTreeMembers.add(rootTask);
+
+            LOGGER.trace("Removing task {} along with its {} children.", rootTask, taskTreeMembers.size()-1);
+
+            boolean problem = false;
+            for (Task task : taskTreeMembers) {
+                try {
+                    deleteTask(task.getOid(), result);
+                } catch (SchemaException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {} due to schema exception", e, task);
+                    problem = true;
+                } catch (ObjectNotFoundException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {} due to object not found exception", e, task);
+                    problem = true;
+                } catch (RuntimeException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {} due to a runtime exception", e, task);
+                    problem = true;
+                }
+
+                if (problem) {
+                    problems++;
+                    if (!task.getTaskIdentifier().equals(rootTask.getTaskIdentifier())) {
+                        bigProblems++;
+                    }
+                } else {
+                    deleted++;
+                }
+            }
+        }
+        result.recomputeStatus();
+
+        LOGGER.info("Task cleanup procedure finished. Successfully deleted {} tasks; there were problems with deleting {} tasks.", deleted, problems);
+        if (bigProblems > 0) {
+            LOGGER.error("{} subtask(s) couldn't be deleted. Inspect that manually, otherwise they might reside in repo forever.", bigProblems);
+        }
+        if (problems == 0) {
+            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " task(s).");
+        } else {
+            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordPartialError("Successfully deleted " + deleted + " task(s), "
+                    + "there was problems with deleting " + problems + " tasks."
+                    + (bigProblems > 0 ? (" " + bigProblems + " subtask(s) couldn't be deleted, please see the log.") : ""));
+        }
+
+    }
+
 
 }

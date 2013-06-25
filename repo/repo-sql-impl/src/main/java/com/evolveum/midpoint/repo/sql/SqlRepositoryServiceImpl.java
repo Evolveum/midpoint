@@ -1578,12 +1578,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      * <p/>
      * Somebody improve this when there's time for it.
      *
+     * DEPRECATED: task cleanup is currently done in task manager because of the need of
+     * deleting whole task trees at once (MID-1439).
+     *
      * @param entity
      * @param minValue
      * @param session
      * @return number of deleted tasks
      */
     @Override
+    @Deprecated
     protected int cleanupAttempt(Class entity, Date minValue, Session session) {
         if (!RTask.class.equals(entity)) {
             return 0;
