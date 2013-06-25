@@ -105,6 +105,7 @@ public class ProcessInstanceProvider {
             List<ProcessInstance> mInstances = finished ?
                     activitiToMidpointHistoricProcessInstanceList((List<HistoricProcessInstance>) instances, result) :
                     activitiToMidpointRunningProcessInstanceList((List<org.activiti.engine.runtime.ProcessInstance>) instances, false, result); // false = no work items
+            result.recordSuccessIfUnknown();
             return mInstances;
         } catch (ActivitiException e) {
             String m = "Couldn't list process instances related to " + userOid + " due to Activiti exception";
@@ -158,7 +159,9 @@ public class ProcessInstanceProvider {
             hpiq.processInstanceId(instanceId);
             HistoricProcessInstance historicProcessInstance = hpiq.singleResult();
             if (historicProcessInstance != null) {
-                return activitiToMidpointProcessInstanceHistory(historicProcessInstance, result);
+                ProcessInstance retval = activitiToMidpointProcessInstanceHistory(historicProcessInstance, result);
+                result.computeStatus();
+                return retval;
             } else {
                 result.recordFatalError("Process instance " + instanceId + " couldn't be found.");
                 throw new ObjectNotFoundException("Process instance " + instanceId + " couldn't be found.");
@@ -169,7 +172,9 @@ public class ProcessInstanceProvider {
             org.activiti.engine.runtime.ProcessInstance instance = piq.singleResult();
 
             if (instance != null) {
-                return activitiToMidpointRunningProcessInstance(instance, getWorkItems, result);
+                ProcessInstance retval = activitiToMidpointRunningProcessInstance(instance, getWorkItems, result);
+                result.computeStatus();
+                return retval;
             } else {
                 result.recordFatalError("Process instance " + instanceId + " couldn't be found.");
                 throw new ObjectNotFoundException("Process instance " + instanceId + " couldn't be found.");
