@@ -23,16 +23,13 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
@@ -465,7 +462,40 @@ public class TestDelta {
 		PrismAsserts.assertNoDelete(modification);
 	}
 
-	
+    @Test
+    public void testSummarize06() throws Exception {
+        System.out.println("\n\n===[ testSummarize06 ]===\n");
+
+        // GIVEN
+        PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinition(UserType.F_PARENT_ORG_REF,
+                UserType.F_PARENT_ORG_REF, OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
+
+        ReferenceDelta delta1 = new ReferenceDelta(referenceDefinition);
+        delta1.addValueToAdd(new PrismReferenceValue("oid1"));
+        ObjectDelta<UserType> objectDelta1 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY,
+                PrismTestUtil.getPrismContext());
+        objectDelta1.addModification(delta1);
+
+        ReferenceDelta delta2 = new ReferenceDelta(referenceDefinition);
+        delta2.addValueToAdd(new PrismReferenceValue("oid1"));                    // here we add the same value
+        ObjectDelta<UserType> objectDelta2 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY,
+                PrismTestUtil.getPrismContext());
+        objectDelta2.addModification(delta2);
+
+        // WHEN
+        ObjectDelta<UserType> sumDelta = ObjectDelta.summarize(objectDelta1, objectDelta2);
+
+        // THEN
+        System.out.println("Summarized delta:");
+        System.out.println(sumDelta.dump());
+
+        PrismAsserts.assertModifications(sumDelta, 1);
+        ReferenceDelta modification = (ReferenceDelta) sumDelta.getModifications().iterator().next();
+        PrismAsserts.assertNoReplace(modification);
+        assertEquals("Invalid number of values to add", 1, modification.getValuesToAdd().size());
+        PrismAsserts.assertNoDelete(modification);
+    }
+
 	@Test
     public void testAddPropertyMulti() throws Exception {
 		System.out.println("\n\n===[ testAddPropertyMulti ]===\n");
@@ -1082,7 +1112,39 @@ public class TestDelta {
         		PrismTestUtil.createPolyString("foo"), PrismTestUtil.createPolyString("bar"));
         // TODO
     }
-	
+
+    @Test
+    public void testObjectDeltaSummarizeAddModifySameRefValues() throws Exception {
+        System.out.println("\n\n===[ testObjectDeltaSummarizeAddModifySameRefValues ]===\n");
+        // GIVEN
+
+        PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+
+        PrismObject<UserType> user = userDef.instantiate();
+        user.setOid(USER_FOO_OID);
+        user.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("foo"));
+        PrismReference parentOrgRef = user.findOrCreateReference(UserType.F_PARENT_ORG_REF);
+        parentOrgRef.add(new PrismReferenceValue("oid1"));
+
+        ObjectDelta<UserType> userDelta0 = ObjectDelta.createAddDelta(user);
+        ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddReference(UserType.class, USER_FOO_OID,
+                UserType.F_PARENT_ORG_REF, PrismTestUtil.getPrismContext(), "oid1");
+
+        System.out.println("userDelta0 = " + userDelta0.debugDump());
+        System.out.println("userDelta1 = " + userDelta1.debugDump());
+
+        // WHEN
+        ObjectDelta<UserType> userDeltaSum = ObjectDelta.summarize(userDelta0, userDelta1);
+
+        System.out.println("userDeltaSum = " + userDeltaSum.debugDump());
+
+        // THEN
+        assertEquals("Wrong OID", USER_FOO_OID, userDeltaSum.getOid());
+        PrismAsserts.assertIsAdd(userDeltaSum);
+        PrismObject<UserType> userSum = userDeltaSum.getObjectToAdd();
+        assert user != userSum : "User was not cloned";
+        PrismAsserts.assertReferenceValues(userSum.findOrCreateReference(UserType.F_PARENT_ORG_REF), "oid1");
+    }
 	@Test
     public void testDeltaComplex() throws Exception {
 		System.out.println("\n\n===[ testDeltaComplex ]===\n");

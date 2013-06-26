@@ -215,7 +215,8 @@ public class TestExtraSchema {
 		assertDefinitionOrder(definitions, USER_NAME_QNAME, 0);
 		assertDefinitionOrder(definitions, USER_DESCRIPTION_QNAME, 1);
 		assertDefinitionOrder(definitions, USER_EXTENSION_QNAME, 2);
-		assertDefinitionOrder(definitions, USER_FULLNAME_QNAME, 3);
+        assertDefinitionOrder(definitions, USER_PARENT_ORG_REF_QNAME, 3);
+		assertDefinitionOrder(definitions, USER_FULLNAME_QNAME, 4);
 	}
 
 	private void assertDefinitionOrder(List<? extends ItemDefinition> definitions, QName elementName, int i) {

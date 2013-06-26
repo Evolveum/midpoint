@@ -927,7 +927,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
 				item.replaceAll(PrismValue.cloneCollection(valuesToAdd));
 			} else {
-				item.addAll(PrismValue.cloneCollection(valuesToAdd));
+                for (V valueToAdd : valuesToAdd) {
+                    if (!item.containsEquivalentValue(valueToAdd)) {
+                        item.add(valueToAdd.clone());
+                    }
+                }
 			}
 		}
 		if (valuesToDelete != null) {

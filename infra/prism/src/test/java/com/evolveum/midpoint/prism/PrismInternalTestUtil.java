@@ -90,6 +90,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName OBJECT_REFERENCE_TYPE_QNAME = new QName(NS_FOO, "ObjectReferenceType");
 	
 	public static final QName USER_EXTENSION_QNAME = new QName(NS_FOO,"extension");
+    public static final QName USER_PARENT_ORG_QNAME = new QName(NS_FOO,"parentOrg");
+    public static final QName USER_PARENT_ORG_REF_QNAME = new QName(NS_FOO,"parentOrgRef");
 	
 	public static final QName USER_NAME_QNAME = new QName(NS_FOO,"name");
 	public static final QName USER_FULLNAME_QNAME = new QName(NS_FOO,"fullName");

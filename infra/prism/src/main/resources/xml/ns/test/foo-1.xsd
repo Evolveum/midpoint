@@ -116,6 +116,20 @@
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="parentOrg" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReference>tns:parentOrgRef</a:objectReference>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="parentOrgRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="oid" type="xsd:string" use="optional"/>
         <xsd:attribute name="version" type="xsd:string" use="optional"/>

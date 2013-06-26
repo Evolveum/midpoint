@@ -17,18 +17,17 @@
 
 package com.evolveum.midpoint.prism.foo;
 
-import java.io.Serializable;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -58,7 +57,8 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 @XmlType(name = "ObjectType", propOrder = {
     "name",
     "description",
-    "extension"
+    "extension",
+    "parentOrgRef"
 })
 @XmlSeeAlso({
     UserType.class
@@ -74,6 +74,7 @@ public abstract class ObjectType
 	public final static QName F_NAME = new QName(NS_FOO, "name");
 	public final static QName F_DESCRIPTION = new QName(NS_FOO, "description");
 	public final static QName F_EXTENSION = new QName(NS_FOO, "extension");
+    public final static QName F_PARENT_ORG_REF = new QName(NS_FOO, "parentOrgRef");
 	
     private final static long serialVersionUID = 201202081233L;
     protected PolyStringType name;
@@ -83,6 +84,7 @@ public abstract class ObjectType
     protected String oid;
     @XmlAttribute(name = "version")
     protected String version;
+    protected List<ObjectReferenceType> parentOrgRef;
 
     /**
      * Gets the value of the name property.
@@ -233,5 +235,12 @@ public abstract class ObjectType
 	public void setupContainerValue(PrismContainerValue container) {
 		throw new UnsupportedOperationException("not implemented yet");
 	}
+
+    public List<ObjectReferenceType> getParentOrgRef() {
+        if (parentOrgRef == null) {
+            parentOrgRef = new ArrayList<ObjectReferenceType>();
+        }
+        return parentOrgRef;
+    }
 
 }
