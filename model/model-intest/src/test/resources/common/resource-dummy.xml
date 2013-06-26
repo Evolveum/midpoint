@@ -155,6 +155,7 @@
 			<attribute>
 				<ref>ri:loot</ref>
 				<displayName>Loot</displayName>
+				<fetchStrategy>explicit</fetchStrategy>
 				<outbound>
 					<channel>http://pirates.net/avast</channel>
 					<expression>
