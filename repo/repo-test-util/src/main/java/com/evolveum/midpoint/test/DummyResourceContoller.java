@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.test;
+package com.evolveum.midpoint.test;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -40,6 +40,9 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -56,12 +59,23 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME = "title";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME = "location";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME = "loot";
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME = "treasure";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME = "ship";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME = "drink";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME = "quote";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME = "gossip";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME = "water";
+    
+    public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
+	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
+	
+	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
+	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "priv";
+	
+	public static final String CONNECTOR_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
+	public static final String CONNECTOR_DUMMY_USELESS_STRING_NAME = "uselessString";
+	public static final QName CONNECTOR_DUMMY_USELESS_STRING_QNAME = new QName(CONNECTOR_DUMMY_NS, CONNECTOR_DUMMY_USELESS_STRING_NAME);
 	
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
@@ -102,18 +116,26 @@ public class DummyResourceContoller extends AbstractResourceController {
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, String.class, false, false);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, String.class, false, false);
-		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Integer.class, false, false);
+		DummyAttributeDefinition lootAttrDef =  addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Integer.class, false, false);
+		lootAttrDef.setReturnedByDefault(false);
+		DummyAttributeDefinition treasureAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME, String.class, false, false);
+		treasureAttrDef.setReturnedByDefault(false);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, String.class, false, false);
+		
+		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();		
+		addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, String.class, false, false);
+		
 		isExtendedSchema = true;
 	}
 	
-	public void addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
+	public DummyAttributeDefinition addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
 		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
 		accountObjectClass.add(attrDef);
+		return attrDef;
 	}
 	
 	public QName getAttributeFullnameQName() {
@@ -136,6 +158,43 @@ public class DummyResourceContoller extends AbstractResourceController {
 	
 	private void assertExtendedSchema() {
 		assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extedned attribute was requested";
+	}
+	
+	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+		IntegrationTestTools.assertIcfResourceSchemaSanity(resourceSchema, resourceType);
+		
+		// ACCOUNT
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		assertNotNull("No ACCOUNT kind definition", accountDef);
+		
+		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		assertNotNull("No definition for fullname", fullnameDef);
+		assertEquals(1, fullnameDef.getMaxOccurs());
+		assertEquals(1, fullnameDef.getMinOccurs());
+		assertTrue("No fullname create", fullnameDef.canCreate());
+		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname read", fullnameDef.canRead());
+		
+		// GROUP
+		ObjectClassComplexTypeDefinition groupObjectClass = resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_LOCAL_NAME);
+		assertNotNull("No group objectClass", groupObjectClass);
+		
+		ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
+		assertNotNull("No definition for members", membersDef);
+		assertEquals("Wrong maxOccurs", -1, membersDef.getMaxOccurs());
+		assertEquals("Wrong minOccurs", 0, membersDef.getMinOccurs());
+		assertTrue("No members create", membersDef.canCreate());
+		assertTrue("No members update", membersDef.canUpdate());
+		assertTrue("No members read", membersDef.canRead());
+	}
+	
+	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType) {
+		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
+		
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);		
+		assertEquals("Unexpected number of defnitions", 16, accountDef.getDefinitions().size());
+		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
+		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 	}
 
 	public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {

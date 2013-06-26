@@ -262,8 +262,8 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
 		assertTrue("Broken caching", returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
-
-		ProvisioningTestUtil.assertIcfResourceSchemaSanity(returnedSchema, resourceType);
+		
+		IntegrationTestTools.assertIcfResourceSchemaSanity(returnedSchema, resourceType);
 
 	}
 	

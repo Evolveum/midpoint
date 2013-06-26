@@ -68,6 +68,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -140,6 +141,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
 	protected static DummyResource dummyResource;
+	protected static DummyResourceContoller dummyResourceCtl;
 	
 	@Autowired(required = true)
 	protected ProvisioningService provisioningService;
@@ -175,10 +177,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		resource = addResourceFromFile(getResourceDummyFilename(), IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 
-		dummyResource = DummyResource.getInstance();
-		dummyResource.reset();
-		dummyResource.populateWithDefaultSchema();
-		ProvisioningTestUtil.extendSchema(dummyResource);
+		dummyResourceCtl = DummyResourceContoller.create(null);
+		dummyResourceCtl.setResource(resource);
+		dummyResourceCtl.extendDummySchema();
+		dummyResource = dummyResourceCtl.getDummyResource();
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
 		dummyAccountDaemon.setEnabled(true);
@@ -214,7 +216,6 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 				+ query.dump());
 		display("Looking for shadows of \"" + getWillRepoIcfUid() + "\" with filter "
 				+ query.dump());
-
 		
 		List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query,
 				result);
@@ -233,7 +234,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
-		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}
 	
 	protected <T> void assertDummyAccountAttributeValues(String accountId, String attributeName, T... expectedValues) {

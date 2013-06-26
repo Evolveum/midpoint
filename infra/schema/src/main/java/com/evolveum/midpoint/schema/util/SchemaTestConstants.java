@@ -42,6 +42,9 @@ public class SchemaTestConstants {
 	public static final QName ICFS_NAME = new QName(NS_ICFS, "name");
 	public static final ItemPath ICFS_NAME_PATH = new ItemPath(ShadowType.F_ATTRIBUTES, ICFS_NAME);
 	
+	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
+	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
+	
 	// Extension schema loaded at runtime from the schema/src/test/resource/schema dir
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	public static final QName EXTENSION_LOCATIONS_ELEMENT = new QName(NS_EXTENSION, "locations");

@@ -152,22 +152,34 @@ public abstract class ShadowCache {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
+	
 	@Autowired(required = true)
 	private ErrorHandlerFactory errorHandlerFactory;
+	
 	@Autowired(required = true)
 	private ResourceManager resourceTypeManager;
+	
 	@Autowired(required = true)
 	private PrismContext prismContext;
+	
 	@Autowired(required = true)
 	private ResourceObjectConverter resouceObjectConverter;
+	
 	@Autowired(required = true)
 	protected ShadowManager shadowManager;
+	
 	@Autowired(required = true)
 	private ConnectorManager connectorManager;
+	
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher operationListener;
+	
+	@Autowired(required = true)
+	private AccessChecker accessChecker;
+	
 	@Autowired(required = true)
 	private TaskManager taskManager;
+	
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
 
@@ -319,6 +331,7 @@ public abstract class ShadowCache {
 		try {
 			objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 			applyAttributesDefinition(shadow, resource);
+			accessChecker.checkAdd(resource, shadow, objectClassDefinition, parentResult);
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 			shadow = resouceObjectConverter.addResourceObject(connector, resource, shadow, objectClassDefinition, scripts, parentResult);
 			

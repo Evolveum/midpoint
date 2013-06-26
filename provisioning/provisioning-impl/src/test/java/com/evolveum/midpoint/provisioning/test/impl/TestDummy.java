@@ -19,10 +19,8 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
-import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME;
-import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.RESOURCE_DUMMY_ATTR_FULLNAME_PATH;
-import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.RESOURCE_DUMMY_ATTR_TITLE_PATH;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
@@ -101,6 +99,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
@@ -1013,9 +1012,9 @@ public class TestDummy extends AbstractDummyTest {
 		checkAccountShadow(shadow, result);
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertEquals("Unexpected number of attributes", 6, attributes.size());
-		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
-		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
-		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 	}
 
 	@Test
@@ -1297,7 +1296,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
-				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_FULLNAME_PATH, prismContext, "Pirate Will Turner");
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Will Turner");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1311,7 +1310,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -1329,7 +1328,9 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddProperty(ShadowType.class, 
-				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Pirate");
+				ACCOUNT_WILL_OID, 
+				dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), 
+				prismContext, "Pirate");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1362,7 +1363,9 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddProperty(ShadowType.class, 
-				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Captain");
+				ACCOUNT_WILL_OID, 
+				dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+				prismContext, "Captain");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1395,7 +1398,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteProperty(ShadowType.class, 
-				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Pirate");
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), prismContext, "Pirate");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1432,7 +1435,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddProperty(ShadowType.class, 
-				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Captain");
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), prismContext, "Captain");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1557,7 +1560,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
-				ACCOUNT_NEW_SCRIPT_OID, RESOURCE_DUMMY_ATTR_FULLNAME_PATH, prismContext, "Will Turner");
+				ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Will Turner");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -2005,7 +2008,7 @@ public class TestDummy extends AbstractDummyTest {
 		checkGroupShadow(shadow, result);
 		PrismAsserts.assertEqualsPolyString("Name not equal.", GROUP_PIRATES_NAME, shadow.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
-		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Scurvy pirates");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Scurvy pirates");
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
 		
@@ -2056,7 +2059,9 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
-				GROUP_PIRATES_OID, ProvisioningTestUtil.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH, prismContext, "Bloodthirsty pirates");
+				GROUP_PIRATES_OID, 
+				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
+				prismContext, "Bloodthirsty pirates");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -2071,7 +2076,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertDummyAttributeValues(group, ProvisioningTestUtil.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty pirates");
+		assertDummyAttributeValues(group, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty pirates");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		assertSteadyResource();
@@ -2182,7 +2187,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
-				ProvisioningTestUtil.DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, prismContext);
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -2249,7 +2255,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
-				ProvisioningTestUtil.DUMMY_ENTITLEMENT_PRIVILEGE_QNAME, PRIVILEGE_PILLAGE_OID, prismContext);
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
+				PRIVILEGE_PILLAGE_OID, prismContext);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -2336,8 +2343,9 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, 
-				ProvisioningTestUtil.DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, prismContext);
+		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -2380,7 +2388,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, 
-				ProvisioningTestUtil.DUMMY_ENTITLEMENT_PRIVILEGE_QNAME, PRIVILEGE_PILLAGE_OID, prismContext);
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
+				PRIVILEGE_PILLAGE_OID, prismContext);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -2648,7 +2657,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues("cptmorgan", RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Captain Morgan");
+		assertDummyAccountAttributeValues("cptmorgan", DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 		
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, result);
 		assertShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);

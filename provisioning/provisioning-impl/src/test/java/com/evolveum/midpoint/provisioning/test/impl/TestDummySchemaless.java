@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -114,9 +115,11 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	private PrismObject<ResourceType> resourceStaticSchema;
 	private ResourceType resourceTypeStaticSchema;
 	private static DummyResource dummyResourceStaticSchema;
+	private static DummyResourceContoller dummyResourceSchemalessCtl;
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
+
 	
 //	@Autowired
 //	TaskManager taskManager;
@@ -141,10 +144,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceTypeSchemaless = resourceSchemaless.asObjectable();
 
-		dummyResourceSchemaless = DummyResource.getInstance(RESOURCE_DUMMY_NO_SCHEMA_INSTANCE_ID);
-		dummyResourceSchemaless.reset();
-		dummyResourceSchemaless.populateWithDefaultSchema();
-		
+		dummyResourceSchemalessCtl = DummyResourceContoller.create(RESOURCE_DUMMY_NO_SCHEMA_INSTANCE_ID);
+		dummyResourceSchemalessCtl.setResource(resourceSchemaless);
+		dummyResourceSchemaless = dummyResourceSchemalessCtl.getDummyResource();
+				
 		resourceStaticSchema = addResourceFromFile(RESOURCE_DUMMY_STATIC_SCHEMA_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceTypeStaticSchema = resourceStaticSchema.asObjectable();
 
@@ -317,7 +320,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
 		
-		ProvisioningTestUtil.assertDummyResourceSchemaSanity(returnedSchema, resourceTypeStaticSchema);
+		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resourceTypeStaticSchema);
 	}
 
 	@Test
@@ -338,7 +341,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
 		
-		ProvisioningTestUtil.assertDummyResourceSchemaSanity(returnedSchema, resource.asObjectable());
+		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resource.asObjectable());
 	}
 	
 	@Test

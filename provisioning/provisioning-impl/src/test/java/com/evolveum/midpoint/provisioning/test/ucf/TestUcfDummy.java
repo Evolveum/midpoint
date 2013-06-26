@@ -80,6 +80,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -121,6 +122,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	private ConnectorInstance cc;
 	private ResourceSchema resourceSchema;
 	private static DummyResource dummyResource;
+	private static DummyResourceContoller dummyResourceCtl;
 
 	@Autowired(required = true)
 	private ConnectorFactory connectorFactoryIcfImpl;
@@ -137,11 +139,11 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 		
-		dummyResource = DummyResource.getInstance();
-		dummyResource.reset();
-		dummyResource.populateWithDefaultSchema();
-		ProvisioningTestUtil.extendSchema(dummyResource);
-		
+		dummyResourceCtl = DummyResourceContoller.create(null);
+		dummyResourceCtl.setResource(resource);
+		dummyResourceCtl.extendDummySchema();
+		dummyResource = dummyResourceCtl.getDummyResource();
+				
 		manager = connectorFactoryIcfImpl;
 
 		resource = PrismTestUtil.parseObject(new File(FILENAME_RESOURCE_DUMMY));
@@ -291,7 +293,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		display("Generated resource schema", resourceSchema);
 		assertEquals("Unexpected number of definitions", 3, resourceSchema.getDefinitions().size());
 		
-		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 		
 		Document xsdSchemaDom = resourceSchema.serializeToXsd();
 		assertNotNull("No serialized resource schema", xsdSchemaDom);
@@ -303,7 +305,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		display("Re-parsed resource schema", reparsedResourceSchema);
 		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedResourceSchema.getDefinitions().size());
 		
-		ProvisioningTestUtil.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType);
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType);
 	}
 	
 	@Test

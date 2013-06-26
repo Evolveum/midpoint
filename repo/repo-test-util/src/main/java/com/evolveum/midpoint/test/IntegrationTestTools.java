@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -946,5 +947,68 @@ public class IntegrationTestTools {
 	public static <T> void assertNoExtensionProperty(PrismObject<? extends ObjectType> object, QName propertyName) {
 		PrismContainer<?> extension = object.getExtension();
 		PrismAsserts.assertNoItem(extension, propertyName);
+	}
+	
+	public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+		assertNotNull("No resource schema in "+resourceType, resourceSchema);
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
+		assertNotNull("No object class definition for "+objectClassQname+" in resource schema", accountDefinition);
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		assertTrue("Mismatched account definition: "+accountDefinition+" <-> "+accountDef, accountDefinition == accountDef);
+		
+		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
+		assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());
+		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultInAKind());
+		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
+		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
+		
+		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
+		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
+
+		
+		ResourceAttributeDefinition icfAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
+		assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_UID, icfAttributeDefinition);
+		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not an identifier",icfAttributeDefinition.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not in identifiers list",identifiers.contains(icfAttributeDefinition));
+		
+		Collection<? extends ResourceAttributeDefinition> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
+		assertNotNull("Null secondary identifiers for " + objectClassQname, secondaryIdentifiers);
+		assertFalse("Empty secondary identifiers for " + objectClassQname, secondaryIdentifiers.isEmpty());
+		
+		ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
+		assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);
+		assertTrue("Attribute "+SchemaTestConstants.ICFS_NAME+" in not an identifier",nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
+		assertTrue("Attribute "+SchemaTestConstants.ICFS_NAME+" in not in identifiers list",secondaryIdentifiers.contains(nameAttributeDefinition));
+
+		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
+		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+
+		ResourceAttributeDefinition uidDef = accountDef
+				.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
+		assertEquals(1, uidDef.getMaxOccurs());
+		assertEquals(0, uidDef.getMinOccurs());
+		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
+		assertFalse("UID has create", uidDef.canCreate());
+		assertFalse("UID has update",uidDef.canUpdate());
+		assertTrue("No UID read",uidDef.canRead());
+		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+
+		ResourceAttributeDefinition nameDef = accountDef
+				.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
+		assertEquals(1, nameDef.getMaxOccurs());
+		assertEquals(1, nameDef.getMinOccurs());
+		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
+		assertTrue("No NAME create", nameDef.canCreate());
+		assertTrue("No NAME update",nameDef.canUpdate());
+		assertTrue("No NAME read",nameDef.canRead());
+		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 	}
 }

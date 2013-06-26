@@ -74,6 +74,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -545,8 +546,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		PropertyDelta<String> uselessStringDelta = PropertyDelta.createModificationReplaceProperty(
 				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
 							 ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
-							 ProvisioningTestUtil.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
-							 new PrismPropertyDefinition(ProvisioningTestUtil.CONNECTOR_DUMMY_USELESS_STRING_QNAME, ProvisioningTestUtil.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
+							 DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
+							 new PrismPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
 							 newVal);
 		return uselessStringDelta;
 	}
