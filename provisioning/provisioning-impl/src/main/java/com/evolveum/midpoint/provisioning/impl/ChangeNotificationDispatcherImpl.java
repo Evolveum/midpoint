@@ -102,6 +102,11 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.dump());
 		}
 		
+		if (change.isProtected()) {
+			LOGGER.trace("Skipping dispatching of {} because it is protected", change);
+			return;
+		}
+		
 		if (InternalsConfig.consistencyChecks) change.checkConsistence();
 		
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {

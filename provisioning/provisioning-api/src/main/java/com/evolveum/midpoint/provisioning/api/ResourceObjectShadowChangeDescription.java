@@ -115,6 +115,17 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
     	}
     }
 
+    public boolean isProtected() {
+    	if ((currentShadow != null && ShadowUtil.isProtected(currentShadow))
+    			|| (oldShadow != null && ShadowUtil.isProtected(oldShadow))) {
+    		return true;
+    	}
+    	if (objectDelta != null && objectDelta.isAdd() && ShadowUtil.isProtected(objectDelta.getObjectToAdd())) {
+    		return true;
+    	}
+    	return false;
+    }
+    
 	@Override
 	public String toString() {
 		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="

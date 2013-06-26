@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -743,6 +744,52 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 //        if (sync != null){
 //        	sync.setObjectTemplateRef(null);
 //        }
+	}
+	
+	/**
+	 * Calypso is a protected account. It should not be touched by the sync.
+	 */
+	@Test
+    public void test600AddDummyGreenAccountCalypso() throws Exception {
+		final String TEST_NAME = "test600AddDummyGreenAccountCalypso";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
+        prepareNotifications();
+        
+        // Preconditions
+        assertUsers(7 + getNumberOfExtraDummyUsers());
+
+        DummyAccount account = new DummyAccount(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "The Seven Seas");
+        
+		/// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+		dummyResourceGreen.addAccount(account);
+        
+        waitForSyncTaskNextRun(resourceDummyGreen);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        PrismObject<ShadowType> accountShadow = findAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME, resourceDummyGreen);
+        display("Account calypso", accountShadow);
+        assertNotNull("No calypso account shadow", accountShadow);
+        assertEquals("Wrong resourceRef in calypso account", RESOURCE_DUMMY_GREEN_OID, 
+        		accountShadow.asObjectable().getResourceRef().getOid());
+        assertTrue("Calypso shadow is NOT protected", accountShadow.asObjectable().isProtectedObject());
+        
+        PrismObject<UserType> userCalypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        display("User calypso", userCalypso);
+        assertNull("User calypso was created, it should not", userCalypso);
+        
+        assertUsers(7 + getNumberOfExtraDummyUsers());
 	}
 	
 	private void assumeUserTemplate(String templateOid, ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
