@@ -229,9 +229,21 @@ public class PageUsers extends PageAdminUsers {
                         UserType user = rowModel.getObject().getValue();
                         CredentialsType credentials = user.getCredentials();
 
+                        //if allowedIdmAdminGuiAccess is true, it's superuser
                         if (credentials != null) {
                             Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
                             if (allowedAdmin != null && allowedAdmin) {
+                                return new SharedResourceReference(ImgResources.class, "user_red.png");
+                            }
+                        }
+
+                        //if user has superuser role assigned, it's superuser
+                        for (AssignmentType assignment : user.getAssignment()) {
+                            ObjectReferenceType targetRef = assignment.getTargetRef();
+                            if (targetRef == null) {
+                                continue;
+                            }
+                            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
                                 return new SharedResourceReference(ImgResources.class, "user_red.png");
                             }
                         }
