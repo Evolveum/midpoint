@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.security;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.security.Authorization;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.UserComputer;
 import com.evolveum.midpoint.model.lens.Assignment;
@@ -38,9 +39,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -122,12 +121,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	private void addAuthorizations(MidPointPrincipal principal) {
 		UserType userType = principal.getUser();
-		if (userType.getAssignment().isEmpty()) {
-			return;
-		}
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
-		
+        CredentialsType credentials = userType.getCredentials();
+        if (credentials != null && credentials.isAllowedIdmAdminGuiAccess() != null
+                && credentials.isAllowedIdmAdminGuiAccess()) {
+            AuthorizationType authorization = new AuthorizationType();
+            authorization.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+
+            authorizations.add(new Authorization(authorization));
+        }
+
+        if (userType.getAssignment().isEmpty()) {
+            return;
+        }
 		
 		AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);

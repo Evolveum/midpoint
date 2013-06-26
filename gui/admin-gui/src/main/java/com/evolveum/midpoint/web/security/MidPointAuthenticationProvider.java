@@ -165,12 +165,6 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		UserType userType = user.getUser();
 		CredentialsType credentials = userType.getCredentials();
 
-        boolean allowedIdmAccess = credentials.isAllowedIdmAdminGuiAccess() != null
-                ? credentials.isAllowedIdmAdminGuiAccess() : false;
-        if (!allowedIdmAccess) {
-            throw new BadCredentialsException("web.security.provider.denied");
-        }
-
 		PasswordType passwordType = credentials.getPassword();
 		int failedLogins = passwordType.getFailedLogins() != null ? passwordType.getFailedLogins() : 0;
 		if (maxFailedLogins > 0 && failedLogins >= maxFailedLogins) {

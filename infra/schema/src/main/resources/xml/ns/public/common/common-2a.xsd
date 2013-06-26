@@ -1630,6 +1630,9 @@
                             <xsd:documentation>
                                 Activation. e.g. enable/disable status, start and end dates, etc.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Activation</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
