@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -33,5 +34,10 @@ public class PageProcessInstancesRequestedFor extends PageProcessInstances {
 
     public PageProcessInstancesRequestedFor() {
         super(false, true);
+    }
+
+    @Override
+    public PageBase reinitialize() {
+        return new PageProcessInstancesRequestedFor();
     }
 }

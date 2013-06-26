@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -146,6 +147,7 @@ public class PageUser extends PageAdminUsers {
             };
 
     private TaskDtoProvider taskDtoProvider;
+    private TablePanel<TaskDto> taskTable;
 
     // it should be sent from submit. If the user is on the preview page and
 	// than he wants to get back to the edit page, the object delta is set, so
@@ -800,7 +802,7 @@ public class PageUser extends PageAdminUsers {
         List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
         taskDtoProvider = new TaskDtoProvider(PageUser.this, TaskDtoProviderOptions.minimalOptions());
         taskDtoProvider.setQuery(createTaskQuery(userOid));
-        TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
+        taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
             @Override
             protected void onInitialize() {
                 super.onInitialize();
@@ -1996,4 +1998,12 @@ public class PageUser extends PageAdminUsers {
 
 		showModalWindow(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT, target);
 	}
+
+    // many things could change (e.g. assignments, tasks) - here we deal only with tasks
+    @Override
+    public PageBase reinitialize() {
+        taskDtoProvider.clearCache();
+        taskTable.modelChanged();
+        return this;
+    }
 }

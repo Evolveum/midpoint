@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -95,6 +97,9 @@ public abstract class PageBase extends WebPage {
     private WorkflowService workflowService;
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
+
+    private PageBase previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
+    private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
 
     public PageBase() {
         Injector.get().inject(this);
@@ -386,5 +391,42 @@ public abstract class PageBase extends WebPage {
         });
 
         return modal;
+    }
+
+    public boolean isReinitializePreviousPages() {
+        return reinitializePreviousPages;
+    }
+
+    public void setReinitializePreviousPages(boolean reinitializePreviousPages) {
+        this.reinitializePreviousPages = reinitializePreviousPages;
+    }
+
+    public PageBase getPreviousPage() {
+        return previousPage;
+    }
+
+    public void setPreviousPage(PageBase previousPage) {
+        this.previousPage = previousPage;
+    }
+
+    // experimental -- all pages should know how to reinitialize themselves (most hardcore way is to construct a new instance of themselves)
+    public PageBase reinitialize() {
+        // by default there is nothing to do -- our pages have to know how to reinitialize themselves
+        return this;
+    }
+
+    // experimental -- go to previous page (either with reinitialization e.g. when something changed, or without - typically when 'back' button is pressed)
+    protected void goBack(Class<? extends Page> defaultBackPageClass) {
+        if (previousPage != null) {
+            if (isReinitializePreviousPages()) {
+                PageBase reinitialized = previousPage.reinitialize();
+                reinitialized.setReinitializePreviousPages(true);
+                setResponsePage(reinitialized);
+            } else {
+                setResponsePage(previousPage);
+            }
+        } else {
+            setResponsePage(defaultBackPageClass);
+        }
     }
 }

@@ -17,12 +17,14 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -60,16 +62,15 @@ public class PageProcessInstance extends PageAdminWorkItems {
     private IModel<ProcessInstanceDto> model;
 
     private PageParameters parameters;
-    private Page previousPage;
 
     public PageProcessInstance() {
         this(new PageParameters(), null);
     }
 
-    public PageProcessInstance(final PageParameters parameters, Page previousPage) {
+    public PageProcessInstance(final PageParameters parameters, PageBase previousPage) {
 
         this.parameters = parameters;
-        this.previousPage = previousPage;
+        setPreviousPage(previousPage);
 
         model = new LoadableModel<ProcessInstanceDto>(false) {
 
@@ -89,7 +90,17 @@ public class PageProcessInstance extends PageAdminWorkItems {
 		try {
             StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
-            ProcessInstance processInstance = getWorkflowService().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
+            ProcessInstance processInstance;
+            try {
+                processInstance = getWorkflowService().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
+            } catch (ObjectNotFoundException e) {
+                if (finished == false) {
+                    // maybe the process instance has finished in the meanwhile...
+                    processInstance = getWorkflowService().getProcessInstanceByInstanceId(pid.toString(), true, true, result);
+                } else {
+                    throw e;
+                }
+            }
             return new ProcessInstanceDto(processInstance);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get process instance information.", ex);
@@ -99,8 +110,8 @@ public class PageProcessInstance extends PageAdminWorkItems {
             if (!result.isSuccess()) {
                 showResultInSession(result);
             }
-            if (previousPage != null) {
-                throw new RestartResponseException(previousPage);
+            if (getPreviousPage() != null) {
+                throw new RestartResponseException(getPreviousPage());      // todo reinitialization?
             } else {
                 throw new RestartResponseException(PageProcessInstancesAll.class);
             }
@@ -125,14 +136,14 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-                if (previousPage != null) {
-                    setResponsePage(previousPage);
-                } else {
-				    setResponsePage(PageProcessInstancesAll.class);
-                }
+                goBack(PageProcessInstancesAll.class);
 			}
 		};
 		mainForm.add(backButton);
 	}
 
+    @Override
+    public PageBase reinitialize() {
+        return new PageProcessInstance(parameters, getPreviousPage());
+    }
 }

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wf.deltas.WfDeltasPanel;
 import com.evolveum.midpoint.web.component.wf.history.WfHistoryEventDto;
 import com.evolveum.midpoint.web.component.wf.history.WfHistoryPanel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -63,7 +64,7 @@ public class WorkflowInformationPanel extends SimplePanel<TaskDto> {
                 PageParameters parameters = new PageParameters();
                 parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, pid);
                 parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
-                WorkflowInformationPanel.this.setResponsePage(new PageProcessInstance(parameters, WorkflowInformationPanel.this.getPage()));
+                WorkflowInformationPanel.this.setResponsePage(new PageProcessInstance(parameters, (PageBase) WorkflowInformationPanel.this.getPage()));
             }
         });
 

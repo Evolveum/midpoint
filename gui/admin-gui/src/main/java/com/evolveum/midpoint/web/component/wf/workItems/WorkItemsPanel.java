@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -61,7 +62,7 @@ public class WorkItemsPanel extends SimplePanel<List<WorkItemDto>> {
                 WorkItemDto workItemDto = rowModel.getObject();
                 PageParameters parameters = new PageParameters();
                 parameters.add(PageWorkItem.PARAM_TASK_ID, workItemDto.getWorkItem().getTaskId());
-                setResponsePage(new PageWorkItem(parameters, WorkItemsPanel.this.getPage()));
+                setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsPanel.this.getPage()));
             }
         });
 

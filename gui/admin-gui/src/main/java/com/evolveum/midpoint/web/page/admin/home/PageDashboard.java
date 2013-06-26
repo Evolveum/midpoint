@@ -400,4 +400,9 @@ public class PageDashboard extends PageAdminHome {
 
         return new AssignmentItemDto(type, name, description, relation);
     }
+
+    @Override
+    public PageBase reinitialize() {
+        return new PageDashboard();
+    }
 }

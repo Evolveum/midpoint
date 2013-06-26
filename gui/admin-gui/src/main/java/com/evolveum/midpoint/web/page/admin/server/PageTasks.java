@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -386,7 +387,7 @@ public class PageTasks extends PageAdminTasks {
                         PageParameters parameters = new PageParameters();
                         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, task.getWorkflowProcessInstanceId());
                         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, task.isWorkflowProcessInstanceFinished());
-                        component.setResponsePage(new PageProcessInstance(parameters, component.getPage()));
+                        component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
                     }
                 }
 

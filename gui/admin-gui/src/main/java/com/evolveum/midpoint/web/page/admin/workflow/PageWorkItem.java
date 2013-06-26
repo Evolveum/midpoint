@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -97,7 +98,6 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String ID_SHOW_TECHNICAL_INFORMATION = "showTechnicalInformation";
 
     private PageParameters parameters;
-    private Page previousPage;      // where to return
 
     private IModel<WorkItemDetailedDto> workItemDtoModel;
 
@@ -118,10 +118,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         this(new PageParameters(), null);
     }
 
-    public PageWorkItem(PageParameters parameters, Page previousPage) {
+    public PageWorkItem(PageParameters parameters, PageBase previousPage) {
 
         this.parameters = parameters;
-        this.previousPage = previousPage;
+        setPreviousPage(previousPage);
 
         requesterModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
@@ -326,8 +326,8 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         if (!result.isSuccess()) {
             showResultInSession(result);
-            if (previousPage != null) {
-                throw new RestartResponseException(previousPage);
+            if (getPreviousPage() != null) {
+                throw new RestartResponseException(getPreviousPage());          // todo - what about reinitializing?
             } else {
                 throw new RestartResponseException(PageWorkItems.class);
             }
@@ -629,7 +629,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        goBack();
+        goBack(PageWorkItems.class);
     }
 
     private void savePerformed(AjaxRequestTarget target, boolean decision) {
@@ -644,6 +644,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             delta.applyTo(object);
 
             getWorkflowService().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
+            setReinitializePreviousPages(true);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
@@ -655,17 +656,12 @@ public class PageWorkItem extends PageAdminWorkItems {
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
-            goBack();
+            goBack(PageWorkItems.class);
         }
     }
 
-    private void goBack() {
-        if (previousPage != null) {
-            setResponsePage(previousPage);
-        } else {
-            setResponsePage(PageWorkItems.class);
-        }
+    @Override
+    public PageBase reinitialize() {
+        return new PageWorkItem(parameters, getPreviousPage());
     }
-
-
 }

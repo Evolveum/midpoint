@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -50,6 +51,9 @@ import java.util.List;
  * @author mederly
  */
 public abstract class PageProcessInstances extends PageAdminWorkItems {
+
+    public static final String ID_STOP = "stop";
+    public static final String ID_BACK = "back";
 
     boolean requestedBy;        // true if we want to show process instances requested BY a user
     boolean requestedFor;       // true if we want to show instances requested FOR a user
@@ -209,7 +213,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
     private void initItemButtons(Form mainForm) {
 
-        AjaxLinkButton stop = new AjaxLinkButton("stop",
+        AjaxLinkButton stop = new AjaxLinkButton(ID_STOP,
                 createStringResource("pageProcessInstances.button.stop")) {
 
             @Override
@@ -223,6 +227,17 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
             }
         };
         mainForm.add(stop);
+
+        AjaxLinkButton back = new AjaxLinkButton(ID_BACK,
+                createStringResource("pageProcessInstances.button.back")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                goBack(PageDashboard.class);
+            }
+        };
+        mainForm.add(back);
+
     }
 
     private TablePanel getTable() {

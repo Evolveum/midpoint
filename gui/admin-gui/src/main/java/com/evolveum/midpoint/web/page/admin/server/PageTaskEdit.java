@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
@@ -794,4 +795,9 @@ public class PageTaskEdit extends PageAdminTasks {
 		protected void onUpdate(AjaxRequestTarget target) {
 		}
 	}
+
+    @Override
+    public PageBase reinitialize() {
+        return new PageTaskEdit(parameters, getPreviousPage());
+    }
 }
