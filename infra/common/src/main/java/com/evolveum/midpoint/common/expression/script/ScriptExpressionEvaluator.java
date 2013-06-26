@@ -233,12 +233,18 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		if (residualPath == null || residualPath.isEmpty()) {
 			return item;
 		}
+		if (item == null) {
+			return null;
+		}
 		return item.find(residualPath);
 	}
 	
 	private Object getRealContent(PrismValue pval, ItemPath residualPath) {
 		if (residualPath == null || residualPath.isEmpty()) {
 			return pval;
+		}
+		if (pval == null) {
+			return null;
 		}
 		return pval.find(residualPath);
 	}

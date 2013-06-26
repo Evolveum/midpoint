@@ -468,6 +468,22 @@ public class TestMappingDynamicSimple {
     	PrismAsserts.assertTriplePlus(outputTriple, "Captain b");
     	PrismAsserts.assertTripleMinus(outputTriple, "Captain j");    	
     }
+    
+    @Test
+    public void testScriptVariablesPolyStringGroovyNormReplaceNull() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-polystring-groovy-norm.xml",
+    			"testScriptVariablesPolyStringGroovy",
+    			"description",					// target
+    			"fullName"				// changed property
+    			);	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleMinus(outputTriple, "Captain j");    	
+    }
 
     @Test
     public void testAsIsVariablesPolyStringNorm() throws Exception {

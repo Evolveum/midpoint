@@ -26,7 +26,11 @@
 		<script>
 			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 			<code>
-				"Captain " + name[0]
+			if (name == null) {
+				null;
+			} else {
+				"Captain " + name[0];
+			}
 			</code>
 		</script>
 	</expression>
