@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.model.util.Utils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -73,8 +74,10 @@ public class DeleteAccountAction extends ModifyUserAction {
 				throw new SchemaException(message);
 			}
 
-            task.setRequesteeOidImmediate(userOid, result);
-			getProvisioningService().deleteObject(ShadowType.class, accOid, null, null, task, subResult);
+            //task.setRequesteeOidImmediate(userOid, result);
+            Utils.setRequestee(task, userOid);
+            getProvisioningService().deleteObject(ShadowType.class, accOid, null, null, task, subResult);
+            Utils.clearRequestee(task);
 			subResult.recordSuccess();
 			return null;
 		} else {

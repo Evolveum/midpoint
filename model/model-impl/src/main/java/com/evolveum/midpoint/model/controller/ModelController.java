@@ -24,6 +24,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
@@ -219,7 +220,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
-			object = objectResolver.getObject(clazz, oid, rootOptions, result).asPrismObject();
+            Utils.clearRequestee(task);
+            object = objectResolver.getObject(clazz, oid, rootOptions, result).asPrismObject();
 
 			resolve(object, options, task, result);
 		} catch (SchemaException e) {
@@ -329,8 +331,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		});
 		
 		RepositoryCache.enter();
-        //setRequesteeIfNecessary(task, deltas, result);
-		
+
 		try {
 		
 			if (ModelExecuteOptions.isRaw(options)) {
@@ -344,6 +345,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
+                            Utils.clearRequestee(task);
 							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
 									ProvisioningOperationOptions.createRaw(), null, task, result);
 						} else {
@@ -421,7 +423,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 		RepositoryCache.enter();
 		
 		try {
-	
+
+            Utils.clearRequestee(task);
 			PrismObject<F> focus = objectResolver.getObject(type, oid, null, result).asPrismContainer();
 			
 			LOGGER.trace("Recomputing {}", focus);
@@ -506,40 +509,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 			}
 		}
 	}
-
-    // currently unused; experimentally replaced by setting requestee just before entering provisioning
-	private void setRequesteeIfNecessary(Task task, Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) throws ObjectNotFoundException, SchemaException {
-
-        if (task.getRequesteeOid() != null) {
-            return;     // nothing to do
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Trying to find requestee within deltas: " + deltas);
-        }
-        String requesteeOid = null;
-        for (ObjectDelta<? extends ObjectType> delta : deltas) {
-            //LOGGER.trace("Trying to find requestee within delta: " + delta.debugDump());
-            if (UserType.class.isAssignableFrom(delta.getObjectTypeClass()) && delta.getOid() != null) {
-                if (requesteeOid == null) {
-                    requesteeOid = delta.getOid();
-                } else {
-                    if (!requesteeOid.equals(delta.getOid())) {
-                        LOGGER.warn("Ambiguous requestee in model operation; is it " + requesteeOid + " or " + delta.getOid() + "? deltas = " + deltas);
-                    }
-                }
-            }
-        }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Result: requesteeOid = " + requesteeOid);
-        }
-        if (requesteeOid != null) {
-            task.setRequesteeOidImmediate(requesteeOid, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Requestee OID set to " + requesteeOid + "; deltas = " + deltas);
-            }
-        }
-    }
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)

@@ -239,13 +239,14 @@ public interface Task extends Dumpable {
      *
      * TODO FIXME: xxxRequesteeRef methods currently do not work because of problem in RAnyConverter, use xxxRequesteeOid instead
      */
-    public PrismReference getRequesteeRef();
-    public void setRequesteeRef(PrismReferenceValue reference) throws SchemaException;
-    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException;
+    //public PrismReference getRequesteeRef();
+    //public void setRequesteeRef(PrismReferenceValue reference) throws SchemaException;
+    //public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException;
 
     public String getRequesteeOid();
-    public void setRequesteeOid(String oid) throws SchemaException;
-    public void setRequesteeOidImmediate(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    //public void setRequesteeOid(String oid) throws SchemaException;
+    //public void setRequesteeOidImmediate(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    public void setRequesteeOidTransient(String oid);
 
     /**
 	 * Returns change channel URI.

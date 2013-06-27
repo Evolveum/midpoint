@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.sync;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.util.Utils;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -150,7 +151,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 		
 		// Invoke the change notification
-		objectChangeListener.notifyChange(change, getTask(), result);
+        Utils.clearRequestee(getTask());
+        objectChangeListener.notifyChange(change, getTask(), result);
 
 		return true;
 	}

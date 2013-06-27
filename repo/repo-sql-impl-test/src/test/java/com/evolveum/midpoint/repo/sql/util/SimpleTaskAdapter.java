@@ -167,20 +167,20 @@ public class SimpleTaskAdapter implements Task {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    @Override
-    public PrismReference getRequesteeRef() {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    @Override
-    public void setRequesteeRef(PrismReferenceValue reference) throws SchemaException {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    @Override
-    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
+//    @Override
+//    public PrismReference getRequesteeRef() {
+//        throw new UnsupportedOperationException("not implemented yet.");
+//    }
+//
+//    @Override
+//    public void setRequesteeRef(PrismReferenceValue reference) throws SchemaException {
+//        throw new UnsupportedOperationException("not implemented yet.");
+//    }
+//
+//    @Override
+//    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException {
+//        throw new UnsupportedOperationException("not implemented yet.");
+//    }
 
     @Override
     public String getRequesteeOid() {
@@ -188,15 +188,21 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void setRequesteeOid(String oid) throws SchemaException {
+    public void setRequesteeOidTransient(String oid) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    @Override
-    public void setRequesteeOidImmediate(String oid, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
+
+//    @Override
+//    public void setRequesteeOid(String oid) throws SchemaException {
+//        throw new UnsupportedOperationException("not implemented yet.");
+//    }
+//
+//    @Override
+//    public void setRequesteeOidImmediate(String oid, OperationResult result)
+//            throws SchemaException, ObjectNotFoundException {
+//        throw new UnsupportedOperationException("not implemented yet.");
+//    }
 
     @Override
     public String getChannel() {

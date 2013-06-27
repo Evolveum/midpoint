@@ -390,6 +390,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
 			change.setCurrentShadow(shadow);
+            Utils.clearRequestee(task);
 			changeNotificationDispatcher.notifyChange(change, task, result);
 		} catch (SchemaException e) {
 			processShadowReconErrror(e, shadow, result);
@@ -438,6 +439,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			try {
 				
 				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
+                Utils.clearRequestee(task);
 				provisioningService.finishOperation(shadow, options, task, provisioningResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);
 			} catch (Exception ex) {

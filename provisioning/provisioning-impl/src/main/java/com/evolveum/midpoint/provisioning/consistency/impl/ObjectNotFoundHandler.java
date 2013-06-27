@@ -125,7 +125,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		ObjectDelta delta = null;
 		switch (op) {
 		case DELETE:
-			LOGGER.trace("Deleting sahdow from the repostiory.");
+			LOGGER.trace("Deleting shadow from the repository.");
 			for (OperationResult subResult : parentResult.getSubresults()){
 				subResult.muteError();
 			}

@@ -61,9 +61,9 @@ public abstract class SchemaConstants {
 	public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
 	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
 	public static final QName C_TASK = new QName(NS_C, "task");
-	public static final QName C_TASK_REQUESTEE = new QName(NS_C, "requestee");
-	public static final QName C_TASK_REQUESTEE_REF = new QName(NS_C, "requesteeRef");
-	public static final QName C_TASK_REQUESTEE_OID = new QName(NS_C, "requesteeOid");
+//	public static final QName C_TASK_REQUESTEE = new QName(NS_C, "requestee");
+//	public static final QName C_TASK_REQUESTEE_REF = new QName(NS_C, "requesteeRef");
+//	public static final QName C_TASK_REQUESTEE_OID = new QName(NS_C, "requesteeOid");
 	public static final QName C_RESOURCE = new QName(NS_C, "resource");
 	public static final QName C_RESULT = new QName(NS_C, "result");
 	public static final QName C_USER = new QName(NS_C, "user");

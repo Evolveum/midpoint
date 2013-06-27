@@ -25,6 +25,8 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -313,4 +315,29 @@ public final class Utils {
 	        return refinedObjectClassDefinition;
 	    }
 
+
+    public static void setRequestee(Task task, LensContext context) {
+        String oid;
+        if (context != null && context.getFocusContext() != null) {
+            oid = context.getFocusContext().getOid();
+        } else {
+            oid = null;
+        }
+        setRequestee(task, oid);
+    }
+
+    public static <F extends ObjectType> void setRequestee(Task task, LensFocusContext<F> context) {
+        setRequestee(task, context.getLensContext());
+    }
+
+    public static void setRequestee(Task task, String oid) {
+        LOGGER.trace("setting requestee in {} to {}", task, oid);
+        if (task != null) {
+            task.setRequesteeOidTransient(oid);
+        }
+    }
+
+    public static void clearRequestee(Task task) {
+        setRequestee(task, (String) null);
+    }
 }

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.sync.action;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.util.Utils;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -122,8 +123,9 @@ public class DisableAccountAction extends ModifyUserAction {
 			
 			Collection<? extends ItemDelta> modifications = MiscUtil.createCollection(delta);
 
-            task.setRequesteeOidImmediate(userOid, result);
-			getProvisioningService().modifyObject(ShadowType.class, accOid, modifications, null, null, task, subResult);
+            Utils.setRequestee(task, userOid);
+            getProvisioningService().modifyObject(ShadowType.class, accOid, modifications, null, null, task, subResult);
+            Utils.clearRequestee(task);
 			subResult.recordSuccess();
 			return null;
 		} else {

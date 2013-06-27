@@ -70,6 +70,8 @@ public class TaskQuartzImpl implements Task {
 
     private PrismObject<TaskType> taskPrism;
 
+    private String requesteeOid;                                  // temporary information
+
     // private Set<Task> subtasks = new HashSet<Task>();          // relevant only for transient tasks, currently not used
 
     /*
@@ -1726,63 +1728,73 @@ public class TaskQuartzImpl implements Task {
     }
 
     /*
-     * Requestee (implemented as extension property)
+     * Requestee
      */
 
     @Override
-    public PrismReference getRequesteeRef() {
-        return (PrismReference) getExtensionItem(SchemaConstants.C_TASK_REQUESTEE_REF);
-    }
-
-    @Override
     public String getRequesteeOid() {
-        PrismProperty<String> property = (PrismProperty<String>) getExtension(SchemaConstants.C_TASK_REQUESTEE_OID);
-        if (property != null) {
-            return property.getRealValue();
-        } else {
-            return null;
-        }
+        return requesteeOid;
     }
 
     @Override
-    public void setRequesteeRef(PrismReferenceValue requesteeRef) throws SchemaException {
-        PrismReferenceDefinition itemDefinition = new PrismReferenceDefinition(SchemaConstants.C_TASK_REQUESTEE_REF,
-                SchemaConstants.C_TASK_REQUESTEE_REF, ObjectReferenceType.COMPLEX_TYPE, taskManager.getPrismContext());
-        itemDefinition.setTargetTypeName(UserType.COMPLEX_TYPE);
-
-        PrismReference ref = new PrismReference(SchemaConstants.C_TASK_REQUESTEE_REF);
-        ref.setDefinition(itemDefinition);
-        ref.add(requesteeRef);
-        setExtensionReference(ref);
+    public void setRequesteeOidTransient(String oid) {
+        requesteeOid = oid;
     }
 
-    @Override
-    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException {
-        Validate.notNull(requestee.getOid());
-        PrismReferenceValue value = new PrismReferenceValue(requestee.getOid());
-        value.setTargetType(UserType.COMPLEX_TYPE);
-        setRequesteeRef(value);
-    }
+    //    @Override
+//    public PrismReference getRequesteeRef() {
+//        return (PrismReference) getExtensionItem(SchemaConstants.C_TASK_REQUESTEE_REF);
+//    }
 
-    @Override
-    public void setRequesteeOid(String oid) throws SchemaException {
-        setExtensionProperty(prepareRequesteeProperty(oid));
-    }
+//    @Override
+//    public String getRequesteeOid() {
+//        PrismProperty<String> property = (PrismProperty<String>) getExtension(SchemaConstants.C_TASK_REQUESTEE_OID);
+//        if (property != null) {
+//            return property.getRealValue();
+//        } else {
+//            return null;
+//        }
+//    }
 
-    @Override
-    public void setRequesteeOidImmediate(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        setExtensionPropertyImmediate(prepareRequesteeProperty(oid), result);
-    }
+//    @Override
+//    public void setRequesteeRef(PrismReferenceValue requesteeRef) throws SchemaException {
+//        PrismReferenceDefinition itemDefinition = new PrismReferenceDefinition(SchemaConstants.C_TASK_REQUESTEE_REF,
+//                SchemaConstants.C_TASK_REQUESTEE_REF, ObjectReferenceType.COMPLEX_TYPE, taskManager.getPrismContext());
+//        itemDefinition.setTargetTypeName(UserType.COMPLEX_TYPE);
+//
+//        PrismReference ref = new PrismReference(SchemaConstants.C_TASK_REQUESTEE_REF);
+//        ref.setDefinition(itemDefinition);
+//        ref.add(requesteeRef);
+//        setExtensionReference(ref);
+//    }
 
-    private PrismProperty<String> prepareRequesteeProperty(String oid) {
-        PrismPropertyDefinition definition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.C_TASK_REQUESTEE_OID);
-        if (definition == null) {
-            throw new SystemException("No definition for " + SchemaConstants.C_TASK_REQUESTEE_OID);
-        }
-        PrismProperty<String> property = definition.instantiate();
-        property.setRealValue(oid);
-        return property;
-    }
+//    @Override
+//    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException {
+//        Validate.notNull(requestee.getOid());
+//        PrismReferenceValue value = new PrismReferenceValue(requestee.getOid());
+//        value.setTargetType(UserType.COMPLEX_TYPE);
+//        setRequesteeRef(value);
+//    }
+
+//    @Override
+//    public void setRequesteeOid(String oid) throws SchemaException {
+//        setExtensionProperty(prepareRequesteeProperty(oid));
+//    }
+
+//    @Override
+//    public void setRequesteeOidImmediate(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+//        setExtensionPropertyImmediate(prepareRequesteeProperty(oid), result);
+//    }
+
+//    private PrismProperty<String> prepareRequesteeProperty(String oid) {
+//        PrismPropertyDefinition definition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.C_TASK_REQUESTEE_OID);
+//        if (definition == null) {
+//            throw new SystemException("No definition for " + SchemaConstants.C_TASK_REQUESTEE_OID);
+//        }
+//        PrismProperty<String> property = definition.instantiate();
+//        property.setRealValue(oid);
+//        return property;
+//    }
 
     /*
     * Node

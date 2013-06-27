@@ -206,7 +206,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// Calling synchronize(..) in provisioning.
 			// This will detect the changes and notify model about them.
 			// It will use extension of task to store synchronization state
-			
+
+            Utils.clearRequestee(task);
 			changesProcessed = provisioningService.synchronize(resourceOid, rObjectClass.getTypeName(), task, opResult);
             progress += changesProcessed;
 			

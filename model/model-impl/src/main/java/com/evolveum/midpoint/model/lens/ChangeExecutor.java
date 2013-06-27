@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.sync.SynchronizationSituation;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -150,13 +151,6 @@ public class ChangeExecutor {
 	        		
 		            executeDelta(userDelta, focusContext, syncContext, null, task, subResult);
 		
-//	                if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
-//	                    task.setRequesteeOidImmediate(userDelta.getOid(), subResult);
-//	                    if (LOGGER.isTraceEnabled()) {
-//	                        LOGGER.trace("Set requestee OID to " + userDelta.getOid() + "; task = " + task.dump());
-//	                    }
-//	                }
-	                
 	                subResult.computeStatus();
 	                
 	        	} catch (SchemaException e) {
@@ -454,8 +448,9 @@ public class ChangeExecutor {
 //		if (syncSituationDelta != null){
 //		syncSituationDeltas.add(syncSituationDelta);
 //		}
-        setRequestee(task, focusContext, result);
+
 		try {
+            Utils.setRequestee(task, focusContext);
 			String changedOid = provisioning.modifyObject(ShadowType.class, accountRef,
 					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
 					task, result);
@@ -468,6 +463,8 @@ public class ChangeExecutor {
 			return;
 		} catch (Exception ex) {
             throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            Utils.clearRequestee(task);
         }
 		// if everything is OK, add result of the situation modification to the
 		// parent result
@@ -782,8 +779,9 @@ public class ChangeExecutor {
         }
 
         OperationProvisioningScriptsType scripts = prepareScripts(object, context, ProvisioningOperationTypeType.ADD, resource, result);
-        setRequestee(task, context.getFocusContext(), result);
+        Utils.setRequestee(task, context);
         String oid = provisioning.addObject(object, scripts, options, task, result);
+        Utils.clearRequestee(task);
         return oid;
     }
 
@@ -803,8 +801,9 @@ public class ChangeExecutor {
 			// will fail if something is wrong)
 			result.muteLastSubresultError();
 		}
-        setRequestee(task, context.getFocusContext(), result);
+        Utils.setRequestee(task, context);
 		provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
+        Utils.clearRequestee(task);
     }
 
     private <F extends ObjectType, P extends ObjectType> String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
@@ -813,13 +812,10 @@ public class ChangeExecutor {
 
     	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), result);
     	OperationProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);
-        setRequestee(task, context.getFocusContext(), result);
+        Utils.setRequestee(task, context);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
+        Utils.clearRequestee(task);
         return changedOid;
-    }
-
-    private <F extends ObjectType> void setRequestee(Task task, LensFocusContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        task.setRequesteeOidImmediate(context != null ? context.getOid() : null, result);
     }
 
     private <F extends ObjectType, P extends ObjectType> OperationProvisioningScriptsType prepareScripts(
@@ -955,9 +951,11 @@ public class ChangeExecutor {
 		Map<QName, Object> variables = getDefaultExpressionVariables((PrismObject<UserType>) user, shadow, resource.asPrismObject());
         OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts, 
         		ProvisioningOperationTypeType.RECONCILE, order, variables, parentResult);
-        
+
         for (OperationProvisioningScriptType script: evaluatedScript.getScript()) {
+            Utils.setRequestee(task, context);
         	provisioning.executeScript(resource.getOid(), script, task, parentResult);
+            Utils.clearRequestee(task);
         }
     }
 

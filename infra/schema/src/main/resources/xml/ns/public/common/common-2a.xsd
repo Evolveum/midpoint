@@ -1155,25 +1155,25 @@
 
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
     <!-- useful extension element for task - todo: decide where to put it definitely (if at all) -->
-    <xsd:element name="requesteeOid" type="xsd:string">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:maxOccurs>1</a:maxOccurs>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
+    <!--<xsd:element name="requesteeOid" type="xsd:string">-->
+        <!--<xsd:annotation>-->
+            <!--<xsd:appinfo>-->
+                <!--<a:maxOccurs>1</a:maxOccurs>-->
+            <!--</xsd:appinfo>-->
+        <!--</xsd:annotation>-->
+    <!--</xsd:element>-->
 
-    <xsd:element name="requesteeRef" type="c:ObjectReferenceType">
-        <xsd:annotation>
-            <xsd:documentation>
-                "Requestee", i.e. the user to which a request (represented by particular task) is related.
-                Currently intended to be used in task extension; although temporarily superseded by requesteeOid.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
+    <!--<xsd:element name="requesteeRef" type="c:ObjectReferenceType">-->
+        <!--<xsd:annotation>-->
+            <!--<xsd:documentation>-->
+                <!--"Requestee", i.e. the user to which a request (represented by particular task) is related.-->
+                <!--Currently intended to be used in task extension; although temporarily superseded by requesteeOid.-->
+            <!--</xsd:documentation>-->
+            <!--<xsd:appinfo>-->
+                <!--<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>-->
+            <!--</xsd:appinfo>-->
+        <!--</xsd:annotation>-->
+    <!--</xsd:element>-->
 
     <xsd:simpleType name="TaskExecutionStatusType">
         <xsd:annotation>
