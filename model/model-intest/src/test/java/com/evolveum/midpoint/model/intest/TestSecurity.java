@@ -82,7 +82,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         display("Administrator principal", principal);
-        assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
+        assertEquals("Wrong number of authorizations", 2, principal.getAuthorities().size());
         assertHasAuthotizationAllow(principal.getAuthorities().iterator().next(), AuthorizationConstants.AUTZ_ALL_URL);
 
         assertAuthorized(principal, AUTZ_LOOT_URL);
