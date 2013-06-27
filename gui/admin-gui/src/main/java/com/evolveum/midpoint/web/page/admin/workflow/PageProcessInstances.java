@@ -328,6 +328,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         target.add(getFeedbackPanel());
         target.add(getTable());
         target.add(getFinishedTable());
+
+        setReinitializePreviousPages(true);
     }
 
 }

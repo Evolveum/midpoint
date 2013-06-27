@@ -21,27 +21,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
-import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
-import org.apache.wicket.Page;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author lazyman
@@ -110,13 +99,8 @@ public class PageProcessInstance extends PageAdminWorkItems {
             if (!result.isSuccess()) {
                 showResultInSession(result);
             }
-            if (getPreviousPage() != null) {
-                throw new RestartResponseException(getPreviousPage());      // todo reinitialization?
-            } else {
-                throw new RestartResponseException(PageProcessInstancesAll.class);
-            }
+            throw getRestartResponseException(PageProcessInstancesAll.class);
         }
-
 	}
 
     private void initLayout(String detailsPanelClassName) {

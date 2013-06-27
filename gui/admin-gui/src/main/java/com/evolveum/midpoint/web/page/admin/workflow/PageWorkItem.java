@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -43,14 +44,11 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.wf.api.WorkItemDetailed;
+import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
 import org.apache.wicket.Component;
-import org.apache.wicket.Page;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
@@ -107,7 +105,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     private IModel<ObjectWrapper> requestSpecificModel;
     private IModel<ObjectWrapper> additionalDataModel;
     private IModel<ObjectWrapper> trackingDataModel;
-    private IModel<ProcessInstanceDto> processInstanceDtoModel;
+    private LoadableModel<ProcessInstanceDto> processInstanceDtoModel;
     private IModel<DeltaDto> deltaModel;
 
     private IModel<Boolean> showTechnicalInformationModel = new Model<Boolean>();
@@ -119,9 +117,14 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     public PageWorkItem(PageParameters parameters, PageBase previousPage) {
+        this(parameters, previousPage, false);
+    }
+
+    public PageWorkItem(PageParameters parameters, PageBase previousPage, boolean reinitializePreviousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);
+        setReinitializePreviousPages(reinitializePreviousPage);
 
         requesterModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
@@ -326,11 +329,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         if (!result.isSuccess()) {
             showResultInSession(result);
-            if (getPreviousPage() != null) {
-                throw new RestartResponseException(getPreviousPage());          // todo - what about reinitializing?
-            } else {
-                throw new RestartResponseException(PageWorkItems.class);
-            }
+            throw getRestartResponseException(PageWorkItems.class);
         }
 
         return new WorkItemDetailedDto(workItem);
@@ -340,17 +339,24 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_PROCESS_INSTANCE);
         ProcessInstance processInstance;
         try {
+            String taskId = parameters.get(PARAM_TASK_ID).toString();
+            LOGGER.trace("Loading process instance for task {}", taskId);
             WorkflowService wfm = getWorkflowService();
-            processInstance = wfm.getProcessInstanceByTaskId(parameters.get(PARAM_TASK_ID).toString(), result);
+            processInstance = wfm.getProcessInstanceByTaskId(taskId, result);
+            LOGGER.trace("Found process instance {}", processInstance);
             result.recordSuccess();
+            return new ProcessInstanceDto(processInstance);
+        } catch (ObjectNotFoundException ex) {
+            result.recordWarning("Work item seems to be already closed.");
+            LoggingUtils.logException(LOGGER, "Couldn't get process instance for work item; it might be already closed.", ex);
+            showResultInSession(result);
+            throw getRestartResponseException(PageWorkItems.class);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get process instance for work item.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't get process instance for work item.", ex);
-            showResult(result);
-            return null;
+            showResultInSession(result);
+            throw getRestartResponseException(PageWorkItems.class);
         }
-
-        return new ProcessInstanceDto(processInstance);
     }
 
 
@@ -493,7 +499,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_OBJECT_NEW_ACCORDION, ID_OBJECT_NEW_ACCORDION_INFO, ID_OBJECT_NEW_PANEL, "pageWorkItem.accordionLabel.objectNew", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_NEW), true));
         additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_ADDITIONAL_DATA_ACCORDION, ID_ADDITIONAL_DATA_ACCORDION_INFO, ID_ADDITIONAL_DATA_PANEL, "pageWorkItem.accordionLabel.additionalData", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_ADDITIONAL_DATA), true));
 
-        String detailsPageClassName = getWorkflowService().getProcessInstanceDetailsPanelName(processInstanceDtoModel.getObject().getProcessInstance());
+        LOGGER.trace("processInstanceDtoModel = {}, loaded = {}", processInstanceDtoModel, processInstanceDtoModel.isLoaded());
+        ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
+        ProcessInstance processInstance = processInstanceDto.getProcessInstance();
+        String detailsPageClassName = getWorkflowService().getProcessInstanceDetailsPanelName(processInstance);
 
         additionalInfoAccordionItem.getBodyContainer().add(createAccordion(ID_PROCESS_INSTANCE_ACCORDION,
                 ID_PROCESS_INSTANCE_ACCORDION_INFO,
@@ -662,6 +671,6 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     @Override
     public PageBase reinitialize() {
-        return new PageWorkItem(parameters, getPreviousPage());
+        return new PageWorkItem(parameters, getPreviousPage(), true);
     }
 }

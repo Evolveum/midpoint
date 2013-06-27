@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,7 +65,7 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
-                    setResponsePage(new PageTaskEdit(parameters, this.getPage()));
+                    setResponsePage(new PageTaskEdit(parameters, (PageBase) this.getPage()));
                 }
             }
         };

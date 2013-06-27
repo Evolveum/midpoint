@@ -114,16 +114,15 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static boolean edit = false;
 
     private PageParameters parameters;
-    private Page previousPage;                  // where to go on 'Back' button click
 
     public PageTaskEdit() {
         this(new PageParameters(), null);
     }
 
-    public PageTaskEdit(PageParameters parameters, Page previousPage) {
+    public PageTaskEdit(PageParameters parameters, PageBase previousPage) {
 
         this.parameters = parameters;
-        this.previousPage = previousPage;
+        setPreviousPage(previousPage);
 
 		model = new LoadableModel<TaskDto>(false) {
 
@@ -173,11 +172,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			if (!result.isSuccess()) {
 				showResultInSession(result);
 			}
-            if (previousPage != null) {
-			    throw new RestartResponseException(previousPage);
-            } else {
-                throw new RestartResponseException(PageTasks.class);
-            }
+            throw getRestartResponseException(PageTasks.class);
 		}
 		return taskDto;
 	}
@@ -655,11 +650,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				edit = false;
-				if (previousPage == null) {
-                    setResponsePage(PageTasks.class);
-                } else {
-                    setResponsePage(previousPage);
-                }
+                goBack(PageTasks.class);
 			}
 		};
 		mainForm.add(backButton);
