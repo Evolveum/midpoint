@@ -57,11 +57,15 @@ public class AccessChecker {
 			if (limitations == null) {
 				continue;
 			}
-			if (limitations.isIgnore()) {
-				String message = "Attempt to create shadow with ignored attribute "+attribute.getName();
-				LOGGER.error(message);
-				throw new SchemaException(message);
-			}
+			// We cannot throw error here. At least not now. Provisioning will internally use ignored attributes
+			// e.g. for simulated capabilities. This is not a problem for normal operations, but it is a problem
+			// for delayed operations (e.g. consistency) that are passing through this code again.
+			// TODO: we need to figure a way how to avoid this loop
+//			if (limitations.isIgnore()) {
+//				String message = "Attempt to create shadow with ignored attribute "+attribute.getName();
+//				LOGGER.error(message);
+//				throw new SchemaException(message);
+//			}
 			PropertyAccessType access = limitations.getAccess();
 			if (access == null) {
 				continue;
