@@ -164,7 +164,6 @@
                     </enc:EncryptedData>
                 </c:value>
             </c:password>
-            <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
         </c:credentials>
     </c:user>
 
