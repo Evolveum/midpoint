@@ -100,8 +100,16 @@ public abstract class Event {
         return isStatusType(EventStatusType.SUCCESS);
     }
 
+    public boolean isAlsoSuccess() {
+        return isStatusType(EventStatusType.ALSO_SUCCESS);
+    }
+
     public boolean isFailure() {
         return isStatusType(EventStatusType.FAILURE);
+    }
+
+    public boolean isOnlyFailure() {
+        return isStatusType(EventStatusType.ONLY_FAILURE);
     }
 
     public boolean isInProgress() {

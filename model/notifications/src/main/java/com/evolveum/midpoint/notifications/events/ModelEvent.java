@@ -86,8 +86,8 @@ public class ModelEvent extends Event {
         }
 
         switch (eventStatusType) {
-            case SUCCESS: return anySuccess;
-            case ONLY_SUCCESS: return allSuccess;
+            case ALSO_SUCCESS: return anySuccess;
+            case SUCCESS: return allSuccess;
             case FAILURE: return anyFailure;
             case ONLY_FAILURE: return allFailure;
             case IN_PROGRESS: return anyInProgress;
@@ -98,18 +98,21 @@ public class ModelEvent extends Event {
     @Override
     public boolean isOperationType(EventOperationType eventOperationType) {
 
+        // we consider an operation to be 'add' when there is 'add' delta among deltas
+        // in a similar way with 'delete'
+        //
+        // alternatively, we could summarize deltas and then decide based on the type of summarized delta (would be a bit inefficient)
+
         for (Object o : getExecutedDeltas()) {
             ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
-            if ((eventOperationType == EventOperationType.ADD && objectDeltaOperation.getObjectDelta().isAdd()) ||
-                    (eventOperationType == EventOperationType.MODIFY && objectDeltaOperation.getObjectDelta().isModify()) ||
-                    (eventOperationType == EventOperationType.DELETE && objectDeltaOperation.getObjectDelta().isDelete())) {
-                return true;
+            if (objectDeltaOperation.getObjectDelta().isAdd()) {
+                return eventOperationType == EventOperationType.ADD;
+            } else if (objectDeltaOperation.getObjectDelta().isDelete()) {
+                return eventOperationType == EventOperationType.DELETE;
             }
         }
-        return false;
+        return eventOperationType == EventOperationType.MODIFY;
     }
-
-
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {

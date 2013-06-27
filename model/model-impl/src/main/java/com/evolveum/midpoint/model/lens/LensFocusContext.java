@@ -31,6 +31,8 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -43,6 +45,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class LensFocusContext<O extends ObjectType> extends LensElementContext<O> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
 
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<O>();
 	
@@ -367,5 +370,27 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		super.checkEncrypted();
 		secondaryDeltas.checkEncrypted("secondary delta");
 	}
+
+    @Override
+    public void checkConsistence(String desc) {
+        super.checkConsistence(desc);
+
+        // all executed deltas should have the same oid (if any)
+        String oid = null;
+        for (LensObjectDeltaOperation operation : getExecutedDeltas()) {
+            String oid1 = operation.getObjectDelta().getOid();
+            if (oid == null) {
+                if (oid1 != null) {
+                    oid = oid1;
+                }
+            } else {
+                if (oid1 != null && !oid.equals(oid1)) {
+                    String m = "Different OIDs in focus executed deltas: " + oid + ", " + oid1;
+                    LOGGER.error("{}: context = \n{}", m, this.debugDump());
+                    throw new IllegalStateException(m);
+                }
+            }
+        }
+    }
     
 }

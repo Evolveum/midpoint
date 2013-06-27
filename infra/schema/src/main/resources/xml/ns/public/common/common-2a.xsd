@@ -7492,10 +7492,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="onlySuccess">
+            <xsd:enumeration value="alsoSuccess">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ONLY_SUCCESS"/>
+                        <jaxb:typesafeEnumMember name="ALSO_SUCCESS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -7643,7 +7643,7 @@
                     <xsd:element name="showModifiedValues" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Whether to show modified values (or only names of changed attributes). Default: true.
+                                Whether to show modified values (or only names of changed attributes). Default: true. (NOT IMPLEMENTED YET. THE NAME MIGHT CHANGE.)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

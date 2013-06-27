@@ -30,7 +30,7 @@ public enum OperationStatus {
 
     public boolean matchesEventStatusType(EventStatusType eventStatusType) {
         switch (eventStatusType) {
-            case ONLY_SUCCESS:
+            case ALSO_SUCCESS:
             case SUCCESS: return this == OperationStatus.SUCCESS;
             case ONLY_FAILURE:
             case FAILURE: return this == OperationStatus.FAILURE;
