@@ -47,6 +47,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -412,21 +413,47 @@ public abstract class PageBase extends WebPage {
     // experimental -- all pages should know how to reinitialize themselves (most hardcore way is to construct a new instance of themselves)
     public PageBase reinitialize() {
         // by default there is nothing to do -- our pages have to know how to reinitialize themselves
+        LOGGER.trace("Default no-op implementation of reinitialize() called.");
         return this;
     }
 
     // experimental -- go to previous page (either with reinitialization e.g. when something changed, or without - typically when 'back' button is pressed)
     protected void goBack(Class<? extends Page> defaultBackPageClass) {
+        LOGGER.trace("goBack called; page = {}, previousPage = {}, reinitializePreviousPages = {}", new Object[] {this, previousPage, reinitializePreviousPages});
         if (previousPage != null) {
-            if (isReinitializePreviousPages()) {
-                PageBase reinitialized = previousPage.reinitialize();
-                reinitialized.setReinitializePreviousPages(true);
-                setResponsePage(reinitialized);
-            } else {
-                setResponsePage(previousPage);
-            }
+            setResponsePage(getPreviousPageToGoTo());
         } else {
+            LOGGER.trace("...going to default back page {}", defaultBackPageClass);
             setResponsePage(defaultBackPageClass);
+        }
+    }
+
+    // returns previous page ready to go to (i.e. reinitialized, if necessary)
+    public PageBase getPreviousPageToGoTo() {
+        if (previousPage == null) {
+            return null;
+        }
+
+        if (isReinitializePreviousPages()) {
+            LOGGER.trace("...calling reinitialize on previousPage ({})", previousPage);
+
+            previousPage.setReinitializePreviousPages(true);            // we set this flag on the original previous page...
+            PageBase reinitialized = previousPage.reinitialize();
+            reinitialized.setReinitializePreviousPages(true);           // ...but on the returned value, as it is probably different object
+            return reinitialized;
+        } else {
+            return previousPage;
+        }
+    }
+
+    // returns to previous page via restart response exception
+    public RestartResponseException getRestartResponseException(Class<? extends Page> defaultBackPageClass) {
+        LOGGER.trace("getRestartResponseException called; page = {}, previousPage = {}, reinitializePreviousPages = {}", new Object[] {this, previousPage, reinitializePreviousPages});
+        if (previousPage != null) {
+            return new RestartResponseException(getPreviousPageToGoTo());
+        } else {
+            LOGGER.trace("...going to default back page {}", defaultBackPageClass);
+            return new RestartResponseException(defaultBackPageClass);
         }
     }
 }
