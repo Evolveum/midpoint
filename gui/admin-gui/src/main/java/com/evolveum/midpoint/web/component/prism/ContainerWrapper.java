@@ -20,11 +20,16 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -220,6 +225,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                         continue;
                     }
 
+                    //capability handling for activation properties
+                    if (isShadowActivation() && !hasCapability(def)) {
+                        continue;
+                    }
+
                     PrismProperty property = container.findProperty(def.getName());
                     if (property == null) {
                         properties.add(new PropertyWrapper(this, def.instantiate(), ValueStatus.ADDED));
@@ -235,6 +245,46 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         result.recomputeStatus();
 
         return properties;
+    }
+
+    private boolean isShadowActivation() {
+        if (!ShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
+            return false;
+        }
+
+        if (!ShadowType.F_ACTIVATION.equals(container.getName())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean hasCapability(PrismPropertyDefinition def) {
+        ShadowType shadow = (ShadowType) getObject().getObject().asObjectable();
+
+        ActivationCapabilityType cap = ResourceTypeUtil.getEffectiveCapability(shadow.getResource(),
+                ActivationCapabilityType.class);
+
+        if (ActivationType.F_VALID_FROM.equals(def.getName()) && cap.getValidFrom() == null) {
+            return false;
+        }
+
+        if (ActivationType.F_VALID_TO.equals(def.getName()) && cap.getValidTo() == null) {
+            return false;
+        }
+
+        if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(def.getName()) && cap.getStatus() == null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean hasResourceCapability(ResourceType resource, Class<? extends CapabilityType> capabilityClass){
+        if (resource == null){
+            return false;
+        }
+        return ResourceTypeUtil.hasEffectiveCapability(resource, capabilityClass);
     }
 
     // temporary - brutal hack - the following three methods are copied from AddRoleAssignmentWrapper - Pavol M.
