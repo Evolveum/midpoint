@@ -457,6 +457,7 @@ public class AccountValuesProcessor {
 		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
 		variables.put(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		variables.put(ExpressionConstants.VAR_RESOURCE, accountContext.getResource());
 		
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);

@@ -92,7 +92,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack, "Jackie Sparrow", "Jackie", "Sparrow");
-        PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedNoRole(userJack);
@@ -128,7 +128,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 2);
@@ -171,7 +171,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
 		
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 2);
@@ -207,7 +207,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -247,7 +247,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -283,7 +283,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -321,7 +321,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -359,7 +359,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -392,7 +392,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedAccount(userJack, RESOURCE_DUMMY_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
@@ -427,7 +427,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);

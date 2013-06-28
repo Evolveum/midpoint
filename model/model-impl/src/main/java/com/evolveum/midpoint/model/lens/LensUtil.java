@@ -29,7 +29,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.expr.LensContextThreadLocalHolder;
+import com.evolveum.midpoint.model.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -486,11 +486,13 @@ public class LensUtil {
 	}
 	
 	public static <V extends PrismValue, F extends ObjectType, P extends ObjectType> void evaluateMapping(Mapping<V> mapping, LensContext<F, P> lensContext, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		LensContextThreadLocalHolder.set(lensContext);
+		ModelExpressionThreadLocalHolder.setLensContext(lensContext);
+		ModelExpressionThreadLocalHolder.setCurrentResult(parentResult);
 		try {
 			mapping.evaluate(parentResult);
 		} finally {
-			LensContextThreadLocalHolder.reset();
+			ModelExpressionThreadLocalHolder.resetLensContext();
+			ModelExpressionThreadLocalHolder.resetCurrentResult();
 		}
 	}
     

@@ -19,7 +19,11 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.*;
@@ -27,13 +31,21 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -49,6 +61,8 @@ import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 
 import java.util.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -63,6 +77,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Autowired(required=true)
     private ModelService modelService;
+    
+    @Autowired(required=true)
+    private ModelObjectResolver modelObjectResolver;
 
     @Autowired(required=true)
     private RepositoryService repositoryService;
@@ -303,7 +320,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
     
     public boolean hasLinkedAccount(String resourceOid) {
-    	LensContext<ObjectType, ShadowType> ctx = LensContextThreadLocalHolder.get();
+    	LensContext<ObjectType, ShadowType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
     	if (ctx == null) {
     		throw new IllegalStateException("No lens context");
     	}
@@ -360,6 +377,67 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				}
 			}
 	    }
-    } 
+    }
+    
+    public <O extends ObjectType> O getObject(Class<O> type, String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+    	return modelObjectResolver.getObject(type, oid, null, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
+    }
+    
+    public <T> int countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
+    	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, result);
+    	return countAccounts(resourceType, attributeName, attributeValue, result);
+    }
+    
+    public <T> int countAccounts(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
+    	return countAccounts(resourceType, attributeName, attributeValue, result);
+    }
+    
+    public <T> int countAccounts(ResourceType resourceType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
+    	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
+		return countAccounts(resourceType, attributeQName, attributeValue, result);
+    }
+    
+    private <T> int countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        RefinedAttributeDefinition attrDef = rAccount.findAttributeDefinition(attributeName);
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, attributeValue);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
+        		ShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
+        		ShadowType.F_RESOURCE_REF, resourceType.asPrismObject());
+        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		return modelObjectResolver.countObjects(ShadowType.class, query, result);
+    }
+    
+    private OperationResult getCurrentResult(String operationName) {
+    	OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
+    	if (currentResult == null) {
+    		return new OperationResult(operationName);
+    	} else {
+    		return currentResult;
+    	}
+    }
+    
+    private OperationResult createSubresult(String operationName) {
+    	OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
+    	if (currentResult == null) {
+    		return new OperationResult(operationName);
+    	} else {
+    		return currentResult.createSubresult(operationName);
+    	}
+    }
 
+    private OperationResult createMinorSubresult(String operationName) {
+    	OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
+    	if (currentResult == null) {
+    		return new OperationResult(operationName);
+    	} else {
+    		return currentResult.createMinorSubresult(operationName);
+    	}
+    }
 }

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="10000000-0000-0000-0000-00000000a304"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource Magenta</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>magenta</icfi:instanceId>
+			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+				    <strength>strong</strength>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<!-- This avoids "kickback" of a name from account to a user. -->
+					<strength>weak</strength>
+					<target>
+						<path>$c:user/c:name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+				<access>read</access>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<outbound>
+					<source>
+						<path>$user/description</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								if (iteration == 0) {
+									return description;
+								} else {
+									description + ' (' + iteration + ')';
+								}
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+
+			<iteration>
+				<maxIterations>5</maxIterations>
+				<tokenExpression>
+					<script>
+						<code>
+							if (iteration == 0) {
+								return "";
+							} else {
+								return sprintf("%03d", iteration);
+							}
+						</code>
+					</script>
+				</tokenExpression>
+				<postIterationCondition>
+					<variable>
+						<name>quote</name>
+						<path>$shadow/attributes/ri:quote</path>
+					</variable>
+					<script>
+						<code>midpoint.countAccounts(resource, 'quote', quote) == 0</code>
+					</script>
+				</postIterationCondition>
+			</iteration>
+            
+            <activation>
+            	<administrativeStatus>
+            		<outbound/>
+            	</administrativeStatus>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound>
+                    	<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+            
+		</objectType>
+		
+	</schemaHandling>
+
+</resource>

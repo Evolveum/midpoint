@@ -184,4 +184,12 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 	}
 	
+	public <O extends ObjectType> int countObjects(Class<O> type, ObjectQuery query, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (ObjectTypes.isClassManagedByProvisioning(type)) {
+			return provisioning.countObjects(type, query, parentResult);
+		} else {
+			return cacheRepositoryService.countObjects(type, query, parentResult);
+		}
+	}
+	
 }
