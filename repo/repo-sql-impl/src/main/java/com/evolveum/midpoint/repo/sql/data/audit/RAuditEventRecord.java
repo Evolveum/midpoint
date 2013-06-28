@@ -44,8 +44,11 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_audit_event")
+@Table(name = RAuditEventRecord.TABLE_NAME)
 public class RAuditEventRecord implements Serializable {
+
+    public static final String TABLE_NAME = "m_audit_event";
+    public static final String COLUMN_TIMESTAMP = "timestampValue";
 
     private long id;
     private Timestamp timestamp;
@@ -177,7 +180,7 @@ public class RAuditEventRecord implements Serializable {
         return taskOID;
     }
 
-    @Column(name = "timestampValue")
+    @Column(name = COLUMN_TIMESTAMP)
     public Timestamp getTimestamp() {
         return timestamp;
     }

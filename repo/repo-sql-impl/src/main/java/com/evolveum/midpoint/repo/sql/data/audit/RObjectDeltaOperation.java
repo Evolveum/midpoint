@@ -36,8 +36,11 @@ import javax.persistence.*;
  */
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
-@Table(name = "m_audit_delta")
+@Table(name = RObjectDeltaOperation.TABLE_NAME)
 public class RObjectDeltaOperation implements OperationResult {
+
+    public static final String TABLE_NAME = "m_audit_delta";
+    public static final String COLUMN_RECORD_ID = "record_id";
 
     private RAuditEventRecord record;
     private Long recordId;
@@ -64,14 +67,14 @@ public class RObjectDeltaOperation implements OperationResult {
     @MapsId("record")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "record_id", referencedColumnName = "id")
+            @JoinColumn(name = COLUMN_RECORD_ID, referencedColumnName = "id")
     })
     public RAuditEventRecord getRecord() {
         return record;
     }
 
     @Id
-    @Column(name = "record_id")
+    @Column(name = COLUMN_RECORD_ID)
     public Long getRecordId() {
         if (recordId == null && record != null) {
             recordId = record.getId();

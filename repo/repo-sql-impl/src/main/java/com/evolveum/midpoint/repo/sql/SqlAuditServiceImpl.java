@@ -20,23 +20,22 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.apache.commons.lang.Validate;
-import org.hibernate.PessimisticLockException;
-import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.exception.LockAcquisitionException;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.Date;
 
 /**
@@ -107,18 +106,81 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return 0;
         }
 
-        //todo improve delete through temporary table [lazyman]
-        Query query = session.createQuery("delete from " + RObjectDeltaOperation.class.getSimpleName()
-                + " as o where o.recordId in (select a.id from " + RAuditEventRecord.class.getSimpleName()
-                + " as a where a.timestamp < :timestamp)");
+        final Dialect dialect = Dialect.getDialect(getSessionFactoryBean().getHibernateProperties());
+        if (!dialect.supportsTemporaryTables()) {
+            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",
+                    new Object[]{dialect});
+            throw new SystemException("Dialect " + dialect
+                    + " doesn't support temporary tables, couldn't cleanup audit logs.");
+        }
 
-        query.setParameter("timestamp", new Timestamp(minValue.getTime()));
-        query.executeUpdate();
+        //create temporary table
+        final String tempTable = dialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
+        createTemporaryTable(session, dialect, tempTable);
+        LOGGER.trace("Created temporary table '{}'.", new Object[]{tempTable});
 
-        query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
-                + " as a where a.timestamp < :timestamp");
-        query.setParameter("timestamp", new Timestamp(minValue.getTime()));
+        //fill temporary table, we don't need to join task on object on container, oid and id is already in task table
+        StringBuilder sb = new StringBuilder();
+        sb.append("insert into ").append(tempTable).append(' ');
+        sb.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
+        sb.append(" where a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" < ?");
 
-        return query.executeUpdate();
+        SQLQuery query = session.createSQLQuery(sb.toString());
+        query.setParameter(0, new Timestamp(minValue.getTime()));
+        int insertCount = query.executeUpdate();
+        LOGGER.trace("Inserted {} audit record ids ready for deleting.", new Object[]{insertCount});
+
+        //drop records from m_task, m_object, m_container
+        session.createSQLQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
+                RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
+        session.createSQLQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id")).executeUpdate();
+
+        //drop temporary table
+        if (dialect.dropTemporaryTableAfterUse()) {
+            LOGGER.debug("Dropping temporary table.");
+            sb = new StringBuilder();
+            sb.append(dialect.getDropTemporaryTableString());
+            sb.append(' ').append(tempTable);
+
+            session.createSQLQuery(sb.toString()).executeUpdate();
+        }
+
+        return insertCount;
+    }
+
+    /**
+     * This method creates temporary table for cleanup audit method.
+     *
+     * @param session
+     * @param dialect
+     * @param tempTable
+     */
+    private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
+        session.doWork(new Work() {
+
+            @Override
+            public void execute(Connection connection) throws SQLException {
+                StringBuilder sb = new StringBuilder();
+                sb.append(dialect.getCreateTemporaryTableString());
+                sb.append(' ').append(tempTable).append(" (id ");
+                sb.append(dialect.getTypeName(Types.BIGINT));
+                if (getConfiguration().isUsingSQLServer()) {
+                    sb.append(" collate database_default");
+                }
+                sb.append(" not null)");
+                sb.append(dialect.getCreateTemporaryTablePostfix());
+
+                Statement s = connection.createStatement();
+                s.execute(sb.toString());
+            }
+        });
+    }
+
+    private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("delete from ").append(objectTable);
+        sb.append(" where ").append(idColumnName).append(" in (select id from ").append(tempTable).append(')');
+
+        return sb.toString();
     }
 }
