@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -58,9 +59,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -175,6 +178,27 @@ public class ReconciliationProcessor {
         	}
         	
         	DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> pvwoTriple = squeezedAttributes.get(attrName);
+        	
+        	if (attributeDefinition.isIgnored(LayerType.MODEL)) {
+            	LOGGER.trace("Skipping reconciliation of attribute {} because it is ignored", attrName);
+            	continue;
+            }
+            
+            PropertyLimitations limitations = attributeDefinition.getLimitations(LayerType.MODEL);
+            if (limitations != null) {
+            	PropertyAccessType access = limitations.getAccess();
+            	if (access != null) {
+            		if (accCtx.isAdd() && (access.isCreate() == null || !access.isCreate())) {
+            			LOGGER.trace("Skipping reconciliation of attribute {} because it is non-createable", attrName);
+            			continue;
+            		}
+            		if (accCtx.isModify() && (access.isUpdate() == null || !access.isUpdate())) {
+            			LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable", attrName);
+            			continue;
+            		}
+            	}
+            }
+        	
         	Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePValues = null;
         	if (pvwoTriple == null) {
         		shouldBePValues = new ArrayList<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>();

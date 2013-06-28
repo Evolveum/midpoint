@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -184,38 +185,53 @@ public class InboundProcessor {
             LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
             		PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
 
-            for (MappingType inboundMappingType : inboundMappingTypes) {
+            if (!inboundMappingTypes.isEmpty()) {
             	
-            	// There are two processing options:
-            	//
-            	//  * If we have a delta as an input we will proceed in relative mode, applying mappings on the delta.
-            	//    This usually happens when a delta comes from a sync notification or if there is a primary projection delta.
-            	//
-            	//  * if we do NOT have a delta then we will proceed in absolute mode. In that mode we will apply the
-            	//    mappings to the absolute projection state that we got from provisioning. This is a kind of "inbound reconciliation".
+            	PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
+            	if (limitations != null) {
+            		PropertyAccessType access = limitations.getAccess();
+            		if (access != null) {
+            			if (access.isRead() == null || !access.isRead()) {
+            				LOGGER.warn("Inbound mapping for non-readable attribute {} in {}, skipping", 
+            						accountAttributeName, accContext.getHumanReadableName());
+            				continue;
+            			}
+            		}
+            	}
             	
-                PropertyDelta<?> userPropertyDelta = null;
-                if (aPrioriDelta != null) {
-                    LOGGER.trace("Processing inbound from a priori delta.");
-                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
-                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
-                } else if (accountOld != null) {
-                	if (!accContext.isFullShadow()) {
-                		throw new SystemException("Attempt to execute inbound expression on account shadow (not full account)");
-                	}
-                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
-                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
-                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
-                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
-                }
-
-                if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
-                    LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{userPropertyDelta.debugDump(3)});
-                    context.getFocusContext().swallowToProjectionWaveSecondaryDelta(userPropertyDelta);
-                    context.recomputeFocus();
-                } else {
-                    LOGGER.trace("Created delta (from inbound expression) was null or empty.");
-                }
+	            for (MappingType inboundMappingType : inboundMappingTypes) {
+	            	
+	            	// There are two processing options:
+	            	//
+	            	//  * If we have a delta as an input we will proceed in relative mode, applying mappings on the delta.
+	            	//    This usually happens when a delta comes from a sync notification or if there is a primary projection delta.
+	            	//
+	            	//  * if we do NOT have a delta then we will proceed in absolute mode. In that mode we will apply the
+	            	//    mappings to the absolute projection state that we got from provisioning. This is a kind of "inbound reconciliation".
+	            	
+	                PropertyDelta<?> userPropertyDelta = null;
+	                if (aPrioriDelta != null) {
+	                    LOGGER.trace("Processing inbound from a priori delta.");
+	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
+	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
+	                } else if (accountOld != null) {
+	                	if (!accContext.isFullShadow()) {
+	                		throw new SystemException("Attempt to execute inbound expression on account shadow (not full account)");
+	                	}
+	                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
+	                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
+	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
+	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
+	                }
+	
+	                if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
+	                    LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{userPropertyDelta.debugDump(3)});
+	                    context.getFocusContext().swallowToProjectionWaveSecondaryDelta(userPropertyDelta);
+	                    context.recomputeFocus();
+	                } else {
+	                    LOGGER.trace("Created delta (from inbound expression) was null or empty.");
+	                }
+	            }
             }
         }
         processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,

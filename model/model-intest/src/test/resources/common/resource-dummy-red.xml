@@ -191,6 +191,53 @@
 					</source>
 				</outbound>
 			</attribute>
+			<attribute>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
+                <description>Non-readable attribute, the inbound mapping should be ignored</description>
+                <limitations>
+					<access>
+						<create>true</create>
+						<read>false</read>
+						<update>true</update>
+					</access>
+				</limitations>
+				<inbound>
+                	<!-- Make sure this mapping is really ignored -->
+					<expression>
+						<value>Dead men tell no tales</value>
+					</expression>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <description>Non-readable and non-writable attribute, all mappings should be ignored</description>
+                <limitations>
+					<access>
+						<create>false</create>
+						<read>false</read>
+						<update>false</update>
+					</access>
+				</limitations>
+                <outbound>
+                	<!-- Make sure this mapping is really ignored -->
+					<expression>
+						<value>fishy</value>
+					</expression>
+				</outbound>
+				<inbound>
+                	<!-- Make sure this mapping is really ignored -->
+					<expression>
+						<value>very FISHY</value>
+					</expression>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
+            </attribute>
 
 			<activation>
 				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.

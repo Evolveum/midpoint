@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.lens.projector;
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -232,15 +234,30 @@ public class ConsolidationProcessor {
 			boolean addUnchangedValues, boolean completeAccount, QName attributeName,
 			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<T>>> triple) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
-        ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, attributeName);
-                    
+        ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, attributeName);             
         RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
-        ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
-        
+       
         if (attributeDefinition.isIgnored(LayerType.MODEL)) {
         	LOGGER.trace("Skipping processing mappings for attribute {} because it is ignored", attributeName);
         	return null;
         }
+        
+        PropertyLimitations limitations = attributeDefinition.getLimitations(LayerType.MODEL);
+        if (limitations != null) {
+        	PropertyAccessType access = limitations.getAccess();
+        	if (access != null) {
+        		if (accCtx.isAdd() && (access.isCreate() == null || !access.isCreate())) {
+        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-createable", attributeName);
+                	return null;
+        		}
+        		if (accCtx.isModify() && (access.isUpdate() == null || !access.isUpdate())) {
+        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-updateable", attributeName);
+                	return null;
+        		}
+        	}
+        }
+       
+        ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
         
         boolean forceAddUnchangedValues = false;
         PropertyDelta<?> existingAttributeDelta = null;

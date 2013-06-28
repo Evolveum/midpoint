@@ -25,13 +25,6 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            TODO
-
-            These definitions are to be considered only examples for now.
-
-            These will hopefuly get cleaned up and aligned
-            with existing common terminology and/or connectors.
-
 			Version: 2.0
             Recommended namespace prefix: icfs
         </xsd:documentation>

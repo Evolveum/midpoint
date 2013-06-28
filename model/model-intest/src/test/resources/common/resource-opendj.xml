@@ -183,8 +183,6 @@
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 				    <source>
 				    	<path>$user/name</path>
@@ -201,7 +199,6 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>Entry UUID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
