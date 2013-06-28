@@ -61,6 +61,56 @@
 				<ref>ri:loot</ref>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<limitations>
+					<access>
+						<create>false</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>false</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:gossip</ref>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>false</read>
+						<update>true</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:water</ref>
+				<limitations>
+					<access>
+						<create>false</create>
+						<read>false</read>
+						<update>false</update>
+					</access>
+				</limitations>
+			</attribute>
 			<association>
             	<name>ri:group</name>
             	<kind>entitlement</kind>

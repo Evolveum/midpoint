@@ -233,6 +233,14 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
 	}
 	
+	protected <T> void assertNoAttribute(ShadowType shadow, String attrName) {
+		ProvisioningTestUtil.assertNoAttribute(resource, shadow, attrName);
+	}
+	
+	protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, String attrName) {
+		ProvisioningTestUtil.assertNoAttribute(resource, shadow.asObjectable(), attrName);
+	}
+	
 	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}

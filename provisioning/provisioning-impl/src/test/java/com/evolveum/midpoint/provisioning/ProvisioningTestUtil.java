@@ -53,6 +53,7 @@ import com.evolveum.midpoint.provisioning.test.impl.TestDummy;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -160,6 +161,17 @@ public class ProvisioningTestUtil {
 			T... expectedValues) {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
+	
+	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
+		ResourceAttribute attribute = ShadowUtil.getAttribute(shadow.asPrismContainer(), attrQname);
+		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
+	}
+	
+	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
+		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
+		ResourceAttribute attribute = ShadowUtil.getAttribute(shadow.asPrismContainer(), attrQname);
+		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
 	}
 	
 	public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {

@@ -1181,10 +1181,11 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test114SearchAllShadows() throws Exception {
-		TestUtil.displayTestTile("test114SearchAllShadows");
+		final String TEST_NAME = "test114SearchAllShadows";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test114SearchAllShadows");
+				+ "." + TEST_NAME);
 		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
 				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
 		display("All shadows query", query);
@@ -1236,10 +1237,11 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test116SearchNullQueryResource() throws Exception {
-		TestUtil.displayTestTile("test116SearchNullQueryResource");
+		final String TEST_NAME = "test116SearchNullQueryResource";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test116SearchNullQueryResource");
+				+ "." + TEST_NAME);
 
 		// WHEN
 		List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,

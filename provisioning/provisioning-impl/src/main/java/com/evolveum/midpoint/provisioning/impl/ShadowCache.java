@@ -362,7 +362,7 @@ public abstract class ShadowCache {
 		return operationDescription;
 	}
 
-	public abstract void afterModifyOnResource(PrismObject<ShadowType> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+	public abstract void afterModifyOnResource(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 	
 	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException;
 	
@@ -384,6 +384,8 @@ public abstract class ShadowCache {
 		}
 		
 		RefinedObjectClassDefinition objectClassDefinition =  applyAttributesDefinition(shadow, resource);
+		
+		accessChecker.checkModify(resource, shadow, modifications, objectClassDefinition, parentResult);
 
 		preprocessEntitlements(modifications, resource, parentResult);
 
@@ -1173,7 +1175,9 @@ public abstract class ShadowCache {
 		if (!resultIsResourceShadowClone) {
 			// Attributes
 			resultShadow.removeContainer(ShadowType.F_ATTRIBUTES);
-			resultShadow.add(resourceAttributesContainer.clone());
+			ResourceAttributeContainer resultAttibutes = resourceAttributesContainer.clone();
+			accessChecker.filterGetAttributes(resultAttibutes, objectClassDefinition, parentResult);
+			resultShadow.add(resultAttibutes);
 			
 			resultShadowType.setProtectedObject(resourceShadowType.isProtectedObject());
 			resultShadowType.setIgnored(resourceShadowType.isIgnored());

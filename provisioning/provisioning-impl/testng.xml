@@ -45,6 +45,7 @@
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummySchemaless" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyNegative" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyResourceAndSchemaCaching" />
+			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummySecurity" />
 		</classes>
 	</test>
 	<test name="provisioning-service-csv" preserve-order="true" parallel="false" verbose="10">
