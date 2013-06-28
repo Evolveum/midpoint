@@ -949,7 +949,7 @@ public class ResourceObjectConverter {
 		
 	public List<Change<ShadowType>> fetchChanges(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClass, PrismProperty<?> lastToken,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");

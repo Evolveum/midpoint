@@ -269,8 +269,9 @@ public class ShadowManager {
 		}
 	}
 
+    // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
 	public PrismObject<ShadowType> findOrCreateShadowFromChange(ResourceType resource, Change<ShadowType> change,
-			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException,
 			GenericFrameworkException, ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
@@ -289,11 +290,7 @@ public class ShadowManager {
 			// account was not found in the repository, create it now
 
 			if (change.getObjectDelta() == null || change.getObjectDelta().getChangeType() != ChangeType.DELETE) {
-				try {
-					newShadow = createNewAccountFromChange(change, resource, objectClassDefinition, parentResult);
-				} catch (ObjectNotFoundException ex) {
-					throw ex;
-				}
+				newShadow = createNewAccountFromChange(change, resource, objectClassDefinition, parentResult);
 
 				try {
 					String oid = repositoryService.addObject(newShadow, null, parentResult);
@@ -310,15 +307,19 @@ public class ShadowManager {
 			// Account was found in repository
 			newShadow = accountList.get(0);
 			
-			if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE){
-				Collection<? extends ItemDelta> deadDeltas = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, newShadow.getDefinition(), true);
-			try{
-				repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
-			} catch (ObjectAlreadyExistsException e) {
-				parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
-						+ " to the repository. Reason: " + e.getMessage(), e);
-				throw new IllegalStateException(e.getMessage(), e);
-			}
+            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE){
+                Collection<? extends ItemDelta> deadDeltas = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, newShadow.getDefinition(), true);
+                try {
+                    repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
+                } catch (ObjectAlreadyExistsException e) {
+                    parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+                            + " to the repository. Reason: " + e.getMessage(), e);
+                    throw new IllegalStateException(e.getMessage(), e);
+                } catch (ObjectNotFoundException e) {
+                    parentResult.recordWarning("Account shadow " + SchemaDebugUtil.prettyPrint(newShadow)
+                            + " was probably deleted from the repository in the meantime. Exception: " + e.getMessage(), e);
+                    return null;
+                }
 			}
 			
 		}
@@ -329,7 +330,7 @@ public class ShadowManager {
 	
 	private PrismObject<ShadowType> createNewAccountFromChange(Change<ShadowType> change, ResourceType resource, 
 			RefinedObjectClassDefinition objectClassDefinition,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			OperationResult parentResult) throws SchemaException,
 			CommunicationException, GenericFrameworkException, ConfigurationException,
 			SecurityViolationException {
 

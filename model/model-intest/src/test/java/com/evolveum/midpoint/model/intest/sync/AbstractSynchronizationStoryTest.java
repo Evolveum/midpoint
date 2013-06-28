@@ -705,7 +705,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	
 	@Test
     public void test510AddDummyBlueAccountWallyUserTemplate() throws Exception {
-		final String TEST_NAME = "test210AddDummyBlueAccountWally";
+		final String TEST_NAME = "test510AddDummyBlueAccountWallyUserTemplate";
         TestUtil.displayTestTile(this, TEST_NAME);
         
         // GIVEN

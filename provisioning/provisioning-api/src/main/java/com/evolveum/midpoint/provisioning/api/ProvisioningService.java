@@ -180,7 +180,7 @@ public interface ProvisioningService {
 	 *            parent OperationResult (in/out)
 	 * @return the number of processed changes
 	 * @throws ObjectNotFoundException
-	 *             specified resource definition (OID) does not exist
+	 *             some of key objects (resource, task, ...) do not exist
 	 * @throws CommunicationException
 	 *             error communicating with the resource
 	 * @throws SchemaException

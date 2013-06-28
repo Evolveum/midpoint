@@ -212,10 +212,10 @@ public class LiveSyncTaskHandler implements TaskHandler {
             progress += changesProcessed;
 			
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Live Sync: Resource does not exist, OID: {}",resourceOid);
+			LOGGER.error("Live Sync: A required object does not exist, OID: {}", ex.getOid());
             LOGGER.error("Exception stack trace", ex);
-			// This is bad. The resource does not exist. Permanent problem.
-			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
+			// This is bad. The resource or task or something like that does not exist. Permanent problem.
+			opResult.recordFatalError("A required object does not exist, OID: " + ex.getOid(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
