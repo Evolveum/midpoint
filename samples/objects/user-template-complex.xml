@@ -40,7 +40,7 @@
 			</script>
 		</expression>
 		<target>
-			<path>fullName</path>
+			<path>$user/fullName</path>
 		</target>
 	</mapping>
     
