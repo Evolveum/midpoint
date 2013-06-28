@@ -384,7 +384,9 @@ public class RAuditEventRecord implements Serializable {
                 if (delta == null) {
                     continue;
                 }
-                repo.getDeltas().add(RObjectDeltaOperation.toRepo(repo, delta, prismContext));
+                RObjectDeltaOperation rDelta = RObjectDeltaOperation.toRepo(repo, delta, prismContext);
+                rDelta.setRecord(repo);
+                repo.getDeltas().add(rDelta);
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

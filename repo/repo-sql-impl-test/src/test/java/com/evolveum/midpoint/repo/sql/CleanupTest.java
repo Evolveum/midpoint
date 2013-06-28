@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.common.RContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -27,11 +28,14 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
 import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
@@ -214,6 +218,7 @@ public class CleanupTest extends BaseSQLRepoTest {
         for (int i = 0; i < 3; i++) {
             long timestamp = calendar.getTimeInMillis();
             AuditEventRecord record = new AuditEventRecord();
+            record.addDelta(createObjectDeltaOperation(i));
             record.setTimestamp(timestamp);
             LOGGER.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
 
@@ -274,14 +279,18 @@ public class CleanupTest extends BaseSQLRepoTest {
         }
     }
 
-//create temporary table if not exists HT_m_task (id bigint not null, oid varchar(36) not null)
-//insert into HT_m_task select t.id as id, t.oid as oid from m_task t
-//      inner join m_object o on t.id=o.id and t.oid=o.oid
-//      inner join m_container c on t.id=c.id and t.oid=c.oid
-//      where t.completionTimestamp<?
-//delete from m_task where (id, oid) IN (select id, oid from HT_m_task)
-//delete from m_object where (id, oid) IN (select id, oid from HT_m_task)
-//delete from m_container where (id, oid) IN (select id, oid from HT_m_task)
-//drop temporary table HT_m_task
+    private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception{
+        ObjectDeltaOperation delta = new ObjectDeltaOperation();
+        delta.setExecutionResult(new OperationResult("asdf"));
+        UserType user = new UserType();
+        prismContext.adopt(user);
+        PolyStringType name = new PolyStringType();
+        name.setOrig("a" + i);
+        name.setNorm("a" + i);
+        user.setName(name);
 
+        delta.setObjectDelta(ObjectDelta.createAddDelta(user.asPrismObject()));
+
+        return delta;
+    }
 }

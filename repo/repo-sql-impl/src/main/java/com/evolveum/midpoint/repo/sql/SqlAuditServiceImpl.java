@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -106,7 +107,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return 0;
         }
 
-        Query query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
+        //todo improve delete through temporary table [lazyman]
+        Query query = session.createQuery("delete from " + RObjectDeltaOperation.class.getSimpleName()
+                + " as o where o.recordId in (select a.id from " + RAuditEventRecord.class.getSimpleName()
+                + " as a where a.timestamp < :timestamp)");
+
+        query.setParameter("timestamp", new Timestamp(minValue.getTime()));
+        query.executeUpdate();
+
+        query = session.createQuery("delete from " + RAuditEventRecord.class.getSimpleName()
                 + " as a where a.timestamp < :timestamp");
         query.setParameter("timestamp", new Timestamp(minValue.getTime()));
 
