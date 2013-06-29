@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportUserList" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
 	<property name="ireport.zoom" value="1.6105100000000019"/>
-	<property name="ireport.x" value="541"/>
+	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
@@ -137,7 +137,7 @@
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="20" splitType="Stretch">
+		<band height="20" splitType="Prevent">
 			<frame>
 				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="800" height="19"/>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
