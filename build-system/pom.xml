@@ -356,7 +356,7 @@
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
                 <artifactId>csvfile-connector</artifactId>
-                <version>1.1.0.e6332</version>
+                <version>1.1.1.e6375</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>

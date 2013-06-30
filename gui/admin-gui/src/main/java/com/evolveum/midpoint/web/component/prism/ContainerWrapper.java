@@ -280,13 +280,6 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return true;
     }
 
-    private boolean hasResourceCapability(ResourceType resource, Class<? extends CapabilityType> capabilityClass){
-        if (resource == null){
-            return false;
-        }
-        return ResourceTypeUtil.hasEffectiveCapability(resource, capabilityClass);
-    }
-
     // temporary - brutal hack - the following three methods are copied from AddRoleAssignmentWrapper - Pavol M.
 
     private String formatAssignmentBrief(AssignmentType assignment) {
