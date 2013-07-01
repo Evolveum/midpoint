@@ -143,11 +143,7 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
             }
         }
         
-        if (activation.getAdministrativeStatus() == null) {
-            return ActivationStatusType.DISABLED;
-        }
-
-        return activation.getAdministrativeStatus();
+        return ActivationStatusType.ENABLED;
     }
 
 	public UserType getUser() {
