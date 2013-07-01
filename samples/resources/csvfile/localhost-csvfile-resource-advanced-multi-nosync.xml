@@ -118,6 +118,7 @@ using an Identity Connector Framework connector.
                     <!-- Access limitation for this attribute.
                           -->
 					<limitations>
+						<minOccurs>0</minOccurs>
 						<access>
 							<create>true</create>
 							<read>true</read>
