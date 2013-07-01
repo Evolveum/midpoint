@@ -22,6 +22,10 @@
              targetNamespace="http://evolveum.com/midpoint" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <process id="ItemApproval" name="General multi-level item approval process" isExecutable="true">
+        <extensionElements>
+            <activiti:executionListener event="end" class="com.evolveum.midpoint.wf.processes.general.MidPointProcessListener" />
+        </extensionElements>
+
 
         <!-- This process takes care of approving "something" - an item to approve.
 

@@ -762,6 +762,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
             lensContextType.getExecutionWave() : 0);
         lensContext.setOptions(ModelExecuteOptions.fromModelExecutionOptionsType(lensContextType.getOptions()));
 
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
         return lensContext;
     }
 

@@ -163,10 +163,8 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
         List<ObjectDelta<Objectable>> deltaIn = wfTaskUtil.retrieveDeltasToProcess(task);
         if (Boolean.TRUE.equals(event.getAnswer())) {
             return new ArrayList<ObjectDelta<Objectable>>(deltaIn);
-        } else if (Boolean.FALSE.equals(event.getAnswer())) {
-            return new ArrayList<ObjectDelta<Objectable>>();
         } else {
-            throw new IllegalStateException("No wfAnswer variable in process event " + event);      // todo more meaningful message
+            return new ArrayList<ObjectDelta<Objectable>>();
         }
     }
 

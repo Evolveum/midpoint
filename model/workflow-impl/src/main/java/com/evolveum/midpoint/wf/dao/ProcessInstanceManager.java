@@ -62,10 +62,14 @@ public class ProcessInstanceManager {
 
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_STOP_PROCESS_INSTANCE);
+        result.addParam("instanceId", instanceId);
 
         RuntimeService rs = activitiEngine.getRuntimeService();
         try {
-            rs.deleteProcessInstance(instanceId, "Process instance stopped on the request of " + username);
+            LOGGER.trace("Stopping process instance {} on the request of {}", instanceId, username);
+            String deletionMessage = "Process instance stopped on the request of " + username;
+            rs.setVariable(instanceId, CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE, deletionMessage);
+            rs.deleteProcessInstance(instanceId, deletionMessage);
             result.recordSuccess();
         } catch (ActivitiException e) {
             result.recordFatalError("Process instance couldn't be stopped", e);
@@ -75,6 +79,7 @@ public class ProcessInstanceManager {
 
     public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE_PROCESS_INSTANCE);
+        result.addParam("instanceId", instanceId);
 
         HistoryService hs = activitiEngine.getHistoryService();
         try {

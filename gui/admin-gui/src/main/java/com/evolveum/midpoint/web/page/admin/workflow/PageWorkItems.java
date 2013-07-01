@@ -252,6 +252,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             try {
                 //wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), WorkItemDtoProvider.currentUser(), approve, result);
                 workflowServiceImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), approve, result);
+                result.computeStatus();
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
             }

@@ -839,7 +839,6 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertSimpleRecordSanity();
 
         display("Output context", context);
 	}

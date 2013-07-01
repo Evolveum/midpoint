@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.activiti;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -128,7 +129,7 @@ public class ActivitiInterface {
                 LOGGER.trace("Response to be sent to midPoint: " + qpr);
             }
 
-            activiti2midpoint(qpr, task, result);
+            activiti2midpoint(qpr, task, false, result);
         }
         else if (cmd instanceof StartProcessCommand)
         {
@@ -170,7 +171,7 @@ public class ActivitiInterface {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Event to be sent to IDM: " + event);
                 }
-                activiti2midpoint(event, task, result);
+                activiti2midpoint(event, task, false, result);
             }
         }
         else
@@ -181,7 +182,10 @@ public class ActivitiInterface {
     }
 
     // task and parentResult may be null e.g. if this method is called from activiti process (for "smart" processes)
-    public void activiti2midpoint(ActivitiToMidPointMessage msg, Task task, OperationResult parentResult) {
+    // asynchronous = true if this method is called from activiti process ("smart" processes), false if it is called as a response
+    //      to either query (from periodic querying of dumb processes) or to process start instruction
+    // asynchronous messages are accepted only if task state is WAITING, in order to eliminate duplicate processing of finish messages
+    public void activiti2midpoint(ActivitiToMidPointMessage msg, Task task, boolean asynchronous, OperationResult parentResult) {
 
         OperationResult result;
         if (parentResult == null) {
@@ -215,7 +219,12 @@ public class ActivitiInterface {
                 } else {
                     task = taskManager.getTask(taskOid, result);
                 }
-                processInstanceController.processWorkflowMessage(event, task, result);
+
+                if (asynchronous && task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
+                    LOGGER.trace("Asynchronous message received in a state different from WAITING ({}), ignoring it. Task = {}", task.getExecutionStatus(), task);
+                } else {
+                    processInstanceController.processWorkflowMessage(event, task, result);
+                }
 
             } else {
                 throw new IllegalStateException("Unknown message type coming from the workflow: " + msg);
@@ -248,6 +257,6 @@ public class ActivitiInterface {
         event.setRunning(true);
         event.setTaskOid((String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
         event.setVariablesFrom(execution.getVariables());
-        activiti2midpoint(event, null, new OperationResult(DOT_CLASS + "notifyMidpoint"));
+        activiti2midpoint(event, null, true, new OperationResult(DOT_CLASS + "notifyMidpoint"));
     }
 }

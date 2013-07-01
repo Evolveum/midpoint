@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -78,6 +79,7 @@ public class WfHook implements ChangeHook {
 
         OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
         result.addParam("task", task.toString());
+        result.addContext("model state", context.getState());
 
         logOperationInformation(context);
 
