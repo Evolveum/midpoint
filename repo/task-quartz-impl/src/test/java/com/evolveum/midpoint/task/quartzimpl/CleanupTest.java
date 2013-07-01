@@ -120,9 +120,8 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
     }
 
     private Duration createDuration(Calendar when, long now) throws Exception {
-        DatatypeFactory factory = DatatypeFactory.newInstance();
-        Duration duration = factory.newDuration(now - when.getTimeInMillis());
-        return duration.negate();
+        long seconds = (now - when.getTimeInMillis()) / 1000;
+        return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
     }
 
     private CleanupPolicyType createPolicy(Calendar when, long now) throws Exception {
