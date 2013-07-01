@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
@@ -160,6 +161,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
             @Override
             public void execute(Connection connection) throws SQLException {
+                //check if table exists
+                DatabaseMetaData meta = connection.getMetaData();
+                ResultSet resultSet = meta.getTables(null, null, null, new String[]{"TABLE"});
+                while (resultSet.next()) {
+                    if (StringUtils.equalsIgnoreCase(tempTable, resultSet.getString("TABLE_NAME"))) {
+                        return;
+                    }
+                }
+
                 StringBuilder sb = new StringBuilder();
                 sb.append(dialect.getCreateTemporaryTableString());
                 sb.append(' ').append(tempTable).append(" (id ");
