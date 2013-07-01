@@ -197,9 +197,8 @@ public class CleanupTest extends BaseSQLRepoTest {
     }
 
     private Duration createDuration(Calendar when, long now) throws Exception {
-        DatatypeFactory factory = DatatypeFactory.newInstance();
-        Duration duration = factory.newDuration(now - when.getTimeInMillis());
-        return duration.negate();
+        long seconds = (now - when.getTimeInMillis()) / 1000;
+        return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
     }
 
     private CleanupPolicyType createPolicy(Calendar when, long now) throws Exception {
@@ -223,7 +222,6 @@ public class CleanupTest extends BaseSQLRepoTest {
             LOGGER.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
 
             auditService.audit(record, new SimpleTaskAdapter());
-
             calendar.add(Calendar.HOUR_OF_DAY, 1);
         }
 
@@ -279,7 +277,7 @@ public class CleanupTest extends BaseSQLRepoTest {
         }
     }
 
-    private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception{
+    private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
         ObjectDeltaOperation delta = new ObjectDeltaOperation();
         delta.setExecutionResult(new OperationResult("asdf"));
         UserType user = new UserType();

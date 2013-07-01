@@ -164,9 +164,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 sb.append(dialect.getCreateTemporaryTableString());
                 sb.append(' ').append(tempTable).append(" (id ");
                 sb.append(dialect.getTypeName(Types.BIGINT));
-                if (getConfiguration().isUsingSQLServer()) {
-                    sb.append(" collate database_default");
-                }
                 sb.append(" not null)");
                 sb.append(dialect.getCreateTemporaryTablePostfix());
 
