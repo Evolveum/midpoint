@@ -100,6 +100,18 @@ public class JobExecutor implements InterruptableJob {
 
         // if this is a restart, check whether the task is resilient
         if (context.isRecovering()) {
+
+            // reset task node (there's potentially the old information from crashed node)
+            try {
+                if (task.getNode() != null) {
+                    task.setNodeImmediate(null, executionResult);
+                }
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Cannot reset executing-at-node information for recovering task {}", e, task);
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Cannot reset executing-at-node information for recovering task {}", e, task);
+            }
+
             if (!processTaskRecovery(executionResult)) {
                 return;
             }
