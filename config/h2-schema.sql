@@ -484,6 +484,8 @@ CREATE TABLE m_shadow (
   exist                         BOOLEAN,
   failedOperationType           INTEGER,
   intent                        VARCHAR(255),
+  iteration                     INTEGER,
+  iterationToken                VARCHAR(255),
   kind                          INTEGER,
   name_norm                     VARCHAR(255),
   name_orig                     VARCHAR(255),

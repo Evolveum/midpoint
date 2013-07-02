@@ -484,6 +484,8 @@ CREATE TABLE m_shadow (
   exist                         BIT,
   failedOperationType           INT,
   intent                        NVARCHAR(255),
+  iteration                     INT,
+  iterationToken                NVARCHAR(255),
   kind                          INT,
   name_norm                     NVARCHAR(255),
   name_orig                     NVARCHAR(255),

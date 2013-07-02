@@ -76,6 +76,16 @@ public class RShadow extends RObject {
     private RShadowKind kind;
     private Boolean assigned;
     private Boolean exists;
+    private Integer iteration;
+    private String iterationToken;
+
+    public Integer getIteration() {
+        return iteration;
+    }
+
+    public String getIterationToken() {
+        return iterationToken;
+    }
 
     public Boolean isAssigned() {
         return assigned;
@@ -251,6 +261,14 @@ public class RShadow extends RObject {
         this.synchronizationSituationDescription = synchronizationSituationDescription;
     }
 
+    public void setIteration(Integer iteration) {
+        this.iteration = iteration;
+    }
+
+    public void setIterationToken(String iterationToken) {
+        this.iterationToken = iterationToken;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -277,6 +295,8 @@ public class RShadow extends RObject {
         if (kind != null ? !kind.equals(that.kind) : that.kind != null) return false;
         if (assigned != null ? !assigned.equals(that.assigned) : that.assigned != null) return false;
         if (exists != null ? !exists.equals(that.exists) : that.exists != null) return false;
+        if (iteration != null ? !iteration.equals(that.iteration) : that.iteration != null) return false;
+        if (iterationToken != null ? !iterationToken.equals(that.iterationToken) : that.iterationToken != null) return false;
 
         return true;
     }
@@ -296,6 +316,8 @@ public class RShadow extends RObject {
         result1 = 31 * result1 + (kind != null ? kind.hashCode() : 0);
         result1 = 31 * result1 + (assigned != null ? assigned.hashCode() : 0);
         result1 = 31 * result1 + (exists != null ? exists.hashCode() : 0);
+        result1 = 31 * result1 + (iteration != null ? iteration.hashCode() : 0);
+        result1 = 31 * result1 + (iterationToken != null ? iterationToken.hashCode() : 0);
 
         return result1;
     }
@@ -328,6 +350,8 @@ public class RShadow extends RObject {
             jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSchemaValue());
         }
 
+        jaxb.setIteration(repo.getIteration());
+        jaxb.setIterationToken(repo.getIterationToken());
         jaxb.setAssigned(repo.isAssigned());
         jaxb.setExists(repo.isExists());
         jaxb.setDead(repo.isDead());
@@ -386,6 +410,8 @@ public class RShadow extends RObject {
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
         repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), prismContext));
 
+        repo.setIteration(jaxb.getIteration());
+        repo.setIterationToken(jaxb.getIterationToken());
         repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setExists(jaxb.isExists());
         repo.setAssigned(jaxb.isAssigned());
