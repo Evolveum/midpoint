@@ -5004,6 +5004,10 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+                    </xsd:element>
+                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+                    </xsd:element>
                     <xsd:element name="attributes" type="tns:ShadowAttributesType" minOccurs="0">
                     </xsd:element>
                     <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded"/>
