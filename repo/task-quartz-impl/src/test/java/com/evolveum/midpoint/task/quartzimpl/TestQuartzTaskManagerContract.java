@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -106,9 +107,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     private static String taskFilename(String test) {
     	return "src/test/resources/repo/task-" + test + ".xml";
     }
-    
+
+    private static String taskOid(String test, String subId) {
+        return "91919191-76e0-59e2-86d6-55665566" + subId + test.substring(0, 3);
+    }
+
     private static String taskOid(String test) {
-    	return "91919191-76e0-59e2-86d6-556655660" + test.substring(0, 3);
+    	return taskOid(test, "0");
     }
     
     private static OperationResult createResult(String test) {
@@ -614,7 +619,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final OperationResult result = createResult(test);
 
         // But before that check sanity ... a known problem with xsi:type
-    	PrismObject<ObjectType> object = addObjectFromFile(taskFilename(test));
+    	PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(test));
 
         ObjectType objectType = object.asObjectable();
         TaskType addedTask = (TaskType) objectType;
@@ -763,7 +768,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     	final String test = "009CycleLoose";
         final OperationResult result = createResult(test);
 
-    	PrismObject<ObjectType> object = addObjectFromFile(taskFilename(test));
+    	PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(test));
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this task
@@ -1148,7 +1153,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final String test = "015DeleteTaskFromRepo";
         final OperationResult result = createResult(test);
 
-        PrismObject<ObjectType> object = addObjectFromFile(taskFilename(test));
+        PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(test));
         String oid = taskOid(test);
 
         // is the task in Quartz?
@@ -1412,6 +1417,62 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         assertFalse("There were no tasks with executionStatus == WAITING and waitingReason == WORKFLOW found", prisms3.isEmpty());
     }
 
+    @Test(enabled = true)
+    public void test021DeleteTaskTree() throws Exception {
+        final String test = "021DeleteTaskTree";
+        final OperationResult result = createResult(test);
+
+        PrismObject<TaskType> parentTaskPrism = (PrismObject<TaskType>) addObjectFromFile(taskFilename(test));
+        PrismObject<TaskType> childTask1Prism = (PrismObject<TaskType>) addObjectFromFile(taskFilename(test+"-child1"));
+        PrismObject<TaskType> childTask2Prism = (PrismObject<TaskType>) addObjectFromFile(taskFilename(test+"-child2"));
+
+        AssertJUnit.assertEquals(TaskExecutionStatusType.WAITING, parentTaskPrism.asObjectable().getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatusType.SUSPENDED, childTask1Prism.asObjectable().getExecutionStatus());
+        AssertJUnit.assertEquals(TaskExecutionStatusType.SUSPENDED, childTask2Prism.asObjectable().getExecutionStatus());
+
+        Task parentTask = taskManager.createTaskInstance(parentTaskPrism, result);
+        Task childTask1 = taskManager.createTaskInstance(childTask1Prism, result);
+        Task childTask2 = taskManager.createTaskInstance(childTask2Prism, result);
+
+        IntegrationTestTools.display("parent", parentTask);
+        IntegrationTestTools.display("child1", childTask1);
+        IntegrationTestTools.display("child2", childTask2);
+
+        taskManager.resumeTask(childTask1, result);
+        taskManager.resumeTask(childTask2, result);
+        parentTask.startWaitingForTasksImmediate(result);
+
+        LOGGER.info("Deleting task {} and its subtasks", parentTask);
+
+        taskManager.suspendAndDeleteTasks(Arrays.asList(parentTask.getOid()), 2000L, true, result);
+
+        IntegrationTestTools.display("after suspendAndDeleteTasks", result.getLastSubresult());
+        IntegrationTestTools.assertSuccessOrWarning("suspendAndDeleteTasks result is not success/warning", result.getLastSubresult());
+
+        try {
+            repositoryService.getObject(TaskType.class, childTask1.getOid(), result);
+            assertTrue("Task " + childTask1 + " was not deleted from the repository", false);
+        } catch (ObjectNotFoundException e) {
+            // ok!
+        }
+
+        try {
+            repositoryService.getObject(TaskType.class, childTask2.getOid(), result);
+            assertTrue("Task " + childTask2 + " was not deleted from the repository", false);
+        } catch (ObjectNotFoundException e) {
+            // ok!
+        }
+
+        try {
+            repositoryService.getObject(TaskType.class, parentTask.getOid(), result);
+            assertTrue("Task " + parentTask + " was not deleted from the repository", false);
+        } catch (ObjectNotFoundException e) {
+            // ok!
+        }
+
+    }
+
+
 
     @Test(enabled = true)
     public void test999CheckingLeftovers() throws Exception {
@@ -1433,6 +1494,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         checkLeftover(leftovers, "016", result);
         checkLeftover(leftovers, "017", result);
         checkLeftover(leftovers, "019", result);
+        checkLeftover(leftovers, "021", result);
+        checkLeftover(leftovers, "021", "1", result);
+        checkLeftover(leftovers, "021", "2", result);
 
         String message = "Leftover task(s) found:";
         for (String leftover : leftovers) {
@@ -1443,7 +1507,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     }
 
     private void checkLeftover(ArrayList<String> leftovers, String testNumber, OperationResult result) throws Exception {
-        String oid = taskOid(testNumber);
+        checkLeftover(leftovers, testNumber, "0", result);
+    }
+
+    private void checkLeftover(ArrayList<String> leftovers, String testNumber, String subId, OperationResult result) throws Exception {
+        String oid = taskOid(testNumber, subId);
         Task t;
         try {
             t = taskManager.getTask(oid, result);
@@ -1497,11 +1565,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         return PrismTestUtil.parseObject(file);
     }
     
-    private PrismObject<ObjectType> addObjectFromFile(String filePath) throws Exception {
+    private PrismObject<? extends ObjectType> addObjectFromFile(String filePath) throws Exception {
     	return addObjectFromFile(filePath, false);
     }
 
-    private PrismObject<ObjectType> addObjectFromFile(String filePath, boolean deleteIfExists) throws Exception {
+    private PrismObject<? extends ObjectType> addObjectFromFile(String filePath, boolean deleteIfExists) throws Exception {
         PrismObject<ObjectType> object = unmarshallJaxbFromFile(filePath, ObjectType.class);
         System.out.println("obj: " + object.getName());
         OperationResult result = new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".addObjectFromFile");

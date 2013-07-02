@@ -761,34 +761,15 @@ public class PageTasks extends PageAdminTasks {
 
         OperationResult result = new OperationResult(OPERATION_DELETE_TASKS);
         TaskManager taskManager = getTaskManager();
-        List<Task> taskList = new ArrayList<Task>();
-        try {
-            for (TaskDto taskDto : taskTypeList) {
-                Task task = taskManager.getTask(taskDto.getOid(), result);
-                taskList.add(task);
-            }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get information on tasks to be deleted. Please try again.", ex);
+        List<String> taskOidList = new ArrayList<String>();
+        for (TaskDto taskDto : taskTypeList) {
+            taskOidList.add(taskDto.getOid());
         }
 
-        if (!result.isError()) {
-            try {
-                taskManager.suspendTasks(taskList, 2000L, result);
-            } catch (Exception e) {
-                result.recordFatalError("Couldn't suspend tasks before deletion.", e);
-            }
-
-            for (Task task : taskList) {
-                try {
-                    taskManager.deleteTask(task.getOid(), result);
-                } catch (ObjectNotFoundException e) {
-                    // already stored in operation result
-                } catch (SchemaException e) {
-                    // already stored in operation result
-                } catch (Exception e) {
-                    result.createSubresult("deleteTask").recordPartialError("Couldn't delete task " + task.getName(), e);
-                }
-            }
+        try {
+            taskManager.suspendAndDeleteTasks(taskOidList, 2000L, true, result);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't delete the tasks.", e);
         }
 
         if (result.isUnknown()) {

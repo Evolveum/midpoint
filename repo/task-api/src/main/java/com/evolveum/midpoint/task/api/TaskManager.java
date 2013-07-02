@@ -521,4 +521,6 @@ public interface TaskManager {
     List<Task> listTasksRelatedToObject(String oid, ClusterStatusInformation clusterStatusInformation, boolean withClosed, boolean withSubtasks, OperationResult result) throws SchemaException;
 
     void cleanupTasks(CleanupPolicyType closedTasksPolicy, OperationResult opResult) throws SchemaException;
+
+    void suspendAndDeleteTasks(List<String> taskOidList, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult);
 }

@@ -621,6 +621,53 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
+    public void suspendAndDeleteTasks(List<String> taskOidList, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendAndDeleteTasks");
+        result.addCollectionOfSerializablesAsParam("taskOidList", taskOidList);
+
+        List<Task> tasksToBeDeleted = new ArrayList<Task>();
+        for (String oid : taskOidList) {
+            try {
+                Task task = getTask(oid, result);
+                tasksToBeDeleted.add(task);
+                if (alsoSubtasks) {
+                    tasksToBeDeleted.addAll(task.listSubtasksDeeply(result));
+                }
+            } catch (ObjectNotFoundException e) {
+                // just skip suspending/deleting this task. As for the error, it should be already put into result.
+                LoggingUtils.logException(LOGGER, "Error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
+            } catch (SchemaException e) {
+                // same as above
+                LoggingUtils.logException(LOGGER, "Error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
+            } catch (RuntimeException e) {
+                result.createSubresult(DOT_IMPL_CLASS + "getTaskTree").recordPartialError("Unexpected error when retrieving task tree for " + oid + " before deletion", e);
+                LoggingUtils.logException(LOGGER, "Unexpected error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
+            }
+        }
+
+        // now suspend the tasks before deletion
+        suspendTasks(tasksToBeDeleted, suspendTimeout, result);
+
+        // delete them
+        for (Task task : tasksToBeDeleted) {
+            try {
+                deleteTask(task.getOid(), result);
+            } catch (ObjectNotFoundException e) {   // in all cases (even RuntimeException) the error is already put into result
+                LoggingUtils.logException(LOGGER, "Error when deleting task {}", e, task);
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Error when deleting task {}", e, task);
+            } catch (RuntimeException e) {
+                LoggingUtils.logException(LOGGER, "Error when deleting task {}", e, task);
+            }
+        }
+
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
+    }
+
+    @Override
     public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteTask");
         result.addParam("oid", oid);
