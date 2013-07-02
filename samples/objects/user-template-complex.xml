@@ -50,7 +50,7 @@
             <value>
             	<assignment>
 					<construction>
-						<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+						<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
 					</construction>
 				</assignment>
             </value>    	
@@ -68,7 +68,7 @@
     	<expression>
             <value>
             	<assignment>
-					<targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
+					<targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="RoleType"/>
 				</assignment>
             </value>    	
     	</expression>

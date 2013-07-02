@@ -525,13 +525,7 @@ object.
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-	                    <!-- Reference to the User Template is here. If the user would be
-	                         created as a result of this action, it will be created according
-	                         to this template. -->
-	
-	                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-	                </action>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
 	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
 	            </reaction>
 			</objectSynchronization>
@@ -541,7 +535,7 @@ object.
 
     <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
 
-        <name>Default User Template</name>
+        <name>Default User Template 1</name>
 
         <description>
             User Template Object.
@@ -549,43 +543,6 @@ object.
         </description>
         
         <mapping>
-			<description>
-                Property mapping.
-                Defines how properties of user object are set up.
-                This specific definition sets a full name as a concatenation
-                of givenName and familyName.
-            </description>
-			<strength>weak</strength>
-			<source>
-				<path>$user/givenName</path>
-			</source>
-			<source>
-				<path>$user/familyName</path>
-			</source>
-			<expression>
-				<script>
-					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-					<code>
-						givenName + ' ' + familyName
-					</code>
-				</script>
-			</expression>
-			<target>
-				<path>fullName</path>
-			</target>
-		</mapping>
-
-    </objectTemplate>
-
-    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
-        <name>Default User Template2</name>
-
-        <description>
-            Alternative User Template Object.
-            This object is used when creating a new account, to set it up as needed.
-        </description>
-
-		<mapping>
 			<description>
                 Property mapping.
                 Defines how properties of user object are set up.
