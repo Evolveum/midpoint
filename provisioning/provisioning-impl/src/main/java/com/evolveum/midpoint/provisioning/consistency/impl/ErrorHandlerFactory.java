@@ -87,7 +87,7 @@ public class ErrorHandlerFactory {
 			return securityViolationHandler;
 		}
 		
-		throw new SystemException(ex.getClass().getName()+": "+ex.getMessage(), ex);
+		throw new SystemException(ex != null ? ex.getClass().getName() +": "+ ex.getMessage() : "Unexpected error:", ex);
 	}
 	
 	

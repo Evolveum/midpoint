@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -90,6 +92,8 @@ public class PageUsers extends PageAdminUsers {
     private static final String OPERATION_DISABLE_USER = DOT_CLASS + "disableUser";
     private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
     private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
+    private static final String OPERATION_RECONCILE_USERS = DOT_CLASS + "reconcileUsers";
+    private static final String OPERATION_RECONCILE_USER = DOT_CLASS + "reconcileUser";
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
@@ -148,7 +152,7 @@ public class PageUsers extends PageAdminUsers {
             }
         });
 
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel));
+        mainForm.add(new ExecuteChangeOptionsPanel(false, ID_EXECUTE_OPTIONS, executeOptionsModel));
         initButtons(mainForm);
     }
 
@@ -197,6 +201,21 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         mainForm.add(delete);
+        
+        AjaxSubmitLinkButton reconcile = new AjaxSubmitLinkButton("reconcile",
+                createStringResource("pageUsers.button.reconcile")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                reconcilePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(reconcile);
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -556,6 +575,34 @@ public class PageUsers extends PageAdminUsers {
 
     private void disablePerformed(AjaxRequestTarget target) {
         updateActivationPerformed(target, false);
+    }
+    
+    private void reconcilePerformed(AjaxRequestTarget target){
+    	 List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
+         if (!isAnythingSelected(users, target)) {
+             return;
+         }
+         OperationResult result = new OperationResult(OPERATION_RECONCILE_USERS);
+         for (SelectableBean<UserType> user : users){
+        	 OperationResult opResult = result.createSubresult(getString(OPERATION_RECONCILE_USER, ObjectTypeUtil.toShortString(user.getValue())));
+        	 try{
+        		 Task task = createSimpleTask(OPERATION_RECONCILE_USER + ObjectTypeUtil.toShortString(user.getValue()));
+        		 ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, user.getValue().getOid(), getPrismContext());
+        		 Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+        		 getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
+        		 opResult.recordSuccess();
+        	 } catch (Exception ex) {
+        		 opResult.recomputeStatus();
+                	 opResult.recordFatalError("Couldn't reconcile user " + ObjectTypeUtil.toShortString(user.getValue()) +"." , ex);
+                     LoggingUtils.logException(LOGGER, "Couldn't reconcile user " + ObjectTypeUtil.toShortString(user.getValue()) +".", ex);
+             }
+         }
+         
+         result.recomputeStatus();
+
+         showResult(result);
+         target.add(getFeedbackPanel());
+         target.add(getTable());
     }
 
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling) {

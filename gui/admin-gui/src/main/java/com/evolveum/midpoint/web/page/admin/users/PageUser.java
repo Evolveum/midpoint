@@ -895,7 +895,7 @@ public class PageUser extends PageAdminUsers {
 
 		initAccountButton(mainForm);
 
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel));
+        mainForm.add(new ExecuteChangeOptionsPanel(true, ID_EXECUTE_OPTIONS, executeOptionsModel));
 	}
 
 	private void initAccountButton(Form mainForm) {
@@ -1429,11 +1429,16 @@ public class PageUser extends PageAdminUsers {
 					}
 				}
 
-				if (!deltas.isEmpty()) {
-					getModelService().executeChanges(deltas, options, task, result);
-				} else {
-					result.recordSuccess();
-				}
+					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
+						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
+								userWrapper.getObject().getOid(), getPrismContext());
+						deltas.add(emptyDelta);
+						getModelService().executeChanges(deltas, options, task, result);
+					} else if (!deltas.isEmpty()) {
+						getModelService().executeChanges(deltas, options, task, result);
+					} else {
+						result.recordSuccess();
+					}
 
 			} catch (Exception ex) {
 				if (!executeForceDelete(userWrapper, task, options, result)) {
