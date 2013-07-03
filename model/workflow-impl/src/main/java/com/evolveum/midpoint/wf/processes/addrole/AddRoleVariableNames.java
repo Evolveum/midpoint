@@ -20,6 +20,8 @@ package com.evolveum.midpoint.wf.processes.addrole;
  * @author mederly
  */
 public class AddRoleVariableNames {
+
+    // Name of user to which an assignment is to be made. [String]
     public static final String USER_NAME = "UserName";
 
 }

@@ -21,21 +21,52 @@ package com.evolveum.midpoint.wf.processes;
  */
 public class CommonProcessVariableNames {
 
+    // Process instance name, e.g. "Approving adding Webmaster to JoeDoe". [String]
     public static final String VARIABLE_PROCESS_INSTANCE_NAME = "processInstanceName";
+
+    // When the process instance was started. [java.util.Date]
     public static final String VARIABLE_START_TIME = "startTime";
+
+    // OID of task related to the process instance. [String]
     public static final String VARIABLE_MIDPOINT_TASK_OID = "midPointTaskOid";
-    public static final String VARIABLE_MIDPOINT_PROCESS_WRAPPER = "midPointProcessWrapper";
+
+    // Java class name of the change processor (the same as wf:changeProcessor task property) [String]
     public static final String VARIABLE_MIDPOINT_CHANGE_PROCESSOR = "midPointChangeProcessor";
 
+    // Java class name of the process wrapper (the same as wf:processWrapper task property) [String]
+    public static final String VARIABLE_MIDPOINT_PROCESS_WRAPPER = "midPointProcessWrapper";
+
+    // OID of the user who requested the particular operation (e.g. adding of a role to another user).
+    // Used e.g. for searching for process instances requested by particular user. [String]
     public static final String VARIABLE_MIDPOINT_REQUESTER_OID = "midPointRequesterOid";
 
-    public static final String VARIABLE_MIDPOINT_STATE = "midPointState";
+    // OID of the object (typically, a user) that is being changed within the operation. [String]
     public static final String VARIABLE_MIDPOINT_OBJECT_OID = "midPointObjectOid";
+
+    // Object that is about to be added (for ADD operation). [ObjectType]
     public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";
+
+    // XML representation of the delta to be approved. (Note that technically a process
+    // can approve more deltas; if necessary, this variable would have to be changed.)
+    // [String]
     public static final String VARIABLE_MIDPOINT_DELTA = "midPointDelta";
-    public static final String VARIABLE_UTIL = "util";
-    public static final String VARIABLE_MIDPOINT_LISTENER = "midPointListener";
-    public static final String FORM_FIELD_DECISION = "[H]decision";
-    public static final String FORM_FIELD_COMMENT = "comment";
+
+    // Variable reflecting the process status, like "your request was approved by
+    // engineering group, and is being sent to the management". Stored into wfStatus task extension property.
+    // [String]
+    public static final String VARIABLE_MIDPOINT_STATE = "midPointState";
+
+    // For the most simple processes that return one "true/false" flag this is a value of such a flag. [Boolean]
+    // (actually, currently ALL processes return such a flag only)
     public static final String VARIABLE_WF_ANSWER = "wfAnswer";
+
+    // Object that provides various utility methods for use in processes, e.g. getApprover(RoleType r). [ActivitiUtil]
+    public static final String VARIABLE_UTIL = "util";
+
+    // Decision whether to approve or reject particular work item - set by user task (form). [Boolean]
+    public static final String FORM_FIELD_DECISION = "[H]decision";
+
+    // Comment related to that decision - set by user task (form). [String]
+    public static final String FORM_FIELD_COMMENT = "comment";
+
 }

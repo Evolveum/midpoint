@@ -205,18 +205,18 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         PrismObject<? extends ObjectType> objectToBeAdded = (PrismObject<? extends ObjectType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         if (objectToBeAdded != null) {
             variables.put(SchemaConstants.C_OBJECT, objectToBeAdded);
-        }
-
-        String objectOid = (String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
-        if (objectOid != null) {
-            try {
-                variables.put(SchemaConstants.C_OBJECT, miscDataUtil.getObjectBefore(execution.getVariables(), prismContext, result));
-            } catch (SchemaException e) {
-                throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
-            } catch (ObjectNotFoundException e) {
-                throw new ObjectNotFoundException("Couldn't get requester object due to object not found exception", e);
-            } catch (JAXBException e) {
-                throw new SystemException("Couldn't get requester object due to JAXB exception", e);
+        } else {
+            String objectOid = (String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
+            if (objectOid != null) {
+                try {
+                    variables.put(SchemaConstants.C_OBJECT, miscDataUtil.getObjectBefore(execution.getVariables(), prismContext, result));
+                } catch (SchemaException e) {
+                    throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
+                } catch (ObjectNotFoundException e) {
+                    throw new ObjectNotFoundException("Couldn't get requester object due to object not found exception", e);
+                } catch (JAXBException e) {
+                    throw new SystemException("Couldn't get requester object due to JAXB exception", e);
+                }
             }
         }
 

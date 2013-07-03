@@ -142,7 +142,6 @@ public class ActivitiInterface {
             }
 
             map.put(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, spic.getTaskOid());
-            map.put(CommonProcessVariableNames.VARIABLE_MIDPOINT_LISTENER, new IdmExecutionListenerProxy());
             map.putAll(spic.getVariables());
 
             if (LOGGER.isTraceEnabled()) {

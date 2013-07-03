@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import java.util.Map;
 
 /**
- * Manages workflow-related aspects of a change.
+ * Manages workflow-related aspects of a change, passed from the model subsystem.
  *
  * (1) recognizes the instance (instances) of given kind of change within model context
  * (2) processes the result of the workflow(s) started
