@@ -83,8 +83,6 @@ public class WfConfiguration implements BeanFactoryAware {
     private int processCheckInterval;
     private String autoDeploymentFrom;
 
-    private Configuration changeProcessorsConfig;
-
     @PostConstruct
     void initialize() {
 
@@ -92,6 +90,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
         enabled = c.getBoolean("enabled", true);
         if (!enabled) {
+            LOGGER.info("Workflows are disabled.");
             return;
         }
 
@@ -137,11 +136,14 @@ public class WfConfiguration implements BeanFactoryAware {
         processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
 
-        changeProcessorsConfig = c.subset(CHANGE_PROCESSORS_SECTION);
-
 //        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
         validate();
+    }
+
+    private Configuration getChangeProcessorsConfig() {
+        Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
+        return midpointConfiguration.getConfiguration(WF_CONFIG_SECTION).subset(CHANGE_PROCESSORS_SECTION); // via subset, because getConfiguration puts 'midpoint.home' property to the result
     }
 
     void validate() {
@@ -201,9 +203,15 @@ public class WfConfiguration implements BeanFactoryAware {
             return changeProcessors;
         }
 
+        changeProcessors = new ArrayList<ChangeProcessor>();
+
+        if (!enabled) {
+            return changeProcessors;
+        }
+
         List<String> changeProcessorNames = new ArrayList<String>();            // list - to preserve order
 
-        Iterator<String> cpIterator = changeProcessorsConfig.getKeys();         // returns 'processor-name' but also 'other-processor-name.wrapper-name' etc.
+        Iterator<String> cpIterator = getChangeProcessorsConfig().getKeys();         // returns 'processor-name' but also 'other-processor-name.wrapper-name' etc.
         while (cpIterator.hasNext()) {
             String keyName = cpIterator.next();
             String processorName = StringUtils.substringBefore(keyName, ".");
@@ -214,7 +222,6 @@ public class WfConfiguration implements BeanFactoryAware {
 
         LOGGER.trace("Resolving change processors: {}", changeProcessorNames);
 
-        changeProcessors = new ArrayList<ChangeProcessor>();
         for (String processorName : changeProcessorNames) {
             LOGGER.trace("Searching for change processor {}", processorName);
             try {
@@ -233,9 +240,11 @@ public class WfConfiguration implements BeanFactoryAware {
 
         List<PrimaryApprovalProcessWrapper> retval = new ArrayList<PrimaryApprovalProcessWrapper>();
 
-        Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
+        if (!enabled) {
+            return retval;
+        }
 
-        Configuration c = changeProcessorsConfig.subset(beanName);
+        Configuration c = getChangeProcessorsConfig().subset(beanName);
         if (c.isEmpty()) {
             LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors or is empty.");
             return retval;
