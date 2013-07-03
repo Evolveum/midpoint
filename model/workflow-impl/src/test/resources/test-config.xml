@@ -32,11 +32,12 @@
             <jdbcDriver>org.h2.Driver</jdbcDriver>
             <jdbcUsername>sa</jdbcUsername>
             <jdbcPassword/>
-            <changeProcessor>primaryUserChangeProcessor</changeProcessor>
-            <primaryUserChangeProcessor>
-                <wrapper>addRoleAssignmentWrapper</wrapper>
-                <wrapper>changePasswordWrapper</wrapper>
-            </primaryUserChangeProcessor>
+            <changeProcessors>
+                <primaryUserChangeProcessor>
+                    <wrapper>addRoleAssignmentWrapper</wrapper>
+                    <wrapper>changePasswordWrapper</wrapper>
+                </primaryUserChangeProcessor>
+            </changeProcessors>
         </workflow>
         <audit>
             <auditService>

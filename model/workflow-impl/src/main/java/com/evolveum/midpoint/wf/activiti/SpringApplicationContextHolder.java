@@ -26,10 +26,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-/**
- * Currently unused. Necessary for "smart" workflow tasks.
- */
-
 @Component
 public class SpringApplicationContextHolder implements ApplicationContextAware {
 

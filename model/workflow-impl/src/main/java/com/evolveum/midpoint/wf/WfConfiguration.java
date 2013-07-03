@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -65,6 +66,7 @@ public class WfConfiguration implements BeanFactoryAware {
     }
 
     private static final String WF_CONFIG_SECTION = "midpoint.workflow";
+    private static final String CHANGE_PROCESSORS_SECTION = "changeProcessors";
     private static final String AUTO_DEPLOYMENT_FROM_DEFAULT = "classpath*:processes/*.bpmn20.xml";
 
     private Boolean enabled = null;
@@ -76,11 +78,12 @@ public class WfConfiguration implements BeanFactoryAware {
     private String jdbcUser;
     private String jdbcPassword;
 
-    private String[] changeProcessorsNames;
     private List<ChangeProcessor> changeProcessors = null;
 
     private int processCheckInterval;
     private String autoDeploymentFrom;
+
+    private Configuration changeProcessorsConfig;
 
     @PostConstruct
     void initialize() {
@@ -134,7 +137,7 @@ public class WfConfiguration implements BeanFactoryAware {
         processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
 
-        changeProcessorsNames = c.getStringArray("changeProcessor");
+        changeProcessorsConfig = c.subset(CHANGE_PROCESSORS_SECTION);
 
 //        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
@@ -198,21 +201,30 @@ public class WfConfiguration implements BeanFactoryAware {
             return changeProcessors;
         }
 
-        changeProcessors = new ArrayList<ChangeProcessor>();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resolving change processors: configured list = " + StringUtils.join(changeProcessorsNames, ","));
-        }
-        if (changeProcessorsNames != null) {
-            for (String processorName : changeProcessorsNames) {
-                LOGGER.trace("Searching for change processor " + processorName);
-                try {
-                    ChangeProcessor processor = (ChangeProcessor) beanFactory.getBean(processorName);
-                    changeProcessors.add(processor);
-                } catch(BeansException e) {
-                    throw new SystemException("Change processor " + processorName + " could not be found.", e);
-                }
+        List<String> changeProcessorNames = new ArrayList<String>();            // list - to preserve order
+
+        Iterator<String> cpIterator = changeProcessorsConfig.getKeys();         // returns 'processor-name' but also 'other-processor-name.wrapper-name' etc.
+        while (cpIterator.hasNext()) {
+            String keyName = cpIterator.next();
+            String processorName = StringUtils.substringBefore(keyName, ".");
+            if (!changeProcessorNames.contains(processorName)) {
+                changeProcessorNames.add(processorName);
             }
         }
+
+        LOGGER.trace("Resolving change processors: {}", changeProcessorNames);
+
+        changeProcessors = new ArrayList<ChangeProcessor>();
+        for (String processorName : changeProcessorNames) {
+            LOGGER.trace("Searching for change processor {}", processorName);
+            try {
+                ChangeProcessor processor = (ChangeProcessor) beanFactory.getBean(processorName);
+                changeProcessors.add(processor);
+            } catch(BeansException e) {
+                throw new SystemException("Change processor " + processorName + " could not be found.", e);
+            }
+        }
+
         LOGGER.debug("Resolved " + changeProcessors.size() + " change processors.");
         return changeProcessors;
     }
@@ -223,14 +235,10 @@ public class WfConfiguration implements BeanFactoryAware {
 
         Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
 
-        if (changeProcessorsNames == null || !Arrays.asList(changeProcessorsNames).contains(beanName)) {
-            LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors.");
-            return retval;
-        }
-
-        Configuration c = midpointConfiguration.getConfiguration(WF_CONFIG_SECTION).subset(beanName);
+        Configuration c = changeProcessorsConfig.subset(beanName);
         if (c.isEmpty()) {
-            throw new SystemException("There is no configuration for primary change processor " + beanName);    // todo should be ConfigurationException perhaps
+            LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors or is empty.");
+            return retval;
         }
 
         String[] wrappers = c.getStringArray("wrapper");
