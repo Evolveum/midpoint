@@ -547,7 +547,7 @@ object.
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 	
-	                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+	                    <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 	                </action>
 	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
 	            </reaction>
