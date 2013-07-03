@@ -880,12 +880,13 @@ public class ChangeExecutor {
     	
     	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
-		if (outputTriple == null) {
-			return;
-		}
 		
 		//replace dynamic script with static value..
 		argument.getExpressionEvaluator().clear();
+		
+		if (outputTriple == null) {
+			return;
+		}
 		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
 		for (PrismPropertyValue<String> val : nonNegativeValues){
 			Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);

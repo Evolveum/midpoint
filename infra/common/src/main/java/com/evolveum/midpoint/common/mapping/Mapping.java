@@ -930,13 +930,21 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		ExpressionReturnMultiplicityType multiplicity = preferredMultiplicity;
 		if (expressionType.getReturnMultiplicity() != null) {
 			multiplicity = expressionType.getReturnMultiplicity();
-		} else if (output.size() > 1) {
+		} else if (output != null && output.size() > 1) {
 			multiplicity = ExpressionReturnMultiplicityType.MULTI;
 		}
-		switch (multiplicity) {
-			case MULTI: return output.getRealValues();
-			case SINGLE: return output.getRealValue();
-			default: throw new IllegalStateException("Unknown return type "+multiplicity);
+		if (output == null) {
+			switch (multiplicity) {
+				case MULTI: return new ArrayList<Object>(0);
+				case SINGLE: return null;
+				default: throw new IllegalStateException("Unknown return type "+multiplicity);
+			}
+		} else {
+			switch (multiplicity) {
+				case MULTI: return output.getRealValues();
+				case SINGLE: return output.getRealValue();
+				default: throw new IllegalStateException("Unknown return type "+multiplicity);
+			}
 		}
 	}
 	

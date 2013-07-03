@@ -2184,12 +2184,77 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     }
 	
+	@Test
+    public void test212RenameUserMorgan() throws Exception {
+		final String TEST_NAME = "test212RenameUserMorgan";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        purgeScriptHistory();
+        prepareNotifications();
+        
+                
+		// WHEN
+        modifyUserReplace(USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry"));
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "sirhenry");
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "sirhenry", "Sir Henry Morgan");
+        
+        // Check account in dummy resource
+        assertDummyAccount("sirhenry", "Sir Henry Morgan", true);
+        
+        assertDummyScriptsModify(userMorgan);
+        
+     // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        checkDummyTransportMessages("simpleUserNotifier-DELETE", 0);
+
+    }
+	
 	/**
 	 * This basically tests for correct auditing.
 	 */
 	@Test
-    public void test220AddUserCharlesRaw() throws Exception {
-		final String TEST_NAME = "test220AddUserCharlesRaw";
+    public void test240AddUserCharlesRaw() throws Exception {
+		final String TEST_NAME = "test240AddUserCharlesRaw";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -2230,8 +2295,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 * This basically tests for correct auditing.
 	 */
 	@Test
-    public void test221DeleteUserCharlesRaw() throws Exception {
-		final String TEST_NAME = "test221DeleteUserCharlesRaw";
+    public void test241DeleteUserCharlesRaw() throws Exception {
+		final String TEST_NAME = "test241DeleteUserCharlesRaw";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -2312,13 +2377,18 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	private void assertDummyScriptsModify(PrismObject<UserType> user) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
-		script.addArgSingle("howMuch", "a lot");
-		script.addArgSingle("howLong", "from here to there");
 		String name = null;
+		String fullName = null;
+		String costCenter = null;
 		if (user != null) {
 			name = user.asObjectable().getName().getOrig();
+			fullName = user.asObjectable().getFullName().getOrig();
+			costCenter = user.asObjectable().getCostCenter();
 		}
+		script.addArgSingle("howMuch", costCenter);
+		script.addArgSingle("howLong", "from here to there");
 		script.addArgSingle("who", name);
+		script.addArgSingle("whatchacallit", fullName);
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
 	}
 
