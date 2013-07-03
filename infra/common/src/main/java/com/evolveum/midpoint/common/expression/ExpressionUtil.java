@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.common.expression.functions.LogExpressionFunctions;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -246,12 +247,21 @@ public class ExpressionUtil {
 
 	public static FunctionLibrary createBasicFunctionLibrary(PrismContext prismContext) {
 		FunctionLibrary lib = new FunctionLibrary();
-		lib.setVariableName(MidPointConstants.BASIC_FUNCTION_LIBRARY_VARIABLE_NAME);
+		lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_BASIC_VARIABLE_NAME);
 		lib.setNamespace(MidPointConstants.NS_FUNC_BASIC);
 		BasicExpressionFunctions func = new BasicExpressionFunctions(prismContext);
 		lib.setGenericFunctions(func);
 		BasicExpressionFunctionsXPath funcXPath = new BasicExpressionFunctionsXPath(func);
 		lib.setXmlFunctions(funcXPath);
+		return lib;
+	}
+
+	public static FunctionLibrary createLogFunctionLibrary(PrismContext prismContext) {
+		FunctionLibrary lib = new FunctionLibrary();
+		lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_LOG_VARIABLE_NAME);
+		lib.setNamespace(MidPointConstants.NS_FUNC_LOG);
+		LogExpressionFunctions func = new LogExpressionFunctions(prismContext);
+		lib.setGenericFunctions(func);
 		return lib;
 	}
 }

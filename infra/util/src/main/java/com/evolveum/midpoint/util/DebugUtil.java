@@ -96,7 +96,24 @@ public class DebugUtil {
 		}
 	}
 	
+	public static String debugDump(DebugDumpable dd, int indent) {
+		if (dd == null) {
+			StringBuilder sb = new StringBuilder();
+			indentDebugDump(sb, indent + 1);
+			sb.append("null");
+			return sb.toString();
+		} else {
+			return dd.debugDump(indent);
+		}
+	}
+	
 	public static String debugDump(Object object, int indent) {
+		if (object == null) {
+			StringBuilder sb = new StringBuilder();
+			indentDebugDump(sb, indent + 1);
+			sb.append("null");
+			return sb.toString();
+		}
 		if (object instanceof DebugDumpable) {
 			return ((DebugDumpable)object).debugDump(indent);
 		} else if (object instanceof Collection) {

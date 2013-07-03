@@ -293,7 +293,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 	}
 	
-	private void addVariableDefinition(QName name, Object value) {
+	public void addVariableDefinition(QName name, Object value) {
 		if (variables.containsKey(name)) {
 			LOGGER.warn("Duplicate definition of variable {} in {}, ignoring it",name,getMappingContextDescription());
 			return;

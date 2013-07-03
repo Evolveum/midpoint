@@ -23,6 +23,7 @@ import java.util.Iterator;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -48,9 +49,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -66,7 +70,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -494,6 +500,81 @@ public class LensUtil {
 			ModelExpressionThreadLocalHolder.resetLensContext();
 			ModelExpressionThreadLocalHolder.resetCurrentResult();
 		}
+	}
+	
+	public static void loadFullAccount(LensProjectionContext<ShadowType> accCtx, ProvisioningService provisioningService,
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		if (accCtx.isFullShadow()) {
+			// already loaded
+			return;
+		}
+		if (accCtx.isAdd()) {
+			// nothing to load yet
+			return;
+		}
+		LOGGER.trace("Loading full account {} from provisioning", accCtx);
+		
+		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
+				accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
+		
+		accCtx.setObjectOld(objectOld);
+		ShadowType oldShadow = objectOld.asObjectable();
+		
+		if (oldShadow.getFetchResult() != null
+			&& oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR) {
+			accCtx.setFullShadow(false);
+		} else {
+			accCtx.setFullShadow(true);
+		}
+		
+		accCtx.recompute();
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
+		}
+	}
+
+	public static Object getIterationVariableValue(LensProjectionContext<ShadowType> accCtx) {
+		Integer iterationOld = null;
+		PrismObject<ShadowType> shadowOld = accCtx.getObjectOld();
+		if (shadowOld != null) {
+			iterationOld = shadowOld.asObjectable().getIteration();
+		}
+		if (iterationOld == null) {
+			return accCtx.getIteration();
+		}
+		PrismPropertyDefinition<Integer> propDef = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
+				ExpressionConstants.VAR_ITERATION, DOMUtil.XSD_INT, accCtx.getPrismContext());
+		PrismProperty<Integer> propOld = propDef.instantiate();
+		propOld.setRealValue(iterationOld);
+		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION));
+		propDelta.setValueToReplace(new PrismPropertyValue<Integer>(accCtx.getIteration()));
+		PrismProperty<Integer> propNew = propDef.instantiate();
+		propNew.setRealValue(accCtx.getIteration());
+		ItemDeltaItem<PrismPropertyValue<Integer>> idi = new ItemDeltaItem<PrismPropertyValue<Integer>>(propOld, propDelta, propNew);
+		return idi;
+	}
+
+	public static Object getIterationTokenVariableValue(LensProjectionContext<ShadowType> accCtx) {
+		String iterationTokenOld = null;
+		PrismObject<ShadowType> shadowOld = accCtx.getObjectOld();
+		if (shadowOld != null) {
+			iterationTokenOld = shadowOld.asObjectable().getIterationToken();
+		}
+		if (iterationTokenOld == null) {
+			return accCtx.getIterationToken();
+		}
+		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinition<String>(
+				ExpressionConstants.VAR_ITERATION_TOKEN, ExpressionConstants.VAR_ITERATION_TOKEN,
+				DOMUtil.XSD_STRING, accCtx.getPrismContext());
+		PrismProperty<String> propOld = propDef.instantiate();
+		propOld.setRealValue(iterationTokenOld);
+		PropertyDelta<String> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION_TOKEN));
+		propDelta.setValueToReplace(new PrismPropertyValue<String>(accCtx.getIterationToken()));
+		PrismProperty<String> propNew = propDef.instantiate();
+		propNew.setRealValue(accCtx.getIterationToken());
+		ItemDeltaItem<PrismPropertyValue<String>> idi = new ItemDeltaItem<PrismPropertyValue<String>>(propOld, propDelta, propNew);
+		return idi;
 	}
     
 }

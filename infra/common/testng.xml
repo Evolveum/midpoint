@@ -37,10 +37,10 @@
 	</test>
 	<test name="ExpressionConstruction" preserve-order="false">
 		<classes>
-			<class name="com.evolveum.midpoint.common.expression.TestXPathExpressions" />
-			<class name="com.evolveum.midpoint.common.expression.TestJavaScriptExpressions" />
-			<class name="com.evolveum.midpoint.common.expression.TestGroovyExpressions" />
-			<class name="com.evolveum.midpoint.common.expression.TestMidPointFunctions" />
+			<class name="com.evolveum.midpoint.common.expression.script.TestXPathExpressions" />
+			<class name="com.evolveum.midpoint.common.expression.script.TestJavaScriptExpressions" />
+			<class name="com.evolveum.midpoint.common.expression.script.TestGroovyExpressions" />
+			<class name="com.evolveum.midpoint.common.expression.script.TestMidPointFunctions" />
 			<class name="com.evolveum.midpoint.common.expression.TestStaticValues" />
 			<class name="com.evolveum.midpoint.common.expression.TestExpressionUtil" />
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingDynamicSimple" />

@@ -66,12 +66,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -1087,6 +1091,7 @@ public class TestDummy extends AbstractDummyTest {
 		// for it yet.
 		DummyAccount newAccount = new DummyAccount("meathook");
 		newAccount.addAttributeValues("fullname", "Meathook");
+		newAccount.addAttributeValues("ship", "Sea Monkey");
 		newAccount.setEnabled(true);
 		newAccount.setPassword("parrotMonster");
 		dummyResource.addAccount(newAccount);
@@ -1211,8 +1216,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test115countAllShadows() throws Exception {
-		TestUtil.displayTestTile("test115countAllShadows");
+	public void test115CountAllShadows() throws Exception {
+		TestUtil.displayTestTile("test115CountAllShadows");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test115countAllShadows");
@@ -1917,6 +1922,101 @@ public class TestDummy extends AbstractDummyTest {
 		checkAccountWill(shadowType, result);
 
 		checkConsistency(shadowType.asPrismObject());
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test160SearchNull() throws Exception {
+		testSeachIterative("test160Search", null, 
+				"meathook", "daemon", "morgan", "Will");
+	}
+	
+	@Test
+	public void test161SearchShipSeaMonkey() throws Exception {
+		testSeachIterativeSingleAttrFilter("test161SearchShipSeaMonkey", 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey",
+				"meathook");
+	}
+	
+	// See MID-1460
+	@Test(enabled=false)
+	public void test162SearchShipNull() throws Exception {
+		testSeachIterativeSingleAttrFilter("test162SearchShipNull", 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null,
+				"daemon", "Will");
+	}
+	
+	private <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal, String... expectedAccountIds) throws Exception {
+		PrismPropertyValue<T> attrPVal = null;
+		if (attrVal != null) {
+			attrPVal = new PrismPropertyValue<T>(attrVal);
+		}
+		QName attrQName = dummyResourceCtl.getAttributeQName(attrName);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
+		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, attrPVal);
+		
+		testSeachIterative(TEST_NAME, filter, expectedAccountIds);
+	}
+	
+	private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, String... expectedAccountIds) throws Exception {
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
+		
+		if (attrFilter != null) {
+			AndFilter filter = (AndFilter) query.getFilter();
+			filter.getCondition().add(attrFilter);
+		}
+		
+		display("Query", query);
+
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				foundObjects.add(object);
+
+				ObjectType objectType = object.asObjectable();
+				assertTrue(objectType instanceof ShadowType);
+				ShadowType shadow = (ShadowType) objectType;
+				checkAccountShadow(shadow, parentResult);
+				return true;
+			}
+		};
+
+		// WHEN
+		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+
+		// THEN
+		result.computeStatus();
+		display("searchObjectsIterative result", result);
+		assertSuccess(result);
+		
+		display("found shadows", foundObjects);
+
+		for (String expectedAccountId: expectedAccountIds) {
+			boolean found = false;
+			for (PrismObject<ShadowType> foundObject: foundObjects) {
+				if (expectedAccountId.equals(foundObject.asObjectable().getName().getOrig())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				AssertJUnit.fail("Account "+expectedAccountId+" was expected to be found but it was not found (found "+foundObjects.size()+", expected "+expectedAccountIds.length+")");
+			}
+		}
+		
+		assertEquals("Wrong number of found objects", expectedAccountIds.length, foundObjects.size());
+		checkConsistency(foundObjects);
 		
 		assertSteadyResource();
 	}

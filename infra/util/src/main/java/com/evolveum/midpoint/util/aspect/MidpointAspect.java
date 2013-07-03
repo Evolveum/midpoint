@@ -283,7 +283,8 @@ public class MidpointAspect {
 		try {
 			return PrettyPrinter.prettyPrint(value);
 		} catch (Throwable t) {
-			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage();
+			LOGGER_PROFILING.error("Internal error formatting a value: {}", value, t);
+			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage()+" value="+value;
 		}
 	}
 	

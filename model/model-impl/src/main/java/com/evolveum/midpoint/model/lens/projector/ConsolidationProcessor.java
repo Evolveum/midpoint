@@ -168,16 +168,8 @@ public class ConsolidationProcessor {
 		// resource availability. We need to know, if the account was read full
 		// or we have only the shadow from the repository. If we have only
 		// shadow, the weak mappings may applied even if they should not be. 
-       
-		boolean completeAccount = accCtx.isFullShadow();
-		// in the case of the new account, set the complete account flag to
-		// true, because if it is not set to true, some weak mapping can be
-		// ignored
-       
-		if (SynchronizationPolicyDecision.ADD == accCtx.getSynchronizationPolicyDecision()) {
-			completeAccount = true;
-		} else {
-			if (!accCtx.isFullShadow() && hasWeakMapping(squeezedAttributes)) {
+              
+		if (!accCtx.hasFullShadow() && hasWeakMapping(squeezedAttributes)) {
 			// Full account was not yet loaded. This will cause problems as
 			// the weak mapping may be applied even though it should not be
 			// applied
@@ -185,32 +177,11 @@ public class ConsolidationProcessor {
 			// of all
 			// account's attributes.Therefore load the account now, but with
 			// doNotDiscovery options..
-			// if (accCtx.getOid() != null){
-
-				LOGGER.trace("Loading full account {} from provisioning", accCtx);
-				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-					accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
-				accCtx.setObjectOld(objectOld);
 				
-				ShadowType oldShadow = objectOld.asObjectable();
-				
-				if (oldShadow.getFetchResult() != null
-					&& oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR) {
-					accCtx.setFullShadow(false);
-					completeAccount = false;
-				} else {
-					accCtx.setFullShadow(true);
-					completeAccount = true;
-				}
-				
-				accCtx.recompute();
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
-				}
-        	} 
-		}
-        
+			LensUtil.loadFullAccount(accCtx, provisioningService, result);
+    	}
+		
+		boolean completeAccount = accCtx.hasFullShadow();
         
         ObjectDelta<ShadowType> existingDelta = accCtx.getDelta();
 

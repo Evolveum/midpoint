@@ -163,7 +163,7 @@ public class NodeRegistrar {
         }
     }
 
-    private PropertyDelta<NodeType> createCheckInTimeDelta() {
+    private PropertyDelta<XMLGregorianCalendar> createCheckInTimeDelta() {
         return PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_LAST_CHECK_IN_TIME, getCurrentTime());
     }
 
@@ -199,7 +199,7 @@ public class NodeRegistrar {
 
         LOGGER.trace("Registering this node shutdown (name {}, oid {})", nodePrism.asObjectable().getName(), nodePrism.getOid());
 
-        List<PropertyDelta<NodeType>> modifications = new ArrayList<PropertyDelta<NodeType>>();
+        List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
         modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_RUNNING, false));
         modifications.add(createCheckInTimeDelta());
 
@@ -228,7 +228,7 @@ public class NodeRegistrar {
 
         LOGGER.trace("Updating this node registration (name {}, oid {})", nodePrism.asObjectable().getName(), nodePrism.getOid());
 
-        List<PropertyDelta<NodeType>> modifications = new ArrayList<PropertyDelta<NodeType>>();
+        List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
         modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_HOSTNAME, getMyAddress()));
         modifications.add(createCheckInTimeDelta());
 

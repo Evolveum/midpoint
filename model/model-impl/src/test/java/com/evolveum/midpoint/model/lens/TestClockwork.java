@@ -255,7 +255,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 5, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
         		new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
         		ActivationStatusType.DISABLED);

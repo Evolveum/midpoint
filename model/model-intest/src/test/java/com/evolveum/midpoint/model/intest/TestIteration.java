@@ -587,7 +587,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test510DrakeAssignAccountDummyMagenta() throws Exception {
-		final String TEST_NAME = "test360HermanAssignAccountDummyViolet";
+		final String TEST_NAME = "test510DrakeAssignAccountDummyMagenta";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -596,10 +596,16 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userDrake = PrismTestUtil.parseObject(USER_DRAKE_FILE);
         userDrake.asObjectable().setDescription("Where's the rum?");
+        userDrake.asObjectable().setLocality(PrismTestUtil.createPolyStringType("Jamaica"));
         addObject(userDrake);
         
         dummyAuditService.clear();
-                
+        
+        // Make sure there are some dummy accounts without quote. So if the code tries to search for null
+        // it will get something and the test fails
+        dummyResourceCtlMagenta.addAccount("afettucini", "Alfredo Fettucini");
+        dummyResourceCtlMagenta.addAccount("bfettucini", "Bill Fettucini");
+        
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_DRAKE_OID, 
         		RESOURCE_DUMMY_MAGENTA_OID, null, true);
@@ -635,7 +641,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // The new account
         assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", "Francis Drake", false);
         
-        // TODO: check quote
+        assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Francis Drake");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Jamaica");
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -645,6 +654,65 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/*
+	 * Modify a property that has nothing to do with iteration
+	 */
+	@Test
+    public void test520DrakeModifyLocality() throws Exception {
+		final String TEST_NAME = "test520DrakeModifyLocality";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();        
+        dummyAuditService.clear();
+                                  
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_DRAKE_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyStringType("London"));
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+		PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
+		display("User after change execution", userDrakeAfter);
+		assertUser(userDrakeAfter, USER_DRAKE_OID, "drake", "Francis Drake", "Fancis", "Drake");
+		assertAccounts(userDrakeAfter, 1);
+		assertAccount(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
+		
+		String accountMagentaOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, result);
+        assertShadowRepo(accountMagentaShadow, accountMagentaOid, "drake001", resourceDummyMagentaType);
+        
+        // Check account
+        PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
+        assertShadowModel(accountMagentaModel, accountMagentaOid, "drake001", resourceDummyMagentaType);
+        
+        // There should be no account with the "straight" name
+        assertNoDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake");
+        // The new account
+        assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", "Francis Drake", false);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "London");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Francis Drake");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 }

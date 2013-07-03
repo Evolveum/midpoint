@@ -63,10 +63,10 @@ public class OrFilter extends NaryLogicalFilter {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("OR: \n");
+		sb.append("OR:");
 		for (ObjectFilter filter : getCondition()){
+			sb.append("\n");
 			sb.append(filter.debugDump(indent + 1));
-			sb.append("\n");	
 		}
 		return sb.toString();
 	}

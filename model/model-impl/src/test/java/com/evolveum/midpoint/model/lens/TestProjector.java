@@ -395,11 +395,11 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME) , "Tortuga");
         
-        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
+        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS, OriginType.OUTBOUND);
                 
     }
 
@@ -447,7 +447,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME) , 
         		"Captain Hector Barbossa");
@@ -502,7 +502,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 5, accountSecondaryDelta.getModifications().size());
         PropertyDelta<ActivationStatusType> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, 
         		ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertReplace(enabledDelta, ActivationStatusType.DISABLED);
@@ -566,11 +566,11 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         // There is a lot of changes caused byt the reconciliation. But we are only interested in the new one
-        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
         		"Pirate of Caribbean");
-        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.RECONCILIATION);
+        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.RECONCILIATION, OriginType.OUTBOUND);
                 
     }
 	
@@ -666,7 +666,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME) , 
         		"Arr!");
@@ -866,7 +866,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
+        assertEquals("Unexpected number of account secondary changes", 2, accountSecondaryDelta.getModifications().size());
 
         assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
     }

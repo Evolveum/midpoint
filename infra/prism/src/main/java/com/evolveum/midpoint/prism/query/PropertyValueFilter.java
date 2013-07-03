@@ -86,7 +86,7 @@ public abstract class PropertyValueFilter extends ValueFilter{
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, ItemDefinition item, String matchingRule, Object realValue) {
 
 		if (realValue == null){
-			return create(filterClass, parentPath, item, matchingRule, new PrismPropertyValue(null));
+			return create(filterClass, parentPath, item, matchingRule, (PrismPropertyValue)null);
 		}
 		if (List.class.isAssignableFrom(realValue.getClass())) {
 			List<PrismValue> prismValues = new ArrayList<PrismValue>();
@@ -166,7 +166,9 @@ public abstract class PropertyValueFilter extends ValueFilter{
 	
 	public void setValue(PrismValue value) {
 		List<PrismValue> values = new ArrayList<PrismValue>();
-		values.add(value);
+		if (value != null) {
+			values.add(value);
+		}
 		this.values = values;
 	}
 	

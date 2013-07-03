@@ -24,6 +24,8 @@
 	<name>jack</name>
 	<resourceRef oid="10000000-0000-0000-0000-000000000104"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<iteration>0</iteration>
+	<iterationToken></iterationToken>
 	<attributes>
 		<icfs:name>jack</icfs:name>
 		<icfs:uid>jack</icfs:uid>

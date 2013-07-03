@@ -47,6 +47,7 @@ import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
 import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -1115,7 +1116,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass,
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException, SchemaException, SecurityViolationException {
+			GenericFrameworkException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".modifyObject");
@@ -1275,6 +1276,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof SchemaException) {
 				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof AlreadyExistsException) {
+				throw (AlreadyExistsException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
 			} else if (midpointEx instanceof SecurityViolationException){
@@ -1342,6 +1345,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw (GenericFrameworkException) midpointEx;
 				} else if (midpointEx instanceof SchemaException) {
 					throw (SchemaException) midpointEx;
+				} else if (midpointEx instanceof ObjectAlreadyExistsException) {
+					throw (ObjectAlreadyExistsException) midpointEx;
 				} else if (midpointEx instanceof RuntimeException) {
 					throw (RuntimeException) midpointEx;
 				} else {
@@ -1394,6 +1399,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof SchemaException) {
 				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof ObjectAlreadyExistsException) {
+				throw (ObjectAlreadyExistsException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
 			} else {

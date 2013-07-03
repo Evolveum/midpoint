@@ -20,9 +20,11 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
-public class ObjectQuery implements Dumpable, Serializable {
+public class ObjectQuery implements Dumpable, DebugDumpable, Serializable {
 
 	private ObjectFilter filter;
 	private ObjectPaging paging;
@@ -77,24 +79,41 @@ public class ObjectQuery implements Dumpable, Serializable {
 		}
 		return clone;
 	}
+	
+	
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		
+		DebugUtil.indentDebugDump(sb, indent);
+		if (filter == null) {
+			sb.append("filter: null");
+		} else {
+			sb.append("filter:");
+			sb.append("\n");
+			sb.append(filter.debugDump(indent + 1));
+		}
+		
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent);
+		if (paging == null) {
+			sb.append("paging: null");
+		} else {
+			sb.append("paging: ").append(paging.debugDump(0));
+		}
+		
+		return sb.toString();
+	}
 
 	@Override
 	public String dump() {
-		StringBuilder sb = new StringBuilder();
-
-		if (filter == null) {
-			sb.append("filter is null");
-		} else {
-			sb.append("Appending filter: ");
-			sb.append("\n");
-			sb.append(filter.dump());
-		}
-		if (paging == null) {
-			sb.append(" paging is null");
-		} else {
-			sb.append(' ').append(paging.dump());
-		}
-		return sb.toString();
+		return debugDump();
 	}
 
 	@Override

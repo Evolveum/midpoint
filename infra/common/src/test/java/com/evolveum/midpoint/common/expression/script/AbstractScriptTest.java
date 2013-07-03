@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.expression;
+package com.evolveum.midpoint.common.expression.script;
 
 import static org.testng.AssertJUnit.assertNotNull;
+
+import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;

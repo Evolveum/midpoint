@@ -70,6 +70,16 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	}
 	
 	@Override
+	public ItemDelta<PrismContainerValue<T>> getDelta() {
+		throw new UnsupportedOperationException("You probably wanted to call getObjectDelta()");
+	}
+
+	@Override
+	public void setDelta(ItemDelta<PrismContainerValue<T>> delta) {
+		throw new UnsupportedOperationException("You probably wanted to call setObjectDelta()");
+	}
+
+	@Override
 	public boolean isContainer() {
 		return true;
 	}

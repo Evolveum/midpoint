@@ -32,9 +32,11 @@ import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
 import com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -158,13 +160,32 @@ public class AccountValuesProcessor {
 		
 		if (consistencyChecks) context.checkConsistence();
 		
+		if (!accountContext.hasFullShadow() && hasIterationExpression(accountContext)) {
+			LensUtil.loadFullAccount(accountContext, provisioningService, result);
+		}
+		
 		int maxIterations = determineMaxIterations(accountContext);
 		int iteration = 0;
+		String iterationToken = null;
+		
+		PrismObject<ShadowType> shadowOld = accountContext.getObjectOld();
+		if (shadowOld != null) {
+			Integer shadowIteration = shadowOld.asObjectable().getIteration();
+			if (shadowIteration != null) {
+				iteration = shadowIteration;
+			}
+			iterationToken = shadowOld.asObjectable().getIterationToken();
+		}
+		
 		boolean skipUniquenessCheck = false;
 		while (true) {
 			
 			accountContext.setIteration(iteration);
-			String iterationToken = formatIterationToken(context, accountContext, iteration, result);
+			if (iterationToken == null) {
+				iterationToken = formatIterationToken(context, accountContext, iteration, result);
+			}
+			accountContext.setIterationToken(iterationToken);
+			
 			String conflictMessage;
 			
 			// These are normally null. But there may be leftover from the previous iteration.
@@ -183,8 +204,7 @@ public class AccountValuesProcessor {
 				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
 						new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
 			} else {
-
-				accountContext.setIterationToken(iterationToken);			
+							
 				if (consistencyChecks) context.checkConsistence();
 				
 				// Re-evaluates the values in the account constructions (including roles)
@@ -328,6 +348,7 @@ public class AccountValuesProcessor {
 			}
 			
 	        iteration++;
+	        iterationToken = null;
 	        if (iteration > maxIterations) {
 	        	StringBuilder sb = new StringBuilder();
 	        	if (iteration == 1) {
@@ -352,10 +373,33 @@ public class AccountValuesProcessor {
 	        
 		}
 		
+		addIterationTokenDeltas(accountContext);
+		
 		if (consistencyChecks) context.checkConsistence();
 					
 	}
 	
+	private boolean hasIterationExpression(LensProjectionContext<ShadowType> accountContext) {
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		if (accDef == null) {
+			return false;
+		}
+		IterationSpecificationType iterationType = accDef.getIteration();
+		if (iterationType == null) {
+			return false;
+		}
+		if (iterationType.getTokenExpression() != null) {
+			return true;
+		}
+		if (iterationType.getPostIterationCondition() != null) {
+			return true;
+		}
+		if (iterationType.getPreIterationCondition() != null) {
+			return true;
+		}
+		return false;
+	}
+
 	private int determineMaxIterations(LensProjectionContext<ShadowType> accountContext) {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef != null) {
@@ -416,7 +460,9 @@ public class AccountValuesProcessor {
 			LensProjectionContext<ShadowType> accountContext) {
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectNew());
+		variables.put(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectNew());
 		variables.put(ExpressionConstants.VAR_SHADOW, accountContext.getObjectNew());
+		variables.put(ExpressionConstants.VAR_RESOURCE, accountContext.getResource());
 		return variables;
 	}
 
@@ -457,7 +503,6 @@ public class AccountValuesProcessor {
 		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
 		variables.put(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		variables.put(ExpressionConstants.VAR_RESOURCE, accountContext.getResource());
 		
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
@@ -545,6 +590,36 @@ public class AccountValuesProcessor {
 		}
 		accountContext.clearIntermediateResults();
 		accountContext.recompute();
+	}
+
+	/**
+	 * Adds deltas for iteration and iterationToken to the shadow if needed.
+	 */
+	private void addIterationTokenDeltas(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+		PrismObject<ShadowType> shadowOld = accountContext.getObjectOld();
+		if (shadowOld != null) {
+			Integer iterationOld = shadowOld.asObjectable().getIteration();
+			String iterationTokenOld = shadowOld.asObjectable().getIterationToken();
+			if (iterationOld != null && iterationOld == accountContext.getIteration() &&
+					iterationTokenOld != null && iterationTokenOld.equals(accountContext.getIterationToken())) {
+				// Already stored
+				return;
+			}
+		}
+		PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		
+		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<Integer>(accountContext.getIteration());
+		iterationVal.setOriginType(OriginType.OUTBOUND);
+		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(shadowDef, 
+				ShadowType.F_ITERATION, iterationVal);
+		accountContext.addToSecondaryDelta(iterationDelta);
+		
+		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<String>(accountContext.getIterationToken());
+		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
+		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(shadowDef, 
+				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);
+		accountContext.addToSecondaryDelta(iterationTokenDelta);
+		
 	}
 
 	

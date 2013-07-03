@@ -60,12 +60,11 @@ public class NotFilter extends UnaryLogicalFilter {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("NOT: \n");
 		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("NOT:");
 		if (getFilter() != null) {
-			sb.append("Critaria: ");
-			sb.append(getFilter().debugDump(indent + 1));
 			sb.append("\n");
+			sb.append(getFilter().debugDump(indent + 1));
 		}
 
 		return sb.toString();

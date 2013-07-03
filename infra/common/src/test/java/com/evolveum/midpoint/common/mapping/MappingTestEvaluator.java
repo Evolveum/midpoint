@@ -32,6 +32,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.CommonTestConstants;
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.Source;
@@ -104,42 +105,9 @@ public class MappingTestEvaluator {
 		
     	prismContext = PrismTestUtil.createInitializedPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(CommonTestConstants.OBJECTS_DIR);
-    	protector = new AESProtector();
-        protector.setKeyStorePath(CommonTestConstants.KEYSTORE_PATH);
-        protector.setKeyStorePassword(CommonTestConstants.KEYSTORE_PASSWORD);
-        protector.setPrismContext(prismContext);
-        protector.init();
+    	protector = ExpressionTestUtil.createInitializedProtector(prismContext);
+    	ExpressionFactory expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext);
     	
-    	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, prismContext);
-    	
-    	// asIs
-    	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext);
-    	expressionFactory.addEvaluatorFactory(asIsFactory);
-    	expressionFactory.setDefaultEvaluatorFactory(asIsFactory);
-
-    	// value
-    	LiteralExpressionEvaluatorFactory valueFactory = new LiteralExpressionEvaluatorFactory(prismContext);
-    	expressionFactory.addEvaluatorFactory(valueFactory);
-    	
-    	// path
-    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, resolver);
-    	expressionFactory.addEvaluatorFactory(pathFactory);
-    	
-    	// generate
-    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, resolver, prismContext);
-    	expressionFactory.addEvaluatorFactory(generateFactory);
-
-    	// script
-    	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
-        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, functions);
-        XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);
-        scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
-        Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext);
-        scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
-        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory);
-        expressionFactory.addEvaluatorFactory(scriptExpressionEvaluatorFactory);
-
         mappingFactory = new MappingFactory();
         mappingFactory.setExpressionFactory(expressionFactory);
         mappingFactory.setObjectResolver(resolver);

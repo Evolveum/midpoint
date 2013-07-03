@@ -220,10 +220,12 @@ public interface ConnectorInstance {
 	 * @param changes
 	 * @throws CommunicationException
 	 * @throws SchemaException 
+	 * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
 	 */
 	public Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, 
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
+			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
+			SecurityViolationException, ObjectAlreadyExistsException;
 	
 	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, 
 			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult parentResult)

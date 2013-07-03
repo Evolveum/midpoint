@@ -23,6 +23,8 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
 	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
+	<iteration>0</iteration>
+	<iterationToken></iterationToken>
 	<attributes>
 		<icfs:name>ht</icfs:name>
 		<icfs:uid>ht</icfs:uid>

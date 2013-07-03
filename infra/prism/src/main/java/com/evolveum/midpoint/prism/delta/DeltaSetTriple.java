@@ -159,6 +159,9 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable,
     }
 
 	private void addAllToSet(Collection<T> set, Collection<T> items) {
+		if (items == null) {
+			return;
+		}
 		for (T item: items) {
 			addToSet(set, item);
 		}

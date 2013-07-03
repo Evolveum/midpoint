@@ -182,7 +182,7 @@ public class Expression<V extends PrismValue> {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("Mapping trace:\n");
+		sb.append("Expression trace:\n");
 		appendTraceHeader(sb, context, processedVariables);
 		sb.append("\nResult: ");
 		if (outputTriple == null) {

@@ -64,11 +64,11 @@ public class AndFilter extends NaryLogicalFilter{
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("AND: \n");
 		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("AND:");
 		for (ObjectFilter filter : getCondition()){
+			sb.append("\n");
 			sb.append(filter.debugDump(indent + 1));
-			sb.append("\n");	
 		}
 
 		return sb.toString();

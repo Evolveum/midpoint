@@ -303,13 +303,13 @@ public class PrettyPrinter {
 					try {
 						return (String)method.invoke(null, value);
 					} catch (IllegalArgumentException e) {
-						return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage();
+						return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; prettyPrint method for value "+value;
 					} catch (IllegalAccessException e) {
-						return "###INTERNAL#ERROR### Illegal access: "+e.getMessage();
+						return "###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; prettyPrint method for value "+value;
 					} catch (InvocationTargetException e) {
-						return "###INTERNAL#ERROR### Illegal target: "+e.getMessage();
+						return "###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; prettyPrint method for value "+value;
 					} catch (Throwable e) {
-						return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage();
+						return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; prettyPrint method for value "+value;
 					}
 				}
 			}

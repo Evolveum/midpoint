@@ -428,7 +428,7 @@ public class ResourceObjectConverter {
 			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ObjectAlreadyExistsException {
 
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
@@ -473,7 +473,7 @@ public class ResourceObjectConverter {
 	
 	private Collection<PropertyModificationOperation> executeModify(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers, 
-					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
+					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
 
 		if (operations.isEmpty()){
@@ -547,6 +547,9 @@ public class ResourceObjectConverter {
 		} catch (ConfigurationException ex) {
 			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
 			throw new ConfigurationException("Configuration error: " + ex.getMessage(), ex);
+		} catch (ObjectAlreadyExistsException ex) {
+			parentResult.recordFatalError("Conflict during modify: " + ex.getMessage(), ex);
+			throw new ObjectAlreadyExistsException("Conflict during modify: " + ex.getMessage(), ex);
 		}
 		
 		return sideEffectChanges;
@@ -554,7 +557,7 @@ public class ResourceObjectConverter {
 	
 	private void executeEntitlementChangesAdd(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
@@ -567,7 +570,7 @@ public class ResourceObjectConverter {
 	
 	private void executeEntitlementChangesModify(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
-			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
+			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
@@ -609,12 +612,14 @@ public class ResourceObjectConverter {
 			LOGGER.error(e.getMessage(), e);
 		} catch (ConfigurationException e) {
 			LOGGER.error(e.getMessage(), e);
+		} catch (ObjectAlreadyExistsException e) {
+			LOGGER.error(e.getMessage(), e);
 		}
 		
 	}
 	
 	private void executeEntitlements(ConnectorInstance connector, ResourceType resource,
-			Map<ResourceObjectDiscriminator, Collection<Operation>> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
+			Map<ResourceObjectDiscriminator, Collection<Operation>> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		for (Entry<ResourceObjectDiscriminator,Collection<Operation>> entry: roMap.entrySet()) {
 			ResourceObjectDiscriminator disc = entry.getKey();
 			RefinedObjectClassDefinition ocDef = disc.getObjectClassDefinition();

@@ -152,18 +152,33 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 
 	// TODO: the same as createModificationReplaceProperty?
     // btw, why was here 'PrismObjectDefinition'?
-    public static <O extends Objectable> PropertyDelta createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
-			QName propertyName, Object... realValues) {
-		PrismPropertyDefinition propertyDefinition = containerDefinition.findPropertyDefinition(propertyName);
+    public static <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
+			QName propertyName, T... realValues) {
+		PrismPropertyDefinition<T> propertyDefinition = containerDefinition.findPropertyDefinition(propertyName);
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
 		}
-		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
-		Collection<PrismPropertyValue> valuesToReplace = delta.getValuesToReplace();
+		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition);
+		Collection<PrismPropertyValue<T>> valuesToReplace = delta.getValuesToReplace();
 		if (valuesToReplace == null)
-			valuesToReplace = new ArrayList<PrismPropertyValue>(realValues.length);
-		for (Object realVal: realValues) {
-			valuesToReplace.add(new PrismPropertyValue(realVal));
+			valuesToReplace = new ArrayList<PrismPropertyValue<T>>(realValues.length);
+		for (T realVal: realValues) {
+			valuesToReplace.add(new PrismPropertyValue<T>(realVal));
+		}
+		delta.setValuesToReplace(valuesToReplace);
+		return delta;
+	}
+    
+    public static <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
+			QName propertyName, PrismPropertyValue<T>... pValues) {
+		PrismPropertyDefinition<T> propertyDefinition = containerDefinition.findPropertyDefinition(propertyName);
+		if (propertyDefinition == null) {
+			throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
+		}
+		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition);
+		Collection<PrismPropertyValue<T>> valuesToReplace = new ArrayList<PrismPropertyValue<T>>(pValues.length);
+		for (PrismPropertyValue<T> pVal: pValues) {
+			valuesToReplace.add(pVal);
 		}
 		delta.setValuesToReplace(valuesToReplace);
 		return delta;
@@ -209,8 +224,8 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		return delta;
 	}
 	
-	public static <O extends Objectable> PropertyDelta<?> createReplaceDeltaOrEmptyDelta(PrismObjectDefinition<O> objectDefinition,
-			QName propertyName, Object realValue) {
+	public static <O extends Objectable, T> PropertyDelta<T> createReplaceDeltaOrEmptyDelta(PrismObjectDefinition<O> objectDefinition,
+			QName propertyName, T realValue) {
 		
 		if (realValue != null)
 			return createReplaceDelta(objectDefinition, propertyName, realValue);

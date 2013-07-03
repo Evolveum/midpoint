@@ -19,6 +19,8 @@ import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -160,13 +162,53 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<? extends PrismValue>> sources,
 			Map<QName, Object> variables, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
-		Collection<V> outputSetOld = evaluateScriptExpression(sources, variables, contextDescription, false, result);
-		Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, result);
+		PrismValueDeltaSetTriple<V> outputTriple;
 		
-		PrismValueDeltaSetTriple<V> outputTriple = PrismValueDeltaSetTriple.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
+		if (hasDeltas(sources) || hasDelas(variables)) {
+		
+			Collection<V> outputSetOld = evaluateScriptExpression(sources, variables, contextDescription, false, result);
+			Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, result);
+			
+			outputTriple = PrismValueDeltaSetTriple.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
+			
+		} else {
+			// No need to execute twice. There is no change.
+			Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, result);
+			outputTriple = new PrismValueDeltaSetTriple<V>();
+			outputTriple.addAllToZeroSet(outputSetNew);
+		}
+		
 		return outputTriple;
 	}
 	
+	private boolean hasDeltas(Collection<Source<? extends PrismValue>> sources) {
+		if (sources == null) {
+			return false;
+		}
+		for (Source<? extends PrismValue> source: sources) {
+			if (source.getDelta() != null && !source.getDelta().isEmpty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean hasDelas(Map<QName, Object> variables) {
+		for (Entry<QName,Object> entry: variables.entrySet()) {
+			Object value = entry.getValue();
+			if (value instanceof ObjectDeltaObject<?>) {
+				if (((ObjectDeltaObject<?>)value).getObjectDelta() != null && !((ObjectDeltaObject<?>)value).getObjectDelta().isEmpty()) {
+					return true;
+				}
+			} else if (value instanceof ItemDeltaItem<?>) {
+				if (((ItemDeltaItem<?>)value).getDelta() != null && !((ItemDeltaItem<?>)value).getDelta().isEmpty()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	private Collection<V> evaluateScriptExpression(Collection<Source<? extends PrismValue>> sources,
 			Map<QName, Object> variables, String contextDescription, boolean useNew, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.expression;
+package com.evolveum.midpoint.common.expression.script;
 
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.PrismContext;

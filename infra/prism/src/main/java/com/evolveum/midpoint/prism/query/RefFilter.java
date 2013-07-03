@@ -112,33 +112,34 @@ public class RefFilter extends PropertyValueFilter{
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("REF: \n");
+		sb.append("REF:");
 		
 		if (getParentPath() != null){
+			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
 			sb.append(getParentPath().toString());
-			sb.append("\n");
 		} 
+		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("DEF: ");
 		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(indent));
-			sb.append("\n");
+			sb.append(getDefinition().debugDump(0));
 		} else {
 			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
+			sb.append("null");
 		}
+		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("VALUE: ");
 		if (getValues() != null) {
-			indent += 1;
 			for (PrismValue val : getValues()) {
-				sb.append(val.debugDump(indent));
+				sb.append("\n");
+				sb.append(val.debugDump(indent + 2));
 			}
 		} else {
 			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
+			sb.append("null");
 		}
 		return sb.toString();
 

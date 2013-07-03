@@ -33,6 +33,9 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.CommonTestConstants;
+import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;

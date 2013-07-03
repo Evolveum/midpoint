@@ -18,6 +18,7 @@ package com.evolveum.midpoint.common.expression.script;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -97,6 +98,8 @@ public class ScriptExpression {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
 		context.setEvaluateNew(useNew);
+		
+		InternalMonitor.recordScriptExecution();
 		
 		try {
 			context.setupThreadLocal();

@@ -62,28 +62,28 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		super(parentPath, definition, matchingRule, expression);
 	}
 	
-	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, PrismValue value) {
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, PrismValue value) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-		return new EqualsFilter(path, itemDef, null, value);
+		return new EqualsFilter(parentPath, itemDef, null, value);
 	}
-	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, String matchingRule, PrismValue value) {
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, String matchingRule, PrismValue value) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-		return new EqualsFilter(path, itemDef, matchingRule, value);
-	}
-
-	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, String matchingRule, List<PrismValue> values) {
-		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-		return new EqualsFilter(path, itemDef, matchingRule, values);
+		return new EqualsFilter(parentPath, itemDef, matchingRule, value);
 	}
 
-	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, Element expression) {
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, String matchingRule, List<PrismValue> values) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-		return new EqualsFilter(path, itemDef, expression);
+		return new EqualsFilter(parentPath, itemDef, matchingRule, values);
+	}
+
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, Element expression) {
+		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
+		return new EqualsFilter(parentPath, itemDef, expression);
 	}
 	
-	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, String matchingRule, Element expression) {
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, String matchingRule, Element expression) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-		return new EqualsFilter(path, itemDef, matchingRule, expression);
+		return new EqualsFilter(parentPath, itemDef, matchingRule, expression);
 	}
 
 	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition item, String matchingRule, Object realValue) {
@@ -141,44 +141,43 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("EQUALS: \n");
+		sb.append("EQUALS:");
 		
 		if (getParentPath() != null){
+			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
 			sb.append(getParentPath().toString());
-			sb.append("\n");
 		} 
+		
+		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("DEF: ");
 		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(indent));
-			sb.append("\n");
+			sb.append(getDefinition().toString());
 		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
+			sb.append("null");
 		}
+		
+		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUE: ");
+		sb.append("VALUE:");
 		if (getValues() != null) {
-			indent += 1;
-			for (PrismValue val : getValues()) {
-				sb.append(val.debugDump(indent));
-				
-			}
 			sb.append("\n");
+			for (PrismValue val : getValues()) {
+				sb.append(DebugUtil.debugDump(val, indent + 2));
+			}
 		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
+			sb.append(" null");
 		}
+		
+		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("MATCHING: ");
 		if (getMatchingRule() != null) {
-			indent += 1;
-				sb.append(getMatchingRule());
+			sb.append(getMatchingRule());
 		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("default\n");
+			sb.append("default");
 		}
 		return sb.toString();
 	}
@@ -197,7 +196,12 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		}
 		if (getValues() != null){
 			for (int i = 0; i< getValues().size() ; i++){
-				sb.append(getValues().get(i).toString());
+				PrismValue value = getValues().get(i);
+				if (value == null) {
+					sb.append("null");
+				} else {
+					sb.append(value.toString());
+				}
 				if ( i != getValues().size() -1){
 					sb.append(", ");
 				}

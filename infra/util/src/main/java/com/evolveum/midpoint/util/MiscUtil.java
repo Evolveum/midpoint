@@ -350,4 +350,13 @@ public class MiscUtil {
 				&& (date.compare(end) == DatatypeConstants.LESSER || date.compare(end) == DatatypeConstants.EQUAL);
 	}
 
+	public static <T> boolean contains(T element, T[] array) {
+		for (T aElement: array) {
+			if (equals(element, aElement)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

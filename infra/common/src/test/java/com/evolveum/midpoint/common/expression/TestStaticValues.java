@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -60,7 +61,8 @@ public class TestStaticValues {
 
     @Test
     public void testValueElementsRoundtripString() throws Exception {
-    	System.out.println("\n===[ testValueElementsRoundtripString ]===\n");
+    	final String TEST_NAME = "testValueElementsRoundtripString";
+    	TestUtil.displayTestTile(TEST_NAME);
     	
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -75,7 +77,8 @@ public class TestStaticValues {
     
     @Test
     public void testValueElementsRoundtripInt() throws Exception {
-    	System.out.println("\n===[ testValueElementsRoundtripInt ]===\n");
+    	final String TEST_NAME = "testValueElementsRoundtripInt";
+    	TestUtil.displayTestTile(TEST_NAME);
     	
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();

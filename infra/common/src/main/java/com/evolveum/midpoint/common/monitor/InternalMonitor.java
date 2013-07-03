@@ -30,6 +30,8 @@ public class InternalMonitor {
 	private static long connectorSchemaFetchCount = 0;
 	private static CachingStatistics resourceCacheStats = new CachingStatistics();
 	private static CachingStatistics connectorCacheStats = new CachingStatistics();
+	private static long scriptCompileCount = 0;
+	private static long scriptExecutionCount = 0;
 	
 	public static long getResourceSchemaParseCount() {
 		return resourceSchemaParseCount;
@@ -61,6 +63,30 @@ public class InternalMonitor {
 
 	public static CachingStatistics getConnectorCacheStats() {
 		return connectorCacheStats;
+	}
+
+	public static long getScriptCompileCount() {
+		return scriptCompileCount;
+	}
+
+	public static void setScriptCompileCount(long scriptCompileCount) {
+		InternalMonitor.scriptCompileCount = scriptCompileCount;
+	}
+	
+	public static void recordScriptCompile() {
+		scriptCompileCount++;
+	}
+
+	public static long getScriptExecutionCount() {
+		return scriptExecutionCount;
+	}
+
+	public static void setScriptExecutionCount(long scriptExecutionCount) {
+		InternalMonitor.scriptExecutionCount = scriptExecutionCount;
+	}
+	
+	public static void recordScriptExecution() {
+		scriptExecutionCount++;
 	}
 
 }

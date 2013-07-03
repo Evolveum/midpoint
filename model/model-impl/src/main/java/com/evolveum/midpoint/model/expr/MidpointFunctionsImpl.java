@@ -37,10 +37,12 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -400,18 +402,67 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return countAccounts(resourceType, attributeQName, attributeValue, result);
     }
     
-    private <T> int countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <T> int countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, OperationResult result) 
+    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+    		SecurityViolationException {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        RefinedAttributeDefinition attrDef = rAccount.findAttributeDefinition(attributeName);
+        RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
         EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, attributeValue);
         EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
-        		ShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
+        		ShadowType.F_OBJECT_CLASS, rAccountDef.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
         		ShadowType.F_RESOURCE_REF, resourceType.asPrismObject());
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return modelObjectResolver.countObjects(ShadowType.class, query, result);
+    }
+    
+    public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
+    	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
+		return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, result);
+    }
+    
+    private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType, 
+    		QName attributeName, T attributeValue, OperationResult result) 
+    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+    		SecurityViolationException {
+    	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+        RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, attributeValue);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
+        		ShadowType.F_OBJECT_CLASS, rAccountDef.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
+        		ShadowType.F_RESOURCE_REF, resourceType.asPrismObject());
+        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        
+        final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				if (shadowType == null || shadowType.getOid() == null) {
+					// We have found a conflicting object
+					isUniqueHolder.setValue(false);
+					return false;
+				} else {
+					if (shadowType.getOid().equals(object.getOid())) {
+						// We have found ourselves. No conflict (yet). Just go on.
+						return true;
+					} else {
+						// We have found someone else. Conflict.
+						isUniqueHolder.setValue(false);
+						return false;
+					}
+				}
+			}
+		};
+        
+		modelObjectResolver.searchIterative(ShadowType.class, query, handler, result);
+		
+		return isUniqueHolder.getValue();
     }
     
     private OperationResult getCurrentResult(String operationName) {

@@ -145,8 +145,10 @@ public class OutboundProcessor {
 			mapping.setSourceContext(userOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, accCtx.getIteration());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, accCtx.getIterationToken());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 
+					LensUtil.getIterationVariableValue(accCtx));
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, 
+					LensUtil.getIterationTokenVariableValue(accCtx));
 			mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
 			mapping.setRootNode(userOdo);
 			mapping.setOriginType(OriginType.OUTBOUND);

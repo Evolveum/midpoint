@@ -323,6 +323,16 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	public boolean isFullShadow() {
 		return fullShadow;
 	}
+	
+	/**
+	 * Returns true if full shadow is available, either loaded or in a create delta.
+	 */
+	public boolean hasFullShadow() {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
+			return true;
+		}
+		return isFullShadow();
+	}
 
 	public void setFullShadow(boolean fullShadow) {
 		this.fullShadow = fullShadow;

@@ -15,19 +15,22 @@
   ~ limitations under the License.
   -->
 
-<account oid="c0c010c0-d34d-b33f-f00d-22220204000e"
+<account
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
-	<name>elaine</name>
-	<resourceRef oid="10000000-0000-0000-0000-000000000204"/>
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
-	<iteration>0</iteration>
-	<iterationToken></iterationToken>
 	<attributes>
-		<icfs:name>elaine</icfs:name>
-		<icfs:uid>elaine</icfs:uid>
+		<icfs:name>jack</icfs:name>
+		<ri:fullname xsi:type="xsd:string">Jack Sparrow</ri:fullname>
+		<ri:weapon xsi:type="xsd:string">rum</ri:weapon>
 	</attributes>
+	<activation>
+		<administrativeStatus>enabled</administrativeStatus>
+	</activation>
 </account>

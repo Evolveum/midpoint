@@ -26,6 +26,7 @@
 	<attributes>
 		<icfs:name>morgan</icfs:name>
 		<ri:fullname>Captain Morgan</ri:fullname>
+		<ri:ship>Satisfaction</ri:ship>
 	</attributes>
 	<credentials>
 		<password>

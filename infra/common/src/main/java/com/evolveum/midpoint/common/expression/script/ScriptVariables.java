@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -71,6 +72,9 @@ public class ScriptVariables {
         	if (value instanceof ObjectDeltaObject<?>) {
         		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
         		value = odo.getOldObject();
+        	} else if (value instanceof ItemDeltaItem<?>) {
+        		ItemDeltaItem<?> idi = (ItemDeltaItem<?>)value;
+        		value = idi.getItemOld();
         	}
             variables.put(entry.getKey(), value);
         }
@@ -87,6 +91,9 @@ public class ScriptVariables {
         	if (value instanceof ObjectDeltaObject<?>) {
         		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
         		value = odo.getNewObject();
+        	} else if (value instanceof ItemDeltaItem<?>) {
+        		ItemDeltaItem<?> idi = (ItemDeltaItem<?>)value;
+        		value = idi.getItemNew();
         	}
             variables.put(entry.getKey(), value);
         }

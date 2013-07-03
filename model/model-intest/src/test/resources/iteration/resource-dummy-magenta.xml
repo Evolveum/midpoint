@@ -90,12 +90,21 @@
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>
+							$c:user/c:locality
+						</path>
 					</source>
 				</outbound>
 			</attribute>
@@ -110,8 +119,10 @@
 							<code>
 								if (iteration == 0) {
 									return description;
+								} else if (iteration == 1) {
+									return description + " -- " + user.getFullName();
 								} else {
-									description + ' (' + iteration + ')';
+									description + " -- " + user.getFullName() + ' (' + iteration + ')';
 								}
 							</code>
 						</script>
@@ -138,7 +149,19 @@
 						<path>$shadow/attributes/ri:quote</path>
 					</variable>
 					<script>
-						<code>midpoint.countAccounts(resource, 'quote', quote) == 0</code>
+						<code>
+							log.debug("quote={}, user={}", quote, user);
+							if (user != null &amp;&amp; quote == null &amp;&amp; user.getName() != null &amp;&amp; user.getName().getOrig().equals("drake")) {
+								// Make sure it fails if executed without quote, this should not happen for user drake
+								throw new IllegalStateException("Kaboom!");
+							}
+							if (quote == null) {
+								// This may happen for users without description. If we let it go the method below fails
+								// But null quote is OK, no need to check uniqueness for this
+								return true;
+							}
+							return midpoint.isUniqueAccountValue(resource, shadow, 'quote', quote);
+						</code>
 					</script>
 				</postIterationCondition>
 			</iteration>
@@ -157,12 +180,6 @@
                         	<asIs/>
                         </expression>
                     </outbound>
-                    <inbound>
-                    	<strength>weak</strength>
-                        <expression>
-                            <generate/>
-                        </expression>
-                    </inbound>
                 </password>
             </credentials>
             

@@ -65,8 +65,12 @@ public class ValueOperation extends Operation {
 						convertedValues.add(converted);
 					}
 
-					return FilterBuilder.equalTo(AttributeBuilder.build(icfName, convertedValues));
-				
+					if (convertedValues.isEmpty()) {
+						// See MID-1460
+						throw new UnsupportedOperationException("Equals filter with a null value is NOT supported by ICF");
+					} else {
+						return FilterBuilder.equalTo(AttributeBuilder.build(icfName, convertedValues));
+					}
 				
 				} else if (objectFilter instanceof SubstringFilter) {
 					SubstringFilter substring = (SubstringFilter) objectFilter;
@@ -74,15 +78,14 @@ public class ValueOperation extends Operation {
 					return FilterBuilder.contains(AttributeBuilder.build(icfName, converted));
 				} else {
 					throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter.dump());
-//					throw new UnsupportedOperationException("Unsupported equals filter: " + eq.dump());
 				}
 			} catch (SchemaException ex) {
 				throw ex;
 
 			}
+		} else {
+			throw new UnsupportedOperationException("Unsupported parent path "+valueFilter.getParentPath()+" in filter: " + objectFilter.dump());
 		}
-		
-		throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter.dump());
 		
 	}
 
