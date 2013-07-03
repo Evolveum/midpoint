@@ -159,7 +159,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
         String processor = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
-        Validate.notNull(processor, "There's no change processor name among the process instance variables");
+        if (processor == null) {
+            LOGGER.error("There's no change processor name among the process instance variables; variables = " + processInstance.getVariables());
+            throw new IllegalStateException("There's no change processor name among the process instance variables");
+        }
         return wfConfiguration.findChangeProcessor(processor).getProcessInstanceDetailsPanelName(processInstance);
     }
 

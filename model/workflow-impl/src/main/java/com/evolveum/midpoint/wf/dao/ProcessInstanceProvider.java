@@ -213,28 +213,21 @@ public class ProcessInstanceProvider {
 
     private List<ProcessInstance> activitiToMidpointHistoricProcessInstanceList(List<HistoricProcessInstance> instances, OperationResult result) throws WorkflowException {
         List<ProcessInstance> retval = new ArrayList<ProcessInstance>();
-        int problems = 0;
-        WorkflowException lastException = null;
         for (HistoricProcessInstance instance : instances) {
-            try {
-                retval.add(activitiToMidpointProcessInstanceHistory(instance, result));
-            } catch(WorkflowException e) {
-                problems++;
-                lastException = e;
+            retval.add(activitiToMidpointProcessInstanceHistory(instance, result));
+            if (!result.getLastSubresult().isSuccess()) {
                 // this is a design decision: when an error occurs when listing instances, the ones that are fine WILL BE displayed
-                LoggingUtils.logException(LOGGER, "Couldn't get information on workflow process instance", e);
+                LOGGER.error("Couldn't get information on workflow process instance", result.getLastSubresult().getMessage());
                 // operation result already contains the exception information
             }
         }
-        if (problems > 0) {
-            result.recordWarning(problems + " finished instance(s) could not be shown; last exception: " + lastException.getMessage(), lastException);
-        } else {
-            result.recordSuccessIfUnknown();
+        if (result.isUnknown()) {
+            result.computeStatus();
         }
         return retval;
     }
 
-    private ProcessInstance activitiToMidpointRunningProcessInstance(org.activiti.engine.runtime.ProcessInstance instance, boolean getWorkItems, OperationResult parentResult) throws WorkflowException {
+    private ProcessInstance activitiToMidpointRunningProcessInstance(org.activiti.engine.runtime.ProcessInstance instance, boolean getWorkItems, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE);
         result.addParam("instance id", instance.getProcessInstanceId());
@@ -271,7 +264,7 @@ public class ProcessInstanceProvider {
         return pi;
     }
 
-    public ProcessInstance activitiToMidpointProcessInstanceHistory(HistoricProcessInstance instance, OperationResult parentResult) throws WorkflowException {
+    public ProcessInstance activitiToMidpointProcessInstanceHistory(HistoricProcessInstance instance, OperationResult parentResult)  {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE_HISTORY);
 

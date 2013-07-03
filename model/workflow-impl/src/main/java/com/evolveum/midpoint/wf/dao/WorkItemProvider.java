@@ -168,10 +168,14 @@ public class WorkItemProvider {
      * This should be skipped if there's no need to display these (e.g. in the list of work items assigned to the current user).
      */
 
-    List<WorkItem> tasksToWorkItems(List<Task> tasks, boolean getTaskDetails, boolean getAssigneeDetails, OperationResult result) throws WorkflowException {
+    List<WorkItem> tasksToWorkItems(List<Task> tasks, boolean getTaskDetails, boolean getAssigneeDetails, OperationResult result) {
         List<WorkItem> retval = new ArrayList<WorkItem>();
         for (Task task : tasks) {
-            retval.add(taskToWorkItem(task, getTaskDetails, getAssigneeDetails, result));
+            try {
+                retval.add(taskToWorkItem(task, getTaskDetails, getAssigneeDetails, result));
+            } catch (WorkflowException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't get information on activiti task {}", e, task.getId());
+            }
         }
         return retval;
     }
@@ -218,6 +222,9 @@ public class WorkItemProvider {
                 throw new SystemException("Got unexpected object-not-found exception when preparing information on Work Item; perhaps the requester or a workflow task was deleted in the meantime.", e);
             } catch (JAXBException e) {
                 throw new SystemException("Got unexpected JAXB exception when preparing information on Work Item", e);
+            } catch (WorkflowException e) {
+                result.recordFatalError("Couldn't set work item details for activiti task " + task.getId(), e);
+                throw e;
             }
         }
 
