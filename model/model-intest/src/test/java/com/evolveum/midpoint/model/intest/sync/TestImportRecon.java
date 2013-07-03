@@ -206,14 +206,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Script history", dummyResource.getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
-        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, true);
-        addReconScripts(scripts, USER_RAPP_USERNAME, false);
-        addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, false);
-        addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, false);
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
+        addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
 	}
 	
-	private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, boolean modified) {
+	private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, String fullName, boolean modified) {
 		// before recon
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The vorpal blade went snicker-snack!");
 		script.addArgSingle("who", username);
@@ -221,9 +221,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
 		if (modified) {
 			script = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
-			script.addArgSingle("howMuch", "a lot");
+			script.addArgSingle("howMuch", null);
 			script.addArgSingle("howLong", "from here to there");
 			script.addArgSingle("who", username);
+			script.addArgSingle("whatchacallit", fullName);
 			scripts.add(script);
 		}
 		

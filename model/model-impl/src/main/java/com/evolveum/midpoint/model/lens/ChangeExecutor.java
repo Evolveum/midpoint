@@ -881,21 +881,28 @@ public class ChangeExecutor {
     	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
 		
+		Collection<PrismPropertyValue<String>> nonNegativeValues = null;
+		if (outputTriple != null) {
+			nonNegativeValues = outputTriple.getNonNegativeValues();
+		}
+		
 		//replace dynamic script with static value..
 		argument.getExpressionEvaluator().clear();
-		
-		if (outputTriple == null) {
-			return;
-		}
-		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
-		for (PrismPropertyValue<String> val : nonNegativeValues){
+		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+			// We need to create at least one evaluator. Otherwise the expression code will complain
 			Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
-			value.setTextContent(val.getValue());
+			DOMUtil.setNill(value);
 			JAXBElement<Element> el = new JAXBElement(SchemaConstants.C_VALUE, Element.class, value);
 			argument.getExpressionEvaluator().add(el);
+			
+		} else {
+			for (PrismPropertyValue<String> val : nonNegativeValues){
+				Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
+				value.setTextContent(val.getValue());
+				JAXBElement<Element> el = new JAXBElement(SchemaConstants.C_VALUE, Element.class, value);
+				argument.getExpressionEvaluator().add(el);
+			}
 		}
-		
-		return;
     }
     
     private Map<QName, Object> getDefaultExpressionVariables(PrismObject<UserType> user, 

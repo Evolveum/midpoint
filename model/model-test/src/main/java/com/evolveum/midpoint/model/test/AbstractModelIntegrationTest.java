@@ -1597,4 +1597,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNull("Expected that OpenDJ account with uid "+uid+" will be gone, but it is still there", entry);
 	}
 	
+	protected void assertIteration(PrismObject<ShadowType> shadow, Integer expectedIteration, String expectedIterationToken) {
+		PrismAsserts.assertPropertyValue(shadow, ShadowType.F_ITERATION, expectedIteration);
+		PrismAsserts.assertPropertyValue(shadow, ShadowType.F_ITERATION_TOKEN, expectedIterationToken);
+	}
+	
 }

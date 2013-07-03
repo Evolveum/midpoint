@@ -4159,23 +4159,22 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:choice>
-            	<xsd:element name="path" type="t:XPathType"/>
-                <xsd:element name="objectRef" type="tns:ObjectReferenceType">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            TODO
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element ref="tns:value">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            TODO
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
+            <!-- This needs to be a sequence of optional elements instead of choice due to a JAXB "feature" that generates XML not valid with the schema. -->
+           	<xsd:element name="path" type="t:XPathType" minOccurs="0"/>
+               <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
+                   <xsd:annotation>
+                       <xsd:documentation>
+                           TODO
+                       </xsd:documentation>
+                   </xsd:annotation>
+               </xsd:element>
+               <xsd:element ref="tns:value" minOccurs="0">
+                   <xsd:annotation>
+                       <xsd:documentation>
+                           TODO
+                       </xsd:documentation>
+                   </xsd:annotation>
+               </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

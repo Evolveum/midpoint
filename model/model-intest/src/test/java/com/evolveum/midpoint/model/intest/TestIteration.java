@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -469,6 +470,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, result);
         assertShadowRepo(accountVioletShadow, accountVioletOid, "herman.1", resourceDummyVioletType);
         
+        assertIteration(accountVioletShadow, 1, ".1");
+        
         // Check account
         PrismObject<ShadowType> accountVioletModel = modelService.getObject(ShadowType.class, accountVioletOid, null, task, result);
         assertShadowModel(accountVioletModel, accountVioletOid, "herman.1", resourceDummyVioletType);
@@ -565,6 +568,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
         assertShadowModel(accountMagentaModel, accountMagentaOid, "jack", resourceDummyMagentaType);
         
+        assertIteration(accountMagentaShadow, 0, "");
+        
         // Check account in dummy resource
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // The original conflicting account should still remain
@@ -575,7 +580,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
@@ -634,6 +639,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, result);
         assertShadowRepo(accountMagentaShadow, accountMagentaOid, "drake001", resourceDummyMagentaType);
         
+        assertIteration(accountMagentaShadow, 1, "001");
+        
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
         assertShadowModel(accountMagentaModel, accountMagentaOid, "drake001", resourceDummyMagentaType);
@@ -648,9 +655,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Jamaica");
         
+        PrismAsserts.assertPropertyValue(userDrakeAfter, UserType.F_ORGANIZATION, 
+        		PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Francis Drake"));
+        
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
@@ -693,6 +703,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, result);
         assertShadowRepo(accountMagentaShadow, accountMagentaOid, "drake001", resourceDummyMagentaType);
         
+        assertIteration(accountMagentaShadow, 1, "001");
+        
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
         assertShadowModel(accountMagentaModel, accountMagentaOid, "drake001", resourceDummyMagentaType);
@@ -706,6 +718,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "London");
         assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, "drake001", 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, DESCRIPTION_RUM + " -- Francis Drake");
+        
+        PrismAsserts.assertPropertyValue(userDrakeAfter, UserType.F_ORGANIZATION, 
+        		PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Francis Drake"));
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -760,6 +775,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, result);
         assertShadowRepo(accountMagentaShadow, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyMagentaType);
         
+        assertIteration(accountMagentaShadow, 0, "");
+        
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
         assertShadowModel(accountMagentaModel, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyMagentaType);
@@ -770,7 +787,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, "guybrush.3", "Guybrush Threepwood", true);
         // The new account
         assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        
+                
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -825,8 +842,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
         assertShadowModel(accountMagentaModel, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME + "001", resourceDummyMagentaType);
         
-        // TODO: check quote
-        
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, "guybrush.3", "Guybrush Threepwood", true);
@@ -839,9 +854,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_MAGENTA_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME+ "001", 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, DESCRIPTION_RUM + " -- Guybrush Threepwood");
         
+        PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_ORGANIZATION, 
+        		PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Guybrush Threepwood"));
+        
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);

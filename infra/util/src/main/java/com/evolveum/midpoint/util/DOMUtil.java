@@ -1090,4 +1090,8 @@ public class DOMUtil {
 		return Boolean.parseBoolean(nilString);
 	}
 
+	public static void setNill(Element element) {
+		element.setAttributeNS(XSI_NIL.getNamespaceURI(), XSI_NIL.getLocalPart(), "true");
+	}
+
 }
