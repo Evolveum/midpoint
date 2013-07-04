@@ -99,6 +99,8 @@ public class Projector {
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
+		LOGGER.debug("Projecting context {}", context);
+		
 		LensUtil.traceContext(LOGGER, activityDescription, "projector start", false, context, false);
 		
 		if (consistencyChecks) context.checkConsistence();

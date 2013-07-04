@@ -181,6 +181,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 
     public void setOid(String oid) {
         this.oid = oid;
+        if (objectToAdd != null) {
+        	objectToAdd.setOid(oid);
+        }
     }
 
     public PrismContext getPrismContext() {

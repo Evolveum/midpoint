@@ -1373,7 +1373,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(oid, "Object oid must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.debug("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.trace("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
 
         OperationResult subResult = parentResult.createMinorSubresult(GET_VERSION);
         subResult.addParam("type", type.getName());

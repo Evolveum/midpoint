@@ -578,6 +578,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // The new account
         assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "jack", "Jack Sparrow", true);
         
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATION, 
+        		PrismTestUtil.createPolyString(DESCRIPTION_RUM));
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);

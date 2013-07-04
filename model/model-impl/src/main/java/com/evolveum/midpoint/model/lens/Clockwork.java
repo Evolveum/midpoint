@@ -135,6 +135,8 @@ public class Clockwork {
 			if (!context.isFresh()) {
 				context.cleanup();
 				projector.project(context, "PROJECTOR ("+state+")", result);
+			} else {
+				LOGGER.trace("Skipping projection because the context is fresh");
 			}
 			
 			LensUtil.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
