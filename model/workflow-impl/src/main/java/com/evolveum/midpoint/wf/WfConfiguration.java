@@ -78,6 +78,8 @@ public class WfConfiguration implements BeanFactoryAware {
     private String jdbcUser;
     private String jdbcPassword;
 
+    private boolean allowApproveOthersItems;
+
     private List<ChangeProcessor> changeProcessors = null;
 
     private int processCheckInterval;
@@ -135,6 +137,11 @@ public class WfConfiguration implements BeanFactoryAware {
 
         processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
+        allowApproveOthersItems = c.getBoolean("allowApproveOthersItems", false);
+
+        if (allowApproveOthersItems) {
+            LOGGER.info("allowApproveOthersItems parameter is set to true, therefore authorized users CAN approve/reject work items assigned to other users.");
+        }
 
 //        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
@@ -196,6 +203,10 @@ public class WfConfiguration implements BeanFactoryAware {
 
     public String getAutoDeploymentFrom() {
         return autoDeploymentFrom;
+    }
+
+    public boolean isAllowApproveOthersItems() {
+        return allowApproveOthersItems;
     }
 
     public synchronized List<ChangeProcessor> getChangeProcessors() {

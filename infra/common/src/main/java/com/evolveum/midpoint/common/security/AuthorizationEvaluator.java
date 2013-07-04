@@ -142,35 +142,39 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 		return isAuthorized((MidPointPrincipal)principal, action);
 	}
 
-	private boolean isAuthorized(MidPointPrincipal principal, String action) {
+	public boolean isAuthorized(MidPointPrincipal principal, String action) {
 		if (!isActive(principal)) {
 			return false;
 		}
-		Collection<Authorization> authorities = principal.getAuthorities();
-		if (authorities == null || authorities.isEmpty()) {
-			return false;
-		}
-		for (Authorization authorization: authorities) {
-			// Deny is always stronger than allow
-			if (authorization.getDecision() == AuthorizationDecisionType.DENY && appliesTo(authorization, action)) {
-				return false;
-			}
-		}
-		for (Authorization authorization: authorities) {
-			// Deny is always stronger than allow
-			if (authorization.getDecision() == AuthorizationDecisionType.ALLOW && appliesTo(authorization, action)) {
-				return true;
-			}
-		}
-		return false;
+        return checkAuthorities(principal, action);
 	}
 
-	private boolean isActive(MidPointPrincipal principal) {
+    public static boolean checkAuthorities(MidPointPrincipal principal, String action) {
+        Collection<Authorization> authorities = principal.getAuthorities();
+        if (authorities == null || authorities.isEmpty()) {
+            return false;
+        }
+        for (Authorization authorization: authorities) {
+            // Deny is always stronger than allow
+            if (authorization.getDecision() == AuthorizationDecisionType.DENY && appliesTo(authorization, action)) {
+                return false;
+            }
+        }
+        for (Authorization authorization: authorities) {
+            // Deny is always stronger than allow
+            if (authorization.getDecision() == AuthorizationDecisionType.ALLOW && appliesTo(authorization, action)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isActive(MidPointPrincipal principal) {
 		UserType userType = principal.getUser();
 		return activationComputer.isActive(userType.getActivation());
 	}
 
-	private boolean appliesTo(Authorization authorization, String action) {
+	private static boolean appliesTo(Authorization authorization, String action) {
 		List<String> autzActions = authorization.getAction();
 		
 		if (action.equals(AuthorizationConstants.AUTZ_DENY_ALL_URL)) {

@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.wf.util;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -33,7 +35,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
+import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.wf.processes.general.RecordIndividualDecision;
@@ -67,6 +71,9 @@ public class MiscDataUtil {
 
     @Autowired
     private TaskManager taskManager;
+
+    @Autowired
+    private WfConfiguration wfConfiguration;
 
 
     // todo fixme: copied from web SecurityUtils, little bit tweaked
@@ -206,4 +213,17 @@ public class MiscDataUtil {
             return null;
         }
     }
+
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem) {
+        return isAuthorizedToSubmit(MiscDataUtil.getPrincipalUser(), workItem.getAssignee());
+    }
+
+    public boolean isAuthorizedToSubmit(MidPointPrincipal principal, String assigneeOid) {
+        LOGGER.trace("isAuthorizedToSubmit: principal = {}, assignee = {}", principal, assigneeOid);
+        if (principal.getOid() != null && principal.getOid().equals(assigneeOid)) {
+            return true;
+        }
+        return wfConfiguration.isAllowApproveOthersItems() && AuthorizationEvaluator.checkAuthorities(principal, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL);
+    }
+
 }

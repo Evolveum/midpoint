@@ -564,7 +564,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private void initButtons(Form mainForm) {
 
-        // todo authorization
+        VisibleEnableBehaviour isAuthorizedToSubmit = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getWorkflowService().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem());
+            }
+        };
 
         AjaxSubmitLinkButton approve = new AjaxSubmitLinkButton("approve",
                 createStringResource("pageWorkItem.button.approve")) {
@@ -579,6 +584,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 target.add(getFeedbackPanel());
             }
         };
+        approve.add(isAuthorizedToSubmit);
         mainForm.add(approve);
 
         AjaxSubmitLinkButton reject = new AjaxSubmitLinkButton("reject",
@@ -594,6 +600,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 target.add(getFeedbackPanel());
             }
         };
+        reject.add(isAuthorizedToSubmit);
         mainForm.add(reject);
 
 //        AjaxSubmitLinkButton done = new AjaxSubmitLinkButton("done",
@@ -654,11 +661,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 
             getWorkflowService().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
             setReinitializePreviousPages(true);
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't save work item", ex);
         }
+
+        result.computeStatusIfUnknown();
 
         if (!result.isSuccess()) {
             showResult(result);

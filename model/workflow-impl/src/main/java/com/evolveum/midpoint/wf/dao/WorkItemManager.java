@@ -16,18 +16,17 @@
 
 package com.evolveum.midpoint.wf.dao;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.WorkflowServiceImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.activiti.ActivitiEngineDataHelper;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.activiti.engine.FormService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -50,6 +49,9 @@ public class WorkItemManager {
     @Autowired
     private ActivitiEngine activitiEngine;
 
+    @Autowired
+    private MiscDataUtil miscDataUtil;
+
     private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
     private static final String DOT_INTERFACE = WorkflowService.class.getName() + ".";
 
@@ -59,23 +61,35 @@ public class WorkItemManager {
     // todo error reporting
     public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult parentResult) {
 
+        MidPointPrincipal principal = MiscDataUtil.getPrincipalUser();
+
         OperationResult result = parentResult.createSubresult(OPERATION_APPROVE_OR_REJECT_WORK_ITEM);
         result.addParam("taskId", taskId);
         result.addParam("decision", decision);
         result.addParam("task-specific data", specific);
+        result.addContext("user", principal.getUser());
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Approving/rejecting work item " + taskId);
             LOGGER.trace("Decision: " + decision);
             LOGGER.trace("WorkItem form object (task-specific) = " + (specific != null ? specific.debugDump() : "(none)"));
+            LOGGER.trace("User: " + principal.getUser());
         }
 
         FormService formService = activitiEngine.getFormService();
+        TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
+
+        String assigneeOid = data.getTask().getAssignee();
+        if (!miscDataUtil.isAuthorizedToSubmit(principal, assigneeOid)) {
+            result.recordFatalError("You are not authorized to complete the selected work item.");
+            LOGGER.error("Authorization failure: task.assigneeOid = {}, principal = {}", assigneeOid, principal);
+            return;
+        }
+
         Map<String,String> propertiesToSubmit = new HashMap<String,String>();
         propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, Boolean.toString(decision));
 
         if (specific != null) {
-            TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("# of form properties: " + data.getFormProperties().size());
@@ -115,6 +129,5 @@ public class WorkItemManager {
 
         result.recordSuccessIfUnknown();
     }
-
 
 }

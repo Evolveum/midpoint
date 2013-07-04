@@ -31,6 +31,7 @@ import com.evolveum.midpoint.wf.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.dao.WorkItemProvider;
 
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
+
+    @Autowired
+    private MiscDataUtil miscDataUtil;
 
     private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
 
@@ -179,5 +183,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     public List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException {
         return wfTaskUtil.getApprovedByFromTaskTree(task, result);
+    }
+
+    @Override
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem) {
+        return miscDataUtil.isCurrentUserAuthorizedToSubmit(workItem);
     }
 }

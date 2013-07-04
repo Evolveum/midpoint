@@ -134,8 +134,10 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_QNAME = new QName(NS_AUTHORIZATION, "workItemsProcessInstance");
 	public static final String AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_URL = QNameUtil.qNameToUri(AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_QNAME);
-	
-	
+
+    public static final QName AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_QNAME = new QName(NS_AUTHORIZATION, "workItemsApproveOthersItems");
+    public static final String AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL = QNameUtil.qNameToUri(AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_QNAME);
+
 	//Tasks
 	public static final QName AUTZ_UI_TASKS_ALL_QNAME = new QName(NS_AUTHORIZATION, "tasksAll");
 	public static final String AUTZ_UI_TASKS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_TASKS_ALL_QNAME);
