@@ -1060,8 +1060,10 @@ public class ResourceObjectConverter {
 		// LOGGER.trace("Start converting activation type from simulated activation atribute");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
+		if (activationCapability == null) {
+			return null;
+		}
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-
 		ResourceAttribute<?> activationProperty = attributesContainer.findAttribute(activationCapability
 				.getStatus().getAttribute());
 		// LOGGER.trace("activation property: {}", activationProperty.dump());
