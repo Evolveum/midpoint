@@ -15,12 +15,19 @@
  */
 package com.evolveum.midpoint.prism.util;
 
+import java.text.ParseException;
+import java.util.Date;
+
 import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.time.DateUtils;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -33,6 +40,21 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * @author Radovan Semancik
  */
 public class JavaTypeConverter {
+	
+    final static String[] DATE_FORMATS = {
+    	"yyyy-MM-dd'T'HH:mm:ss.SSSX",
+    	"yyyy-MM-dd'T'HH:mm:ssz",
+    	"EEE, dd MMM yyyy HH:mm:ss z",
+    	"EEE, dd MMM yyyy HH:mm zzzz",
+    	"EEE MMM dd HH:mm:ss z yyyy",
+    	"yyyy-MM-dd'T'HH:mm:ssZ",
+    	"yyyy-MM-dd'T'HH:mm:ss.SSSzzzz",
+    	"yyyy-MM-dd'T'HH:mm:sszzzz",
+    	"yyyy-MM-dd'T'HH:mm:ss z",
+    	"yyyy-MM-dd'T'HH:mm:ss",
+    	"yyyy-MM-dd'T'HHmmss.SSSz",
+    	"yyyy-MM-dd"
+    };
 	
 	public static <T> T convert(Class<T> expectedType, Object rawValue) {
 		if (rawValue == null || expectedType.isInstance(rawValue)) {
@@ -95,6 +117,16 @@ public class JavaTypeConverter {
 			return (T) polyStringType;
 		}
 		
+		// Date and time
+		if (expectedType == XMLGregorianCalendar.class && rawValue instanceof Long) {
+			XMLGregorianCalendar xmlCalType = XmlTypeConverter.createXMLGregorianCalendar((Long)rawValue);
+			return (T) xmlCalType;
+		}
+		if (expectedType == XMLGregorianCalendar.class && rawValue instanceof String) {
+			XMLGregorianCalendar xmlCalType = magicDateTimeParse((String)rawValue);
+			return (T) xmlCalType;
+		}
+		
 		// XML Enums (JAXB)
 		if (expectedType.isEnum() && expectedType.getAnnotation(XmlEnum.class) != null && rawValue instanceof String) {
 			return XmlTypeConverter.toXmlEnum(expectedType, (String)rawValue);
@@ -112,6 +144,21 @@ public class JavaTypeConverter {
 		}
 		
 		throw new IllegalArgumentException("Expected "+expectedType+" type, but got "+rawValue.getClass());
+	}
+
+	private static XMLGregorianCalendar magicDateTimeParse(String stringDate) {
+		try {
+			return XmlTypeConverter.createXMLGregorianCalendar(stringDate);
+		} catch (IllegalArgumentException e) {
+			// No XML format. This is still quite OK. It we will try other formats ...
+		}
+		Date date;
+		try {
+			date = DateUtils.parseDate(stringDate, DATE_FORMATS);
+		} catch (ParseException e) {
+			throw new IllegalArgumentException(e.getMessage(), e);
+		}
+		return XmlTypeConverter.createXMLGregorianCalendar(date);
 	}
 
 }

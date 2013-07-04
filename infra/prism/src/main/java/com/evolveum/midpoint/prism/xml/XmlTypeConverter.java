@@ -438,10 +438,14 @@ public class XmlTypeConverter {
         return createXMLGregorianCalendar(gregorianCalendar);
     }
     
-	public static Object createXMLGregorianCalendar(Date date) {
+	public static XMLGregorianCalendar createXMLGregorianCalendar(Date date) {
 		GregorianCalendar gregorianCalendar = new GregorianCalendar();
 		gregorianCalendar.setTime(date);
 		return createXMLGregorianCalendar(gregorianCalendar);
+	}
+	
+	public static XMLGregorianCalendar createXMLGregorianCalendar(String string) {
+		return getDatatypeFactory().newXMLGregorianCalendar(string);
 	}
     
     public static XMLGregorianCalendar createXMLGregorianCalendar(GregorianCalendar cal) {
