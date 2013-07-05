@@ -1064,8 +1064,13 @@ public class ResourceObjectConverter {
 			return null;
 		}
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-		ResourceAttribute<?> activationProperty = attributesContainer.findAttribute(activationCapability
-				.getStatus().getAttribute());
+		ActivationStatusCapabilityType statusCapabilityType = activationCapability.getStatus();
+		
+		ResourceAttribute<?> activationProperty = null;
+		if (statusCapabilityType != null && statusCapabilityType.getAttribute() != null) {
+			activationProperty = attributesContainer.findAttribute(statusCapabilityType.getAttribute());
+		}
+		
 		// LOGGER.trace("activation property: {}", activationProperty.dump());
 		// if (activationProperty == null) {
 		// LOGGER.debug("No simulated activation attribute was defined for the account.");

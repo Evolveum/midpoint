@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -158,8 +159,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
-		assertNull("Unexpected account primary delta", accCtx.getPrimaryDelta());
-		assertNull("Unexpected account secondary delta", accCtx.getSecondaryDelta());
+		PrismAsserts.assertNoDelta("account primary delta", accCtx.getPrimaryDelta());
+		PrismAsserts.assertNoDelta("account secondary delta", accCtx.getSecondaryDelta());
 		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 		

@@ -453,6 +453,11 @@ public class PrismAsserts {
 		assert set == null : (message == null ? "" : message + ": ") + "Delta "+type+" set expected to be null but it is "+set;
 	}
 	
+	public static void assertNoDelta(String message, ObjectDelta<?> delta) {
+		assert delta == null : "Unexpected "+message+"; got "+delta;
+	}
+
+	
 	// DeltaSetTriple asserts
 	
 	public static <T, V extends PrismValue> void assertTriplePlus(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
