@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.migrator;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
@@ -38,8 +39,11 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import difflib.DiffUtils;
 import difflib.Patch;
@@ -74,6 +78,27 @@ public class TestMigrator {
 			
 			assertSimpleMigration(beforeFile, afterFile);
 		}
+	}
+	
+	@Test
+	public void testUserCredentials() throws Exception{
+		Migrator migrator = createMigrator();
+		
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismObject<UserType> oldUser = prismContext.parseObject(new File(TEST_DIR + "/user-migrate-credentials.xml"));
+		
+		PrismObject<UserType> newUser = migrator.migrate(oldUser);
+		
+		UserType newUserType = newUser.asObjectable();
+		
+		assertNull("Credentials in migrated object must be null.", newUserType.getCredentials());
+		assertNotNull("Migrated user must contain assignment.", newUserType.getAssignment());
+		assertEquals("Migrated user must contain 1 assignment.", newUserType.getAssignment().size(), 1);
+		
+		AssignmentType superUserRole = newUserType.getAssignment().get(0);
+		
+		assertNotNull("Target ref in the user's assignment must not be null.", superUserRole.getTargetRef());
+		assertEquals(superUserRole.getTargetRef().getOid(), SystemObjectsType.ROLE_SUPERUSER.value());
 	}
 	
 	private <O extends ObjectType> void assertSimpleMigration(File fileOld, File fileNew) throws SchemaException {

@@ -24,7 +24,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -32,9 +34,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction.Action;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
@@ -203,16 +207,35 @@ public class Migrator {
 	
 	private PrismObject<UserType> migrateUser(PrismObject<UserType> orig) {
 		UserType origUserType = orig.asObjectable();
+		
+		PrismObject<UserType> migrated = orig.clone();
+
+		
+		UserType migratedUserType = migrated.asObjectable();
+		
+		//Credentials
+		if (origUserType.getCredentials() != null && origUserType.getCredentials().isAllowedIdmAdminGuiAccess() != null && origUserType.getCredentials().isAllowedIdmAdminGuiAccess()){
+			AssignmentType superUserRole = new AssignmentType();
+			superUserRole.setTargetRef(ObjectTypeUtil.createObjectRef(SystemObjectsType.ROLE_SUPERUSER.value(), ObjectTypes.ROLE));
+			migratedUserType.getAssignment().add(superUserRole);
+			
+			if (origUserType.getCredentials().getPassword() == null){
+				migratedUserType.setCredentials(null);
+			} else{
+				CredentialsType migratedCredentials = origUserType.getCredentials().clone();
+				migratedCredentials.setAllowedIdmAdminGuiAccess(null);
+				
+				migratedUserType.setCredentials(migratedCredentials);
+			}
+		}
+		
+		// Activation
 		ActivationType origActivation = origUserType.getActivation();
 		if ((origActivation == null || origActivation.isEnabled() == null) && 
 				(origUserType.getAccountRef().isEmpty())) {
-			return orig;
+			return migrated;
 		}
 		
-		PrismObject<UserType> migrated = orig.clone();
-		
-		// Activation
-		UserType migratedUserType = migrated.asObjectable();
 		ActivationType activationType = migratedUserType.getActivation();
 		if (activationType.getAdministrativeStatus() == null) {
 			if (activationType.isEnabled()) {
