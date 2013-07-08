@@ -124,6 +124,9 @@ public class BasicExpressionFunctions {
 	 * @return normalized value
 	 */
 	public String norm(String orig) {
+		if (orig == null){
+			return null;
+		}
 		PolyString polyString = new PolyString(orig);
 		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
 		return polyString.getNorm();
