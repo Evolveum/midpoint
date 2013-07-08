@@ -167,6 +167,7 @@ public class AccountValuesProcessor {
 		int maxIterations = determineMaxIterations(accountContext);
 		int iteration = 0;
 		String iterationToken = null;
+		boolean wasResetIterationCounter = false;
 		
 		PrismObject<ShadowType> shadowOld = accountContext.getObjectOld();
 		if (shadowOld != null) {
@@ -229,6 +230,20 @@ public class AccountValuesProcessor {
 				if (consistencyChecks) context.checkConsistence();
 		        context.recompute();
 		        if (consistencyChecks) context.checkConsistence();
+		        
+		        // Check if we need to reset the iteration counter (and token) e.g. because we have rename
+		        // we cannot do that before because the mappings are not yet evaluated and the triples and not
+		        // consolidated to deltas. We can do it only now. It means that we will waste the first run
+		        // but I don't see any easier way to do it now.
+		        if (iteration != 0 && !wasResetIterationCounter && willResetIterationCounter(accountContext)) {
+		        	wasResetIterationCounter = true;
+		        	iteration = 0;
+		    		iterationToken = null;
+		    		cleanupContext(accountContext);
+		    		LOGGER.trace("Resetting iteration counter and token because we have rename");
+			        if (consistencyChecks) context.checkConsistence();
+		    		continue;
+		        }
 		        
 		        // Too noisy for now
 //		        LensUtil.traceContext(LOGGER, activityDescription, "values (consolidation)", false, context, true);
@@ -379,6 +394,27 @@ public class AccountValuesProcessor {
 					
 	}
 	
+	private boolean willResetIterationCounter(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+		ObjectDelta<ShadowType> accountDelta = accountContext.getDelta();
+		if (accountDelta == null) {
+			return false;
+		}
+		RefinedObjectClassDefinition oOcDef = accountContext.getRefinedAccountDefinition();
+		for (RefinedAttributeDefinition identifierDef: oOcDef.getIdentifiers()) {
+			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
+			if (accountDelta.findPropertyDelta(identifierPath) != null) {
+				return true;
+			}
+		}
+		for (RefinedAttributeDefinition identifierDef: oOcDef.getSecondaryIdentifiers()) {
+			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
+			if (accountDelta.findPropertyDelta(identifierPath) != null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private boolean hasIterationExpression(LensProjectionContext<ShadowType> accountContext) {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {

@@ -861,6 +861,10 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         sb.append(getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName());
         sb.append(" ");
         sb.append(getResourceShadowDiscriminator());
+        if (resource != null) {
+        	sb.append(" : ");
+        	sb.append(resource.getName().getOrig());
+        }
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("OID: ").append(getOid());

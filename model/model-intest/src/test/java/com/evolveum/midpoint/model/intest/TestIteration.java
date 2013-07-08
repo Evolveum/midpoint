@@ -78,6 +78,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
 	private static final String DESCRIPTION_RUM = "Where's the rum?";
+
+	private static final String USER_JACK_RENAMED_NAME = "cptjack";
 	
 	protected static DummyResource dummyResourcePink;
 	protected static DummyResourceContoller dummyResourceCtlPink;
@@ -866,6 +868,68 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	@Test
+    public void test600JackRename() throws Exception {
+		final String TEST_NAME = "test600JackRename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result, 
+        		PrismTestUtil.createPolyString(USER_JACK_RENAMED_NAME));
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, USER_JACK_RENAMED_NAME, "Jack Sparrow", "Jack", "Sparrow", "Caribbean");
+		assertAccounts(userJack, 4);
+		assertAccount(userJack, RESOURCE_DUMMY_OID);
+		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
+		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
+		assertAccount(userJack, RESOURCE_DUMMY_MAGENTA_OID);
+		
+		String accountMagentaOid = getAccountRef(userJack, RESOURCE_DUMMY_MAGENTA_OID);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, result);
+        assertShadowRepo(accountMagentaShadow, accountMagentaOid, USER_JACK_RENAMED_NAME, resourceDummyMagentaType);
+        
+        // Check account
+        PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
+        assertShadowModel(accountMagentaModel, accountMagentaOid, USER_JACK_RENAMED_NAME, resourceDummyMagentaType);
+        
+        assertIteration(accountMagentaShadow, 0, "");
+        
+        assertDummyAccount(USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
+        // The original conflicting account should still remain
+        assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Violet", true);
+        assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
+        
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATION, 
+        		PrismTestUtil.createPolyString(DESCRIPTION_RUM));
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(5);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
