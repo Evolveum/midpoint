@@ -151,8 +151,8 @@ public class TestDummy extends AbstractDummyTest {
 	private static final String DRAKE_USERNAME = "drake";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummy.class);
-	private static final long VALID_FROM_MILLIS = 12322342345435L;
-	private static final long VALID_TO_MILLIS = 3454564324423L;
+	protected static final long VALID_FROM_MILLIS = 12322342345435L;
+	protected static final long VALID_TO_MILLIS = 3454564324423L;
 	
 //	private Task syncTask = null;
 	private CachingMetadataType capabilitiesCachingMetadataType;
@@ -500,10 +500,16 @@ public class TestDummy extends AbstractDummyTest {
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
 		assertNotNull("password native capability not present", capCred.getPassword());
+		
 		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
-		assertNotNull("native activation capability not present", capAct);
-		assertNotNull("native activation status capability not present", capAct.getStatus());
+		if (supportsActivation()) {
+			assertNotNull("native activation capability not present", capAct);
+			assertNotNull("native activation status capability not present", capAct.getStatus());
+		} else {
+			assertNull("native activation capability sneaked in", capAct);
+		}
+		
 		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
@@ -571,8 +577,14 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("password native capability not present", capCred.getPassword());
 		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
-		assertNotNull("native activation capability not present", capAct);
-		assertNotNull("native activation status capability not present", capAct.getStatus());
+		
+		if (supportsActivation()) {
+			assertNotNull("native activation capability not present", capAct);
+			assertNotNull("native activation status capability not present", capAct.getStatus());
+		} else {
+			assertNull("native activation capability sneaked in", capAct);
+		}
+		
 		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
@@ -741,7 +753,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
 
 		// WHEN
 		provisioningService.applyDefinition(account, result);
@@ -767,7 +779,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
 
 		ObjectDelta<ShadowType> delta = account.createAddDelta();
 
@@ -860,7 +872,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(new File(ACCOUNT_WILL_FILENAME));
+		PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
 		account.checkConsistence();
 
 		display("Adding shadow", account);
@@ -883,9 +895,14 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
 		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
 		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		
 		ActivationType activationRepo = accountTypeRepo.getActivation();
-		assertNotNull("No activation in "+accountRepo+" (repo)", activationRepo);
-		assertEquals("Wrong activation enableTimestamp in "+accountRepo+" (repo)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationRepo.getEnableTimestamp());
+		if (supportsActivation()) {
+			assertNotNull("No activation in "+accountRepo+" (repo)", activationRepo);
+			assertEquals("Wrong activation enableTimestamp in "+accountRepo+" (repo)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationRepo.getEnableTimestamp());
+		} else {
+			assertNull("Activation sneaked in (repo)", activationRepo);
+		}
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -898,10 +915,15 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
 		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
 		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		
 		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
-		assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
-		assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
-		IntegrationTestTools.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
+		if (supportsActivation()) {
+			assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
+			assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
+			IntegrationTestTools.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
+		} else {
+			assertNull("Activation sneaked in (provisioning)", activationProvisioning);
+		}
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				accountTypeProvisioning, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
@@ -1916,8 +1938,12 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertNotNull("No dummy account", shadowType);
 		
-		PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
+		if (supportsActivation()) {
+			PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
 				ActivationStatusType.ENABLED);
+		} else {
+			PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+		}
 
 		checkAccountWill(shadowType, result);
 
@@ -3305,9 +3331,11 @@ public class TestDummy extends AbstractDummyTest {
 								"Missing fullname attribute",
 								ShadowUtil.getSingleStringAttributeValue(shadow,
 										new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
-						assertNotNull("no activation", shadow.getActivation());
-						assertNotNull("no activation status", shadow.getActivation().getAdministrativeStatus());
-						assertEquals("not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
+						if (supportsActivation()) {
+							assertNotNull("no activation", shadow.getActivation());
+							assertNotNull("no activation status", shadow.getActivation().getAdministrativeStatus());
+							assertEquals("not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
+						}
 					}
 	
 					assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, RefinedAttributeDefinition.class);

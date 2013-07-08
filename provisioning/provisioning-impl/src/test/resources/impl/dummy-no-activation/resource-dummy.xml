@@ -21,21 +21,23 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd"
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
+							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<name>Dummy Case Ignore Resource</name>
+	<name>Dummy Resource</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
-			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
+			<icfi:supportActivation>false</icfi:supportActivation>
+			<icfi:supportValidity>false</icfi:supportValidity>
 			<icfi:uselessString>Shiver me timbers!</icfi:uselessString>
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
 				<clearValue>Dead men tell no tales</clearValue>
 			</icfi:uselessGuardedString>
-			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -49,13 +51,8 @@
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
 			<attribute>
-				<ref>icfs:uid</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
-			</attribute>
-			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:weapon</ref>
@@ -64,6 +61,56 @@
 			<attribute>
 				<ref>ri:loot</ref>
 				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<limitations>
+					<access>
+						<create>false</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>false</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:gossip</ref>
+				<limitations>
+					<access>
+						<create>true</create>
+						<read>false</read>
+						<update>true</update>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:water</ref>
+				<limitations>
+					<access>
+						<create>false</create>
+						<read>false</read>
+						<update>false</update>
+					</access>
+				</limitations>
 			</attribute>
 			<association>
             	<name>ri:group</name>

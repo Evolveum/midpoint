@@ -193,6 +193,14 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected String getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILENAME;
 	}
+	
+	protected File getAccountWillFile() {
+		return new File(ACCOUNT_WILL_FILENAME);
+	}
+	
+	protected boolean supportsActivation() {
+		return true;
+	}
 
 	protected <T extends ShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
 		for (PrismObject<T> shadow: shadows) {

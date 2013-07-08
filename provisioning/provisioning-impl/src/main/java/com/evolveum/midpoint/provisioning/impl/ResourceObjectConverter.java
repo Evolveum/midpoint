@@ -776,26 +776,30 @@ public class ResourceObjectConverter {
 
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
+		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+		
 		// administrativeStatus
 		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (enabledPropertyDelta != null) {
+			if (activationCapabilityType == null || activationCapabilityType.getStatus() == null) {
+				throw new SchemaException("Attempt to change activation administrativeStatus on "+resource+" which does not have the capability");
+			}
 			ActivationStatusType status = enabledPropertyDelta.getPropertyNew().getRealValue();
 			LOGGER.trace("Found activation administrativeStatus change to: {}", status);
 	
 			if (status != null) {
 	
-				if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-					// Try to simulate activation capability
-					PropertyModificationOperation activationAttribute = convertToActivationAttribute(shadow, resource,
-							status, objectClassDefinition);
-					operations.add(activationAttribute);
-				} else {
+				if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 					// Navive activation, need to check if there is not also change to simulated activation which may be in conflict
 					checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
 					operations.add(new PropertyModificationOperation(enabledPropertyDelta));
-				}
-	
+				} else {
+					// Try to simulate activation capability
+					PropertyModificationOperation activationAttribute = convertToSimulatedActivationAttribute(shadow, resource,
+							status, objectClassDefinition);
+					operations.add(activationAttribute);
+				}	
 			}
 		}
 		
@@ -803,6 +807,9 @@ public class ResourceObjectConverter {
 		PropertyDelta<XMLGregorianCalendar> validFromPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_FROM);
 		if (validFromPropertyDelta != null) {
+			if (activationCapabilityType == null || activationCapabilityType.getValidFrom() == null) {
+				throw new SchemaException("Attempt to change activation validFrom on "+resource+" which does not have the capability");
+			}
 			XMLGregorianCalendar xmlCal = validFromPropertyDelta.getPropertyNew().getRealValue();
 			LOGGER.trace("Found activation validFrom change to: {}", xmlCal);
 			if (xmlCal != null) {
@@ -814,6 +821,9 @@ public class ResourceObjectConverter {
 		PropertyDelta<XMLGregorianCalendar> validToPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_TO);
 		if (validToPropertyDelta != null) {
+			if (activationCapabilityType == null || activationCapabilityType.getValidTo() == null) {
+				throw new SchemaException("Attempt to change activation validTo on "+resource+" which does not have the capability");
+			}
 			XMLGregorianCalendar xmlCal = validToPropertyDelta.getPropertyNew().getRealValue();
 			LOGGER.trace("Found activation validTo change to: {}", xmlCal);
 			if (xmlCal != null) {
@@ -1235,18 +1245,18 @@ public class ResourceObjectConverter {
 
 	}
 
-	private PropertyModificationOperation convertToActivationAttribute(ShadowType shadow, ResourceType resource,
+	private PropertyModificationOperation convertToSimulatedActivationAttribute(ShadowType shadow, ResourceType resource,
 			ActivationStatusType status, ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 		OperationResult result = new OperationResult("Modify activation attribute.");
 
-		ResourceAttribute<?> activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
-		if (activationAttribute == null){
-			return null;
-		}
-
 		ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(shadow, resource, result);
 		if (capActStatus == null){
+			throw new SchemaException("Attempt to modify activation on "+resource+" which does not have activation capability");
+		}
+		
+		ResourceAttribute<?> activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
+		if (activationAttribute == null){
 			return null;
 		}
 		

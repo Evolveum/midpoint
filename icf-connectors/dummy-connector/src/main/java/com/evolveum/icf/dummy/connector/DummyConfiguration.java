@@ -33,6 +33,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     private String instanceId;
     private boolean supportSchema = true;
+    private boolean supportActivation = true;
     private boolean supportValidity = false;
     private boolean readablePassword = false;
     private boolean requireExplicitEnable = false;
@@ -66,6 +67,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setSupportSchema(boolean supportSchema) {
 		this.supportSchema = supportSchema;
+	}
+	
+	/**
+     * If set to true the connector will expose activation special attribute (ENABLED). True is the default. 
+     */
+    @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_ACTIVATION",
+    		helpMessageKey = "UI_SUPPORT_ACTIVATION_HELP")
+	public boolean getSupportActivation() {
+		return supportActivation;
+	}
+
+	public void setSupportActivation(boolean supportActivation) {
+		this.supportActivation = supportActivation;
 	}
 	
 	/**

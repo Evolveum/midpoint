@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.test.mock;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -57,6 +58,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 	private ResourceObjectShadowChangeDescription lastChange = null;
 	private ResourceOperationDescription lastOperationDescription = null;
 	private ObjectChecker changeChecker;
+	private boolean supportActivation = true;
 
 	@Autowired(required=true)
 	ChangeNotificationDispatcher notificationManager;
@@ -81,6 +83,14 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 	public void setChangeChecker(ObjectChecker changeChecker) {
 		this.changeChecker = changeChecker;
+	}
+
+	public boolean isSupportActivation() {
+		return supportActivation;
+	}
+
+	public void setSupportActivation(boolean supportActivation) {
+		this.supportActivation = supportActivation;
 	}
 
 	@Override
@@ -125,9 +135,13 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 				if (change.getCurrentShadow().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
 					ShadowType account = change.getCurrentShadow().asObjectable();
-					assertNotNull("Current shadow does not have activation", account.getActivation());
-					assertNotNull("Current shadow activation status is null", account.getActivation()
-							.getAdministrativeStatus());
+					if (supportActivation) {
+						assertNotNull("Current shadow does not have activation", account.getActivation());
+						assertNotNull("Current shadow activation status is null", account.getActivation()
+								.getAdministrativeStatus());
+					} else {
+						assertNull("Activation sneaked into current shadow", account.getActivation());
+					}
 				} else {
 					// We don't support other types now
 					AssertJUnit.fail("Unexpected kind of shadow " + change.getCurrentShadow().asObjectable().getKind());

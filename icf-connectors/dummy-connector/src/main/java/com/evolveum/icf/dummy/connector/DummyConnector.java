@@ -596,8 +596,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
         
-        builder.defineObjectClass(createAccountObjectClass());
-        builder.defineObjectClass(createGroupObjectClass());
+        builder.defineObjectClass(createAccountObjectClass(configuration.getSupportActivation()));
+        builder.defineObjectClass(createGroupObjectClass(configuration.getSupportActivation()));
         builder.defineObjectClass(createPrivilegeObjectClass());
 
         log.info("schema::end");
@@ -627,7 +627,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         return objClassBuilder;
     }
     
-	private ObjectClassInfo createAccountObjectClass() {
+	private ObjectClassInfo createAccountObjectClass(boolean supportsActivation) {
 		// __ACCOUNT__ objectclass
         
         DummyObjectClass dummyAccountObjectClass;
@@ -641,7 +641,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			throw new ConnectorException(e.getMessage(), e);
 		} // DO NOT catch IllegalStateException, let it pass
 		
-		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(null, dummyAccountObjectClass, true);
+		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(null, dummyAccountObjectClass, supportsActivation);
         
         // __PASSWORD__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
@@ -649,10 +649,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         return objClassBuilder.build();
 	}
 	
-	private ObjectClassInfo createGroupObjectClass() {
+	private ObjectClassInfo createGroupObjectClass(boolean supportsActivation) {
 		// __GROUP__ objectclass
         ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(ObjectClass.GROUP_NAME, 
-        		resource.getGroupObjectClass(), true);
+        		resource.getGroupObjectClass(), supportsActivation);
                 
         return objClassBuilder.build();
 	}
