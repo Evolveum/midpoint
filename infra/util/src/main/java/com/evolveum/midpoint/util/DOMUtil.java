@@ -839,7 +839,8 @@ public class DOMUtil {
 		NamedNodeMap attributes = source.getAttributes();
 		for (int i = 0; i < attributes.getLength(); i++) {
 			Attr attr = (Attr) attributes.item(i);
-			destination.setAttributeNode(attr);
+			Attr clone = (Attr) attr.cloneNode(true);
+			destination.setAttributeNode(clone);
 		}
 		NodeList childNodes = source.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {

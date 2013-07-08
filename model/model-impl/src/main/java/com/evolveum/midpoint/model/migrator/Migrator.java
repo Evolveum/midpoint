@@ -15,19 +15,28 @@
  */
 package com.evolveum.midpoint.model.migrator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction.Action;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
@@ -35,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 
 /**
  * @author semancik
@@ -97,7 +107,66 @@ public class Migrator {
 		}
 		migratedSchemaHandling.getAccountType().clear();
 		
+		ObjectSynchronizationType sync = ResourceTypeUtil.determineSynchronization(origResourceType, UserType.class);
+	
+		if (sync == null || sync.getReaction() == null){
+			return migrated;
+		}
+		
+	
+		List<Reaction> migratedReactions = new ArrayList<Reaction>();
+		for (Reaction reaction : sync.getReaction()){
+			if (reaction.getAction() == null){
+				continue;
+			}
+			List<Action> migratedAction = new ArrayList<Action>();
+			for (Action action : reaction.getAction()){
+				migratedAction.add(migrateAction(action));
+			}
+			Reaction migratedReaction = reaction.clone();
+			migratedReaction.getAction().clear();
+			migratedReaction.getAction().addAll(migratedAction);
+			migratedReactions.add(migratedReaction);
+		}
+		
+		sync.getReaction().clear();
+		sync.getReaction().addAll(migratedReactions);
+		
+		migratedResourceType.getSynchronization().getObjectSynchronization().clear();
+		migratedResourceType.getSynchronization().getObjectSynchronization().add(sync);
+		
+		
+		
 		return migrated;
+	}
+	
+	private Action migrateAction(Action action){
+		List<Object> migrated = new ArrayList<Object>();
+		if (action.getAny() == null){
+			return action;
+		}
+		
+		for (Object object : action.getAny()){
+			if (object == null){
+				continue;
+			}
+			if (!(object instanceof Element)) {
+				continue;
+			}
+			Element parameter = (Element) object;
+			if (QNameUtil.compareQName(new QName(SchemaConstants.NS_C, "userTemplateRef"), (Node) parameter)){
+				Element e = DOMUtil.createElement(parameter.getOwnerDocument(), ObjectSynchronizationType.F_OBJECT_TEMPLATE_REF);
+				Element source = (Element) parameter.cloneNode(true);
+				DOMUtil.copyContent(source, e);
+				migrated.add(e);
+			} else{
+				migrated.add(parameter);
+			}
+		}
+		
+		action.getAny().clear();
+		action.getAny().addAll(migrated);
+		return action;
 	}
 	
 	private PrismObject<FocusType> migrateFocus(PrismObject<FocusType> orig) {
