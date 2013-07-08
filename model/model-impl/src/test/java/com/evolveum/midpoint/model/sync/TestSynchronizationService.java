@@ -113,11 +113,17 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
-		assertNull("Unexpected account primary delta", accCtx.getPrimaryDelta());
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
 		assertNotNull("Missing account secondary delta", accCtx.getSecondaryDelta());
+		assertIterationDelta(accCtx.getSecondaryDelta(), 0, "");
 		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
-                  
+		
+		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+        assertIteration(shadow, 0, "");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
 	}
 	
 	@Test
@@ -166,6 +172,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		assertEquals("Unexpected used constCenter", "999", user.asObjectable().getCostCenter());
+		
+		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+        assertIteration(shadow, 0, "");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
 	}
 	
 	@Test
@@ -210,13 +222,19 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
-		assertNull("Unexpected account primary delta", accCtx.getPrimaryDelta());
-		assertNull("Unexpected account secondary delta", accCtx.getSecondaryDelta());
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
+		PrismAsserts.assertNoDelta("Unexpected account secondary delta", accCtx.getSecondaryDelta());
 		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 		
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		assertEquals("Unexpected used constCenter", null, user.asObjectable().getCostCenter());
+		
+		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+        assertIteration(shadow, 0, "");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
 	}
 
 
