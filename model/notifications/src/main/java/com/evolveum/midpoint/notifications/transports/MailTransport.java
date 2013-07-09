@@ -24,10 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailTransportSecurityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -172,5 +169,15 @@ public class MailTransport implements Transport {
 
     private String formatToFile(Message mailMessage) {
         return "============================================ " + new Date() + "\n" + mailMessage.toString() + "\n\n";
+    }
+
+    @Override
+    public String getDefaultRecipientAddress(UserType recipient) {
+        return recipient.getEmailAddress();
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
     }
 }

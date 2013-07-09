@@ -164,7 +164,7 @@ public abstract class SchemaConstants {
 
     public static final QName C_EVENT = new QName(NS_C, "event");
 
-    public static final QName C_TRANSPORT = new QName(NS_C, "transport");
+    public static final QName C_TRANSPORT_NAME = new QName(NS_C, "transportName");
     public static final QName C_FROM = new QName(NS_C, "from");
     public static final QName C_TO = new QName(NS_C, "to");
     public static final QName C_ENCODED_MESSAGE_TEXT = new QName(NS_C, "encodedMessageText");

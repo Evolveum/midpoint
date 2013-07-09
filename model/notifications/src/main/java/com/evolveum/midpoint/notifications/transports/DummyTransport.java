@@ -20,6 +20,7 @@ import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -71,5 +72,15 @@ public class DummyTransport implements Transport {
 
     public void clearMessages() {
         messages = new HashMap<String,List<Message>>();
+    }
+
+    @Override
+    public String getDefaultRecipientAddress(UserType recipient) {
+        return "dummyAddress";
+    }
+
+    @Override
+    public String getName() {
+        return "dummy";
     }
 }

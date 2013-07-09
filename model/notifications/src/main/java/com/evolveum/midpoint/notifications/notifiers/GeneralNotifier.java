@@ -22,6 +22,7 @@ import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.notifications.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.notifications.transports.Message;
+import com.evolveum.midpoint.notifications.transports.Transport;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,6 +72,8 @@ public abstract class GeneralNotifier extends BaseHandler {
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+            new ItemPath(ShadowType.F_ITERATION),
+            new ItemPath(ShadowType.F_ITERATION_TOKEN),
             new ItemPath(UserType.F_LINK_REF)
     );
 
@@ -118,34 +120,36 @@ public abstract class GeneralNotifier extends BaseHandler {
 
                 Map<QName,Object> variables = getDefaultVariables(event, result);
 
-                for (String transport : generalNotifierType.getTransport()) {
+                for (String transportName : generalNotifierType.getTransport()) {
 
-                    variables.put(SchemaConstants.C_TRANSPORT, transport);
-                    List<String> recipients = getRecipients(event, generalNotifierType, variables, getDefaultRecipient(event, generalNotifierType, result), result);
+                    variables.put(SchemaConstants.C_TRANSPORT_NAME, transportName);
+                    Transport transport = notificationManager.getTransport(transportName);
 
-                    if (!recipients.isEmpty()) {
+                    List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables, getDefaultRecipient(event, generalNotifierType, result), transportName, transport, result);
+
+                    if (!recipientsAddresses.isEmpty()) {
 
                         String body = getBodyFromExpression(event, generalNotifierType, variables, result);
                         String subject = getSubjectFromExpression(event, generalNotifierType, variables, result);
 
                         if (body == null) {
-                            body = getBody(event, generalNotifierType, transport, result);
+                            body = getBody(event, generalNotifierType, transportName, result);
                         }
                         if (subject == null) {
                             subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
-                            subject += getSubject(event, generalNotifierType, transport, result);
+                            subject += getSubject(event, generalNotifierType, transportName, result);
                         }
 
                         Message message = new Message();
                         message.setBody(body != null ? body : "");
                         message.setContentType("text/plain");           // todo make more flexible
                         message.setSubject(subject != null ? subject : "");
-                        message.setTo(recipients);                      // todo cc/bcc recipients
+                        message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
 
-                        getLogger().trace("Sending notification via transport {}:\n{}", transport, message);
-                        notificationManager.getTransport(transport).send(message, transport, result);
+                        getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
+                        transport.send(message, transportName, result);
                     } else {
-                        getLogger().info("No recipients for transport " + transport + ", message corresponding to event " + event.getId() + " will not be send.");
+                        getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                     }
                 }
 
@@ -185,29 +189,29 @@ public abstract class GeneralNotifier extends BaseHandler {
         return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
-    protected List<String> getRecipients(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, UserType defaultRecipient, OperationResult result) {
-        List<String> recipients = new ArrayList<String>();
+    protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, UserType defaultRecipient, String transportName, Transport transport, OperationResult result) {
+        List<String> addresses = new ArrayList<String>();
         if (!generalNotifierType.getRecipientExpression().isEmpty()) {
             for (ExpressionType expressionType : generalNotifierType.getRecipientExpression()) {
                 List<String> r = evaluateExpressionChecked(expressionType, variables, "notification recipient", result);
                 if (r != null) {
-                    recipients.addAll(r);
+                    addresses.addAll(r);
                 }
             }
-            if (recipients.isEmpty()) {
+            if (addresses.isEmpty()) {
                 getLogger().info("Notification for " + event + " will not be sent, because there are no known recipients.");
             }
         } else if (defaultRecipient == null) {
             getLogger().info("Unknown default recipient, notification will not be sent.");
         } else {
-            String email = defaultRecipient.getEmailAddress();
-            if (StringUtils.isEmpty(email)) {
-                getLogger().info("Notification to " + defaultRecipient.getName() + " will not be sent, because the user has no mail address set.");
+            String address = transport.getDefaultRecipientAddress(defaultRecipient);
+            if (StringUtils.isEmpty(address)) {
+                getLogger().info("Notification to " + defaultRecipient.getName() + " will not be sent, because the user has no address (mail, phone number, etc) for transport '" + transportName + "' set.");
             } else {
-                recipients.add(email);
+                addresses.add(address);
             }
         }
-        return recipients;
+        return addresses;
     }
 
     protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, OperationResult result) {
