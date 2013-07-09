@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
- * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for conveniece, so the
+ * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for convenience, so the
  * tests in other components can see it.
  * 
  * @author Radovan Semancik
@@ -54,4 +54,5 @@ public class SchemaTestConstants {
 	public static final QName EXTENSION_DOUBLE_TYPE_ELEMENT = new QName(NS_EXTENSION, "doubleType");
 	public static final QName EXTENSION_LONG_TYPE_ELEMENT = new QName(NS_EXTENSION, "longType");
 	public static final QName EXTENSION_DATE_TYPE_ELEMENT = new QName(NS_EXTENSION, "dateType");
+	public static final QName EXTENSION_SHIP_ELEMENT = new QName(NS_EXTENSION, "ship");
 }

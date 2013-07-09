@@ -57,6 +57,9 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * Library of standard midPoint functions. These functions are made available to all
  * midPoint expressions.
  * 
+ * The functions should be written to support scripting-like comfort. It means that they all needs
+ * to be null-safe, automatically convert data types as necessary and so on.
+ * 
  * @author Radovan Semancik
  *
  */
@@ -240,6 +243,9 @@ public class BasicExpressionFunctions {
 	}
 	
 	public <T> T getExtensionPropertyValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
+		if (object == null) {
+			return null;
+		}
 		Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(object, propertyQname);
 		return toSingle(values, "a multi-valued extension property "+propertyQname);
 	}
@@ -250,6 +256,9 @@ public class BasicExpressionFunctions {
 	}
 	
 	public <T> Collection<T> getPropertyValues(ObjectType object, String path) {
+		if (object == null) {
+			return null;
+		}
 		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
 		ScriptExpression scriptExpression = scriptContext.getScriptExpression();
 		ItemPath itemPath = scriptExpression.parsePath(path);
