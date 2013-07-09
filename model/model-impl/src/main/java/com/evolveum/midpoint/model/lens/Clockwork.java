@@ -263,6 +263,9 @@ public class Clockwork {
 		ObjectDelta<? extends ObjectType> primaryDelta = null;
 		if (context.getFocusContext() != null) {
 			primaryObject = context.getFocusContext().getObjectOld();
+			if (primaryObject == null) {
+				primaryObject = context.getFocusContext().getObjectNew();
+			}
 			primaryDelta = context.getFocusContext().getDelta();
 		} else {
 			Collection<LensProjectionContext<P>> projectionContexts = context.getProjectionContexts();
@@ -274,6 +277,9 @@ public class Clockwork {
 			}
 			LensProjectionContext<P> projection = projectionContexts.iterator().next();
 			primaryObject = projection.getObjectOld();
+			if (primaryObject == null) {
+				primaryObject = projection.getObjectNew();
+			}
 			primaryDelta = projection.getDelta();
 		}
 		
@@ -289,11 +295,17 @@ public class Clockwork {
 		} else {
 			throw new IllegalStateException("Unknown state of delta "+primaryDelta);
 		}
+		
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
+		
 		if (primaryObject != null) {
 			auditRecord.setTarget(primaryObject.clone());
+//		} else {
+//			throw new IllegalStateException("No primary object in:\n"+context.dump());
 		}
+		
 		auditRecord.setChannel(context.getChannel());
+		
 		if (stage == AuditEventStage.REQUEST) {
 			auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(context.getAllChanges()));
 		} else if (stage == AuditEventStage.EXECUTION) {

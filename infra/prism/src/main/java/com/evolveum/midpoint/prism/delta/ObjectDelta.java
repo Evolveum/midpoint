@@ -643,6 +643,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         if (objectOld == null) {
             if (getChangeType() == ChangeType.ADD) {
                 objectOld = getObjectToAdd();
+                return objectOld.clone();
             } else {
                 //throw new IllegalStateException("Cannot apply "+getChangeType()+" delta to a null old object");
                 // This seems to be quite OK

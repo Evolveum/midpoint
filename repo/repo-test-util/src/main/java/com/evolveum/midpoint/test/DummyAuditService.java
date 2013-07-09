@@ -30,6 +30,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -259,6 +260,19 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		assertEquals("Wrong number of execution deltas in audit trail", expectedNumber, getExecutionDeltas(index).size());
 	}
 
+	public void assertTarget(String expectedOid) {
+		Collection<PrismObject<? extends ObjectType>> targets = new ArrayList<PrismObject<? extends ObjectType>>();
+		for(AuditEventRecord record: records) {
+			PrismObject<? extends ObjectType> target = record.getTarget();
+			if (target != null && expectedOid.equals(target.getOid())) {
+				return;
+			}
+			if (target != null) {
+				targets.add(target);
+			}
+		}
+		assert false : "Target "+expectedOid+" not found in audit records; found "+targets;
+	}
 
 	@Override
 	public String toString() {
@@ -283,6 +297,5 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 	public String dump() {
 		return debugDump();
 	}
-
 
 }

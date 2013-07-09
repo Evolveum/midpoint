@@ -69,6 +69,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -294,6 +295,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         notificationManager.setDisabled(true);
@@ -465,6 +467,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
     }
 	
@@ -512,6 +515,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 		
 	}
@@ -689,6 +693,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -757,6 +762,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(accountShadow.getOid());
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -818,6 +824,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -884,6 +891,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -941,6 +949,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(accountOid);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1048,6 +1057,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1131,6 +1141,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(0, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1190,6 +1201,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1261,6 +1273,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1334,6 +1347,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
         
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
@@ -1406,6 +1420,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1478,6 +1493,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0, 0);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+        dummyAuditService.assertTarget(USER_JACK_OID);
 	}
 	
 	@Test
@@ -1542,6 +1558,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1595,6 +1612,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1661,6 +1679,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1679,9 +1698,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     /**
      * We try to modify an assignment of the account and see whether changes will be recorded in the account itself.
      *
-     * Temporarily disabled, as currently fails due to audit service limitation ("java.lang.UnsupportedOperationException: ID not supported in Xpath yet").
      */
-    @Test(enabled = false)
+    @Test
     public void test161ModifyUserJackModifyAssignment() throws Exception {
         TestUtil.displayTestTile(this, "test161ModifyUserJackModifyAssignment");
 
@@ -1715,7 +1733,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         MappingType value = new MappingType();
 
-        PrismProperty property = gossipDefinition.instantiate();
+        PrismProperty<String> property = gossipDefinition.instantiate();
         property.add(new PrismPropertyValue<String>("q"));
 
         List evaluators = expression.getExpressionEvaluator();
@@ -1727,12 +1745,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         value.setExpression(expression);
         radt.setOutbound(value);
+        accountConstruction.getAttribute().add(radt);
         ObjectDelta<UserType> accountAssignmentUserDelta =
                 createReplaceAccountConstructionUserDelta(USER_JACK_OID, 1L, accountConstruction);
         deltas.add(accountAssignmentUserDelta);
 
         PrismObject<UserType> userJackOld = getUser(USER_JACK_OID);
         display("User before change execution", userJackOld);
+        display("Deltas to execute execution", deltas);
 
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
@@ -1761,18 +1781,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "q");
         //assertEquals("Missing or incorrect attribute value", "soda", dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class));
 
-        assertDummyScriptsModify(userJack);
+        assertDummyScriptsModify(userJack, true);
         
-//        // Check audit
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-//        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-//        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-//        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, ResourceObjectShadowType.class);
-//        dummyAuditService.assertExecutionSuccess();
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
     }
 
     @Test
@@ -1821,6 +1842,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1883,6 +1905,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1977,6 +2000,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        // raw operation, no target
+        //dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
     }
 		
@@ -2025,6 +2050,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -2099,6 +2125,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(0, ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, UserType.class);
+     // raw operation, no target
+//        dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -2168,6 +2196,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_MORGAN_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -2233,6 +2262,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertTarget(USER_MORGAN_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -2288,6 +2318,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
+     // raw operation, no target
+//        dummyAuditService.assertTarget(userAfter.getOid());
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -2328,6 +2360,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
+     // raw operation, no target
+//        dummyAuditService.assertTarget(userCharlesOid);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -2376,7 +2410,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	}
 
 	private void assertDummyScriptsModify(PrismObject<UserType> user) {
-		ProvisioningScriptSpec script = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
+		assertDummyScriptsModify(user, false);
+	}
+	
+	private void assertDummyScriptsModify(PrismObject<UserType> user, boolean recon) {
+		ProvisioningScriptSpec modScript = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
 		String name = null;
 		String fullName = null;
 		String costCenter = null;
@@ -2385,11 +2423,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 			fullName = user.asObjectable().getFullName().getOrig();
 			costCenter = user.asObjectable().getCostCenter();
 		}
-		script.addArgSingle("howMuch", costCenter);
-		script.addArgSingle("howLong", "from here to there");
-		script.addArgSingle("who", name);
-		script.addArgSingle("whatchacallit", fullName);
-		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+		modScript.addArgSingle("howMuch", costCenter);
+		modScript.addArgSingle("howLong", "from here to there");
+		modScript.addArgSingle("who", name);
+		modScript.addArgSingle("whatchacallit", fullName);
+		if (recon) {
+			ProvisioningScriptSpec reconBeforeScript = new ProvisioningScriptSpec("The vorpal blade went snicker-snack!");
+			reconBeforeScript.addArgSingle("who", name);
+			ProvisioningScriptSpec reconAfterScript = new ProvisioningScriptSpec("He left it dead, and with its head");
+			reconAfterScript.addArgSingle("how", "enabled");
+			IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), reconBeforeScript, modScript, reconAfterScript);
+		} else {
+			IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), modScript);
+		}
 	}
 
 	private void assertDummyScriptsDelete() {

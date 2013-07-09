@@ -58,6 +58,7 @@ import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -475,7 +476,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		for(ObjectDelta<? extends ObjectType> delta: deltas) {
 			Class<? extends ObjectType> type = delta.getObjectTypeClass();
-			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type) && !delta.hasCompleteDefinition()) {
+			if (delta.hasCompleteDefinition()) {
+				continue;
+			}
+			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type)) {
 				try {
 					provisioning.applyDefinition(delta, result);
 				} catch (SchemaException e) {
@@ -491,6 +495,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 					ModelUtils.recordFatalError(result, e);
 					throw e;
 				}
+			} else {
+				PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
+				delta.applyDefinition(objDef);
 			}
 		}
 	}
