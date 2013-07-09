@@ -228,7 +228,11 @@ public class UserPolicyProcessor {
 		PrismPropertyDefinition<TimeIntervalStatusType> validityStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_STATUS);
 		PropertyDelta<TimeIntervalStatusType> validityStatusDelta 
 				= validityStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS));
-		validityStatusDelta.setValueToReplace(new PrismPropertyValue<TimeIntervalStatusType>(validityStatusNew, OriginType.USER_POLICY, null));
+		if (validityStatusNew == null) {
+			validityStatusDelta.setValueToReplace();
+		} else {
+			validityStatusDelta.setValueToReplace(new PrismPropertyValue<TimeIntervalStatusType>(validityStatusNew, OriginType.USER_POLICY, null));
+		}
 		focusContext.swallowToProjectionWaveSecondaryDelta(validityStatusDelta);
 		
 		PrismPropertyDefinition<XMLGregorianCalendar> validityChangeTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP);

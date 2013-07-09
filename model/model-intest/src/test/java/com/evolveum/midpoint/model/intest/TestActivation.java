@@ -75,6 +75,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	private XMLGregorianCalendar lastValidityChangeTimestamp;
 	private String accountMancombOid;
 	private String userMancombOid;
+	private XMLGregorianCalendar manana;
 
 	public TestActivation() throws JAXBException {
 		super();
@@ -678,7 +679,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        XMLGregorianCalendar manana = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis() + 10 * 24 * 60 * 60 * 1000);
+        manana = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis() + 10 * 24 * 60 * 60 * 1000);
         
         // WHEN
         modifyUserReplace(USER_LARGO_OID, ACTIVATION_VALID_TO_PATH, task, result, manana);
@@ -776,6 +777,80 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertValidity(userLargo, TimeIntervalStatusType.AFTER);
 		assertValidityTimestamp(userLargo, crrentNow);
+		assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
+		
+		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
+        accountOid = getSingleUserAccountRef(userLargo);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
+        
+        // Check account in dummy resource
+        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
+	}
+	
+	@Test
+    public void test215ModifyLargoRemoveValidTo() throws Exception {
+		final String TEST_NAME = "test215ModifyLargoRemoveValidTo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        long startMillis = clock.currentTimeMillis();
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        modifyUserDelete(USER_LARGO_OID, ACTIVATION_VALID_TO_PATH, task, result, manana);
+        
+        // THEN
+        PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
+		display("User after change execution", userLargo);
+        
+		assertValidity(userLargo, TimeIntervalStatusType.IN);
+		assertValidityTimestamp(userLargo, startMillis, clock.currentTimeMillis());
+		lastValidityChangeTimestamp = userLargo.asObjectable().getActivation().getValidityChangeTimestamp();
+		assertEffectiveStatus(userLargo, ActivationStatusType.ENABLED);
+		
+		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
+        accountOid = getSingleUserAccountRef(userLargo);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
+        
+        // Check account in dummy resource
+        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
+	}
+	
+	@Test
+    public void test217ModifyLargoRemoveValidFrom() throws Exception {
+		final String TEST_NAME = "test217ModifyLargoRemoveValidFrom";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        long startMillis = clock.currentTimeMillis();
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        modifyUserReplace(USER_LARGO_OID, ACTIVATION_VALID_FROM_PATH, task, result);
+        
+        // THEN
+        PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
+		display("User after change execution", userLargo);
+        
+		assertValidity(userLargo, null);
+		assertValidityTimestamp(userLargo, startMillis, clock.currentTimeMillis());
+		lastValidityChangeTimestamp = userLargo.asObjectable().getActivation().getValidityChangeTimestamp();
 		assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");

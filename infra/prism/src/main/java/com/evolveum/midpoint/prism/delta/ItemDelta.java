@@ -450,6 +450,17 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 
+	/**
+	 * Sets empty value to replace. This efficiently means removing all values.
+	 */
+	public void setValueToReplace() {
+		if (valuesToReplace == null) {
+			valuesToReplace = newValueCollection();
+		} else {
+			valuesToReplace.clear();
+		}
+	}
+	
 	public void setValueToReplace(V newValue) {
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
