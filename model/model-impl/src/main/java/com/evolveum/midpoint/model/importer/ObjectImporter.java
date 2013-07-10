@@ -22,9 +22,13 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.migrator.Migrator;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -36,15 +40,20 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -62,6 +71,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -93,6 +103,8 @@ public class ObjectImporter {
     @Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
+    @Autowired(required = true)
+    private ModelService modelService;
     
     private Migrator migrator = new Migrator();
 
@@ -166,7 +178,7 @@ public class ObjectImporter {
                 
                 try {
 
-                    importObjectToRepository(object, options, objectResult);
+                    importObjectToRepository(object, options, task, objectResult);
 
                     LOGGER.info("Imported object {}", object);
 
@@ -183,7 +195,25 @@ public class ObjectImporter {
                     objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
                     LOGGER.error("Import of object {} failed: Unexpected problem: {}",
                             new Object[]{object, e.getMessage(), e});
-                }
+                } catch (ObjectNotFoundException e) {
+                	LOGGER.error("Import of object {} failed: Object referred from this object was not found: {}",
+                            new Object[]{object, e.getMessage(), e});
+				} catch (ExpressionEvaluationException e) {
+					LOGGER.error("Import of object {} failed: Expression evaluation error: {}",
+                            new Object[]{object, e.getMessage(), e});
+				} catch (CommunicationException e) {
+					LOGGER.error("Import of object {} failed: Communication error: {}",
+                            new Object[]{object, e.getMessage(), e});
+				} catch (ConfigurationException e) {
+					LOGGER.error("Import of object {} failed: Configuration error: {}",
+                            new Object[]{object, e.getMessage(), e});
+				} catch (PolicyViolationException e) {
+					LOGGER.error("Import of object {} failed: Policy violation: {}",
+                            new Object[]{object, e.getMessage(), e});
+				} catch (SecurityViolationException e) {
+					LOGGER.error("Import of object {} failed: Security violation: {}",
+                            new Object[]{object, e.getMessage(), e});
+				}
 
                 objectResult.recordSuccessIfUnknown();
                 if (objectResult.isAcceptable()) {
@@ -219,7 +249,7 @@ public class ObjectImporter {
     }
 
     private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options,
-                                          OperationResult objectResult) throws SchemaException, ObjectAlreadyExistsException {
+                                         Task task, OperationResult objectResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
@@ -234,13 +264,8 @@ public class ObjectImporter {
         }
         
         try {
-
-            RepoAddOptions repoOptions = new RepoAddOptions();
-            repoOptions.setOverwrite(BooleanUtils.isTrue(options.isOverwrite()));
-            if (!options.isEncryptProtectedValues()) {
-            	repoOptions.setAllowUnencryptedValues(true);
-            }
-			String oid = addObject(object, repoOptions, result);
+			String oid = addObject(object, BooleanUtils.isTrue(options.isOverwrite()), 
+					BooleanUtils.isFalse(options.isEncryptProtectedValues()), task, result);
 			
             if (object.canRepresent(TaskType.class)) {
             	taskManager.onTaskCreate(oid, result);
@@ -266,11 +291,7 @@ public class ObjectImporter {
          	 	 		if (BooleanUtils.isTrue(options.isKeepOid())) {
          	 	 			object.setOid(deletedOid);
          	 	 		}
-         	 	 		RepoAddOptions repoOptions = new RepoAddOptions();
-         	            if (!options.isEncryptProtectedValues()) {
-         	            	repoOptions.setAllowUnencryptedValues(true);
-         	            }
-         	 	 		addObject(object, repoOptions, result);
+         	 	 		addObject(object, false, BooleanUtils.isFalse(options.isEncryptProtectedValues()), task, result);
 	         	 	 	if (object.canRepresent(TaskType.class)) {
 	         	 	 		taskManager.onTaskCreate(object.getOid(), result);
 	         	 	 	}
@@ -296,8 +317,23 @@ public class ObjectImporter {
         }
     }
 
-    private <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions repoOptions, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
-    	return repository.addObject(object, repoOptions, parentResult);
+    private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, boolean noCrypt,
+    		Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    	
+    	ObjectDelta<T> delta = ObjectDelta.createAddDelta(object);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		ModelExecuteOptions options = new ModelExecuteOptions();
+		options.setRaw(true);
+		if (overwrite) {
+			options.setOverwrite(true);
+		}
+		if (noCrypt) {
+			options.setNoCrypt(true);
+		}
+		
+		modelService.executeChanges(deltas, options, task, parentResult);
+    	
+		return deltas.iterator().next().getOid();
     }
 
     /**

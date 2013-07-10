@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -136,6 +137,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001ImportConnector");
 		FileInputStream stream = new FileInputStream(IMPORT_CONNECTOR_FILE);
 		
+		dummyAuditService.clear();
+		
 		// WHEN
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
@@ -151,6 +154,15 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 //		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
 		assertEquals(CONNECTOR_NAMESPACE, connector.getNamespace());
 		assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ConnectorType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
 	
@@ -162,6 +174,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test003ImportUsers");
 		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
+		
+		dummyAuditService.clear();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
@@ -201,6 +215,10 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		PrismAsserts.assertEqualsPolyString("wrong fullName", "Guybrush Threepwood", guybrush.getFullName());
 		
 		assertUsers(4);
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(6);
 	}
 
 	// Import the same thing again. Watch how it burns :-)
@@ -212,6 +230,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test004DuplicateImportUsers");
 		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
+		
+		dummyAuditService.clear();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
@@ -229,6 +249,10 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		}
 
 		assertUsers(4);
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
 	}
 	
 	// Import the same thing again, this time with overwrite option. This should go well.
@@ -241,6 +265,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		FileInputStream stream = new FileInputStream(IMPORT_USERS_OVERWRITE_FILE);
 		ImportOptionsType options = getDefaultImportOptions();
 		options.setOverwrite(true);
+		
+		dummyAuditService.clear();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, options, task, result);
@@ -248,7 +274,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after import with overwrite", result);
-		assertSuccess("Import failed (result)", result);
+		assertSuccess("Import failed (result)", result, 2);
 
 		// list all users
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
@@ -286,6 +312,10 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		}
 		
 		assertUsers(5);
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(7);
 	}
 
 	
@@ -300,6 +330,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		ImportOptionsType options = getDefaultImportOptions();
 		options.setOverwrite(true);
 		options.setKeepOid(true);
+		
+		dummyAuditService.clear();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, options, task, result);
@@ -343,6 +375,10 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		}
 		
 		assertUsers(5);
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(6);
 	}
 
 	@Test
@@ -357,6 +393,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// well, let's check whether task owner really exists
 		PrismObject<UserType> ownerPrism = repositoryService.getObject(UserType.class, TASK1_OWNER_OID, result);
 		assertEquals("Task owner does not exist or has an unexpected OID", TASK1_OWNER_OID, ownerPrism.getOid());
+		
+		dummyAuditService.clear();
 		
 		// WHEN
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
@@ -377,6 +415,15 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         PrismProperty<Integer> delayProp = task1.getExtensionProperty(new QName(NoOpTaskHandler.EXT_SCHEMA_URI, "delay"));
         assertEquals("xsi:type'd property has incorrect type", Integer.class, delayProp.getValues().get(0).getValue().getClass());
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
+        
+     // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, TaskType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -389,6 +436,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		FileInputStream stream = new FileInputStream(new File(RESOURCE_DUMMY_FILENAME));
 		
 		IntegrationTestTools.assertNoRepoCache();
+		dummyAuditService.clear();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
@@ -418,6 +466,15 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		display("Imported resource (repo2)", importedRepoResource);
 		IntegrationTestTools.assertNoRepoCache();
 		assertResource(importedRepoResource, true);
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -433,6 +490,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		options.setOverwrite(true);
 		
 		IntegrationTestTools.assertNoRepoCache();
+		dummyAuditService.clear();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, options, task, result);
@@ -463,6 +521,15 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		ResourceType resourceType = resource.asObjectable();
 		assertNull("Synchronization not gone", resourceType.getSynchronization());
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -479,6 +546,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		ImportOptionsType importOptions = getDefaultImportOptions();
 		importOptions.setEncryptProtectedValues(false);
+		
+		dummyAuditService.clear();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, importOptions, task, result);
@@ -498,7 +567,16 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertEquals("Er? Pirate sectrets still hidden?", "m0nk3y", protectedString.getClearValue());
 		assertNull("Er? Encrypted data together with clear value?", protectedString.getEncryptedData());
 
-		assertUsers(6);		
+		assertUsers(6);
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	private void assertResource(PrismObject<ResourceType> resource, boolean fromRepo) {

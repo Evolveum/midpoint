@@ -312,6 +312,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			PolicyViolationException, SecurityViolationException {
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
+		result.addParam(OperationResult.PARAM_OPTIONS, options);
 		
 		// Make sure everything is encrypted as needed before logging anything.
 		// But before that we need to make sure that we have proper definition, otherwise we
@@ -346,6 +347,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 						RepoAddOptions repoOptions = new RepoAddOptions();
 						if (ModelExecuteOptions.isNoCrypt(options)) {
 							repoOptions.setAllowUnencryptedValues(true);
+						}
+						if (ModelExecuteOptions.isOverwrite(options)) {
+							repoOptions.setOverwrite(true);
 						}
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
 						delta.setOid(oid);
