@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -153,8 +156,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 	
 	
 	@Test
-	public void test003ImportUsers() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		
+	public void test003ImportUsers() throws Exception {
 		TestUtil.displayTestTile(this,"test003ImportUsers");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
@@ -183,12 +185,6 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedData());
 
 		// Check import with generated OID
-//		Document doc = DOMUtil.getDocument();
-//		Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "guybrush");
-//
-//		QueryType query = new QueryType();
-//		query.setFilter(filter);
-
 		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
@@ -204,11 +200,12 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		PrismAsserts.assertEqualsPolyString("wrong familyName", "Threepwood", guybrush.getFamilyName());
 		PrismAsserts.assertEqualsPolyString("wrong fullName", "Guybrush Threepwood", guybrush.getFullName());
 		
+		assertUsers(4);
 	}
 
 	// Import the same thing again. Watch how it burns :-)
 	@Test
-	public void test004DuplicateImportUsers() throws FileNotFoundException, ObjectNotFoundException,
+	public void test004DuplicateImportUsers() throws Exception,
 			SchemaException {
 		TestUtil.displayTestTile(this,"test004DuplicateImportUsers");
 		// GIVEN
@@ -231,6 +228,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 			assertFalse("Unexpected success in subresult", subresult.isSuccess());
 		}
 
+		assertUsers(4);
 	}
 	
 	// Import the same thing again, this time with overwrite option. This should go well.
@@ -286,6 +284,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 				PrismAsserts.assertEqualsPolyString("Herman is confused", "Toothrot", userType.getFamilyName());
 			}	
 		}
+		
+		assertUsers(5);
 	}
 
 	
@@ -341,6 +341,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 				PrismAsserts.assertEqualsPolyString("Herman is confused", "Toothrot", userType.getFamilyName());
 			}	
 		}
+		
+		assertUsers(5);
 	}
 
 	@Test
@@ -461,6 +463,42 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		ResourceType resourceType = resource.asObjectable();
 		assertNull("Synchronization not gone", resourceType.getSynchronization());
+	}
+	
+	@Test
+	public void test040ImportUserHermanNoEncryption() throws Exception {
+		final String TEST_NAME = "test040ImportUserHermanNoEncryption";
+		TestUtil.displayTestTile(this,TEST_NAME);
+		// GIVEN
+		
+		InternalsConfig.readEncryptionChecks = false;
+		
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "." + TEST_NAME);
+		FileInputStream stream = new FileInputStream(USER_HERMAN_FILE);
+		
+		ImportOptionsType importOptions = getDefaultImportOptions();
+		importOptions.setEncryptProtectedValues(false);
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, importOptions, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after good import", result);
+		assertSuccess("Import has failed (result)", result);
+
+		// Check import with fixed OID
+		PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);
+		display("Herman", userHerman);
+		assertUser(userHerman, USER_HERMAN_OID, USER_HERMAN_USERNAME, "Herman Toothrot", "Herman", "Toothrot");
+		
+		// Check if the password was NOT encrypted
+		ProtectedStringType protectedString = userHerman.asObjectable().getCredentials().getPassword().getValue();
+		assertEquals("Er? Pirate sectrets still hidden?", "m0nk3y", protectedString.getClearValue());
+		assertNull("Er? Encrypted data together with clear value?", protectedString.getEncryptedData());
+
+		assertUsers(6);		
 	}
 	
 	private void assertResource(PrismObject<ResourceType> resource, boolean fromRepo) {

@@ -221,7 +221,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		startResources();
 		dummyAuditService = DummyAuditService.getInstance();
 		// Make sure the checks are turned on
-		InternalsConfig.turnOnChecks();
+		InternalsConfig.turnOnAllChecks();
         // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.
         if (notificationManager != null) {
             notificationManager.setDisabled(true);

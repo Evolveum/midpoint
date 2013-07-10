@@ -289,7 +289,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         validateName(object);
         Validate.notNull(result, "Operation result must not be null.");
 
-        if (InternalsConfig.encryptionChecks) {
+        if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
         }
 
@@ -1206,7 +1206,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (InternalsConfig.consistencyChecks) {
             prismObject.checkConsistence();
         }
-        if (InternalsConfig.encryptionChecks) {
+        if (InternalsConfig.readEncryptionChecks) {
             CryptoUtil.checkEncrypted(prismObject);
         }
     }

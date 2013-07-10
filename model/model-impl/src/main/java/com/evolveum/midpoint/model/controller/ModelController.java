@@ -70,6 +70,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -342,7 +343,11 @@ public class ModelController implements ModelService, ModelInteractionService {
 				auditService.audit(auditRecord, task);
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
 					if (delta.isAdd()) {
-						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), null, result);
+						RepoAddOptions repoOptions = new RepoAddOptions();
+						if (ModelExecuteOptions.isNoCrypt(options)) {
+							repoOptions.setAllowUnencryptedValues(true);
+						}
+						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
@@ -1016,7 +1021,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {
 		try {
-			if (InternalsConfig.encryptionChecks) {
+			if (InternalsConfig.readEncryptionChecks) {
 				CryptoUtil.checkEncrypted(object);
 			}
 			if (!InternalsConfig.consistencyChecks) {

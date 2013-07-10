@@ -610,11 +610,13 @@ public class ChangeExecutor {
             }
             result.addReturn("createdAccountOid", oid);
         } else {
-        	RepoAddOptions addOpt = null;
+        	RepoAddOptions addOpt = new RepoAddOptions();
         	if (ModelExecuteOptions.isOverwrite(context.getOptions())){
-        		addOpt = RepoAddOptions.createOverwrite();
+        		addOpt.setOverwrite(true);
         	}
-        	
+        	if (ModelExecuteOptions.isNoCrypt(context.getOptions())){
+        		addOpt.setAllowUnencryptedValues(true);
+        	}
             oid = cacheRepositoryService.addObject(objectToAdd, addOpt, result);
             if (oid == null) {
             	throw new SystemException("Repository addObject returned null OID while adding " + objectToAdd);

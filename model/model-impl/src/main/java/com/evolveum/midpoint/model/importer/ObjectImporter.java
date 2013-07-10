@@ -237,7 +237,9 @@ public class ObjectImporter {
 
             RepoAddOptions repoOptions = new RepoAddOptions();
             repoOptions.setOverwrite(BooleanUtils.isTrue(options.isOverwrite()));
-            
+            if (!options.isEncryptProtectedValues()) {
+            	repoOptions.setAllowUnencryptedValues(true);
+            }
 			String oid = addObject(object, repoOptions, result);
 			
             if (object.canRepresent(TaskType.class)) {
@@ -264,7 +266,11 @@ public class ObjectImporter {
          	 	 		if (BooleanUtils.isTrue(options.isKeepOid())) {
          	 	 			object.setOid(deletedOid);
          	 	 		}
-         	 	 		repository.addObject(object, null, result);
+         	 	 		RepoAddOptions repoOptions = new RepoAddOptions();
+         	            if (!options.isEncryptProtectedValues()) {
+         	            	repoOptions.setAllowUnencryptedValues(true);
+         	            }
+         	 	 		addObject(object, repoOptions, result);
 	         	 	 	if (object.canRepresent(TaskType.class)) {
 	         	 	 		taskManager.onTaskCreate(object.getOid(), result);
 	         	 	 	}

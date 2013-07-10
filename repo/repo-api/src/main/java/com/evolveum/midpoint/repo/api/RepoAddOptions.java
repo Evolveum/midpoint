@@ -25,6 +25,7 @@ public class RepoAddOptions implements Serializable {
 	private static final long serialVersionUID = -6243926109579064467L;
 	
 	private boolean overwrite = false;
+	private boolean allowUnencryptedValues = false;
 
 	public boolean isOverwrite() {
 		return overwrite;
@@ -34,15 +35,44 @@ public class RepoAddOptions implements Serializable {
 		this.overwrite = overwrite;
 	}
 	
+	public static boolean isOverwrite(RepoAddOptions options) {
+		if (options == null) {
+			return false;
+		}
+		return options.isOverwrite();
+	}
+
 	public static RepoAddOptions createOverwrite() {
 		RepoAddOptions opts = new RepoAddOptions();
 		opts.setOverwrite(true);
 		return opts;
 	}
+	
+
+	public boolean isAllowUnencryptedValues() {
+		return allowUnencryptedValues;
+	}
+
+	public void setAllowUnencryptedValues(boolean allowUnencryptedValues) {
+		this.allowUnencryptedValues = allowUnencryptedValues;
+	}
+	
+	public static boolean isAllowUnencryptedValues(RepoAddOptions options) {
+		if (options == null) {
+			return false;
+		}
+		return options.isAllowUnencryptedValues();
+	}
+	
+	public static RepoAddOptions createAllowUnencryptedValues() {
+		RepoAddOptions opts = new RepoAddOptions();
+		opts.setAllowUnencryptedValues(true);
+		return opts;
+	}
 
 	@Override
 	public String toString() {
-		return "RepoAddOptions(overwrite=" + overwrite + ")";
+		return "RepoAddOptions(overwrite=" + overwrite + ", allowUnencryptedValues="+allowUnencryptedValues+")";
 	}
 
 }
