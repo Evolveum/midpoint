@@ -411,6 +411,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
 		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
 		
+		//must be here, bacause when the reaction has no action, the situation will be not set.
+		saveExecutedSituationDescription(auditRecord.getTarget(), situation, change, parentResult);
+		
 		if (actions.isEmpty()) {
 
 			LOGGER.warn("Skipping synchronization on resource: {}. Actions was not found.",
@@ -421,7 +424,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		try {
 			LOGGER.trace("Updating user started.");
 			String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
-			saveExecutedSituationDescription(auditRecord.getTarget(), situation, change, parentResult);
+			
 			if (userOid == null && situation.getSituation() == SynchronizationSituationType.DELETED){
 				LOGGER.trace("Detected DELETE change by synchronization, but the account does not have any owner in the midpoint.");
 				parentResult.recordSuccess();
