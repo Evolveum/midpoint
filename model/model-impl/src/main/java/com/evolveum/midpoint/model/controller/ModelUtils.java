@@ -67,5 +67,15 @@ public class ModelUtils {
 		result.recordFatalError(message, e);
 		result.cleanupResult(e);
 	}
+	
+	public static void recordPartialError(OperationResult result, Throwable e) {
+		recordPartialError(result, e.getMessage(), e);
+	}
+
+	public static void recordPartialError(OperationResult result, String message, Throwable e) {
+		LOGGER.error(message, e);
+		result.recordPartialError(message, e);
+		result.cleanupResult(e);
+	}
 
 }

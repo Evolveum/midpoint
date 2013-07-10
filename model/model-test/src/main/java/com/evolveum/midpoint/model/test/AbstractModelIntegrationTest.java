@@ -256,7 +256,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, subResult);
 		subResult.computeStatus();
 		if (subResult.isError()) {
-			throw new SystemException("Import of file "+file+" failed: "+subResult.getMessage());
+			LOGGER.error("Import of file "+file+" failed:\n{}", subResult.dump());
+			Throwable cause = subResult.getCause();
+			throw new SystemException("Import of file "+file+" failed: "+subResult.getMessage(), cause);
 		}
 	}
 	

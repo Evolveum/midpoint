@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest.util;
+package com.evolveum.midpoint.model.test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +54,9 @@ public class LogfileTestTailer {
 	private static final Pattern markerPatternPrefix = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+.*"+MARKER+"\\s+(\\w+).*");
 	public static final Pattern auditPattern = 
 			Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\("+LoggingConfigurationManager.AUDIT_LOGGER_NAME+"\\):\\s*(.*)");
+	public static final Pattern levelPattern = 
+			Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+(.*)");
+	
 	
 	final static Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
 	
@@ -64,13 +68,21 @@ public class LogfileTestTailer {
 	private String expectedMessage;
 	private String expectedMessageLine;
 	private boolean allowPrefix = false;
+	private Collection<String> errors = new ArrayList<String>();
+	private Collection<String> warnings = new ArrayList<String>();
 	
 	public LogfileTestTailer() throws IOException {
+		this(true);
+	}
+	
+	public LogfileTestTailer(boolean skipCurrentContent) throws IOException {
 		reset();
 		File file = new File(LOG_FILENAME);
 		fileReader = new FileReader(file);
 		reader = new BufferedReader(fileReader);
-		reader.skip(file.length());
+		if (skipCurrentContent) {
+			reader.skip(file.length());
+		}
 	}
 	
 	public boolean isAllowPrefix() {
@@ -79,6 +91,14 @@ public class LogfileTestTailer {
 
 	public void setAllowPrefix(boolean allowPrefix) {
 		this.allowPrefix = allowPrefix;
+	}
+
+	public Collection<String> getErrors() {
+		return errors;
+	}
+
+	public Collection<String> getWarnings() {
+		return warnings;
 	}
 
 	public void close() throws IOException {
@@ -112,6 +132,8 @@ public class LogfileTestTailer {
 	}
 
 	private void processLogLine(String line) {
+		
+		// Match marker
 		Pattern pattern = markerPattern;
 		if (allowPrefix) {
 			pattern = markerPatternPrefix;
@@ -123,6 +145,8 @@ public class LogfileTestTailer {
 			String subsystemName = matcher.group(2);
 			recordMarker(level,subsystemName);
 		}
+		
+		// Match audit
 		matcher = auditPattern.matcher(line);
 		while (matcher.find()) {
 			String level = matcher.group(1);
@@ -131,6 +155,19 @@ public class LogfileTestTailer {
 		}
 		if (expectedMessage != null && line.contains(expectedMessage)) {
 			expectedMessageLine = line;
+		}
+		
+		// Match errors and warnings
+		matcher = levelPattern.matcher(line);
+		while (matcher.find()) {
+			String level = matcher.group(1);
+			String message = matcher.group(2);
+			if ("ERROR".equals(level)) {
+				errors.add(message);
+			}
+			if ("WARN".equals(line)) {
+				warnings.add(message);
+			}
 		}
 	}
 	

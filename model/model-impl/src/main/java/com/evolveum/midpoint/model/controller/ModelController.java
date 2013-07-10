@@ -492,17 +492,37 @@ public class ModelController implements ModelService, ModelInteractionService {
 				try {
 					provisioning.applyDefinition(delta, result);
 				} catch (SchemaException e) {
-					ModelUtils.recordFatalError(result, e);
-					throw e;
+					if (ModelExecuteOptions.isRaw(options)) {
+						ModelUtils.recordPartialError(result, e);
+						// just go on, this is raw, we need to continue even without complete schema
+					} else {
+						ModelUtils.recordFatalError(result, e);
+						throw e;
+					}
 				} catch (ObjectNotFoundException e) {
-					ModelUtils.recordFatalError(result, e);
-					throw e;
+					if (ModelExecuteOptions.isRaw(options)) {
+						ModelUtils.recordPartialError(result, e);
+						// just go on, this is raw, we need to continue even without complete schema
+					} else {
+						ModelUtils.recordFatalError(result, e);
+						throw e;
+					}
 				} catch (CommunicationException e) {
-					ModelUtils.recordFatalError(result, e);
-					throw e;
+					if (ModelExecuteOptions.isRaw(options)) {
+						ModelUtils.recordPartialError(result, e);
+						// just go on, this is raw, we need to continue even without complete schema
+					} else {
+						ModelUtils.recordFatalError(result, e);
+						throw e;
+					}
 				} catch (ConfigurationException e) {
-					ModelUtils.recordFatalError(result, e);
-					throw e;
+					if (ModelExecuteOptions.isRaw(options)) {
+						ModelUtils.recordPartialError(result, e);
+						// just go on, this is raw, we need to continue even without complete schema
+					} else {
+						ModelUtils.recordFatalError(result, e);
+						throw e;
+					}
 				}
 			} else {
 				PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());

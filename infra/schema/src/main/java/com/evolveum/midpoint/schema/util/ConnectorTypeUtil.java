@@ -87,6 +87,9 @@ public class ConnectorTypeUtil {
 	 */
 	public static PrismSchema getConnectorSchema(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
 		Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connectorType);
+		if (connectorSchemaElement == null) {
+			return null;
+		}
 		PrismSchema connectorSchema = PrismSchema.parse(connectorSchemaElement, true, "schema for " + connectorType, prismContext);
 		// Make sure that the config container definition has a correct compile-time class name
 		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
@@ -102,6 +105,9 @@ public class ConnectorTypeUtil {
 	
 	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
 		PrismSchema connectorSchema = getConnectorSchema(connectorType, prismContext);
+		if (connectorSchema == null) {
+			throw new SchemaException("No connector schema in "+connectorType);
+		}
 		return findConfigurationContainerDefintion(connectorType, connectorSchema);
 	}
 	

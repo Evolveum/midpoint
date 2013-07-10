@@ -114,10 +114,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	private static String accountOid;
 	private static String userCharlesOid;
 	
-	public TestModelServiceContract() throws JAXBException {
-		super();
-	}
-	
 	@Test
     public void test040GetResource() throws Exception {
         TestUtil.displayTestTile(this, "test040GetResource");
