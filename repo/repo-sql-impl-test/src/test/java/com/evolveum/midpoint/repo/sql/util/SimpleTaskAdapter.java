@@ -303,7 +303,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <T> PrismProperty<T> getExtension(QName propertyName) {
+    public <T> PrismProperty<T> getExtensionProperty(QName propertyName) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -402,12 +402,12 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void makeRecurrentSimple(int interval) {
+    public void makeRecurringSimple(int interval) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
     @Override
-    public void makeRecurrentCron(String cronLikeSpecification) {
+    public void makeRecurringCron(String cronLikeSpecification) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -468,7 +468,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void makeRecurrent(ScheduleType schedule) {
+    public void makeRecurring(ScheduleType schedule) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -512,11 +512,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    @Override
     public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?> delta) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
@@ -527,17 +522,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    @Override
     public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    @Override
-    public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 

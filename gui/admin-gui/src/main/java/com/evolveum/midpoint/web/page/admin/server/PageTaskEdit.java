@@ -35,8 +35,6 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.Page;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -763,7 +761,7 @@ public class PageTaskEdit extends PageAdminTasks {
             } else {
                 schedule.setInterval(dto.getInterval());
             }
-            existingTask.makeRecurrent(schedule);
+            existingTask.makeRecurring(schedule);
         } else {
             existingTask.makeSingle(schedule);
         }

@@ -37,7 +37,6 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
@@ -269,7 +268,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task001 = taskManager.getTask(taskOid(test), result);
         System.out.println("1st round: Task from repo: " + task001.dump());
 
-        PrismProperty<String> bigString001 = task001.getExtension(bigStringQName);
+        PrismProperty<String> bigString001 = task001.getExtensionProperty(bigStringQName);
         assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
 
         // second round
@@ -278,7 +277,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         task001.setExtensionProperty(bigStringProperty);
 
         // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
-        task001.getExtension(bigStringQName).getDefinition().setIndexed(false);
+        task001.getExtensionProperty(bigStringQName).getDefinition().setIndexed(false);
 
         System.out.println("2nd round: Task before save = " + task001.dump());
         task001.savePendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
@@ -286,7 +285,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task002 = taskManager.getTask(taskOid(test), result);
         System.out.println("2nd round: Task from repo: " + task002.dump());
 
-        PrismProperty<String> bigString002 = task002.getExtension(bigStringQName);
+        PrismProperty<String> bigString002 = task002.getExtensionProperty(bigStringQName);
         assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
     }
 
@@ -330,7 +329,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task001 = taskManager.getTask(taskOid(test), result);
         System.out.println("1st round: Task from repo: " + task001.dump());
 
-        PrismProperty<String> shipState001 = task001.getExtension(shipStateQName);
+        PrismProperty<String> shipState001 = task001.getExtensionProperty(shipStateQName);
         assertEquals("Big string not retrieved correctly (1st round)", shipStateProperty.getRealValue(), shipState001.getRealValue());
 
         // second round
@@ -344,7 +343,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task002 = taskManager.getTask(taskOid(test), result);
         System.out.println("2nd round: Task from repo: " + task002.dump());
 
-        PrismProperty<String> bigString002 = task002.getExtension(shipStateQName);
+        PrismProperty<String> bigString002 = task002.getExtensionProperty(shipStateQName);
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
 
@@ -433,12 +432,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         ScheduleType st1 = new ScheduleType();
         st1.setInterval(1);
         st1.setMisfireAction(MisfireActionType.RESCHEDULE);
-        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, task.createExtensionDelta(delayDefinition, 1));
+        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(delayDefinition, 1));
 
         ScheduleType st2 = new ScheduleType();
         st2.setInterval(2);
         st2.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, task.createExtensionDelta(delayDefinition, 2));
+        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, ((TaskQuartzImpl) task).createExtensionDelta(delayDefinition, 2));
 
         task.setRecurrenceStatus(TaskRecurrence.RECURRING);
 
@@ -487,7 +486,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(r001);
         //AssertJUnit.assertEquals("Owner OID is not correct", TASK_OWNER2_OID, task001.getOwner().getOid());
 
-        PrismProperty<?> d = task001.getExtension(NoOpTaskHandler.DELAY_QNAME);
+        PrismProperty<?> d = task001.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME);
         AssertJUnit.assertNotNull("delay extension property was not found", d);
         AssertJUnit.assertEquals("delay extension property has wrong value", (Integer) 100, d.getRealValue(Integer.class));
 
@@ -511,7 +510,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Schedule after first POP is not correct", st1, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after first POP is not correct", TaskBinding.TIGHT, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after first POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtension(NoOpTaskHandler.DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME).getRealValue(Integer.class));
 
         ((TaskQuartzImpl) task001).finishHandler(result);
         task001.refresh(result);
@@ -519,7 +518,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Schedule after second POP is not correct", st0, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after second POP is not correct", TaskBinding.LOOSE, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after second POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtension(NoOpTaskHandler.DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME).getRealValue(Integer.class));
 
         ((TaskQuartzImpl) task001).finishHandler(result);
         task001.refresh(result);
@@ -964,7 +963,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // check if we can read the extension (xsi:type issue)
 
         Task taskTemp = taskManager.getTask(taskOid(test), result);
-        PrismProperty delay = taskTemp.getExtension(NoOpTaskHandler.DELAY_QNAME);
+        PrismProperty delay = taskTemp.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
@@ -1023,7 +1022,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // check if we can read the extension (xsi:type issue)
 
-        PrismProperty delay = task.getExtension(NoOpTaskHandler.DELAY_QNAME);
+        PrismProperty delay = task.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 1000, delay.getRealValue());
 
         // let us resume (i.e. start the task)

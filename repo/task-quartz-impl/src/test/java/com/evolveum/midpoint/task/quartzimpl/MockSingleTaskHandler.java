@@ -21,11 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -82,14 +78,14 @@ public class MockSingleTaskHandler implements TaskHandler {
 		hasRun = true;
 
         if ("L1".equals(id)) {
-            PrismProperty<Boolean> l1flag = task.getExtension(L1_FLAG_QNAME);
+            PrismProperty<Boolean> l1flag = task.getExtensionProperty(L1_FLAG_QNAME);
 
             if (l1flag == null || l1flag.getRealValue() == false) {
 
                 LOGGER.info("L1 handler, first run - scheduling L2 handler");
                 ScheduleType l2Schedule = new ScheduleType();
                 l2Schedule.setInterval(2);
-                task.pushHandlerUri(TestQuartzTaskManagerContract.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, task.createExtensionDelta(l1FlagDefinition, true));
+                task.pushHandlerUri(TestQuartzTaskManagerContract.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(l1FlagDefinition, true));
                 try {
                     task.savePendingModifications(opResult);
                 } catch(Exception e) {
@@ -123,7 +119,7 @@ public class MockSingleTaskHandler implements TaskHandler {
             LOGGER.info("L3 handler, simply exiting. Progress = " + progress);
         } else if ("WFS".equals(id)) {
 
-            PrismProperty<Boolean> wfsFlag = task.getExtension(WFS_FLAG_QNAME);
+            PrismProperty<Boolean> wfsFlag = task.getExtensionProperty(WFS_FLAG_QNAME);
 
             if (wfsFlag == null || wfsFlag.getRealValue() == false) {
 
@@ -139,7 +135,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 
                 try {
                     ArrayList<ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
-                    deltas.add(task.createExtensionDelta(wfsFlagDefinition, true));
+                    deltas.add(((TaskQuartzImpl) task).createExtensionDelta(wfsFlagDefinition, true));
                     runResult = task.waitForSubtasks(2, deltas, opResult);
                     runResult.setProgress(1);
                 } catch (Exception e) {

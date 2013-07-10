@@ -489,8 +489,8 @@ public class ExecutionManager {
         return taskSynchronizer.synchronizeJobStores(result);
     }
 
-    public Set<Task> getLocallyRunningTasks() {
-        return localNodeManager.getLocallyRunningTasks(createOperationResult("getRunningTasks"));
+    public Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
+        return localNodeManager.getLocallyRunningTasks(parentResult);
 
     }
 

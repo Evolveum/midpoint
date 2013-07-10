@@ -53,7 +53,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -108,7 +107,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -127,7 +125,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
@@ -2322,7 +2319,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		waitFor("waiting for task manager shutdown", new Checker() {
 			@Override
 			public boolean check() throws Exception {
-				return taskManager.getRunningTasks().isEmpty();
+				return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
 			}
 
 			@Override
@@ -2331,7 +2328,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			}
 		}, 10000);
 		AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
-				taskManager.getRunningTasks());
+				taskManager.getLocallyRunningTasks(new OperationResult("dummy")));
 	}
 
 	// TODO: test for missing/corrupt system configuration

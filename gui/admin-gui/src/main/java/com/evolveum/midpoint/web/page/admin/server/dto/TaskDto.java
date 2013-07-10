@@ -49,9 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
-
-import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -252,7 +249,7 @@ public class TaskDto extends Selectable {
         }
 
         // todo do this through WfTaskUtil
-        PrismProperty<String> wfProcessInstanceId = task.getExtension(Constants.WFPROCESSID_PROPERTY_NAME);
+        PrismProperty<String> wfProcessInstanceId = task.getExtensionProperty(Constants.WFPROCESSID_PROPERTY_NAME);
         if (wfProcessInstanceId != null) {
 
             workflowShadowTask = true;
@@ -261,10 +258,10 @@ public class TaskDto extends Selectable {
             workflowShadowTask = false;
         }
 
-        PrismProperty<Boolean> finished = task.getExtension(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
+        PrismProperty<Boolean> finished = task.getExtensionProperty(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
         workflowProcessInstanceFinished = finished != null && Boolean.TRUE.equals(finished.getRealValue());
 
-        PrismProperty<String> lastDetails = task.getExtension(Constants.WFLAST_DETAILS_PROPERTY_NAME);
+        PrismProperty<String> lastDetails = task.getExtensionProperty(Constants.WFLAST_DETAILS_PROPERTY_NAME);
         if (lastDetails != null) {
             workflowLastDetails = lastDetails.getRealValue();
         }
@@ -284,7 +281,7 @@ public class TaskDto extends Selectable {
 
     private List<WfHistoryEventDto> prepareWorkflowHistory(Task task) {
         List<WfHistoryEventDto> retval = new ArrayList<WfHistoryEventDto>();
-        PrismProperty<String> wfStatus = task.getExtension(Constants.WFSTATUS_PROPERTY_NAME);
+        PrismProperty<String> wfStatus = task.getExtensionProperty(Constants.WFSTATUS_PROPERTY_NAME);
         if (wfStatus != null) {
             for (String entry : wfStatus.getRealValues()) {
                 retval.add(new WfHistoryEventDto(entry));
@@ -298,7 +295,7 @@ public class TaskDto extends Selectable {
 
         List<DeltaDto> retval = new ArrayList<DeltaDto>();
 
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtension(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
         if (deltaTypePrismProperty != null) {
             for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
                 retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, task.getTaskPrismObject().getPrismContext())));
@@ -311,7 +308,7 @@ public class TaskDto extends Selectable {
 
         List<DeltaDto> retval = new ArrayList<DeltaDto>();
 
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtension(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
         if (deltaTypePrismProperty != null) {
             for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
                 retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, task.getTaskPrismObject().getPrismContext())));

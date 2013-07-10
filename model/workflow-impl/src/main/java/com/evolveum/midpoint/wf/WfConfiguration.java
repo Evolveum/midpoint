@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -38,10 +37,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -53,7 +49,23 @@ import java.util.List;
 public class WfConfiguration implements BeanFactoryAware {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
-//    private static final String DEFAULT_CHANGE_PROCESSOR_PACKAGE = PrimaryUserChangeProcessor.class.getPackage().getName();
+
+    private static final String WF_CONFIG_SECTION = "midpoint.workflow";
+    private static final String CHANGE_PROCESSORS_SECTION = "changeProcessors";
+
+    public static final String KEY_ENABLED = "enabled";
+    public static final String KEY_JDBC_DRIVER = "jdbcDriver";
+    public static final String KEY_JDBC_URL = "jdbcUrl";
+    public static final String KEY_JDBC_USERNAME = "jdbcUsername";
+    public static final String KEY_JDBC_PASSWORD = "jdbcPassword";
+    public static final String KEY_ACTIVITI_SCHEMA_UPDATE = "activitiSchemaUpdate";
+    public static final String KEY_PROCESS_CHECK_INTERVAL = "processCheckInterval";
+    public static final String KEY_AUTO_DEPLOYMENT_FROM = "autoDeploymentFrom";
+    public static final String KEY_ALLOW_APPROVE_OTHERS_ITEMS = "allowApproveOthersItems";
+
+    public static final String[] KNOWN_KEYS = { "midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
+            KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
+            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS, CHANGE_PROCESSORS_SECTION };
 
     @Autowired(required = true)
     private MidpointConfiguration midpointConfiguration;
@@ -65,8 +77,6 @@ public class WfConfiguration implements BeanFactoryAware {
         this.beanFactory = beanFactory;
     }
 
-    private static final String WF_CONFIG_SECTION = "midpoint.workflow";
-    private static final String CHANGE_PROCESSORS_SECTION = "changeProcessors";
     private static final String AUTO_DEPLOYMENT_FROM_DEFAULT = "classpath*:processes/*.bpmn20.xml";
 
     private Boolean enabled = null;
@@ -90,7 +100,9 @@ public class WfConfiguration implements BeanFactoryAware {
 
         Configuration c = midpointConfiguration.getConfiguration(WF_CONFIG_SECTION);
 
-        enabled = c.getBoolean("enabled", true);
+        checkAllowedKeys(c, KNOWN_KEYS);
+
+        enabled = c.getBoolean(KEY_ENABLED, true);
         if (!enabled) {
             LOGGER.info("Workflows are disabled.");
             return;
@@ -120,7 +132,7 @@ public class WfConfiguration implements BeanFactoryAware {
             LoggingUtils.logException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
         }
 
-        jdbcUrl = c.getString("jdbcUrl", null);
+        jdbcUrl = c.getString(KEY_JDBC_URL, null);
         if (jdbcUrl == null) {
             if (sqlConfig.isEmbedded()) {
                 jdbcUrl = defaultJdbcUrlPrefix + "-activiti;DB_CLOSE_ON_EXIT=FALSE";
@@ -130,14 +142,14 @@ public class WfConfiguration implements BeanFactoryAware {
         }
         LOGGER.info("Activiti database is at " + jdbcUrl);
 
-        activitiSchemaUpdate = c.getBoolean("activitiSchemaUpdate", true);
-        jdbcDriver = c.getString("jdbcDriver", sqlConfig != null ? sqlConfig.getDriverClassName() : null);
-        jdbcUser = c.getString("jdbcUser", sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
-        jdbcPassword = c.getString("jdbcPassword", sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
+        activitiSchemaUpdate = c.getBoolean(KEY_ACTIVITI_SCHEMA_UPDATE, true);
+        jdbcDriver = c.getString(KEY_JDBC_DRIVER, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
+        jdbcUser = c.getString(KEY_JDBC_USERNAME, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
+        jdbcPassword = c.getString(KEY_JDBC_PASSWORD, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
-        processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
-        autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
-        allowApproveOthersItems = c.getBoolean("allowApproveOthersItems", false);
+        processCheckInterval = c.getInt(KEY_PROCESS_CHECK_INTERVAL, 10);    // todo set to bigger default for production use
+        autoDeploymentFrom = c.getString(KEY_AUTO_DEPLOYMENT_FROM, AUTO_DEPLOYMENT_FROM_DEFAULT);
+        allowApproveOthersItems = c.getBoolean(KEY_ALLOW_APPROVE_OTHERS_ITEMS, false);
 
         if (allowApproveOthersItems) {
             LOGGER.info("allowApproveOthersItems parameter is set to true, therefore authorized users CAN approve/reject work items assigned to other users.");
@@ -148,7 +160,22 @@ public class WfConfiguration implements BeanFactoryAware {
         validate();
     }
 
-    private Configuration getChangeProcessorsConfig() {
+    public void checkAllowedKeys(Configuration c, String[] knownKeys) {
+        Set<String> knownKeysSet = new HashSet<String>(knownKeys.length);
+        for (String key : knownKeys) {
+            knownKeysSet.add(key);
+        }
+
+        Iterator<String> keyIterator = c.getKeys();
+        while (keyIterator.hasNext()) {
+            String keyName = keyIterator.next();
+            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(StringUtils.substringBefore(keyName, "."))) {
+                throw new SystemException("Unknown key " + keyName + " in workflow configuration");
+            }
+        }
+    }
+
+    public Configuration getChangeProcessorsConfig() {
         Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
         return midpointConfiguration.getConfiguration(WF_CONFIG_SECTION).subset(CHANGE_PROCESSORS_SECTION); // via subset, because getConfiguration puts 'midpoint.home' property to the result
     }
@@ -245,38 +272,6 @@ public class WfConfiguration implements BeanFactoryAware {
 
         LOGGER.debug("Resolved " + changeProcessors.size() + " change processors.");
         return changeProcessors;
-    }
-
-    public List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers(String beanName) {
-
-        List<PrimaryApprovalProcessWrapper> retval = new ArrayList<PrimaryApprovalProcessWrapper>();
-
-        if (!enabled) {
-            return retval;
-        }
-
-        Configuration c = getChangeProcessorsConfig().subset(beanName);
-        if (c.isEmpty()) {
-            LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors or is empty.");
-            return retval;
-        }
-
-        String[] wrappers = c.getStringArray("wrapper");
-        if (wrappers == null || wrappers.length == 0) {
-            LOGGER.warn("No wrappers defined for primary change processor " + beanName);
-        } else {
-            for (String wrapperName : wrappers) {
-                LOGGER.trace("Searching for wrapper " + wrapperName);
-                try {
-                    PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) beanFactory.getBean(wrapperName);
-                    retval.add(wrapper);
-                } catch(BeansException e) {
-                    throw new SystemException("Process wrapper " + wrapperName + " could not be found.", e);
-                }
-            }
-            LOGGER.debug("Resolved " + retval.size() + " process wrappers for primary change processor " + beanName);
-        }
-        return retval;
     }
 
     public ChangeProcessor findChangeProcessor(String processorClassName) {

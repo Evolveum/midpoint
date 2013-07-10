@@ -27,9 +27,8 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksTaskHandler;
+import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -601,7 +600,6 @@ public class TaskQuartzImpl implements Task {
         this.setRecreateQuartzTrigger(true);            // will be applied on modifications save
 	}
 
-    @Override
     public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
         PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
         property.setRealValue(realValue);
@@ -1011,14 +1009,14 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void makeRecurrent(ScheduleType schedule)
+    public void makeRecurring(ScheduleType schedule)
     {
         setRecurrenceStatus(TaskRecurrence.RECURRING);
         setSchedule(schedule);
     }
 
     @Override
-	public void makeRecurrentSimple(int interval)
+	public void makeRecurringSimple(int interval)
 	{
 		setRecurrenceStatus(TaskRecurrence.RECURRING);
 
@@ -1029,7 +1027,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
     @Override
-    public void makeRecurrentCron(String cronLikeSpecification)
+    public void makeRecurringCron(String cronLikeSpecification)
     {
         setRecurrenceStatus(TaskRecurrence.RECURRING);
 
@@ -1336,7 +1334,6 @@ public class TaskQuartzImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 		
 		try {
-			// Note: storing this value in field, not local variable. It will be reused.
 			PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), result);
 			objectRef.getValue().setObject(object);
 			result.recordSuccess();
@@ -1551,7 +1548,7 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	@Override
-	public PrismProperty<?> getExtension(QName propertyName) {
+	public PrismProperty<?> getExtensionProperty(QName propertyName) {
         if (getExtension() != null) {
 		    return getExtension().findProperty(propertyName);
         } else {
@@ -1748,7 +1745,7 @@ public class TaskQuartzImpl implements Task {
 
 //    @Override
 //    public String getRequesteeOid() {
-//        PrismProperty<String> property = (PrismProperty<String>) getExtension(SchemaConstants.C_TASK_REQUESTEE_OID);
+//        PrismProperty<String> property = (PrismProperty<String>) getExtensionProperty(SchemaConstants.C_TASK_REQUESTEE_OID);
 //        if (property != null) {
 //            return property.getRealValue();
 //        } else {
@@ -2153,11 +2150,13 @@ public class TaskQuartzImpl implements Task {
         return sub;
     }
 
+    @Deprecated
     @Override
     public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return waitForSubtasks(interval, null, parentResult);
     }
 
+    @Deprecated
     @Override
     public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
@@ -2176,14 +2175,13 @@ public class TaskQuartzImpl implements Task {
         } else {
             schedule.setInterval(DEFAULT_SUBTASKS_WAIT_INTERVAL);
         }
-        pushHandlerUri(WaitForSubtasksTaskHandler.HANDLER_URI, schedule, null, extensionDeltas);
+        pushHandlerUri(WaitForSubtasksByPollingTaskHandler.HANDLER_URI, schedule, null, extensionDeltas);
         setBinding(TaskBinding.LOOSE);
         savePendingModifications(result);
 
         return trr;
     }
 
-    @Override
     public List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasksRaw");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
@@ -2202,7 +2200,6 @@ public class TaskQuartzImpl implements Task {
         return list;
     }
 
-    @Override
     public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listPrerequisiteTasksRaw");
         result.addContext(OperationResult.CONTEXT_OID, getOid());

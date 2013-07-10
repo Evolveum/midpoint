@@ -67,7 +67,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3._2001._04.xmlenc.EncryptedDataType;
@@ -3442,7 +3441,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         waitFor("waiting for task manager shutdown", new Checker() {
             @Override
             public boolean check() throws Exception {
-                return taskManager.getRunningTasks().isEmpty();
+                return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
             }
 
             @Override
@@ -3451,7 +3450,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             }
         }, 10000);
         AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
-                taskManager.getRunningTasks());
+                taskManager.getLocallyRunningTasks(new OperationResult("dummy")));
     }
 
     // TODO: test for missing/corrupt system configuration

@@ -36,8 +36,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -816,7 +814,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             Task subtask = subtasks.get(i);
             //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
             //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
-            PrismProperty<ObjectDelta> deltas = subtask.getExtension(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+            PrismProperty<ObjectDelta> deltas = subtask.getExtensionProperty(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
             assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
             assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
             // todo check correctness of the modification?

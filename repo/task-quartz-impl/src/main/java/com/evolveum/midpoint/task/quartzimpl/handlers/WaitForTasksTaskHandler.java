@@ -70,7 +70,7 @@ public class WaitForTasksTaskHandler implements TaskHandler {
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
         }
-        LOGGER.info("WaitForSubtasksTaskHandler run finishing; in task " + task.getName());
+        LOGGER.info("WaitForTasksTaskHandler run finishing; in task " + task.getName());
 
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(result);

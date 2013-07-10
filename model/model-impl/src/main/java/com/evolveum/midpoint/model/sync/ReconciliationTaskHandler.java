@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.sync;
 
 import java.util.Collection;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -45,7 +43,6 @@ import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -53,7 +50,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -79,11 +75,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
  * The task hander for reconciliation.
@@ -147,7 +141,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 		
 		Long freshnessInterval = DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL;
-		PrismProperty<Long> freshnessIntervalProperty = task.getExtension(SchemaConstants.MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME);
+		PrismProperty<Long> freshnessIntervalProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME);
 		if (freshnessIntervalProperty != null) {
 			PrismPropertyValue<Long> freshnessIntervalPropertyValue = freshnessIntervalProperty.getValue();
 			if (freshnessIntervalPropertyValue == null || freshnessIntervalPropertyValue.getValue() == null || 

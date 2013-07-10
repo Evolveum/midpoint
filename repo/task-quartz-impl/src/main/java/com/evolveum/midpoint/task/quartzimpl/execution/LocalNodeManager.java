@@ -395,9 +395,13 @@ public class LocalNodeManager {
             try {
                 retval.add(taskManager.getTask(oid, result));
             } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Cannot get the task with OID {} as it no longer exists", e, oid);
+                String m = "Cannot get the task with OID " + oid + " as it no longer exists";
+                LoggingUtils.logException(LOGGER, m, e);
+                result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask").recordFatalError(m, e);
             } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Cannot get the task with OID {} due to schema problems", e, oid);
+                String m = "Cannot get the task with OID " + oid + " due to schema problems";
+                LoggingUtils.logException(LOGGER, m, e);
+                result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask").recordFatalError(m, e);
             }
         }
 

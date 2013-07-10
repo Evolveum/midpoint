@@ -78,4 +78,6 @@ public interface ChangeProcessor {
     PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
+
+    boolean isEnabled();
 }

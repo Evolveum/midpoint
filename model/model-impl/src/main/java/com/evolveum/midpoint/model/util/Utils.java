@@ -27,13 +27,10 @@ import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -276,19 +273,19 @@ public final class Utils {
 	    public static RefinedObjectClassDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) {
 	    	
 	    	QName objectclass = null;
-	    	PrismProperty<QName> objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+	    	PrismProperty<QName> objectclassProperty = task.getExtensionProperty(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
 	        if (objectclassProperty != null) {
 	            objectclass = objectclassProperty.getValue().getValue();
 	        }
 	        
 	        ShadowKindType kind = null;
-	        PrismProperty<ShadowKindType> kindProperty = task.getExtension(ImportConstants.KIND_PROPERTY_NAME);
+	        PrismProperty<ShadowKindType> kindProperty = task.getExtensionProperty(ImportConstants.KIND_PROPERTY_NAME);
 	        if (kindProperty != null) {
 	        	kind = kindProperty.getValue().getValue();
 	        }
 	        
 	        String intent = null;
-	        PrismProperty<String> intentProperty = task.getExtension(ImportConstants.INTENT_PROPERTY_NAME);
+	        PrismProperty<String> intentProperty = task.getExtensionProperty(ImportConstants.INTENT_PROPERTY_NAME);
 	        if (intentProperty != null) {
 	        	intent = intentProperty.getValue().getValue();
 	        }

@@ -441,7 +441,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 		PrismProperty tokenProperty = null;
 		if (task.getExtension() != null) {
-			tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
+			tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 		}
 
 		if (tokenProperty != null && (tokenProperty.getValue() == null || tokenProperty.getValue().getValue() == null)) {

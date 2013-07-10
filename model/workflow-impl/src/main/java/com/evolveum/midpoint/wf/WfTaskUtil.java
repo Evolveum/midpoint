@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -139,7 +138,7 @@ public class WfTaskUtil {
 	}
 
 	String getLastVariables(Task task) {
-		PrismProperty<?> p = task.getExtension(Constants.WFLASTVARIABLES_PROPERTY_NAME);
+		PrismProperty<?> p = task.getExtensionProperty(Constants.WFLASTVARIABLES_PROPERTY_NAME);
 		if (p == null) {
 			return null;
         } else {
@@ -148,7 +147,7 @@ public class WfTaskUtil {
 	}
 
     String getLastDetails(Task task) {
-        PrismProperty<?> p = task.getExtension(Constants.WFLAST_DETAILS_PROPERTY_NAME);
+        PrismProperty<?> p = task.getExtensionProperty(Constants.WFLAST_DETAILS_PROPERTY_NAME);
         if (p == null) {
             return null;
         } else {
@@ -371,7 +370,7 @@ public class WfTaskUtil {
     public String getProcessId(Task task) {
         // let us request the current task status
         // todo make this property single-valued in schema to be able to use getRealValue
-        PrismProperty idProp = task.getExtension(Constants.WFPROCESSID_PROPERTY_NAME);
+        PrismProperty idProp = task.getExtensionProperty(Constants.WFPROCESSID_PROPERTY_NAME);
         Collection<String> values = null;
         if (idProp != null) {
             values = idProp.getRealValues(String.class);
@@ -390,7 +389,7 @@ public class WfTaskUtil {
 //    }
 
     public boolean hasModelContext(Task task) {
-        PrismProperty modelContextProperty = task.getExtension(SchemaConstants.MODEL_CONTEXT_NAME);
+        PrismProperty modelContextProperty = task.getExtensionProperty(SchemaConstants.MODEL_CONTEXT_NAME);
         return modelContextProperty != null && modelContextProperty.getRealValue() != null;
     }
 
@@ -445,7 +444,7 @@ public class WfTaskUtil {
 
     public List<ObjectDelta<Objectable>> retrieveDeltasToProcess(Task task) throws SchemaException {
 
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtension(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
         if (deltaTypePrismProperty == null) {
             throw new SchemaException("No " + Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME + " in task extension; task = " + task);
         }
@@ -461,7 +460,7 @@ public class WfTaskUtil {
 
         List<ObjectDelta<Objectable>> retval = new ArrayList<ObjectDelta<Objectable>>();
 
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtension(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
         if (deltaTypePrismProperty != null) {
             for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
                 retval.add(DeltaConvertor.createObjectDelta(objectDeltaType, prismContext));
@@ -495,7 +494,7 @@ public class WfTaskUtil {
     }
 
     private<T> T getExtensionValue(Class<T> clazz, Task task, QName propertyName) {
-        PrismProperty<String> property = task.getExtension(propertyName);
+        PrismProperty<String> property = task.getExtensionProperty(propertyName);
         return property != null ? property.getRealValue(clazz) : null;
     }
 

@@ -613,11 +613,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
     @Override
-    @Deprecated			// specific task setters should be used instead
     public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException {
-        throw new UnsupportedOperationException("Generic modification of a task is not supported; please use specific setters instead. OID = " + oid);
-//		repositoryService.modifyObject(TaskType.class, oid, modifications, parentResult);
+            SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "modifyTask");
+        try {
+		    repositoryService.modifyObject(TaskType.class, oid, modifications, result);
+            TaskQuartzImpl task = (TaskQuartzImpl) getTask(oid, result);
+            task.setRecreateQuartzTrigger(true);
+            synchronizeTaskWithQuartz(task, result);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -752,7 +758,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public List<Task> listTasksRelatedToObject(String oid, ClusterStatusInformation clusterStatusInformation, boolean withClosed, boolean withSubtasks, OperationResult result) throws SchemaException {
+    public List<Task> listTasksRelatedToObject(String oid, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException {
         ObjectQuery query = new ObjectQuery();
         List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
@@ -761,13 +767,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         oidValue.setValue(oid);
         filters.add(EqualsFilter.createEqual(new ItemPath(TaskType.F_OBJECT_REF, ObjectReferenceType.F_OID), oidDefinition, oidValue));
 
-        if (!withClosed) {
-
-        }
-
-        if (!withSubtasks) {
-
-        }
         return searchTasks(query, clusterStatusInformation, result);
     }
 
@@ -997,9 +996,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    @Deprecated
-    public Set<Task> getRunningTasks() throws TaskManagerException {
-        return executionManager.getLocallyRunningTasks();
+    public Set<Task> getLocallyRunningTasks(OperationResult parentResult) throws TaskManagerException {
+        return executionManager.getLocallyRunningTasks(parentResult);
     }
 
     @Override

@@ -121,6 +121,10 @@ public class WfHook implements ChangeHook {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
             }
+            if (!changeProcessor.isEnabled()) {
+                LOGGER.trace("It is disabled, continuing with next one.");
+                continue;
+            }
             try {
                 HookOperationMode hookOperationMode = changeProcessor.startProcessesIfNeeded(context, task, result);
                 if (hookOperationMode != null) {

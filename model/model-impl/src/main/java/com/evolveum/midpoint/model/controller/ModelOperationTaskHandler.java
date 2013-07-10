@@ -74,7 +74,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<Boolean> skipProperty = task.getExtension(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
+        PrismProperty<Boolean> skipProperty = task.getExtensionProperty(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
 
         if (skipProperty != null && Boolean.TRUE.equals(skipProperty.getRealValue())) {
 
@@ -111,7 +111,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
             try {
                 clockwork.run(context, task, result);
 
-                task.setExtensionContainer(context.toPrismContainer());         // will this work?
+                task.setExtensionContainer(context.toPrismContainer());
                 task.savePendingModifications(result);
 
                 if (result.isUnknown()) {

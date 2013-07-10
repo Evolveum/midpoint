@@ -27,10 +27,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
@@ -40,19 +38,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
  * @author Pavol Mederly
  *
  */
-public class WaitForSubtasksTaskHandler implements TaskHandler {
+public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksTaskHandler.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/repo/subtasks-handler-1";
 
-	private static WaitForSubtasksTaskHandler instance = null;
+	private static WaitForSubtasksByPollingTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;
 
-	private WaitForSubtasksTaskHandler() {}
+	private WaitForSubtasksByPollingTaskHandler() {}
 	
 	public static void instantiateAndRegister(TaskManager taskManager) {
 		if (instance == null)
-			instance = new WaitForSubtasksTaskHandler();
+			instance = new WaitForSubtasksByPollingTaskHandler();
 		taskManager.registerHandler(HANDLER_URI, instance);
 		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
 	}
@@ -60,14 +58,14 @@ public class WaitForSubtasksTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 
-		OperationResult opResult = new OperationResult(WaitForSubtasksTaskHandler.class.getName()+".run");
+		OperationResult opResult = new OperationResult(WaitForSubtasksByPollingTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 
-        LOGGER.info("WaitForSubtasksTaskHandler run starting; in task " + task.getName());
+        LOGGER.info("WaitForSubtasksByPollingTaskHandler run starting; in task " + task.getName());
 
         List<PrismObject<TaskType>> subtasks = null;
         try {
-            subtasks = task.listSubtasksRaw(opResult);
+            subtasks = ((TaskQuartzImpl) task).listSubtasksRaw(opResult);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't list subtasks of " + task + " due to schema exception", e);
         }
@@ -93,7 +91,7 @@ public class WaitForSubtasksTaskHandler implements TaskHandler {
         runResult.setOperationResult(null);                             // not to overwrite task's result
         runResult.setProgress(task.getProgress());                      // not to overwrite task's progress
         runResult.setRunResultStatus(status);
-		LOGGER.info("WaitForSubtasksTaskHandler run finishing; in task " + task.getName());
+		LOGGER.info("WaitForSubtasksByPollingTaskHandler run finishing; in task " + task.getName());
 		return runResult;
 	}
 
