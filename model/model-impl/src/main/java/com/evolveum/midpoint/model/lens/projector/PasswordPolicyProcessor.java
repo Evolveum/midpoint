@@ -64,7 +64,8 @@ public class PasswordPolicyProcessor {
 		}
 		
 		if (password == null || password.isEmpty()){
-			throw new PolicyViolationException("Provided password is empty.");
+//			throw new PolicyViolationException("Provided password is empty.");
+            return;
 		}
 
 		boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
