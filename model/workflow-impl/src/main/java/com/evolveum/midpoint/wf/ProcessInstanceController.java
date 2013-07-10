@@ -20,7 +20,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,8 +38,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
-import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -51,7 +48,7 @@ import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareChildOperationTaskHandler;
-import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
+import com.evolveum.midpoint.wf.taskHandlers.WfProcessInstanceShadowTaskHandler;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
@@ -59,13 +56,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.activiti.engine.delegate.DelegateTask;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBException;
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.*;
 
@@ -183,11 +177,11 @@ public class ProcessInstanceController {
             ScheduleType schedule = new ScheduleType();
             schedule.setInterval(wfConfiguration.getProcessCheckInterval());
             schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + TASK_START_DELAY)));
-            t.pushHandlerUri(WfProcessShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
+            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
 
         } else {
 
-            t.pushHandlerUri(WfProcessShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
+            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
             t.makeWaiting();
         }
     }

@@ -55,7 +55,7 @@ import java.util.List;
 @Component
 public class ImportObjectsFromCamelTaskHandler implements TaskHandler, Processor {
 
-    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_PREFIX + "/handler-objects-camel-1";
+    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/camel/handler-2";
 
     @Autowired(required = true)
     private TaskManager taskManager;

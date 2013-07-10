@@ -42,8 +42,8 @@ import java.util.List;
 public class NoOpTaskHandler implements TaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/repo/noop-handler-1";
-	public static final String EXT_SCHEMA_URI = "http://midpoint.evolveum.com/repo/noop-handler-1";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2";
+	public static final String EXT_SCHEMA_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2";
 	public static final QName DELAY_QNAME = new QName(EXT_SCHEMA_URI, "delay"); 
 	public static final QName STEPS_QNAME = new QName(EXT_SCHEMA_URI, "steps");
 		

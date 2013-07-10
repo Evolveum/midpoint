@@ -54,7 +54,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
     private static final String DOT_CLASS = ModelOperationTaskHandler.class.getName() + ".";
 
-    public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-2";
+    public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-2";
 
     @Autowired(required = true)
 	private TaskManager taskManager;

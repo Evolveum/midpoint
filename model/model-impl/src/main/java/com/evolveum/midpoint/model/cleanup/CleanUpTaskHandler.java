@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 @Component
 public class CleanUpTaskHandler implements TaskHandler{
 
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/cleanup-handler-1";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-2";
 
     @Autowired(required=true)
 	private TaskManager taskManager;

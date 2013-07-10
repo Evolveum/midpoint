@@ -78,7 +78,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 @Component
 public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType> {
 
-    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_PREFIX + "/handler-accounts-resource-1";
+    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/accounts-resource/handler-2";
 
     @Autowired(required = true)
     private TaskManager taskManager;

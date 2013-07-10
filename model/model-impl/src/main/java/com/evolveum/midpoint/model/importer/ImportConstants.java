@@ -27,6 +27,7 @@ public class ImportConstants {
 	 * Prefix for all import-related URIs.
 	 */
 	public static final String IMPORT_URI_PREFIX = "http://midpoint.evolveum.com/model/import";
+    public static final String IMPORT_URI_TASK_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/model/import";
 	
 	/**
 	 * Schema URI for import extensions.

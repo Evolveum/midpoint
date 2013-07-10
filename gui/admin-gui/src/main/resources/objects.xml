@@ -178,7 +178,7 @@
         <executionStatus>runnable</executionStatus>
 
         <category>System</category>
-        <handlerUri>http://midpoint.evolveum.com/model/cleanup-handler-1</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-2</handlerUri>
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>

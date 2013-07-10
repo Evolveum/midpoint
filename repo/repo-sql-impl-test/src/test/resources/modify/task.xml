@@ -21,7 +21,7 @@
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-      xmlns:noop="http://midpoint.evolveum.com/repo/noop-handler-1"
+      xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2"
       xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
     <name>Task1: basic single-run task (takes 3x60 sec)</name>
     <extension>
@@ -33,7 +33,7 @@
     <executionStatus>runnable</executionStatus>
 
     <category>Demo</category>
-    <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2</handlerUri>
     <recurrence>single</recurrence>
     <binding>tight</binding>
 </task>

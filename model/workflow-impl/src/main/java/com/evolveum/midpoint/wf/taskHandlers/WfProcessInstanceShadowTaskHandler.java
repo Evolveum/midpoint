@@ -39,10 +39,10 @@ import java.util.List;
  */
 @Component
 @DependsOn({ "taskManager" })
-public class WfProcessShadowTaskHandler implements TaskHandler {
+public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = "http://evolveum.com/wf-shadow-task-uri";
-    private static final String DOT_CLASS = WfProcessShadowTaskHandler.class.getName() + ".";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/process-instance-shadow/handler-2";
+    private static final String DOT_CLASS = WfProcessInstanceShadowTaskHandler.class.getName() + ".";
 
     @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
@@ -56,7 +56,7 @@ public class WfProcessShadowTaskHandler implements TaskHandler {
     @Autowired(required = true)
     private ActivitiInterface activitiInterface;
 
-    private static final Trace LOGGER = TraceManager.getTrace(WfProcessShadowTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WfProcessInstanceShadowTaskHandler.class);
 
     @PostConstruct
     public void init() {

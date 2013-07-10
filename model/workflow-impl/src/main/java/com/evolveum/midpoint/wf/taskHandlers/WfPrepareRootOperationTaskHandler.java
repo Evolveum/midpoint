@@ -42,7 +42,7 @@ import java.util.List;
 @Component
 public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/wf-root-task-uri";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-root-operation/handler-2";
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareRootOperationTaskHandler.class);
 

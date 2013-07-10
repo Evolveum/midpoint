@@ -55,7 +55,7 @@ import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
-import com.evolveum.midpoint.wf.taskHandlers.WfProcessShadowTaskHandler;
+import com.evolveum.midpoint.wf.taskHandlers.WfProcessInstanceShadowTaskHandler;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -789,7 +789,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         Task task0 = null;
 
         for (Task subtask : subtasks) {
-            if (!WfProcessShadowTaskHandler.HANDLER_URI.equals(subtask.getHandlerUri())) {
+            if (!WfProcessInstanceShadowTaskHandler.HANDLER_URI.equals(subtask.getHandlerUri())) {
                 assertNull("More than one non-wf-monitoring subtask", task0);
                 task0 = subtask;
             }
