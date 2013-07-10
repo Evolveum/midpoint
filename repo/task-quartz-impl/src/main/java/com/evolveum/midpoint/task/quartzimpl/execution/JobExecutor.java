@@ -119,7 +119,7 @@ public class JobExecutor implements InterruptableJob {
 		
         executingThread = Thread.currentThread();
         
-		LOGGER.trace("execute called; task = " + task + ", thread = " + executingThread);
+		LOGGER.trace("execute called; task = {}, thread = {}", task, executingThread);
 
         TaskHandler handler = null;
 		try {
@@ -129,6 +129,7 @@ public class JobExecutor implements InterruptableJob {
 		
 			if (handler==null) {
 				LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
+                executionResult.recordFatalError("No handler for URI '" + task.getHandlerUri() + "', closing the task.");
                 closeFlawedTask(task, executionResult);
                 return;
 				//throw new JobExecutionException("No handler for URI '" + task.getHandlerUri() + "'");
@@ -142,6 +143,7 @@ public class JobExecutor implements InterruptableJob {
 				executeSingleTask(handler, executionResult);
 			} else {
 				LOGGER.error("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
+                executionResult.recordFatalError("Tasks must be either recurrent or single-run. This one is neither. Closing it.");
                 closeFlawedTask(task, executionResult);
 			}
 		
@@ -225,6 +227,13 @@ public class JobExecutor implements InterruptableJob {
 
     private void closeFlawedTask(TaskQuartzImpl task, OperationResult result) {
         LOGGER.info("Closing flawed task {}", task);
+        try {
+            task.setResultImmediate(result, result);
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't store operation result into the task {}", e, task);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't store operation result into the task {}", e, task);
+        }
         closeTask(task, result);
     }
 
