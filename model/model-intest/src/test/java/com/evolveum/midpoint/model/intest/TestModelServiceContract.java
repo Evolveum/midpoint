@@ -1368,10 +1368,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 */
 	@Test
     public void test149ModifyUserJackDeleteAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test149ModifyUserJackDeleteAccount");
+		final String TEST_NAME = "test149ModifyUserJackDeleteAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackDeleteAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
@@ -1431,10 +1432,422 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
     }
+	
+	/**
+	 * Assignment enforcement is set to RELATTIVE for this test. The account should be added.
+	 */
+	@Test
+    public void test151ModifyUserJackAssignAccountRelativeEnforcement() throws Exception {
+		final String TEST_NAME = "test151ModifyUserJackAssignAccountRelativeEnforcement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        dummyAuditService.clear();
+        purgeScriptHistory();
+        prepareNotifications();
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+        // Let's break the delta a bit. Projector should handle this anyway
+        breakAssignmentDelta(deltas);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
+	
+	/**
+	 * Assignment enforcement is set to RELATIVE for this test. The account should be gone.
+	 */
+	@Test
+    public void test158ModifyUserJackUnassignAccountRelativeEnforcement() throws Exception {
+		final String TEST_NAME = "test158ModifyUserJackUnassignAccountRelativeEnforcement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() 
+        		+ "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        dummyAuditService.clear();
+        purgeScriptHistory();
+        prepareNotifications();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
+        deltas.add(accountAssignmentUserDelta);
+        
+        // WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+        
+        // Check is shadow is gone
+        assertNoAccountShadow(accountOid);
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+        
+        assertDummyScriptsDelete();
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
+	
+	/**
+	 * Assignment enforcement is set to NONE for this test.
+	 */
+	@Test
+    public void test161ModifyUserJackAssignAccountNoneEnforcement() throws Exception {
+		final String TEST_NAME = "test161ModifyUserJackAssignAccountNoneEnforcement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
+        purgeScriptHistory();
+        prepareNotifications();
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+        // Let's break the delta a bit. Projector should handle this anyway
+        breakAssignmentDelta(deltas);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+        
+        // Check is shadow is gone
+        assertNoAccountShadow(accountOid);
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+        
+        assertDummyScriptsNone();
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+    }
+	
+	@Test
+    public void test163ModifyUserJackAddAccountNoneEnforcement() throws Exception {
+		final String TEST_NAME = "test163ModifyUserJackAddAccountNoneEnforcement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		
+		purgeScriptHistory();
+		dummyAuditService.clear();
+        dummyNotifier.clearRecords();
+        dummyTransport.clearMessages();
+        notificationManager.setDisabled(false);
+        
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        notificationManager.setDisabled(true);
+
+        // Check notifications
+        display("Notifier", dummyNotifier);
+        checkTest100NotificationRecords("newAccounts");
+        checkTest100NotificationRecords("newAccountsViaExpression");
+
+        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+	}
+	
+	@Test
+    public void test164ModifyUserJackUnassignAccountNoneEnforcement() throws Exception {
+		final String TEST_NAME = "test164ModifyUserJackUnassignAccountNoneEnforcement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() 
+        		+ "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
+        purgeScriptHistory();
+        prepareNotifications();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
+        deltas.add(accountAssignmentUserDelta);
+        
+        // WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        assertDummyScriptsNone();
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        notificationManager.setDisabled(true);
+
+        // Check notifications
+        display("Notifier", dummyNotifier);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+    }
+	
+	@Test
+    public void test169ModifyUserJackDeleteAccountNoneEnforcement() throws Exception {
+		final String TEST_NAME = "test169ModifyUserJackDeleteAccountNoneEnforcement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
+        purgeScriptHistory();
+        prepareNotifications();
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setOid(accountOid);
+		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+		userDelta.addModification(accountRefDelta);
+        
+		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
+		
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+        
+        // Check is shadow is gone
+        assertNoAccountShadow(accountOid);
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+        
+        assertDummyScriptsDelete();
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
 
 	@Test
-    public void test150ModifyUserAddAccountFullEnforcement() throws Exception {
-		final String TEST_NAME = "test150ModifyUserAddAccountFullEnforcement";
+    public void test180ModifyUserAddAccountFullEnforcement() throws Exception {
+		final String TEST_NAME = "test180ModifyUserAddAccountFullEnforcement";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1493,8 +1906,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	}
 	
 	@Test
-    public void test152ModifyUserAddAndAssignAccountPositiveEnforcement() throws Exception {
-		final String TEST_NAME = "test152ModifyUserAddAndAssignAccountPositiveEnforcement";
+    public void test182ModifyUserAddAndAssignAccountPositiveEnforcement() throws Exception {
+		final String TEST_NAME = "test182ModifyUserAddAndAssignAccountPositiveEnforcement";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1563,8 +1976,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 * Now we will explicitly delete the account.
 	 */
 	@Test
-    public void test159ModifyUserJackUnassignAndDeleteAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test159ModifyUserJackUnassignAndDeleteAccount");
+    public void test189ModifyUserJackUnassignAndDeleteAccount() throws Exception {
+        TestUtil.displayTestTile(this, "test189ModifyUserJackUnassignAndDeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackUnassignAccount");
@@ -1618,11 +2031,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 * overridded (e.g. fullname) as the mapping is strong.
 	 */
 	@Test
-    public void test160ModifyUserJackAssignAccountAndModify() throws Exception {
-        TestUtil.displayTestTile(this, "test160ModifyUserJackAssignAccountAndModify");
+    public void test190ModifyUserJackAssignAccountAndModify() throws Exception {
+        TestUtil.displayTestTile(this, "test190ModifyUserJackAssignAccountAndModify");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test160ModifyUserJackAssignAccountAndModify");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test190ModifyUserJackAssignAccountAndModify");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -1696,11 +2109,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      *
      */
     @Test
-    public void test161ModifyUserJackModifyAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test161ModifyUserJackModifyAssignment");
+    public void test191ModifyUserJackModifyAssignment() throws Exception {
+        TestUtil.displayTestTile(this, "test191ModifyUserJackModifyAssignment");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test161ModifyUserJackModifyAssignment");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test191ModifyUserJackModifyAssignment");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
@@ -1793,11 +2206,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test165ModifyUserJack() throws Exception {
-        TestUtil.displayTestTile(this, "test165ModifyUserJack");
+    public void test195ModifyUserJack() throws Exception {
+        TestUtil.displayTestTile(this, "test195ModifyUserJack");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test165ModifyUserJack");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test195ModifyUserJack");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -1855,8 +2268,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
     
     @Test
-    public void test166ModifyUserJackLocationEmpty() throws Exception {
-    	final String TEST_NAME = "test166ModifyUserJackLocationEmpty";
+    public void test196ModifyUserJackLocationEmpty() throws Exception {
+    	final String TEST_NAME = "test196ModifyUserJackLocationEmpty";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1918,8 +2331,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test167ModifyUserJackLocationNull() throws Exception {
-    	final String TEST_NAME = "test167ModifyUserJackLocationNull";
+    public void test197ModifyUserJackLocationNull() throws Exception {
+    	final String TEST_NAME = "test197ModifyUserJackLocationNull";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1950,11 +2363,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	}
     
 	@Test
-    public void test168ModifyUserJackRaw() throws Exception {
-        TestUtil.displayTestTile(this, "test168ModifyUserJackRaw");
+    public void test198ModifyUserJackRaw() throws Exception {
+        TestUtil.displayTestTile(this, "test198ModifyUserJackRaw");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test166ModifyUserJackRaw");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test196ModifyUserJackRaw");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -2002,11 +2415,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 		
 	@Test
-    public void test169DeleteUserJack() throws Exception {
-        TestUtil.displayTestTile(this, "test169DeleteUserJack");
+    public void test199DeleteUserJack() throws Exception {
+        TestUtil.displayTestTile(this, "test199DeleteUserJack");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test169DeleteUserJack");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test199DeleteUserJack");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -2437,6 +2850,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	private void assertDummyScriptsDelete() {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The Jabberwock, with eyes of flame");
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+	}
+	
+	private void assertDummyScriptsNone() {
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
 	}
 
 }

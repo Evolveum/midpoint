@@ -390,10 +390,12 @@ public class AssignmentProcessor {
             	
             	LensProjectionContext<ShadowType> projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
             	projectionContext.setAssigned(true);
-            	projectionContext.setLegal(true);
             	projectionContext.setLegalOld(false);
+            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
+            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
+            		projectionContext.setLegal(true);
+            	}
 
-            	
         	// SITUATION: The projection is UNASSIGNED
             } else if (minusAccountMap.containsKey(rat)) {
             	
@@ -545,9 +547,18 @@ public class AssignmentProcessor {
 								+" while the synchronization enforcement policy is FULL and the projection is not assigned");
 					}
 					
-				} else if ((enforcementType == AssignmentPolicyEnforcementType.NONE || enforcementType == AssignmentPolicyEnforcementType.POSITIVE) 
-						&& !projectionContext.isThombstone()) {
-					// Everything that is not yet dead is legal in NONE enforcement mode
+				} else if (enforcementType == AssignmentPolicyEnforcementType.NONE && !projectionContext.isThombstone()) {
+					if (projectionContext.isAdd()) {
+						projectionContext.setLegal(true);
+						projectionContext.setLegalOld(false);
+					} else {
+						// Everything that exists is was legal and is legal. Nothing really changes.
+						projectionContext.setLegal(projectionContext.isExists());
+						projectionContext.setLegalOld(projectionContext.isExists());
+					}
+				
+				} else if (enforcementType == AssignmentPolicyEnforcementType.POSITIVE && !projectionContext.isThombstone()) {
+					// Everything that is not yet dead is legal in POSITIVE enforcement mode
 					projectionContext.setLegal(true);
 					projectionContext.setLegalOld(true);
 					

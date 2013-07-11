@@ -76,15 +76,9 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Autowired(required = true)
 	protected ModelCrudService modelCrudService;
-	
-	public TestModelCrudService() throws JAXBException {
-		super();
-	}
 			
 	@Test
-    public void test100ModifyUserAddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test100ModifyUserAddAccount() throws Exception {
         TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
 
         // GIVEN
