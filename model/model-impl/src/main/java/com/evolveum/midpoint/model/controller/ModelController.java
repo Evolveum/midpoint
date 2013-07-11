@@ -241,6 +241,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 		} catch (SecurityViolationException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
+		} catch (RuntimeException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
 		} finally {
 			RepositoryCache.exit();
 		}

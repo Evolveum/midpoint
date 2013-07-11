@@ -42,4 +42,19 @@ public class LoggingUtils {
 		args.add(ex);
 		LOGGER.debug(message + ".", args.toArray());
 	}
+	
+	public static void logErrorOnDebugLevel(Trace LOGGER, String message, Throwable ex, Object... objects) {
+		Validate.notNull(LOGGER, "Logger can't be null.");
+		Validate.notNull(ex, "Exception can't be null.");
+		
+		List<Object> args = new ArrayList<Object>();
+		args.addAll(Arrays.asList(objects));
+		args.add(ex.getMessage());
+
+		LOGGER.debug(message + ", reason: {}", args.toArray());
+		// Add exception to the list. It will be the last argument without {} in the message,
+		// therefore the stack trace will get logged
+		args.add(ex);
+		LOGGER.trace(message + ".", args.toArray());
+	}
 }

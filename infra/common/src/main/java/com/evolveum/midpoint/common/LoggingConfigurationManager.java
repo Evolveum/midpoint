@@ -53,6 +53,13 @@ public class LoggingConfigurationManager {
 	public static void configure(LoggingConfigurationType config, String version, OperationResult result) {
 
 		OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
+		
+		if (InternalsConfig.avoidLoggingChange) {
+			LOGGER.info("IGNORING change of logging configuration (current config version: {}, new version {}) because avoidLoggingChange=true", currentlyUsedVersion, version);
+			res.recordNotApplicableIfUnknown();
+			return;
+		}
+		
 		LOGGER.info("Changing logging configuration (current config version: {}, new version {})", currentlyUsedVersion, version);
         currentlyUsedVersion = version;
 

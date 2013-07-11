@@ -28,6 +28,11 @@ public class InternalsConfig {
 	// We don't want this to be on by default. It will ruin the ability to explicitly import
 	// non-encrypted value to repo.
 	public static boolean readEncryptionChecks = false;
+	
+	// Used by testing code. If set to true then any change to a logging configuration from
+	// inside midpoint (e.g. change of SystemConfiguration object) will be ignored.
+	// DO NOT USE IN PRODUCTION CODE
+	public static boolean avoidLoggingChange = false;
 
 	public static void setDevelopmentMode() {
 		consistencyChecks = true;

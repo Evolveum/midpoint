@@ -74,6 +74,8 @@ public class InitialDataImport {
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
         task.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
 
+        int count = 0;
+        int errors = 0;
         try {
             PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
 
@@ -100,8 +102,16 @@ public class InitialDataImport {
                 }
 
                 ObjectDelta delta = ObjectDelta.createAddDelta(object);
-                model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-                result.recordSuccess();
+                try {
+                	model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                	result.recordSuccess();
+                	LOGGER.info("Created {} as part of initial import", object);
+                	count++;
+                } catch (Exception e) {
+                	LoggingUtils.logException(LOGGER, "Couldn't import {} from file {}: ", e, object, OBJECTS_FILE, e.getMessage());
+                	result.recordFatalError(e);
+                	errors++;
+                }
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, OBJECTS_FILE);
@@ -109,8 +119,11 @@ public class InitialDataImport {
         }
 
         mainResult.recomputeStatus("Couldn't import objects.");
-        LOGGER.info("Initial object import finished.");
-        LOGGER.info("Initialization status:\n" + mainResult.dump());
+        
+        LOGGER.info("Initial object import finished ({} objects imported, {} errors)", count, errors);
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("Initialization status:\n" + mainResult.dump());
+        }
     }
 
     private File getResource(String name) {
