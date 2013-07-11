@@ -220,6 +220,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
@@ -227,6 +228,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -234,6 +236,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertAdministrativeStatusDisabled(userJack);
 		assertDummyDisabled("jack");
+		
+		XMLGregorianCalendar userDisableTimestamp = userJack.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong user disableTimestamp", 
+				startTime, endTime, userDisableTimestamp);
+		
+		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		XMLGregorianCalendar accountDisableTimestamp = accountShadow.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong account disableTimestamp", 
+				startTime, endTime, accountDisableTimestamp);
 	}
 	
 	@Test
@@ -272,6 +284,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test111ModifyAccountJackDisable");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
         modifyAccountShadowReplace(accountOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
@@ -283,6 +296,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
+		
+		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		XMLGregorianCalendar accountDisableTimestamp = accountShadow.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong account disableTimestamp", 
+				startTime, clock.currentTimeXMLGregorianCalendar(), accountDisableTimestamp);
         
 		assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");

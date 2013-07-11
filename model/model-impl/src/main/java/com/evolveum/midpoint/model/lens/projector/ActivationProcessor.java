@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -103,6 +104,7 @@ public class ActivationProcessor {
     		return;
     	}
     	processActivationUserCurrent((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
+    	processActivationMetadata((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
     	processActivationUserFuture((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
     }
 
@@ -233,12 +235,6 @@ public class ActivationProcessor {
 	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
 	    			capActivation, now, true, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), result);
 	    	
-	    	if (statusDelta != null) {
-	    		ActivationStatusType statusNew = statusDelta.getPropertyNew().getRealValue();
-	    		PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew, now, getActivationDefinition(), OriginType.OUTBOUND);
-	    		accCtx.addToSecondaryDelta(timestampDelta);
-	    	}
-	    	
         } else {
         	LOGGER.trace("Skipping activation status processing because {} does not have activation status capability", accCtx.getResource());
         }
@@ -261,6 +257,25 @@ public class ActivationProcessor {
     	
     }
 
+    public void processActivationMetadata(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
+    		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    	ObjectDelta<ShadowType> projDelta = accCtx.getDelta();
+    	if (projDelta == null) {
+    		return;
+    	}
+    	
+    	PropertyDelta<ActivationStatusType> statusDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+    	
+    	if (statusDelta != null) {
+    		PrismProperty<ActivationStatusType> statusPropNew = (PrismProperty<ActivationStatusType>) statusDelta.getItemNew();
+    		ActivationStatusType statusNew = statusPropNew.getRealValue();
+			PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
+					now, getActivationDefinition(), OriginType.OUTBOUND);
+    		accCtx.addToSecondaryDelta(timestampDelta);
+    	}
+    	
+    }
+    
     public void processActivationUserFuture(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
     		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	String accCtxDesc = accCtx.toHumanReadableString();
