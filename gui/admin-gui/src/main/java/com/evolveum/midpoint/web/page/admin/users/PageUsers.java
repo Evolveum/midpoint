@@ -551,14 +551,14 @@ public class PageUsers extends PageAdminUsers {
                 ModelExecuteOptions options = executeOptions.createOptions();
                 LOGGER.debug("Using options {}.", new Object[]{executeOptions});
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, subResult);
-                subResult.recordSuccess();
+                subResult.computeStatus();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
                 subResult.recordFatalError("Couldn't delete user.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't delete user", ex);
             }
         }
-        result.recomputeStatus();
+        result.computeStatusComposite();
 
         ObjectDataProvider<UserType> provider = (ObjectDataProvider) getTable().getDataTable()
                 .getDataProvider();
