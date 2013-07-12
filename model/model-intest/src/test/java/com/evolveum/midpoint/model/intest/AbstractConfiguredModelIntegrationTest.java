@@ -118,12 +118,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_GREEN_NAME = "green";
 	protected static final String RESOURCE_DUMMY_GREEN_NAMESPACE = MidPointConstants.NS_RI;
 	
-	// YELLOW dummy resource has a dependency on default dummy resource
-	protected static final String RESOURCE_DUMMY_YELLOW_FILENAME = COMMON_DIR_NAME + "/resource-dummy-yellow.xml";
-	protected static final String RESOURCE_DUMMY_YELLOW_OID = "10000000-0000-0000-0000-000000000504";
-	protected static final String RESOURCE_DUMMY_YELLOW_NAME = "yellow";
-	protected static final String RESOURCE_DUMMY_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
-
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR_NAME + "/resource-dummy-schemaless-no-schema.xml";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
@@ -148,10 +142,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	// Excludes role "pirate"
 	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
-	
-	// Assigns default dummy resource and red dummy resource
-	protected static final String ROLE_DUMMIES_FILENAME = COMMON_DIR_NAME + "/role-dummies.xml";
-	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
 
 	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";

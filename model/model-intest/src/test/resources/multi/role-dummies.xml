@@ -45,5 +45,10 @@
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
     	</construction>
+    </inducement>
+    <inducement>
+    	<construction>
+    		<resourceRef oid="10000000-0000-0000-0000-000000011504" type="c:ResourceType"/>
+    	</construction>
     </inducement>    
 </role>

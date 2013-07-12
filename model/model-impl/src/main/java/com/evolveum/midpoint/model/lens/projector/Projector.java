@@ -42,6 +42,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyStrictnessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -280,16 +282,23 @@ public class Projector {
 			return;
 		}
 		int wave = 0;
-		for (ShadowDiscriminatorType dependency :accountContext.getDependencies()) {
+		for (ResourceObjectTypeDependencyType dependency :accountContext.getDependencies()) {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
 			if (dependencyAccountContext == null) {
-				throw new PolicyViolationException("Unsatisfied dependency of account "+accountContext.getResourceShadowDiscriminator()+
+				if (dependency.getStrictness() == null || dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+": Account not provisioned");
-			}
-			determineAccountWave(context, dependencyAccountContext);
-			if (dependencyAccountContext.getWave() + 1 > wave) {
-				wave = dependencyAccountContext.getWave() + 1;
+				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
+					// just ignore it
+					LOGGER.debug("Unsatisfied lax dependency of account "+accountContext.getResourceShadowDiscriminator()+
+						" dependent on "+refRat+"; depencency skipped");
+				}
+			} else {
+				determineAccountWave(context, dependencyAccountContext);
+				if (dependencyAccountContext.getWave() + 1 > wave) {
+					wave = dependencyAccountContext.getWave() + 1;
+				}
 			}
 		}
 //		LOGGER.trace("Wave for {}: {}", accountContext.getResourceAccountType(), wave);

@@ -2857,7 +2857,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="dependency" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="dependency" type="tns:ResourceObjectTypeDependencyType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
             <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
@@ -2976,7 +2976,9 @@
 	            	</xsd:appinfo>
 	            </xsd:annotation>
 	       	</xsd:element>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0" default="user">
+	       	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0" default="default">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of account that is the target of reference.
@@ -2985,6 +2987,43 @@
             </xsd:element>
     	</xsd:sequence>
     </xsd:complexType>
+    
+   <xsd:complexType name="ResourceObjectTypeDependencyType">
+   		<xsd:complexContent>
+   			<xsd:extension base="tns:ShadowDiscriminatorType">
+   				<xsd:sequence>
+   					<xsd:element name="strictness" type="tns:ResourceObjectTypeDependencyStrictnessType" minOccurs="0"/>
+   				</xsd:sequence>
+   			</xsd:extension>
+   		</xsd:complexContent>
+   </xsd:complexType>
+   
+   <xsd:simpleType name="ResourceObjectTypeDependencyStrictnessType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO 
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="strict">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STRICT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="lax">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LAX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ResourceAttributeDefinitionType">
         <xsd:annotation>

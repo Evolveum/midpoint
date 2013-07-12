@@ -105,11 +105,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceDummyGreenType;
 	protected PrismObject<ResourceType> resourceDummyGreen;
 	
-	protected static DummyResource dummyResourceYellow;
-	protected static DummyResourceContoller dummyResourceCtlYellow;
-	protected ResourceType resourceDummyYellowType;
-	protected PrismObject<ResourceType> resourceDummyYellow;
-	
 	protected ResourceType resourceDummySchemalessType;
 	protected PrismObject<ResourceType> resourceDummySchemaless;
 	
@@ -167,13 +162,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 		dummyResourceCtlGreen.setResource(resourceDummyGreen);
 		
-		dummyResourceCtlYellow = DummyResourceContoller.create(RESOURCE_DUMMY_YELLOW_NAME, resourceDummyYellow);
-		dummyResourceCtlYellow.extendDummySchema();
-		dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
-		resourceDummyYellow = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_YELLOW_FILENAME, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
-		resourceDummyYellowType = resourceDummyYellow.asObjectable();
-		dummyResourceCtlYellow.setResource(resourceDummyYellow);
-		
 		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
 
@@ -211,7 +199,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_DUMMIES_FILENAME, RoleType.class, initResult);
 		
 		// Orgstruct
 		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILENAME, OrgType.class, initResult);

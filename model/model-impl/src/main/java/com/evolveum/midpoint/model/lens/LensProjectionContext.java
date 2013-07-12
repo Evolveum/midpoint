@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnf
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -136,7 +137,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
     private transient AccountConstruction outboundAccountConstruction;
     
-    private transient Collection<ShadowDiscriminatorType> dependencies = null;
+    private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
     
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes;
     
@@ -412,12 +413,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		return refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, getResourceShadowDiscriminator().getIntent());
 	}
 	
-	public Collection<ShadowDiscriminatorType> getDependencies() {
+	public Collection<ResourceObjectTypeDependencyType> getDependencies() {
 		if (dependencies == null) {
 			ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceAccountTypeDefinitionType();
 			if (resourceAccountTypeDefinitionType == null) {
 				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
-				dependencies = new ArrayList<ShadowDiscriminatorType>();
+				dependencies = new ArrayList<ResourceObjectTypeDependencyType>();
 			} else {
 				dependencies = resourceAccountTypeDefinitionType.getDependency();
 			}

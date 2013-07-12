@@ -1587,6 +1587,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		if ((values == null || values.isEmpty()) && (expectedAttributeValues == null || expectedAttributeValues.length == 0)) {
+			return;
+		}
 		assertNotNull("No values for attribute "+attributeName+" of dummy account "+username, values);
 		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username+": "+values, expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
