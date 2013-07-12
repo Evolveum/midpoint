@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
@@ -126,7 +127,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertAdministrativeStatusDisabled(userJack);
 		assertValidity(userJack, null);
 		assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
-		IntegrationTestTools.assertBetween("disable timestamp", start, end, userJack.asObjectable().getActivation().getDisableTimestamp());
+		assertDisableTimestampFocus(userJack, start, end);
 		
 		IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
 	}
@@ -157,7 +158,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertAdministrativeStatusEnabled(userJack);
 		assertValidity(userJack, null);
 		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
-		IntegrationTestTools.assertBetween("enable timestamp", start, end, userJack.asObjectable().getActivation().getEnableTimestamp());
+		assertEnableTimestampFocus(userJack, start, end);
 		
 		IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
 	}
@@ -195,13 +196,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
-        IntegrationTestTools.assertBetween("shadow enable timestamp", start, end, accountShadow.asObjectable().getActivation().getEnableTimestamp());
+        assertEnableTimestampShadow(accountShadow, start, end);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         IntegrationTestTools.assertCreateTimestamp(accountModel, start, end);
-        IntegrationTestTools.assertBetween("shadow enable timestamp", start, end, accountModel.asObjectable().getActivation().getEnableTimestamp());
+        assertEnableTimestampShadow(accountModel, start, end);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -236,16 +237,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertAdministrativeStatusDisabled(userJack);
 		assertDummyDisabled("jack");
-		
-		XMLGregorianCalendar userDisableTimestamp = userJack.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong user disableTimestamp", 
-				startTime, endTime, userDisableTimestamp);
+		assertDisableTimestampFocus(userJack, startTime, endTime);
 		
 		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
 		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
-		XMLGregorianCalendar accountDisableTimestamp = accountShadow.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong account disableTimestamp", 
-				startTime, endTime, accountDisableTimestamp);
+		assertDisableTimestampShadow(accountShadow, startTime, endTime);
 	}
 	
 	@Test
@@ -256,6 +252,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
@@ -263,6 +260,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -270,6 +268,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertAdministrativeStatusEnabled(userJack);
 		assertDummyEnabled("jack");
+		assertEnableTimestampFocus(userJack, startTime, endTime);
 	}
 	
 
@@ -292,6 +291,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -299,16 +299,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
 		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
-		XMLGregorianCalendar accountDisableTimestamp = accountShadow.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong account disableTimestamp", 
-				startTime, clock.currentTimeXMLGregorianCalendar(), accountDisableTimestamp);
+		assertDisableTimestampShadow(accountShadow, startTime, endTime);
         
 		assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");
 	}
 	
 	/**
-	 * Re-enabling the user should enable the account sa well. Even if the user is already enabled.
+	 * Re-enabling the user should enable the account as well. Even if the user is already enabled.
 	 */
 	@Test
     public void test112ModifyUserJackEnable() throws Exception {
@@ -318,6 +316,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test112ModifyUserJackEnable");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
@@ -325,6 +324,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -332,6 +332,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertAdministrativeStatusEnabled(userJack);
 		assertDummyEnabled("jack");
+		assertEnableTimestampFocus(userJack, startTime, endTime);
+		
+		assertAccounts(USER_JACK_OID, 1);
+        PrismObject<ShadowType> account = getAccount(accountOid);
+        assertShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAdministrativeStatusEnabled(account);
+        assertEnableTimestampShadow(account, startTime, endTime);
 	}
 	
 	/**
@@ -352,6 +359,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -359,13 +368,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
-		
+		assertEnableTimestampFocus(userJack, startTime, endTime);
 		assertAdministrativeStatusEnabled(userJack);
+		
 		assertDummyDisabled("jack");
+		assertAccounts(USER_JACK_OID, 1);
+        PrismObject<ShadowType> account = getAccount(accountOid);
+        assertShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAdministrativeStatusDisabled(account);
+        assertDisableTimestampShadow(account, startTime, endTime);
 	}
 	
 	/**
@@ -383,6 +399,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -390,6 +407,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -406,6 +424,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
+		assertEnableTimestampShadow(accountRed, startTime, endTime);
 	}
 	
 	/**
@@ -429,6 +448,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -436,6 +456,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -444,6 +465,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAdministrativeStatusDisabled(userJack);
 		assertDummyDisabled("jack");
 		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
+		
+		assertAccounts(USER_JACK_OID, 2);
+        accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        assertShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
+        assertAdministrativeStatusDisabled(accountRed);
+        assertDisableTimestampShadow(accountRed, startTime, endTime);
 	}
 	
 	@Test
@@ -1070,6 +1098,34 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		ActivationType activation = user.asObjectable().getActivation();
 		assertNotNull("No activation in "+user, activation);
 		assertEquals("Unexpected effective activation status in "+user, expected, activation.getEffectiveStatus());
+	}
+	
+	private void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getEnableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong user enableTimestamp in "+focus, 
+				startTime, endTime, userDisableTimestamp);
+	}
+
+	private void assertDisableTimestampFocus(PrismObject<? extends FocusType> focus, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong user disableTimestamp in "+focus, 
+				startTime, endTime, userDisableTimestamp);
+	}
+	
+	private void assertEnableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getEnableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
+				startTime, endTime, userDisableTimestamp);
+	}
+
+	private void assertDisableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
+				startTime, endTime, userDisableTimestamp);
 	}
 
 }
