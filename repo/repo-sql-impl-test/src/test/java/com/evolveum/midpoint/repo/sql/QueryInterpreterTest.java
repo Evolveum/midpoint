@@ -771,4 +771,31 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         close(session);
     }
+
+    /**
+     * Q{AND: (EQUALS: parent, PPV(null)),PAGING: O: 0,M: 5,BY: name, D:ASCENDING,
+     * @throws Exception
+     */
+    @Test
+    public void countTaskOrderByName() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RTask.class, "t");
+        main.add(Restrictions.isNull("t.parent"));
+
+        main.setProjection(Projections.rowCount());
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        EqualsFilter filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_PARENT, null);
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        query.setPaging(ObjectPaging.createPaging(null, null, TaskType.F_NAME, OrderDirection.ASCENDING));
+
+        String real = getInterpretedQuery(session, TaskType.class, query, true);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
 }
