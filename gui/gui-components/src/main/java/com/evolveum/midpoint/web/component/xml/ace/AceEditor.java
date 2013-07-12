@@ -57,6 +57,9 @@ public class AceEditor<T> extends TextArea<T> {
         response.render(CssHeaderItem.forReference(
                 new PackageResourceReference(AceEditor.class, "style-ace.css")));
 
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(AceEditor.class, "ace-startup.js")));
+
         response.render(OnDomReadyHeaderItem.forScript(createOnLoadJavascript()));
     }
 
@@ -92,6 +95,7 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(setFocus(isReadonly()));
         script.append("$('#" + editorId + "').append(\"" + helpButton + "\");");
         script.append("if($.browser.msie){$('#" + editorId + "').find('.ace_gutter').hide();}");
+        script.append("resizeEditor('").append(editorId).append("');");
         script.append("} else {");
         if(isReadonly()){
         	script.append("$('#" + getMarkupId() + "').attr('readonly','readonly').css('background','#F4F4F4');");
