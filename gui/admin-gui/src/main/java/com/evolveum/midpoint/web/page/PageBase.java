@@ -18,15 +18,20 @@ package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
@@ -42,6 +47,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -66,6 +72,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.util.Iterator;
 import java.util.List;
@@ -246,7 +254,7 @@ public abstract class PageBase extends WebPage {
         Task task = manager.createTaskInstance(operation);
 
         if (owner == null) {
-        	MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
             if (user == null) {
                 return task;
             } else {
@@ -261,7 +269,7 @@ public abstract class PageBase extends WebPage {
     }
 
     public Task createSimpleTask(String operation) {
-    	MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
         return createSimpleTask(operation, user != null ? user.getUser().asPrismObject() : null);
     }
 
@@ -419,7 +427,7 @@ public abstract class PageBase extends WebPage {
 
     // experimental -- go to previous page (either with reinitialization e.g. when something changed, or without - typically when 'back' button is pressed)
     protected void goBack(Class<? extends Page> defaultBackPageClass) {
-        LOGGER.trace("goBack called; page = {}, previousPage = {}, reinitializePreviousPages = {}", new Object[] {this, previousPage, reinitializePreviousPages});
+        LOGGER.trace("goBack called; page = {}, previousPage = {}, reinitializePreviousPages = {}", new Object[]{this, previousPage, reinitializePreviousPages});
         if (previousPage != null) {
             setResponsePage(getPreviousPageToGoTo());
         } else {
@@ -448,12 +456,40 @@ public abstract class PageBase extends WebPage {
 
     // returns to previous page via restart response exception
     public RestartResponseException getRestartResponseException(Class<? extends Page> defaultBackPageClass) {
-        LOGGER.trace("getRestartResponseException called; page = {}, previousPage = {}, reinitializePreviousPages = {}", new Object[] {this, previousPage, reinitializePreviousPages});
+        LOGGER.trace("getRestartResponseException called; page = {}, previousPage = {}, reinitializePreviousPages = {}", new Object[]{this, previousPage, reinitializePreviousPages});
         if (previousPage != null) {
             return new RestartResponseException(getPreviousPageToGoTo());
         } else {
             LOGGER.trace("...going to default back page {}", defaultBackPageClass);
             return new RestartResponseException(defaultBackPageClass);
         }
+    }
+
+    protected <P extends Object> void validateObject(String xmlObject, final Holder<P> objectHolder,
+                                  boolean validateSchema, OperationResult result) {
+        EventHandler handler = new EventHandler() {
+
+            @Override
+            public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+                return EventResult.cont();
+            }
+
+            @Override
+            public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+                                                                   OperationResult objectResult) {
+                objectHolder.setValue((P) object);
+                return EventResult.cont();
+            }
+
+            @Override
+            public void handleGlobalError(OperationResult currentResult) {
+            }
+        };
+        Validator validator = new Validator(getPrismContext(), handler);
+        validator.setVerbose(true);
+        validator.setValidateSchema(validateSchema);
+        validator.validateObject(xmlObject, result);
+
+        result.computeStatus();
     }
 }

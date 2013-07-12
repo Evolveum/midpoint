@@ -235,31 +235,9 @@ public class PageDebugView extends PageAdminConfiguration {
             	oldObject.setPrismContext(getPrismContext());
             }
             
-            final Holder<PrismObject<ObjectType>> objectHolder = new Holder<PrismObject<ObjectType>>(null);
-            EventHandler handler = new EventHandler() {
-				@Override
-				public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
-					return EventResult.cont();
-				}				
-				@Override
-				public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
-						OperationResult objectResult) {
-					objectHolder.setValue((PrismObject<ObjectType>) object);
-					return EventResult.cont();
-				}
-				
-				@Override
-				public void handleGlobalError(OperationResult currentResult) {
-				}
-			};
-			Validator validator = new Validator(getPrismContext(), handler );
-            validator.setVerbose(true);
-            validator.setValidateSchema(validateSchema.getObject());
-            String newXmlString = editor.getModel().getObject();
-            validator.validateObject(newXmlString, result);
-            
-            result.computeStatus();
-            
+            Holder<PrismObject<ObjectType>> objectHolder = new Holder<PrismObject<ObjectType>>(null);
+            validateObject(editor.getModel().getObject(), objectHolder, validateSchema.getObject(), result);
+
             if (result.isAcceptable()) {
                 PrismObject<ObjectType> newObject = objectHolder.getValue();
                 
@@ -281,7 +259,6 @@ public class PageDebugView extends PageAdminConfiguration {
                 
                 result.computeStatus();            	
             }
-            
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save object.", ex);
         }

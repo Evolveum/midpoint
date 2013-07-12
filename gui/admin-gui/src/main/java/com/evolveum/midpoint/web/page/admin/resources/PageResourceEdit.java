@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -196,30 +198,31 @@ public class PageResourceEdit extends PageAdminResources {
             return;
         }
 
-        OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
+        Task task = createSimpleTask(OPERATION_SAVE_RESOURCE);
+        OperationResult result = task.getResult();
         try {
-            Task task = createSimpleTask(OPERATION_SAVE_RESOURCE);
-            if (!isEditing()) {
-                //we're adding new resource
-                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-                PrismObject<ResourceType> newResource = domProcessor.parseObject(dto.getXml(), ResourceType.class);
+            Holder<PrismObject<ResourceType>> objectHolder = new Holder<PrismObject<ResourceType>>(null);
+            validateObject(dto.getXml(), objectHolder, true, result);
+
+            if (result.isAcceptable()) {
+                PrismObject<ResourceType> newResource = objectHolder.getValue();
                 updateConnectorRef(newResource, task, result);
 
-                ObjectDelta delta = ObjectDelta.createAddDelta(newResource);
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-            } else {
-                //we're editing existing resource
-                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-                PrismObject<ResourceType> oldResource = dto.getObject();
-                PrismObject<ResourceType> newResource = domProcessor.parseObject(dto.getXml(), ResourceType.class);
-                updateConnectorRef(newResource, task, result);
+                if (!isEditing()) {
+                    //we're adding new resource
+                    ObjectDelta delta = ObjectDelta.createAddDelta(newResource);
+                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                } else {
+                    //we're editing existing resource
+                    PrismObject<ResourceType> oldResource = dto.getObject();
+                    ObjectDelta<ResourceType> delta = oldResource.diff(newResource);
 
-                ObjectDelta<ResourceType> delta = oldResource.diff(newResource);
+                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
+                            ModelExecuteOptions.createRaw(), task, result);
+                }
 
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, result);
+                result.computeStatus();
             }
-
-            result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
             result.recordFatalError("Couldn't save resource.", ex);
