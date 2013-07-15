@@ -96,6 +96,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         super(ShadowType.class, "Import from resource", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
         objectclassPropertyDefinition = new PrismPropertyDefinition<QName>(ImportConstants.OBJECTCLASS_PROPERTY_NAME, 
         		ImportConstants.OBJECTCLASS_PROPERTY_NAME, DOMUtil.XSD_QNAME, prismContext);
+        setLogFinishInfo(true);
     }
 
     @PostConstruct

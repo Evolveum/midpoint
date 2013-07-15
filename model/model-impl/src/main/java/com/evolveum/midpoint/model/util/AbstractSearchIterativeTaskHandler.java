@@ -48,6 +48,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 	private String taskName;
 	private String taskOperationPrefix;
 	private Class<O> type;
+	private boolean logFinishInfo = false; 
 	
 	// This is not ideal, TODO: refactor
 	private Map<Task, AbstractSearchIterativeResultHandler> handlers = new HashMap<Task,AbstractSearchIterativeResultHandler>();
@@ -68,6 +69,14 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 		this.type = type;
 		this.taskName = taskName;
 		this.taskOperationPrefix = taskOperationPrefix;
+	}
+	
+	public boolean isLogFinishInfo() {
+		return logFinishInfo;
+	}
+
+	public void setLogFinishInfo(boolean logFinishInfo) {
+		this.logFinishInfo = logFinishInfo;
 	}
 
 	@Override
@@ -172,12 +181,14 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
         runResult.setProgress(handler.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
-        String finishMessage = "Finished " + taskName + " (" + task + "). ";
-        String statistics = "Processed " + handler.getProgress() + " objects, got " + handler.getErrors() + " errors.";
-
-        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
-
-        LOGGER.info(finishMessage + statistics);
+        if (logFinishInfo) {
+	        String finishMessage = "Finished " + taskName + " (" + task + "). ";
+	        String statistics = "Processed " + handler.getProgress() + " objects, got " + handler.getErrors() + " errors.";
+	
+	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
+	
+	        LOGGER.info(finishMessage + statistics);
+        }
         
         try {
         	finish(runResult, task, opResult);
