@@ -571,8 +571,9 @@ public class ContextLoader {
 						ObjectDelta<ShadowType> accountPrimaryDelta = account.createDeleteDelta();
 						accountContext.setPrimaryDelta(accountPrimaryDelta);
 					}
+					accountContext.setFresh(true);
 				}
-				accountContext.setFresh(true);
+				
 			}
 		}
 		
@@ -766,7 +767,8 @@ public class ContextLoader {
 //						} else {
 ////							projContext.setFullShadow(false);
 //							options = GetOperationOptions.createNoFetch();
-//						}
+//						]}
+						try{
 						PrismObject<P> objectOld = provisioningService.getObject(
 								projContext.getObjectTypeClass(), projectionObjectOid, options, result);
 						projContext.setObjectOld(objectOld);
@@ -782,6 +784,15 @@ public class ContextLoader {
 							projContext.setFullShadow(false);
 						}
 						projectionObject = objectOld;
+						} catch (ObjectNotFoundException ex){
+							projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+							LOGGER.warn("Could not find object with oid " + projectionObjectOid + ". Context for these object is marked as broken");
+							continue;
+						} catch (SchemaException ex){
+							projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+							LOGGER.warn("Schema problem while getting object with oid " + projectionObjectOid + ". Context for these object is marked as broken");
+							continue;
+						}
 					}
 				}
 			}
