@@ -104,6 +104,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 		if (operationResult.isSuccess()) {
 			parentResult.recordSuccess();
+			parentResult.muteLastSubresultError();
 		}
 		
 		if (compensate){

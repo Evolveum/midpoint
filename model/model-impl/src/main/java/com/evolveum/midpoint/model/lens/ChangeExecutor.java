@@ -264,7 +264,9 @@ public class ChangeExecutor {
 				// broken, instead we need to restart projector for this
 				// context to recompute new account or find out if the
 				// account was already linked..
-				recordProjectionExecutionException(e, accCtx, subResult, null);
+				// and also do not set fatal error to the operation result, this is a special case
+				// if it is fatal, it will be set later
+//				recordProjectionExecutionException(e, accCtx, subResult, null);
 				continue;
 			} catch (CommunicationException e) {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
