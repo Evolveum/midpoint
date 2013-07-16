@@ -270,7 +270,7 @@ public class PasswordPolicyUtils {
 			}
 			if (l.getMinOccurs() > count) {
 				String msg = "Required minimal occurrence (" + l.getMinOccurs()
-						+ ") of characters in password is not met (occurrence of characters in password "
+						+ ") of characters ("+l.getDescription()+") in password is not met (occurrence of characters in password "
 						+ count + ").";
 				limitResult.addSubresult(new OperationResult("Check minimal occurrence of characters",
 						OperationResultStatus.FATAL_ERROR, msg));
@@ -287,7 +287,7 @@ public class PasswordPolicyUtils {
 
 				if (l.getMaxOccurs() < count) {
 					String msg = "Required maximal occurrence (" + l.getMaxOccurs()
-							+ ") of characters in password was exceeded (occurrence of characters in password "
+							+ ") of characters ("+l.getDescription()+") in password was exceeded (occurrence of characters in password "
 							+ count + ").";
 					limitResult.addSubresult(new OperationResult("Check maximal occurrence of characters",
 							OperationResultStatus.FATAL_ERROR, msg));
