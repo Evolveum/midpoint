@@ -205,6 +205,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     public boolean isAdd() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
 			return true;
+		} else if (synchronizationPolicyDecision != null){
+			return false;
 		}
 		if (ObjectDelta.isAdd(getPrimaryDelta())) {
 			return true;
@@ -218,6 +220,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     public boolean isModify() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.KEEP) {
 			return true;
+		} else if (synchronizationPolicyDecision != null){
+			return false;
 		}
 		if (ObjectDelta.isModify(getPrimaryDelta())) {
 			return true;
@@ -231,6 +235,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	public boolean isDelete() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
 			return true;
+		} else if (synchronizationPolicyDecision != null){
+			return false;
 		}
 		if (ObjectDelta.isDelete(getPrimaryDelta())) {
 			return true;
