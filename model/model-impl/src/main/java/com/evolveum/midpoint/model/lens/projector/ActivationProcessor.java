@@ -15,17 +15,9 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -33,8 +25,6 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -44,31 +34,41 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceActivationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceBidirectionalMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationValidityCapabilityType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The processor that takes care of user activation mapping to an account (outbound direction).
@@ -229,12 +229,10 @@ public class ActivationProcessor {
         ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
         
         if (capStatus != null) {
-        	
-	    	PropertyDelta<ActivationStatusType> statusDelta = evaluateActivationMapping(context, accCtx, 
+	    	evaluateActivationMapping(context, accCtx,
 	    			activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
 	    			capActivation, now, true, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), result);
-	    	
         } else {
         	LOGGER.trace("Skipping activation status processing because {} does not have activation status capability", accCtx.getResource());
         }
@@ -509,7 +507,7 @@ public class ActivationProcessor {
 				// Target
 		        PrismObjectDefinition<ShadowType> shadowDefinition = 
 		            	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		            PrismPropertyDefinition<T> shadowPropertyDefinition = 
+                PrismPropertyDefinition<T> shadowPropertyDefinition =
 		            	shadowDefinition.findPropertyDefinition(projectionPropertyPath);
 		        mapping.setDefaultTargetDefinition(shadowPropertyDefinition);
 				
@@ -543,6 +541,16 @@ public class ActivationProcessor {
         	
         	Collection<PrismPropertyValue<T>> plusSet = outputTriple.getPlusSet();
         	if (plusSet != null && !plusSet.isEmpty()) {
+
+                // if what we want to set is the same as is already in the shadow, we skip that
+                if (accCtx.isFullShadow() && accCtx.isFresh()) {
+                    Set<T> realValuesPresent = new HashSet<T>(shadowPropertyNew.getRealValues());
+                    Set<T> realValuesComputed = PrismValue.getRealValuesOfCollection(plusSet);
+                    if (realValuesPresent.equals(realValuesComputed)) {
+                        LOGGER.trace("Activation '{}' expression resulted in existing values for projection {}, skipping creation of a delta", desc, accCtxDesc);
+                        return null;
+                    }
+                }
         		projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(plusSet));
         	}
         	

@@ -15,18 +15,18 @@
  */
 package com.evolveum.midpoint.prism;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.w3c.dom.Element;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author semancik
@@ -317,5 +317,12 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	 * The value is returned without any decorations or type demarcations (such as PPV, PRV, etc.)
 	 */
 	public abstract String toHumanReadableString();
-	
+
+    public static <T> Set<T> getRealValuesOfCollection(Collection<PrismPropertyValue<T>> collection) {
+        Set<T> retval = new HashSet<T>(collection.size());
+        for (PrismPropertyValue<T> value : collection) {
+            retval.add(value.getValue());
+        }
+        return retval;
+    }
 }
