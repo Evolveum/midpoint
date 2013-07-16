@@ -399,7 +399,7 @@ public class ActivationProcessor {
 				
 		        existenceMapping.setOriginType(OriginType.OUTBOUND);
 		        existenceMapping.setOriginObject(accCtx.getResource());				
-			}
+            }
 
         };
         
@@ -543,7 +543,7 @@ public class ActivationProcessor {
         	if (plusSet != null && !plusSet.isEmpty()) {
 
                 // if what we want to set is the same as is already in the shadow, we skip that
-                if (accCtx.isFullShadow() && accCtx.isFresh()) {
+                if (accCtx.isFullShadow() && accCtx.isFresh() && shadowPropertyNew != null) {
                     Set<T> realValuesPresent = new HashSet<T>(shadowPropertyNew.getRealValues());
                     Set<T> realValuesComputed = PrismValue.getRealValuesOfCollection(plusSet);
                     if (realValuesPresent.equals(realValuesComputed)) {
