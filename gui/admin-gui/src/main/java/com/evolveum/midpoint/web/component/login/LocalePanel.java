@@ -89,6 +89,8 @@ public class LocalePanel extends Panel {
                     IOUtils.closeQuietly(reader);
                 }
             }
+
+            Collections.sort(locales);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load locales", ex);
         }
