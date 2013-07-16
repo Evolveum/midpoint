@@ -271,7 +271,7 @@ object.
 					<access>
 						<create>true</create>
 						<read>true</read>
-						<update>false</update>
+						<update>true</update>
 					</access>
 				</limitations>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
