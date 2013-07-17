@@ -105,8 +105,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertTarget(USER_JACK_OID);
-        dummyAuditService.assertExecutionOutcome(0,OperationResultStatus.PARTIAL_ERROR);
-        dummyAuditService.assertExecutionMessage(0);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionMessage();
 		
 	}
 	
@@ -131,16 +131,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userCharles);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
-//        try {
-			// WHEN
-			modelService.executeChanges(deltas, null, task, result);
-			//not expected that it fails, insted the fatal error in the result is excpected
-//			AssertJUnit.fail("Unexpected success of modelService.executeChanges(), expected an exception");
-//        } catch (SchemaException e) {
-//        	// This is expected
-//        	display("Expected exception", e);
-//        }
-        
+		// WHEN
+        //we do not expect this to throw an exception. instead the fatal error in the result is excpected
+		modelService.executeChanges(deltas, null, task, result);
+		        
         result.computeStatus();
         assertFailure(result);
         
@@ -150,6 +144,14 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         
         PrismObject<UserType> userAfter = getUser(userOid);
         assertUser(userAfter, userOid, "charles", "Charles L. Charles", null, null, null);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionMessage();
 		
 	}
 		
