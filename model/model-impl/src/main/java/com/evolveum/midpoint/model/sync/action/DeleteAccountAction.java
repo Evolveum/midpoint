@@ -51,7 +51,7 @@ public class DeleteAccountAction extends ModifyUserAction {
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
 			ObjectTemplateType userTemplate, SynchronizationSituationType situation,
-			AuditEventRecord auditRecord, Task task, OperationResult result) throws SchemaException,
+			Task task, OperationResult result) throws SchemaException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -81,7 +81,7 @@ public class DeleteAccountAction extends ModifyUserAction {
 			subResult.recordSuccess();
 			return null;
 		} else {
-			return super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);
+			return super.executeChanges(userOid, change, userTemplate, situation, task, result);
 		}
 	}
 }

@@ -59,9 +59,9 @@ public class AddUserAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate, 
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
+            SynchronizationSituationType situation, Task task, OperationResult result) 
     			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);
+        super.executeChanges(userOid, change, userTemplate, situation, task, result);
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 

@@ -68,9 +68,9 @@ public class SynchronizeAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate, 
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, 
-            OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        super.executeChanges(userOid, change, userTemplate, situation, auditRecord, task, result);
+            SynchronizationSituationType situation, Task task, OperationResult result)
+            		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+        super.executeChanges(userOid, change, userTemplate, situation, task, result);
 
         Class<? extends ShadowType> clazz = getClassFromChange(change);
         if (!ShadowType.class.isAssignableFrom(clazz)) {

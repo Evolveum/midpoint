@@ -306,7 +306,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
 				+ ", T=" + formatObject(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
-				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +"o=" + outcome + ", r=" + result + ", p=" + parameter
+				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message + "]";
 	}
 

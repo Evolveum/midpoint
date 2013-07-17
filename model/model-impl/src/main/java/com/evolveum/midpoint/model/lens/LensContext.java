@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextStatsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
@@ -61,6 +62,10 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	private Class<F> focusClass;
 	private Class<P> projectionClass;
+	
+	private boolean lazyAuditRequest = false;
+	private boolean requestAudited = false;
+	private LensContextStatsType stats = new LensContextStatsType();
 
 	transient private ObjectTemplateType userTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
@@ -380,6 +385,34 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 
 	/**
+	 * If set to true then the request will be audited right before execution.
+	 * If no execution takes place then no request will be audited.
+	 */
+	public boolean isLazyAuditRequest() {
+		return lazyAuditRequest;
+	}
+
+	public void setLazyAuditRequest(boolean lazyAuditRequest) {
+		this.lazyAuditRequest = lazyAuditRequest;
+	}
+
+	public boolean isRequestAudited() {
+		return requestAudited;
+	}
+
+	public void setRequestAudited(boolean requestAudited) {
+		this.requestAudited = requestAudited;
+	}
+
+	public LensContextStatsType getStats() {
+		return stats;
+	}
+
+	public void setStats(LensContextStatsType stats) {
+		this.stats = stats;
+	}
+
+	/**
      * Returns all changes, user and all accounts. Both primary and secondary changes are returned, but
      * these are not merged.
      * TODO: maybe it would be better to merge them.
@@ -393,6 +426,17 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
             addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
             addChangeIfNotNull(allChanges, projCtx.getSecondaryDelta());
+        }
+        return allChanges;
+    }
+    
+    public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() throws SchemaException {
+        Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        if (focusContext != null) {
+	        addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
+        }
+        for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+            addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
         }
         return allChanges;
     }
@@ -722,6 +766,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         lensContextType.setProjectionWave(projectionWave);
         lensContextType.setExecutionWave(executionWave);
         lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
+        lensContextType.setLazyAuditRequest(lazyAuditRequest);
+        lensContextType.setRequestAudited(requestAudited);
+        lensContextType.setStats(stats);
 
         return lensContextTypeContainer;
     }
@@ -761,6 +808,13 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         lensContext.setExecutionWave(lensContextType.getExecutionWave() != null ?
             lensContextType.getExecutionWave() : 0);
         lensContext.setOptions(ModelExecuteOptions.fromModelExecutionOptionsType(lensContextType.getOptions()));
+        if (lensContextType.isLazyAuditRequest() != null) {
+        	lensContext.setLazyAuditRequest(lensContextType.isLazyAuditRequest());
+        }
+        if (lensContextType.isRequestAudited() != null) {
+        	lensContext.setRequestAudited(lensContextType.isRequestAudited());
+        }
+        lensContext.setStats(lensContextType.getStats());
 
         if (result.isUnknown()) {
             result.computeStatus();

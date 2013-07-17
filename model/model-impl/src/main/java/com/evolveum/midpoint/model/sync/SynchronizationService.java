@@ -395,24 +395,18 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private void notifyChange(ResourceObjectShadowChangeDescription change, SynchronizationSituation situation,
 			ResourceType resource, Task task, OperationResult parentResult) {
 
-		// Audit:request
-		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.SYNCHRONIZATION, AuditEventStage.REQUEST);
-		if (change.getObjectDelta() != null) {
-			auditRecord.addDelta(new ObjectDeltaOperation(change.getObjectDelta()));
-		}
+		PrismObject<? extends ObjectType> target = null;
 		if (change.getCurrentShadow() != null) {
-			auditRecord.setTarget(change.getCurrentShadow());
+			target = change.getCurrentShadow();
 		} else if (change.getOldShadow() != null) {
-			auditRecord.setTarget(change.getOldShadow());
+			target = change.getOldShadow();
 		}
-		auditRecord.setChannel(change.getSourceChannel());
-		auditService.audit(auditRecord, task);
 
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
 		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
 		
 		//must be here, bacause when the reaction has no action, the situation will be not set.
-		saveExecutedSituationDescription(auditRecord.getTarget(), situation, change, parentResult);
+		saveExecutedSituationDescription(target, situation, change, parentResult);
 		
 		if (actions.isEmpty()) {
 
@@ -442,7 +436,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			for (Action action : actions) {
 				LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
 
-				userOid = action.executeChanges(userOid, change, userTemplate, situation.getSituation(), auditRecord, task,
+				userOid = action.executeChanges(userOid, change, userTemplate, situation.getSituation(), task,
 						parentResult);
 			}
 			parentResult.recordSuccess();

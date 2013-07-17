@@ -41,7 +41,9 @@ public enum RAuditEventType {
 
     WORK_ITEM(AuditEventType.WORK_ITEM),
 
-    WORKFLOW_PROCESS_INSTANCE(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
+    WORKFLOW_PROCESS_INSTANCE(AuditEventType.WORKFLOW_PROCESS_INSTANCE),
+    
+    RECONCILIATION(AuditEventType.RECONCILIATION);
 
     private AuditEventType type;
 

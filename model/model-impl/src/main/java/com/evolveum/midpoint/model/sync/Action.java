@@ -52,7 +52,7 @@ public interface Action {
 
 
     String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate,
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
+            SynchronizationSituationType situation, Task task, OperationResult result) 
     		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     void setParameters(List<Object> parameters);

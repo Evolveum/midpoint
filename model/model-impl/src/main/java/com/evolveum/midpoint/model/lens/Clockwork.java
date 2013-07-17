@@ -17,10 +17,13 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.Collection;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -35,6 +38,7 @@ import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -79,6 +83,9 @@ public class Clockwork {
     
     @Autowired(required = true)
 	private AuditService auditService;
+    
+    @Autowired(required = true)
+    private Clock clock;
 
     private LensDebugListener debugListener;
 	
@@ -127,6 +134,8 @@ public class Clockwork {
 				if (debugListener != null) {
 					debugListener.beforeSync(context);
 				}
+				XMLGregorianCalendar requestTimestamp = clock.currentTimeXMLGregorianCalendar();
+				context.getStats().setRequestTimestamp(requestTimestamp);
 				// We need to do this BEFORE projection. If we would do that after projection
 				// there will be secondary changes that are not part of the request.
 				audit(context, AuditEventStage.REQUEST, task, result);
@@ -256,8 +265,30 @@ public class Clockwork {
 		
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
-
+	
 	private <F extends ObjectType, P extends ObjectType> void audit(LensContext<F,P> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
+		if (context.isLazyAuditRequest()) {
+			if (stage == AuditEventStage.REQUEST) {
+				// We skip auditing here, we will do it before execution
+			} else if (stage == AuditEventStage.EXECUTION) {
+				Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
+				if ((unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty()) && result.getComputeStatus() == OperationResultStatus.SUCCESS) {
+					// No deltas, nothing to audit in this wave
+					return;
+				}
+				if (!context.isRequestAudited()) {
+					auditEvent(context, AuditEventStage.REQUEST, context.getStats().getRequestTimestamp(), task, result);
+					context.setRequestAudited(true);
+				}
+				auditEvent(context, stage, null, task, result);
+			}
+		} else {
+			auditEvent(context, stage, null, task, result);
+		}
+	}
+
+	private <F extends ObjectType, P extends ObjectType> void auditEvent(LensContext<F,P> context, AuditEventStage stage, 
+			XMLGregorianCalendar timestamp, Task task, OperationResult result) throws SchemaException {
 		
 		PrismObject<? extends ObjectType> primaryObject = null;
 		ObjectDelta<? extends ObjectType> primaryDelta = null;
@@ -307,7 +338,7 @@ public class Clockwork {
 		auditRecord.setChannel(context.getChannel());
 		
 		if (stage == AuditEventStage.REQUEST) {
-			auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(context.getAllChanges()));
+			auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges()));
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setOutcome(result.getComputeStatus());
 			Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
@@ -319,9 +350,17 @@ public class Clockwork {
 		} else {
 			throw new IllegalStateException("Unknown audit stage "+stage);
 		}
+		
+		if (timestamp != null) {
+			auditRecord.setTimestamp(XmlTypeConverter.toMillis(timestamp));
+		}
+		
 		auditService.audit(auditRecord, task);
-		// We need to clean up so these deltas will not be audited again in next wave
-		context.markExecutedDeltasAudited();
+		
+		if (stage == AuditEventStage.EXECUTION) {
+			// We need to clean up so these deltas will not be audited again in next wave
+			context.markExecutedDeltasAudited();
+		}
 	}
 	
 	public static void throwException(Throwable e) throws ObjectAlreadyExistsException, ObjectNotFoundException {

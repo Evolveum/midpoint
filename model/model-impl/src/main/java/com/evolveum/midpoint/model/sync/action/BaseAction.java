@@ -158,7 +158,7 @@ public abstract class BaseAction implements Action {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate, 
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task, OperationResult result) 
+            SynchronizationSituationType situation, Task task, OperationResult result) 
     		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         Validate.notNull(change, "Resource object change description must not be null.");
         Validate.notNull(situation, "Synchronization situation must not be null.");
@@ -355,6 +355,7 @@ public abstract class BaseAction implements Action {
     	Validate.notNull(context, "Sync context must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
         try {
+        	context.setLazyAuditRequest(true);
             clockwork.run(context, task, result);
         } catch (SchemaException e) {
         	logSynchronizationError(e, context);

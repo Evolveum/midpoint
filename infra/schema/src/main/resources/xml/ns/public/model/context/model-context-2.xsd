@@ -173,6 +173,9 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="lazyAuditRequest" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="requestAudited" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="stats" type="tns:LensContextStatsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -470,6 +473,12 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:complexType name="LensContextStatsType">
+    	<xsd:sequence>
+    		<xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0"/>
+    	</xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>
 

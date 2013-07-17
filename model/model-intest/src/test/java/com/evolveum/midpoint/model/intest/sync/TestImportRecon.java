@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -33,6 +34,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -153,6 +157,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         calypsoDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
         
         dummyResource.purgeScriptHistory();
+        dummyAuditService.clear();
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -211,6 +216,51 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        
+        List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
+        
+        
+    	
+    	int i=0;
+    	while (i < (auditRecords.size() - 1)) {
+    		AuditEventRecord reconStartRecord = auditRecords.get(i);
+    		if (reconStartRecord.getEventType() == AuditEventType.EXECUTE_CHANGES_RAW) {
+    			i++;
+    			continue;
+    		}
+            assertNotNull("No reconStartRecord audit record", reconStartRecord);
+        	assertEquals("Wrong stage in reconStartRecord audit record: "+reconStartRecord, AuditEventStage.REQUEST, reconStartRecord.getEventStage());
+        	assertEquals("Wrong type in reconStartRecord audit record: "+reconStartRecord, AuditEventType.RECONCILIATION, reconStartRecord.getEventType());
+        	assertTrue("Unexpected delta in reconStartRecord audit record "+reconStartRecord, reconStartRecord.getDeltas() == null || reconStartRecord.getDeltas().isEmpty());
+        	i++;
+        	break;
+    	}
+
+    	int modifications = 0;
+    	for (; i < (auditRecords.size() - 1); i+=2) {
+        	AuditEventRecord requestRecord = auditRecords.get(i);
+        	assertNotNull("No request audit record ("+i+")", requestRecord);
+        	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
+        	assertTrue("Unexpected delta in request audit record "+requestRecord, requestRecord.getDeltas() == null || requestRecord.getDeltas().isEmpty());
+
+        	AuditEventRecord executionRecord = auditRecords.get(i+1);
+        	assertNotNull("No execution audit record ("+i+")", executionRecord);
+        	assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
+        	
+        	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
+        	modifications++;
+
+        }
+        assertEquals("Unexpected number of audit modifications", 1, modifications);
+
+        AuditEventRecord reconStopRecord = auditRecords.get(i);
+        assertNotNull("No reconStopRecord audit record", reconStopRecord);
+    	assertEquals("Wrong stage in reconStopRecord audit record: "+reconStopRecord, AuditEventStage.EXECUTION, reconStopRecord.getEventStage());
+    	assertEquals("Wrong type in reconStopRecord audit record: "+reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
+    	assertTrue("Unexpected delta in reconStopRecord audit record "+reconStopRecord, reconStopRecord.getDeltas() == null || reconStopRecord.getDeltas().isEmpty());
 	}
 	
 	private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, String fullName, boolean modified) {

@@ -34,7 +34,7 @@ public class ModifyPasswordAction extends BaseAction {
 
     @Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate, 
-            SynchronizationSituationType situation, AuditEventRecord auditRecord, Task task,
+            SynchronizationSituationType situation, Task task,
             OperationResult result) {
 
         //todo implement

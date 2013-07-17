@@ -150,6 +150,11 @@
 					<target>
 						<path>organizationalUnit</path>
 					</target>
+					<condition>
+						<script>
+							<code>input != null</code>
+						</script>
+					</condition>
 				</inbound>
 			</attribute>
 			<attribute>

@@ -141,13 +141,16 @@ public class ContextFactory {
 	public <F extends FocusType, O extends ObjectType> LensContext<F, ShadowType> createRecomputeContext(
     		PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		Class<O> typeClass = object.getCompileTimeClass();
+		LensContext<F, ShadowType> context;
 		if (isFocalClass(typeClass)) {
-			return (LensContext<F, ShadowType>) createRecomputeFocusContext((Class<FocusType>)typeClass, (PrismObject<FocusType>) object, task, result);
+			context = (LensContext<F, ShadowType>) createRecomputeFocusContext((Class<FocusType>)typeClass, (PrismObject<FocusType>) object, task, result);
 		} else if (ShadowType.class.isAssignableFrom(typeClass)) {
-			return (LensContext<F, ShadowType>) createRecomputeProjectionContext((PrismObject<ShadowType>) object, task, result);
+			context =  (LensContext<F, ShadowType>) createRecomputeProjectionContext((PrismObject<ShadowType>) object, task, result);
 		} else {
 			throw new IllegalArgumentException("Cannot create recompute context for "+object);
 		}
+		context.setLazyAuditRequest(true);
+		return context;
 	}
 	
 	public <F extends FocusType> LensContext<F, ShadowType> createRecomputeFocusContext(
