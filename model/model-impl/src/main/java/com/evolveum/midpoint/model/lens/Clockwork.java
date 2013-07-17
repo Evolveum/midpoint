@@ -29,6 +29,8 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -173,6 +175,7 @@ public class Clockwork {
 					processSecondary(context, task, result);
 					break;
 				case FINAL:
+					processFinal(context, task, result);
 					if (debugListener != null) {
 						debugListener.afterSync(context);
 					}
@@ -182,31 +185,31 @@ public class Clockwork {
 			return invokeHooks(context, task, result);
 			
 		} catch (CommunicationException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (ConfigurationException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (PolicyViolationException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (SchemaException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (SecurityViolationException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		} catch (RuntimeException e) {
-			audit(context, AuditEventStage.EXECUTION, task, result);
+			processClockworkException(context, e, task, result);
 			throw e;
 		}
 	}
@@ -266,29 +269,51 @@ public class Clockwork {
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
 	
+	private <F extends ObjectType, P extends ObjectType> void processFinal(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		auditFinalExecution(context, task, result);
+	}
+	
 	private <F extends ObjectType, P extends ObjectType> void audit(LensContext<F,P> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
 		if (context.isLazyAuditRequest()) {
 			if (stage == AuditEventStage.REQUEST) {
 				// We skip auditing here, we will do it before execution
 			} else if (stage == AuditEventStage.EXECUTION) {
 				Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
-				if ((unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty()) && result.getComputeStatus() == OperationResultStatus.SUCCESS) {
+				if ((unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty())) {
 					// No deltas, nothing to audit in this wave
 					return;
 				}
 				if (!context.isRequestAudited()) {
-					auditEvent(context, AuditEventStage.REQUEST, context.getStats().getRequestTimestamp(), task, result);
-					context.setRequestAudited(true);
+					auditEvent(context, AuditEventStage.REQUEST, context.getStats().getRequestTimestamp(), false, task, result);
 				}
-				auditEvent(context, stage, null, task, result);
+				auditEvent(context, stage, null, false, task, result);
 			}
 		} else {
-			auditEvent(context, stage, null, task, result);
+			auditEvent(context, stage, null, false, task, result);
 		}
+	}
+	
+	/**
+	 * Make sure that at least one execution is audited if a request was already audited. We don't want
+	 * request without execution in the audit logs.
+	 */
+	private <F extends ObjectType, P extends ObjectType> void auditFinalExecution(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException {
+		if (!context.isRequestAudited()) {
+			return;
+		}
+		if (context.isExecutionAudited()) {
+			return;
+		}
+		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
+	}
+	
+	private <F extends ObjectType, P extends ObjectType> void processClockworkException(LensContext<F,P> context, Exception e, Task task, OperationResult result) throws SchemaException {
+		result.recordFatalError(e);
+		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
 
 	private <F extends ObjectType, P extends ObjectType> void auditEvent(LensContext<F,P> context, AuditEventStage stage, 
-			XMLGregorianCalendar timestamp, Task task, OperationResult result) throws SchemaException {
+			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result) throws SchemaException {
 		
 		PrismObject<? extends ObjectType> primaryObject = null;
 		ObjectDelta<? extends ObjectType> primaryDelta = null;
@@ -342,7 +367,7 @@ public class Clockwork {
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setOutcome(result.getComputeStatus());
 			Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
-			if ((unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty()) && auditRecord.getOutcome() == OperationResultStatus.SUCCESS) {
+			if (!alwaysAudit && (unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty())) {
 				// No deltas, nothing to audit in this wave
 				return;
 			}
@@ -355,14 +380,60 @@ public class Clockwork {
 			auditRecord.setTimestamp(XmlTypeConverter.toMillis(timestamp));
 		}
 		
+		addRecordMessage(auditRecord, result);
+		
 		auditService.audit(auditRecord, task);
 		
 		if (stage == AuditEventStage.EXECUTION) {
 			// We need to clean up so these deltas will not be audited again in next wave
 			context.markExecutedDeltasAudited();
+			context.setExecutionAudited(true);
+		} else if (stage == AuditEventStage.REQUEST) {
+			context.setRequestAudited(true);
+		} else {
+			throw new IllegalStateException("Unknown audit stage "+stage);
 		}
 	}
 	
+	/**
+	 * Adds a message to the record by pulling the messages from individual delta results.
+	 */
+	private void addRecordMessage(AuditEventRecord auditRecord, OperationResult result) {
+		if (auditRecord.getMessage() != null) {
+			return;
+		}
+		if (!StringUtils.isEmpty(result.getMessage())) {
+			String message = result.getMessage();
+			if (message.length() >= AuditService.MAX_MESSAGE_SIZE) {
+				message = message.substring(AuditService.MAX_MESSAGE_SIZE - 3, message.length()) +  "...";
+			}
+			auditRecord.setMessage(message);
+			return;
+		}
+		Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = auditRecord.getDeltas();
+		if (deltas == null || deltas.isEmpty()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (ObjectDeltaOperation<? extends ObjectType> delta: deltas) {
+			OperationResult executionResult = delta.getExecutionResult();
+			if (executionResult != null) {
+				String message = executionResult.getMessage();
+				if (!StringUtils.isEmpty(message)) {
+					if (sb.length() != 0) {
+						sb.append("; ");
+					}					
+					sb.append(message);
+				}
+			}
+		}
+		if (sb.length() >= AuditService.MAX_MESSAGE_SIZE) {
+			sb.delete(AuditService.MAX_MESSAGE_SIZE - 3, sb.length());
+			sb.append("...");
+		}
+		auditRecord.setMessage(sb.toString());
+	}
+
 	public static void throwException(Throwable e) throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (e instanceof ObjectAlreadyExistsException) {
 			throw (ObjectAlreadyExistsException)e;

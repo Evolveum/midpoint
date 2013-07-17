@@ -24,7 +24,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
  */
 public interface AuditService {
 
-    public void audit(AuditEventRecord record, Task task);
+    public static final int MAX_MESSAGE_SIZE = 255;
+
+	public void audit(AuditEventRecord record, Task task);
 
     /**
      * Clean up audit records that are older than specified.

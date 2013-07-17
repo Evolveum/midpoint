@@ -65,6 +65,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	
 	private boolean lazyAuditRequest = false;
 	private boolean requestAudited = false;
+	private boolean executionAudited = false;
 	private LensContextStatsType stats = new LensContextStatsType();
 
 	transient private ObjectTemplateType userTemplate;
@@ -402,6 +403,14 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	public void setRequestAudited(boolean requestAudited) {
 		this.requestAudited = requestAudited;
+	}
+	
+	public boolean isExecutionAudited() {
+		return executionAudited;
+	}
+
+	public void setExecutionAudited(boolean executionAudited) {
+		this.executionAudited = executionAudited;
 	}
 
 	public LensContextStatsType getStats() {
@@ -768,6 +777,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
         lensContextType.setLazyAuditRequest(lazyAuditRequest);
         lensContextType.setRequestAudited(requestAudited);
+        lensContextType.setExecutionAudited(executionAudited);
         lensContextType.setStats(stats);
 
         return lensContextTypeContainer;
@@ -813,6 +823,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         }
         if (lensContextType.isRequestAudited() != null) {
         	lensContext.setRequestAudited(lensContextType.isRequestAudited());
+        }
+        if (lensContextType.isExecutionAudited() != null) {
+        	lensContext.setExecutionAudited(lensContextType.isExecutionAudited());
         }
         lensContext.setStats(lensContextType.getStats());
 

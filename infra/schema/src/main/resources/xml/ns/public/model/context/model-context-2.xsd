@@ -175,6 +175,7 @@
             </xsd:element>
             <xsd:element name="lazyAuditRequest" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="requestAudited" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="executionAudited" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="stats" type="tns:LensContextStatsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>

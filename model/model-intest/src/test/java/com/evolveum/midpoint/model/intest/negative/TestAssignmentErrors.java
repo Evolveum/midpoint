@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -67,7 +68,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	}
 	
 	/**
-	 * The "while" resource has no outbound mapping and there is also no mapping in the assignment. Therefore
+	 * The "white" resource has no outbound mapping and there is also no mapping in the assignment. Therefore
 	 * this results in account without any attributes. It should fail.
 	 */
 	@Test
@@ -85,6 +86,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_WHITE_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
+        
+        dummyAuditService.clear();
                 
 		// WHEN
 		//not expected that it fails, insted the fatal error in the result is excpected
@@ -95,6 +98,15 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         display(result);
         // This has to be a partial error as some changes were executed (user) and others were not (account)
         IntegrationTestTools.assertPartialError(result);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionOutcome(0,OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionMessage(0);
 		
 	}
 	

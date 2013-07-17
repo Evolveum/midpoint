@@ -230,6 +230,25 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		}
 	}
 	
+	public void assertExecutionOutcome(int index, OperationResultStatus expectedStatus) {
+		List<AuditEventRecord> executionRecords = getExecutionRecords();
+		AuditEventRecord executionRecord = executionRecords.get(index);
+		assert executionRecord.getOutcome() == expectedStatus : "Expected execution outcome "+expectedStatus+" in audit execution record ("+index+") but it was "+executionRecord.getOutcome();
+	}
+	
+	public void assertExecutionMessage() {
+		List<AuditEventRecord> executionRecords = getExecutionRecords();
+		for (AuditEventRecord executionRecord: executionRecords) {
+			assert !StringUtils.isEmpty(executionRecord.getMessage()) : "Expected execution message in audit record but there was none; in "+executionRecord;
+		}
+	}
+	
+	public void assertExecutionMessage(int index) {
+		List<AuditEventRecord> executionRecords = getExecutionRecords();
+		AuditEventRecord executionRecord = executionRecords.get(index);
+		assert !StringUtils.isEmpty(executionRecord.getMessage()) : "Expected execution message in audit record but there was none; in "+executionRecord;
+	}
+	
 	public void assertNoRecord() {
 		assert records.isEmpty() : "Expected no audit record but some sneaked in: "+records;
 	}
