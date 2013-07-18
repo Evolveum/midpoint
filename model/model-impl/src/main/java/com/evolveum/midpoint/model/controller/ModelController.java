@@ -579,7 +579,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			}
 		
 			
-			projector.project(context, "preview", result);
+			projector.project((LensContext<F, ShadowType>) context, "preview", result);
 			context.distributeResource();
 			
 		} catch (ConfigurationException e) {

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -355,7 +356,7 @@ public class RAuditEventRecord implements Serializable {
         repo.setEventIdentifier(record.getEventIdentifier());
         repo.setHostIdentifier(record.getHostIdentifier());
         repo.setParameter(record.getParameter());
-        repo.setMessage(record.getMessage());
+        repo.setMessage(trimMessage(record.getMessage()));
         if (record.getOutcome() != null) {
             repo.setOutcome(RUtil.getRepoEnumValue(record.getOutcome().createStatusType(), ROperationResultStatus.class));
         }
@@ -398,7 +399,14 @@ public class RAuditEventRecord implements Serializable {
         return repo;
     }
 
-    private static String getOrigName(PrismObject object) {
+	private static String trimMessage(String message) {
+		if (message == null || message.length() <= AuditService.MAX_MESSAGE_SIZE) {
+			return message;
+		}
+		return message.substring(0, AuditService.MAX_MESSAGE_SIZE - 4) + "...";
+	}
+
+	private static String getOrigName(PrismObject object) {
         PolyString name = (PolyString) object.getPropertyRealValue(ObjectType.F_NAME, PolyString.class);
         return name != null ? name.getOrig() : null;
     }

@@ -76,6 +76,7 @@ public class DummyResource {
 	private boolean caseIgnoreId = false;
 	
 	private BreakMode schemaBreakMode = BreakMode.NONE;
+	private BreakMode addBreakMode = BreakMode.NONE;
 	
 	// Following two properties are just copied from the connector
 	// configuration and can be checked later. They are otherwise
@@ -149,6 +150,19 @@ public class DummyResource {
 
 	public void setSchemaBreakMode(BreakMode schemaBreakMode) {
 		this.schemaBreakMode = schemaBreakMode;
+	}
+
+	public BreakMode getAddBreakMode() {
+		return addBreakMode;
+	}
+
+	public void setAddBreakMode(BreakMode addBreakMode) {
+		this.addBreakMode = addBreakMode;
+	}
+	
+	public void resetBreakMode() {
+		this.schemaBreakMode = BreakMode.NONE;
+		this.addBreakMode = BreakMode.NONE;
 	}
 
 	public String getUselessString() {
@@ -233,7 +247,26 @@ public class DummyResource {
 		return privileges.values();
 	}
 	
-	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException {
+	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+		if (addBreakMode == BreakMode.NONE) {
+			// just go on
+		} else if (addBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error during add (simulated error)");
+		} else if (addBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error during add (simulated error)");
+		} else if (addBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error during add (simulated error)");
+		} else if (addBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic rutime error during add (simulated error)");
+		} else if (addBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Unsupported operation: add (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown break mode "+addBreakMode);
+		}
+		
 		String normalId = normalize(newObject.getName());
 		Class<? extends DummyObject> type = newObject.getClass();
 		if (map.containsKey(normalId)) {
@@ -282,7 +315,7 @@ public class DummyResource {
 		existingObject.setName(newName);
 	}
 	
-	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException {
+	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		return addObject(accounts, newAccount);
 	}
 	
@@ -294,7 +327,7 @@ public class DummyResource {
 		renameObject(DummyAccount.class, accounts, oldUsername, newUsername);
 	}
 	
-	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException {
+	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		return addObject(groups, newGroup);
 	}
 	
@@ -306,7 +339,7 @@ public class DummyResource {
 		renameObject(DummyGroup.class, groups, oldName, newName);
 	}
 	
-	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException {
+	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		return addObject(privileges, newGroup);
 	}
 	

@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author semancik
@@ -145,7 +146,7 @@ public class Clockwork {
 			
 			if (!context.isFresh()) {
 				context.cleanup();
-				projector.project(context, "PROJECTOR ("+state+")", result);
+				projector.project((LensContext<F, ShadowType>)context, "PROJECTOR ("+state+")", result);
 			} else {
 				LOGGER.trace("Skipping projection because the context is fresh");
 			}
@@ -404,9 +405,6 @@ public class Clockwork {
 		}
 		if (!StringUtils.isEmpty(result.getMessage())) {
 			String message = result.getMessage();
-			if (message.length() >= AuditService.MAX_MESSAGE_SIZE) {
-				message = message.substring(AuditService.MAX_MESSAGE_SIZE - 3, message.length()) +  "...";
-			}
 			auditRecord.setMessage(message);
 			return;
 		}
@@ -426,10 +424,6 @@ public class Clockwork {
 					sb.append(message);
 				}
 			}
-		}
-		if (sb.length() >= AuditService.MAX_MESSAGE_SIZE) {
-			sb.delete(AuditService.MAX_MESSAGE_SIZE - 3, sb.length());
-			sb.append("...");
 		}
 		auditRecord.setMessage(sb.toString());
 	}

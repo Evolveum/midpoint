@@ -667,7 +667,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     }
 	
 	protected boolean isRequireSecondardyDeltaOid() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
+				synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN ||
+				synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
 			return false;
 		}
 		return super.isRequireSecondardyDeltaOid();

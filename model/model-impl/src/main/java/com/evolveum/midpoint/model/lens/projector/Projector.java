@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.List;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyStrictnessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
@@ -96,7 +100,7 @@ public class Projector {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 	
-	public <F extends ObjectType, P extends ObjectType> void project(LensContext<F,P> context, String activityDescription, 
+	public <F extends ObjectType, P extends ShadowType> void project(LensContext<F,P> context, String activityDescription, 
 			OperationResult parentResult) 
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -192,6 +196,10 @@ public class Projector {
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						continue;
+		        	}
+		        	
+		        	if (!checkDependencies(context, projectionContext, now, result)) {
+		        		continue;
 		        	}
 		        	
 		        	// TODO: decide if we need to continue
@@ -290,9 +298,15 @@ public class Projector {
 					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+": Account not provisioned");
 				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
-					// just ignore it
+					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied lax dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+"; depencency skipped");
+				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+					// independent object not in the context, just ignore it
+					LOGGER.debug("Unsatisfied relaxed dependency of account "+accountContext.getResourceShadowDiscriminator()+
+						" dependent on "+refRat+"; depencency skipped");
+				} else {
+					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
 				}
 			} else {
 				determineAccountWave(context, dependencyAccountContext);
@@ -303,6 +317,90 @@ public class Projector {
 		}
 //		LOGGER.trace("Wave for {}: {}", accountContext.getResourceAccountType(), wave);
 		accountContext.setWave(wave);
+	}
+	
+	private <F extends ObjectType, P extends ShadowType> boolean checkDependencies(LensContext<F,P> context, 
+    		LensProjectionContext<P> accountContext, XMLGregorianCalendar now, OperationResult result) throws PolicyViolationException {
+		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
+			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
+			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
+			if (dependencyAccountContext == null) {
+				if (accountContext.isDelete()) {
+					// It is OK if we depend on something that is not there if we are being removed
+					return true;
+				}
+				if (dependency.getStrictness() == null || dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+					// This should not happen, it is checked before projection
+					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
+						" dependent on "+refRat+": No context in dependency check");
+				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
+					// independent object not in the context, just ignore it
+					LOGGER.trace("Unsatisfied lax dependency of account "+accountContext.getResourceShadowDiscriminator()+
+						" dependent on "+refRat+"; depencency skipped");
+				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+					// independent object not in the context, just ignore it
+					LOGGER.trace("Unsatisfied relaxed dependency of account "+accountContext.getResourceShadowDiscriminator()+
+						" dependent on "+refRat+"; depencency skipped");
+				} else {
+					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
+				}
+			} else {
+				// We have the context of the object that we depend on. We need to check if it was provisioned.
+				if (dependency.getStrictness() == null || dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT
+						|| dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+					if (wasProvisioned(dependencyAccountContext, context.getExecutionWave())) {
+						// everything OK
+					} else {
+						// We do not want to throw exception here. That will stop entire projection.
+						// Let's just mark the projection as broken and skip it.
+						LOGGER.warn("Unsatisfied dependency of account "+accountContext.getResourceShadowDiscriminator()+
+								" dependent on "+refRat+": Account not provisioned in dependency check (execution wave "+context.getExecutionWave()+", account wave "+accountContext.getWave() + ", depenedency account wave "+dependencyAccountContext.getWave()+")");
+						accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+						return false;
+					}
+				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
+					// we don't care what happened, just go on
+					return true;
+				} else {
+					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
+				}
+			}
+		}
+		return true;
+	}
+	
+	private <F extends ObjectType, P extends ShadowType> boolean wasProvisioned(LensProjectionContext<P> accountContext, int executionWave) {
+		int accountWave = accountContext.getWave();
+		if (accountWave >= executionWave) {
+			// This had no chance to be provisioned yet, so we assume it will be provisioned
+			return true;
+		}
+		if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN 
+				|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+			return false;
+		}
+		PrismObject<P> objectOld = accountContext.getObjectOld();
+		if (objectOld.asObjectable().getFailedOperationType() != null) {
+			// There is unfinished operation in the shadow. We cannot continue.
+			return false;
+		}
+		if (accountContext.isExists()) {
+			return true;
+		}
+		if (accountContext.isAdd()) {
+			List<LensObjectDeltaOperation<P>> executedDeltas = accountContext.getExecutedDeltas();
+			if (executedDeltas == null || executedDeltas.isEmpty()) {
+				return false;
+			}
+			for (LensObjectDeltaOperation<P> executedDelta: executedDeltas) {
+				OperationResult executionResult = executedDelta.getExecutionResult();
+				if (executionResult == null || !executionResult.isSuccess()) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 
 	private <F extends ObjectType, P extends ObjectType> void checkContextSanity(LensContext<F,P> context, String activityDescription, 

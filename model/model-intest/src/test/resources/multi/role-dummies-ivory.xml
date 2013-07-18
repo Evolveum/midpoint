@@ -13,12 +13,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="12345678-d34d-b33f-f00d-55555555dddd"
+<role oid="12345678-d34d-b33f-f00d-55555511dddd"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Dummies</name>    
+    <name>Dummies: Ivory</name>    
     <inducement>
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
@@ -43,17 +43,7 @@
     </inducement>    
     <inducement>
     	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
-    	</construction>
-    </inducement>
-    <inducement>
-    	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000011504" type="c:ResourceType"/>
-    	</construction>
-    </inducement>
-    <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-00000001b504" type="c:ResourceType"/>
     	</construction>
     </inducement>
 </role>

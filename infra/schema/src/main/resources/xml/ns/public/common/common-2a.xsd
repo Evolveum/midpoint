@@ -3010,13 +3010,46 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="strict">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		If the object that we depend on is not provisioned then the dependent object will
+                		not be provisioned either. Attempt to provision it will end up with and error.
+                		If the object that we depend on is being provisioned in the same operation (context) as
+                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STRICT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="relaxed">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		If the object that we depend on is being provisioned in the same operation (context) as
+                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
+                		But no error is thrown if the dependent object is provisioned without the other object.
+                		If both objects are being provisioned in the same operation (context) and provisioning of the
+                		object that we depend on fails the provisioning of the dependent object will be skipped.
+                		The lax strictness only guarantees ordering in case that both objects are being provisioned 
+                		in the same operation (context).
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELAXED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="lax">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		If the object that we depend on is being provisioned in the same operation (context) as
+                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
+                		But NO ERROR is thrown if the dependent object is provisioned without the other object. Not even if
+                		they are provisioned in the same operation (context) an the independend object fails.
+                		The lax strictness only guarantees ordering in case that both objects are being (successfully) provisioned.
+                		It does not guaratee anything else.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LAX"/>
                     </xsd:appinfo>

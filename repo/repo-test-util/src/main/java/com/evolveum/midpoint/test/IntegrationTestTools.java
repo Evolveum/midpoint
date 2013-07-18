@@ -195,6 +195,11 @@ public class IntegrationTestTools {
 		assertNoUnknown(result);
 	}
 	
+	public static void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
+		assertTrue("Expected that operation "+result.getOperation()+" will result with "+expectedStatus+", but the result was "+result.getStatus(), result.getStatus() == expectedStatus);
+		assertNoUnknown(result);
+	}
+	
 	public static void assertFailure(OperationResultType result) {
 		assertFailure(null, result);
 	}

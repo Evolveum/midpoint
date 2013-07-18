@@ -26,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,12 +36,20 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -70,9 +79,19 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_IVORY_NAME = "ivory";
 	protected static final String RESOURCE_DUMMY_IVORY_NAMESPACE = MidPointConstants.NS_RI;
 	
+	// IVORY dummy resource has a LAX dependency on default dummy resource
+	protected static final File RESOURCE_DUMMY_BEIGE_FILE = new File(TEST_DIR, "resource-dummy-beige.xml");
+	protected static final String RESOURCE_DUMMY_BEIGE_OID = "10000000-0000-0000-0000-00000001b504";
+	protected static final String RESOURCE_DUMMY_BEIGE_NAME = "beige";
+	protected static final String RESOURCE_DUMMY_BEIGE_NAMESPACE = MidPointConstants.NS_RI;
+	
 	// Assigns default dummy resource and red dummy resource
 	protected static final File ROLE_DUMMIES_FILE = new File(TEST_DIR, "role-dummies.xml");
 	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
+	protected static final File ROLE_DUMMIES_IVORY_FILE = new File(TEST_DIR, "role-dummies-ivory.xml");
+	protected static final String ROLE_DUMMIES_IVORY_OID = "12345678-d34d-b33f-f00d-55555511dddd";
+	protected static final File ROLE_DUMMIES_BEIGE_FILE = new File(TEST_DIR, "role-dummies-beige.xml");
+	protected static final String ROLE_DUMMIES_BEIGE_OID = "12345678-d34d-b33f-f00d-5555551bdddd";
 	
 	protected static DummyResource dummyResourceYellow;
 	protected static DummyResourceContoller dummyResourceCtlYellow;
@@ -83,6 +102,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static DummyResourceContoller dummyResourceCtlIvory;
 	protected ResourceType resourceDummyIvoryType;
 	protected PrismObject<ResourceType> resourceDummyIvory;
+	
+	protected static DummyResource dummyResourceBeige;
+	protected static DummyResourceContoller dummyResourceCtlBeige;
+	protected ResourceType resourceDummyBeigeType;
+	protected PrismObject<ResourceType> resourceDummyBeige;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -102,7 +126,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		resourceDummyIvoryType = resourceDummyIvory.asObjectable();
 		dummyResourceCtlIvory.setResource(resourceDummyIvory);
 		
+		dummyResourceCtlBeige = DummyResourceContoller.create(RESOURCE_DUMMY_BEIGE_NAME, resourceDummyBeige);
+		dummyResourceCtlBeige.extendDummySchema();
+		dummyResourceBeige = dummyResourceCtlBeige.getDummyResource();
+		resourceDummyBeige = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BEIGE_FILE, RESOURCE_DUMMY_BEIGE_OID, initTask, initResult);
+		resourceDummyBeigeType = resourceDummyBeige.asObjectable();
+		dummyResourceCtlBeige.setResource(resourceDummyBeige);
+		
 		repoAddObjectFromFile(ROLE_DUMMIES_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_DUMMIES_IVORY_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_DUMMIES_BEIGE_FILE, RoleType.class, initResult);
+		
+		dummyResource.resetBreakMode();
 	}
 
 	@Test
@@ -113,16 +148,51 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test119JackUnAssignRoleDummiesFull() throws Exception {
-		final String TEST_NAME = "test119JackUnAssignRoleDummiesFull";
+    public void test111JackUnAssignRoleDummiesFull() throws Exception {
+		final String TEST_NAME = "test111JackUnAssignRoleDummiesFull";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		jackUnAssignRoleDummies(TEST_NAME);
+	}
+	
+	// TODO: yellow resource with failure
+	
+	@Test
+    public void test115JackAssignRoleDummiesFullErrorIvory() throws Exception {
+		final String TEST_NAME = "test115JackAssignRoleDummiesFullErrorIvory";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		jackAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_IVORY_OID, RESOURCE_DUMMY_IVORY_NAME, true);
+	}
+
+	@Test
+    public void test116JackUnAssignRoleDummiesFullErrorIvory() throws Exception {
+		final String TEST_NAME = "test116JackUnAssignRoleDummiesFullErrorIvory";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		jackUnAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_IVORY_OID);
+	}
+	
+	@Test
+    public void test117JackAssignRoleDummiesFullErrorBeige() throws Exception {
+		final String TEST_NAME = "test117JackAssignRoleDummiesFullErrorBeige";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		jackAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_BEIGE_OID, RESOURCE_DUMMY_BEIGE_NAME, false);
+	}
+
+	@Test
+    public void test118JackUnAssignRoleDummiesFullErrorBeige() throws Exception {
+		final String TEST_NAME = "test118JackUnAssignRoleDummiesFullErrorBeige";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		jackUnAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_BEIGE_OID);
 	}
 	
 	@Test
     public void test120JackAssignRoleDummiesRelative() throws Exception {
 		final String TEST_NAME = "test120JackAssignRoleDummiesRelative";
 		
+		dummyResource.resetBreakMode();
 		// Clean up user
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -166,6 +236,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // No value for ship ... no place to get it from
@@ -200,14 +271,80 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	/**
-	 * Yellow resource has a lax dependency. The provisioning should go fail.
+	 * Beige resource has a relaxed dependency. The provisioning should go OK.
 	 */
 	@Test
-    public void test210JackAssignDummyYellow() throws Exception {
-		final String TEST_NAME = "test210JackAssignDummyYellow";
+    public void test210JackAssignDummyBeige() throws Exception {
+		final String TEST_NAME = "test210JackAssignDummyBeige";
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        // Clean up user
+		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
+		
+		// WHEN
+		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertAccounts(userJack, 1);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship");
+	}
+	
+	/**
+	 * Beige resource has a relaxed dependency. The provisioning should go OK.
+	 */
+	@Test
+    public void test219JackUnAssignDummyBeige() throws Exception {
+		final String TEST_NAME = "test219JackUnAssignDummyBeige";
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        // Clean up user
+		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
+		
+		// WHEN
+		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertAccounts(userJack, 0);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * Yellow resource has a strict dependency. The provisioning should fail.
+	 */
+	@Test
+    public void test250JackAssignDummyYellow() throws Exception {
+		final String TEST_NAME = "test250JackAssignDummyYellow";
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -248,18 +385,19 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        clearJackOrganizationalUnit(task, result);
         
         // WHEN
         assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+    	IntegrationTestTools.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
-        assertAccounts(userJack, 3);
-        
+        assertAccounts(userJack, 4);
+
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "The Great Voodoo Master");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The Lost Souls");
@@ -276,6 +414,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
         assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
+
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+        // after user's organizationUnit is set and it will have the same value as above.
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
 	}
 	
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
@@ -298,6 +441,77 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));        
+	}
+    
+    /**
+	 * The "dummies" role assigns two dummy resources that are in a dependency. The value of "ship" is propagated from one
+	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
+	 */
+    public void jackAssignRoleDummiesError(final String TEST_NAME, String roleOid, String dummyResourceName, 
+    		boolean expectAccount) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        clearJackOrganizationalUnit(task, result);
+        
+        // WHEN
+        assignRole(USER_JACK_OID, roleOid, task, result);
+        
+        // THEN
+        result.computeStatus();
+        display(result);
+        if (expectAccount) {
+        	IntegrationTestTools.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        } else {
+        	IntegrationTestTools.assertPartialError(result);
+        }
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertAssignedRole(USER_JACK_OID, roleOid, task, result);
+        // One of the accountRefs is actually ref to an uncreated shadow
+        assertAccounts(userJack, expectAccount ? 2 : 1);
+
+    	assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+    	assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME);
+
+    	if (expectAccount) {
+    		assertDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+    		// This is actually pulled from the uncreated shadow
+            assertDummyAccountAttribute(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
+    	} else {
+    		assertNoDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME);
+    	}
+	}
+	
+	private void clearJackOrganizationalUnit(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
+	}
+
+	public void jackUnAssignRoleDummiesError(final String TEST_NAME, String roleOid) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        unassignRole(USER_JACK_OID, roleOid, task, result);
+        
+        // THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignedNoRole(user);
+        assertAccounts(user, 0);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));        
 	}

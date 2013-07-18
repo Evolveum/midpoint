@@ -194,11 +194,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     			id = resource.addAccount(newAccount);
     			
     		} catch (ObjectAlreadyExistsException e) {
-    			// we cannot throw checked exceptions. But this one looks suitable.
     			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
     			// The framework should deal with it ... somehow
     			throw new AlreadyExistsException(e.getMessage(),e);
-    		}
+    		} catch (ConnectException e) {
+    			throw new ConnectionFailedException(e.getMessage(), e);
+			} catch (FileNotFoundException e) {
+				throw new ConnectorIOException(e.getMessage(), e);
+			}
         	
         } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
             DummyGroup newGroup = convertToGroup(createAttributes);
@@ -209,7 +212,11 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     			
     		} catch (ObjectAlreadyExistsException e) {
     			throw new AlreadyExistsException(e.getMessage(),e);
-    		}
+    		} catch (ConnectException e) {
+    			throw new ConnectionFailedException(e.getMessage(), e);
+			} catch (FileNotFoundException e) {
+				throw new ConnectorIOException(e.getMessage(), e);
+			}
             
         } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
             DummyPrivilege newPriv = convertToPriv(createAttributes);
@@ -220,7 +227,11 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     			
     		} catch (ObjectAlreadyExistsException e) {
     			throw new AlreadyExistsException(e.getMessage(),e);
-    		}
+    		} catch (ConnectException e) {
+    			throw new ConnectionFailedException(e.getMessage(), e);
+			} catch (FileNotFoundException e) {
+				throw new ConnectorIOException(e.getMessage(), e);
+			}
         	
         } else {
         	throw new ConnectorException("Unknown object class "+objectClass);
