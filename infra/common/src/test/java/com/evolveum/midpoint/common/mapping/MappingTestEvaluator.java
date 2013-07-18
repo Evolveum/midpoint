@@ -326,6 +326,18 @@ public class MappingTestEvaluator {
 		return mapping.getOutputTriple();
 	}
 	
+	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
+			ItemPath defaultTargetPropertyName,
+			String changedPropertyName, I... valuesToReplace) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName), 
+				prismContext, valuesToReplace);
+		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
+		OperationResult opResult = new OperationResult(testName);
+		mapping.evaluate(opResult);
+		// TODO: Assert result success
+		return mapping.getOutputTriple();
+	}
+	
 	public ItemPath toPath(String propertyName) {
 		return new ItemPath(new QName(SchemaConstants.NS_C, propertyName));
 	}

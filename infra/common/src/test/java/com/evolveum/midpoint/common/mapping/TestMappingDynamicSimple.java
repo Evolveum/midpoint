@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -706,6 +707,25 @@ public class TestMappingDynamicSimple {
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
+    
+    /**
+     * Return type is a date, script returns string.
+     */
+   @Test
+   public void testScriptDateGroovy() throws Exception {
+   	// WHEN
+   	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+   			"mapping-script-date-groovy.xml",
+   			"testScriptDateGroovy",
+   			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM),	// target
+   			"employeeNumber",				// changed property
+   			"666");	// changed values
+   	
+   	// THEN
+   	PrismAsserts.assertTripleZero(outputTriple, XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0));
+   	PrismAsserts.assertTripleNoPlus(outputTriple);
+   	PrismAsserts.assertTripleNoMinus(outputTriple);
+   }
 
 
     @Test
