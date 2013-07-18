@@ -126,6 +126,12 @@ public class JavaTypeConverter {
 			XMLGregorianCalendar xmlCalType = magicDateTimeParse((String)rawValue);
 			return (T) xmlCalType;
 		}
+		if (expectedType == String.class && rawValue instanceof XMLGregorianCalendar) {
+			return (T) ((XMLGregorianCalendar)rawValue).toXMLFormat();
+		}
+		if (expectedType == Long.class && rawValue instanceof XMLGregorianCalendar) {
+			return (T) (Long) XmlTypeConverter.toMillis((XMLGregorianCalendar)rawValue);
+		}
 		
 		// XML Enums (JAXB)
 		if (expectedType.isEnum() && expectedType.getAnnotation(XmlEnum.class) != null && rawValue instanceof String) {

@@ -30,6 +30,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -41,7 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestXmlConversion {
+public class TestTypeConversion {
 	
 	private static final String MY_NS = "http://midpoint.evolveum.com/xml/ns/testing/xmlconversion";
 	private static final String MY_ELEMENT_NAME = "foo";
@@ -53,13 +54,13 @@ public class TestXmlConversion {
 	}
 	
 	@Test
-	public void testDateTimeType() throws SchemaException, SAXException, IOException {
+	public void testXmlDateTimeType() throws Exception {
 		assertEquals("Wrong datetime class", XMLGregorianCalendar.class, XsdTypeMapper.toJavaType(DOMUtil.XSD_DATETIME));
 		assertEquals("Wrong datetime class", DOMUtil.XSD_DATETIME, XsdTypeMapper.toXsdType(XMLGregorianCalendar.class));
 	}
 	
 	@Test
-	public void testDateTimeValue() throws SchemaException, SAXException, IOException {
+	public void testXmlDateTimeValue() throws Exception {
 		String stringDate = "1975-05-30T21:30:00.000Z";
 		Element xmlElement = createElement(stringDate);
 		Object javaValue = XmlTypeConverter.toJavaValue(xmlElement, DOMUtil.XSD_DATETIME);
@@ -67,6 +68,40 @@ public class TestXmlConversion {
 		PrismAsserts.assertEquals("Wrong java value", xmlCal, javaValue);
 		String xmlTextContent = XmlTypeConverter.toXmlTextContent(xmlCal, MY_ELEMENT_QNAME);
 		assertEquals("Wrong xml value", stringDate, xmlTextContent);
+	}
+
+	@Test
+	public void testJavaStringToXMLGregorianCalendar() throws Exception {
+		String stringDate = "1975-05-30T21:30:00.000Z";
+		
+		// WHEN
+		XMLGregorianCalendar xmlGregorianCalendar = JavaTypeConverter.convert(XMLGregorianCalendar.class, stringDate);
+		
+		// THEN
+		XMLGregorianCalendar expectedCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+		PrismAsserts.assertEquals("Wrong java value", expectedCal, xmlGregorianCalendar);
+	}
+
+	@Test
+	public void testJavaXMLGregorianCalendarToString() throws Exception {
+		XMLGregorianCalendar cal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+		
+		// WHEN
+		String string = JavaTypeConverter.convert(String.class, cal);
+		
+		// THEN
+		PrismAsserts.assertEquals("Wrong java value", "1975-05-30T21:30:00.000Z", string);
+	}
+	
+	@Test
+	public void testJavaXMLGregorianCalendarToLong() throws Exception {
+		XMLGregorianCalendar cal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+		
+		// WHEN
+		Long val = JavaTypeConverter.convert(Long.class, cal);
+		
+		// THEN
+		PrismAsserts.assertEquals("Wrong java value", 170717400000L, val);
 	}
 
 	private Element createElement(String string) {

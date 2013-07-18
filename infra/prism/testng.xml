@@ -23,7 +23,7 @@
     <test name="Prism" preserve-order="false" verbose="1">
         <classes>
         	<class name="com.evolveum.midpoint.prism.TestFundamentals"/>
-        	<class name="com.evolveum.midpoint.prism.TestXmlConversion"/>
+        	<class name="com.evolveum.midpoint.prism.TestTypeConversion"/>
         	<class name="com.evolveum.midpoint.prism.TestPrismContext"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismParsing"/>
 			<class name="com.evolveum.midpoint.prism.TestCompare"/>
