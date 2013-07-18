@@ -74,7 +74,8 @@ public abstract class GeneralNotifier extends BaseHandler {
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
             new ItemPath(ShadowType.F_ITERATION),
             new ItemPath(ShadowType.F_ITERATION_TOKEN),
-            new ItemPath(UserType.F_LINK_REF)
+            new ItemPath(UserType.F_LINK_REF),
+            new ItemPath(ShadowType.F_TRIGGER)
     );
 
 

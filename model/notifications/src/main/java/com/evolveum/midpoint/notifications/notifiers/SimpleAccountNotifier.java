@@ -149,7 +149,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
         if (delta.isAdd()) {
             body.append("created on the resource with attributes:\n");
-            body.append(textFormatter.formatAccountAttributes(delta.getObjectToAdd().asObjectable()));
+            body.append(textFormatter.formatAccountAttributes(delta.getObjectToAdd().asObjectable(), isWatchAuxiliaryAttributes(generalNotifierType)));
             body.append("\n");
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");
@@ -160,7 +160,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
             if (!isWatchAuxiliaryAttributes(generalNotifierType)) {
                 hiddenPaths.addAll(auxiliaryPaths);
             }
-            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths));
+            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
 //            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
             body.append("\n");
         } else if (delta.isDelete()) {

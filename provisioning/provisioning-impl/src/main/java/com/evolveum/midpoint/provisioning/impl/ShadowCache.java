@@ -1194,6 +1194,10 @@ public abstract class ShadowCache {
 		ActivationType resultActivationType = resultShadowType.getActivation();
 		ActivationType repoActivation = repoShadowType.getActivation();
 		if (repoActivation != null) {
+            if (resultActivationType == null) {
+                resultActivationType = new ActivationType();
+                resultShadowType.setActivation(resultActivationType);
+            }
 			resultActivationType.setId(repoActivation.getId());
 			// .. but we want metadata from repo
 			resultActivationType.setEnableTimestamp(repoActivation.getEnableTimestamp());

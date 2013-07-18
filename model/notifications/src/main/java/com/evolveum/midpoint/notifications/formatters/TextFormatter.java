@@ -56,7 +56,7 @@ public class TextFormatter {
 
     private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
 
-    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths) {
+    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
 
         Validate.notNull(objectDelta, "objectDelta is null");
         Validate.isTrue(objectDelta.isModify(), "objectDelta is not a modification delta");
@@ -67,61 +67,61 @@ public class TextFormatter {
 
         StringBuilder retval = new StringBuilder();
 
-        List<ItemDelta> toBeDisplayed = filterAndOrderItemDeltas(objectDelta, hiddenPaths);
+        List<ItemDelta> toBeDisplayed = filterAndOrderItemDeltas(objectDelta, hiddenPaths, showOperationalAttributes);
 
         for (ItemDelta itemDelta : toBeDisplayed) {
             retval.append(" - ");
             retval.append(getItemDeltaLabel(itemDelta));
             retval.append(":\n");
-            formatItemDeltaContent(retval, itemDelta);
+            formatItemDeltaContent(retval, itemDelta, showOperationalAttributes);
         }
 
         return retval.toString();
     }
 
-    public String formatAccountAttributes(ShadowType shadowType) {
+    public String formatAccountAttributes(ShadowType shadowType, boolean showOperationalAttributes) {
         Validate.notNull(shadowType, "shadowType is null");
 
         StringBuilder retval = new StringBuilder();
-        formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false);
+        formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, showOperationalAttributes);
         return retval.toString();
     }
 
-    public String formatObject(PrismObject object) {
+    public String formatObject(PrismObject object, boolean showOperationalAttributes) {
 
         Validate.notNull(object, "object is null");
 
         StringBuilder retval = new StringBuilder();
-        formatContainerValue(retval, "", object.getValue(), false);
+        formatContainerValue(retval, "", object.getValue(), false, showOperationalAttributes);
         return retval.toString();
     }
 
 
-    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta) {
-        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false);
-        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true);
-        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false);
+    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, boolean showOperationalAttributes) {
+        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, showOperationalAttributes);
+        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, showOperationalAttributes);
+        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, showOperationalAttributes);
     }
 
-    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values, boolean mightBeRemoved) {
+    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values, boolean mightBeRemoved, boolean showOperationalAttributes) {
         if (values != null) {
             for (PrismValue prismValue : values) {
                 sb.append("   - " + type + ": ");
                 String prefix = "     ";
-                formatPrismValue(sb, prefix, prismValue, mightBeRemoved);
+                formatPrismValue(sb, prefix, prismValue, mightBeRemoved, showOperationalAttributes);
                 sb.append("\n");
             }
         }
     }
 
-    private void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved) {
+    private void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved, boolean showOperationalAttributes) {
         if (prismValue instanceof PrismPropertyValue) {
             sb.append(ValueDisplayUtil.toStringValue((PrismPropertyValue) prismValue));
         } else if (prismValue instanceof PrismReferenceValue) {
             sb.append(formatReferenceValue((PrismReferenceValue) prismValue, mightBeRemoved));
         } else if (prismValue instanceof PrismContainerValue) {
             sb.append("\n");
-            formatContainerValue(sb, prefix, (PrismContainerValue) prismValue, mightBeRemoved);
+            formatContainerValue(sb, prefix, (PrismContainerValue) prismValue, mightBeRemoved, showOperationalAttributes);
         } else {
             sb.append("Unexpected PrismValue type: ");
             sb.append(prismValue);
@@ -129,11 +129,11 @@ public class TextFormatter {
         }
     }
 
-    private void formatContainerValue(StringBuilder sb, String prefix, PrismContainerValue containerValue, boolean mightBeRemoved) {
+    private void formatContainerValue(StringBuilder sb, String prefix, PrismContainerValue containerValue, boolean mightBeRemoved, boolean showOperationalAttributes) {
 //        sb.append("Container of type " + containerValue.getParent().getDefinition().getTypeName());
 //        sb.append("\n");
 
-        List<Item> toBeDisplayed = filterAndOrderItems(containerValue.getItems());
+        List<Item> toBeDisplayed = filterAndOrderItems(containerValue.getItems(), showOperationalAttributes);
 
         for (Item item : toBeDisplayed) {
             sb.append(prefix);
@@ -166,7 +166,7 @@ public class TextFormatter {
                 for (PrismContainerValue subContainerValue : ((PrismContainer<? extends Containerable>) item).getValues()) {
                     sb.append("\n");
                     String prefixSubContainer = prefix + "   ";
-                    formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved);
+                    formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved, showOperationalAttributes);
                 }
             } else {
                 sb.append("Unexpected Item type: ");
@@ -264,11 +264,11 @@ public class TextFormatter {
         }
     }
 
-    private List<ItemDelta> filterAndOrderItemDeltas(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths) {
+    private List<ItemDelta> filterAndOrderItemDeltas(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         List<ItemDelta> toBeDisplayed = new ArrayList<ItemDelta>(objectDelta.getModifications().size());
         for (ItemDelta itemDelta: objectDelta.getModifications()) {
             if (itemDelta.getDefinition() != null) {
-                if (!itemDelta.getDefinition().isOperational() && !NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+                if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                     toBeDisplayed.add(itemDelta);
                 }
             } else {
@@ -300,11 +300,11 @@ public class TextFormatter {
                 item.getDefinition().getDisplayName() : item.getName().getLocalPart();
     }
 
-    private List<Item> filterAndOrderItems(List<Item> items) {
+    private List<Item> filterAndOrderItems(List<Item> items, boolean showOperationalAttributes) {
         List<Item> toBeDisplayed = new ArrayList<Item>(items.size());
         for (Item item : items) {
             if (item.getDefinition() != null) {
-                if (!item.getDefinition().isOperational()) {
+                if (showOperationalAttributes || !item.getDefinition().isOperational()) {
                     toBeDisplayed.add(item);
                 }
             } else {

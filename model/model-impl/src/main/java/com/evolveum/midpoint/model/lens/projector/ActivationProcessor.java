@@ -520,8 +520,11 @@ public class ActivationProcessor {
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mappingHelper.evaluateMappingSetProjection(
 				outbound, desc + " outbound activation mapping in projection " + accCtxDesc,
         		now, initializer, shadowPropertyNew, shadowPropertyDelta, current, context, accCtx, result);
-            
-		if (outputTriple == null) {
+
+        LOGGER.trace("evaluateActivationMapping after evaluateMappingSetProjection: accCtx.isFullShadow = {}, accCtx.isFresh = {}, shadowPropertyNew = {}, outputTriple = {}",
+                new Object[] { accCtx.isFullShadow(), accCtx.isFresh(), shadowPropertyNew, outputTriple});
+
+        if (outputTriple == null) {
     		LOGGER.trace("Activation '{}' expression resulted in null triple for projection {}, skipping", desc, accCtxDesc);
             return null;
     	}
@@ -538,20 +541,35 @@ public class ActivationProcessor {
 	        projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(nonNegativeValues));
 	        
         } else {
-        	
-        	Collection<PrismPropertyValue<T>> plusSet = outputTriple.getPlusSet();
-        	if (plusSet != null && !plusSet.isEmpty()) {
+
+            // if we have fresh information (full shadow), we will take all values (zero & plus sets) into account
+            // otherwise, we take only the plus set
+
+            // the first case is necessary, because in some situations (e.g. when mapping is changed)
+            // the evaluator sees no differences w.r.t. real state, even if there is a difference
+
+            Collection<PrismPropertyValue<T>> valuesToReplace;
+
+            if (accCtx.isFullShadow()) {
+                valuesToReplace = outputTriple.getNonNegativeValues();
+            } else {
+                valuesToReplace = outputTriple.getPlusSet();
+            }
+
+        	if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
 
                 // if what we want to set is the same as is already in the shadow, we skip that
+                // (we insist on having full shadow, to be sure we work with current data)
+
                 if (accCtx.isFullShadow() && accCtx.isFresh() && shadowPropertyNew != null) {
                     Set<T> realValuesPresent = new HashSet<T>(shadowPropertyNew.getRealValues());
-                    Set<T> realValuesComputed = PrismValue.getRealValuesOfCollection(plusSet);
+                    Set<T> realValuesComputed = PrismValue.getRealValuesOfCollection(valuesToReplace);
                     if (realValuesPresent.equals(realValuesComputed)) {
                         LOGGER.trace("Activation '{}' expression resulted in existing values for projection {}, skipping creation of a delta", desc, accCtxDesc);
                         return null;
                     }
                 }
-        		projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(plusSet));
+        		projectionPropertyDelta.setValuesToReplace(PrismValue.cloneCollection(valuesToReplace));
         	}
         	
         }

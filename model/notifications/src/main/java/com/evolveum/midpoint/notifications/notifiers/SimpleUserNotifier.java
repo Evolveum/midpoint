@@ -115,12 +115,12 @@ public class SimpleUserNotifier extends GeneralNotifier {
 
         if (delta.isAdd()) {
             body.append("The user record was created with the following data:\n");
-            body.append(textFormatter.formatObject(delta.getObjectToAdd()));
+            body.append(textFormatter.formatObject(delta.getObjectToAdd(), isWatchAuxiliaryAttributes(generalNotifierType)));
             body.append("\n");
         } else if (delta.isModify()) {
             body.append("The user record was modified. Modified attributes are:\n");
             List<ItemPath> hiddenPaths = isWatchAuxiliaryAttributes(generalNotifierType) ? new ArrayList<ItemPath>() : auxiliaryPaths;
-            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths));
+            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
 //            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
             body.append("\n");
         } else if (delta.isDelete()) {
