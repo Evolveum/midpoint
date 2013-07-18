@@ -33,6 +33,7 @@ import java.sql.SQLException;
  */
 public class QNameType implements UserType {
 
+    public static final String NAME = "QNameType";
     public static final String EMPTY_QNAME_COLUMN_VALUE = " ";
 
     @Override

@@ -375,4 +375,54 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         desc = shadowType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
     }
+
+    /**
+     * creates <iterationToken/> element in shadow
+     */
+    @Test
+    public void emtpyIterationToken() throws Exception {
+        String token = testIterationToken("");
+        AssertJUnit.assertNotNull(token);
+        AssertJUnit.assertTrue(token.equals(""));
+    }
+
+    /**
+     * doesn't create <iterationToken/> element in shadow
+     */
+    @Test
+    public void nullIterationToken() throws Exception {
+        String token = testIterationToken(null);
+        AssertJUnit.assertNull(token);
+    }
+
+    /**
+     * creates <iterationToken>some value</iterationToken> element in shadow
+     */
+    @Test
+    public void valueInIterationToken() throws Exception {
+        String token = testIterationToken("foo");
+        AssertJUnit.assertNotNull(token);
+        AssertJUnit.assertEquals(token, "foo");
+    }
+
+    private String testIterationToken(String token) throws Exception {
+        PrismObjectDefinition accDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        PrismObject<ShadowType> shadow = accDef.instantiate();
+
+        ShadowType shadowType = shadow.asObjectable();
+        shadowType.setName(new PolyStringType("testIterationToken"));
+        shadowType.setIterationToken(token);
+
+        OperationResult result = new OperationResult("sync desc test");
+        final String oid = repositoryService.addObject(shadowType.asPrismObject(), null, result);
+
+        shadow = repositoryService.getObject(ShadowType.class, oid, result);
+        shadowType = shadow.asObjectable();
+
+        token = shadowType.getIterationToken();
+        repositoryService.deleteObject(ShadowType.class, oid, result);
+
+        return token;
+    }
 }

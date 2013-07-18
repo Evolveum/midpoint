@@ -37,6 +37,8 @@ import java.util.GregorianCalendar;
  */
 public class XMLGregorianCalendarType implements UserType {
 
+    public static final String NAME = "XMLGregorianCalendarType";
+
     private static final AbstractSingleColumnStandardBasicType HIBERNATE_TYPE = TimestampType.INSTANCE;
     private static DatatypeFactory df = null;
 

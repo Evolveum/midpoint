@@ -19,10 +19,12 @@
  */
 
 @org.hibernate.annotations.TypeDefs({
-        @org.hibernate.annotations.TypeDef(name = "XMLGregorianCalendarType",
+        @org.hibernate.annotations.TypeDef(name = XMLGregorianCalendarType.NAME,
                 defaultForType = javax.xml.datatype.XMLGregorianCalendar.class,
                 typeClass = com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType.class),
-        @org.hibernate.annotations.TypeDef(name = "QNameType",
+        @org.hibernate.annotations.TypeDef(name = QNameType.NAME,
                 defaultForType = javax.xml.namespace.QName.class,
-                typeClass = com.evolveum.midpoint.repo.sql.type.QNameType.class)
+                typeClass = com.evolveum.midpoint.repo.sql.type.QNameType.class),
+        @org.hibernate.annotations.TypeDef(name = PrefixedStringType.NAME,
+                typeClass = com.evolveum.midpoint.repo.sql.type.PrefixedStringType.class)
 }) package com.evolveum.midpoint.repo.sql.type;
