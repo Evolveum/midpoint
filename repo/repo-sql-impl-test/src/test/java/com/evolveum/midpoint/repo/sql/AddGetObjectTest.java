@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.hibernate.stat.Statistics;
 import org.springframework.test.annotation.DirtiesContext;
@@ -424,5 +427,35 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         repositoryService.deleteObject(ShadowType.class, oid, result);
 
         return token;
+    }
+
+    @Test(enabled = false)
+    public void deltaOperationSerializationPerformanceTest() throws Exception {
+        List<PrismObject<? extends Objectable>> elements =
+                prismContext.getPrismDomProcessor().parseObjects(new File(FOLDER_BASIC, "objects.xml"));
+
+        //get user from objects.xml
+        ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));
+
+        final int COUNT = 10000;
+        //first conversion option
+        System.out.println(DeltaConvertor.toObjectDeltaTypeXml(delta));
+        //second conversion option
+        System.out.println("\n" + RUtil.toRepo(DeltaConvertor.toObjectDeltaType(delta), prismContext));
+
+        long time = System.currentTimeMillis();
+        for (int i = 0; i < COUNT; i++) {
+            String xml = DeltaConvertor.toObjectDeltaTypeXml(delta);
+        }
+        time = System.currentTimeMillis() - time;
+        System.out.println(">>> " + time);
+
+        time = System.currentTimeMillis();
+        for (int i = 0; i < COUNT; i++) {
+            ObjectDeltaType type = DeltaConvertor.toObjectDeltaType(delta);
+            String xml = RUtil.toRepo(type, prismContext);
+        }
+        time = System.currentTimeMillis() - time;
+        System.out.println(">>> " + time);
     }
 }

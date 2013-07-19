@@ -291,6 +291,7 @@ public class RObjectDeltaOperation implements OperationResult {
         try {
             if (operation.getObjectDelta() != null) {
                 ObjectDelta delta = operation.getObjectDelta();
+                //this two step conversion is twice as fast compared to DeltaConvertor.toObjectDeltaTypeXml(delta)
                 ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
                 auditDelta.setDelta(RUtil.toRepo(xmlDelta, prismContext));
 
