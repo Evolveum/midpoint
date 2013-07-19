@@ -111,8 +111,14 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_WHITE_OID = "10000000-0000-0000-0000-000000000304";
 	protected static final String RESOURCE_DUMMY_WHITE_NAME = "white";
 	protected static final String RESOURCE_DUMMY_WHITE_NAMESPACE = MidPointConstants.NS_RI;
-	
-	// Green dummy resource is authoritative
+
+    // YELLOW dummy resource is the same as default one but with strong asIs administrativeStatus mapping
+    protected static final String RESOURCE_DUMMY_YELLOW_FILENAME = COMMON_DIR_NAME + "/resource-dummy-yellow.xml";
+    protected static final String RESOURCE_DUMMY_YELLOW_OID = "10000000-0000-0000-0000-000000000704";
+    protected static final String RESOURCE_DUMMY_YELLOW_NAME = "yellow";
+    protected static final String RESOURCE_DUMMY_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
+
+    // Green dummy resource is authoritative
 	protected static final String RESOURCE_DUMMY_GREEN_FILENAME = COMMON_DIR_NAME + "/resource-dummy-green.xml";
 	protected static final String RESOURCE_DUMMY_GREEN_OID = "10000000-0000-0000-0000-000000000404";
 	protected static final String RESOURCE_DUMMY_GREEN_NAME = "green";

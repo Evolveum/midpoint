@@ -30,6 +30,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -73,6 +77,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	private String accountOid;
 	private String accountRedOid;
+    private String accountYellowOid;
 	private XMLGregorianCalendar lastValidityChangeTimestamp;
 	private String accountMancombOid;
 	private String userMancombOid;
@@ -246,7 +251,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test102ModifyUserJackEnable() throws Exception {
-        TestUtil.displayTestTile(this, "test052ModifyUserJackEnable");
+        TestUtil.displayTestTile(this, "test102ModifyUserJackEnable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
@@ -579,8 +584,158 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyEnabled("jack");
 		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
-	@Test
+
+    /**
+     * Assign yellow account.
+     */
+    @Test
+    public void test150ModifyUserJackAssignYellowAccount() throws Exception {
+        final String TEST_NAME = "test150ModifyUserJackAssignYellowAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+        accountYellowOid = getAccountRef(userJack, RESOURCE_DUMMY_YELLOW_OID);
+
+        // Check account in dummy resource
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, "jack", "Jack Sparrow", true);
+
+        // Check shadow
+        PrismObject<ShadowType> accountShadowYellow = getAccount(accountYellowOid);
+        assertShadowModel(accountShadowYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyYellowType);
+        assertAdministrativeStatusEnabled(accountShadowYellow);
+        IntegrationTestTools.assertCreateTimestamp(accountShadowYellow, start, end);
+        assertEnableTimestampShadow(accountShadowYellow, start, end);
+
+        // Check user
+        IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+        assertAdministrativeStatusEnabled(userJack);
+    }
+
+
+    /**
+     * Disable default & yellow accounts and check them after reconciliation.
+     */
+    @Test(enabled = false)
+    public void test152ModifyAccountsJackDisable() throws Exception {
+        final String TEST_NAME = "test152ModifyAccountsJackDisable";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        // WHEN
+        ObjectDelta<ShadowType> dummyDelta = createModifyAccountShadowReplaceDelta(accountOid, null, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
+        ObjectDelta<ShadowType> yellowDelta = createModifyAccountShadowReplaceDelta(accountYellowOid, null, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(dummyDelta, yellowDelta);
+
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+
+        checkAdminStatusFor15x(userJack, true, false, false);
+
+        // WHEN (2) - now let's do a reconciliation on both resources
+
+        ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY, userJack.asObjectable().getLocality());
+        modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
+
+        // THEN
+
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result (after reconciliation)", result);
+
+        checkAdminStatusFor15x(userJack, true, false, true);        // yellow has a STRONG mapping for adminStatus, therefore it should be replaced by the user's adminStatus
+    }
+
+    /**
+     * Disable default & yellow accounts and check them after reconciliation.
+     */
+    @Test(enabled = false)
+    public void test153ModifyAccountsJackEnable() throws Exception {
+        final String TEST_NAME = "test153ModifyAccountsJackEnable";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        // WHEN
+        ObjectDelta<ShadowType> dummyDelta = createModifyAccountShadowReplaceDelta(accountOid, null, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
+        ObjectDelta<ShadowType> yellowDelta = createModifyAccountShadowReplaceDelta(accountYellowOid, null, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(dummyDelta, yellowDelta);
+
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+
+        checkAdminStatusFor15x(userJack, true, true, true);
+
+        // WHEN (2) - now let's do a reconciliation on both resources
+
+        ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY, userJack.asObjectable().getLocality());
+        modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
+
+        // THEN
+
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result (after reconciliation)", result);
+
+        checkAdminStatusFor15x(userJack, true, true, true);
+    }
+
+    private void checkAdminStatusFor15x(PrismObject user, boolean userStatus, boolean accountStatus, boolean accountStatusYellow) throws Exception {
+        PrismObject<ShadowType> account = getAccount(accountOid);
+        PrismObject<ShadowType> accountYellow = getAccount(accountYellowOid);
+        assertShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAdministrativeStatus(account, accountStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+        assertShadowModel(accountYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyYellowType);
+        assertAdministrativeStatus(accountYellow, accountStatusYellow ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+
+        assertAdministrativeStatus(user, userStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+
+        // Check account in dummy resource
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", accountStatus);
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", accountStatusYellow);
+    }
+
+
+    @Test
     public void test199DeleteUserJack() throws Exception {
 		final String TEST_NAME = "test199DeleteUserJack";
         TestUtil.displayTestTile(this, TEST_NAME);
