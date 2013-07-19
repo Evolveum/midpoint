@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -67,8 +69,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestModelCrudService extends AbstractInitializedModelIntegrationTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/contract");
+	public static final File TEST_DIR = new File("src/test/resources/crud");
+	public static final File TEST_CONTRACT_DIR = new File("src/test/resources/contract");
 
+	public static final File RESOURCE_MAROON_FILE = new File(TEST_DIR, "resource-dummy-maroon.xml");
+	public static final String RESOURCE_MAROON_OID = "10000000-0000-0000-0000-00000000e104";
+	
 	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
 	private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
 	
@@ -77,6 +83,34 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	@Autowired(required = true)
 	protected ModelCrudService modelCrudService;
 			
+	@Test
+    public void test050AddResource() throws Exception {
+		final String TEST_NAME = "test050AddResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        // Make sure that plain JAXB parser is used ... this is what a webservice stack would do
+        ResourceType resourceType = prismContext.getPrismJaxbProcessor().unmarshalObject(RESOURCE_MAROON_FILE, ResourceType.class);
+        
+        // WHEN
+        PrismObject<ResourceType> object = resourceType.asPrismObject();
+		prismContext.adopt(resourceType);
+		modelCrudService.addObject(object, task, result);
+        		
+		// THEN
+		result.computeStatus();
+		IntegrationTestTools.assertSuccess(result);
+		
+		// Make sure the resource has t:norm part of polystring name
+		PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_MAROON_OID, null, task, result);
+		assertEquals("Wrong orig in resource name", "Dummy Resource Maroon", resourceAfter.asObjectable().getName().getOrig());
+		assertEquals("Wrong norm in resource name", "dummy resource maroon", resourceAfter.asObjectable().getName().getNorm());
+	}
+	
 	@Test
     public void test100ModifyUserAddAccount() throws Exception {
         TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
@@ -313,7 +347,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-blackbeard-account-dummy.xml"));
                 
 		// WHEN
         modelCrudService.addObject(user , task, result);
@@ -349,7 +383,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-morgan-assignment-dummy.xml"));
                 
 		// WHEN
         modelCrudService.addObject(user , task, result);
