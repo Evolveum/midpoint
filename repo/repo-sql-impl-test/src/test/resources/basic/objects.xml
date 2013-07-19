@@ -762,6 +762,7 @@
             <p:doubleType>456.789</p:doubleType>
             <p:longType>567890</p:longType>
             <p:dateType>2002-05-30T09:10:11.000+02:00</p:dateType>
+            <p:decimalType>1234</p:decimalType>
             <p:locations>
                 <p:location key="home">Here</p:location>
                 <p:location key="work">There</p:location>

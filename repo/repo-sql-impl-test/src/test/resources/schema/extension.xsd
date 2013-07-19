@@ -72,6 +72,7 @@
             <xsd:element name="shortType" type="xsd:short"/>
             <xsd:element name="longType" type="xsd:long"/>
             <xsd:element name="dateType" type="xsd:dateTime"/>
+            <xsd:element name="decimalType" type="xsd:decimal"/>
             <xsd:element name="locations" type="tns:LocationsType"/>
             <xsd:element name="referenceType" type="c:ObjectReferenceType"/>
             <xsd:element name="polyType" type="t:PolyStringType"/>

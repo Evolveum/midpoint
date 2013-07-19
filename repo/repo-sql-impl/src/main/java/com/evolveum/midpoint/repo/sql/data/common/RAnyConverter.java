@@ -156,7 +156,8 @@ public class RAnyConverter {
                 || DOMUtil.XSD_INTEGER.equals(type)
                 || DOMUtil.XSD_DOUBLE.equals(type)
                 || DOMUtil.XSD_FLOAT.equals(type)
-                || DOMUtil.XSD_STRING.equals(type);
+                || DOMUtil.XSD_STRING.equals(type)
+                || DOMUtil.XSD_DECIMAL.equals(type);
     }
 
     private RValueType getValueType(Itemable itemable) {
@@ -356,6 +357,11 @@ public class RAnyConverter {
                 return Float.parseFloat((String) value);
             } else if (DOMUtil.XSD_INTEGER.equals(rValue.getType())) {
                 return new BigInteger((String) value);
+            } else if (DOMUtil.XSD_DECIMAL.equals(rValue.getType())) {
+                //later this can be returned as BigDecimal
+                Element element = createElement(rValue.getName());
+                element.setTextContent((String) value);
+                return element;
             }
         } else if (rValue instanceof RAnyPolyString) {
             RAnyPolyString poly = (RAnyPolyString) rValue;

@@ -180,6 +180,23 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void testExtensionDecimal() throws Exception {
+        Session session = getFactory().openSession();
+
+        QName valueName = new QName(NS_P, "decimalType");
+        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        AssertJUnit.assertNotNull(def);
+
+        Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
+        value.setTextContent("1234");
+
+        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        AssertJUnit.assertEquals("1234", realValue);
+
+        session.close();
+    }
+
+    @Test
     public void testExtensionClob() throws Exception {
         Session session = getFactory().openSession();
 
