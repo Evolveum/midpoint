@@ -149,7 +149,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		try {
 			return JavaTypeConverter.convert(expectedType, rawValue);
 		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
 		}
 	}
 	

@@ -719,11 +719,11 @@ public class TestMappingDynamicSimple {
    			"testScriptDateGroovy",
    			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM),	// target
    			"employeeNumber",				// changed property
-   			"666");	// changed values
+   			"1975-05-30");	// changed values
    	
    	// THEN
-   	PrismAsserts.assertTripleZero(outputTriple, XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0));
-   	PrismAsserts.assertTripleNoPlus(outputTriple);
+   	PrismAsserts.assertTripleZero(outputTriple);
+   	PrismAsserts.assertTriplePlus(outputTriple, XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0));
    	PrismAsserts.assertTripleNoMinus(outputTriple);
    }
 
