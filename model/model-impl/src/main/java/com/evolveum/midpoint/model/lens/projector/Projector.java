@@ -380,7 +380,7 @@ public class Projector {
 			return false;
 		}
 		PrismObject<P> objectOld = accountContext.getObjectOld();
-		if (objectOld.asObjectable().getFailedOperationType() != null) {
+		if (objectOld != null && objectOld.asObjectable().getFailedOperationType() != null) {
 			// There is unfinished operation in the shadow. We cannot continue.
 			return false;
 		}
