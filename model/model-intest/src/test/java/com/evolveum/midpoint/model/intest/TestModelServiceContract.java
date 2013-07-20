@@ -152,7 +152,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
         assertNotNull("null rearch return", resources);
         assertFalse("Empty rearch return", resources.isEmpty());
-        assertEquals("Unexpected number of resources found", 6, resources.size());
+        assertEquals("Unexpected number of resources found", 7, resources.size());
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("searchObjects result", result);
