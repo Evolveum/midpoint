@@ -1163,9 +1163,9 @@ public abstract class ShadowCache {
 		if (resultShadowType.getObjectClass() == null) {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
 		}
-		if (resultShadowType.getName() == null) {
+//		if (resultShadowType.getName() == null) {
 			resultShadowType.setName(ProvisioningUtil.determineShadowName(resourceShadow));
-		}
+//		}
 		if (resultShadowType.getResource() == null) {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
 		}
