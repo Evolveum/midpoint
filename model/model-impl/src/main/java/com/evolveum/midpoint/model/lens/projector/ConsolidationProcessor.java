@@ -232,7 +232,7 @@ public class ConsolidationProcessor {
         
         boolean forceAddUnchangedValues = false;
         PropertyDelta<?> existingAttributeDelta = null;
-        if (existingDelta != null ) {
+        if (existingDelta != null) {
         	existingAttributeDelta = existingDelta.findPropertyDelta(attributePath);
         }
         if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {

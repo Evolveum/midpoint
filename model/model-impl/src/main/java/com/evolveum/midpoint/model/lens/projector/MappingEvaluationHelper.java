@@ -22,6 +22,7 @@ import java.util.HashSet;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -72,15 +73,24 @@ public class MappingEvaluationHelper {
 
     @Autowired(required = true)
     private MappingFactory valueConstructionFactory;
-	
+
+    /**
+     * strongMappingWasUsed: Returns true here if the value was (at least partly) determined by a strong mapping.
+     * Used to know whether (when doing reconciliation) this value should be forcibly put onto the resource, even
+     * if it was not changed (i.e. if it's only in the zero set).
+     */
 	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluateMappingSetProjection(Collection<MappingType> mappingTypes, String mappingDesc,
 			XMLGregorianCalendar now, MappingInitializer<V> initializer, Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta,
-			Boolean evaluateCurrent,
+			Boolean evaluateCurrent, MutableBoolean strongMappingWasUsed,
 			LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
+
 		PrismValueDeltaSetTriple<V> outputTriple = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
 		Collection<Mapping<V>> mappings = new ArrayList<Mapping<V>>(mappingTypes.size());
+
+        if (strongMappingWasUsed != null) {
+            strongMappingWasUsed.setValue(false);
+        }
 		
 		for (MappingType mappingType: mappingTypes) {
 			
@@ -126,6 +136,11 @@ public class MappingEvaluationHelper {
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 			if (mappingOutputTriple != null) {
+
+                if (mapping.getStrength() == MappingStrengthType.STRONG && strongMappingWasUsed != null) {
+                    strongMappingWasUsed.setValue(true);
+                }
+
 				if (outputTriple == null) {
 					outputTriple = mappingOutputTriple;
 				} else {
@@ -134,17 +149,17 @@ public class MappingEvaluationHelper {
 			}
 			
 		}
-		
+
 		if ((aPrioriValue == null || aPrioriValue.isEmpty()) && outputTriple == null) {
 			// Second pass, evaluate only weak mappings
 			for (Mapping<V> mapping: mappings) {
-				
+
 				if (mapping.getStrength() != MappingStrengthType.WEAK) {
 					continue;
 				}
-				
+
 				LensUtil.evaluateMapping(mapping, context, result);
-				
+
 				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 				if (mappingOutputTriple != null) {
 					if (outputTriple == null) {
@@ -153,7 +168,7 @@ public class MappingEvaluationHelper {
 						outputTriple.merge(mappingOutputTriple);
 					}
 				}
-				
+
 			}
 		}
 		

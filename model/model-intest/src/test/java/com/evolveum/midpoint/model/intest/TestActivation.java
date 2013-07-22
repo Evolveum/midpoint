@@ -637,7 +637,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     /**
      * Disable default & yellow accounts and check them after reconciliation.
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test152ModifyAccountsJackDisable() throws Exception {
         final String TEST_NAME = "test152ModifyAccountsJackDisable";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -680,7 +680,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     /**
      * Disable default & yellow accounts and check them after reconciliation.
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test153ModifyAccountsJackEnable() throws Exception {
         final String TEST_NAME = "test153ModifyAccountsJackEnable";
         TestUtil.displayTestTile(this, TEST_NAME);

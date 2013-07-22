@@ -70,7 +70,7 @@ public class PrefixedStringType implements UserType {
 
     private boolean isOracle(SessionImplementor session) {
         SessionFactoryImplementor factory = session.getFactory();
-        System.out.println("]]] " + Oracle10gDialect.class.isAssignableFrom(factory.getDialect().getClass()));
+        //System.out.println("]]] " + Oracle10gDialect.class.isAssignableFrom(factory.getDialect().getClass()));
         return Oracle10gDialect.class.isAssignableFrom(factory.getDialect().getClass());
     }
 

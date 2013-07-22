@@ -154,7 +154,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				}
 			}
 			sourceTriples.add(sourceTriple);
-			LOGGER.trace("Processes source tripple\n{}",sourceTriple.dump());
+			LOGGER.trace("Processes source triple\n{}",sourceTriple.dump());
 		}
 		return sourceTriples;
 	}

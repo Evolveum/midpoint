@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
 import org.apache.commons.lang.StringUtils;
 
@@ -1028,6 +1030,17 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         projectionContext.accountPasswordPolicy = projectionContextType.getAccountPasswordPolicy();
 
         return projectionContext;
+    }
+
+    // determines whether full shadow is present, based on operation result got from provisioning
+    public void determineFullShadowFlag(OperationResultType fetchResult) {
+        if (fetchResult != null
+                && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
+                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {                 // todo what about other kinds of status? [e.g. in-progress]
+            setFullShadow(false);
+        } else {
+            setFullShadow(true);
+        }
     }
 
 }

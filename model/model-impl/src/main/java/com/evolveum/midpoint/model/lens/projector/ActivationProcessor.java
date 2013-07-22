@@ -60,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationValidityCapabilityType;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -155,7 +156,7 @@ public class ActivationProcessor {
 	    			decision = SynchronizationPolicyDecision.DELETE;
 	    		} else {
 	    			// we should delete the entire context, but then we will lost track of what
-	    			// happended. So just ignore it.
+	    			// happened. So just ignore it.
 	    			decision = SynchronizationPolicyDecision.IGNORE;
 	    			// if there are any triggers then move them to focus. We may still need them.
 	    			LensUtil.moveTriggers(accCtx, context.getFocusContext());
@@ -405,7 +406,7 @@ public class ActivationProcessor {
         
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mappingHelper.evaluateMappingSetProjection(
 				outbound, "outbound existence mapping in projection " + accCtxDesc,
-        		now, initializer, null, null, current, context, accCtx, result);
+        		now, initializer, null, null, current, null, context, accCtx, result);
     	
 		if (outputTriple == null) {
 			// The "default existence mapping"
@@ -516,13 +517,15 @@ public class ActivationProcessor {
 			}
 
 		};
-        
+
+        MutableBoolean strongMappingWasUsed = new MutableBoolean();
+
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mappingHelper.evaluateMappingSetProjection(
 				outbound, desc + " outbound activation mapping in projection " + accCtxDesc,
-        		now, initializer, shadowPropertyNew, shadowPropertyDelta, current, context, accCtx, result);
+        		now, initializer, shadowPropertyNew, shadowPropertyDelta, current, strongMappingWasUsed, context, accCtx, result);
 
-        LOGGER.trace("evaluateActivationMapping after evaluateMappingSetProjection: accCtx.isFullShadow = {}, accCtx.isFresh = {}, shadowPropertyNew = {}, outputTriple = {}",
-                new Object[] { accCtx.isFullShadow(), accCtx.isFresh(), shadowPropertyNew, outputTriple});
+        LOGGER.trace("evaluateActivationMapping after evaluateMappingSetProjection: accCtx.isFullShadow = {}, accCtx.isFresh = {}, shadowPropertyDelta = {}, shadowPropertyNew = {}, outputTriple = {}, strongMappingWasUsed = {}",
+                new Object[] { accCtx.isFullShadow(), accCtx.isFresh(), shadowPropertyDelta, shadowPropertyNew, outputTriple, strongMappingWasUsed});
 
         if (outputTriple == null) {
     		LOGGER.trace("Activation '{}' expression resulted in null triple for projection {}, skipping", desc, accCtxDesc);
@@ -542,15 +545,16 @@ public class ActivationProcessor {
 	        
         } else {
 
-            // if we have fresh information (full shadow), we will take all values (zero & plus sets) into account
-            // otherwise, we take only the plus set
+            // if we have fresh information (full shadow) AND the mapping used to derive the information was strong,
+            // we will consider all values (zero & plus sets) -- otherwise, we take only the "plus" (i.e. changed) set
 
             // the first case is necessary, because in some situations (e.g. when mapping is changed)
             // the evaluator sees no differences w.r.t. real state, even if there is a difference
+            // - and we must have a way to push new information onto the resource
 
             Collection<PrismPropertyValue<T>> valuesToReplace;
 
-            if (accCtx.isFullShadow()) {
+            if (accCtx.isFullShadow() && strongMappingWasUsed.isTrue()) {
                 valuesToReplace = outputTriple.getNonNegativeValues();
             } else {
                 valuesToReplace = outputTriple.getPlusSet();

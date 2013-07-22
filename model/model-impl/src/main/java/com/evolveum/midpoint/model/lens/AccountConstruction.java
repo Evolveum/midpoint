@@ -329,7 +329,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			}
 			MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
 			if (outboundMappingType == null) {
-				throw new SchemaException("No oubound section in definition of attribute "+attrName+" in account construction in "+source);
+				throw new SchemaException("No outbound section in definition of attribute "+attrName+" in account construction in "+source);
 			}
 			Mapping<? extends PrismPropertyValue<?>> attributeMapping = evaluateAttribute(attribudeDefinitionType, result);
 			if (attributeMapping != null) {
@@ -350,7 +350,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		}
 		MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
 		if (outboundMappingType == null) {
-			throw new SchemaException("No onbound section in definition of attribute "+attrName+" in account construction in "+source);
+			throw new SchemaException("No outbound section in definition of attribute "+attrName+" in account construction in "+source);
 		}
 		PrismPropertyDefinition outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {

@@ -17,16 +17,12 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -46,11 +42,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -62,7 +55,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -774,12 +766,7 @@ public class ContextLoader {
 						projContext.setObjectOld(objectOld);
 						P oldShadow = objectOld.asObjectable();
 						if (projContext.isDoReconciliation()) {
-							if (oldShadow.getFetchResult() != null
-									&& oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR) {
-								projContext.setFullShadow(false);
-							} else {
-								projContext.setFullShadow(true);
-							}
+                            projContext.determineFullShadowFlag(oldShadow.getFetchResult());
 						} else {
 							projContext.setFullShadow(false);
 						}

@@ -605,7 +605,7 @@ public class PrismDomProcessor {
 				propertyElements.add(valueElement);
 				output = (Item<V>) parsePrismProperty(propertyElements, outputDefinition.getName(), (PrismPropertyDefinition) outputDefinition);
 			} else {
-				throw new SchemaException("Tense expression forms can only be used to evalueate properties, not "+
+				throw new SchemaException("Tense expression forms can only be used to evaluate properties, not "+
 						output.getClass().getSimpleName()+", try to enclose the value with proper elements");
 			}
 		} else { 

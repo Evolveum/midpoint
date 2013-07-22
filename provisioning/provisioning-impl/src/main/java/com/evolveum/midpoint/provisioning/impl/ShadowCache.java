@@ -254,9 +254,9 @@ public abstract class ShadowCache {
 							"Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				}
 				// No identifiers found
-				SchemaException ex = new SchemaException("No identifiers found in the respository shadow "
+				SchemaException ex = new SchemaException("No identifiers found in the repository shadow "
 						+ repositoryShadow + " with respect to " + resource);
-				parentResult.recordFatalError("No identifiers found in the respository shadow "+ repositoryShadow, ex);
+				parentResult.recordFatalError("No identifiers found in the repository shadow "+ repositoryShadow, ex);
 				throw ex;
 			}
 	

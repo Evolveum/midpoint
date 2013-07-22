@@ -35,7 +35,6 @@ import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -62,7 +61,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -130,11 +128,7 @@ public class ReconciliationProcessor {
             	PrismObject<ShadowType> objectOld = provisioningService.getObject(
             			ShadowType.class, accContext.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
             	ShadowType oldShadow = objectOld.asObjectable();
-            	if (oldShadow.getFetchResult() != null && oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR){
-            		accContext.setFullShadow(false);   		
-            	} else{
-            		accContext.setFullShadow(true);
-            	}
+                accContext.determineFullShadowFlag(oldShadow.getFetchResult());
             	accContext.setObjectOld(objectOld);
             	
             	accContext.recompute();
@@ -242,7 +236,7 @@ public class ReconciliationProcessor {
         		if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
         			if (attributeDefinition.isSingleValue()) {
 	        			if (hasValue) {
-	        				throw new SchemaException("Attept to set more than one value for single-valued attribute "+attrName+" in "+accCtx.getResourceShadowDiscriminator());
+	        				throw new SchemaException("Attempt to set more than one value for single-valued attribute "+attrName+" in "+accCtx.getResourceShadowDiscriminator());
 	        			}
 	        			recordDelta(accCtx, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue, shouldBePvwo.getAccountConstruction().getSource());
         			} else {

@@ -24,7 +24,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -56,7 +55,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -67,12 +65,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -158,7 +153,9 @@ public class LensUtil {
 	
 	/**
 	 * Consolidate the mappings of a single property to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
-	 * It produces the delta considering the mapping exclusion, authoritativeness and strength. 
+	 * It produces the delta considering the mapping exclusion, authoritativeness and strength.
+     *
+     * filterExistingValues: if true, then values that already exist in the item are not added (and those that don't exist are not removed)
 	 */
 	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
@@ -181,7 +178,7 @@ public class LensUtil {
         for (V value : allValues) {
         	
         	// Check what to do with the value using the usual "triple routine". It means that if a value is
-        	// in zero set than we need no delta, plus set means add delta and minus set means delte delta.
+        	// in zero set than we need no delta, plus set means add delta and minus set means delete delta.
         	// The first set that the value is present determines the result.
             Collection<ItemValueWithOrigin<V>> zeroPvwos =
                     collectPvwosFromSet(value, triple.getZeroSet());
@@ -519,14 +516,7 @@ public class LensUtil {
 		
 		accCtx.setObjectOld(objectOld);
 		ShadowType oldShadow = objectOld.asObjectable();
-		
-		if (oldShadow.getFetchResult() != null
-			&& oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR) {
-			accCtx.setFullShadow(false);
-		} else {
-			accCtx.setFullShadow(true);
-		}
-		
+		accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		accCtx.recompute();
 
 		if (LOGGER.isTraceEnabled()) {
