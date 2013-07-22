@@ -121,6 +121,7 @@
         <name>End user</name>
         <authorization>
             <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard</action>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#myPasswords</action>
         </authorization>
     </role>
 
