@@ -249,7 +249,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             LOGGER.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  "
                     + info.getString("midpoint.branch"));
             LOGGER.info("|  Bug reporting system : " + info.getString("midpoint.jira"));
-            LOGGER.info("|  Product informations : http://wiki.evolveum.com/display/midPoint");
+            LOGGER.info("|  Product information : http://wiki.evolveum.com/display/midPoint");
             LOGGER.info("+---------------------------------------------------------------------------------------------+");
         } catch (ConfigurationException e) {
             //NOTHING just skip

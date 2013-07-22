@@ -171,7 +171,7 @@ public class ConnectorManager {
 		// This log message should be INFO level. It happens only occasionally.
 		// If it happens often, it may be an
 		// indication of a problem. Therefore it is good for admin to see it.
-		LOGGER.info("Creted new connector instance for {}: {} v{}", 
+		LOGGER.info("Created new connector instance for {}: {} v{}",
 				new Object[]{resourceType, connectorType.getConnectorType(), connectorType.getConnectorVersion()});
 
 		return connector;
