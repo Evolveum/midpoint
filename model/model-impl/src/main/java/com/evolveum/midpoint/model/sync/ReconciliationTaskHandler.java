@@ -285,6 +285,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
 		executionRecord.setTarget(resource);
 		executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
+		executionRecord.setMessage(ex.getMessage());
 		auditService.audit(executionRecord , task);
 	}
 	

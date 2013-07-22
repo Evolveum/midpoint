@@ -139,6 +139,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -1240,6 +1241,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+		waitForTaskFinish(taskOid, checkSubresult, timeout, false);
+	}
+	
+	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
@@ -1247,7 +1252,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
 				if (verbose) display("Check result", result);
-				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+				if (isError(result, checkSubresult)) {
+					if (errorOk) {
+						return true;
+					} else {
+						AssertJUnit.fail("Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result));
+					}
+				}
 				if (isUknown(result, checkSubresult)) {
 					return false;
 				}
@@ -1383,6 +1394,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return result.getLastSubresult();
 		}
 		return result;
+	}
+	
+	protected void restartTask(String taskOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".restartTask");
+		ObjectDelta<TaskType> taskDelta = ObjectDelta.createModificationReplaceProperty(TaskType.class, taskOid, TaskType.F_EXECUTION_STATUS, prismContext, TaskExecutionStatusType.RUNNABLE);
+		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT_STATUS);
+		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT);
+		taskManager.modifyTask(taskOid, taskDelta.getModifications(), result);
 	}
 	
 	protected void setSecurityContextUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {

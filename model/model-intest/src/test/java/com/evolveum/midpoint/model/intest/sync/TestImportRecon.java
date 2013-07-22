@@ -33,6 +33,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -262,6 +264,66 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     	assertEquals("Wrong type in reconStopRecord audit record: "+reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
     	assertTrue("Unexpected delta in reconStopRecord audit record "+reconStopRecord, reconStopRecord.getDeltas() == null || reconStopRecord.getDeltas().isEmpty());
 	}
+
+	@Test
+    public void test210ReconcileDummyBroken() throws Exception {
+		final String TEST_NAME = "test210ReconcileDummyBroken";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        // Lets do some local changes on dummy resource ... 
+        DummyAccount guybrushDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        // location has strong outbound mapping, this change should be corrected
+        guybrushDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
+        
+        // BREAK it!
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        dummyResource.purgeScriptHistory();
+        dummyAuditService.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECONCILE_DUMMY_OID);
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after reconciliation (broken resource)", users);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);        
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertEquals("Unexpected number of users", 7, users.size());
+        
+        display("Dummy resource", dummyResource.dump());
+        
+        display("Script history", dummyResource.getScriptHistory());
+        
+        // no scripts
+        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+        dummyAuditService.assertExecutionMessage();
+	}
+
 	
 	private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, String fullName, boolean modified) {
 		// before recon
