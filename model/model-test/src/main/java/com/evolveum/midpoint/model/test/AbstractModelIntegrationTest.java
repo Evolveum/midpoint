@@ -1624,4 +1624,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismAsserts.assertPropertyReplace(shadowDelta, ShadowType.F_ITERATION_TOKEN, expectedIterationToken);
 	}
 	
+	protected void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getEnableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong user enableTimestamp in "+focus, 
+				startTime, endTime, userDisableTimestamp);
+	}
+
+	protected void assertDisableTimestampFocus(PrismObject<? extends FocusType> focus, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong user disableTimestamp in "+focus, 
+				startTime, endTime, userDisableTimestamp);
+	}
+	
+	protected void assertEnableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getEnableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
+				startTime, endTime, userDisableTimestamp);
+	}
+
+	protected void assertDisableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
+			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
+		IntegrationTestTools.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
+				startTime, endTime, userDisableTimestamp);
+	}
+
 }

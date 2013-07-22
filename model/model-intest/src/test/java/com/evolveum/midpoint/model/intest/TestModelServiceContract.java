@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.events.AccountEvent;
@@ -250,6 +251,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyNotifier.clearRecords();
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -257,6 +259,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess(result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -273,6 +276,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
@@ -722,12 +726,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createAddDelta(account);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+        
 		// WHEN
         modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
         result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         accountOid = accountDelta.getOid();
         assertNotNull("No account OID in resulting delta", accountOid);
@@ -740,10 +747,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        // MID-1435
+//        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        // MID-1435
+//        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -1019,6 +1030,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                   
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -1026,6 +1039,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1035,10 +1049,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -1235,6 +1251,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Let's break the delta a bit. Projector should handle this anyway
         breakAssignmentDelta(deltas);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -1242,6 +1260,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1251,10 +1270,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -1455,6 +1476,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Let's break the delta a bit. Projector should handle this anyway
         breakAssignmentDelta(deltas);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -1462,6 +1485,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1471,10 +1495,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -1660,12 +1686,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
         
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+        
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1675,10 +1704,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -1926,11 +1957,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		dummyAuditService.clear();
 		purgeScriptHistory();
+		
+		XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
 			
 		// THEN
+		XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -1946,10 +1980,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -2051,6 +2087,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         		"smell");
         deltas.add(accountDelta);
         deltas.add(accountAssignmentUserDelta);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -2058,6 +2096,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2067,10 +2106,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_JACK_USERNAME);
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
@@ -2493,6 +2534,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -2500,6 +2543,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userBlackbeard = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
         UserType userBlackbeardType = userBlackbeard.asObjectable();
@@ -2511,10 +2555,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "blackbeard");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("blackbeard", "Edward Teach", true);
@@ -2568,6 +2614,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -2575,6 +2623,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -2586,10 +2635,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "morgan");
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("morgan", "Sir Henry Morgan", true);

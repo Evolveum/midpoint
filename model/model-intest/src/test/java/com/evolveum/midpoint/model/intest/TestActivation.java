@@ -422,6 +422,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
         assertShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
         assertAdministrativeStatusEnabled(accountRed);
+        assertEnableTimestampShadow(accountRed, startTime, endTime);
                 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
@@ -429,7 +430,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");
 		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
-		assertEnableTimestampShadow(accountRed, startTime, endTime);
+		
 	}
 	
 	/**
@@ -1255,32 +1256,5 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Unexpected effective activation status in "+user, expected, activation.getEffectiveStatus());
 	}
 	
-	private void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus, 
-			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
-		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getEnableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong user enableTimestamp in "+focus, 
-				startTime, endTime, userDisableTimestamp);
-	}
-
-	private void assertDisableTimestampFocus(PrismObject<? extends FocusType> focus, 
-			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
-		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong user disableTimestamp in "+focus, 
-				startTime, endTime, userDisableTimestamp);
-	}
 	
-	private void assertEnableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
-			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
-		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getEnableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
-				startTime, endTime, userDisableTimestamp);
-	}
-
-	private void assertDisableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
-			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
-		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
-				startTime, endTime, userDisableTimestamp);
-	}
-
 }
