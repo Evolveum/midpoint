@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.util.GregorianCalendar;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -80,6 +82,22 @@ public class TestTypeConversion {
 		// THEN
 		XMLGregorianCalendar expectedCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
 		PrismAsserts.assertEquals("Wrong java value", expectedCal, xmlGregorianCalendar);
+	}
+	
+	@Test
+	public void testJavaStringToXMLGregorianCalendarWrongFormat() throws Exception {
+		String stringDate = "blah blah blah";
+		
+		try {
+			// WHEN
+			XMLGregorianCalendar xmlGregorianCalendar = JavaTypeConverter.convert(XMLGregorianCalendar.class, stringDate);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (IllegalArgumentException e) {
+			// This is expected
+			// THEN
+			assertTrue("Wrong exception message: "+e.getMessage(), e.getMessage().contains("Unable to parse the date"));
+		}
 	}
 
 	@Test
