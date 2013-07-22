@@ -53,6 +53,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -79,6 +80,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Responsibilities:
@@ -269,6 +271,7 @@ public class ShadowManager {
 		}
 	}
 
+
     // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
 	public PrismObject<ShadowType> findOrCreateShadowFromChange(ResourceType resource, Change<ShadowType> change,
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException,
@@ -307,20 +310,27 @@ public class ShadowManager {
 			// Account was found in repository
 			newShadow = accountList.get(0);
 			
-            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE){
-                Collection<? extends ItemDelta> deadDeltas = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, newShadow.getDefinition(), true);
-                try {
-                    repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
-                } catch (ObjectAlreadyExistsException e) {
-                    parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
-                            + " to the repository. Reason: " + e.getMessage(), e);
-                    throw new IllegalStateException(e.getMessage(), e);
-                } catch (ObjectNotFoundException e) {
-                    parentResult.recordWarning("Account shadow " + SchemaDebugUtil.prettyPrint(newShadow)
-                            + " was probably deleted from the repository in the meantime. Exception: " + e.getMessage(), e);
-                    return null;
-                }
-			}
+            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
+					Collection<? extends ItemDelta> deadDeltas = PropertyDelta
+							.createModificationReplacePropertyCollection(ShadowType.F_DEAD,
+									newShadow.getDefinition(), true);
+					try {
+						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas,
+								parentResult);
+					} catch (ObjectAlreadyExistsException e) {
+						parentResult.recordFatalError(
+								"Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+										+ " to the repository. Reason: " + e.getMessage(), e);
+						throw new IllegalStateException(e.getMessage(), e);
+					} catch (ObjectNotFoundException e) {
+						parentResult.recordWarning("Account shadow " + SchemaDebugUtil.prettyPrint(newShadow)
+								+ " was probably deleted from the repository in the meantime. Exception: "
+								+ e.getMessage(), e);
+						return null;
+					}
+				} 
+				
+			
 			
 		}
 		

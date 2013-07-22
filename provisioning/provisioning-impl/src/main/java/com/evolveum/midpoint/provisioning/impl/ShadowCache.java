@@ -881,7 +881,7 @@ public abstract class ShadowCache {
 	public List<Change<ShadowType>> fetchChanges(ResourceType resourceType, 
 			QName objectClass, PrismProperty<?> lastToken,  OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
-			ConfigurationException, SecurityViolationException {
+			ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
 
 		RefinedObjectClassDefinition objecClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
@@ -921,6 +921,8 @@ public abstract class ShadowCache {
 							currentShadowType.setResourceRef(oldShadowType.getResourceRef());
 							currentShadowType.setKind(objecClassDefinition.getKind());
 							currentShadowType.setIntent(oldShadowType.getIntent());
+							forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
+							
 						}
 					}
 
@@ -949,9 +951,55 @@ public abstract class ShadowCache {
 		} catch (ConfigurationException ex) {
 			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
 			throw ex;
+		} catch (ObjectNotFoundException ex){
+			parentResult.recordFatalError("Object not found error: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (ObjectAlreadyExistsException ex){
+			parentResult.recordFatalError("Already exists error: " + ex.getMessage(), ex);
+			throw ex;
 		}
 		parentResult.recordSuccess();
 		return changes;
+	}
+
+	private void forceRenameIfNeeded(ShadowType currentShadowType, ShadowType oldShadowType, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		Collection<ResourceAttribute<?>> oldSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(oldShadowType);
+		if (oldSecondaryIdentifiers.isEmpty()){
+			return;
+		}
+		
+		if (oldSecondaryIdentifiers.size() > 1){
+			return;
+		}
+		
+		ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIdentifiers.iterator().next();
+		Object oldValue = oldSecondaryIdentifier.getRealValue();
+
+		Collection<ResourceAttribute<?>> newSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(currentShadowType);
+		if (newSecondaryIdentifiers.isEmpty()){
+			return;
+		}
+		
+		if (newSecondaryIdentifiers.size() > 1){
+			return;
+		}
+		
+		ResourceAttribute<?> newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
+		Object newValue = newSecondaryIdentifier.getRealValue();
+		
+		if (!oldValue.equals(newValue)){
+			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
+			
+			
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, oldShadowType.asPrismObject().getDefinition(), ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
+			renameDeltas.add(shadowNameDelta);
+			
+			shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), oldShadowType.asPrismObject().getDefinition(), newValue);
+			renameDeltas.add(shadowNameDelta);
+			
+			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
+		}
+		
 	}
 
 	public PrismProperty<?> fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
@@ -1163,9 +1211,9 @@ public abstract class ShadowCache {
 		if (resultShadowType.getObjectClass() == null) {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
 		}
-//		if (resultShadowType.getName() == null) {
+		if (resultShadowType.getName() == null) {
 			resultShadowType.setName(ProvisioningUtil.determineShadowName(resourceShadow));
-//		}
+		}
 		if (resultShadowType.getResource() == null) {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
 		}
