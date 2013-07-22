@@ -76,7 +76,10 @@ public class DummyResource {
 	private boolean caseIgnoreId = false;
 	
 	private BreakMode schemaBreakMode = BreakMode.NONE;
+	private BreakMode getBreakMode = BreakMode.NONE;
 	private BreakMode addBreakMode = BreakMode.NONE;
+	private BreakMode modifyBreakMode = BreakMode.NONE;
+	private BreakMode deleteBreakMode = BreakMode.NONE;
 	
 	// Following two properties are just copied from the connector
 	// configuration and can be checked later. They are otherwise
@@ -160,9 +163,40 @@ public class DummyResource {
 		this.addBreakMode = addBreakMode;
 	}
 	
+	public BreakMode getGetBreakMode() {
+		return getBreakMode;
+	}
+
+	public void setGetBreakMode(BreakMode getBreakMode) {
+		this.getBreakMode = getBreakMode;
+	}
+
+	public BreakMode getModifyBreakMode() {
+		return modifyBreakMode;
+	}
+
+	public void setModifyBreakMode(BreakMode modifyBreakMode) {
+		this.modifyBreakMode = modifyBreakMode;
+	}
+
+	public BreakMode getDeleteBreakMode() {
+		return deleteBreakMode;
+	}
+
+	public void setDeleteBreakMode(BreakMode deleteBreakMode) {
+		this.deleteBreakMode = deleteBreakMode;
+	}
+
+	public void setBreakMode(BreakMode breakMode) {
+		this.schemaBreakMode = breakMode;
+		this.addBreakMode = breakMode;
+		this.getBreakMode = breakMode;
+		this.modifyBreakMode = breakMode;
+		this.deleteBreakMode = breakMode;
+	}
+	
 	public void resetBreakMode() {
-		this.schemaBreakMode = BreakMode.NONE;
-		this.addBreakMode = BreakMode.NONE;
+		setBreakMode(BreakMode.NONE);
 	}
 
 	public String getUselessString() {
@@ -219,32 +253,100 @@ public class DummyResource {
 		return privilegeObjectClass;
 	}
 
-	public Collection<DummyAccount> listAccounts() {
-		return accounts.values();
+	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException {
+		if (getBreakMode == BreakMode.NONE) {
+			return accounts.values();
+		} else if (schemaBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
 	}
 	
-	private <T extends DummyObject> T getObject(Map<String,T> map, String id) {
-		return map.get(normalize(id));
+	private <T extends DummyObject> T getObject(Map<String,T> map, String id) throws ConnectException, FileNotFoundException {
+		if (getBreakMode == BreakMode.NONE) {
+			return map.get(normalize(id));
+		} else if (schemaBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
 	}
 	
-	public DummyAccount getAccountByUsername(String username) {
+	public DummyAccount getAccountByUsername(String username) throws ConnectException, FileNotFoundException {
 		return getObject(accounts, username);
 	}
 	
-	public DummyGroup getGroupByName(String name) {
+	public DummyGroup getGroupByName(String name) throws ConnectException, FileNotFoundException {
 		return getObject(groups, name);
 	}
 	
-	public DummyPrivilege getPrivilegeByName(String name) {
+	public DummyPrivilege getPrivilegeByName(String name) throws ConnectException, FileNotFoundException {
 		return getObject(privileges, name);
 	}
 
-	public Collection<DummyGroup> listGroups() {
-		return groups.values();
+	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException {
+		if (getBreakMode == BreakMode.NONE) {
+			return groups.values();
+		} else if (schemaBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
 	}
 	
-	public Collection<DummyPrivilege> listPrivileges() {
-		return privileges.values();
+	public Collection<DummyPrivilege> listPrivileges() throws ConnectException, FileNotFoundException {
+		if (getBreakMode == BreakMode.NONE) {
+			return privileges.values();
+		} else if (schemaBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
 	}
 	
 	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
@@ -285,7 +387,26 @@ public class DummyResource {
 		return newObject.getName();
 	}
 	
-	private <T extends DummyObject> void deleteObject(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException {
+	private <T extends DummyObject> void deleteObject(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
+		if (deleteBreakMode == BreakMode.NONE) {
+			// go on
+		} else if (deleteBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
+		
 		String normalId = normalize(id);
 		if (map.containsKey(normalId)) {
 			map.remove(normalId);
@@ -300,7 +421,26 @@ public class DummyResource {
 		}
 	}
 
-	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+		if (modifyBreakMode == BreakMode.NONE) {
+			// go on
+		} else if (modifyBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
+		
 		String normalOldName = normalize(oldName);
 		String normalNewName = normalize(newName);
 		T existingObject = map.get(normalOldName);
@@ -319,11 +459,11 @@ public class DummyResource {
 		return addObject(accounts, newAccount);
 	}
 	
-	public void deleteAccount(String id) throws ObjectDoesNotExistException {
+	public void deleteAccount(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
 		deleteObject(DummyAccount.class, accounts, id);
 	}
 
-	public void renameAccount(String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+	public void renameAccount(String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		renameObject(DummyAccount.class, accounts, oldUsername, newUsername);
 	}
 	
@@ -331,11 +471,11 @@ public class DummyResource {
 		return addObject(groups, newGroup);
 	}
 	
-	public void deleteGroup(String id) throws ObjectDoesNotExistException {
+	public void deleteGroup(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
 		deleteObject(DummyGroup.class, groups, id);
 	}
 
-	public void renameGroup(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+	public void renameGroup(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		renameObject(DummyGroup.class, groups, oldName, newName);
 	}
 	
@@ -343,11 +483,11 @@ public class DummyResource {
 		return addObject(privileges, newGroup);
 	}
 	
-	public void deletePrivilege(String id) throws ObjectDoesNotExistException {
+	public void deletePrivilege(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
 		deleteObject(DummyPrivilege.class, privileges, id);
 	}
 
-	public void renamePrivilege(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+	public void renamePrivilege(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		renameObject(DummyPrivilege.class, privileges, oldName, newName);
 	}
 	

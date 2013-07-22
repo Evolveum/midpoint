@@ -253,7 +253,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}
 	
-	protected <T> void assertDummyAccountAttributeValues(String accountId, String attributeName, T... expectedValues) {
+	protected <T> void assertDummyAccountAttributeValues(String accountId, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException {
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
 		assertNotNull("No account '"+accountId+"'", dummyAccount);
 		assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);

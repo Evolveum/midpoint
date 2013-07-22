@@ -15,6 +15,7 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,11 +49,11 @@ public class DummyGroup extends DummyObject {
 		return getAttributeValues(ATTR_MEMBERS_NAME, String.class);
 	}
 	
-	public void addMember(String newMember) throws SchemaViolationException {
+	public void addMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException {
 		addAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
 
-	public void removeMember(String newMember) throws SchemaViolationException {
+	public void removeMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException {
 		removeAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
 	

@@ -72,7 +72,8 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		return enabled;
 	}
 
-	public void setEnabled(boolean enabled) {
+	public void setEnabled(boolean enabled) throws ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		this.enabled = enabled;
 	}
 
@@ -80,7 +81,8 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		return validFrom;
 	}
 
-	public void setValidFrom(Date validFrom) {
+	public void setValidFrom(Date validFrom) throws ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		this.validFrom = validFrom;
 	}
 
@@ -88,7 +90,8 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		return validTo;
 	}
 
-	public void setValidTo(Date validTo) {
+	public void setValidTo(Date validTo) throws ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		this.validTo = validTo;
 	}
 
@@ -116,13 +119,14 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		return getAttributeValue(attrName,String.class);
 	}
 
-	public void replaceAttributeValue(String name, Object value) throws SchemaViolationException {
+	public void replaceAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException {
 		Collection<Object> values = new ArrayList<Object>(1);
 		values.add(value);
 		replaceAttributeValues(name, values);
 	}
 	
-	public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException {
+	public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -135,7 +139,8 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		recordModify();
 	}
 	
-	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException {
+	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -149,13 +154,14 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		recordModify();
 	}
 	
-	public void addAttributeValue(String name, Object value) throws SchemaViolationException {
+	public void addAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException {
 		Collection<Object> values = new ArrayList<Object>(1);
 		values.add(value);
 		addAttributeValues(name, values);
 	}
 
-	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException {
+	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -167,7 +173,8 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		recordModify();
 	}
 	
-	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException {
+	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -179,7 +186,8 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		recordModify();
 	}
 	
-	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException {
+	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		if (resource != null && !resource.isTolerateDuplicateValues()) {
 			for (Object currentValue: currentValues) {
 				if (currentValue.equals(valueToAdd)) {
@@ -196,13 +204,14 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		currentValues.add(valueToAdd);
 	}
 	
-	public void removeAttributeValue(String name, Object value) throws SchemaViolationException {
+	public void removeAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException {
 		Collection<Object> values = new ArrayList<Object>();
 		values.add(value);
 		removeAttributeValues(name, values);
 	}
 
-	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException {
+	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException {
+		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -216,6 +225,31 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		
 		currentValues.removeAll(values);
 		recordModify();
+	}
+
+	private void checkModifyBreak() throws ConnectException, FileNotFoundException {
+		if (resource == null) {
+			return;
+		}
+		BreakMode modifyBreakMode = resource.getModifyBreakMode();
+		if (modifyBreakMode == BreakMode.NONE) {
+			// go on
+		} else if (modifyBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (modifyBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+modifyBreakMode);
+		}
 	}
 
 	private void recordModify() {

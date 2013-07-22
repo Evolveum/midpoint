@@ -26,6 +26,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -1556,7 +1557,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
     protected DummyAccount getDummyAccount(String dummyInstanceName, String username) {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
-		return dummyResource.getAccountByUsername(username);
+		try {
+			return dummyResource.getAccountByUsername(username);
+		} catch (ConnectException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		}
 	}
 	
 	protected void assertDummyAccount(String username, String fullname, boolean active) {
