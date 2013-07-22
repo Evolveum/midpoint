@@ -109,6 +109,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
         <name>Superuser</name>
+        <description>Role that gives user full authorization in MidPoint.</description>
         <authorization>
             <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all</action>
         </authorization>
@@ -119,6 +120,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
         <name>End user</name>
+        <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
         <authorization>
             <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard</action>
             <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#myPasswords</action>
