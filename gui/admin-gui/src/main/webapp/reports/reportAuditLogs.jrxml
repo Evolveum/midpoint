@@ -17,9 +17,10 @@
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
 	<parameter name="DATE_FROM" class="java.sql.Timestamp"/>
 	<parameter name="DATE_TO" class="java.sql.Timestamp"/>
-	<queryString language="hql">
-		<![CDATA[select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp]]>
-	</queryString>
+	<parameter name="EVENT_TYPE" class="java.lang.Integer"/>
+	<parameter name="EVENT_TYPE_DESC" class="java.lang.String"/>
+	<parameter name="QUERY_STRING" class="java.lang.String"/>
+	<queryString language="hql"><![CDATA[$P!{QUERY_STRING}]]></queryString>
 	<field name="timestamp" class="java.sql.Timestamp"/>
 	<field name="initiator" class="java.lang.String"/>
 	<field name="eventType" class="com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType">
@@ -41,7 +42,7 @@
 		<band splitType="Stretch"/>
 	</background>
 	<title>
-		<band height="138" splitType="Stretch">
+		<band height="168" splitType="Stretch">
 			<frame>
 				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994"/>
 				<staticText>
@@ -57,32 +58,46 @@
 				</image>
 			</frame>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="85" width="88" height="20"/>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="85" width="100" height="20"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[From:]]></text>
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="100" y="85" width="644" height="20" forecolor="#000000"/>
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="110" y="85" width="644" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
 					<font size="14" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{DATE_FROM}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="88" height="20"/>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="100" height="20"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[To:]]></text>
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="100" y="115" width="644" height="20" forecolor="#000000"/>
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="110" y="115" width="644" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
 					<font size="14" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{DATE_TO}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="145" width="100" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Event Type:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="110" y="145" width="644" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{EVENT_TYPE_DESC}]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>

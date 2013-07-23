@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
+
 /**
  * @author lazyman
  */
@@ -27,9 +29,11 @@ public class AuditReportDto implements Serializable {
 
     public static final String F_FROM = "from";
     public static final String F_TO = "to";
+    public static final String F_AUDITEVENTTYPE = "auditEventType";
 
     private Date from;
     private Date to;
+    private String auditEventType;
 
     public Date getFrom() {
         if (from == null) {
@@ -53,6 +57,13 @@ public class AuditReportDto implements Serializable {
         this.to = to;
     }
 
+    public AuditEventType getAuditEventType() {
+        return auditEventType == null ? null : AuditEventType.valueOf(auditEventType);
+    }
+
+    public void setAuditEventType(AuditEventType auditEventType) {
+        this.auditEventType = auditEventType.name();
+    }
     public Timestamp getDateFrom() {
         return new Timestamp(getFrom().getTime());
     }

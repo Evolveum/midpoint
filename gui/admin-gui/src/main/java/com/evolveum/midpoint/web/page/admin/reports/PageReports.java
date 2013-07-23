@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,10 +26,15 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ajaxDownload.AjaxDownloadBehaviorFromStream;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfigPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterValidator;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.internal.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
@@ -37,22 +43,31 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.design.JRDesignQuery;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -83,6 +98,8 @@ public class PageReports extends PageAdminReports {
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    private static final String OPERATION_LOAD_AUDITEVENTTYPES = DOT_CLASS + "loadAuditEventTypes";
+    private static final String OPERATION_LOAD_AUDITEVENTTYPE = DOT_CLASS + "loadAuditEventType";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_AUDIT_POPUP = "auditPopup";
@@ -103,7 +120,6 @@ public class PageReports extends PageAdminReports {
                 return loadResources();
             }
         };
-
         initLayout();
     }
 
@@ -138,7 +154,7 @@ public class PageReports extends PageAdminReports {
 
         return resources;
     }
-
+   
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
@@ -260,7 +276,7 @@ public class PageReports extends PageAdminReports {
 
         if (object instanceof AuditReportDto) {
             AuditReportDto dto = (AuditReportDto) object;
-            return createAuditLogReport(dto.getDateFrom(), dto.getDateTo());
+            return createAuditLogReport(dto.getDateFrom(), dto.getDateTo(), dto.getAuditEventType());
         } else if (object instanceof ReconciliationReportDto) {
             ReconciliationReportDto dto = (ReconciliationReportDto) object;
 
@@ -298,13 +314,19 @@ public class PageReports extends PageAdminReports {
         }
     }
 
-    private byte[] createAuditLogReport(Timestamp dateFrom, Timestamp dateTo) {
-        LOGGER.debug("Creating audit log report from {} to {}.", new Object[]{dateFrom, dateTo});
+    private byte[] createAuditLogReport(Timestamp dateFrom, Timestamp dateTo,  AuditEventType auditEventType) {
+        LOGGER.debug("Creating audit log report from {} to {}, type {}.", new Object[]{dateFrom, dateTo, auditEventType != null ? auditEventType.name() : ""});
 
+        int auditEventTypeId = auditEventType != null ? auditEventType.ordinal() : -1;
+        String key = auditEventType != null ? auditEventType.getClass().getSimpleName() + "." + auditEventType.name() : "";
+        String auditEventTypeName = key == "" ? "All" : getString(key);
         Map params = new HashMap();
         params.put("DATE_FROM", dateFrom);
         params.put("DATE_TO", dateTo);
-
+        params.put("EVENT_TYPE", auditEventTypeId);
+        params.put("EVENT_TYPE_DESC", auditEventTypeName);
+        String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";;
+        params.put("QUERY_STRING", theQuery);        
         return createReport("/reports/reportAuditLogs.jrxml", params);
     }
 
