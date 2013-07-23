@@ -747,14 +747,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
-        // MID-1435
-//        assertEnableTimestampShadow(accountShadow, startTime, endTime);
+        assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
-        // MID-1435
-//        assertEnableTimestampShadow(accountModel, startTime, endTime);
+        assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);

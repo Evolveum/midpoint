@@ -98,10 +98,12 @@ public class ActivationProcessor {
     		LensProjectionContext<P> projectionContext, XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
+    		processActivationMetadata((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
     		return;
     	}
     	if (focusContext.getObjectTypeClass() != UserType.class) {
     		// We can do this only for user.
+    		processActivationMetadata((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
     		return;
     	}
     	processActivationUserCurrent((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
