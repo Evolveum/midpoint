@@ -17,9 +17,12 @@ package com.evolveum.midpoint.common.expression.functions;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
@@ -28,10 +31,12 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -43,6 +48,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -383,6 +389,35 @@ public class BasicExpressionFunctions {
 
     public static String readFile(String filename) throws IOException {
         return FileUtils.readFileToString(new File(filename));
+    }
+    
+    public String formatDateTime(String format, XMLGregorianCalendar xmlCal) {
+    	if (xmlCal == null || format == null) {
+    		return null;
+    	}
+    	SimpleDateFormat sdf = new SimpleDateFormat(format);
+    	Date date = XmlTypeConverter.toDate(xmlCal);
+		return sdf.format(date);
+    }
+    
+    public String formatDateTime(String format, Long millis) {
+    	if (millis == null || format == null) {
+    		return null;
+    	}
+    	SimpleDateFormat sdf = new SimpleDateFormat(format);
+		return sdf.format(millis);
+    }
+    
+    public XMLGregorianCalendar parseDateTime(String format, String stringDate) throws ParseException {
+    	if (format == null || stringDate == null) {
+    		return null;
+    	}
+    	String[] formats = new String[]{format};
+		Date date = DateUtils.parseDate(stringDate, formats);
+		if (date == null) {
+			return null;
+		}
+		return XmlTypeConverter.createXMLGregorianCalendar(date);
     }
 	
 }

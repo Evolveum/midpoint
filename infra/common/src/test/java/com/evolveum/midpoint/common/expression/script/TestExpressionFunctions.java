@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.*;
@@ -223,6 +225,43 @@ public class TestExpressionFunctions {
         System.out.println("Resulting value: "+resultValue);
 
         assertEquals("Wrong result value", "bar", resultValue);
+    }
+
+    @Test
+    public void testFormatDateTime() throws Exception {
+    	System.out.println("\n===[ testFormatDateTime ]===\n");
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+    	
+        // WHEN
+        String resultValue = f.formatDateTime("yyyy MM dd HH:mm:ss.SSS zzzz", xmlCal);
+
+        // THEN
+        assertNotNull("Result value is null", resultValue);
+        System.out.println("Resulting value: "+resultValue);
+
+        assertEquals("Wrong result value", "1975 05 30 22:30:00.000 Central European Time", resultValue);
+    }
+
+    @Test
+    public void testParseDateTime() throws Exception {
+    	System.out.println("\n===[ testParseDateTime ]===\n");
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	
+        // WHEN
+        XMLGregorianCalendar resultValue = f.parseDateTime("yyyy MM dd HH:mm:ss.SSS zzzz",
+        		"1975 05 30 22:30:00.000 Central European Time");
+
+        // THEN
+        assertNotNull("Result value is null", resultValue);
+        System.out.println("Resulting value: "+resultValue);
+
+        XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+        assertEquals("Wrong result value", xmlCal, resultValue);
     }
 
     

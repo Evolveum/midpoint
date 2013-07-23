@@ -466,6 +466,10 @@ public class XmlTypeConverter {
         return xmlCal.toGregorianCalendar().getTimeInMillis();
     }
     
+	public static Date toDate(XMLGregorianCalendar xmlCal) {
+		return new Date(xmlCal.toGregorianCalendar().getTimeInMillis());
+	}
+    
     public static Duration createDuration(long durationInMilliSeconds) {
     	return getDatatypeFactory().newDuration(durationInMilliSeconds);
     }
