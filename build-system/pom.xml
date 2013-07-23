@@ -597,6 +597,7 @@
                         <configuration>
                             <doCheck>false</doCheck>
                             <doUpdate>false</doUpdate>
+                            <revisionOnScmFailure>Unknown</revisionOnScmFailure>
                         </configuration>
                     </plugin>
                     <plugin>
