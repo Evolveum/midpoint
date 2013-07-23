@@ -238,7 +238,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             LOGGER.info("|  | | | | | | | (_| | |  | (_) | | | | | |_");
             LOGGER.info("|  |_| |_| |_|_|\\____|_|  \\____/|_|_| |_|\\__|  from Evolveum.com");
             LOGGER.info("|");
-            LOGGER.info("|  Licensed under Open source licence CCDL v1.0 see: http://www.opensource.org/licenses/cddl1");
+            LOGGER.info("|  Licensed under the Apache License, Version 2.0 see: http://www.apache.org/licenses/LICENSE-2.0");
             LOGGER.info("|  Version :  " + info.getString("midpoint.version"));
 //			try {
 //				LOGGER.info("|  Build   :  " + info.getString("midpoint.build") + " at "
@@ -246,8 +246,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 //			} catch (NumberFormatException ex) {
 //				LOGGER.info("|  Build   :  " + info.getString("midpoint.build"));
 //			}
-            LOGGER.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  "
-                    + info.getString("midpoint.branch"));
+            LOGGER.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  " + info.getString("midpoint.branch"));
             LOGGER.info("|  Bug reporting system : " + info.getString("midpoint.jira"));
             LOGGER.info("|  Product information : http://wiki.evolveum.com/display/midPoint");
             LOGGER.info("+---------------------------------------------------------------------------------------------+");
