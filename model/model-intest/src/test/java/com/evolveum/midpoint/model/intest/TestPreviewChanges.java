@@ -514,7 +514,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+        PrismAsserts.assertModifications(accountSecondaryDelta, 1);
 	}
 	
 	@Test

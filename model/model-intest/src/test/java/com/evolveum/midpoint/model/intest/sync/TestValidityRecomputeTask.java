@@ -203,6 +203,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("Jack", userJack);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
 		
 		String accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
