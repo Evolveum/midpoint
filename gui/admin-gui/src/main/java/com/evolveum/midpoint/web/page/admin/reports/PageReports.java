@@ -318,8 +318,10 @@ public class PageReports extends PageAdminReports {
         LOGGER.debug("Creating audit log report from {} to {}, type {}.", new Object[]{dateFrom, dateTo, auditEventType != null ? auditEventType.name() : ""});
 
         int auditEventTypeId = auditEventType != null ? auditEventType.ordinal() : -1;
-        String key = auditEventType != null ? auditEventType.getClass().getSimpleName() + "." + auditEventType.name() : "";
-        String auditEventTypeName = key == "" ? "All" : getString(key);
+
+        String auditEventTypeName = auditEventType == null ? getString("AuditEventType.null") :
+                WebMiscUtil.createLocalizedModelForEnum(auditEventType, this).getObject();
+
         Map params = new HashMap();
         params.put("DATE_FROM", dateFrom);
         params.put("DATE_TO", dateTo);

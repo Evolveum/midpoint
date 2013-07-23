@@ -33,7 +33,7 @@ public class AuditReportDto implements Serializable {
 
     private Date from;
     private Date to;
-    private String auditEventType;
+    private AuditEventType auditEventType;
 
     public Date getFrom() {
         if (from == null) {
@@ -58,11 +58,11 @@ public class AuditReportDto implements Serializable {
     }
 
     public AuditEventType getAuditEventType() {
-        return auditEventType == null ? null : AuditEventType.valueOf(auditEventType);
+        return auditEventType;
     }
 
     public void setAuditEventType(AuditEventType auditEventType) {
-        this.auditEventType = auditEventType.name();
+        this.auditEventType = auditEventType;
     }
     public Timestamp getDateFrom() {
         return new Timestamp(getFrom().getTime());

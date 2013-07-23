@@ -58,24 +58,24 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
     public AuditPopupPanel(String id, IModel<AuditReportDto> model) {
         super(id, model);
-        
+
         initLayout(this);
     }
 
     @SuppressWarnings("serial")
-	protected void initLayout(final Component component) {
+    protected void initLayout(final Component component) {
         Form form = new Form(ID_FORM);
         add(form);
 
         final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         form.add(feedback);
-            
+
         IChoiceRenderer<AuditEventType> renderer = new IChoiceRenderer<AuditEventType>() {
 
             @Override
             public Object getDisplayValue(AuditEventType object) {
-            	 return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
+                return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
             }
 
             @Override
@@ -84,16 +84,18 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
             }
         };
 
-        DropDownChoice dropDown = new DropDownChoice(ID_AUDITEVENTTYPE, new PropertyModel<AuditEventType>(getModel(), AuditReportDto.F_AUDITEVENTTYPE), WebMiscUtil.createReadonlyModelFromEnum(AuditEventType.class), renderer)
-        {
-        	  @Override
-              protected String getNullValidDisplayValue() {
-                  return "All";
-              }
+        DropDownChoice dropDown = new DropDownChoice(ID_AUDITEVENTTYPE, new PropertyModel<AuditEventType>(getModel(),
+                AuditReportDto.F_AUDITEVENTTYPE), WebMiscUtil.createReadonlyModelFromEnum(AuditEventType.class),
+                renderer) {
+
+            @Override
+            protected String getNullValidDisplayValue() {
+                return AuditPopupPanel.this.getString("AuditEventType.null");
+            }
         };
         dropDown.setNullValid(true);
 
-       
+
         form.add(dropDown);
 
         DateTimeField dateFrom = new DateTimeField(ID_DATE_FROM, new PropertyModel<Date>(getModel(),
@@ -135,7 +137,7 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
         form.add(run);
     }
 
-    
+
     protected void onRunPerformed(AjaxRequestTarget target) {
 
     }
