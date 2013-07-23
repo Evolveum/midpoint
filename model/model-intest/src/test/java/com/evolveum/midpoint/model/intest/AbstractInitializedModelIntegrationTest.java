@@ -80,33 +80,33 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 	
-	protected static DummyResource dummyResource;
-	protected static DummyResourceContoller dummyResourceCtl;
+	protected DummyResource dummyResource;
+	protected DummyResourceContoller dummyResourceCtl;
 	protected ResourceType resourceDummyType;
 	protected PrismObject<ResourceType> resourceDummy;
 	
-	protected static DummyResource dummyResourceRed;
-	protected static DummyResourceContoller dummyResourceCtlRed;
+	protected DummyResource dummyResourceRed;
+	protected DummyResourceContoller dummyResourceCtlRed;
 	protected ResourceType resourceDummyRedType;
 	protected PrismObject<ResourceType> resourceDummyRed;
 	
-	protected static DummyResource dummyResourceBlue;
-	protected static DummyResourceContoller dummyResourceCtlBlue;
+	protected DummyResource dummyResourceBlue;
+	protected DummyResourceContoller dummyResourceCtlBlue;
 	protected ResourceType resourceDummyBlueType;
 	protected PrismObject<ResourceType> resourceDummyBlue;
 	
-	protected static DummyResource dummyResourceWhite;
-	protected static DummyResourceContoller dummyResourceCtlWhite;
+	protected DummyResource dummyResourceWhite;
+	protected DummyResourceContoller dummyResourceCtlWhite;
 	protected ResourceType resourceDummyWhiteType;
 	protected PrismObject<ResourceType> resourceDummyWhite;
 
-    protected static DummyResource dummyResourceYellow;
-    protected static DummyResourceContoller dummyResourceCtlYellow;
+    protected DummyResource dummyResourceYellow;
+    protected DummyResourceContoller dummyResourceCtlYellow;
     protected ResourceType resourceDummyYellowType;
     protected PrismObject<ResourceType> resourceDummyYellow;
 
-    protected static DummyResource dummyResourceGreen;
-	protected static DummyResourceContoller dummyResourceCtlGreen;
+    protected DummyResource dummyResourceGreen;
+	protected DummyResourceContoller dummyResourceCtlGreen;
 	protected ResourceType resourceDummyGreenType;
 	protected PrismObject<ResourceType> resourceDummyGreen;
 	

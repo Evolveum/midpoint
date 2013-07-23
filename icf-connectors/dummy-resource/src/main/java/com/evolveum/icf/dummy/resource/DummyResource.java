@@ -116,6 +116,7 @@ public class DummyResource {
 		syncStyle = DummySyncStyle.NONE;
 		deltas.clear();
 		latestSyncToken = 0;
+		resetBreakMode();
 	}
 	
 	public static DummyResource getInstance() {
