@@ -89,9 +89,12 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	protected static final String RESOURCE_DUMMY_EMERALD_NAME = "emerald";
 	protected static final String RESOURCE_DUMMY_EMERALD_NAMESPACE = MidPointConstants.NS_RI;
 	
-	protected static final File TASK_LIVE_SYNC_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dumy-emerald-livesync.xml");
+	protected static final File TASK_LIVE_SYNC_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_EMERALD_OID = "10000000-0000-0000-5555-55550000e404";
 		
+	protected static final File TASK_RECON_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-recon.xml");
+	protected static final String TASK_RECON_DUMMY_EMERALD_OID = "10000000-0000-0000-5656-56560000e404";
+	
 	protected static DummyResource dummyResourceEmerald;
 	protected static DummyResourceContoller dummyResourceCtlEmerald;
 	protected ResourceType resourceDummyEmeraldType;
@@ -213,7 +216,56 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         notificationManager.setDisabled(true);
 	}
 
+
+	/**
+	 * Not really an inbound test but anyway ... the emerald resource is set up to disable user when
+	 * the account is disabled. So test that it works.
+	 */
+	@Test
+    public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
+		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
+        prepareNotifications();
+        
+        // Preconditions
+        assertUsers(6);
+
+		/// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+		dummyResourceEmerald.deleteAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        
+        waitForSyncTaskNextRun(resourceDummyEmerald);
 		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
+        display("Account mancomb", accountMancomb);
+        assertNull("Account shadow mancomb not gone", accountMancomb);
+        
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        display("User mancomb", userMancomb);
+        assertNotNull("User mancomb was not created", userMancomb);
+        assertAccounts(userMancomb, 0);
+        assertAdministrativeStatusDisabled(userMancomb);
+        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
+        
+        assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        
+        assertUsers(6);
+
+        // notifications
+        notificationManager.setDisabled(true);
+	}
+
+
 	protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
 		waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
 	}
