@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.xml;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -62,6 +63,7 @@ public class XsdTypeMapper {
         addMapping(int.class, DOMUtil.XSD_INT, true);
         addMapping(Integer.class, DOMUtil.XSD_INT, false);
         addMapping(BigInteger.class, DOMUtil.XSD_INTEGER, true);
+        addMapping(BigDecimal.class, DOMUtil.XSD_DECIMAL, true);
         addMapping(double.class, DOMUtil.XSD_DOUBLE, true);
         addMapping(Double.class, DOMUtil.XSD_DOUBLE, false);
         addMapping(float.class, DOMUtil.XSD_FLOAT, true);

@@ -51,6 +51,8 @@ public class SchemaTestConstants {
 	public static final QName EXTENSION_LOCATIONS_TYPE = new QName(NS_EXTENSION, "LocationsType");
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
 	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
+	public static final QName EXTENSION_INTEGER_TYPE_ELEMENT = new QName(NS_EXTENSION, "integerType");
+	public static final QName EXTENSION_DECIMAL_TYPE_ELEMENT = new QName(NS_EXTENSION, "decimalType");
 	public static final QName EXTENSION_DOUBLE_TYPE_ELEMENT = new QName(NS_EXTENSION, "doubleType");
 	public static final QName EXTENSION_LONG_TYPE_ELEMENT = new QName(NS_EXTENSION, "longType");
 	public static final QName EXTENSION_DATE_TYPE_ELEMENT = new QName(NS_EXTENSION, "dateType");

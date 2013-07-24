@@ -35,6 +35,8 @@
     <xsd:element name="intType" type="xsd:int"/>
     
     <xsd:element name="integerType" type="xsd:integer"/>
+    
+    <xsd:element name="decimalType" type="xsd:decimal"/>
 
     <xsd:element name="longType" type="xsd:long"/>
 
@@ -75,6 +77,7 @@
 			<xsd:element ref="tns:doubleType" minOccurs="0"/>
 			<xsd:element ref="tns:intType" minOccurs="0"/>
 			<xsd:element ref="tns:integerType" minOccurs="0"/>
+			<xsd:element ref="tns:decimalType" minOccurs="0"/>
 			<xsd:element ref="tns:longType" minOccurs="0"/>
 			<xsd:element ref="tns:dateType" minOccurs="0"/>
 			

@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.util;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -69,25 +71,101 @@ public class JavaTypeConverter {
 		}
 		
 		// Primitive types
+		
+		// boolean
 		if (expectedType == boolean.class && rawValue instanceof Boolean) {
 			return (T) ((Boolean)rawValue);
 		}
+		if (expectedType == Boolean.class && rawValue instanceof String) {
+			return (T) (Boolean)Boolean.parseBoolean(((String)rawValue));
+		}
+		if (expectedType == boolean.class && rawValue instanceof String) {
+			return (T) (Boolean)Boolean.parseBoolean(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof Boolean) {
+			return (T) rawValue.toString();
+		}
+		
+		// int
 		if (expectedType == int.class && rawValue instanceof Integer) {
 			return (T)((Integer)rawValue);
 		}
+		if (expectedType == Integer.class && rawValue instanceof String) {
+			return (T) (Integer)Integer.parseInt(((String)rawValue));
+		}
+		if (expectedType == int.class && rawValue instanceof String) {
+			return (T) (Integer)Integer.parseInt(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof Integer) {
+			return (T) rawValue.toString();
+		}
+		
 		if (expectedType == long.class && rawValue instanceof Long) {
 			return (T)((Long)rawValue);
 		}
+		if (expectedType == Long.class && rawValue instanceof String) {
+			return (T) (Long)Long.parseLong(((String)rawValue));
+		}
+		if (expectedType == long.class && rawValue instanceof String) {
+			return (T) (Long)Long.parseLong(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof Long) {
+			return (T) rawValue.toString();
+		}
+				
 		if (expectedType == float.class && rawValue instanceof Float) {
 			return (T)((Float)rawValue);
 		}
+		if (expectedType == Float.class && rawValue instanceof String) {
+			return (T) (Float)Float.parseFloat(((String)rawValue));
+		}
+		if (expectedType == float.class && rawValue instanceof String) {
+			return (T) (Float)Float.parseFloat(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof Float) {
+			return (T) rawValue.toString();
+		}
+		
 		if (expectedType == double.class && rawValue instanceof Double) {
 			return (T)((Double)rawValue);
 		}
+		if (expectedType == Double.class && rawValue instanceof String) {
+			return (T) (Double)Double.parseDouble(((String)rawValue));
+		}
+		if (expectedType == double.class && rawValue instanceof String) {
+			return (T) (Double)Double.parseDouble(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof Float) {
+			return (T) rawValue.toString();
+		}
+		
 		if (expectedType == byte.class && rawValue instanceof Byte) {
 			return (T)((Byte)rawValue);
 		}
+		if (expectedType == Byte.class && rawValue instanceof String) {
+			return (T) (Byte)Byte.parseByte(((String)rawValue));
+		}
+		if (expectedType == byte.class && rawValue instanceof String) {
+			return (T) (Byte)Byte.parseByte(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof Byte) {
+			return (T) rawValue.toString();
+		}
 
+		if (expectedType == BigInteger.class && rawValue instanceof String) {
+			return (T) new BigInteger(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof BigInteger) {
+			return (T) ((BigInteger)rawValue).toString();
+		}
+		
+		if (expectedType == BigDecimal.class && rawValue instanceof String) {
+			return (T) new BigDecimal(((String)rawValue));
+		}
+		if (expectedType == String.class && rawValue instanceof BigDecimal) {
+			return (T) ((BigDecimal)rawValue).toString();
+		}
+		
 		if (expectedType == PolyString.class && rawValue instanceof String) {
 			return (T) new PolyString((String)rawValue);
 		}

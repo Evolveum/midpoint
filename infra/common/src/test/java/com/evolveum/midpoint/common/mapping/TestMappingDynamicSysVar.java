@@ -50,6 +50,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -73,6 +74,8 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -683,5 +686,101 @@ public class TestMappingDynamicSysVar {
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, ActivationStatusType.DISABLED.value());
 	  	PrismAsserts.assertTripleMinus(outputTriple, ActivationStatusType.ENABLED.value());
+    }
+    
+    @Test
+    public void testEmployeeNumberString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-employee-number.xml",
+    			"testEmployeeNumberString",
+    			"employeeType",					// target
+    			"employeeNumber",				// changed property
+    			"666");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, "666");
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
+    @Test
+    public void testEmployeeNumberPolyString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-employee-number.xml",
+    			"testEmployeeNumberString",
+    			"additionalName",					// target
+    			"employeeNumber",				// changed property
+    			"666");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("666"));
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
+    @Test
+    public void testEmployeeNumberInt() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<Integer>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-employee-number.xml",
+    			"testEmployeeNumberString",
+    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_INT_TYPE_ELEMENT),					// target
+    			"employeeNumber",				// changed property
+    			"666");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, 666);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeNumberInteger() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<Integer>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-employee-number.xml",
+    			"testEmployeeNumberString",
+    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_INTEGER_TYPE_ELEMENT),					// target
+    			"employeeNumber",				// changed property
+    			"666");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, new BigInteger("666"));
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeNumberLong() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<Long>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-employee-number.xml",
+    			"testEmployeeNumberString",
+    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT),					// target
+    			"employeeNumber",				// changed property
+    			"666");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, 666L);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeNumberDecimal() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<Integer>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-employee-number.xml",
+    			"testEmployeeNumberString",
+    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_DECIMAL_TYPE_ELEMENT),					// target
+    			"employeeNumber",				// changed property
+    			"666.33");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, new BigDecimal("666.33"));
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 }
