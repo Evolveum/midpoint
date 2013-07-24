@@ -176,7 +176,7 @@ CREATE TABLE m_audit_event (
   hostIdentifier    VARCHAR2(255 CHAR),
   initiatorName     VARCHAR2(255 CHAR),
   initiatorOid      VARCHAR2(36 CHAR),
-  message           VARCHAR2(255 CHAR),
+  message           VARCHAR2(1024 CHAR),
   outcome           NUMBER(10, 0),
   parameter         VARCHAR2(255 CHAR),
   result            VARCHAR2(255 CHAR),

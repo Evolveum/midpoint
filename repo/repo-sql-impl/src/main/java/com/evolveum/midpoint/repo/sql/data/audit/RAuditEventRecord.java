@@ -85,7 +85,7 @@ public class RAuditEventRecord implements Serializable {
     public String getResult() {
         return result;
     }
-
+    @Column(length = 1024)
     public String getMessage() {
         return message;
     }
