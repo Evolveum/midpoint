@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
@@ -60,6 +61,7 @@ public class RAnyConverter {
         TYPE_MAP.put(DOMUtil.XSD_SHORT, ValueType.LONG);
 
         TYPE_MAP.put(DOMUtil.XSD_INTEGER, ValueType.STRING);
+        TYPE_MAP.put(DOMUtil.XSD_DECIMAL, ValueType.STRING);
         TYPE_MAP.put(DOMUtil.XSD_STRING, ValueType.STRING);
         TYPE_MAP.put(DOMUtil.XSD_DOUBLE, ValueType.STRING);
         TYPE_MAP.put(DOMUtil.XSD_FLOAT, ValueType.STRING);
@@ -358,10 +360,7 @@ public class RAnyConverter {
             } else if (DOMUtil.XSD_INTEGER.equals(rValue.getType())) {
                 return new BigInteger((String) value);
             } else if (DOMUtil.XSD_DECIMAL.equals(rValue.getType())) {
-                //later this can be returned as BigDecimal
-                Element element = createElement(rValue.getName());
-                element.setTextContent((String) value);
-                return element;
+                return new BigDecimal((String) value);
             }
         } else if (rValue instanceof RAnyPolyString) {
             RAnyPolyString poly = (RAnyPolyString) rValue;
@@ -482,6 +481,8 @@ public class RAnyConverter {
             object = ((Double) object).toString();
         } else if (object instanceof BigInteger) {
             object = ((BigInteger) object).toString();
+        } else if (object instanceof BigDecimal) {
+            object = ((BigDecimal) object).toString();
         }
 
         //check short/integer to long
