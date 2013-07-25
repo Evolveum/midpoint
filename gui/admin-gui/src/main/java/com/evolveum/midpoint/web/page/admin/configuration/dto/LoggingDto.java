@@ -41,6 +41,8 @@ public class LoggingDto implements Serializable {
         componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.GUI);
         componentMap.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
         componentMap.put("com.evolveum.midpoint.model.sync", LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
+        componentMap.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
+        componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
     }
 
     private PrismObject<SystemConfigurationType> oldConfiguration;

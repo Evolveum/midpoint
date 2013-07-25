@@ -19,19 +19,27 @@ package com.evolveum.midpoint.notifications.notifiers;
 import com.evolveum.midpoint.notifications.OperationStatus;
 import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.events.Event;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -160,8 +168,38 @@ public class SimpleAccountNotifier extends GeneralNotifier {
             if (!isWatchAuxiliaryAttributes(generalNotifierType)) {
                 hiddenPaths.addAll(auxiliaryPaths);
             }
-            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
-//            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
+
+            if (accountEvent.getOperationStatus() != OperationStatus.IN_PROGRESS) {
+                body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
+            } else {
+                // special case - here the attributes are 'result', 'failedOperationType', 'objectChange', 'attemptNumber'
+                // we have to unwrap attributes that are to be modified from the objectChange item
+                Collection<PrismPropertyValue<ObjectDeltaType>> changes = null;
+                if (delta.getModifications() != null) {
+                    for (ItemDelta itemDelta : delta.getModifications()) {
+                        if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_OBJECT_CHANGE))) {
+                            changes = itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty() ?
+                                    itemDelta.getValuesToAdd() : itemDelta.getValuesToReplace();
+                        }
+                    }
+                }
+
+                if (changes != null && !changes.isEmpty()) {
+                    try {
+                        List<ObjectDelta<ShadowType>> deltas = new ArrayList<ObjectDelta<ShadowType>>(changes.size());
+                        for (PrismPropertyValue<ObjectDeltaType> change : changes) {
+                            deltas.add((ObjectDelta) DeltaConvertor.createObjectDelta(change.getValue(), prismContext));
+                        }
+                        ObjectDelta<ShadowType> shadowDelta = ObjectDelta.summarize(deltas);
+                        body.append(textFormatter.formatObjectModificationDelta(shadowDelta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
+                    } catch (SchemaException e) {
+                        LoggingUtils.logException(LOGGER, "Unable to determine the shadow change; account operation = {}", e, accountEvent.getAccountOperationDescription().dump());
+                        body.append("(unable to determine the change because of schema exception: ").append(e.getMessage()).append(")\n");
+                    }
+                } else {
+                    body.append("(unable to determine the change)\n");
+                }
+            }
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("removed from the resource.\n\n");

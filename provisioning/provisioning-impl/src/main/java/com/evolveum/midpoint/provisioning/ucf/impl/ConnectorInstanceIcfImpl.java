@@ -801,11 +801,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		ObjectClass icfObjectClass = objectClassToIcf(objectClassDefinition);
 		if (icfObjectClass == null) {
-			result.recordFatalError("Unable to detemine object class from QName "
+			result.recordFatalError("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
 					+ " while attempting to fetch object identified by " + identifiers + " from "
 					+ ObjectTypeUtil.toShortString(connectorType));
-			throw new IllegalArgumentException("Unable to detemine object class from QName "
+			throw new IllegalArgumentException("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
 					+ " while attempting to fetch object identified by " + identifiers + " from "
 					+ ObjectTypeUtil.toShortString(connectorType));
