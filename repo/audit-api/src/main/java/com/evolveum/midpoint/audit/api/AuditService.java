@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
  */
 public interface AuditService {
 
-    public static final int MAX_MESSAGE_SIZE = 255;
+    public static final int MAX_MESSAGE_SIZE = 1024;
 
 	public void audit(AuditEventRecord record, Task task);
 
