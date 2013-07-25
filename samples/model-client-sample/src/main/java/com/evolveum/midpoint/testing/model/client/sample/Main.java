@@ -15,7 +15,11 @@
  */
 package com.evolveum.midpoint.testing.model.client.sample;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +35,7 @@ import javax.xml.ws.BindingProvider;
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 
+import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
@@ -66,7 +71,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 /**
  * @author semancik
@@ -119,7 +127,10 @@ public class Main {
 			System.out.println(resouces);
 			
 			String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
-			System.out.println("Created user, OID: "+userGuybrushoid);
+			System.out.println("Created user guybrush, OID: "+userGuybrushoid);
+			
+			String userLeChuckOid = createUserFromSystemResource(modelPort, "user-lechuck.xml");
+			System.out.println("Created user lechuck, OID: "+userLeChuckOid);
 			
 			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
 			System.out.println("Created user password");
@@ -188,13 +199,66 @@ public class Main {
 			user.getAssignment().add(roleAssignment);
 		}
 		
+		return createUser(modelPort, user);
+	}
+
+	private static String createUserFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
+		UserType user = unmarshallResouce(resourcePath);
+		
+		return createUser(modelPort, user);
+	}
+	
+	private static <T> T unmarshallFile(File file) throws JAXBException, FileNotFoundException {
+		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
+		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
+		 
+		InputStream is = null;
+		JAXBElement<T> element = null;
+		try {
+			is = new FileInputStream(file);
+			element = (JAXBElement<T>) unmarshaller.unmarshal(is);
+		} finally {
+			if (is != null) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+	
+	private static <T> T unmarshallResouce(String path) throws JAXBException, FileNotFoundException {
+		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
+		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
+		 
+		InputStream is = null;
+		JAXBElement<T> element = null;
+		try {
+			is = Main.class.getClassLoader().getResourceAsStream(path);
+			if (is == null) {
+				throw new FileNotFoundException("System resource "+path+" was not found");
+			}
+			element = (JAXBElement<T>) unmarshaller.unmarshal(is);
+		} finally {
+			if (is != null) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+
+	private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
 		Holder<String> oidHolder = new Holder<String>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		modelPort.addObject(user, oidHolder, resultHolder);
+		modelPort.addObject(userType, oidHolder, resultHolder);
 		
 		return oidHolder.value;
 	}
-
+	
 	private static void changeUserPassword(ModelPortType modelPort, String oid, String newPassword) throws FaultMessage {
 		Document doc = getDocumnent();
 		
