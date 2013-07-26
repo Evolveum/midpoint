@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
@@ -27,7 +26,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @
  */
-public class ExecuteChangeOptionsPanel  extends SimplePanel<ExecuteChangeOptionsDto> {
+public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsDto> {
 
     private static final String ID_FORCE = "force";
     private static final String ID_RECONCILE = "reconcile";
@@ -46,32 +45,32 @@ public class ExecuteChangeOptionsPanel  extends SimplePanel<ExecuteChangeOptions
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_FORCE));
         add(force);
 
-        Label reconcileLabel = new Label(ID_RECONCILE_LABEL, getString("ExecuteChangeOptionsPanel.label.reconcile"));
-        reconcileLabel.add(new VisibleEnableBehaviour(){
-        	
-        	@Override
-        	public boolean isVisible() {
-        		return reconcile;
-        	}
-        	
+        Label reconcileLabel = new Label(ID_RECONCILE_LABEL,
+                createStringResource("ExecuteChangeOptionsPanel.label.reconcile"));
+        reconcileLabel.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return reconcile;
+            }
+
         });
         add(reconcileLabel);
-        
+
         CheckBox reconcile = new CheckBox(ID_RECONCILE,
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE));
-        reconcile.add(new VisibleEnableBehaviour(){
-        	
-        	@Override
-        	public boolean isVisible() {
-        		// TODO Auto-generated method stub
-        		return ExecuteChangeOptionsPanel.this.reconcile;
-        	}
-        	
+        reconcile.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return ExecuteChangeOptionsPanel.this.reconcile;
+            }
+
         });
-        
+
         add(reconcile);
-        
-        
+
+
         CheckBox executeAfterAllApprovals = new CheckBox(ID_EXECUTE_AFTER_ALL_APPROVALS,
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS));
         add(executeAfterAllApprovals);
