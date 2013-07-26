@@ -1307,10 +1307,10 @@ public class PageUser extends PageAdminUsers {
 		Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
 
 		for (ItemDelta delta : deltas) {
-			ItemPath deltaPath = delta.getPath();
+			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-            delta.setParentPath(joinPath(oldValue.getPath(), deltaPath));
+            delta.setParentPath(joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			userDelta.addModification(delta);
