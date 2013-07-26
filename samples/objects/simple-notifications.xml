@@ -15,26 +15,32 @@
   ~ limitations under the License.
   -->
 
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+
+    <name>dummy</name>
+
         <!-- insert the following element into system configuration object (via debug pages)
              before logging and cleanup policy items -->
 
-<notificationConfiguration>
+    <notificationConfiguration>
 
-    <simpleAccountNotifier>
-        <recipientExpression>
-            <value>somebody@acme.org</value>
-        </recipientExpression>
-        <transport>mail</transport>
-    </simpleAccountNotifier>
+        <simpleAccountNotifier>
+            <recipientExpression>
+                <value>somebody@acme.org</value>
+            </recipientExpression>
+            <transport>mail</transport>
+        </simpleAccountNotifier>
 
-    <simpleUserNotifier>
-        <recipientExpression>
-            <value>somebody@acme.org</value>
-        </recipientExpression>
-        <transport>mail</transport>
-    </simpleUserNotifier>
+        <simpleUserNotifier>
+            <recipientExpression>
+                <value>somebody@acme.org</value>
+            </recipientExpression>
+            <transport>mail</transport>
+        </simpleUserNotifier>
 
-    <mail>
-        <redirectToFile>c:\midpoint\mail-notifications.log</redirectToFile>
-    </mail>
-</notificationConfiguration>
+        <mail>
+            <redirectToFile>c:\midpoint\mail-notifications.log</redirectToFile>
+        </mail>
+    </notificationConfiguration>
+
+</systemConfiguration>
