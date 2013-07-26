@@ -162,12 +162,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             @Override
             public void execute(Connection connection) throws SQLException {
                 //check if table exists
-                DatabaseMetaData meta = connection.getMetaData();
-                ResultSet resultSet = meta.getTables(null, null, null, new String[]{"TABLE"});
-                while (resultSet.next()) {
-                    if (StringUtils.equalsIgnoreCase(tempTable, resultSet.getString("TABLE_NAME"))) {
-                        return;
-                    }
+                try {
+                    Statement s = connection.createStatement();
+                    s.execute("select id from " + tempTable + " where id = 1");
+                    //table already exists
+                    return;
+                } catch (Exception ex) {
+                    //we expect this on the first time
                 }
 
                 StringBuilder sb = new StringBuilder();
