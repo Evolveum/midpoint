@@ -260,6 +260,10 @@ public abstract class ShadowCache {
 				throw ex;
 			}
 	
+			
+			resourceShadow = resouceObjectConverter.getResourceObject(connector, resource, identifiers, objectClassDefinition, parentResult);
+			resourceTypeManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
+			
 			//try to apply changes to the account only if the resource if UP
 			if (repositoryShadow.asObjectable().getObjectChange() != null && repositoryShadow.asObjectable().getFailedOperationType() != null
 					&& resource.getOperationalState() != null
@@ -268,8 +272,6 @@ public abstract class ShadowCache {
 						"Found changes that have been not applied to the account yet. Trying to apply them now.");
 			}
 			
-			resourceShadow = resouceObjectConverter.getResourceObject(connector, resource, identifiers, objectClassDefinition, parentResult);
-			resourceTypeManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
 			try {
 				boolean compensate = GetOperationOptions.isDoNotDiscovery(options)? false : true;
