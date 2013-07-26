@@ -511,14 +511,24 @@ public class LensUtil {
 		}
 		LOGGER.trace("Loading full account {} from provisioning", accCtx);
 		
+		try{
 		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
 				accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
-		
 		accCtx.setObjectOld(objectOld);
 		ShadowType oldShadow = objectOld.asObjectable();
 		accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+		
+		} catch (ObjectNotFoundException ex){
+			if (accCtx.isDelete()){
+				//this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
+				accCtx.setFullShadow(true);
+			} else 
+				throw ex;
+		}
+		
 		accCtx.recompute();
 
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
 		}

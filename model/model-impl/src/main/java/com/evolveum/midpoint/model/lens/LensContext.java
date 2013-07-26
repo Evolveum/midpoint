@@ -302,6 +302,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		}
 		for (LensProjectionContext<P> projectionContext: projectionContexts) {
 			projectionContext.setFresh(false);
+			projectionContext.setFullShadow(false);
 		}
 	}
 	
