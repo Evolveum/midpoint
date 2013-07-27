@@ -47,8 +47,8 @@ import java.util.Map;
  *     delta(s); if so, it prepares instruction(s) to start related workflow approval process(es)
  *  2) when a process instance finishes - process wrapper modifies the delta(s) related to particular
  *     process instance and passes them along, to be executed
- *  3) when a user asks about the state of process instance(s) - it prepares that part of the answer
- *     that is specific to individual process
+ *  3) when a user wants to approve the item or asks about the state of process instance(s) -
+ *     it prepares the data that is specific to individual process.
  *
  * @author mederly
  */
@@ -63,11 +63,10 @@ public interface PrimaryApprovalProcessWrapper {
      *
      * @param modelContext Original model context (e.g. to be able to get information about whole context of the operation)
      * @param change Change to be examined and modified (as a side effect!)
-     * @param task
-     * @param result
+     * @param task General context of the operation - the method should not modify the task.
+     * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)
      * @return list of start process instructions
      */
-
     List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result);
 
     /**

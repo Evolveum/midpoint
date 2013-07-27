@@ -78,6 +78,8 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     @Autowired
     private PrismContext prismContext;
 
+    // ------------------------------------------------------------ Things that execute on request arrival
+
     @Override
     public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) {
 
@@ -107,12 +109,14 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
                 LOGGER.trace("Role-related assignments in user add delta (" + user.getAssignment().size() + "): ");
             }
 
+            // in the following we look for assignments of roles that should be approved
+
             Iterator<AssignmentType> assignmentTypeIterator = user.getAssignment().iterator();
             while (assignmentTypeIterator.hasNext()) {
                 AssignmentType a = assignmentTypeIterator.next();
-                ObjectReferenceType ort = a.getTargetRef();
-                if (ort != null && RoleType.COMPLEX_TYPE.equals(ort.getType())) {
-                    RoleType role = resolveRoleRef(a, result);
+                ObjectType objectType = resolveObjectRef(a, result);
+                if (objectType != null && objectType instanceof RoleType) {         // later might be changed to AbstractRoleType but we should do this change at all places in this wrapper
+                    RoleType role = (RoleType) objectType;
                     boolean approvalRequired = shouldRoleBeApproved(role);
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace(" - role: " + role + " (approval required = " + approvalRequired + ")");
@@ -130,10 +134,11 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
 
             Iterator<? extends ItemDelta> deltaIterator = change.getModifications().iterator();
 
+            // are any 'sensitive' roles assigned?
+
             while (deltaIterator.hasNext()) {
                 ItemDelta delta = deltaIterator.next();
                 if (UserType.F_ASSIGNMENT.equals(delta.getName()) && delta.getValuesToAdd() != null && !delta.getValuesToAdd().isEmpty()) {          // todo: what if assignments are modified?
-
                     Iterator valueIterator = delta.getValuesToAdd().iterator();
                     while (valueIterator.hasNext()) {
                         Object o = valueIterator.next();
@@ -141,9 +146,9 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
                             LOGGER.trace("Assignment to add = " + ((PrismContainerValue) o).dump());
                         }
                         PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
-                        ObjectReferenceType ort = at.getValue().getTargetRef();
-                        if (ort != null && RoleType.COMPLEX_TYPE.equals(ort.getType())) {
-                            RoleType role = resolveRoleRef(at.getValue(), result);
+                        ObjectType objectType = resolveObjectRef(at.getValue(), result);
+                        if (objectType != null && objectType instanceof RoleType) {
+                            RoleType role = (RoleType) objectType;
                             boolean approvalRequired = shouldRoleBeApproved(role);
                             if (LOGGER.isTraceEnabled()) {
                                 LOGGER.trace(" - role: " + role + " (approval required = " + approvalRequired + ")");
@@ -170,16 +175,15 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         return approvalRequestList;
     }
 
-    private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, RoleType role) {
+    // creates an approval request for a given role assignment
+    private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, AbstractRoleType role) {
         return new ApprovalRequestImpl(a, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
     }
-
 
     // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
     private List<StartProcessInstructionForPrimaryStage> prepareStartProcessInstructions(ModelContext<?, ?> modelContext, Task task, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) {
         List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
 
-        ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
         String userName = MiscDataUtil.getObjectName(modelContext);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
@@ -235,48 +239,11 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         return ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
     }
 
-    private boolean shouldRoleBeApproved(RoleType role) {
+    private boolean shouldRoleBeApproved(AbstractRoleType role) {
         return !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
     }
 
-    private RoleType resolveRoleRef(AssignmentType a, OperationResult result) {
-        RoleType role = (RoleType) a.getTarget();
-        if (role == null) {
-            try {
-                role = repositoryService.getObject(RoleType.class, a.getTargetRef().getOid(), result).asObjectable();
-            } catch (ObjectNotFoundException e) {
-                throw new SystemException(e);
-            } catch (SchemaException e) {
-                throw new SystemException(e);
-            }
-            a.setTarget(role);
-        }
-        return role;
-    }
-
-    public static String formatTimeIntervalBrief(AssignmentType assignment) {
-        StringBuilder sb = new StringBuilder();
-        if (assignment != null && assignment.getActivation() != null &&
-                (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
-            if (assignment.getActivation().getValidFrom() != null && assignment.getActivation().getValidTo() != null) {
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-                sb.append("-");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            } else if (assignment.getActivation().getValidFrom() != null) {
-                sb.append("from ");
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-            } else {
-                sb.append("to ");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            }
-        }
-        return sb.toString();
-    }
-
-    private static String formatTime(XMLGregorianCalendar time) {
-        DateFormat formatter = DateFormat.getDateInstance();
-        return formatter.format(time.toGregorianCalendar().getTime());
-    }
+    // ------------------------------------------------------------ Things that execute on when item is being approved
 
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
@@ -311,6 +278,31 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         }
         return formPrism;
     }
+
+    public static String formatTimeIntervalBrief(AssignmentType assignment) {
+        StringBuilder sb = new StringBuilder();
+        if (assignment != null && assignment.getActivation() != null &&
+                (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
+            if (assignment.getActivation().getValidFrom() != null && assignment.getActivation().getValidTo() != null) {
+                sb.append(formatTime(assignment.getActivation().getValidFrom()));
+                sb.append("-");
+                sb.append(formatTime(assignment.getActivation().getValidTo()));
+            } else if (assignment.getActivation().getValidFrom() != null) {
+                sb.append("from ");
+                sb.append(formatTime(assignment.getActivation().getValidFrom()));
+            } else {
+                sb.append("to ");
+                sb.append(formatTime(assignment.getActivation().getValidTo()));
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String formatTime(XMLGregorianCalendar time) {
+        DateFormat formatter = DateFormat.getDateInstance();
+        return formatter.format(time.toGregorianCalendar().getTime());
+    }
+
 
     @Override
     public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {

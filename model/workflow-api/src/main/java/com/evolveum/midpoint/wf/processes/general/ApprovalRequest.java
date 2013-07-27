@@ -20,6 +20,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 import java.io.Serializable;
 
+/**
+ * A simple data structure describing what has to be approved (itemToApprove) and by which means (approvalSchema).
+ * Coupled with general item approval process (com.evolveum.midpoint.wf.processes.general).
+ *
+ * @param <I>
+ */
 public interface ApprovalRequest<I extends Serializable> extends Serializable {
 
     static final long serialVersionUID = 5111362449970050179L;
