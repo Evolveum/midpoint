@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -46,14 +47,18 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,6 +91,8 @@ public class InboundProcessor {
     private FilterManager<Filter> filterManager;
     @Autowired(required = true)
     private MappingFactory mappingFactory;
+    @Autowired
+    private ProvisioningService provisioningService;
 
     <F extends ObjectType, P extends ObjectType> void processInbound(LensContext<F,P> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
@@ -216,8 +223,30 @@ public class InboundProcessor {
 	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
 	                } else if (accountOld != null) {
 	                	if (!accContext.isFullShadow()) {
-	                		throw new SystemException("Attempt to execute inbound expression on account shadow (not full account)");
-	                	}
+	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", accContext.getOid());      // todo change to trace level eventually
+                            Throwable failure = null;
+                            try {
+                                LensUtil.loadFullAccount(accContext, provisioningService, result);
+                            } catch (ObjectNotFoundException e) {
+                                failure = e;
+                            } catch (SecurityViolationException e) {
+                                failure = e;
+                            } catch (CommunicationException e) {
+                                failure = e;
+                            } catch (ConfigurationException e) {
+                                failure = e;
+                            }
+                            if (failure != null) {
+                                LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", accContext.getOid(), failure.getMessage());
+                                accContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                                return;
+                            }
+                            if (!accContext.isFullShadow()) {
+                                LOGGER.warn("Couldn't load account with shadow OID {}, setting context as broken and skipping inbound processing on it", accContext.getOid());
+                                accContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                                return;
+                            }
+                        }
 	                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
 	                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 

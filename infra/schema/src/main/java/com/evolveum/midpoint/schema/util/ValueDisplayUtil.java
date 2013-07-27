@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
@@ -63,6 +64,9 @@ public class ValueDisplayUtil {
             return "resource object" + (resource != null ? " on " + resource : "") + (ct.getDescription() != null ? ": " + ct.getDescription() : "");
         } else if (value instanceof Enum) {
             return value.toString();
+        } else if (value instanceof ResourceAttributeDefinitionType) {
+            ResourceAttributeDefinitionType radt = (ResourceAttributeDefinitionType) value;
+            return "(a value or a more complex mapping for the '" + radt.getRef().getLocalPart() + "' attribute)";
         } else {
             return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
         }
