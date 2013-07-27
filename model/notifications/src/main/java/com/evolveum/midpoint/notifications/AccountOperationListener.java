@@ -168,7 +168,7 @@ public class AccountOperationListener implements ResourceOperationListener {
             event.setRequestee(user.asObjectable());
         }   // otherwise, appropriate messages were already logged
 
-        if (task.getOwner() != null) {
+        if (task != null && task.getOwner() != null) {
             event.setRequester(task.getOwner().asObjectable());
         } else {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
@@ -203,11 +203,11 @@ public class AccountOperationListener implements ResourceOperationListener {
             }
         }
 
-        String userOid = task.getRequesteeOid();
+        String userOid = task != null ? task.getRequesteeOid() : null;
         if (userOid == null) {
             LOGGER.warn("There is no owner of account " + accountOid + " (in repo nor in task).");
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Task = " + task.dump());
+                LOGGER.trace("Task = " + (task != null ? task.dump() : "(null)"));
             }
             return null;
         }
