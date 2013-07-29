@@ -8,24 +8,24 @@ IS
   j                         NUMBER := 0;
   BEGIN
 -- drop activity tables
-    FOR cur IN (SELECT
-                  table_name
-                FROM user_tables
-                WHERE LOWER(table_name) LIKE 'act_%') LOOP
-    BEGIN
-      EXECUTE IMMEDIATE 'drop table ' || cur.table_name || ' CASCADE CONSTRAINTS ';
-      EXCEPTION
-      WHEN OTHERS THEN
-      DBMS_OUTPUT.put_line(cur.table_name || ' ' || SQLERRM);
-    END;
-    END LOOP;
+--     FOR cur IN (SELECT
+--                   table_name
+--                 FROM user_tables
+--                 WHERE LOWER(table_name) LIKE 'act_%') LOOP
+--     BEGIN
+--       EXECUTE IMMEDIATE 'drop table ' || cur.table_name || ' CASCADE CONSTRAINTS ';
+--       EXCEPTION
+--       WHEN OTHERS THEN
+--       DBMS_OUTPUT.put_line(cur.table_name || ' ' || SQLERRM);
+--     END;
+--     END LOOP;
 
 -- disable FK constraints
     FOR cur IN (SELECT
                   table_name,
                   constraint_name
                 FROM user_constraints
-                WHERE status = 'ENABLED' AND constraint_type = 'R') LOOP
+                WHERE status = 'ENABLED' AND constraint_type = 'R' AND LOWER(table_name) NOT LIKE 'act_%') LOOP
       i := i + 1;
       l_enabled_constraints.extend(1);
       l_enabled_constraint_tabs.extend(1);
@@ -41,7 +41,7 @@ IS
 -- truncate (midpoint) or drop tables (activity)
     FOR cur IN (SELECT
                   table_name
-                FROM user_tables) LOOP
+                FROM user_tables WHERE LOWER(table_name) NOT LIKE 'act_%') LOOP
     BEGIN
       EXECUTE IMMEDIATE 'truncate table ' || cur.table_name;
       EXCEPTION
