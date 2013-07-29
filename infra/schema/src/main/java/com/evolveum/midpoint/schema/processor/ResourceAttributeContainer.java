@@ -348,6 +348,10 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		return (ResourceAttribute<X>) getValue().findOrCreateProperty(attributeName);
 	}
 	
+	public <T> boolean contains(ResourceAttribute<T> attr) {
+		return getValue().contains(attr);
+	}
+	
 	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> origAttrContainer,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		if (origAttrContainer == null) {

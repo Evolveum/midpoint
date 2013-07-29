@@ -408,7 +408,7 @@ public class ActivationProcessor {
         
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mappingHelper.evaluateMappingSetProjection(
 				outbound, "outbound existence mapping in projection " + accCtxDesc,
-        		now, initializer, null, null, current, null, context, accCtx, result);
+        		now, initializer, null, null, accCtx.getObjectOld(), current, null, context, accCtx, result);
     	
 		if (outputTriple == null) {
 			// The "default existence mapping"
@@ -524,7 +524,7 @@ public class ActivationProcessor {
 
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mappingHelper.evaluateMappingSetProjection(
 				outbound, desc + " outbound activation mapping in projection " + accCtxDesc,
-        		now, initializer, shadowPropertyNew, shadowPropertyDelta, current, strongMappingWasUsed, context, accCtx, result);
+        		now, initializer, shadowPropertyNew, shadowPropertyDelta, shadowNew, current, strongMappingWasUsed, context, accCtx, result);
 
         LOGGER.trace("evaluateActivationMapping after evaluateMappingSetProjection: accCtx.isFullShadow = {}, accCtx.isFresh = {}, shadowPropertyDelta = {}, shadowPropertyNew = {}, outputTriple = {}, strongMappingWasUsed = {}",
                 new Object[] { accCtx.isFullShadow(), accCtx.isFresh(), shadowPropertyDelta, shadowPropertyNew, outputTriple, strongMappingWasUsed});

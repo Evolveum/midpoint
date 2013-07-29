@@ -866,8 +866,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         		XmlTypeConverter.createXMLGregorianCalendar(2001, 2, 3, 4, 5, 6), repoDisableTimestamp);
 	}
 
-	// MID-1432
-	@Test(enabled=false)
+	@Test
 	public void test180AddDisabledAccount() throws Exception {
 		final String TEST_NAME = "test180AddDisabledAccount";
 		TestUtil.displayTestTile(TEST_NAME);

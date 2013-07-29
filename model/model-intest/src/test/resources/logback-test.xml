@@ -47,7 +47,7 @@
 	<logger name="com.evolveum.midpoint.expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.mapping" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.mapping" level="TRACE" />
 	
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 

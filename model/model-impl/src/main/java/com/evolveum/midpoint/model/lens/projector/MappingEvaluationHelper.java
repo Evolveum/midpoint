@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.lens.projector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -80,7 +82,8 @@ public class MappingEvaluationHelper {
      * if it was not changed (i.e. if it's only in the zero set).
      */
 	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluateMappingSetProjection(Collection<MappingType> mappingTypes, String mappingDesc,
-			XMLGregorianCalendar now, MappingInitializer<V> initializer, Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta,
+			XMLGregorianCalendar now, MappingInitializer<V> initializer, 
+			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ShadowType> aPrioriObject,
 			Boolean evaluateCurrent, MutableBoolean strongMappingWasUsed,
 			LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
@@ -182,18 +185,30 @@ public class MappingEvaluationHelper {
 		}
 			
 		if (nextRecomputeTime != null) {
-			PrismObjectDefinition<ShadowType> objectDefinition = accCtx.getObjectDefinition();
-			PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
-			ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
-			PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
-			triggerDelta.addValueToAdd(triggerCVal);
-			TriggerType triggerType = triggerCVal.asContainerable();
-			triggerType.setTimestamp(nextRecomputeTime);
-			triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
 			
-			// TODO: check for existing triggers
+			boolean alreadyHasTrigger = false;
+			if (aPrioriObject != null) {
+				for (TriggerType trigger: aPrioriObject.asObjectable().getTrigger()) {
+					if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
+							nextRecomputeTime.equals(trigger.getTimestamp())) {
+								alreadyHasTrigger = true;
+								break;
+					}
+				}
+			}
+			
+			if (!alreadyHasTrigger) {
+				PrismObjectDefinition<ShadowType> objectDefinition = accCtx.getObjectDefinition();
+				PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
+				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
+				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
+				triggerDelta.addValueToAdd(triggerCVal);
+				TriggerType triggerType = triggerCVal.asContainerable();
+				triggerType.setTimestamp(nextRecomputeTime);
+				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
 
-			accCtx.addToSecondaryDelta(triggerDelta);			
+				accCtx.addToSecondaryDelta(triggerDelta);
+			}
 		}		
 		
 		return outputTriple;

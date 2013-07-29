@@ -340,6 +340,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	items.clear();
     }
     
+    public boolean contains(Item item) {
+    	return items.contains(item);
+    }
+    
     @Override
     public Object find(ItemPath path) {
     	if (path == null || path.isEmpty()) {

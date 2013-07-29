@@ -797,8 +797,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     /**
      * Khaki resource has simulated activation capability.
      */
-    // MID-1435
-	@Test(enabled=false)
+	@Test
     public void test160ModifyUserJackAssignAccountKhaki() throws Exception {
 		final String TEST_NAME = "test160ModifyUserJackAssignAccountKhaki";
         TestUtil.displayTestTile(this, TEST_NAME);

@@ -299,12 +299,12 @@ public class ResourceObjectConverter {
 
 		// We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
 		// to propagate back to the calling code. Hence the clone.
-		shadow = shadow.clone();
-		ShadowType shadowType = shadow.asObjectable();
+		PrismObject<ShadowType> shadowClone = shadow.clone();
+		ShadowType shadowType = shadowClone.asObjectable();
 
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
-		if (isProtectedShadow(resource, shadow)) {
+		if (isProtectedShadow(resource, shadowClone)) {
 			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
 			throw new SecurityViolationException("Cannot get protected shadow " + shadowType);
 		}
@@ -312,7 +312,7 @@ public class ResourceObjectConverter {
 		Collection<Operation> additionalOperations = new ArrayList<Operation>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
 				parentResult);
-		entitlementConverter.processEntitlementsAdd(resource, shadow, objectClassDefinition);
+		entitlementConverter.processEntitlementsAdd(resource, shadowClone, objectClassDefinition);
 		
 		try {
 
@@ -323,7 +323,7 @@ public class ResourceObjectConverter {
 			}
 			checkActivationAttribute(shadowType, resource, objectClassDefinition);
 			
-			resourceAttributesAfterAdd = connector.addObject(shadow, additionalOperations, parentResult);
+			resourceAttributesAfterAdd = connector.addObject(shadowClone, additionalOperations, parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
 				// TODO: reduce only to new/different attributes. Dump all
@@ -332,7 +332,9 @@ public class ResourceObjectConverter {
 						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
 
-			applyAfterOperationAttributes(shadowType, resourceAttributesAfterAdd);
+			// Be careful not to apply this to the cloned shadow. This needs to be propagated
+			// outside this method.
+			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Could not create account on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -352,12 +354,8 @@ public class ResourceObjectConverter {
 			throw ex;
 		}
 		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow being stored:\n{}", shadowType.asPrismObject().dump());
-		}
-		
 		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesAdd(connector, resource, objectClassDefinition, shadow, scripts, parentResult);
+		executeEntitlementChangesAdd(connector, resource, objectClassDefinition, shadowClone, scripts, parentResult);
 
 		parentResult.recordSuccess();
 		return shadow;
@@ -760,7 +758,7 @@ public class ResourceObjectConverter {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void applyAfterOperationAttributes(ShadowType shadow,
+	private void applyAfterOperationAttributes(PrismObject<ShadowType> shadow,
 			Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(shadow);
@@ -769,7 +767,9 @@ public class ResourceObjectConverter {
 			if (attributeBefore != null) {
 				attributesContainer.remove(attributeBefore);
 			}
-			attributesContainer.add(attributeAfter);
+			if (!attributesContainer.contains(attributeAfter)) {
+				attributesContainer.add(attributeAfter.clone());
+			}
 		}
 	}
 

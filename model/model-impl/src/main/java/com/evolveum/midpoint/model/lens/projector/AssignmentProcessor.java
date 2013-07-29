@@ -541,7 +541,9 @@ public class AssignmentProcessor {
 				if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
 					// What is not explicitly allowed is illegal in FULL enforcement mode
 					projectionContext.setLegal(false);
-					projectionContext.setLegalOld(true);
+					// We need to set the old value for legal to false. There was no assignment delta for it.
+					// If it were then the code could not get here.
+					projectionContext.setLegalOld(false);
 					if (projectionContext.isAdd()) {
 						throw new PolicyViolationException("Attempt to add projection "+projectionContext.toHumanReadableString()
 								+" while the synchronization enforcement policy is FULL and the projection is not assigned");
@@ -552,7 +554,7 @@ public class AssignmentProcessor {
 						projectionContext.setLegal(true);
 						projectionContext.setLegalOld(false);
 					} else {
-						// Everything that exists is was legal and is legal. Nothing really changes.
+						// Everything that exists was legal and is legal. Nothing really changes.
 						projectionContext.setLegal(projectionContext.isExists());
 						projectionContext.setLegalOld(projectionContext.isExists());
 					}
