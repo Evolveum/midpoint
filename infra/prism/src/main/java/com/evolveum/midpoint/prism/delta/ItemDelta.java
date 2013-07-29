@@ -1126,7 +1126,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		if (itemOld != null && itemOld.getValues() != null) {
 			for (V itemVal: itemOld.getValues()) {
-				if (!PrismValue.containsRealValue(valuesToDelete, itemVal)) {
+				if (!PrismValue.containsRealValue(valuesToDelete, itemVal) && !PrismValue.containsRealValue(valuesToAdd, itemVal)) {
 					triple.getZeroSet().add(itemVal);
 				}
 			}
