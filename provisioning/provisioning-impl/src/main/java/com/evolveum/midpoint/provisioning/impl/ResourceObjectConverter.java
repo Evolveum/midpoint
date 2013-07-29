@@ -297,6 +297,9 @@ public class ResourceObjectConverter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
+		// We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
+		// to propagate back to the calling code. Hence the clone.
+		shadow = shadow.clone();
 		ShadowType shadowType = shadow.asObjectable();
 
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
@@ -791,7 +794,7 @@ public class ResourceObjectConverter {
 			if (status != null) {
 	
 				if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-					// Navive activation, need to check if there is not also change to simulated activation which may be in conflict
+					// Native activation, need to check if there is not also change to simulated activation which may be in conflict
 					checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
 					operations.add(new PropertyModificationOperation(enabledPropertyDelta));
 				} else {
@@ -1217,7 +1220,7 @@ public class ResourceObjectConverter {
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
-			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
+			result.recordWarning("Resource " + resource
 					+ " does not have native or simulated activation capability. Processing of activation for account "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
@@ -1225,7 +1228,7 @@ public class ResourceObjectConverter {
 
 		ActivationStatusCapabilityType capActStatus = getStatusCapability(resource, activationCapability);
 		if (capActStatus == null) {
-			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
+			result.recordWarning("Resource " + resource
 					+ " does not have native or simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
@@ -1286,13 +1289,11 @@ public class ResourceObjectConverter {
 			LOGGER.trace("enable attribute delta: {}", enableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
 					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), enableValue);
-//			enableAttributeDelta.setValueToReplace(enableValue);
 		} else {
 			String disableValue = getDisableValue(capActStatus);
 			LOGGER.trace("enable attribute delta: {}", disableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
 					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), disableValue);
-//			enableAttributeDelta.setValueToReplace(disableValue);
 		}
 
 		PropertyModificationOperation attributeChange = new PropertyModificationOperation(

@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
@@ -99,6 +101,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
@@ -839,9 +842,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 //			assertFalse("Account was not disabled.", accountType.getActivation().isEnabled());
 		
-		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
-
-		
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		
 		assertNotNull(uid);
 		
 		// Check if object was modified in LDAP
@@ -855,7 +856,67 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         System.out.println("ds-pwp-account-disabled after change: " + disabled);
 
         assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, result);
+        ActivationType repoActivation = repoShadow.asObjectable().getActivation();
+        assertNotNull("No activation in repo", repoActivation);
+        XMLGregorianCalendar repoDisableTimestamp = repoActivation.getDisableTimestamp();
+        assertNotNull("No activation disableTimestamp in repo", repoDisableTimestamp);
+        assertEquals("Wrong activation disableTimestamp in repo", 
+        		XmlTypeConverter.createXMLGregorianCalendar(2001, 2, 3, 4, 5, 6), repoDisableTimestamp);
 	}
+
+	// MID-1432
+	@Test(enabled=false)
+	public void test180AddDisabledAccount() throws Exception {
+		final String TEST_NAME = "test180AddDisabledAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_DISABLED_FILENAME, ShadowType.class);
+
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		assertEquals(ACCOUNT_NEW_DISABLED_OID, addedObjectOid);
+
+		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID,
+				result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=rapp,ou=People,dc=example,dc=com", accountType.getName());
+
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", "uid=rapp,ou=People,dc=example,dc=com", provisioningAccountType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		assertNotNull(uid);
+		
+		// Check if object was modified in LDAP
+		
+		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP account", response);
+		
+		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
+		assertNotNull("no ds-pwp-account-disabled attribute in account "+uid, disabled);
+
+        System.out.println("ds-pwp-account-disabled after change: " + disabled);
+
+        assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
+        
+        ActivationType repoActivation = accountType.getActivation();
+        assertNotNull("No activation in repo", repoActivation);
+        XMLGregorianCalendar repoDisableTimestamp = repoActivation.getDisableTimestamp();
+        assertNotNull("No activation disableTimestamp in repo", repoDisableTimestamp);
+        assertEquals("Wrong activation disableTimestamp in repo", 
+        		XmlTypeConverter.createXMLGregorianCalendar(1999, 8, 7, 6, 5, 4), repoDisableTimestamp);
+			
+	}
+
 	
 	@Test
 	public void test200SearchObjectsIterative() throws Exception {

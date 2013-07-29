@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -41,11 +42,16 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -70,7 +76,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestActivation extends AbstractInitializedModelIntegrationTest {
-			
+
+	private static final File TEST_DIR = new File("src/test/resources/activation");
+	
+	protected static final File RESOURCE_DUMMY_KHAKI_FILE = new File(TEST_DIR, "resource-dummy-khaki.xml");
+	protected static final String RESOURCE_DUMMY_KHAKI_OID = "10000000-0000-0000-0000-0000000a1004";
+	protected static final String RESOURCE_DUMMY_KHAKI_NAME = "khaki";
+	protected static final String RESOURCE_DUMMY_KHAKI_NAMESPACE = MidPointConstants.NS_RI;
+	
 	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
 	private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
 	private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
@@ -82,11 +95,25 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	private String accountMancombOid;
 	private String userMancombOid;
 	private XMLGregorianCalendar manana;
-
-	public TestActivation() throws JAXBException {
-		super();
+	
+	protected DummyResource dummyResourceKhaki;
+	protected DummyResourceContoller dummyResourceCtlKhaki;
+	protected ResourceType resourceDummyKhakiType;
+	protected PrismObject<ResourceType> resourceDummyKhaki;
+	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult)
+			throws Exception {
+		super.initSystem(initTask, initResult);
+		
+		dummyResourceCtlKhaki = DummyResourceContoller.create(RESOURCE_DUMMY_KHAKI_NAME, resourceDummyKhaki);
+		dummyResourceCtlKhaki.extendDummySchema();
+		dummyResourceKhaki = dummyResourceCtlKhaki.getDummyResource();
+		resourceDummyKhaki = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_KHAKI_FILE, RESOURCE_DUMMY_KHAKI_OID, initTask, initResult); 
+		resourceDummyKhakiType = resourceDummyKhaki.asObjectable();
+		dummyResourceCtlKhaki.setResource(resourceDummyKhaki);
 	}
-			
+
 	@Test
     public void test050CheckJackEnabled() throws Exception {
         TestUtil.displayTestTile(this, "test050CheckJackEnabled");
@@ -182,6 +209,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
         
+        dummyAuditService.clear();
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
@@ -199,12 +227,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        display("Shadow (repo)", accountShadow);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
         assertEnableTimestampShadow(accountShadow, start, end);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Shadow (model)", accountModel);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         IntegrationTestTools.assertCreateTimestamp(accountModel, start, end);
         assertEnableTimestampShadow(accountModel, start, end);
@@ -215,6 +245,29 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyEnabled("jack");
         
         IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executionDeltas = dummyAuditService.getExecutionDeltas();
+        boolean found = false;
+        for (ObjectDeltaOperation<? extends ObjectType> executionDelta: executionDeltas) {
+        	ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
+        	if (objectDelta.getObjectTypeClass() == ShadowType.class) {
+        		PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP));
+        		display("Audit enableTimestamp delta", enableTimestampDelta);
+        		assertNotNull("EnableTimestamp delta vanished from audit record", enableTimestampDelta);
+        		found = true;
+        	}
+        }
+        assertTrue("Shadow delta not found", found);
 	}
 	
 	@Test
@@ -418,8 +471,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+		accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+ 
+		PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, result);
+		display("Account red (repo)", accountRedRepo);
+        assertEnableTimestampShadow(accountRedRepo, startTime, endTime);
+	 
         PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        display("Account red (model)", accountRed);
         assertShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
         assertAdministrativeStatusEnabled(accountRed);
         assertEnableTimestampShadow(accountRed, startTime, endTime);
@@ -734,6 +793,85 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", accountStatus);
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", accountStatusYellow);
     }
+
+    /**
+     * Khaki resource has simulated activation capability.
+     */
+    // MID-1435
+	@Test(enabled=false)
+    public void test160ModifyUserJackAssignAccountKhaki() throws Exception {
+		final String TEST_NAME = "test160ModifyUserJackAssignAccountKhaki";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+        dummyAuditService.clear();
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_KHAKI_OID);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        display("Shadow (repo)", accountShadow);
+        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyKhakiType);
+        IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
+        assertEnableTimestampShadow(accountShadow, start, end);
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Shadow (model)", accountModel);
+        assertShadowModel(accountModel, accountOid, "jack", resourceDummyKhakiType);
+        IntegrationTestTools.assertCreateTimestamp(accountModel, start, end);
+        assertEnableTimestampShadow(accountModel, start, end);
+        
+        // Check account in dummy resource
+        assertDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, "jack", "Jack Sparrow", true);
+        
+        assertDummyEnabled(RESOURCE_DUMMY_KHAKI_NAME, "jack");
+        
+        IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executionDeltas = dummyAuditService.getExecutionDeltas();
+        boolean found = false;
+        for (ObjectDeltaOperation<? extends ObjectType> executionDelta: executionDeltas) {
+        	ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
+        	if (objectDelta.getObjectTypeClass() == ShadowType.class) {
+        		PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP));
+        		display("Audit enableTimestamp delta", enableTimestampDelta);
+        		assertNotNull("EnableTimestamp delta vanished from audit record", enableTimestampDelta);
+        		found = true;
+        	}
+        }
+        assertTrue("Shadow delta not found", found);
+	}
 
 
     @Test

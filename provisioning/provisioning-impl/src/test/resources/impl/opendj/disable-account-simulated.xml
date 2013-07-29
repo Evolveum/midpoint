@@ -32,4 +32,11 @@
             <c:administrativeStatus>disabled</c:administrativeStatus>
         </t:value>
     </modification>
+    <modification>
+    	<t:modificationType>replace</t:modificationType>
+        <t:path>c:activation</t:path>
+        <t:value>
+            <c:disableTimestamp>2001-02-03T04:05:06Z</c:disableTimestamp>
+        </t:value>
+    </modification>
 </objectModification>

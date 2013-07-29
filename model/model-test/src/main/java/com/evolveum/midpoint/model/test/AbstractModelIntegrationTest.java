@@ -1666,7 +1666,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertEnableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
 			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
-		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getEnableTimestamp();
+		ActivationType activationType = shadow.asObjectable().getActivation();
+		assertNotNull("No activation in "+shadow, activationType);
+		XMLGregorianCalendar userDisableTimestamp = activationType.getEnableTimestamp();
 		IntegrationTestTools.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
 				startTime, endTime, userDisableTimestamp);
 	}

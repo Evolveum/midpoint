@@ -250,11 +250,7 @@
             		</outbound>
             	</existence>
             	<administrativeStatus>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-            		</outbound>
+            		<outbound/>
             		<inbound>
             			<strength>weak</strength>
             			<condition>
