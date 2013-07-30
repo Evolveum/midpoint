@@ -293,9 +293,11 @@ public class ReconciliationProcessor {
 			ResourceAttributeDefinition attrDef, ModificationType changeType, T value, ObjectType originObject)
 			throws SchemaException {
 
-		// value matcher na realnu hodnotu
-		ItemDelta delta = accCtx.getSecondaryDelta().findItemDelta(new ItemPath(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName()));
-		
+		ItemDelta existingDelta = null;
+		if (accCtx.getSecondaryDelta() != null) {
+			existingDelta = accCtx.getSecondaryDelta().findItemDelta(
+					new ItemPath(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName()));
+		}
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[] { changeType, attrDef,
 				value });
 
@@ -306,9 +308,11 @@ public class ReconciliationProcessor {
 		if (changeType == ModificationType.ADD) {
 			attrDelta.addValueToAdd(pValue);
 		} else if (changeType == ModificationType.DELETE) {
-			for (Object isInDeltaValue : delta.getValuesToDelete()){
-				if (valueMatcher.match(isInDeltaValue, pValue)){
-					break;
+			if (existingDelta != null) {
+				for (Object isInDeltaValue : existingDelta.getValuesToDelete()) {
+					if (valueMatcher.match(isInDeltaValue, pValue)) {
+						break;
+					}
 				}
 			}
 			attrDelta.addValueToDelete(pValue);
