@@ -326,6 +326,11 @@ public class ReconciliationProcessor {
 		if (existingDelta == null) {
 			return false;
 		}
+		
+		if (existingDelta.getValuesToDelete() == null){
+			return false;
+		}
+		
 		for (Object isInDeltaValue : existingDelta.getValuesToDelete()) {
 			if (isInDeltaValue instanceof PrismPropertyValue){
 				PrismPropertyValue isInRealValue = (PrismPropertyValue) isInDeltaValue;
