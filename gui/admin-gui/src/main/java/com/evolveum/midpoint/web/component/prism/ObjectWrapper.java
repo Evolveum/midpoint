@@ -119,8 +119,9 @@ public class ObjectWrapper implements Serializable {
 		ItemPath resourceActivationPath = new ItemPath(ShadowType.F_ACTIVATION);
 		for (ContainerWrapper container : getContainers()) {
 			Class clazz = container.getItem().getCompileTimeClass();
+			
 			if(clazz != null) {
-				if(clazz.equals(RoleType.class) || clazz.equals(ObjectType.class)) {
+				if(clazz.equals(RoleType.class)){ // //TODO: it this really needed?? || clazz.equals(ObjectType.class)) {
 					return true;
 				}
 			}
@@ -132,13 +133,13 @@ public class ObjectWrapper implements Serializable {
 			}
 		}
         if (activation == null) {
-        	return true;
+        	return null;
         }
 
         PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
         if (enabledProperty.getValues().size() != 1) {
         	LOGGER.warn("No enabled property found for account " + getDisplayName() + ".");
-        	return false;
+        	return null;
         }
         ValueWrapper value = enabledProperty.getValues().get(0);
         return value.getValue().getValue() == ActivationStatusType.ENABLED;
