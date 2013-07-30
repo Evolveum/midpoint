@@ -17,12 +17,11 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,6 +42,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -115,14 +115,23 @@ public class PrismObjectPanel extends Panel {
         PrismObject object = wrapper.getObject();
 
         if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            ActivationStatusType status = wrapper.getActivationStatus(ActivationType.F_EFFECTIVE_STATUS);
+            ActivationStatusType status = getActivationStatus(object, ActivationType.F_EFFECTIVE_STATUS);
             return ActivationStatusType.DISABLED.equals(status);
-        } else if (AccountShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            ActivationStatusType status = wrapper.getActivationStatus(ActivationType.F_ADMINISTRATIVE_STATUS);
+        } else if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            ActivationStatusType status = getActivationStatus(object, ActivationType.F_ADMINISTRATIVE_STATUS);
             return ActivationStatusType.DISABLED.equals(status);
         }
 
         return false;
+    }
+
+    private ActivationStatusType getActivationStatus(PrismObject object, QName property) {
+        PrismProperty prismProperty = object.findProperty(new ItemPath(ShadowType.F_ACTIVATION, property));
+        if (prismProperty == null || prismProperty.isEmpty()) {
+            return null;
+        }
+
+        return (ActivationStatusType) prismProperty.getRealValue();
     }
 
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {

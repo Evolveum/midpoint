@@ -38,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -113,30 +112,6 @@ public class ObjectWrapper implements Serializable {
 	public void setOldDelta(ObjectDelta oldDelta) {
 		this.oldDelta = oldDelta;
 	}
-
-    public ActivationStatusType getActivationStatus(QName property) {
-        ItemPath resourceActivationPath = new ItemPath(ShadowType.F_ACTIVATION);
-
-        ContainerWrapper activation = null;
-        for (ContainerWrapper container : getContainers()) {
-            if (container.getPath() == null || !container.getPath().equals(resourceActivationPath)) {
-                continue;
-            } else if(container.getPath().equals(resourceActivationPath)) {
-                activation = container;
-                break;
-            }
-        }
-        if (activation == null) {
-            return null;
-        }
-
-        PropertyWrapper enabledProperty = activation.findPropertyWrapper(property);
-        if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
-            return null;
-        }
-        ValueWrapper value = enabledProperty.getValues().get(0);
-        return (ActivationStatusType) value.getValue().getValue();
-    }
 
 	public void setHeaderStatus(HeaderStatus headerStatus) {
 		this.headerStatus = headerStatus;
