@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -308,14 +309,10 @@ public class ReconciliationProcessor {
 		if (changeType == ModificationType.ADD) {
 			attrDelta.addValueToAdd(pValue);
 		} else if (changeType == ModificationType.DELETE) {
-			if (existingDelta != null) {
-				for (Object isInDeltaValue : existingDelta.getValuesToDelete()) {
-					if (valueMatcher.match(isInDeltaValue, pValue)) {
-						break;
-					}
-				}
+			if (!isInDelta(existingDelta, valueMatcher, value)){
+				attrDelta.addValueToDelete(pValue);
 			}
-			attrDelta.addValueToDelete(pValue);
+			
 		} else if (changeType == ModificationType.REPLACE) {
 			attrDelta.setValueToReplace(pValue);
 		} else {
@@ -323,6 +320,23 @@ public class ReconciliationProcessor {
 		}
 
 		accCtx.addToSecondaryDelta(attrDelta);
+	}
+
+	private <T> boolean isInDelta(ItemDelta existingDelta, ValueMatcher valueMatcher, T value) {
+		if (existingDelta == null) {
+			return false;
+		}
+		for (Object isInDeltaValue : existingDelta.getValuesToDelete()) {
+			if (isInDeltaValue instanceof PrismPropertyValue){
+				PrismPropertyValue isInRealValue = (PrismPropertyValue) isInDeltaValue;
+				if (valueMatcher.match(isInRealValue.getValue(), value)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+		
 	}
 
 	private boolean isInValues(ValueMatcher valueMatcher, Object shouldBeValue,
