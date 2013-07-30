@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -127,14 +128,21 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
                     new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
-//        } else if (isThisPropertyActivationEnabled()) {
-//            wrapper = new ValueWrapper(this, new PrismPropertyValue(ActivationStatusType.ENABLED),
-//                    new PrismPropertyValue(null), ValueStatus.ADDED);
+        } else if (isUser() && isThisPropertyActivationEnabled()) {
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(ActivationStatusType.ENABLED),
+                    new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
         }
 
         return wrapper;
+    }
+
+    private boolean isUser() {
+        ObjectWrapper wrapper = getContainer().getObject();
+        PrismObject object = wrapper.getObject();
+
+        return UserType.class.isAssignableFrom(object.getCompileTimeClass());
     }
 
     private boolean isThisPropertyActivationEnabled() {

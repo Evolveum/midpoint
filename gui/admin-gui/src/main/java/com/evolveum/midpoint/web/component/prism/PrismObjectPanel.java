@@ -16,8 +16,13 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -91,12 +96,33 @@ public class PrismObjectPanel extends Panel {
             @Override
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
-                if (wrapper.getEnableStatus() != null && !wrapper.getEnableStatus()) {
+                if (isDisabled(wrapper)) {
                     return "disable";
                 }
                 return "";
             }
         };
+    }
+
+    /**
+     * Method uses value from administrativeStatus property for
+     * {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType}
+     * and effectiveStatus property for {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType}.
+     *
+     * @return true if panel should look like its' object is disabled (strike through font).
+     */
+    public boolean isDisabled(ObjectWrapper wrapper) {
+        PrismObject object = wrapper.getObject();
+
+        if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            ActivationStatusType status = wrapper.getActivationStatus(ActivationType.F_EFFECTIVE_STATUS);
+            return ActivationStatusType.DISABLED.equals(status);
+        } else if (AccountShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            ActivationStatusType status = wrapper.getActivationStatus(ActivationType.F_ADMINISTRATIVE_STATUS);
+            return ActivationStatusType.DISABLED.equals(status);
+        }
+
+        return false;
     }
 
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {

@@ -114,36 +114,29 @@ public class ObjectWrapper implements Serializable {
 		this.oldDelta = oldDelta;
 	}
 
-	public Boolean getEnableStatus() {
-		ContainerWrapper activation = null;
-		ItemPath resourceActivationPath = new ItemPath(ShadowType.F_ACTIVATION);
-		for (ContainerWrapper container : getContainers()) {
-			Class clazz = container.getItem().getCompileTimeClass();
-			
-			if(clazz != null) {
-				if(clazz.equals(RoleType.class)){ // //TODO: it this really needed?? || clazz.equals(ObjectType.class)) {
-					return true;
-				}
-			}
-			if (container.getPath() == null || !container.getPath().equals(resourceActivationPath)) {
-				continue;
-			} else if(container.getPath().equals(resourceActivationPath)) {
-				activation = container;
-				break;
-			}
-		}
+    public ActivationStatusType getActivationStatus(QName property) {
+        ItemPath resourceActivationPath = new ItemPath(ShadowType.F_ACTIVATION);
+
+        ContainerWrapper activation = null;
+        for (ContainerWrapper container : getContainers()) {
+            if (container.getPath() == null || !container.getPath().equals(resourceActivationPath)) {
+                continue;
+            } else if(container.getPath().equals(resourceActivationPath)) {
+                activation = container;
+                break;
+            }
+        }
         if (activation == null) {
-        	return null;
+            return null;
         }
 
-        PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
-        if (enabledProperty.getValues().size() != 1) {
-        	LOGGER.warn("No enabled property found for account " + getDisplayName() + ".");
-        	return null;
+        PropertyWrapper enabledProperty = activation.findPropertyWrapper(property);
+        if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
+            return null;
         }
         ValueWrapper value = enabledProperty.getValues().get(0);
-        return value.getValue().getValue() == ActivationStatusType.ENABLED;
-	}
+        return (ActivationStatusType) value.getValue().getValue();
+    }
 
 	public void setHeaderStatus(HeaderStatus headerStatus) {
 		this.headerStatus = headerStatus;
