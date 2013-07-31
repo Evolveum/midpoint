@@ -19,7 +19,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertIcfsNameAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
@@ -464,7 +464,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
-		assertSuccess("testResource has failed", result);
+		TestUtil.assertSuccess("testResource has failed", result);
 
 		OperationResult opResult = new OperationResult(ConsistencyTest.class.getName()
 				+ ".test001TestConnectionOpenDJ");
@@ -698,7 +698,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		repoResult.computeStatus();
 		display("repository.getObject result", repoResult);
-		assertSuccess("getObject has failed", repoResult);
+		TestUtil.assertSuccess("getObject has failed", repoResult);
 		AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
 		PrismAsserts.assertEqualsPolyString("User full name not equals as expected.", userType.getFullName(),
 				repoUser.getFullName());
@@ -769,7 +769,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		UserType repoUserType = repoUser.asObjectable();
 
 		repoResult.computeStatus();
-		assertSuccess("getObject has failed", repoResult);
+		TestUtil.assertSuccess("getObject has failed", repoResult);
 		display("User (repository)", repoUser);
 
 		List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
@@ -786,7 +786,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				accountShadowOidOpendj, repoResult);
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		repoResult.computeStatus();
-		assertSuccess("getObject has failed", repoResult);
+		TestUtil.assertSuccess("getObject has failed", repoResult);
 		display("Shadow (repository)", repoShadow);
 		assertNotNull(repoShadowType);
 		assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -837,7 +837,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// THEN
 		assertNoRepoCache();
 		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-		assertSuccess("getObject has failed", resultHolder.value);
+		TestUtil.assertSuccess("getObject has failed", resultHolder.value);
 
 		ShadowType modelShadow = (ShadowType) objectHolder.value;
 		display("Shadow (model)", modelShadow);

@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -145,7 +145,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// THEN
 		display("Resource", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		rememberSchemaMetadata(resourceProvisioning);
@@ -189,7 +189,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// THEN
 		display("Resource(1)", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(1)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
@@ -216,7 +216,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// THEN
 		display("Resource(2)", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
@@ -260,7 +260,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Resource(2)", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
@@ -308,7 +308,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		
 		// THEN
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		String versionAfter = repositoryService.getVersion(ResourceType.class, RESOURCE_DUMMY_OID, result);
 		assertResourceVersionIncrement(versionAfter, 1);
@@ -319,7 +319,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// THEN
 		display("Resource", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
@@ -365,7 +365,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Resource(2)", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
@@ -415,7 +415,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		
 		// THEN
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		String versionAfter = repositoryService.getVersion(ResourceType.class, RESOURCE_DUMMY_OID, result);
 		assertResourceVersionIncrement(versionAfter, 1);
@@ -426,7 +426,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// THEN
 		display("Resource", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
@@ -473,7 +473,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		
 		// THEN
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		assertConnectorConfigChanged();
 	}
@@ -505,7 +505,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		
 		// THEN
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		assertConnectorConfigChanged();
 	}
@@ -524,7 +524,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		
 		// THEN
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		try {
 			repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
@@ -566,7 +566,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// THEN
 		display("Resource", resource);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
@@ -608,7 +608,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(filename));
 		String oid = provisioningService.addObject(account, null, null, task, result);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		return oid;
 	}
 	
@@ -617,7 +617,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 				+ ".getAccount");
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, oid, null, result);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		return account;
 	}
 

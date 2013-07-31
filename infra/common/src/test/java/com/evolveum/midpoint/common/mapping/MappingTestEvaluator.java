@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -270,7 +271,7 @@ public class MappingTestEvaluator {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, null);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(opResult);
-		// TODO: Assert result success
+		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
 	
@@ -280,10 +281,19 @@ public class MappingTestEvaluator {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(opResult);
-		// TODO: Assert result success
+		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
 	
+	public void assertResult(OperationResult opResult) {
+		if (opResult.isEmpty()) {
+			// this is OK. Nothing added to result.
+			return;
+		}
+		opResult.computeStatus();
+		TestUtil.assertSuccess(opResult);		
+	}
+
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicAdd(String filename, String testName, 
 			String defaultTargetPropertyName,
 			String changedPropertyName, I... valuesToAdd) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -298,7 +308,7 @@ public class MappingTestEvaluator {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(opResult);
-		// TODO: Assert result success
+		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
 	
@@ -310,7 +320,7 @@ public class MappingTestEvaluator {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(opResult);
-		// TODO: Assert result success
+		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
 	
@@ -322,7 +332,7 @@ public class MappingTestEvaluator {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(opResult);
-		// TODO: Assert result success
+		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
 	
@@ -334,7 +344,7 @@ public class MappingTestEvaluator {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(opResult);
-		// TODO: Assert result success
+		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
 	

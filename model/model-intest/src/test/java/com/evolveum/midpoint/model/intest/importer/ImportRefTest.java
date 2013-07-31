@@ -109,7 +109,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		// THEN
 		result.computeStatus("Failed import.");
 		display("Result after good import", result);
-		assertSuccessOrWarning("Import has failed (result)", result, 2);
+		TestUtil.assertSuccessOrWarning("Import has failed (result)", result, 2);
 
 		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "jack");
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);

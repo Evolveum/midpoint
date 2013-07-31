@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -148,8 +148,15 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test111JackUnAssignRoleDummiesFull() throws Exception {
-		final String TEST_NAME = "test111JackUnAssignRoleDummiesFull";
+    public void test113JackRenameFull() throws Exception {
+		final String TEST_NAME = "test113JackRenameFull";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		jackRename(TEST_NAME);
+	}
+	
+	@Test
+    public void test114JackUnAssignRoleDummiesFull() throws Exception {
+		final String TEST_NAME = "test114JackUnAssignRoleDummiesFull";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		jackUnAssignRoleDummies(TEST_NAME);
 	}
@@ -229,7 +236,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAccounts(userJack, 1);
@@ -263,7 +270,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAccounts(userJack, 0);
@@ -294,7 +301,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAccounts(userJack, 1);
@@ -328,7 +335,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAccounts(userJack, 0);
@@ -365,7 +372,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertFailure(result);
+        TestUtil.assertFailure(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAccounts(userJack, 0);
@@ -392,7 +399,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-    	IntegrationTestTools.assertSuccess(result);
+    	TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
@@ -420,7 +427,56 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // after user's organizationUnit is set and it will have the same value as above.
         assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
 	}
-	
+
+    public void jackRename(final String TEST_NAME) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        jackRename(TEST_NAME, "jackie", task, result);
+        jackRename(TEST_NAME, USER_JACK_USERNAME, task, result);
+    }
+    
+    public void jackRename(final String TEST_NAME, String to, Task task, OperationResult result) throws Exception {
+
+        // WHEN
+    	TestUtil.displayWhen(TEST_NAME);
+    	modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString(to));
+        
+        // THEN
+    	TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+    	TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(to));
+        assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
+        assertAccounts(userJack, 4);
+
+        assertDummyAccount(to, "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute(to, "title", "The Great Voodoo Master");
+        assertDefaultDummyAccountAttribute(to, "ship", "The Lost Souls");
+        
+        // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
+        assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, to, "Jack Sparrow", true);
+        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+        // after user's organizationUnit is set and it will have the same value as above.
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, to, "ship", "The crew of The Lost Souls");
+        
+        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, to, "Jack Sparrow", true);
+        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+        // after user's organizationUnit is set and it will have the same value as above.
+        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, to, "ship", "The crew of The Lost Souls");
+
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, to, "Jack Sparrow", true);
+        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+        // after user's organizationUnit is set and it will have the same value as above.
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, to, "ship", "The crew of The Lost Souls");
+	}
+
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
         TestUtil.displayTestTile(this, TEST_NAME);
 
@@ -432,7 +488,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignedNoRole(user);
@@ -465,9 +521,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         display(result);
         if (expectAccount) {
-        	IntegrationTestTools.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        	TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         } else {
-        	IntegrationTestTools.assertPartialError(result);
+        	TestUtil.assertPartialError(result);
         }
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -502,7 +558,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignedNoRole(user);
@@ -536,7 +592,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
         modelService.executeChanges(deltas, null, task, result);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after default dummy account add", userJack);
 		assertUserJack(userJack);
@@ -550,7 +606,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         userJack = getUser(USER_JACK_OID);
 		display("User after red dummy assignment", userJack);
@@ -588,7 +644,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after red dummy unassignment", userJack);

@@ -122,7 +122,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccessOrWarning("Import has failed (result)", result,1);
+		TestUtil.assertSuccessOrWarning("Import has failed (result)", result,1);
 
 		ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(type, prismContext, 
 				ObjectType.F_NAME, PrismTestUtil.createPolyString(objectName)));

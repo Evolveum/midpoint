@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
+import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -97,7 +96,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         
         display(result);
         // This has to be a partial error as some changes were executed (user) and others were not (account)
-        IntegrationTestTools.assertPartialError(result);
+        TestUtil.assertPartialError(result);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -136,7 +135,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 		modelService.executeChanges(deltas, null, task, result);
 		        
         result.computeStatus();
-        assertFailure(result);
+        TestUtil.assertFailure(result);
         
         // Even though the operation failed the addition of a user should be successful. Let's check if user was really added.
         String userOid = userDelta.getOid();

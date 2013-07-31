@@ -49,7 +49,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -129,7 +128,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -164,7 +163,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -189,7 +188,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount("jack");
@@ -240,7 +239,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -277,7 +276,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -309,7 +308,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -337,7 +336,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -364,7 +363,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -391,7 +390,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -419,7 +418,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -453,7 +452,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -477,7 +476,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -504,7 +503,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -536,7 +535,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -570,7 +569,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -591,7 +590,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -618,7 +617,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -646,7 +645,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -680,7 +679,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -701,7 +700,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -728,7 +727,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -756,7 +755,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);

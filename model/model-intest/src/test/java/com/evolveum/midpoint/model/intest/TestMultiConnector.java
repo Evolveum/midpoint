@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -110,7 +109,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         display("Connectors", connectors);
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
         
         assertEquals("Unexpected number of connectors", 5, connectors.size());
         for(PrismObject<ConnectorType> connector: connectors) {
@@ -147,7 +146,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
         display("Import result", result);
-        IntegrationTestTools.assertSuccess("import result", result, 2);
+        TestUtil.assertSuccess("import result", result, 2);
         
         resourceDummyFake = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, task, result);
         display("Imported resource", resourceDummyFake);
@@ -170,7 +169,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 		// THEN
  		display("testResource result", testResult);
-        IntegrationTestTools.assertSuccess("testResource result", testResult);
+        TestUtil.assertSuccess("testResource result", testResult);
 	}
 	
 	@Test
@@ -187,7 +186,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("listAccounts result", result);
-        IntegrationTestTools.assertSuccess("listAccounts result", result);
+        TestUtil.assertSuccess("listAccounts result", result);
         
         assertEquals("Unexpected number of accounts: "+accounts, 1, accounts.size());
 	}
@@ -206,7 +205,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
         display("Import result", result);
-        IntegrationTestTools.assertSuccess("import result", result, 2);
+        TestUtil.assertSuccess("import result", result, 2);
         
         resourceDummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         display("Imported resource", resourceDummy);
@@ -229,7 +228,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 		// THEN
  		display("testResource result", testResult);
-        IntegrationTestTools.assertSuccess("testResource result", testResult);
+        TestUtil.assertSuccess("testResource result", testResult);
 	}
 	
 	@Test
@@ -246,7 +245,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("listAccounts result", result);
-        IntegrationTestTools.assertSuccess("listAccounts result", result);
+        TestUtil.assertSuccess("listAccounts result", result);
         
         assertEquals("Unexpected number of accounts: "+accounts, 3, accounts.size());
 	}
@@ -278,7 +277,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertUpgrade(dummyResourceModelBefore);
 	}
@@ -310,7 +309,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertDowngrade(dummyResourceModelBefore);        
 	}
@@ -338,7 +337,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertUpgrade(dummyResourceModelBefore);
 	}
@@ -367,7 +366,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertDowngrade(dummyResourceModelBefore);        
 	}
@@ -400,7 +399,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertUpgrade(dummyResourceModelBefore);
 	}
@@ -434,7 +433,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertDowngrade(dummyResourceModelBefore);        
 	}
@@ -464,7 +463,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertUpgrade(dummyResourceModelBefore);
 	}
@@ -495,7 +494,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("executeChanges result", result);
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertDowngrade(dummyResourceModelBefore);        
 	}
@@ -569,11 +568,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task);
  		display("testResource fake result", testResult);
-        IntegrationTestTools.assertSuccess("testResource fake result", testResult);
+        TestUtil.assertSuccess("testResource fake result", testResult);
         
         testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
  		display("testResource dummy result", testResult);
-        IntegrationTestTools.assertSuccess("testResource dummy result", testResult);
+        TestUtil.assertSuccess("testResource dummy result", testResult);
         
         assertResourceAccounts(resourceDummy, numDummyAccounts);
         assertResourceAccounts(resourceDummyFake, numFakeAccounts);
@@ -589,7 +588,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		// THEN
         result.computeStatus();
  		display("listAccounts result "+resource, result);
-        IntegrationTestTools.assertSuccess("listAccounts result "+resource, result);
+        TestUtil.assertSuccess("listAccounts result "+resource, result);
         
         assertEquals("Unexpected number of accounts on "+resource+": "+accounts, numAccounts, accounts.size());
 	}

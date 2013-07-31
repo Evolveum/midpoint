@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -419,7 +419,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
 		account.asPrismObject().checkConsistence();

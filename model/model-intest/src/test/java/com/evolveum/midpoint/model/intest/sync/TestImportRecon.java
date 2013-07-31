@@ -101,7 +101,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
-        IntegrationTestTools.assertInProgress("importAccountsFromResource result", subresult);
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         
         waitForTaskFinish(task, true, 40000);
         

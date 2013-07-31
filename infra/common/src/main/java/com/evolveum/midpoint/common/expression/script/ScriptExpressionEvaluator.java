@@ -325,21 +325,27 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 					SourceTriple<PrismValue> sourceTriple = (SourceTriple<PrismValue>) sourceTriplesIterator.next();
 					QName name = sourceTriple.getName();
 					sourceVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()));
-					if (sourceTriple.presentInMinusSet(pval)) {
-						hasMinus = true;
-					}
-					if (sourceTriple.presentInZeroSet(pval)) {
-						hasZero = true;
-					}
+					// Note: a value may be both in plus and minus sets, e.g. in case that the value is replaced
+					// with the same value. We pretend that this is the same as ADD case.
+					// TODO: maybe we will need better handling in the future. Maybe we would need
+					// to execute the script twice?
 					if (sourceTriple.presentInPlusSet(pval)) {
 						hasPlus = true;
+					} else if (sourceTriple.presentInZeroSet(pval)) {
+						hasZero = true;
+					} else if (sourceTriple.presentInMinusSet(pval)) {
+						hasMinus = true;
 					}
 				}
 				if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(pvalues)) {
 					throw new IllegalStateException("Internal error! The impossible has happened! pvalues="+pvalues+"; source triples: "+sourceTriples+"; in "+contextDescription);
 				}
 				if (hasPlus && hasMinus) {
-					// Both plus and minus. Ignore this combination. It should not appear in output
+					// The combination of values that are both in plus and minus. Evaluating this combination
+					// does not make sense. Just skip it.
+					// Note: There will NOT be a single value that is in both plus and minus (e.g. "replace with itself" case).
+					// That case is handler by the elseif branches above. This case strictly applies to
+					// combination of different values from the plus and minus sets.
 					return;
 				}
 				

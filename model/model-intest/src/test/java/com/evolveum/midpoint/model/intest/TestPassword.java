@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -91,7 +90,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicyDelta.getOid());
 
@@ -141,7 +140,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -168,7 +167,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -213,7 +212,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -248,7 +247,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -289,7 +288,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -322,7 +321,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -369,7 +368,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);

@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
@@ -191,7 +191,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
 		
 		display("Test connection result",operationResult);
-		assertSuccess("Test connection failed",operationResult);
+		TestUtil.assertSuccess("Test connection failed",operationResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();

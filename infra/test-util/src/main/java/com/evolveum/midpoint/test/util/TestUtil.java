@@ -24,11 +24,15 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 import java.util.Arrays;
@@ -46,6 +50,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Unit test utilities.
@@ -64,6 +71,8 @@ public class TestUtil {
 	public static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
 	public static final String TEST_LOG_SECTION_PREFIX = "----- ";
 	public static final String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
+	
+	public static boolean checkResults = true;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestUtil.class);
 
@@ -158,6 +167,253 @@ public class TestUtil {
 	public static void displayThen(String testName) {
 		System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
+	}
+
+	public static void assertSuccess(String message, OperationResult result, OperationResult originalResult, int stopLevel, int currentLevel, boolean warningOk) {
+		if (!checkResults) {
+			return;
+		}
+		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
+			String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
+			fail(logmsg);
+		}
+		
+		if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
+			// OK ... expected error is as good as success
+		} else if (warningOk && result.getStatus() == OperationResultStatus.WARNING) {
+			// OK
+		} else {
+			String logmsg = message + ": " + result.getStatus() + ": " + result.getMessage();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
+			assert false : logmsg;	
+		}
+		
+		if (stopLevel == currentLevel) {
+			return;
+		}
+		List<OperationResult> partialResults = result.getSubresults();
+		for (OperationResult subResult : partialResults) {
+			assertSuccess(message, subResult, originalResult, stopLevel, currentLevel + 1, warningOk);
+		}
+	}
+
+	/**
+	 * level=-1 - check all levels
+	 * level=0 - check only the top-level
+	 * level=1 - check one level below top-level
+	 * ...
+	 * 
+	 * @param message
+	 * @param result
+	 * @param level
+	 */
+	public static void assertSuccess(String message, OperationResult result, int level) {
+		assertSuccess(message, result, result, level, 0, false);
+	}
+
+	public static void assertSuccess(String message, OperationResult result) {
+		assertSuccess(message, result,-1);
+	}
+
+	public static void assertSuccess(String message, OperationResultType result) {
+		if (!checkResults) {
+			return;
+		}
+		assertNotNull(message + ": null result", result);
+		// Ignore top-level if the operation name is not set
+		if (result.getOperation()!=null) {
+			if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
+				fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
+			}
+			if (result.getStatus() != OperationResultStatusType.SUCCESS
+	                && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
+	                && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
+				fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
+			}
+		}
+		List<OperationResultType> partialResults = result.getPartialResults();
+		for (OperationResultType subResult : partialResults) {
+			if (subResult==null) {
+				fail(message+": null subresult under operation "+result.getOperation());
+			}
+			if (subResult.getOperation()==null) {
+				fail(message+": null subresult operation under operation "+result.getOperation());
+			}
+			assertSuccess(message, subResult);
+		}
+	}
+
+	public static void assertSuccess(OperationResult result) {
+		assertSuccess("Operation "+result.getOperation()+" result", result);
+	}
+
+	public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
+		boolean hasWarning = false;
+		// Ignore top-level if the operation name is not set
+		if (result.getOperation()!=null) {
+			if (result.getStatus() == OperationResultStatusType.WARNING) {
+				// Do not descent into warnings. There may be lions inside. Or errors.
+				return true;
+			} else {
+				if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
+					fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
+				} 
+				if (result.getStatus() != OperationResultStatusType.SUCCESS
+	                    && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
+	                    && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
+					fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
+				}
+			}
+		}
+		List<OperationResultType> partialResults = result.getPartialResults();
+		for (OperationResultType subResult : partialResults) {
+			if (subResult==null) {
+				fail(message+": null subresult under operation "+result.getOperation());
+			}
+			if (subResult.getOperation()==null) {
+				fail(message+": null subresult operation under operation "+result.getOperation());
+			}
+			if (hasWarningAssertSuccess(message, subResult)) {
+				hasWarning = true;
+			}
+		}
+		return hasWarning;
+	}
+
+	public static void assertWarning(String message, OperationResultType result) {
+		if (!checkResults) {
+			return;
+		}
+		assert hasWarningAssertSuccess(message, result) : message + ": does not have warning";
+	}
+
+	public static void assertFailure(String message, OperationResult result) {
+		assertTrue(message, result.isError());
+		assertNoUnknown(result);
+	}
+
+	public static void assertFailure(OperationResult result) {
+		assertTrue("Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), result.isError());
+		assertNoUnknown(result);
+	}
+
+	public static void assertPartialError(OperationResult result) {
+		assertTrue("Expected that operation "+result.getOperation()+" fails partially, but the result was "+result.getStatus(), result.getStatus() == OperationResultStatus.PARTIAL_ERROR);
+		assertNoUnknown(result);
+	}
+
+	public static void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
+		assertTrue("Expected that operation "+result.getOperation()+" will result with "+expectedStatus+", but the result was "+result.getStatus(), result.getStatus() == expectedStatus);
+		assertNoUnknown(result);
+	}
+
+	public static void assertFailure(OperationResultType result) {
+		assertFailure(null, result);
+	}
+
+	public static void assertFailure(String message, OperationResultType result) {
+		assertTrue((message == null ? "" : message + ": ") + 
+				"Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), 
+				OperationResultStatusType.FATAL_ERROR == result.getStatus() || 
+				OperationResultStatusType.PARTIAL_ERROR == result.getStatus()) ;
+		assertNoUnknown(result);
+	}
+
+	public static void assertNoUnknown(OperationResult result) {
+		if (result.isUnknown()) {
+			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+		}
+		for (OperationResult subresult: result.getSubresults()) {
+			assertNoUnknown(subresult);
+		}
+	}
+
+	public static void assertNoUnknown(OperationResultType result) {
+		if (result.getStatus() == OperationResultStatusType.UNKNOWN) {
+			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+		}
+		for (OperationResultType subresult: result.getPartialResults()) {
+			assertNoUnknown(subresult);
+		}
+	}
+
+	public static void assertSuccessOrWarning(String message, OperationResult result, int level) {
+		assertSuccess(message, result, result, level, 0, true);
+	}
+
+	public static void assertSuccessOrWarning(String message, OperationResult result) {
+		assertSuccess(message, result, result, -1, 0, true);
+	}
+
+	public static void assertWarning(String message, OperationResult result) {
+		assertWarning(message, result, -1, 0);
+	}
+
+	public static boolean hasWarningAssertSuccess(String message, OperationResult result, OperationResult originalResult, int stopLevel, int currentLevel) {
+		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
+			String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
+			fail(logmsg);
+		}
+		
+		if (result.isWarning()) {
+			// Do not descent into warnings. There may be lions inside. Or errors.
+			return true;
+		}
+		
+		if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
+			// OK ... expected error is as good as success
+		} else {
+			String logmsg = message + ": " + result.getStatus() + ": " + result.getMessage();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
+			assert false : logmsg;	
+		}
+		
+		if (stopLevel == currentLevel) {
+			return false;
+		}
+		boolean hasWarning = false;
+		List<OperationResult> partialResults = result.getSubresults();
+		for (OperationResult subResult : partialResults) {
+			if (hasWarningAssertSuccess(message, subResult, originalResult, stopLevel, currentLevel + 1)) {
+				hasWarning = true;
+			}
+		}
+		return hasWarning;
+	}
+
+	public static void assertWarning(String message, OperationResult result, int stopLevel, int currentLevel) {
+		if (!checkResults) {
+			return;
+		}
+		hasWarningAssertSuccess(message, result, result, -1, 0);
+	}
+
+	public static void assertInProgress(String message, OperationResult result) {
+		assertTrue("Expected result IN_PROGRESS but it was "+result.getStatus()+" in "+message,
+				result.getStatus() == OperationResultStatus.IN_PROGRESS);
+	}
+
+	public static String getErrorMessage(OperationResult result) {
+		if (result.isError()) {
+			return result.getMessage();
+		}
+		for (OperationResult subresult: result.getSubresults()) {
+			String message = getErrorMessage(subresult);
+			if (message != null) {
+				return message;
+			}
+		}
+		return null;
 	}
 	
 }

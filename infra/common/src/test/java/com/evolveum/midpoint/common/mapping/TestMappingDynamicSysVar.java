@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -782,5 +783,273 @@ public class TestMappingDynamicSysVar {
     	PrismAsserts.assertTripleNoZero(outputTriple);
     	PrismAsserts.assertTriplePlus(outputTriple, new BigDecimal("666.33"));
     	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeTypeDeltaAreplaceB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaAreplaceB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
+    	
+		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+				"mapping-script-system-variables-employee-type.xml", 
+    			TEST_NAME, "employeeType", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		setEmployeeType(user.asObjectable(), "A");
+		mapping.getSourceContext().recompute();
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		evaluator.assertResult(opResult);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, "B");
+	  	PrismAsserts.assertTripleMinus(outputTriple, "A");
+    }
+    
+    @Test
+    public void testEmployeeTypeDeltaNullreplaceB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaNullreplaceB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
+    	
+		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+				"mapping-script-system-variables-employee-type.xml", 
+    			TEST_NAME, "employeeType", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		setEmployeeType(user.asObjectable());
+		mapping.getSourceContext().recompute();
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		evaluator.assertResult(opResult);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, "B");
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeTypeDeltaBreplaceB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaBreplaceB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
+    	
+		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+				"mapping-script-system-variables-employee-type.xml", 
+    			TEST_NAME, "employeeType", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		setEmployeeType(user.asObjectable(), "B");
+		mapping.getSourceContext().recompute();
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		evaluator.assertResult(opResult);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, "B");
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeTypeDeltaAaddB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaAaddB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+    			employeeTypeDeltaABAdd(TEST_NAME, "B", "A");
+    	
+    	// THEN
+		PrismAsserts.assertTripleZero(outputTriple, "A");
+	  	PrismAsserts.assertTriplePlus(outputTriple, "B");
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeTypeDeltaABaddB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaABaddB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+    			employeeTypeDeltaABAdd(TEST_NAME, "B", "A", "B");
+    	
+    	// THEN
+		PrismAsserts.assertTripleZero(outputTriple, "A");
+	  	PrismAsserts.assertTriplePlus(outputTriple, "B");
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeTypeDeltaBaddB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaBaddB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+    			employeeTypeDeltaABAdd(TEST_NAME, "B", "B");
+    	
+    	// THEN
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, "B");
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
+    @Test
+    public void testEmployeeTypeDeltaNulladdB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaNulladdB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+    			employeeTypeDeltaABAdd(TEST_NAME, "B");
+    	
+    	// THEN
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, "B");
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
+    public PrismValueDeltaSetTriple<PrismPropertyValue<String>> employeeTypeDeltaABAdd(
+    		final String TEST_NAME, String addVal, String... oldVals) throws Exception {
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), addVal);
+    	
+		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+				"mapping-script-system-variables-employee-type.xml", 
+    			TEST_NAME, "employeeType", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		setEmployeeType(user.asObjectable(), oldVals);
+		mapping.getSourceContext().recompute();
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		evaluator.assertResult(opResult);
+		return mapping.getOutputTriple();
+    }
+    
+    private void setEmployeeType(UserType userType, String... vals) {
+    	userType.getEmployeeType().clear();
+		for (String val: vals) {
+			userType.getEmployeeType().add(val);
+		}
+    }
+    
+    @Test
+    public void testEmployeeTypeDeltaBdeleteB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaBdeleteB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	    	
+    	// WHEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
+				employeeTypeDeltaDelete(TEST_NAME, "B", "B");
+    	
+    	// THEN
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTripleNoPlus(outputTriple);
+	  	PrismAsserts.assertTripleMinus(outputTriple, "B");
+    }
+
+    @Test
+    public void testEmployeeTypeDeltaABdeleteB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaABdeleteB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	    	
+    	// WHEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
+				employeeTypeDeltaDelete(TEST_NAME, "B", "A", "B");
+    	
+    	// THEN
+		PrismAsserts.assertTripleZero(outputTriple, "A");
+	  	PrismAsserts.assertTripleNoPlus(outputTriple);
+	  	PrismAsserts.assertTripleMinus(outputTriple, "B");
+    }
+
+    @Test
+    public void testEmployeeTypeDeltaAdeleteB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaAdeleteB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	    	
+    	// WHEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
+				employeeTypeDeltaDelete(TEST_NAME, "B", "A");
+    	
+    	// THEN
+		PrismAsserts.assertTripleZero(outputTriple, "A");
+	  	PrismAsserts.assertTripleNoPlus(outputTriple);
+	  	PrismAsserts.assertTripleMinus(outputTriple, "B");
+    }
+
+    @Test
+    public void testEmployeeTypeDeltaNulldeleteB() throws Exception {
+    	final String TEST_NAME = "testEmployeeTypeDeltaNulldeleteB";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	    	    	
+    	// WHEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
+				employeeTypeDeltaDelete(TEST_NAME, "B");
+    	
+    	// THEN
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTripleNoPlus(outputTriple);
+	  	PrismAsserts.assertTripleMinus(outputTriple, "B");
+    }
+
+    public PrismValueDeltaSetTriple<PrismPropertyValue<String>> employeeTypeDeltaDelete(final String TEST_NAME, String delVal, String... oldVals) throws Exception {
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID, 
+    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), delVal);
+    	
+		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+				"mapping-script-system-variables-employee-type.xml", 
+    			TEST_NAME, "employeeType", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		setEmployeeType(user.asObjectable(), oldVals);
+		mapping.getSourceContext().recompute();
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		evaluator.assertResult(opResult);
+		return mapping.getOutputTriple();
     }
 }

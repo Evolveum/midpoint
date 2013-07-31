@@ -130,7 +130,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		assertResource(resource);
 		
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
 	}
 	
 	@Test
@@ -156,7 +156,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("Unexpected number of resources found", 7, resources.size());
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("searchObjects result", result);
+        TestUtil.assertSuccess("searchObjects result", result);
 
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource);
@@ -199,7 +199,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserJack(userJack);
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
 	}
 	
 	@Test
@@ -219,7 +219,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUser(userBarbossa, USER_BARBOSSA_OID, "barbossa", "Hector Barbossa", "Hector", "Barbossa");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
         
         userBarbossa.checkConsistence(true, true);
         
@@ -258,7 +258,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		// Check accountRef
@@ -366,7 +366,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyShadowModel(account, accountOid, "jack", "Jack Sparrow");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
         
         account.checkConsistence(true, true);
         
@@ -399,7 +399,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyShadowRepo(account, accountOid, "jack");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
 	}
 	
 	@Test
@@ -423,7 +423,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyShadowRepo(account, accountOid, "jack");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
 	}
 
 	@Test
@@ -551,7 +551,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
 	}
 
 
@@ -591,7 +591,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Resource in account was not resolved", ResourceObjectShadowType.getResource());
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
         
         userJack.checkConsistence(true, true);
 	}
@@ -630,7 +630,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyShadowRepo(ResourceObjectShadowType.asPrismObject(), accountOid, "jack");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
         
         userJack.checkConsistence(true, true);
 	}
@@ -664,7 +664,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result, 2);
+        TestUtil.assertSuccess("executeChanges result", result, 2);
         
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -733,7 +733,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         accountOid = accountDelta.getOid();
@@ -804,7 +804,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack);
@@ -871,7 +871,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -932,7 +932,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -990,7 +990,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("previewChanges result", result);
+        TestUtil.assertSuccess("previewChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1036,7 +1036,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1110,7 +1110,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1188,7 +1188,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1257,7 +1257,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1335,7 +1335,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1413,7 +1413,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1482,7 +1482,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1555,7 +1555,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1622,7 +1622,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1691,7 +1691,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1764,7 +1764,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1835,7 +1835,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1909,7 +1909,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertFailure("executeChanges result", result);
+        TestUtil.assertFailure("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1989,7 +1989,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccount("jack", "Jack Sparrow", true);
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
@@ -2032,7 +2032,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -2093,7 +2093,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -2207,7 +2207,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2262,7 +2262,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2324,7 +2324,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2391,7 +2391,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         }
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertFailure(result);
+        TestUtil.assertFailure(result);
         
         assertNoProvisioningScripts();
         
@@ -2421,7 +2421,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2473,7 +2473,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		try {
 			PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -2540,7 +2540,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userBlackbeard = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
@@ -2620,7 +2620,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
@@ -2690,7 +2690,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -2761,7 +2761,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userAfter = findUserByUsername("charles");
         assertNotNull("No charles", userAfter);
@@ -2804,7 +2804,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userAfter = findUserByUsername("charles");
         assertNull("Charles is not gone", userAfter);

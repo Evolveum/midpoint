@@ -97,7 +97,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -142,7 +142,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -176,7 +176,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -219,7 +219,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -261,7 +261,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -303,7 +303,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -345,7 +345,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -384,7 +384,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -429,7 +429,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -474,7 +474,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -509,7 +509,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -559,7 +559,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertFailure(result);
+        TestUtil.assertFailure(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -605,7 +605,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         // THEN
  		result.computeStatus();
-         IntegrationTestTools.assertSuccess(result);
+         TestUtil.assertSuccess(result);
          
  		userJack = getUser(USER_JACK_OID);
  		display("User after change execution", userJack);
@@ -654,7 +654,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertFailure(result);
+        TestUtil.assertFailure(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -696,7 +696,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         
@@ -757,7 +757,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
@@ -804,7 +804,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -852,7 +852,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -890,7 +890,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -940,7 +940,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertFailure(result);
+        TestUtil.assertFailure(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -986,7 +986,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         // THEN
  		result.computeStatus();
-         IntegrationTestTools.assertSuccess(result);
+         TestUtil.assertSuccess(result);
          
  		userJack = getUser(USER_JACK_OID);
  		display("User after change execution", userJack);
@@ -1035,7 +1035,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertFailure(result);
+        TestUtil.assertFailure(result);
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1068,7 +1068,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1107,7 +1107,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");

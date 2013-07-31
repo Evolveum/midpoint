@@ -53,6 +53,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -72,8 +73,6 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -86,7 +85,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -147,7 +146,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			initSystem(initTask, result);
 			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
-			IntegrationTestTools.assertSuccessOrWarning("initSystem failed (result)", result, 1);
+			TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
 			setSystemInitialized();
 		}
 	}
@@ -325,7 +324,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getSystemConfiguration");
 		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
 		result.computeStatus();
-		assertSuccess("getObject(systemConfig) not success", result);
+		TestUtil.assertSuccess("getObject(systemConfig) not success", result);
 		return sysConf.asObjectable();
 	}
 	
@@ -366,7 +365,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		repositoryService.modifyObject(ResourceType.class, oid, modifications, result);
 		display("Aplying sync settings result", result);
 		result.computeStatus();
-		assertSuccess("Aplying sync settings failed (result)", result);
+		TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
 	}
 	
 	protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
@@ -393,7 +392,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		repositoryService.modifyObject(clazz, oid, modifications, result);
 		display("Aplying sync settings result", result);
 		result.computeStatus();
-		assertSuccess("Aplying sync settings failed (result)", result);
+		TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
 	}
 	
 	protected void assertNoChanges(ObjectDelta<?> delta) {
@@ -466,7 +465,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowRepo");
 		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, result);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		assertShadowRepo(shadow, oid, username, resourceType);
 	}
 	

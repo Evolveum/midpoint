@@ -235,6 +235,12 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	public void setSummarizeSuccesses(boolean summarizeSuccesses) {
 		this.summarizeSuccesses = summarizeSuccesses;
 	}
+	
+	public boolean isEmpty() {
+		return (status == null || status == OperationResultStatus.UNKNOWN) &&
+				(subresults == null || subresults.isEmpty());
+	}
+
 
 	/**
 	 * Method returns list of operation subresults @{link

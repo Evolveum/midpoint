@@ -122,7 +122,6 @@
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
 				<outbound>
-				    <strength>weak</strength>
 				    <source>
 				    	<path>$user/name</path>
 				    </source>
@@ -135,11 +134,6 @@
 						</script>
 					</expression>
 				</outbound>
-				<inbound>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
 			</attribute>
 			<attribute>
 				<ref>icfs:uid</ref>

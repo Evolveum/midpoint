@@ -577,7 +577,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		// THEN
 		result.computeStatus("getCapabilities failed");
-		assertSuccess("getCapabilities failed (result)", result);
+		TestUtil.assertSuccess("getCapabilities failed (result)", result);
 		assertFalse("Empty capabilities returned", capabilities.isEmpty());
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(capabilities,
 				CredentialsCapabilityType.class);

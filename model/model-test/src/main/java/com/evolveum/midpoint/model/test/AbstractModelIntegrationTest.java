@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -113,6 +113,7 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -242,7 +243,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".importObjectFromFile");
 		importObjectFromFile(file, result);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 	}
 
 	protected void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
@@ -271,7 +272,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, File file, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		importObjectFromFile(file, result);
 		OperationResult importResult = result.getLastSubresult();
-		assertSuccess("Import of "+file+" has failed", importResult);
+		TestUtil.assertSuccess("Import of "+file+" has failed", importResult);
 		return modelService.getObject(type, oid, null, task, result);
 	}
 	    
@@ -690,7 +691,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult result = task.getResult();
 		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
 		result.computeStatus();
-		IntegrationTestTools.assertSuccess("getObject(User) result not success", result);
+		TestUtil.assertSuccess("getObject(User) result not success", result);
 		return user;
 	}
 	
@@ -763,7 +764,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, opts , task, result);
 		result.computeStatus();
 		if (assertSuccess) {
-			IntegrationTestTools.assertSuccess("getObject(Account) result not success", result);
+			TestUtil.assertSuccess("getObject(Account) result not success", result);
 		}
 		return account;
 	}
@@ -1085,7 +1086,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
 		display("Aplying default user template result", result);
 		result.computeStatus();
-		assertSuccess("Aplying default user template failed (result)", result);
+		TestUtil.assertSuccess("Aplying default user template failed (result)", result);
 	}
 	
 	protected ItemPath getIcfsNameAttributePath() {
@@ -1177,7 +1178,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modelService.executeChanges(deltas, null, task, result);
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 	}
 	
     protected List<PrismObject<OrgType>> searchOrg(String baseOrgOid, Integer minDepth, Integer maxDepth, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -1215,8 +1216,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 //				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
 				OperationResult result = task.getResult();
 				if (verbose) display("Check result", result);
-				assert !isError(result, checkSubresult) : "Error in "+task+": "+IntegrationTestTools.getErrorMessage(result);
-				assert !isUknown(result, checkSubresult) : "Unknown result in "+task+": "+IntegrationTestTools.getErrorMessage(result);
+				assert !isError(result, checkSubresult) : "Error in "+task+": "+TestUtil.getErrorMessage(result);
+				assert !isUknown(result, checkSubresult) : "Unknown result in "+task+": "+TestUtil.getErrorMessage(result);
 				return !isInProgress(result, checkSubresult);
 			}
 			@Override
@@ -1256,7 +1257,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					if (errorOk) {
 						return true;
 					} else {
-						AssertJUnit.fail("Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result));
+						AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
 					}
 				}
 				if (isUknown(result, checkSubresult)) {
@@ -1294,7 +1295,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
 				if (verbose) display("Check result", result);
-				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+TestUtil.getErrorMessage(result);
 				if (isUknown(result, checkSubresult)) {
 					return false;
 				}
@@ -1335,7 +1336,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 //						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 				if (verbose) display("Check result", result);
 				if (isError(result, checkSubresult)) {
-                    assert false : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result)+"\n\n"+result.debugDump();
+                    assert false : "Error in "+freshTask+": "+TestUtil.getErrorMessage(result)+"\n\n"+result.debugDump();
                 }
 				if (isUknown(result, checkSubresult)) {
 					return false;
@@ -1467,7 +1468,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult result = task.getResult();
 		PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, null, task, result);
 		result.computeStatus();
-		IntegrationTestTools.assertSuccess("getObject(Task) result not success", result);
+		TestUtil.assertSuccess("getObject(Task) result not success", result);
 		return retTask;
 	}
 
@@ -1482,7 +1483,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<O> addDelta = object.createAddDelta();
         modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), null, task, result);
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         object.setOid(addDelta.getOid());
 	}
 	
@@ -1496,7 +1497,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         		new ItemPath(ObjectType.F_TRIGGER), prismContext, triggerType);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 	}
 	
 	protected <O extends ObjectType> void assertTrigger(PrismObject<O> object, String handlerUri, XMLGregorianCalendar start, XMLGregorianCalendar end) throws ObjectNotFoundException, SchemaException {
@@ -1513,7 +1514,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoTrigger");
 		PrismObject<O> object = repositoryService.getObject(type, oid, result);
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		List<TriggerType> triggers = object.asObjectable().getTrigger();
 		if (triggers != null && !triggers.isEmpty()) {
 			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);

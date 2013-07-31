@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -281,7 +282,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
 		display("Aplying default user template result", result);
 		result.computeStatus();
-		assertSuccess("Aplying default user template failed (result)", result);
+		TestUtil.assertSuccess("Aplying default user template failed (result)", result);
 	}
 
 	protected void assertMonkeyIslandOrgSanity() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -290,7 +291,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         
         PrismObject<OrgType> orgGovernorOffice = modelService.getObject(OrgType.class, ORG_GOVERNOR_OFFICE_OID, null, task, result);
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         OrgType orgGovernorOfficeType = orgGovernorOffice.asObjectable();
         assertEquals("Wrong governor office name", PrismTestUtil.createPolyStringType("F0001"), orgGovernorOfficeType.getName());
         

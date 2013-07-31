@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
@@ -1446,7 +1447,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         taskManager.suspendAndDeleteTasks(Arrays.asList(parentTask.getOid()), 2000L, true, result);
 
         IntegrationTestTools.display("after suspendAndDeleteTasks", result.getLastSubresult());
-        IntegrationTestTools.assertSuccessOrWarning("suspendAndDeleteTasks result is not success/warning", result.getLastSubresult());
+        TestUtil.assertSuccessOrWarning("suspendAndDeleteTasks result is not success/warning", result.getLastSubresult());
 
         try {
             repositoryService.getObject(TaskType.class, childTask1.getOid(), result);

@@ -37,7 +37,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
@@ -197,7 +196,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         // Let's wait for the task to give it a change to screw up
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);

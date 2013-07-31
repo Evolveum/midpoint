@@ -41,7 +41,6 @@ import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -79,7 +78,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // THEN
 		display("Diag", diag);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("getRepositoryDiag result", result);
+        TestUtil.assertSuccess("getRepositoryDiag result", result);
 
         assertEquals("Wrong implementationShortName", "SQL", diag.getImplementationShortName());
         assertNotNull("Missing implementationDescription", diag.getImplementationDescription());
@@ -99,7 +98,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         
         // THEN
 		display("Repository self-test result", testResult);
-        IntegrationTestTools.assertSuccess("Repository self-test result", testResult);
+        TestUtil.assertSuccess("Repository self-test result", testResult);
 
         // TODO: check the number of tests, etc.
 	}
@@ -120,7 +119,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // THEN
         result.computeStatus();
 		display("Search users result", result);
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected number of users", 5, users.size());
         for (PrismObject<UserType> user: users) {

@@ -109,7 +109,7 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 		display("Initial version", lastVersion);
 		
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("getObject result", result);
+        TestUtil.assertSuccess("getObject result", result);
 	}
 	
 	

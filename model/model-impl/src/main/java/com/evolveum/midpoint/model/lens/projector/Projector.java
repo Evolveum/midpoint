@@ -177,6 +177,18 @@ public class Projector {
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						continue;
 		        	}
+		        	String projectionDesc;
+		        	if (projectionContext.getResource() != null) {
+		        		projectionDesc = projectionContext.getResource() + "("+projectionContext.getResourceShadowDiscriminator().getIntent()+")";		        		
+		        	} else {
+		        		ResourceShadowDiscriminator discr = projectionContext.getResourceShadowDiscriminator();
+		        		if (discr != null) {
+		        			projectionDesc = projectionContext.getResourceShadowDiscriminator().toString();
+		        		} else {
+		        			projectionDesc = "(UNKNOWN)";
+		        		}
+		        	}
+		        	
 		        	if (projectionContext.getWave() != context.getProjectionWave()) {
 		        		// Let's skip accounts that do not belong into this wave.
 		        		continue;
@@ -191,7 +203,7 @@ public class Projector {
 		        	
 		        	projectionContext.recompute();
 		        	
-		        	LensUtil.traceContext(LOGGER, activityDescription, "activation", false, context, false);
+		        	LensUtil.traceContext(LOGGER, activityDescription, "activation of "+projectionDesc, false, context, false);
 		        	
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
@@ -219,12 +231,12 @@ public class Projector {
 		        	if (consistencyChecks) context.checkConsistence();
 			        
 		        	projectionContext.recompute();
-		        	LensUtil.traceContext(LOGGER, activityDescription, "values and credentials", false, context, true);
+		        	LensUtil.traceContext(LOGGER, activityDescription, "values and credentials of "+projectionDesc, false, context, true);
 			        if (consistencyChecks) context.checkConsistence();
 			
 			        reconciliationProcessor.processReconciliation(context, projectionContext, result);
 			        projectionContext.recompute();
-			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation", false, context, false);
+			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation of "+projectionDesc, false, context, false);
 			        if (consistencyChecks) context.checkConsistence();
 		        }
 		        

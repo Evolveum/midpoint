@@ -269,7 +269,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		// THEN
 		result.computeStatus("test failed");
-		assertSuccess("Connector configuration failed", result);
+		TestUtil.assertSuccess("Connector configuration failed", result);
 		// TODO: assert something
 	}
 	

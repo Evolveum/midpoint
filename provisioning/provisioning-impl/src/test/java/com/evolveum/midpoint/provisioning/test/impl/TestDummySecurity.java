@@ -21,9 +21,9 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
+import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -238,7 +238,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
@@ -271,7 +271,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "pirate");
@@ -325,7 +325,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		display("Retrieved account shadow", shadow);
 
@@ -354,7 +354,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("searchObjects result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		display("Found " + allShadows.size() + " shadows");
 

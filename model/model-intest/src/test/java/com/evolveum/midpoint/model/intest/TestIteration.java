@@ -38,7 +38,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -156,7 +155,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -214,7 +213,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -275,7 +274,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
@@ -339,7 +338,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -398,7 +397,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
@@ -458,7 +457,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);
 		display("User after change execution", userHerman);
@@ -549,7 +548,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -630,7 +629,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
 		display("User after change execution", userDrakeAfter);
@@ -694,7 +693,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
 		display("User after change execution", userDrakeAfter);
@@ -763,7 +762,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
@@ -826,7 +825,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
@@ -891,7 +890,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);

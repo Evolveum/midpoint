@@ -145,7 +145,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, result).asObjectable();
@@ -183,7 +183,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
 		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
@@ -274,7 +274,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after import with overwrite", result);
-		assertSuccess("Import failed (result)", result, 2);
+		TestUtil.assertSuccess("Import failed (result)", result, 2);
 
 		// list all users
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
@@ -339,7 +339,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after import with overwrite", result);
-		assertSuccess("Import failed (result)", result,1);
+		TestUtil.assertSuccess("Import failed (result)", result,1);
 
 		// list all users
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
@@ -402,7 +402,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import
 		PrismObject<TaskType> task1AsPrism = repositoryService.getObject(TaskType.class, TASK1_OID, result);
@@ -444,7 +444,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after import", result);
-		assertSuccess("Import of "+RESOURCE_DUMMY_FILENAME+" has failed (result)", result, 2);
+		TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_FILENAME+" has failed (result)", result, 2);
 
 		IntegrationTestTools.assertNoRepoCache();
 		
@@ -498,7 +498,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after import", result);
-		assertSuccess("Import of "+RESOURCE_DUMMY_CHANGED_FILE+" has failed (result)", result, 2);
+		TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_CHANGED_FILE+" has failed (result)", result, 2);
 		
 		IntegrationTestTools.assertNoRepoCache();
 
@@ -555,7 +555,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
 		PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);

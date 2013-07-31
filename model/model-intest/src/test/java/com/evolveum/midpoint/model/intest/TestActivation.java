@@ -150,7 +150,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -181,7 +181,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -218,7 +218,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -286,7 +286,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -317,7 +317,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -348,7 +348,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -381,7 +381,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -425,7 +425,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -464,7 +464,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -520,7 +520,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -559,7 +559,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -593,7 +593,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -626,7 +626,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -670,7 +670,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // THEN
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -715,7 +715,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -731,7 +731,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // THEN
 
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result (after reconciliation)", result);
+        TestUtil.assertSuccess("executeChanges result (after reconciliation)", result);
 
         checkAdminStatusFor15x(userJack, true, false, true);        // yellow has a STRONG mapping for adminStatus, therefore it should be replaced by the user's adminStatus
     }
@@ -758,7 +758,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -774,7 +774,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // THEN
 
         result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result (after reconciliation)", result);
+        TestUtil.assertSuccess("executeChanges result (after reconciliation)", result);
 
         checkAdminStatusFor15x(userJack, true, true, true);
     }
@@ -820,7 +820,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -892,7 +892,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
         try {
 			PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -952,7 +952,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
 		display("User after change execution", userLargo);
@@ -1269,7 +1269,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
-        IntegrationTestTools.assertInProgress("importAccountsFromResource result", subresult);
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         
         waitForTaskFinish(task, true, 40000);
         
@@ -1300,7 +1300,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userMancomb = getUser(userMancombOid);
 		display("User after change execution", userMancomb);

@@ -21,9 +21,9 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
+import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -179,7 +179,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		
 
@@ -208,7 +208,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("searchObjects result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertFalse("No connector found", connectors.isEmpty());
 		for (PrismObject<ConnectorType> connPrism : connectors) {
@@ -258,7 +258,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("discoverLocalConnectors result", result);
-		assertSuccess("discoverLocalConnectors failed", result);
+		TestUtil.assertSuccess("discoverLocalConnectors failed", result);
 		assertTrue("Rediscovered something", discoverLocalConnectors.isEmpty());
 	}
 
@@ -301,7 +301,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// THEN
 		display("Test result", testResult);
-		assertSuccess("Test resource failed (result)", testResult);
+		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_OID, result);
@@ -350,7 +350,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		// There may be one parse. Previous test have changed the resource version
 		// Schema for this version will not be re-parsed until getObject is tried
@@ -489,7 +489,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
@@ -561,7 +561,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		// Check native capabilities
 		ResourceType resourceType = resource.asObjectable();
@@ -627,7 +627,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
@@ -675,7 +675,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test010ResourceAndConnectorCaching.test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
-		assertSuccess("Connector test failed", testResult);
+		TestUtil.assertSuccess("Connector test failed", testResult);
 		
 		// Test connection should also refresh the connector by itself. So check if it has been refreshed
 		
@@ -707,7 +707,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
@@ -735,7 +735,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test011ResourceAndConnectorCachingForceFresh.test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
-		assertSuccess("Connector test failed", testResult);
+		TestUtil.assertSuccess("Connector test failed", testResult);
 		
 		assertConnectorInitializationCountIncrement(1);
 		rememberConnectorInstance(configuredConnectorInstanceAgain);
@@ -761,11 +761,11 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("applyDefinition result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		account.checkConsistence(true, true);
 		ShadowUtil.checkConsistence(account, TEST_NAME);
-		assertSuccess("applyDefinition(account) result", result);
+		TestUtil.assertSuccess("applyDefinition(account) result", result);
 		
 		assertSteadyResource();
 	}
@@ -789,10 +789,10 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("applyDefinition result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		delta.checkConsistence(true, true, true);
-		assertSuccess("applyDefinition(add delta) result", result);
+		TestUtil.assertSuccess("applyDefinition(add delta) result", result);
 		
 		assertSteadyResource();
 	}
@@ -819,10 +819,10 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("applyDefinition result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		resource.checkConsistence(true, true);
-		assertSuccess("applyDefinition(resource) result", result);
+		TestUtil.assertSuccess("applyDefinition(resource) result", result);
 		
 		assertSteadyResource();
 	}
@@ -850,10 +850,10 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("applyDefinition result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		delta.checkConsistence(true, true, true);
-		assertSuccess("applyDefinition(add delta) result", result);
+		TestUtil.assertSuccess("applyDefinition(add delta) result", result);
 		
 		assertSteadyResource();
 	}
@@ -883,7 +883,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
 		account.checkConsistence();
@@ -968,7 +968,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
 		ShadowType accountType = repositoryService
@@ -1021,7 +1021,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		display("Retrieved account shadow", shadow);
 
@@ -1061,7 +1061,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		display("Retrieved account shadow", shadow);
 
@@ -1093,10 +1093,10 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("applyDefinition result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		accountDelta.checkConsistence(true, true, true);
-		assertSuccess("applyDefinition(modify delta) result", result);
+		TestUtil.assertSuccess("applyDefinition(modify delta) result", result);
 		
 		assertSteadyResource();
 	}
@@ -1142,7 +1142,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
@@ -1196,7 +1196,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("searchObjects result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		display("Found " + allShadows.size() + " shadows");
 
@@ -1224,7 +1224,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("searchObjects result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		display("Found " + allShadows.size() + " shadows");
 
@@ -1253,7 +1253,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("countObjects result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		display("Found " + count + " shadows");
 
@@ -1277,7 +1277,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("searchObjects result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		display("Found " + allResources.size() + " resources");
 
@@ -1300,7 +1300,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("countObjects result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		display("Counted " + count + " resources");
 
@@ -1336,7 +1336,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
@@ -1370,7 +1370,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if attribute was changed
@@ -1405,7 +1405,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if attribute was changed
@@ -1438,7 +1438,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if attribute was changed
@@ -1475,7 +1475,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if attribute was changed
@@ -1508,7 +1508,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
 		ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
@@ -1542,7 +1542,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_NEW_SCRIPT_OID, addedObjectOid);
 
 		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID,
@@ -1600,7 +1600,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess("modifyObject has failed (result)", result);
+		TestUtil.assertSuccess("modifyObject has failed (result)", result);
 		syncServiceMock.assertNotifySuccessOnly();
 
 		// Check if the account was modified in the dummy resource
@@ -1649,7 +1649,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess("modifyObject has failed (result)", result);
+		TestUtil.assertSuccess("modifyObject has failed (result)", result);
 		syncServiceMock.assertNotifySuccessOnly();
 
 		// Check if the account was modified in the dummy resource
@@ -1686,7 +1686,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess("modifyObject has failed (result)", result);
+		TestUtil.assertSuccess("modifyObject has failed (result)", result);
 		syncServiceMock.assertNotifySuccessOnly();
 
 		// Check if the account was modified in the dummy resource
@@ -1724,7 +1724,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("executeScript result", result);
-		assertSuccess("executeScript has failed (result)", result);
+		TestUtil.assertSuccess("executeScript has failed (result)", result);
 		
 		ProvisioningScriptSpec expectedScript = new ProvisioningScriptSpec("Where to go now?");
 		expectedScript.addArgMulti("direction", "left", "right");
@@ -1766,7 +1766,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if activation was changed
@@ -1810,7 +1810,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if activation was changed
@@ -1856,7 +1856,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if activation was changed
@@ -1903,7 +1903,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		// check if activation was changed
@@ -1932,7 +1932,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		display("Retrieved account shadow", shadowType);
 
@@ -2024,7 +2024,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		display("found shadows", foundObjects);
 
@@ -2067,7 +2067,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(GROUP_PIRATES_OID, addedObjectOid);
 
 		group.checkConsistence();
@@ -2119,7 +2119,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		display("Retrieved group shadow", shadow);
 
@@ -2162,7 +2162,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		display("Retrieved group shadow", shadow);
 
@@ -2200,7 +2200,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
@@ -2230,7 +2230,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(PRIVILEGE_PILLAGE_OID, addedObjectOid);
 
 		priv.checkConsistence();
@@ -2279,7 +2279,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		display("Retrieved priv shadow", shadow);
 
@@ -2327,7 +2327,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
@@ -2360,7 +2360,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Account", account);
 		
 		display(result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		assertEntitlement(account, GROUP_PIRATES_OID);
 		
@@ -2395,7 +2395,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
 		assertNotNull("Account will is gone!", dummyAccount);
@@ -2439,7 +2439,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Account", account);
 		
 		display(result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		assertEntitlement(account, GROUP_PIRATES_OID);
 		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
@@ -2484,7 +2484,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
@@ -2528,7 +2528,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
@@ -2571,7 +2571,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_LECHUCK_OID, addedObjectOid);
 
 		account.checkConsistence();
@@ -2642,7 +2642,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("add object result", result);
-		assertSuccess("addObject has failed (result)", result);
+		TestUtil.assertSuccess("addObject has failed (result)", result);
 		syncServiceMock.assertNotifySuccessOnly();
 		
 		// Check if the account is gone and that group membership is gone as well
@@ -2693,7 +2693,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display(result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -2734,7 +2734,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display(result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -2782,7 +2782,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
 		assertDummyAccountAttributeValues("cptmorgan", DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
@@ -2832,7 +2832,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		result.computeStatus();
 		display("addObject result (expected failure)", result);
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		syncServiceMock.assertNotifyFailureOnly();
 
@@ -2857,7 +2857,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		result.computeStatus();
 		display("getObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		assertSteadyResource();
 	}
@@ -2893,7 +2893,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		result.computeStatus();
 		display("modifyObject result (expected failure)", result);
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		syncServiceMock.assertNotifyFailureOnly();
 
@@ -2924,7 +2924,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		result.computeStatus();
 		display("deleteObject result (expected failure)", result);
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		syncServiceMock.assertNotifyFailureOnly();
 
@@ -2957,7 +2957,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		// No change, no fun
 		syncServiceMock.assertNoNotifyChange();
@@ -2991,7 +2991,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
 
 		syncServiceMock.assertNotifyChange();
 
@@ -3046,7 +3046,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
 
 		syncServiceMock.assertNotifyChange();
 
@@ -3122,7 +3122,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
 
 		syncServiceMock.assertNotifyChange();
 
@@ -3181,7 +3181,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
 
 		syncServiceMock.assertNotifyChange();
 
@@ -3247,7 +3247,7 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		result.computeStatus();
 		display("Synchronization result", result);
-		assertSuccess("Synchronization result is not OK", result);
+		TestUtil.assertSuccess("Synchronization result is not OK", result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -3280,7 +3280,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		result.computeStatus();
 		display("getObject result (expected failure)", result);
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		assertSteadyResource();
 	}

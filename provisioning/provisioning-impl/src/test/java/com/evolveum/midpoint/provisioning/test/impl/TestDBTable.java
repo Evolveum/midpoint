@@ -145,7 +145,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID);
 		
 		display("Test result",testResult);
-		assertSuccess("Test resource failed (result)", testResult);
+		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 		
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result).asObjectable();
 		display("Resource after test",resource);
@@ -179,7 +179,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("add object result",result);
-		assertSuccess("addObject has failed (result)",result);
+		TestUtil.assertSuccess("addObject has failed (result)",result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
 		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result).asObjectable();
@@ -224,7 +224,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display(result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, account.asObjectable().getName());
 

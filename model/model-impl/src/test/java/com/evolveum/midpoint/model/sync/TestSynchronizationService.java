@@ -43,7 +43,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -124,7 +123,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
 	}
 	
 	@Test
@@ -178,7 +177,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
 	}
 	
 	@Test
@@ -235,7 +234,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         
         result.computeStatus();
-        IntegrationTestTools.assertSuccess(result);
+        TestUtil.assertSuccess(result);
 	}
 
 

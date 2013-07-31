@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -103,7 +102,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         		
 		// THEN
 		result.computeStatus();
-		IntegrationTestTools.assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		// Make sure the resource has t:norm part of polystring name
 		PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_MAROON_OID, null, task, result);

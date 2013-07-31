@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -63,7 +63,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -176,7 +175,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         
         result.computeStatus();
         display("executeChanges result", result);
-        IntegrationTestTools.assertFailure("executeChanges result", result);
+        TestUtil.assertFailure("executeChanges result", result);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -221,7 +220,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userOtisAfter = getUser(userOtisOid);
 		assertNotNull("Otis is gone!", userOtisAfter);
@@ -270,7 +269,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		try {
 			getUser(userNavigatorOid);
@@ -312,7 +311,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -373,7 +372,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
@@ -471,7 +470,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result);
         assertFalse("No user found", users.isEmpty());
         assertEquals("Wrong number of users found", 1, users.size());
         PrismObject<UserType> userDeGhoulash = users.iterator().next();
@@ -509,7 +508,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
 		
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 	}
 
 }

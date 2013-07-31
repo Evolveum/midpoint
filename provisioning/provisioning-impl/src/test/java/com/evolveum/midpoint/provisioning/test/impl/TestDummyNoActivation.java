@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import static org.testng.AssertJUnit.assertNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
@@ -112,7 +111,7 @@ public class TestDummyNoActivation extends TestDummy {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		IntegrationTestTools.assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		delta.checkConsistence();
 		// check if activation was unchanged
@@ -156,7 +155,7 @@ public class TestDummyNoActivation extends TestDummy {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		IntegrationTestTools.assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		delta.checkConsistence();
 		// check if activation was unchanged
@@ -200,7 +199,7 @@ public class TestDummyNoActivation extends TestDummy {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		IntegrationTestTools.assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		delta.checkConsistence();
 		// check if activation was not changed
@@ -246,7 +245,7 @@ public class TestDummyNoActivation extends TestDummy {
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
-		IntegrationTestTools.assertFailure(result);
+		TestUtil.assertFailure(result);
 		
 		delta.checkConsistence();
 		// check if activation was changed

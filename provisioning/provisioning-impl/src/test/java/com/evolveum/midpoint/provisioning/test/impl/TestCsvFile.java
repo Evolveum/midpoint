@@ -193,7 +193,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 
 		// THEN
 		display("Test result", testResult);
-		assertSuccess("Test resource failed (result)", testResult);
+		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable(); 

@@ -15,8 +15,8 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -122,7 +122,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
 		
 		display("Test connection result (expected failure)",operationResult);
-		assertFailure(operationResult);
+		TestUtil.assertFailure(operationResult);
 		
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result);
 		display("Resource after testResource (repository)", resourceRepoAfter);
@@ -149,8 +149,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		// THEN
 		result.computeStatus();
 		display("getObject(resource) result", result);
-		assertFailure(result);
-		assertFailure(resource.asObjectable().getFetchResult());
+		TestUtil.assertFailure(result);
+		TestUtil.assertFailure(resource.asObjectable().getFetchResult());
 		
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		assertNull("Resource schema found", resourceSchema);
@@ -161,8 +161,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		// THEN
 		result.computeStatus();
 		display("getObject(resourceAgain) result", result);
-		assertFailure(result);
-		assertFailure(resourceAgain.asObjectable().getFetchResult());
+		TestUtil.assertFailure(result);
+		TestUtil.assertFailure(resourceAgain.asObjectable().getFetchResult());
 		
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
 		assertNotNull("No connector ref",resourceTypeAgain.getConnectorRef());
@@ -199,7 +199,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 
 	/**
@@ -227,7 +227,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 	
 	@Test
@@ -250,7 +250,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 	
 	@Test
@@ -280,7 +280,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		
 		result.computeStatus();
 		display(result);
-		assertFailure(result);
+		TestUtil.assertFailure(result);
   	}
 	
 	@Test
@@ -317,7 +317,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
   	}
 	
 	@Test
@@ -343,7 +343,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 
 	
@@ -366,7 +366,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 
 	}
 	
@@ -395,7 +395,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 	
 	@Test
@@ -419,7 +419,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 
 	
@@ -441,12 +441,12 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		provisioningService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, taskManager.createTaskInstance(), result);
 		
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILENAME, LDAP_CONNECTOR_TYPE, result);
 
 		result.computeStatus();
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 
 	}
 	
@@ -472,7 +472,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 
 	/**
@@ -530,7 +530,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 	
 	@Test
@@ -559,7 +559,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
   	}
 	
 	@Test
@@ -597,7 +597,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		
 		result.computeStatus();
 		display(result);
-		assertFailure(result);
+		TestUtil.assertFailure(result);
   	}
 	
 	@Test
@@ -629,7 +629,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, repoAccountType.getFailedOperationType());
 		OperationResultType repoResult = repoAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", repoResult);
-		assertFailure("Result in shadow (repo)", repoResult);
+		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, result).asObjectable();
@@ -638,7 +638,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, provisioningAccountType.getFailedOperationType());
 		OperationResultType provisioningResult = provisioningAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", provisioningResult);
-		assertFailure("Result in shadow (repo)", provisioningResult);
+		TestUtil.assertFailure("Result in shadow (repo)", provisioningResult);
 
 	}
 	
@@ -665,7 +665,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResultType repoResult = repoAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", repoResult);
 		display("repoResult in shadow", repoResult);
-		assertFailure("Result in shadow (repo)", repoResult);
+		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
 				null, result).asObjectable();
@@ -673,7 +673,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, provisioningAccountType.getFailedOperationType());
 		OperationResultType provisioningResult = provisioningAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", provisioningResult);
-		assertFailure("Result in shadow (repo)", provisioningResult);		
+		TestUtil.assertFailure("Result in shadow (repo)", provisioningResult);		
 	}
 
 	@Test
@@ -704,7 +704,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, repoAccountType.getFailedOperationType());
 		OperationResultType repoResult = repoAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", repoResult);
-		assertFailure("Result in shadow (repo)", repoResult);
+		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_MODIFY_OID,
 				null, result).asObjectable();
@@ -712,7 +712,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, provisioningAccountType.getFailedOperationType());
 		OperationResultType provisioningResult = provisioningAccountType.getResult();
 		assertNotNull("No result in shadow (repo)", provisioningResult);
-		assertFailure("Result in shadow (repo)", provisioningResult);
+		TestUtil.assertFailure("Result in shadow (repo)", provisioningResult);
 		
 	}
 	
@@ -737,7 +737,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		}
 		
 		result.computeStatus();
-		assertFailure(result);
+		TestUtil.assertFailure(result);
 	}
 
 	

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -129,7 +129,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		
 		result.computeStatus();
 		display("getObject(resource) result", result);
-		assertSuccess(result);
+		TestUtil.assertSuccess(result);
 		
 		// Make sure these were generated
 		assertNotNull("No resource schema", resource.asObjectable().getSchema());

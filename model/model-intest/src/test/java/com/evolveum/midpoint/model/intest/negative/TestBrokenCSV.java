@@ -45,7 +45,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -155,7 +154,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
 		// THEN
 		display("testResource result", testResult);
-        IntegrationTestTools.assertSuccess("testResource result", testResult);
+        TestUtil.assertSuccess("testResource result", testResult);
 	}
 	
 	@Test
@@ -173,10 +172,10 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		display("getObject resource", resource);
 		result.computeStatus();
 		display("getObject result", result);
-		IntegrationTestTools.assertSuccess("getObject result", result);
+		TestUtil.assertSuccess("getObject result", result);
 		
 		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
-		IntegrationTestTools.assertSuccess("resource.fetchResult", fetchResult);
+		TestUtil.assertSuccess("resource.fetchResult", fetchResult);
 		
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
@@ -202,7 +201,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         	display("Expected exception", e);
         	result.computeStatus();
     		display("getObject result", result);
-            IntegrationTestTools.assertFailure("getObject result", result);
+            TestUtil.assertFailure("getObject result", result);
         }
 		
 	}
@@ -224,7 +223,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         display("getObject account", account);
 		result.computeStatus();
 		display("getObject result", result);
-		IntegrationTestTools.assertSuccess("getObject result", result);
+		TestUtil.assertSuccess("getObject result", result);
         // TODO: better asserts
 		assertNotNull("Null resource", account);
 	}
@@ -246,7 +245,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         display("getObject account", account);
 		result.computeStatus();
 		display("getObject result", result);
-		IntegrationTestTools.assertSuccess("getObject result", result);
+		TestUtil.assertSuccess("getObject result", result);
         // TODO: better asserts
 		assertNotNull("Null resource", account);
 	}
@@ -272,7 +271,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         	// This is expected
         	result.computeStatus();
     		display("findAccountByUsername result", result);
-            IntegrationTestTools.assertFailure("findAccountByUsername result", result);
+            TestUtil.assertFailure("findAccountByUsername result", result);
         }
 		
 	}
@@ -291,7 +290,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
 		// THEN
 		display("testResource result", testResult);
-        IntegrationTestTools.assertFailure("testResource result", testResult);
+        TestUtil.assertFailure("testResource result", testResult);
 	}
 	
 	@Test
@@ -364,7 +363,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
 		// THEN
 		display("testResource result", testResult);
-        IntegrationTestTools.assertFailure("testResource result", testResult);
+        TestUtil.assertFailure("testResource result", testResult);
 	}
 	
 	@Test

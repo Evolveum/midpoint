@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -99,7 +99,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 1);
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
@@ -137,7 +137,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         
@@ -180,7 +180,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "B666", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -216,7 +216,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -256,7 +256,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -292,7 +292,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -330,7 +330,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -368,7 +368,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -402,7 +402,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -436,7 +436,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
@@ -474,7 +474,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userAfterType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Unexpected value of employeeNumber, maybe it was generated and should not be?", 
         		"D3ADB33F", userAfterType.getEmployeeNumber());
@@ -512,7 +512,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 2, userAfterType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
@@ -549,7 +549,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of accountRefs", 1, userAfterType.getLinkRef().size());
         
         result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
         
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
@@ -584,7 +584,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		// TODO: check on resource
 		
 		result.computeStatus();
-        assertFailure(result);
+        TestUtil.assertFailure(result);
 	}
 	
 }

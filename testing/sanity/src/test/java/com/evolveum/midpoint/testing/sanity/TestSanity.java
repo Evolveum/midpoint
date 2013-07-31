@@ -19,7 +19,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
@@ -451,7 +451,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
-        assertSuccess("testResource has failed", result);
+        TestUtil.assertSuccess("testResource has failed", result);
 
         OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnectionOpenDJ");
 
@@ -679,7 +679,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
         displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
-        assertSuccess("testResource has failed", result.getPartialResults().get(0));
+        TestUtil.assertSuccess("testResource has failed", result.getPartialResults().get(0));
 
         OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test002TestConnectionDerby");
 
@@ -864,7 +864,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
         displayJaxb("addObject result:", resultHolder.value, SchemaConstants.C_RESULT);
-        assertSuccess("addObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("addObject has failed", resultHolder.value);
 
         AssertJUnit.assertEquals(USER_JACK_OID, oidHolder.value);
 
@@ -875,7 +875,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult.computeStatus();
         display("repository.getObject result", repoResult);
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
         PrismAsserts.assertEqualsPolyString("fullName", userType.getFullName(), repoUser.getFullName());
 
@@ -909,7 +909,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -919,7 +919,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         UserType repoUserType = repoUser.asObjectable();
 
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         display("User (repository)", repoUser);
 
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
@@ -936,7 +936,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
         assertNotNull(repoShadowType);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -984,7 +984,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-        assertSuccess("getObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("getObject has failed", resultHolder.value);
 
         ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
@@ -1030,7 +1030,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1063,7 +1063,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("addObject has failed", repoResult);
+        TestUtil.assertSuccess("addObject has failed", repoResult);
         display("Shadow (repository)", repoShadowType);
         assertNotNull(repoShadowType);
         assertEquals(RESOURCE_DERBY_OID, repoShadowType.getResourceRef().getOid());
@@ -1108,7 +1108,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-        assertSuccess("getObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("getObject has failed", resultHolder.value);
 
         ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
@@ -1140,7 +1140,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
 
         display("listAccountShadowOwner result", resultHolder.value);
-        assertSuccess("listAccountShadowOwner has failed (result)", resultHolder.value);
+        TestUtil.assertSuccess("listAccountShadowOwner has failed (result)", resultHolder.value);
         UserType user = userHolder.value;
         assertNotNull("No owner", user);
         assertEquals(USER_JACK_OID, user.getOid());
@@ -1224,7 +1224,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1253,7 +1253,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
-        assertSuccess("getObject(repo) has failed", repoResult);
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
         ShadowType repoShadowType = repoShadow.asObjectable();
@@ -1320,7 +1320,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1348,7 +1348,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         display("repository shadow", repoShadow);
         repoResult.computeStatus();
-        assertSuccess("getObject(repo) has failed", repoResult);
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         AssertJUnit.assertNotNull(repoShadowType);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -1394,7 +1394,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1424,7 +1424,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
-        assertSuccess("getObject(repo) has failed", repoResult);
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
         AssertJUnit.assertNotNull(repoShadowType);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
@@ -1445,7 +1445,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-        assertSuccess("getObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("getObject has failed", resultHolder.value);
 
         ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
@@ -1494,7 +1494,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1524,7 +1524,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
-        assertSuccess("getObject(repo) has failed", repoResult);
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
         display("repo shadow", repoShadowType);
         AssertJUnit.assertNotNull(repoShadowType);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -1546,7 +1546,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-        assertSuccess("getObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("getObject has failed", resultHolder.value);
 
         ShadowType modelShadow = (ShadowType) objectHolder.value;
         display("Shadow (model)", modelShadow);
@@ -1608,7 +1608,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1646,7 +1646,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("deleteObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("deleteObject has failed", result);
+        TestUtil.assertSuccess("deleteObject has failed", result);
 
         // Check if shadow was deleted
         OperationResult repoResult = new OperationResult("getObject");
@@ -1687,7 +1687,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1714,7 +1714,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
-        assertSuccess("getObject(repo) has failed", repoResult);
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
         ShadowType repoShadowType = repoShadow.asObjectable();
@@ -1751,7 +1751,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1775,7 +1775,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, repoResult);
         repoResult.computeStatus();
-        assertSuccess("getObject(repo) has failed", repoResult);
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
         display("repository shadow", repoShadow);
         AssertJUnit.assertNotNull(repoShadow);
         ShadowType repoShadowType = repoShadow.asObjectable();
@@ -1809,7 +1809,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("deleteObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("deleteObject has failed", result);
+        TestUtil.assertSuccess("deleteObject has failed", result);
 
         // User should be gone from the repository
         OperationResult repoResult = new OperationResult("getObject");
@@ -1867,7 +1867,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         modelWeb.addObject(userType, oidHolder, resultHolder);
 
         assertNoRepoCache();
-        assertSuccess("addObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("addObject has failed", resultHolder.value);
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME, ObjectModificationType.class);
@@ -1878,7 +1878,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -1903,7 +1903,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadowType);
         assertNotNull(repoShadowType);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -1954,7 +1954,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // THEN
 
-        assertSuccess("listAccountShadowOwner has failed (result)", resultHolder.value);
+        TestUtil.assertSuccess("listAccountShadowOwner has failed (result)", resultHolder.value);
         UserType user = userHolder.value;
         assertNotNull("No owner", user);
         assertEquals(USER_GUYBRUSH_OID, user.getOid());
@@ -1979,7 +1979,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -2003,7 +2003,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
         assertNotNull(repoShadow);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
@@ -2061,7 +2061,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -2085,7 +2085,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
         assertNotNull(repoShadow);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
@@ -2141,7 +2141,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // check if LDAP account was modified
 
@@ -2207,7 +2207,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object remain unmodified in the repo
 
@@ -2243,7 +2243,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -2268,7 +2268,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
         assertNotNull(repoShadow);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
@@ -2326,7 +2326,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        assertSuccess("modifyObject has failed", result);
+        TestUtil.assertSuccess("modifyObject has failed", result);
 
         // Check if user object was modified in the repo
 
@@ -2353,7 +2353,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         display("Shadow (repository)", repoShadow);
         assertNotNull(repoShadowType);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -2513,7 +2513,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         result.computeStatus();
         display("getTask result", result);
-        assertSuccess("getTask has failed", result);
+        TestUtil.assertSuccess("getTask has failed", result);
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
 
@@ -2655,7 +2655,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         //check results
         assertNoRepoCache();
         displayJaxb("addObject result:", resultHolder.value, SchemaConstants.C_RESULT);
-        assertSuccess("addObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("addObject has failed", resultHolder.value);
         AssertJUnit.assertEquals(userOid, oidHolder.value);
 
         //WHEN
@@ -2822,7 +2822,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Import task in repo after launch", taskAfter);
 
         result.computeStatus();
-        assertSuccess("getObject has failed", result);
+        TestUtil.assertSuccess("getObject has failed", result);
 
         final String taskOid = task.getOid();
 
@@ -2838,7 +2838,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                         options, objectHolder, resultHolder);
                 assertNoRepoCache();
                 //				display("getObject result (wait loop)",resultHolder.value);
-                assertSuccess("getObject has failed", resultHolder.value);
+                TestUtil.assertSuccess("getObject has failed", resultHolder.value);
                 Task task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), opResult);
                 System.out.println(new Date() + ": Import task status: " + task.getExecutionStatus() + ", progress: " + task.getProgress());
                 if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
@@ -2869,7 +2869,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 options, objectHolder, resultHolder);
 
         assertNoRepoCache();
-        assertSuccess("getObject has failed", resultHolder.value);
+        TestUtil.assertSuccess("getObject has failed", resultHolder.value);
         task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), result);
 
         display("Import task after finish (fetched from model)", task);
@@ -2912,7 +2912,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull("Task has no result", taskResult);
-        assertSuccess("Import task result is not success", taskResult);
+        TestUtil.assertSuccess("Import task result is not success", taskResult);
         AssertJUnit.assertTrue("Task failed", taskResult.isSuccess());
 
         AssertJUnit.assertTrue("No progress", task.getProgress() > 0);
@@ -2923,7 +2923,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // to look directly into repository
         List<PrismObject<ShadowType>> sobjects = repositoryService.searchObjects(ShadowType.class, null, result);
         result.computeStatus();
-        assertSuccess("listObjects has failed", result);
+        TestUtil.assertSuccess("listObjects has failed", result);
         AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
 
         for (PrismObject<ShadowType> aObject : sobjects) {
@@ -2944,7 +2944,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
         ObjectListType uobjects = listHolder.value;
-        assertSuccess("listObjects has failed", resultHolder.value);
+        TestUtil.assertSuccess("listObjects has failed", resultHolder.value);
         AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
 
         // TODO: use another account, not guybrush
@@ -3068,7 +3068,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, result);
         result.computeStatus();
         display("getTask result", result);
-        assertSuccess("getTask has failed", result);
+        TestUtil.assertSuccess("getTask has failed", result);
         AssertJUnit.assertNotNull(task);
         display("Task after finish", task);
         AssertJUnit.assertNotNull(task.getTaskIdentifier());
@@ -3092,7 +3092,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResult taskResult = task.getResult();
         display("Recompute task result", taskResult);
         AssertJUnit.assertNotNull(taskResult);
-        assertSuccess("Recompute task result", taskResult);
+        TestUtil.assertSuccess("Recompute task result", taskResult);
 
         // STOP the task. We don't need it any more and we don't want to give it a chance to run more than once
         taskManager.deleteTask(TASK_USER_RECOMPUTE_OID, result);
@@ -3123,7 +3123,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
         assertNotNull(repoShadowType);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -3217,7 +3217,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
         result.computeStatus();
         display("getTask result", result);
-        assertSuccess("getTask has failed", result);
+        TestUtil.assertSuccess("getTask has failed", result);
         AssertJUnit.assertNotNull(task);
         display("Task after pickup", task);
 
@@ -3272,7 +3272,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
         assertNotNull(repoShadowType);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -3339,7 +3339,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 repoResult);
         repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
-        assertSuccess("getObject has failed", repoResult);
+        TestUtil.assertSuccess("getObject has failed", repoResult);
         displayJaxb("Shadow (repository)", repoShadowType, new QName("shadow"));
         assertNotNull(repoShadowType);
         assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -3489,7 +3489,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationOptionsType options = new OperationOptionsType();
         modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountOid, options, accountHolder, resultHolder);
         ObjectType object = accountHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
+        TestUtil.assertSuccess("searchObjects has failed", resultHolder.value);
         assertNotNull("Account is null", object);
 
         if (!(object instanceof ShadowType)) {
@@ -3521,7 +3521,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
         ObjectListType objects = listHolder.value;
-        assertSuccess("searchObjects has failed", resultHolder.value);
+        TestUtil.assertSuccess("searchObjects has failed", resultHolder.value);
         AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
         UserType user = (UserType) objects.getObject().get(0);
 
@@ -3580,7 +3580,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismObject<SystemConfigurationType> systemConfigurationType = repositoryService.getObject(SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
         result.computeStatus();
-        assertSuccess("Asserting sync settings failed (result)", result);
+        TestUtil.assertSuccess("Asserting sync settings failed (result)", result);
         ProjectionPolicyType globalAccountSynchronizationSettings = systemConfigurationType.asObjectable().getGlobalAccountSynchronizationSettings();
         assertNotNull("globalAccountSynchronizationSettings is null", globalAccountSynchronizationSettings);
         AssignmentPolicyEnforcementType assignmentPolicyEnforcement = globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();

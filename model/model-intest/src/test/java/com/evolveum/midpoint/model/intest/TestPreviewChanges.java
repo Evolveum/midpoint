@@ -15,8 +15,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
+import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -357,7 +357,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		checker.check(modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 	}
 	
 	private void doPreviewFail(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) 
@@ -376,7 +376,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		}
 		
 		result.computeStatus();
-        assertFailure(result);
+        TestUtil.assertFailure(result);
 	}
 	
 	private void assertAddAccount(ModelContext<UserType, ShadowType> modelContext, boolean expectFullNameDelta) {
@@ -449,7 +449,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -491,7 +491,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNull("Unexpected model focus context", focusContext);
@@ -542,7 +542,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -598,7 +598,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -656,7 +656,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -719,7 +719,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		}
 		
 		result.computeStatus();
-        assertFailure(result);
+        TestUtil.assertFailure(result);
 	}
 	
 	/**
@@ -757,7 +757,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		}
 		
 		result.computeStatus();
-        assertFailure(result);
+        TestUtil.assertFailure(result);
 	}
 
 	// the test5xx is testing mappings with blue dummy resource. It has WEAK mappings.
@@ -789,7 +789,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -847,7 +847,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -906,7 +906,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -1005,7 +1005,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -1092,7 +1092,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);        
+        TestUtil.assertSuccess(result);        
         
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -1189,7 +1189,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model context", modelContext);
 		
 		result.computeStatus();
-        assertSuccess(result);
+        TestUtil.assertSuccess(result);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
