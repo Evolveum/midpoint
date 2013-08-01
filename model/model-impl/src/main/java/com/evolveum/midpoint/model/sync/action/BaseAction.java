@@ -217,7 +217,7 @@ public abstract class BaseAction implements Action {
         }
 
         //we insert account if available in change
-        accountContext.setObjectOld(getAccountObject(change));
+        accountContext.setLoadedObject(getAccountObject(change));
 
         if (delta != null && delta.isDelete()) {
         	accountContext.setExists(false);

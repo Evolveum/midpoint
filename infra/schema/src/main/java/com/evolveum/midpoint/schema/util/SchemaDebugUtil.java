@@ -660,20 +660,14 @@ public class SchemaDebugUtil {
 		}
 		return "Java("+xml.getClazz()+","+xml.getToString()+")";
 	}
-
-//	public static String prettyPrint(Object value) {
-//		if (value == null) {
+	
+//	public static String prettyPrint(OperationProvisioningScriptsType scriptsType) {
+//		if (scriptsType == null) {
 //			return "null";
 //		}
-//		// TODO: temporary hack. Maybe we can use
-//		// reflection instead of horde of if-s
-//		if (value instanceof ObjectType) {
-//			ObjectType object = (ObjectType) value;
-//			return prettyPrint(object);
-//		} else if (value instanceof JAXBElement) {
-//			return prettyPrint((JAXBElement)value);
-//		} else {
-//			return value.toString();
+//		StringBuilder sb = new StringBuilder("")
+//		for (OperationProvisioningScriptType scriptType: scriptsType.getScript()) {
+//			
 //		}
 //	}
 	

@@ -210,13 +210,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		} else if (synchronizationPolicyDecision != null){
 			return false;
 		}
-		if (ObjectDelta.isAdd(getPrimaryDelta())) {
-			return true;
-		}
-		if (ObjectDelta.isAdd(getSecondaryDelta())) {
-			return true;
-		}
-		return false;
+		return super.isAdd();
 	}
     
     public boolean isModify() {
@@ -225,13 +219,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		} else if (synchronizationPolicyDecision != null){
 			return false;
 		}
-		if (ObjectDelta.isModify(getPrimaryDelta())) {
-			return true;
-		}
-		if (ObjectDelta.isModify(getSecondaryDelta())) {
-			return true;
-		}
-		return false;
+		return super.isModify();
 	}
 
 	public boolean isDelete() {
@@ -240,13 +228,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		} else if (synchronizationPolicyDecision != null){
 			return false;
 		}
-		if (ObjectDelta.isDelete(getPrimaryDelta())) {
-			return true;
-		}
-		if (ObjectDelta.isDelete(getSecondaryDelta())) {
-			return true;
-		}
-		return false;
+		return super.isDelete();
 	}
 	
 	public ResourceType getResource() {
@@ -357,6 +339,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		}
 		if (getObjectOld()!=null) {
 			return ((PrismObject<ShadowType>)getObjectOld()).asObjectable().getKind();
+		}
+		if (getObjectCurrent()!=null) {
+			return ((PrismObject<ShadowType>)getObjectCurrent()).asObjectable().getKind();
 		}
 		if (getObjectNew()!=null) {
 			return ((PrismObject<ShadowType>)getObjectNew()).asObjectable().getKind();
@@ -493,33 +478,36 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     public void recompute() throws SchemaException {
         ObjectDelta<O> accDelta = getDelta();
 
-        PrismObject<O> oldAccount = getObjectOld();
+        PrismObject<O> base = getObjectCurrent();
+        if (base == null) {
+        	base = getObjectOld();
+        }
         ObjectDelta<O> syncDelta = getSyncDelta();
-        if (oldAccount == null && syncDelta != null
+        if (base == null && syncDelta != null
                 && ChangeType.ADD.equals(syncDelta.getChangeType())) {
             PrismObject<O> objectToAdd = syncDelta.getObjectToAdd();
             if (objectToAdd != null) {
                 PrismObjectDefinition<O> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                oldAccount = new PrismObject<O>(objectToAdd.getName(), objectDefinition, getNotNullPrismContext());
-                oldAccount = syncDelta.computeChangedObject(oldAccount);
+                base = new PrismObject<O>(objectToAdd.getName(), objectDefinition, getNotNullPrismContext());
+                base = syncDelta.computeChangedObject(base);
             }
         }
 
         if (accDelta == null) {
             // No change
-            setObjectNew(oldAccount);
+            setObjectNew(base);
             return;
         }
         
-        if (oldAccount == null && accDelta.isModify()) {
+        if (base == null && accDelta.isModify()) {
         	RefinedObjectClassDefinition rAccountDef = getRefinedAccountDefinition();
         	if (rAccountDef != null) {
-        		oldAccount = (PrismObject<O>) rAccountDef.createBlankShadow();
+        		base = (PrismObject<O>) rAccountDef.createBlankShadow();
         	}
         }
 
-        setObjectNew(accDelta.computeChangedObject(oldAccount));
+        setObjectNew(accDelta.computeChangedObject(base));
     }
     
 	public void clearIntermediateResults() {
@@ -540,6 +528,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		}
 		PrismObject<ResourceType> resource = resourceType.asPrismObject();
 		distributeResourceObject(getObjectOld(), resource);
+		distributeResourceObject(getObjectCurrent(), resource);
 		distributeResourceObject(getObjectNew(), resource);
 		distributeResourceDelta(getPrimaryDelta(), resource);
 		distributeResourceDelta(getSecondaryDelta(), resource);
@@ -833,6 +822,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			object = getObjectOld();
 		}
 		if (object == null) {
+			object = getObjectCurrent();
+		}
+		if (object == null) {
 			return null;
 		}
 		if (object.canRepresent(ShadowType.class)) {
@@ -903,6 +895,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         }
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
+        
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent + 1);
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), getObjectNew(), indent + 1);

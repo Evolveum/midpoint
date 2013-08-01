@@ -132,8 +132,8 @@ public class ReconciliationProcessor {
 				return;
 			}
 
-			if (accContext.getObjectOld() == null) {
-				LOGGER.warn("Can't do reconciliation. Account context doesn't contain old version of account.");
+			if (accContext.getObjectCurrent() == null) {
+				LOGGER.warn("Can't do reconciliation. Account context doesn't contain current version of account.");
 				return;
 			}
 
@@ -143,7 +143,7 @@ public class ReconciliationProcessor {
 						accContext.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
 				ShadowType oldShadow = objectOld.asObjectable();
 				accContext.determineFullShadowFlag(oldShadow.getFetchResult());
-				accContext.setObjectOld(objectOld);
+				accContext.setLoadedObject(objectOld);
 
 				accContext.recompute();
 			}

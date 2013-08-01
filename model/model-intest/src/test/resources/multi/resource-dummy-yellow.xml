@@ -143,33 +143,58 @@
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>
 						<path>fullName</path>
 					</source>
 				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>fullName</path>
-					</target>
-				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>
 						<path>$c:user/c:organizationalUnit</path>
 					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:gossip</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>fullName</path>
+					</source>
+					<source>
+						<path>employeeType</path>
+					</source>
+					<source>
+						<path>locality</path>
+					</source>
+					<expression>
+						<script>
+							<code>fullName + ' must be the best '+employeeType+' the '+locality+' has ever seen'</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:water</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>fullName</path>
+					</source>
+					<source>
+						<path>employeeType</path>
+					</source>
+					<expression>
+						<script>
+							<code>employeeType + ' ' + fullName + ' drinks only rum!'</code>
+						</script>
+					</expression>
 				</outbound>
 			</attribute>
 			<dependency>

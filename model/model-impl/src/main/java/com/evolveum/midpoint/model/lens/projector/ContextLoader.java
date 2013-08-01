@@ -103,7 +103,7 @@ public class ContextLoader {
 				
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null) {
-			loadObjectOld(context, result);
+			loadObjectCurrent(context, result);
 			
 			if (UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 				LensContext<UserType,ShadowType> ucContext = (LensContext<UserType,ShadowType>) context;
@@ -170,8 +170,8 @@ public class ContextLoader {
 			isThombstone = rsd.isThombstone();
 			intent = rsd.getIntent();
 		}
-		if (resourceOid == null && projectionContext.getObjectOld() != null) {
-			resourceOid = ShadowUtil.getResourceOid((ShadowType) projectionContext.getObjectOld().asObjectable());
+		if (resourceOid == null && projectionContext.getObjectCurrent() != null) {
+			resourceOid = ShadowUtil.getResourceOid((ShadowType) projectionContext.getObjectCurrent().asObjectable());
 		}
 		if (resourceOid == null && projectionContext.getObjectNew() != null) {
 			resourceOid = ShadowUtil.getResourceOid((ShadowType) projectionContext.getObjectNew().asObjectable());
@@ -228,11 +228,11 @@ public class ContextLoader {
 			// FIXME: hardcoded to user right now
 			LensFocusContext<F> focusContext = context.getOrCreateFocusContext((Class<F>) UserType.class);
 			PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, result);
-	        focusContext.setObjectOld(object);
+	        focusContext.setLoadedObject(object);
 		}
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void loadObjectOld(LensContext<F,P> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private <F extends ObjectType, P extends ObjectType> void loadObjectCurrent(LensContext<F,P> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
@@ -240,7 +240,7 @@ public class ContextLoader {
 		}
 		// Make sure that we RELOAD the user object if the context is not fresh
 		// the user may have changed in the meantime
-        if (focusContext.getObjectOld() != null && focusContext.isFresh()) {
+        if (focusContext.getObjectCurrent() != null && focusContext.isFresh()) {
             // already loaded
             return;
         }
@@ -250,7 +250,7 @@ public class ContextLoader {
         	focusContext.setFresh(true);
             return;
         }
-        if (focusContext.getObjectOld() != null && objectDelta != null && objectDelta.isDelete()) {
+        if (focusContext.getObjectCurrent() != null && objectDelta != null && objectDelta.isDelete()) {
             // do not reload if the delta is delete. the reload will most likely fail anyway
         	// but DO NOT set the fresh flag in this case, it may be misleading
             return;
@@ -262,7 +262,7 @@ public class ContextLoader {
         }
 
         PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, result);
-        focusContext.setObjectOld(object);
+        focusContext.setLoadedObject(object);
         focusContext.setFresh(true);
     }
 	
@@ -322,14 +322,14 @@ public class ContextLoader {
 			return;
 		}
 
-		PrismObject<UserType> userOld = focusContext.getObjectOld();
-		if (userOld != null) {
-			loadLinkRefsFromFocus(context, userOld, result);
+		PrismObject<UserType> userCurrent = focusContext.getObjectCurrent();
+		if (userCurrent != null) {
+			loadLinkRefsFromFocus(context, userCurrent, result);
 		}
 
 		if (consistencyChecks) context.checkConsistence();
 		
-		loadLinkRefsFromDelta(context, userOld, focusContext.getPrimaryDelta(), result);
+		loadLinkRefsFromDelta(context, userCurrent, focusContext.getPrimaryDelta(), result);
 		
 		if (consistencyChecks) context.checkConsistence();
 
@@ -393,7 +393,7 @@ public class ContextLoader {
 				// reconciliation step.				
 				continue;
 			}
-			accountContext.setObjectOld(shadow);
+			accountContext.setLoadedObject(shadow);
 		}
 	}
 
@@ -487,7 +487,7 @@ public class ContextLoader {
 						account = provisioningService.getObject(ShadowType.class, oid, options , result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
-						accountContext.setObjectOld(account);
+						accountContext.setLoadedObject(account);
 						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
 						if (refVal.getObject() == null) {
@@ -533,7 +533,7 @@ public class ContextLoader {
 						account = provisioningService.getObject(ShadowType.class, oid, options , result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
-						accountContext.setObjectOld(account);
+						accountContext.setLoadedObject(account);
 						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
 						try{
@@ -587,7 +587,7 @@ public class ContextLoader {
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		for (LensProjectionContext<ShadowType> accountCtx : context.getProjectionContexts()) {
-			if (accountCtx.isFresh() && accountCtx.getObjectOld() != null) {
+			if (accountCtx.isFresh() && accountCtx.getObjectCurrent() != null) {
 				// already loaded
 				continue;
 			}
@@ -603,7 +603,7 @@ public class ContextLoader {
 				PrismObject<ShadowType> account = null;
 				if (syncDelta.getChangeType() == ChangeType.ADD) {
 					account = syncDelta.getObjectToAdd().clone();
-					accountCtx.setObjectOld(account);
+					accountCtx.setLoadedObject(account);
 					accountCtx.setExists(true);
 				} else {
 					if (oid == null) {
@@ -621,7 +621,7 @@ public class ContextLoader {
 						accountCtx.setExists(false);
 					} else {
 						syncDelta.applyTo(account);
-						accountCtx.setObjectOld(account);
+						accountCtx.setLoadedObject(account);
 						accountCtx.setExists(true);
 					}
 				}
@@ -729,14 +729,14 @@ public class ContextLoader {
 			// Remember OID before the object could be wiped
 			String projectionObjectOid = projContext.getOid();
 			if (projContext.isDoReconciliation() && !projContext.isFullShadow()) {
-				// The old object is useless here. So lets just wipe it so it will get loaded
-				projContext.setObjectOld(null);
+				// The current object is useless here. So lets just wipe it so it will get loaded
+				projContext.setObjectCurrent(null);
 			}
 			
-			// Load old object
-			PrismObject<P> projectionObject = projContext.getObjectOld();
-			if (projContext.getObjectOld() != null) {
-				projectionObject = projContext.getObjectOld();
+			// Load current object
+			PrismObject<P> projectionObject = projContext.getObjectCurrent();
+			if (projContext.getObjectCurrent() != null) {
+				projectionObject = projContext.getObjectCurrent();
 			} else {
 				if (projContext.isAdd()) {
 					// No need to load old object, there is none
@@ -763,7 +763,7 @@ public class ContextLoader {
 						try{
 						PrismObject<P> objectOld = provisioningService.getObject(
 								projContext.getObjectTypeClass(), projectionObjectOid, options, result);
-						projContext.setObjectOld(objectOld);
+						projContext.setLoadedObject(objectOld);
 						P oldShadow = objectOld.asObjectable();
 						if (projContext.isDoReconciliation()) {
                             projContext.determineFullShadowFlag(oldShadow.getFetchResult());

@@ -366,11 +366,11 @@ public class ConsolidationProcessor {
      */
     private <T> PropertyDelta<T> consolidateWithSyncAbsolute(LensProjectionContext<ShadowType> accCtx, PropertyDelta<T> delta,
     		ValueMatcher<T> valueMatcher) {
-        if (delta == null || accCtx.getObjectOld() == null) {
+        if (delta == null || accCtx.getObjectCurrent() == null) {
             return delta;
         }
 
-        PrismObject<ShadowType> absoluteAccountState = accCtx.getObjectOld();
+        PrismObject<ShadowType> absoluteAccountState = accCtx.getObjectCurrent();
         PrismProperty<T> absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
         if (absoluteProperty == null) {
             return delta;

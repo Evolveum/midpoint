@@ -143,28 +143,16 @@
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>
 						<path>fullName</path>
 					</source>
 				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>fullName</path>
-					</target>
-				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>

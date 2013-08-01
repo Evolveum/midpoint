@@ -210,6 +210,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test123JackRenameRelative() throws Exception {
+		final String TEST_NAME = "test123JackRenameRelative";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		jackRename(TEST_NAME);
+	}
+	
+	@Test
     public void test129JackUnAssignRoleDummiesRelative() throws Exception {
 		final String TEST_NAME = "test129JackUnAssignRoleDummiesRelative";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -247,7 +254,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 	}
 	
 	/**
@@ -312,7 +319,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 	}
 	
 	/**
@@ -384,7 +391,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * The "dummies" role assigns two dummy resources that are in a dependency. The value of "ship" is propagated from one
+	 * The "dummies" role assigns two dummy resources that are in a dependency. The value of DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME is propagated from one
 	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
 	 */
     public void jackAssignRoleDummies(final String TEST_NAME) throws Exception {
@@ -407,25 +414,29 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "The Great Voodoo Master");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The Lost Souls");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
         
         // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
-        
+
+        display("YELLOW dummy account", getDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME));
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best CAPTAIN the Caribbean has ever seen");
         
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 	}
 
     public void jackRename(final String TEST_NAME) throws Exception {
@@ -434,15 +445,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        jackRename(TEST_NAME, "jackie", task, result);
-        jackRename(TEST_NAME, USER_JACK_USERNAME, task, result);
+        jackRename(TEST_NAME, "jackie", "Jackie Sparrow", task, result);
+        jackRename(TEST_NAME, USER_JACK_USERNAME, "Jack Sparrow", task, result);
     }
     
-    public void jackRename(final String TEST_NAME, String to, Task task, OperationResult result) throws Exception {
+    public void jackRename(final String TEST_NAME, String toName, String toFullName, Task task, OperationResult result) throws Exception {
 
+    	ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_NAME, 
+    			PrismTestUtil.createPolyString(toName));
+    	objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(toFullName));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		
         // WHEN
     	TestUtil.displayWhen(TEST_NAME);
-    	modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString(to));
+    	modelService.executeChanges(deltas, null, task, result);
         
         // THEN
     	TestUtil.displayThen(TEST_NAME);
@@ -450,31 +466,35 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     	TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(to));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(toName));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(toFullName));
         assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         assertAccounts(userJack, 4);
 
-        assertDummyAccount(to, "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute(to, "title", "The Great Voodoo Master");
-        assertDefaultDummyAccountAttribute(to, "ship", "The Lost Souls");
+        assertDummyAccount(toName, toFullName, true);
+        assertDefaultDummyAccountAttribute(toName, "title", "The Great Voodoo Master");
+        assertDefaultDummyAccountAttribute(toName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
         
         // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
         
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, to, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, toName, toFullName, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, to, "ship", "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, toName,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, toName, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, toFullName +" must be the best CAPTAIN the Caribbean has ever seen");
         
-        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, to, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, toName, toFullName, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, to, "ship", "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, toName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, to, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, toName, toFullName, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, to, "ship", "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, toName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 	}
 
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
@@ -503,7 +523,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
     
     /**
-	 * The "dummies" role assigns two dummy resources that are in a dependency. The value of "ship" is propagated from one
+	 * The "dummies" role assigns two dummy resources that are in a dependency. The value of DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME is propagated from one
 	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
 	 */
     public void jackAssignRoleDummiesError(final String TEST_NAME, String roleOid, String dummyResourceName, 
@@ -537,7 +557,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     	if (expectAccount) {
     		assertDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
     		// This is actually pulled from the uncreated shadow
-            assertDummyAccountAttribute(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, "ship", "The crew of The Lost Souls");
+            assertDummyAccountAttribute(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
     	} else {
     		assertNoDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME);
     	}

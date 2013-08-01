@@ -291,6 +291,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent+1);
 
         sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent+1);
+
+        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), getObjectNew(), indent+1);
         
         sb.append("\n");

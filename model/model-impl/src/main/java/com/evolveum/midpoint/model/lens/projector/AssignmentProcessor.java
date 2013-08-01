@@ -154,11 +154,11 @@ public class AssignmentProcessor {
         // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
         // not create deltas, it just creates the triples. So we can decide what to do later when we convert triples to deltas.
         
-        Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new ArrayList<PrismContainerValue<AssignmentType>>();
-        if (focusContext.getObjectOld() != null) {
-            PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectOld().findContainer(UserType.F_ASSIGNMENT);
+        Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent = new ArrayList<PrismContainerValue<AssignmentType>>();
+        if (focusContext.getObjectCurrent() != null) {
+            PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectCurrent().findContainer(UserType.F_ASSIGNMENT);
             if (assignmentContainer != null) {
-            	assignmentsOld.addAll(assignmentContainer.getValues());
+            	assignmentsCurrent.addAll(assignmentContainer.getValues());
             }
         }
 
@@ -185,12 +185,12 @@ public class AssignmentProcessor {
         Map<ResourceShadowDiscriminator, AccountConstructionPack> plusAccountMap = new HashMap<ResourceShadowDiscriminator, AccountConstructionPack>();
         Map<ResourceShadowDiscriminator, AccountConstructionPack> minusAccountMap = new HashMap<ResourceShadowDiscriminator, AccountConstructionPack>();
 
-        LOGGER.trace("Old assignments {}", SchemaDebugUtil.prettyPrint(assignmentsOld));
+        LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
 
         ObjectType source = null;
-        if (focusContext.getObjectOld() != null) {
-            source = focusContext.getObjectOld().asObjectable();
+        if (focusContext.getObjectCurrent() != null) {
+            source = focusContext.getObjectCurrent().asObjectable();
         } else if (focusContext.getObjectNew() != null){
             source = focusContext.getObjectNew().asObjectable();
         }
@@ -205,7 +205,7 @@ public class AssignmentProcessor {
         // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
         // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
         // sorted out later.
-        Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
+        Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsCurrent, changedAssignments);
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             
@@ -282,7 +282,7 @@ public class AssignmentProcessor {
             		// (remain after replace). As account delete and add are costly operations (and potentiall dangerous)
             		// we optimize here are consider the assignments that were there before replace and still are there
             		// after it as unchanged.
-            		boolean hadValue = containsRealValue(assignmentsOld, assignmentCVal);
+            		boolean hadValue = containsRealValue(assignmentsCurrent, assignmentCVal);
             		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal);
             		if (hadValue && willHaveValue) {
             			// No change
@@ -309,7 +309,7 @@ public class AssignmentProcessor {
 		                // There was some change
 		
 		                if (assignmentDelta.isValueToAdd(assignmentCVal)) {
-		                	if (containsRealValue(assignmentsOld, assignmentCVal)) {
+		                	if (containsRealValue(assignmentsCurrent, assignmentCVal)) {
 		                		// Phantom add: adding assignment that is already there
 		                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, forceRecon, result);
 		                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
@@ -711,7 +711,7 @@ public class AssignmentProcessor {
     	if (accountSyncContext == null) {
     		return false;
     	}
-    	if (accountSyncContext.getObjectOld() == null) {
+    	if (accountSyncContext.getObjectCurrent() == null) {
     		return false;
     	}
     	return true;

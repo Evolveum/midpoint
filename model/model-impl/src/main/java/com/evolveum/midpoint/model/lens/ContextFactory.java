@@ -158,7 +158,7 @@ public class ContextFactory {
     	LensContext<F, ShadowType> syncContext = new LensContext<F, ShadowType>(focusType,
 				ShadowType.class, prismContext, provisioningService);
 		LensFocusContext<F> focusContext = syncContext.createFocusContext();
-		focusContext.setObjectOld(focus);
+		focusContext.setLoadedObject(focus);
 		focusContext.setOid(focus.getOid());
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
 		syncContext.setDoReconciliationForAllProjections(true);
@@ -171,7 +171,7 @@ public class ContextFactory {
     	LensContext<FocusType, ShadowType> syncContext = new LensContext<FocusType, ShadowType>(null,
 				ShadowType.class, prismContext, provisioningService);
     	LensProjectionContext<ShadowType> projectionContext = syncContext.createProjectionContext();
-    	projectionContext.setObjectOld(shadow);
+    	projectionContext.setLoadedObject(shadow);
     	projectionContext.setOid(shadow.getOid());
     	projectionContext.setDoReconciliation(true);
 		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));

@@ -162,12 +162,12 @@ public class InboundProcessor {
             RefinedObjectClassDefinition accountDefinition, ObjectDelta<ShadowType> aPrioriDelta, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	
-        if (aPrioriDelta == null && accContext.getObjectOld() == null) {
-            LOGGER.trace("Nothing to process in inbound, both a priori delta and account old were null.");
+        if (aPrioriDelta == null && accContext.getObjectCurrent() == null) {
+            LOGGER.trace("Nothing to process in inbound, both a priori delta and current account were null.");
             return;
         }
 
-        PrismObject<ShadowType> accountOld = accContext.getObjectOld();
+        PrismObject<ShadowType> accountCurrent = accContext.getObjectCurrent();
         PrismObject<ShadowType> accountNew = accContext.getObjectNew();
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
@@ -221,7 +221,7 @@ public class InboundProcessor {
 	                    LOGGER.trace("Processing inbound from a priori delta.");
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
 	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
-	                } else if (accountOld != null) {
+	                } else if (accountCurrent != null) {
 	                	if (!accContext.isFullShadow()) {
 	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", accContext.getOid());      // todo change to trace level eventually
                             Throwable failure = null;
@@ -248,7 +248,7 @@ public class InboundProcessor {
                             }
                         }
 	                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
-	                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
+	                    PrismProperty<?> oldAccountProperty = accountCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
 	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
 	                }

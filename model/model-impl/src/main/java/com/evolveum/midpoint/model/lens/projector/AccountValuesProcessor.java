@@ -169,13 +169,13 @@ public class AccountValuesProcessor {
 		String iterationToken = null;
 		boolean wasResetIterationCounter = false;
 		
-		PrismObject<ShadowType> shadowOld = accountContext.getObjectOld();
-		if (shadowOld != null) {
-			Integer shadowIteration = shadowOld.asObjectable().getIteration();
+		PrismObject<ShadowType> shadowCurrent = accountContext.getObjectCurrent();
+		if (shadowCurrent != null) {
+			Integer shadowIteration = shadowCurrent.asObjectable().getIteration();
 			if (shadowIteration != null) {
 				iteration = shadowIteration;
 			}
-			iterationToken = shadowOld.asObjectable().getIterationToken();
+			iterationToken = shadowCurrent.asObjectable().getIterationToken();
 		}
 		
 		boolean skipUniquenessCheck = false;
@@ -290,7 +290,8 @@ public class AccountValuesProcessor {
 			//	        			accountContext.setSecondaryDelta(null);
 				        			cleanupContext(accountContext);	        			
 				        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-				        			accountContext.setObjectOld(fullConflictingShadow);
+				        			accountContext.setObjectOld(fullConflictingShadow.clone());
+				        			accountContext.setObjectCurrent(fullConflictingShadow);
 				        			accountContext.setFullShadow(true);
 				        			ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
 				        			if (secondaryDelta != null && accountContext.getOid() != null) {
@@ -323,7 +324,8 @@ public class AccountValuesProcessor {
 										if (match){
 											//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
 											cleanupContext(accountContext);
-											accountContext.setObjectOld(fullConflictingShadow);
+											accountContext.setObjectOld(fullConflictingShadow.clone());
+											accountContext.setObjectCurrent(fullConflictingShadow);
 											accountContext.setFullShadow(true);
 											accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
 											ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
@@ -632,10 +634,10 @@ public class AccountValuesProcessor {
 	 * Adds deltas for iteration and iterationToken to the shadow if needed.
 	 */
 	private void addIterationTokenDeltas(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
-		PrismObject<ShadowType> shadowOld = accountContext.getObjectOld();
-		if (shadowOld != null) {
-			Integer iterationOld = shadowOld.asObjectable().getIteration();
-			String iterationTokenOld = shadowOld.asObjectable().getIterationToken();
+		PrismObject<ShadowType> shadowCurrent = accountContext.getObjectCurrent();
+		if (shadowCurrent != null) {
+			Integer iterationOld = shadowCurrent.asObjectable().getIteration();
+			String iterationTokenOld = shadowCurrent.asObjectable().getIterationToken();
 			if (iterationOld != null && iterationOld == accountContext.getIteration() &&
 					iterationTokenOld != null && iterationTokenOld.equals(accountContext.getIterationToken())) {
 				// Already stored

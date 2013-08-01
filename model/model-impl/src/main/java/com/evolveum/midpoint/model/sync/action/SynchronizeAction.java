@@ -138,7 +138,7 @@ public class SynchronizeAction extends BaseAction {
         LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         PrismObject<UserType> oldUser = user.asPrismObject();
-        focusContext.setObjectOld(oldUser);
+        focusContext.setLoadedObject(oldUser);
         context.rememberResource(resource);
         context.setUserTemplate(userTemplate);
 

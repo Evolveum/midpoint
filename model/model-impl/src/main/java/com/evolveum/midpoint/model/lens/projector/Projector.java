@@ -391,8 +391,8 @@ public class Projector {
 				|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 			return false;
 		}
-		PrismObject<P> objectOld = accountContext.getObjectOld();
-		if (objectOld != null && objectOld.asObjectable().getFailedOperationType() != null) {
+		PrismObject<P> objectCurrent = accountContext.getObjectCurrent();
+		if (objectCurrent != null && objectCurrent.asObjectable().getFailedOperationType() != null) {
 			// There is unfinished operation in the shadow. We cannot continue.
 			return false;
 		}

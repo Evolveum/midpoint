@@ -34,6 +34,7 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -53,6 +54,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private static final long serialVersionUID = 1649567559396392861L;
 
     private PrismObject<O> objectOld;
+    private transient PrismObject<O> objectCurrent;
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
 	private ObjectDelta<O> secondaryDelta;
@@ -98,6 +100,27 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.objectOld = objectOld;
 	}
 	
+	public PrismObject<O> getObjectCurrent() {
+		return objectCurrent;
+	}
+
+	public void setObjectCurrent(PrismObject<O> objectCurrent) {
+		this.objectCurrent = objectCurrent;
+	}
+	
+	/**
+	 * Sets current and possibly also old object. This method is used with
+	 * freshly loaded object. The object is set as current object.
+	 * If the old object was not initialized yet (and if it should be initialized)
+	 * then the object is also set as old object. 
+	 */
+	public void setLoadedObject(PrismObject<O> object) {
+		setObjectCurrent(object);
+		if (objectOld == null && !isAdd()) {
+			setObjectOld(object.clone());
+		}
+	}
+
 	@Override
 	public PrismObject<O> getObjectNew() {
 		return objectNew;
@@ -149,6 +172,36 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
         secondaryDelta.swallow(accountPasswordDelta);
     }
+	
+	public boolean isAdd() {
+		if (ObjectDelta.isAdd(getPrimaryDelta())) {
+			return true;
+		}
+		if (ObjectDelta.isAdd(getSecondaryDelta())) {
+			return true;
+		}
+		return false;
+	}
+    
+    public boolean isModify() {
+		if (ObjectDelta.isModify(getPrimaryDelta())) {
+			return true;
+		}
+		if (ObjectDelta.isModify(getSecondaryDelta())) {
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isDelete() {
+		if (ObjectDelta.isDelete(getPrimaryDelta())) {
+			return true;
+		}
+		if (ObjectDelta.isDelete(getSecondaryDelta())) {
+			return true;
+		}
+		return false;
+	}
 
     @Override
 	public List<LensObjectDeltaOperation<O>> getExecutedDeltas() {
@@ -202,6 +255,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	if (getObjectOld() != null && getObjectOld().getOid() != null) {
     		return getObjectOld().getOid();
     	}
+    	if (getObjectCurrent() != null && getObjectCurrent().getOid() != null) {
+    		return getObjectCurrent().getOid();
+    	}
     	if (getObjectNew() != null && getObjectNew().getOid() != null) {
     		return getObjectNew().getOid();
     	}
@@ -234,6 +290,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (objectDefinition == null) {
 			if (objectOld != null) {
 				objectDefinition = objectOld.getDefinition();
+			} else if (objectCurrent != null) {
+	    		objectDefinition = objectCurrent.getDefinition();
 	    	} else if (objectNew != null) {
 	    		objectDefinition = objectNew.getDefinition();
 	    	} else {
@@ -252,13 +310,17 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	}
 
 	public void recompute() throws SchemaException {
+		PrismObject<O> base = objectCurrent;
+		if (base == null) {
+			base = objectOld;
+		}
     	ObjectDelta<O> delta = getDelta();
         if (delta == null) {
             // No change
-            objectNew = objectOld;
+            objectNew = base;
             return;
         }
-        objectNew = delta.computeChangedObject(objectOld);
+        objectNew = delta.computeChangedObject(base);
     }
 	
 	/**
@@ -278,6 +340,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public void checkConsistence(String contextDesc) {
     	if (getObjectOld() != null) {
     		checkConsistence(getObjectOld(), "old "+getElementDesc() , contextDesc);
+    	}
+    	if (getObjectCurrent() != null) {
+    		checkConsistence(getObjectCurrent(), "current "+getElementDesc() , contextDesc);
     	}
     	if (primaryDelta != null) {
     		checkConsistence(primaryDelta, false, getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc));
@@ -342,6 +407,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (objectOld != null) {
 			objectOld.normalize();
 		}
+		if (objectCurrent != null) {
+			objectCurrent.normalize();
+		}
 		if (primaryDelta != null) {
 			primaryDelta.normalize();
 		}
@@ -356,6 +424,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 		if (objectOld != null) {
 			prismContext.adopt(objectOld);
+		}
+		if (objectCurrent != null) {
+			prismContext.adopt(objectCurrent);
 		}
 		if (primaryDelta != null) {
 			prismContext.adopt(primaryDelta);
@@ -374,6 +445,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		clone.objectDefinition = this.objectDefinition;
 		clone.objectNew = cloneObject(this.objectNew);
 		clone.objectOld = cloneObject(this.objectOld);
+		clone.objectCurrent = cloneObject(this.objectCurrent);
 		clone.objectTypeClass = this.objectTypeClass;
 		clone.oid = this.oid;
 		clone.primaryDelta = cloneDelta(this.primaryDelta);
@@ -459,6 +531,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (objectOld != null) {
 			CryptoUtil.checkEncrypted(objectOld);
 		}
+		if (objectCurrent != null) {
+			CryptoUtil.checkEncrypted(objectCurrent);
+		}
 		if (primaryDelta != null) {
 			CryptoUtil.checkEncrypted(primaryDelta);
 		}
@@ -473,6 +548,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		PrismObject<O> object = getObjectNew();
 		if (object == null) {
 			object = getObjectOld();
+		}
+		if (object == null) {
+			object = getObjectCurrent();
 		}
 		if (object == null) {
 			return getElementDefaultDesc();

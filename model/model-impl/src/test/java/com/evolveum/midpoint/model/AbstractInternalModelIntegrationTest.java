@@ -232,7 +232,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	protected LensFocusContext<UserType> fillContextWithUser(LensContext<UserType, ShadowType> context, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException {
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		focusContext.setObjectOld(user);
+		focusContext.setLoadedObject(user);
 		return focusContext;
 	}
 	
@@ -284,7 +284,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowUtil.getIntent(accountType));
         LensProjectionContext<ShadowType> accountSyncContext = context.findOrCreateProjectionContext(rat);
         accountSyncContext.setOid(account.getOid());
-		accountSyncContext.setObjectOld(account);
+		accountSyncContext.setLoadedObject(account);
 		accountSyncContext.setResource(resourceType);
 		accountSyncContext.setExists(true);
 		context.rememberResource(resourceType);

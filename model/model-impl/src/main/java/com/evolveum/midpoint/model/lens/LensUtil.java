@@ -187,6 +187,11 @@ public class LensUtil {
             Collection<ItemValueWithOrigin<V>> minusPvwos =
                     collectPvwosFromSet(value, triple.getMinusSet());
             
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}",
+            			new Object[]{value, zeroPvwos, plusPvwos, minusPvwos});
+            }
+            
             boolean zeroHasStrong = false;
             if (!zeroPvwos.isEmpty()) {
             	for (ItemValueWithOrigin<?> pvwo : zeroPvwos) {
@@ -204,11 +209,6 @@ public class LensUtil {
             if (!zeroPvwos.isEmpty() && !addUnchangedValues) {
                 // Value unchanged, nothing to do
                 LOGGER.trace("Value {} unchanged, doing nothing", value);
-                continue;
-            }
-            if (!plusPvwos.isEmpty() && !minusPvwos.isEmpty()) {
-                // Value added and removed. Ergo no change.
-                LOGGER.trace("Value {} added and removed, doing nothing", value);
                 continue;
             }
             
@@ -270,7 +270,9 @@ public class LensUtil {
                 continue;
             }
 
-            if (!minusPvwos.isEmpty()) {
+            // We need to check for empty plus set. Values that are both in plus and minus are considered to be added.
+            // So check for that special case here to avoid removing them.
+            if (!minusPvwos.isEmpty() && plusPvwos.isEmpty()) {
             	boolean weakOnly = true;
             	boolean hasStrong = false;
             	boolean hasAuthoritative = false;
@@ -514,7 +516,8 @@ public class LensUtil {
 		try{
 		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
 				accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
-		accCtx.setObjectOld(objectOld);
+		// TODO: use setLoadedObject() instead?
+		accCtx.setObjectCurrent(objectOld);
 		ShadowType oldShadow = objectOld.asObjectable();
 		accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		
@@ -536,9 +539,9 @@ public class LensUtil {
 
 	public static Object getIterationVariableValue(LensProjectionContext<ShadowType> accCtx) {
 		Integer iterationOld = null;
-		PrismObject<ShadowType> shadowOld = accCtx.getObjectOld();
-		if (shadowOld != null) {
-			iterationOld = shadowOld.asObjectable().getIteration();
+		PrismObject<ShadowType> shadowCurrent = accCtx.getObjectCurrent();
+		if (shadowCurrent != null) {
+			iterationOld = shadowCurrent.asObjectable().getIteration();
 		}
 		if (iterationOld == null) {
 			return accCtx.getIteration();
@@ -557,9 +560,9 @@ public class LensUtil {
 
 	public static Object getIterationTokenVariableValue(LensProjectionContext<ShadowType> accCtx) {
 		String iterationTokenOld = null;
-		PrismObject<ShadowType> shadowOld = accCtx.getObjectOld();
-		if (shadowOld != null) {
-			iterationTokenOld = shadowOld.asObjectable().getIterationToken();
+		PrismObject<ShadowType> shadowCurrent = accCtx.getObjectCurrent();
+		if (shadowCurrent != null) {
+			iterationTokenOld = shadowCurrent.asObjectable().getIterationToken();
 		}
 		if (iterationTokenOld == null) {
 			return accCtx.getIterationToken();

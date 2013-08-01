@@ -150,6 +150,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 		objectDelta.setObjectToAdd(user);
 		
 		focusContext.setObjectOld(null);
+		focusContext.setObjectCurrent(null);
 		focusContext.setObjectNew(user);
 		focusContext.setPrimaryDelta(objectDelta);
 		
