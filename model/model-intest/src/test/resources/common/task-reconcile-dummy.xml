@@ -39,7 +39,7 @@
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>
-		<interval>5</interval>
+		<interval>10</interval>
 	</schedule>
 
 </task>
