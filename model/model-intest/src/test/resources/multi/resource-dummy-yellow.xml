@@ -101,7 +101,8 @@
                   <xsd:element name="ship" type="xsd:string"/>
                   <xsd:element name="location" type="xsd:string"/>
                   <xsd:element name="loot" type="xsd:int"/>
-                  <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <!-- Manual schema hack!!! Weapon is really a multivalue attribute. It is "fixed" in schemaHandling. -->
+                  <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                   <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="gossip" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -149,6 +150,12 @@
 						<path>fullName</path>
 					</source>
 				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<limitations>
+					<maxOccurs>-1</maxOccurs>
+				</limitations>
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>

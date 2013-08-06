@@ -447,6 +447,9 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
         
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "mouth", "pistol");
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -612,7 +615,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
  		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
  		
  		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
-
+ 		
          // Check audit
          display("Audit", dummyAuditService);
          dummyAuditService.assertSimpleRecordSanity();

@@ -16,11 +16,10 @@
 <role oid="12345678-d34d-b33f-f00d-55555555dddd"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <name>Dummies</name>    
     <inducement>
-    	<construction>
+    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>
     		<attribute>
@@ -42,8 +41,19 @@
     	</construction>
     </inducement>    
     <inducement>
-    	<construction>
+    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
     		<resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
+    		<attribute>
+                <ref>ri:weapon</ref>
+                <outbound>
+                	<expression>
+						<value>
+							<ri:weapon>cutlass</ri:weapon>
+							<ri:weapon>pistol</ri:weapon>
+						</value>
+					</expression>
+				</outbound>
+            </attribute>
     	</construction>
     </inducement>
     <inducement>

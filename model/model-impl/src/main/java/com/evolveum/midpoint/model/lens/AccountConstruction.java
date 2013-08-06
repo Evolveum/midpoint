@@ -401,7 +401,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	}
 
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
-		return refinedAccountDefinition.getObjectClassDefinition().findAttributeDefinition(attributeName);
+		return refinedAccountDefinition.findAttributeDefinition(attributeName);
 	}
 	
 	public boolean hasValueForAttribute(QName attributeName) {
