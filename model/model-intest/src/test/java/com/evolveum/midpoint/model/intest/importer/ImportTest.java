@@ -79,9 +79,13 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 	private static final File IMPORT_USERS_OVERWRITE_FILE = new File(TEST_FILE_DIRECTORY, "import-users-overwrite.xml");
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
-	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FOLDER_COMMON, "connector-dbtable.xml");
-	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
+	private static final File CONNECTOR_DBTABLE_FILE = new File(TEST_FOLDER_COMMON, "connector-dbtable.xml");
+	private static final String CONNECOTR_DBTABLE_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
 	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
+	
+	private static final File RESOURCE_DERBY_FILE = new File(TEST_FILE_DIRECTORY, "resource-derby.xml");
+	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-9119011311ab";
+	private static final String RESOURCE_DERBY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9119011311ab";
 	
 	private static final File IMPORT_TASK_FILE = new File(TEST_FILE_DIRECTORY, "import-task.xml");
 	private static final String TASK1_OID = "00000000-0000-0000-0000-123450000001";
@@ -135,7 +139,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001ImportConnector");
-		FileInputStream stream = new FileInputStream(IMPORT_CONNECTOR_FILE);
+		FileInputStream stream = new FileInputStream(CONNECTOR_DBTABLE_FILE);
 		
 		dummyAuditService.clear();
 		
@@ -148,7 +152,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, result).asObjectable();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_DBTABLE_OID, result).asObjectable();
 		assertNotNull(connector);
 		PrismAsserts.assertEqualsPolyString("Wrong connector name.", "ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
 //		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
@@ -451,12 +455,12 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
 		display("Imported resource (repo)", importedRepoResource);
 		IntegrationTestTools.assertNoRepoCache();
-		assertResource(importedRepoResource, true);
+		assertDummyResource(importedRepoResource, true);
 		
 		importedResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 		display("Imported resource (model)", importedResource);
 		IntegrationTestTools.assertNoRepoCache();
-		assertResource(importedResource, false);
+		assertDummyResource(importedResource, false);
 		
 		ResourceType importedResourceType = importedResource.asObjectable();
 		assertNotNull("No synchronization", importedResourceType.getSynchronization());
@@ -465,7 +469,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
 		display("Imported resource (repo2)", importedRepoResource);
 		IntegrationTestTools.assertNoRepoCache();
-		assertResource(importedRepoResource, true);
+		assertDummyResource(importedRepoResource, true);
 		
 		// Check audit
         display("Audit", dummyAuditService);
@@ -504,7 +508,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 
 		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
 		display("Reimported resource (repo)", repoResource);
-		assertResource(repoResource, true);
+		assertDummyResource(repoResource, true);
 		
 		IntegrationTestTools.assertNoRepoCache();
 		
@@ -515,12 +519,63 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		IntegrationTestTools.assertNoRepoCache();
 		
-		assertResource(resource, false);
+		assertDummyResource(resource, false);
 		
 		MidPointAsserts.assertVersionIncrease(importedResource, resource);
 		
 		ResourceType resourceType = resource.asObjectable();
 		assertNull("Synchronization not gone", resourceType.getSynchronization());
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	@Test
+	public void test032ImportResourceOidAndFilter() throws Exception {
+		final String TEST_NAME = "test032ImportResourceOidAndFilter";
+		TestUtil.displayTestTile(this,TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(ImportTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		FileInputStream stream = new FileInputStream(RESOURCE_DERBY_FILE);
+		
+		IntegrationTestTools.assertNoRepoCache();
+		dummyAuditService.clear();
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after import", result);
+		TestUtil.assertSuccess("Import of "+RESOURCE_DERBY_FILE+" has failed (result)", result, 2);
+
+		IntegrationTestTools.assertNoRepoCache();
+		
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
+		display("Imported resource (repo)", importedRepoResource);
+		IntegrationTestTools.assertNoRepoCache();
+		assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
+				CONNECOTR_DBTABLE_OID, true);
+		
+		importedResource = modelService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, task, result);
+		display("Imported resource (model)", importedResource);
+		IntegrationTestTools.assertNoRepoCache();
+		assertResource(importedResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
+				CONNECOTR_DBTABLE_OID, false);
+		
+		// Read it from repo again. The read from model triggers schema fetch which increases version
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
+		display("Imported resource (repo2)", importedRepoResource);
+		IntegrationTestTools.assertNoRepoCache();
+		assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
+				CONNECOTR_DBTABLE_OID, true);
 		
 		// Check audit
         display("Audit", dummyAuditService);
@@ -579,18 +634,9 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 	
-	private void assertResource(PrismObject<ResourceType> resource, boolean fromRepo) {
-		ResourceType resourceType = resource.asObjectable();
-		assertNotNull(resourceType);
-		PrismAsserts.assertEqualsPolyString("Wrong resource name", "Dummy Resource", resourceType.getName());
-		assertEquals(RESOURCE_DUMMY_NAMESPACE, ResourceTypeUtil.getResourceNamespace(resourceType));
-		assertEquals(dummyConnector.getOid(), resourceType.getConnectorRef().getOid());
-		
-		// The password in the resource configuration should be encrypted after import
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-		PrismContainer<Containerable> configurationPropertiesContainer = 
-			configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
-		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
+	private void assertDummyResource(PrismObject<ResourceType> resource, boolean fromRepo) {
+		PrismContainer<Containerable> configurationPropertiesContainer = assertResource(resource, "Dummy Resource", RESOURCE_DUMMY_NAMESPACE, 
+				dummyConnector.getOid(), fromRepo);
 		PrismProperty<ProtectedStringType> guardedProperty = configurationPropertiesContainer.findProperty(
 				new QName(CONNECTOR_DUMMY_NAMESPACE, "uselessGuardedString"));
 		// The resource was pulled from the repository. Therefore it does not have the right schema here. We should proceed with caution
@@ -611,6 +657,23 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 			assertNull("uselessGuardedString was not encrypted (clearValue)", psType.getClearValue());
 			assertNotNull("uselessGuardedString was not encrypted (no EncryptedData)", psType.getEncryptedData());
 		}
+	}
+
+	private PrismContainer<Containerable> assertResource(PrismObject<ResourceType> resource, String resourceName, String namespace, 
+			String connectorOid, boolean fromRepo) {
+		ResourceType resourceType = resource.asObjectable();
+		assertNotNull(resourceType);
+		PrismAsserts.assertEqualsPolyString("Wrong resource name", resourceName, resourceType.getName());
+		assertEquals("Wrong namespace of "+resource, namespace, ResourceTypeUtil.getResourceNamespace(resourceType));
+		assertEquals("Wrong connector OID in "+resource, connectorOid, resourceType.getConnectorRef().getOid());
+		
+		// The password in the resource configuration should be encrypted after import
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		PrismContainer<Containerable> configurationPropertiesContainer = 
+			configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
+		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
+		
+		return configurationPropertiesContainer;
 	}
 
 }

@@ -122,7 +122,7 @@ public final class Utils {
 		}
 	}
 	
-	  public static <T extends ObjectType> void resolveReferences(PrismObject<T> object, final RepositoryService repository,
+	  public static <T extends ObjectType> void resolveReferences(final PrismObject<T> object, final RepositoryService repository,
 	    		final boolean enforceReferentialIntegrity, final PrismContext prismContext, final OperationResult result) {
 	    	
 	    	Visitor visitor = new Visitor() {
@@ -131,7 +131,7 @@ public final class Utils {
 					if (!(visitable instanceof PrismReferenceValue)) {
 						return;
 					}
-					resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, prismContext, result);
+					resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, prismContext, object.toString(), result);
 				}
 			};
 			object.accept(visitor);
@@ -139,7 +139,7 @@ public final class Utils {
 	    
 	    
 	    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository, 
-	    				boolean enforceReferentialIntegrity, PrismContext prismContext, OperationResult parentResult) {
+	    				boolean enforceReferentialIntegrity, PrismContext prismContext, String contextDesc, OperationResult parentResult) {
 	    	PrismReference reference = (PrismReference) refVal.getParent();
 	    	QName refName = reference.getName();
 	        OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
@@ -171,9 +171,7 @@ public final class Utils {
 	            if (filter != null) {
 	                // We have both filter and OID. We will choose OID, but let's at
 	                // least log a warning
-	                result.appendDetail("Both OID and filter for property " + refName);
-	                result.recordPartialError("Both OID and filter for property " + refName);
-	                refVal.setFilter(null);
+	            	LOGGER.debug("Both OID and filter for property {} in {}, OID takes precedense", refName, contextDesc);
 	            }
 	            // Nothing to resolve, but let's check if the OID exists
 	            PrismObject<? extends ObjectType> object = null;
@@ -208,6 +206,7 @@ public final class Utils {
 	            parentResult.computeStatus();
 	            return;
 	        }
+	        
 	        if (filter == null) {
 	            // No OID and no filter. We are lost.
 	            result.recordFatalError("Neither OID nor filter for property " + refName
