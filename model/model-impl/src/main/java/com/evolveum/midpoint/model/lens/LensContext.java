@@ -539,11 +539,13 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 
 	public void checkEncrypted() {
-		if (focusContext != null) {
+		if (focusContext != null && !focusContext.isDelete()) {
 			focusContext.checkEncrypted();
 		}
 		for (LensProjectionContext<P> projectionContext: projectionContexts) {
-			projectionContext.checkEncrypted();
+			if (!projectionContext.isDelete()) {
+				projectionContext.checkEncrypted();
+			}
 		}
 	}
 	
