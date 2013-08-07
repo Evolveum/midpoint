@@ -313,7 +313,17 @@ public class ObjectImporter {
              	throw e;
         	}
         } catch (SchemaException ex){
-        	result.computeStatus();
+        	result.recordFatalError("Schema exception, cannot import object: " + object, ex);
+//        	result.computeStatus();
+        	throw ex;
+//        } catch (CommunicationException ex){
+//        	result.recordFatalError("Communication problem, cannot import object: " + object, ex);
+//        	throw ex;
+//        } catch (CommunicationException ex){
+//        	result.recordFatalError("Communication problem, cannot import object: " + object, ex);
+//        	throw ex;
+        } catch (RuntimeException ex){
+        	result.recordFatalError("Couldn't import object: " + object +". Reason: " + ex.getMessage(), ex);
         	throw ex;
         }
     }

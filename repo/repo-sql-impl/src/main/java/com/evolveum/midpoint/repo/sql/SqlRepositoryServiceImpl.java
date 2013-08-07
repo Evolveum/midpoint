@@ -512,8 +512,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         .createQuery("from ROrg where id = 0 and oid = :oid");
                 qOrg.setString("oid", orgInc.getDescendantOid());
                 ROrg rOrgI = (ROrg) qOrg.uniqueResult();
-                fillTransitiveHierarchy(rOrgI, rOrg.getOid(), session, !withIncorrect);
-                session.delete(orgInc);
+				if (rOrgI != null) {
+					fillTransitiveHierarchy(rOrgI, rOrg.getOid(), session, !withIncorrect);
+					session.delete(orgInc);
+				}
             }
         }
     }
@@ -532,10 +534,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (orgClosure.size() > 0) {
             for (ROrgClosure o : orgClosure) {
+            	String anc = "null";
+            	if (o != null && o.getAncestor()!= null){
+            		anc = o.getAncestor().getOid();
+            	}
                 LOGGER.trace(
                         "adding {}\t{}\t{}",
-                        new Object[]{o.getAncestor().getOid(),
-                                descendant.getOid(), o.getDepth() + 1});
+                        new Object[]{anc , descendant == null ? null: descendant.getOid(), o.getDepth() + 1});
 
                 boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(),
                         descendant.getOid(), o.getDepth() + 1);
