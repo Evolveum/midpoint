@@ -94,6 +94,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Rapp has dummy account but it is not linked
         assertAccounts(rapp, 0);
         
+        dummyAuditService.clear();
+        
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
@@ -123,6 +125,41 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         
         assertEquals("Unexpected number of users", 7, users.size());
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        
+        List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
+        
+    	int i=0;
+    	int modifications = 0;
+    	for (; i < (auditRecords.size() - 1); i+=2) {
+        	AuditEventRecord requestRecord = auditRecords.get(i);
+        	assertNotNull("No request audit record ("+i+")", requestRecord);
+        	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
+        	assertTrue("Unexpected delta in request audit record "+requestRecord, requestRecord.getDeltas() == null || requestRecord.getDeltas().isEmpty());
+
+        	AuditEventRecord executionRecord = auditRecords.get(i+1);
+        	assertNotNull("No execution audit record ("+i+")", executionRecord);
+        	assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
+        	
+        	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
+        	modifications++;
+        	
+        	// check next records
+        	while (i < (auditRecords.size() - 2)) {
+        		AuditEventRecord nextRecord = auditRecords.get(i+2);
+        		if (nextRecord.getEventStage() == AuditEventStage.EXECUTION) {
+        			// more than one execution record is OK
+        			i++;
+        		} else {
+        			break;
+        		}
+        	}
+
+        }
+        assertEquals("Unexpected number of audit modifications", 4, modifications);
+
 	}
 
 	@Test
