@@ -267,7 +267,7 @@ public class ActivationProcessor {
     	
     	PropertyDelta<ActivationStatusType> statusDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
     	
-    	if (statusDelta != null) {
+    	if (statusDelta != null && !statusDelta.isDelete()) {
     		PrismProperty<ActivationStatusType> statusPropNew = (PrismProperty<ActivationStatusType>) statusDelta.getItemNew();
     		ActivationStatusType statusNew = statusPropNew.getRealValue();
 			PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,

@@ -342,6 +342,9 @@ public class ResourceObjectConverter {
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Could not create account on the resource. Generic error in connector: " + ex.getMessage(), ex);
+//			LOGGER.info("Schema for add:\n{}",
+//					DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
+//			
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		} catch (ObjectAlreadyExistsException ex){
 			parentResult.recordFatalError("Could not create account on the resource. Account already exists on the resource: " + ex.getMessage(), ex);
@@ -791,7 +794,7 @@ public class ResourceObjectConverter {
 			ActivationStatusType status = enabledPropertyDelta.getPropertyNew().getRealValue();
 			LOGGER.trace("Found activation administrativeStatus change to: {}", status);
 	
-			if (status != null) {
+//			if (status != null) {
 	
 				if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 					// Native activation, need to check if there is not also change to simulated activation which may be in conflict
@@ -799,11 +802,11 @@ public class ResourceObjectConverter {
 					operations.add(new PropertyModificationOperation(enabledPropertyDelta));
 				} else {
 					// Try to simulate activation capability
-					PropertyModificationOperation activationAttribute = convertToSimulatedActivationAttribute(shadow, resource,
+					PropertyModificationOperation activationAttribute = convertToSimulatedActivationAttribute(enabledPropertyDelta, shadow, resource,
 							status, objectClassDefinition);
 					operations.add(activationAttribute);
 				}	
-			}
+//			}
 		}
 		
 		// validFrom
@@ -1267,7 +1270,7 @@ public class ResourceObjectConverter {
 
 	}
 
-	private PropertyModificationOperation convertToSimulatedActivationAttribute(ShadowType shadow, ResourceType resource,
+	private PropertyModificationOperation convertToSimulatedActivationAttribute(PropertyDelta activationDelta, ShadowType shadow, ResourceType resource,
 			ActivationStatusType status, ObjectClassComplexTypeDefinition objectClassDefinition)
 			throws SchemaException {
 		OperationResult result = new OperationResult("Modify activation attribute.");
@@ -1284,7 +1287,11 @@ public class ResourceObjectConverter {
 		
 		PropertyDelta<?> enableAttributeDelta = null;
 		
-		if (status == ActivationStatusType.ENABLED) {
+		if (status == null && activationDelta.isDelete()){
+			LOGGER.trace("deleting activation property.");
+			enableAttributeDelta = PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
+			
+		} else if (status == ActivationStatusType.ENABLED) {
 			String enableValue = getEnableValue(capActStatus);
 			LOGGER.trace("enable attribute delta: {}", enableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
