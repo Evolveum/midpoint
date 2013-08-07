@@ -72,6 +72,7 @@ object.
                 <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com
                 </icfcldap:modifiersNamesToFilterOut>
                 <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+                <icfcldap:useBlocks>true</icfcldap:useBlocks>
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
                 <icfcldap:accountOperationalAttributes>nsAccountLock</icfcldap:accountOperationalAttributes>

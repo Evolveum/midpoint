@@ -80,6 +80,7 @@ public class OpenDJController extends AbstractResourceController {
 
 	private String DATA_TEMPLATE = "test-data/opendj.template";
 	private String SERVER_ROOT = "target/test-data/opendj";
+	private String LDAP_SUFFIX = "dc=example,dc=com";
 
 	protected File serverRoot = new File(SERVER_ROOT);
 	protected File configFile = null;
@@ -185,6 +186,15 @@ public class OpenDJController extends AbstractResourceController {
 		return templateRoot;
 	}
 
+	public String getSuffix() {
+		return LDAP_SUFFIX;
+	}
+	
+	
+	public String getSuffixPeople() {
+		return "ou=People,"+LDAP_SUFFIX;
+	}
+	
 	/**
 	 * Get the value of internalConnection
 	 * 
@@ -575,13 +585,16 @@ public class OpenDJController extends AbstractResourceController {
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry ldifEntry = ldifReader.readEntry();
-        AddOperation addOperation = getInternalConnection().processAdd(ldifEntry);
+        addEntry(ldifEntry);
+        return ldifEntry;
+	}
+	
+	public void addEntry(Entry ldapEntry) {
+		 AddOperation addOperation = getInternalConnection().processAdd(ldapEntry);
 
         if (ResultCode.SUCCESS != addOperation.getResultCode()) {
         	throw new RuntimeException("LDAP operation error: "+addOperation.getResultCode()+": "+addOperation.getErrorMessage());
         }
-        
-        return ldifEntry;
 	}
 	
 	public ChangeRecordEntry executeLdifChange(String filename) throws IOException, LDIFException {

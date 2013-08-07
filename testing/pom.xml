@@ -30,5 +30,7 @@
     <modules>
         <module>sanity</module>
         <module>consistency-mechanism</module>
+        <!-- DO NOT include longtest by default, this runs too long for
+        ordinary build -->
     </modules>
 </project>

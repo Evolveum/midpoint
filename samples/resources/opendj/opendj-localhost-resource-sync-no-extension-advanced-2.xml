@@ -82,6 +82,7 @@ object.
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+			<icfcldap:useBlocks>true</icfcldap:useBlocks>
 			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 		</icfc:configurationProperties>
 		<icfc:connectorPoolConfiguration>

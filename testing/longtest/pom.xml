@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -16,15 +16,15 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<name>midPoint Testing - Long Tests</name>
 	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Model - integration tests</name>
-	<groupId>com.evolveum.midpoint.model</groupId>
-	<artifactId>model-intest</artifactId>
-	<packaging>jar</packaging>
+	<groupId>com.evolveum.midpoint.testing</groupId>
+	<artifactId>longtest</artifactId>
 	<parent>
-		<artifactId>model</artifactId>
+		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>2.2-SNAPSHOT</version>
+		<relativePath>../../build-system/pom.xml</relativePath>
 	</parent>
 	<organization>
 		<name>Evolveum</name>
@@ -41,124 +41,72 @@
 		<system>Atlassian JIRA</system>
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
-	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-		<url>https://fisheye.evolveum.com/midpoint/</url>
-	</scm>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<runOrder>alphabetical</runOrder>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencies>
-        <!-- DO NOT CHANGE order of the first 4 dependencies, otherwise strange performance issues related to schema parsing occur -->
 		<dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-api</artifactId>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>util</artifactId>
 			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>task-api</artifactId>
-            <version>2.2-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-            <version>2.2-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>util</artifactId>
-            <version>2.2-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-impl</artifactId>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>common</artifactId>
 			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
 			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-cache</artifactId>
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>model-impl</artifactId>
 			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>provisioning-api</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-	     	<dependency>
-			<groupId>com.evolveum.icf</groupId>
-			<artifactId>dummy-connector</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.icf</groupId>
-			<artifactId>dummy-connector-fake</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.icf</groupId>
-			<artifactId>dummy-resource</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>provisioning-impl</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-quartz-impl</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>audit-impl</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-sql-impl-test</artifactId>
-			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-test</artifactId>
 			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>provisioning-impl</artifactId>
+			<version>2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-sql-impl</artifactId>
+			<artifactId>task-quartz-impl</artifactId>
 			<version>2.2-SNAPSHOT</version>
-			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>audit-impl</artifactId>
+			<version>2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-test-util</artifactId>
 			<version>2.2-SNAPSHOT</version>
+		</dependency>
+
+		<!-- TEST dependency -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>test-util</artifactId>
+			<groupId>com.evolveum.midpoint.tools</groupId>
+			<artifactId>test-ng</artifactId>
 			<version>2.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
@@ -173,24 +121,15 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>csvfile-connector</artifactId>
-            <scope>test</scope>
-        </dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.tools</groupId>
-			<artifactId>test-ng</artifactId>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>test-util</artifactId>
 			<version>2.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-sql-impl</artifactId>
+			<version>2.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -219,10 +158,5 @@
             <artifactId>servlet-api</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-		    <groupId>org.forgerock.opendj</groupId>
-		    <artifactId>opendj-ldap-sdk</artifactId>
-		    <scope>test</scope>
-		</dependency>
-    </dependencies>
+	</dependencies>
 </project>
