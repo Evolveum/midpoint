@@ -30,9 +30,12 @@ For bugtracking system please go to:
 
   http://jira.evolveum.com/
 
-Latest source from our SVN repository using the URL:
+Latest source code can be obtained from our Git repository using one of the 
+following repository locations:
 
-  https://svn.evolveum.com/midpoint/trunk
+  git://git.evolveum.com/midpoint.git (public, read-only)
+  http://git.evolveum.com/public/midpoint.git (public, read-only)
+  git.evolveum.com:/srv/git/projects/midpoint.git (SSH, read-write, requires developer account)
 
 This project is developed under Apache license (version 2.0) You may get copy
 of licence in LICENSE file. Please also see NOTICE file for addtional
