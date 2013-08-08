@@ -769,6 +769,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 	
+	protected <O extends ObjectType> void assertNoObject(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		try {
+			PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
+			
+			AssertJUnit.fail("Expected that "+object+" does not exist, but it does");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+			return;
+		}
+	}
+	
 	protected void assertNoShadow(String username, PrismObject<ResourceType> resource, 
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		ObjectQuery query = createAccountShadowQuery(username, resource);
@@ -1485,6 +1496,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         result.computeStatus();
         TestUtil.assertSuccess(result);
         object.setOid(addDelta.getOid());
+	}
+	
+	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 	}
 	
 	protected void addTrigger(String oid, XMLGregorianCalendar timestamp, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {

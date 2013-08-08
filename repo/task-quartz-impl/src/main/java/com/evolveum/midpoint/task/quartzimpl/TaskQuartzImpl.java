@@ -1197,7 +1197,8 @@ public class TaskQuartzImpl implements Task {
             ownerRef.getValue().setObject(owner);
             return owner;
 		} catch (ObjectNotFoundException e) {
-			throw new SystemException("The owner of task "+getOid()+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
+			LOGGER.warn("The owner of task "+getOid()+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
+			return null;
 		}
 	}
 

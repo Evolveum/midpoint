@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -62,6 +64,8 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.ClusterStatusInformation;
+import com.evolveum.midpoint.task.api.ClusterStatusInformation.TaskInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -74,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -489,6 +494,129 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertExtension(userDeGhoulash, PIRACY_FUNERAL_TIMESTAMP, USER_DEGHOULASH_FUNERAL_TIMESTAMP);
     }
 
+    @Test
+    public void test400ImportJackMockTask() throws Exception {
+		final String TEST_NAME = "test400ImportJackMockTask";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_MOCK_JACK_FILE);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        assertSuccess(result);
+        
+        waitForTaskFinish(TASK_MOCK_JACK_OID, false);
+    }
+    
+    @Test
+    public void test401ListTasks() throws Exception {
+		final String TEST_NAME = "test401ListTasks";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        List<PrismObject<TaskType>> objects = modelService.searchObjects(TaskType.class, null, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        assertSuccess(result);
+        
+        display("Tasks", objects);
+        assertEquals("Unexpected number of tastsk", 1, objects.size());
+        boolean found = false;
+        for (PrismObject<TaskType> object: objects) {
+        	if (object.getOid().equals(TASK_MOCK_JACK_OID)) {
+        		found = true;
+        	}
+        }
+        assertTrue("Mock task not found (model)", found);
+        
+        ClusterStatusInformation clusterStatusInformation = taskManager.getRunningTasksClusterwide(result);
+        display("Cluster status", clusterStatusInformation);
+        TaskInfo jackTaskInfo = null;
+        Set<TaskInfo> taskInfos = clusterStatusInformation.getTasks();
+        for (TaskInfo taskInfo: taskInfos) {
+        	if (taskInfo.getOid().equals(TASK_MOCK_JACK_OID)) {
+        		jackTaskInfo = taskInfo;
+        	}
+        }
+        assertNotNull("Mock task not found (taskManager)", jackTaskInfo);
+        
+        // Make sure that the tasks still runs
+        waitForTaskFinish(TASK_MOCK_JACK_OID, false);
+        
+    }
+    
+    /**
+     * Delete user jack. See that Jack's tasks are still there (although they may be broken)
+     */
+    @Test
+    public void test410DeleteJack() throws Exception {
+		final String TEST_NAME = "test410DeleteJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteObject(UserType.class, USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        assertSuccess(result);
+        
+        // Make sure the user is gone
+        assertNoObject(UserType.class, USER_JACK_OID, task, result);
+        
+        List<PrismObject<TaskType>> objects = modelService.searchObjects(TaskType.class, null, null, task, result);
+        display("Tasks", objects);
+        assertEquals("Unexpected number of tastsk", 1, objects.size());
+        PrismObject<TaskType> jackTask = null;
+        for (PrismObject<TaskType> object: objects) {
+        	if (object.getOid().equals(TASK_MOCK_JACK_OID)) {
+        		jackTask = object;
+        	}
+        }
+        assertNotNull("Mock task not found (model)", jackTask);
+        display("Jack's task (model)", jackTask);
+        
+        ClusterStatusInformation clusterStatusInformation = taskManager.getRunningTasksClusterwide(result);
+        display("Cluster status", clusterStatusInformation);
+        TaskInfo jackTaskInfo = null;
+        Set<TaskInfo> taskInfos = clusterStatusInformation.getTasks();
+        for (TaskInfo taskInfo: taskInfos) {
+        	if (taskInfo.getOid().equals(TASK_MOCK_JACK_OID)) {
+        		jackTaskInfo = taskInfo;
+        	}
+        }
+        assertNotNull("Mock task not found (taskManager)", jackTaskInfo);
+        display("Jack's task (taskManager)", jackTaskInfo);
+        
+        // TODO: check task status
+        
+    }
+    
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
 		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
 		assertNotNull("No extension container in "+object, extensionContainer);
