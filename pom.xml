@@ -80,6 +80,7 @@
         <module>gui</module>
         <module>icf-connectors</module>
         <module>samples</module>
+        <module>dist</module>
     </modules>
     <profiles>
         <profile>
