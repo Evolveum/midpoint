@@ -26,7 +26,6 @@
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>2.2-SNAPSHOT</version>
-        <relativePath>../../build-system/pom.xml</relativePath>
     </parent>
     <dependencies>
         <dependency>
