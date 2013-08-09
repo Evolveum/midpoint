@@ -40,8 +40,8 @@
         <url>https://jira.evolveum.com/browse/MID</url>
     </issueManagement>
     <scm>
-        <connection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</developerConnection>
+        <connection>scm:git:git://git.evolveum.com/midpoint.gittrunk/</connection>
+        <developerConnection>scm:git:git://git.evolveum.com/midpoint.gittrunk/</developerConnection>
         <url>http://fisheye.evolveum.com/browse/MidPoint/trunk</url>
     </scm>
     <build>

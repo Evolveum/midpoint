@@ -42,8 +42,8 @@
         <url>http://jira.evolveum.com/</url>
     </issueManagement>
     <scm>
-        <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
+        <connection>scm:git:git://git.evolveum.com/midpoint.git</connection>
+        <developerConnection>scm:git:git://git.evolveum.com/midpoint.git</developerConnection>
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <modules>

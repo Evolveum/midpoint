@@ -526,8 +526,8 @@
         <url>http://jira.evolveum.com/</url>
     </issueManagement>
     <scm>
-        <connection>scm:svn:http://svn.evolveum.com/midpoint/trunk/build-system</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/trunk/build-system</developerConnection>
+        <connection>scm:git:git://git.evolveum.com/midpoint.gittrunk/build-system</connection>
+        <developerConnection>scm:git:git://git.evolveum.com/midpoint.gittrunk/build-system</developerConnection>
         <url>https://fisheye.evolveum.com/browse/MidPoint/trunk/browse/MidPoint/trunk/build-system</url>
     </scm>
     <ciManagement>
