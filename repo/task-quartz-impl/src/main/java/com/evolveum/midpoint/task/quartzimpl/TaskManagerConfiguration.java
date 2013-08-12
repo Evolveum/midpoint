@@ -206,6 +206,7 @@ public class TaskManagerConfiguration {
         addDbInfo("org.hibernate.dialect.PostgresPlusDialect", "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
         addDbInfo("org.hibernate.dialect.MySQLDialect", "tables_mysql.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         addDbInfo("org.hibernate.dialect.MySQLInnoDBDialect", "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo("com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect", "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         addDbInfo("org.hibernate.dialect.OracleDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         addDbInfo("org.hibernate.dialect.Oracle9Dialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         addDbInfo("org.hibernate.dialect.Oracle8iDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
