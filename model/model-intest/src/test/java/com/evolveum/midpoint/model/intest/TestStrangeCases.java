@@ -538,7 +538,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         
         display("Tasks", objects);
-        assertEquals("Unexpected number of tastsk", 1, objects.size());
+        assertEquals("Unexpected number of tasks", 1, objects.size());
         boolean found = false;
         for (PrismObject<TaskType> object: objects) {
         	if (object.getOid().equals(TASK_MOCK_JACK_OID)) {
