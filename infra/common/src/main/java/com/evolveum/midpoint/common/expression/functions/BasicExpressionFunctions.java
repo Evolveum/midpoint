@@ -105,19 +105,27 @@ public class BasicExpressionFunctions {
 
 	/**
 	 * Concatenates the arguments to create a name.
-	 * Each argument is trimmed and the result is concatenated by spaces.
+	 * Each argument is stringified, trimmed and the result is concatenated by spaces.
 	 */
-	public String concatName(String... components) {
+	public String concatName(Object... components) {
 		if (components == null || components.length == 0) {
 			return "";
 		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < components.length; i++) {
-			String component = components[i];
+			Object component = components[i];
 			if (component == null) {
 				continue;
 			}
-			sb.append(trim(component));
+			String stringComponent = stringify(component);
+			if (stringComponent == null) {
+				continue;
+			}
+			String trimmedStringComponent = trim(stringComponent);
+			if (trimmedStringComponent.isEmpty()) {
+				continue;
+			}
+			sb.append(trimmedStringComponent);
 			if (i < (components.length - 1)) {
 				sb.append(NAME_SEPARATOR);
 			}
