@@ -50,7 +50,7 @@ public abstract class AbstractUserWrapper extends AbstractWrapper {
 
         ObjectType object = a.getTarget();
         if (object == null) {
-            if (a.getTargetRef().getOid() == null) {
+            if (a.getTargetRef() == null || a.getTargetRef().getOid() == null) {
                 return null;
             }
             try {
