@@ -111,6 +111,7 @@ public class BasicExpressionFunctions {
 		if (components == null || components.length == 0) {
 			return "";
 		}
+		boolean endsWithSeparator = false;
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < components.length; i++) {
 			Object component = components[i];
@@ -128,7 +129,13 @@ public class BasicExpressionFunctions {
 			sb.append(trimmedStringComponent);
 			if (i < (components.length - 1)) {
 				sb.append(NAME_SEPARATOR);
+				endsWithSeparator = true;
+			} else {
+				endsWithSeparator = false;
 			}
+		}
+		if (endsWithSeparator) {
+			sb.delete(sb.length() - NAME_SEPARATOR.length(), sb.length());
 		}
 		return sb.toString();
 	}
@@ -214,8 +221,7 @@ public class BasicExpressionFunctions {
 			return ((Node)whatever).getTextContent();
 		}
 
-		throw new IllegalArgumentException("Cannot stringify "+whatever+" ("+whateverClass+")");
-//		return whatever.toString();
+		return whatever.toString();
 	}
 	
 	public boolean isEmpty(Object whatever) {
@@ -284,18 +290,30 @@ public class BasicExpressionFunctions {
 	}
 	
 	
-	public Collection<Object> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
+	public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
 		return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}
 	
-	public Collection<Object> getAttributeValues(ShadowType shadow, groovy.xml.QName attributeQname) {
+	public <T> Collection<T> getAttributeValues(ShadowType shadow, groovy.xml.QName attributeQname) {
 		return getAttributeValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
 	
-	public Collection<Object> getAttributeValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
-		return ShadowUtil.getAttributeValues(shadow, attributeQname, Object.class);
+	public <T> Collection<T> getAttributeValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
+		return ShadowUtil.getAttributeValues(shadow, attributeQname);
 	}
 
+	public <T> T getAttributeValue(ShadowType shadow, String attributeNamespace, String attributeLocalPart) throws SchemaException {
+		return getAttributeValue(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
+	}
+	
+	public <T> T getAttributeValue(ShadowType shadow, groovy.xml.QName attributeQname) throws SchemaException {
+		return getAttributeValue(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
+	}
+	
+	public <T> T getAttributeValue(ShadowType shadow, javax.xml.namespace.QName attributeQname) throws SchemaException {
+		return ShadowUtil.getAttributeValue(shadow, attributeQname);
+	}
+	
 	public Collection<String> getAttributeStringValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
 		return getAttributeStringValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}

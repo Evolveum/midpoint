@@ -204,6 +204,21 @@ public class ShadowUtil {
 		}
 		return values;
 	}
+	
+	public static <T> T getAttributeValue(ShadowType shadowType, QName attrName) throws SchemaException {
+		return (T) getAttributeValue(shadowType.asPrismObject(), attrName);
+	}
+	
+	public static <T> T getAttributeValue(PrismObject<? extends ShadowType> shadow, QName attrName) throws SchemaException {
+		Collection<T> values = getAttributeValues(shadow, attrName);
+		if (values == null || values.isEmpty()) {
+			return null;
+		}
+		if (values.size() > 1) {
+			throw new SchemaException("Attempt to get single value from multi-valued attribute "+attrName);
+		}
+		return values.iterator().next();
+	}
 
 	public static void setPassword(ShadowType shadowType, ProtectedStringType password) {
 		CredentialsType credentialsType = shadowType.getCredentials();

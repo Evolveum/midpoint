@@ -19,15 +19,18 @@ import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunction
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.testng.annotations.BeforeSuite;
@@ -50,6 +53,9 @@ public class TestExpressionFunctions {
 	
 	public static final File TEST_DIR = new File("src/test/resources/expression/functions");
 	public static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
+	public static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
+	private static final String ATTR_FULLNAME_LOCAL_PART = "fullname";
+	private static final String ATTR_WEAPON_LOCAL_PART = "weapon";
     
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -125,6 +131,42 @@ public class TestExpressionFunctions {
         assertNull("Unexpected value for extension "+SchemaTestConstants.EXTENSION_SHIP_ELEMENT+": "+shipExtension, shipExtension);
     }
     
+    @Test
+    public void testGetAttributeValueParts() throws Exception {
+    	final String TEST_NAME = "testGetAttributeValueParts";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
+
+        // WHEN
+        String attrVal = f.getAttributeValue(accountJack.asObjectable(),
+        		MidPointConstants.NS_RI,
+        		ATTR_FULLNAME_LOCAL_PART);
+
+        // THEN
+        assertEquals("Wrong value for attribute "+ATTR_FULLNAME_LOCAL_PART, "Jack Sparrow", attrVal);
+    }
+
+    @Test
+    public void testGetAttributeValuesParts() throws Exception {
+    	final String TEST_NAME = "testGetAttributeValuesParts";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
+
+        // WHEN
+        Collection<String> attrVals = f.getAttributeValues(accountJack.asObjectable(),
+        		MidPointConstants.NS_RI,
+        		ATTR_WEAPON_LOCAL_PART);
+
+        // THEN
+        TestUtil.assertSetEquals("Wrong value for attribute "+ATTR_WEAPON_LOCAL_PART, attrVals, "rum", "smell");
+    }
+
     @Test
     public void testDetermineLdapSingleAttributeValue01() throws Exception {
     	final String TEST_NAME = "testDetermineLdapSingleAttributeValue01";
@@ -268,6 +310,42 @@ public class TestExpressionFunctions {
 	private BasicExpressionFunctions createBasicFunctions() throws SchemaException, SAXException, IOException {
 		PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 		return new BasicExpressionFunctions(prismContext);
+	}
+	
+	@Test
+	public void testStringify() throws Exception {
+		final String TEST_NAME = "testStringifyString";
+		TestUtil.displayTestTile(TEST_NAME);
+		BasicExpressionFunctions basic = createBasicFunctions();
+		assertEquals("foo", basic.stringify("foo"));
+		assertEquals("foo", basic.stringify(poly("foo")));
+		assertEquals("foo", basic.stringify(PrismTestUtil.createPolyStringType("foo")));
+		assertEquals("42", basic.stringify(42));
+		assertEquals("", basic.stringify(null));
+		assertEquals("", basic.stringify(""));
+	}
+	
+	@Test
+	public void testConcatName() throws Exception {
+		final String TEST_NAME = "testConcatName";
+		TestUtil.displayTestTile(TEST_NAME);
+		BasicExpressionFunctions basic = createBasicFunctions();
+		assertEquals("foo bar", basic.concatName("foo","bar"));
+		assertEquals("foo bar", basic.concatName(poly("foo"),"bar"));
+		assertEquals("foo bar", basic.concatName("foo",poly("bar")));
+		assertEquals("foo", basic.concatName("foo",""));
+		assertEquals("foo", basic.concatName("foo",null));
+		assertEquals("foo bar", basic.concatName("foo",null,"bar"));
+		assertEquals("foo bar", basic.concatName("foo","","bar"));
+		assertEquals("foo bar", basic.concatName("foo ","bar"));
+		assertEquals("foo bar", basic.concatName("foo"," bar"));
+		assertEquals("foo bar", basic.concatName("   foo   ","  bar        "));
+		assertEquals("foo bar", basic.concatName("   foo   ",null,"  bar        "));
+		assertEquals("foo bar", basic.concatName("   foo   ","    ","  bar        "));
+	}
+	
+	private PolyString poly(String s) {
+		return PrismTestUtil.createPolyString(s);
 	}
 
 }
