@@ -351,7 +351,7 @@
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
                 <artifactId>databasetable-connector</artifactId>
-                <version>1.1.0.e6296</version>
+                <version>1.1.0.em12</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
