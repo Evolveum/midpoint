@@ -10,8 +10,9 @@ function realResizeEditor(editorId) {
         newHeight = 1000;
     }
 
-    $('#' + editorId).height(newHeight.toString() + "px");
-    $('#' + editorId + '-section').height(newHeight.toString() + "px");
+    var height = newHeight.toString() + 'px';
+    $('#' + editorId).height(height);
+    $('#' + editorId + '-section').height(height);
 
     var editor = ace.edit(editorId);
     editor.resize();
