@@ -23,6 +23,16 @@
     <fileSet>
     <directory>../samples</directory>
       <outputDirectory>/samples</outputDirectory>
+      <excludes>
+      	<exclude>.project</exclude>
+      	<exclude>.classpath</exclude>
+      	<exclude>.settings/</exclude>
+      	<exclude>pom.xml</exclude>
+      	<exclude>*~</exclude>
+      	<exclude>**/*~</exclude>
+      	<exclude>model-client-sample/</exclude>
+      	<exclude>samples-test/</exclude>
+      </excludes>
     </fileSet>
   </fileSets>
   <dependencySets>
