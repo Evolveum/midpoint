@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -33,6 +34,8 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_org")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@org.hibernate.annotations.Table(appliesTo = "m_org",
+        indexes = {@Index(name = "iOrgName", columnNames = "name_orig")})
 public class ROrg extends RAbstractRole {
 
     private RPolyString name;

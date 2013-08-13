@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordLifeTimeTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -35,6 +36,8 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_password_policy")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@org.hibernate.annotations.Table(appliesTo = "m_password_policy",
+        indexes = {@Index(name = "iPasswordPolicy", columnNames = "name_orig")})
 public class RPasswordPolicy extends RObject {
 
     private RPolyString name;

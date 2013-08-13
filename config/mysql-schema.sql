@@ -898,13 +898,15 @@ ADD CONSTRAINT fk_authorization_action
 FOREIGN KEY (role_id, role_oid)
 REFERENCES m_authorization (id, oid);
 
-CREATE INDEX iConnectorName ON m_connector (name_norm);
+CREATE INDEX iConnectorName ON m_connector (name_orig, name_norm);
 
 ALTER TABLE m_connector
 ADD INDEX fk_connector (id, oid),
 ADD CONSTRAINT fk_connector
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
+
+CREATE INDEX iConnectorHostName ON m_connector_host (name_orig);
 
 ALTER TABLE m_connector_host
 ADD INDEX fk_connector_host (id, oid),
@@ -940,6 +942,8 @@ ADD CONSTRAINT fk_focus
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
 
+CREATE INDEX iGenericObjectName ON m_generic_object (name_orig);
+
 ALTER TABLE m_generic_object
 ADD INDEX fk_generic_object (id, oid),
 ADD CONSTRAINT fk_generic_object
@@ -951,6 +955,8 @@ ADD INDEX fk_metadata_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_metadata_owner
 FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_container (id, oid);
+
+CREATE INDEX iNodeName ON m_node (name_orig);
 
 ALTER TABLE m_node
 ADD INDEX fk_node (id, oid),
@@ -964,6 +970,8 @@ ADD CONSTRAINT fk_object
 FOREIGN KEY (id, oid)
 REFERENCES m_container (id, oid);
 
+CREATE INDEX iObjectTemplate ON m_object_template (name_orig);
+
 ALTER TABLE m_object_template
 ADD INDEX fk_object_template (id, oid),
 ADD CONSTRAINT fk_object_template
@@ -975,6 +983,8 @@ ADD INDEX fk_result_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_result_owner
 FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_object (id, oid);
+
+CREATE INDEX iOrgName ON m_org (name_orig);
 
 ALTER TABLE m_org
 ADD INDEX fk_org (id, oid),
@@ -1000,6 +1010,8 @@ ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_id, org_oid)
 REFERENCES m_org (id, oid);
 
+CREATE INDEX iPasswordPolicy ON m_password_policy (name_orig);
+
 ALTER TABLE m_password_policy
 ADD INDEX fk_password_policy (id, oid),
 ADD CONSTRAINT fk_password_policy
@@ -1012,11 +1024,15 @@ ADD CONSTRAINT fk_reference_owner
 FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_container (id, oid);
 
+CREATE INDEX iResourceName ON m_resource (name_orig);
+
 ALTER TABLE m_resource
 ADD INDEX fk_resource (id, oid),
 ADD CONSTRAINT fk_resource
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
+
+CREATE INDEX iRoleName ON m_role (name_orig);
 
 ALTER TABLE m_role
 ADD INDEX fk_role (id, oid),
@@ -1030,7 +1046,7 @@ CREATE INDEX iShadowAdministrative ON m_shadow (administrativeStatus);
 
 CREATE INDEX iShadowEffective ON m_shadow (effectiveStatus);
 
-CREATE INDEX iShadowName ON m_shadow (name_norm);
+CREATE INDEX iShadowName ON m_shadow (name_orig, name_norm);
 
 ALTER TABLE m_shadow
 ADD INDEX fk_shadow (id, oid),
@@ -1044,13 +1060,15 @@ ADD CONSTRAINT fk_shadow_sync_situation
 FOREIGN KEY (shadow_id, shadow_oid)
 REFERENCES m_shadow (id, oid);
 
+CREATE INDEX iSystemConfigurationName ON m_system_configuration (name_orig);
+
 ALTER TABLE m_system_configuration
 ADD INDEX fk_system_configuration (id, oid),
 ADD CONSTRAINT fk_system_configuration
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
 
-CREATE INDEX iTaskName ON m_task (name_norm);
+CREATE INDEX iTaskName ON m_task (name_orig, name_norm);
 
 ALTER TABLE m_task
 ADD INDEX fk_task (id, oid),
@@ -1078,21 +1096,23 @@ ADD CONSTRAINT fk_trigger_owner
 FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_object (id, oid);
 
-CREATE INDEX iFullName ON m_user (fullName_norm);
+CREATE INDEX iFullName ON m_user (fullName_orig);
 
-CREATE INDEX iLocality ON m_user (locality_norm);
+CREATE INDEX iLocality ON m_user (locality_orig);
 
-CREATE INDEX iHonorificSuffix ON m_user (honorificSuffix_norm);
+CREATE INDEX iHonorificSuffix ON m_user (honorificSuffix_orig);
 
 CREATE INDEX iEmployeeNumber ON m_user (employeeNumber);
 
-CREATE INDEX iGivenName ON m_user (givenName_norm);
+CREATE INDEX iGivenName ON m_user (givenName_orig);
 
-CREATE INDEX iFamilyName ON m_user (familyName_norm);
+CREATE INDEX iFamilyName ON m_user (familyName_orig);
 
-CREATE INDEX iAdditionalName ON m_user (additionalName_norm);
+CREATE INDEX iAdditionalName ON m_user (additionalName_orig);
 
-CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_norm);
+CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_orig);
+
+CREATE INDEX iUserName ON m_user (name_orig);
 
 ALTER TABLE m_user
 ADD INDEX fk_user (id, oid),

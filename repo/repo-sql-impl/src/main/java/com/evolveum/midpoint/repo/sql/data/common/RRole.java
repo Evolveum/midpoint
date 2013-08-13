@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -34,6 +35,8 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @ForeignKey(name = "fk_role")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@org.hibernate.annotations.Table(appliesTo = "m_role",
+        indexes = {@Index(name = "iRoleName", columnNames = "name_orig")})
 public class RRole extends RAbstractRole {
 
     private RPolyString name;

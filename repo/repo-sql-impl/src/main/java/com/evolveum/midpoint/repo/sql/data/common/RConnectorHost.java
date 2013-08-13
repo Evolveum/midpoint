@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -34,6 +35,8 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_connector_host")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@org.hibernate.annotations.Table(appliesTo = "m_connector_host",
+        indexes = {@Index(name = "iConnectorHostName", columnNames = "name_orig")})
 public class RConnectorHost extends RObject {
 
     private RPolyString name;

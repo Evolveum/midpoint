@@ -39,13 +39,14 @@ import java.util.Set;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
-        indexes = {@Index(name = "iFullName", columnNames = "fullName_norm"),
-                @Index(name = "iFamilyName", columnNames = "familyName_norm"),
-                @Index(name = "iGivenName", columnNames = "givenName_norm"),
-                @Index(name = "iLocality", columnNames = "locality_norm"),
-                @Index(name = "iAdditionalName", columnNames = "additionalName_norm"),
-                @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_norm"),
-                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm")})
+        indexes = {@Index(name = "iUserName", columnNames = "name_orig"),
+                @Index(name = "iFullName", columnNames = "fullName_orig"),
+                @Index(name = "iFamilyName", columnNames = "familyName_orig"),
+                @Index(name = "iGivenName", columnNames = "givenName_orig"),
+                @Index(name = "iLocality", columnNames = "locality_orig"),
+                @Index(name = "iAdditionalName", columnNames = "additionalName_orig"),
+                @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_orig"),
+                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_orig")})
 @ForeignKey(name = "fk_user")
 public class RUser extends RFocus {
 

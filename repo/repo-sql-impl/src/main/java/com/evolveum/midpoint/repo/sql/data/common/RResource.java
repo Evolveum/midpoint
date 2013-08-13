@@ -30,12 +30,11 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,6 +45,8 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_resource")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@org.hibernate.annotations.Table(appliesTo = "m_resource",
+        indexes = {@Index(name = "iResourceName", columnNames = "name_orig")})
 public class RResource extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);

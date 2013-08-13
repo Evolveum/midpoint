@@ -16,26 +16,19 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.type.ROrgRootRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 
@@ -45,13 +38,15 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_system_configuration")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@org.hibernate.annotations.Table(appliesTo = "m_system_configuration",
+        indexes = {@Index(name = "iSystemConfigurationName", columnNames = "name_orig")})
 public class RSystemConfiguration extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
     private RPolyString name;
     private String globalAccountSynchronizationSettings;
     private REmbeddedReference globalPasswordPolicyRef;
-//    private Set<RObjectReference> orgRootRef;
+    //    private Set<RObjectReference> orgRootRef;
     private String modelHooks;
     private String logging;
     private REmbeddedReference defaultUserTemplateRef;

@@ -50,7 +50,8 @@ import java.util.Set;
 @Entity
 @Table(name = "m_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
-        indexes = {@Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
+        indexes = {@Index(name = "iShadowName", columnNames = "name_orig"),
+                @Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iShadowEffective", columnNames = "effectiveStatus"),
                 @Index(name = "iShadowName", columnNames = "name_norm"),
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid")})
