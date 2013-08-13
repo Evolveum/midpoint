@@ -150,6 +150,23 @@ public class TestExpressionFunctions {
     }
 
     @Test
+    public void testGetAttributeValueDefaultRi() throws Exception {
+    	final String TEST_NAME = "testGetAttributeValueDefaultRi";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
+
+        // WHEN
+        String attrVal = f.getAttributeValue(accountJack.asObjectable(),
+        		ATTR_FULLNAME_LOCAL_PART);
+
+        // THEN
+        assertEquals("Wrong value for attribute "+ATTR_FULLNAME_LOCAL_PART, "Jack Sparrow", attrVal);
+    }
+
+    @Test
     public void testGetAttributeValuesParts() throws Exception {
     	final String TEST_NAME = "testGetAttributeValuesParts";
     	TestUtil.displayTestTile(TEST_NAME);
@@ -161,6 +178,23 @@ public class TestExpressionFunctions {
         // WHEN
         Collection<String> attrVals = f.getAttributeValues(accountJack.asObjectable(),
         		MidPointConstants.NS_RI,
+        		ATTR_WEAPON_LOCAL_PART);
+
+        // THEN
+        TestUtil.assertSetEquals("Wrong value for attribute "+ATTR_WEAPON_LOCAL_PART, attrVals, "rum", "smell");
+    }
+
+    @Test
+    public void testGetAttributeValuesDefaultRi() throws Exception {
+    	final String TEST_NAME = "testGetAttributeValuesDefaultRi";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
+
+        // WHEN
+        Collection<String> attrVals = f.getAttributeValues(accountJack.asObjectable(),
         		ATTR_WEAPON_LOCAL_PART);
 
         // THEN

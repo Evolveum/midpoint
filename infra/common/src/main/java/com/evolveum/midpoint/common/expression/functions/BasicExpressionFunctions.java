@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -294,6 +295,10 @@ public class BasicExpressionFunctions {
 		return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}
 	
+	public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeLocalPart) {
+		return getAttributeValues(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
+	}
+	
 	public <T> Collection<T> getAttributeValues(ShadowType shadow, groovy.xml.QName attributeQname) {
 		return getAttributeValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
@@ -305,7 +310,11 @@ public class BasicExpressionFunctions {
 	public <T> T getAttributeValue(ShadowType shadow, String attributeNamespace, String attributeLocalPart) throws SchemaException {
 		return getAttributeValue(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}
-	
+
+	public <T> T getAttributeValue(ShadowType shadow, String attributeLocalPart) throws SchemaException {
+		return getAttributeValue(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
+	}
+
 	public <T> T getAttributeValue(ShadowType shadow, groovy.xml.QName attributeQname) throws SchemaException {
 		return getAttributeValue(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
