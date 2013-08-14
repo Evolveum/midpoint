@@ -159,4 +159,19 @@
             <scope>test</scope>
         </dependency>
 	</dependencies>
+	<profiles>
+		<profile>
+			<id>extratest</id>
+			<build>
+				<plugins>
+					<plugin>
+					  <artifactId>maven-surefire-plugin</artifactId>
+					  <configuration>
+					    <skip>false</skip>
+					  </configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
