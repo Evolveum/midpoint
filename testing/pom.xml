@@ -33,4 +33,14 @@
         <!-- DO NOT include longtest by default, this runs too long for
         ordinary build -->
     </modules>
+
+	<profiles>    
+	    <profile>
+			<id>extratest</id>
+			<modules>
+				<module>longtest</module>
+			</modules>
+		</profile>
+	</profiles>
+    
 </project>

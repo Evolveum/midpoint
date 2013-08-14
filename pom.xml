@@ -136,7 +136,7 @@
 		<module>gui</module>
 		<module>icf-connectors</module>
 		<module>samples</module>
-		<module>dist</module>
+		<module>testing</module>
 	</modules>
 	<profiles>
 		<profile>
@@ -166,13 +166,14 @@
 			</build>
 
 		</profile>
+		
 		<profile>
-			<id>sanity</id>
+			<id>dist</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<modules>
-				<module>testing</module>
+				<module>dist</module>
 			</modules>
 		</profile>
 	</profiles>
