@@ -86,7 +86,7 @@ public class CleanUpTaskHandler implements TaskHandler{
 		
 		PrismObject<SystemConfigurationType> systemConfig = null;
 		try {
-			systemConfig = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), opResult);
+			systemConfig = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, opResult);
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Cleanup: Object does not exist: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Object does not exist: "+ex.getMessage(),ex);

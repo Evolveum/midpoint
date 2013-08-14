@@ -132,7 +132,7 @@ public class ResourceManager {
 			return cachedResource;
 		}
 		
-		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, parentResult);
+		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, null, parentResult);
 		
 		return putToCache(repositoryObject, parentResult);
 	}
@@ -290,7 +290,7 @@ public class ResourceManager {
 				// Now we need to re-read the resource from the repository and re-aply the schemas. This ensures that we will
 				// cache the correct version and that we avoid race conditions, etc.
 				
-				newResource = repositoryService.getObject(ResourceType.class, repoResource.getOid(), result);
+				newResource = repositoryService.getObject(ResourceType.class, repoResource.getOid(), null, result);
 				applyConnectorSchemaToResource(newResource, result);
 				
 			} catch (SchemaException e) {
@@ -845,7 +845,7 @@ public class ResourceManager {
         PrismObject<ConnectorType> connector = null;
         ConnectorType connectorType = null;
         try {
-            connector = repositoryService.getObject(ConnectorType.class, connectorOid, objectResult);
+            connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, objectResult);
             connectorType = connector.asObjectable();
         } catch (ObjectNotFoundException e) {
             // No connector, no fun. We can't check the schema. But this is referential integrity problem.

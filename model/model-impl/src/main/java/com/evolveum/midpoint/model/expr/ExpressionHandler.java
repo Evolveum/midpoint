@@ -206,7 +206,7 @@ public class ExpressionHandler {
 			type = objectTypeType.getClassDefinition();
 		}
 		
-		return repositoryService.getObject(type, ref.getOid(), result).asObjectable();
+		return repositoryService.getObject(type, ref.getOid(), null, result).asObjectable();
 
 	}
 		

@@ -123,7 +123,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             @Override
             public void check(int iteration, String oid) throws Exception {
 
-                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, new OperationResult("dummy"));
+                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
 
                 String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
                 String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
@@ -163,7 +163,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             @Override
             public void check(int iteration, String oid) throws Exception {
 
-                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, new OperationResult("dummy"));
+                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
 
                 String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
                 String familyName = userRetrieved.asObjectable().getFamilyName().getOrig();
@@ -376,7 +376,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
                 PrismObject<UserType> user;
                 try {
-                    user = repositoryService.getObject(UserType.class, oid, result);
+                    user = repositoryService.getObject(UserType.class, oid, null, result);
                 } catch (Exception e) {
                     String msg = "getObject failed while getting attribute(s) " + attributeNames();
                     threadResult = new RuntimeException(msg, e);
@@ -469,9 +469,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                         return true;
                     }
                 },
-                result);
+                null, result);
 
-        PrismObject<UserType> reloaded = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> reloaded = repositoryService.getObject(UserType.class, oid, null, result);
         AssertJUnit.assertEquals("Full name was not changed", newFullName, reloaded.asObjectable().getFullName().getOrig());
     }
 }

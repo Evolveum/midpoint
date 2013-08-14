@@ -36,9 +36,11 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -145,7 +147,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, OperationResult result)
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, 
+    		Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -734,7 +737,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-                                                                     OperationResult result) throws SchemaException {
+    		Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -1435,7 +1438,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      */
     @Override
     public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-                                                              ResultHandler<T> handler, OperationResult result)
+                                                              ResultHandler<T> handler, 
+                                                              Collection<SelectorOptions<GetOperationOptions>> options,
+                                                              OperationResult result)
             throws SchemaException {
 
         Validate.notNull(type, "Object type must not be null.");
@@ -1449,7 +1454,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("query", query);
 
         if (getConfiguration().isIterativeSearchByPaging()) {
-            searchObjectsIterativeByPaging(type, query, handler, subResult);
+            searchObjectsIterativeByPaging(type, query, handler, options, subResult);
             return;
         }
 
@@ -1518,7 +1523,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> void searchObjectsIterativeByPaging(Class<T> type, ObjectQuery query,
-                                                                       ResultHandler<T> handler, OperationResult result)
+                                                                       ResultHandler<T> handler,
+                                                                       Collection<SelectorOptions<GetOperationOptions>> options, 
+                                                                       OperationResult result)
             throws SchemaException {
 
         try {
@@ -1544,7 +1551,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 paging.setOffset(offset);
                 paging.setMaxSize(remaining < batchSize ? remaining : batchSize);
 
-                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, result);
+                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, options, result);
 
                 for (PrismObject<T> object : objects) {
                     if (!handler.handle(object, result)) {

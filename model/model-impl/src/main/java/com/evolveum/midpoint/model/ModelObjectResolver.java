@@ -134,7 +134,7 @@ public class ModelObjectResolver implements ObjectResolver {
 							+" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
 				}
 			} else {
-				object = cacheRepositoryService.getObject(clazz, oid, result);
+				object = cacheRepositoryService.getObject(clazz, oid, null, result);
 				if (object == null) {
 					throw new SystemException("Got null result from repository.getObject while looking for "+clazz.getSimpleName()
 							+" with OID "+oid+"; using repository implementation "+cacheRepositoryService.getClass().getName());
@@ -180,7 +180,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			provisioning.searchObjectsIterative(type, query, handler, parentResult);
 		} else {
-			cacheRepositoryService.searchObjectsIterative(type, query, handler, parentResult);
+			cacheRepositoryService.searchObjectsIterative(type, query, handler, null, parentResult);
 		}
 	}
 	

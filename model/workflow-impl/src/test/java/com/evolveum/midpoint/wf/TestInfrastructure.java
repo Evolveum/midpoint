@@ -68,7 +68,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         Task task = taskManager.createTaskInstance();
         OperationResult result = new OperationResult("test010SetGetWfApprovedBy");
 
-        task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), result));
+        task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
         taskManager.switchToBackground(task, result);
 
         wfTaskUtil.addApprovedBy(task, SystemObjectsType.USER_ADMINISTRATOR.value());

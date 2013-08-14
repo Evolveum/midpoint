@@ -158,7 +158,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			
 			if (GetOperationOptions.isRaw(options)) {
 				resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid,
-						result);
+						null, result);
 				try {
 					applyDefinition(resultingObject, result);
 				} catch (ObjectNotFoundException ex) {
@@ -601,7 +601,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		// TODO: should searching connectors trigger rediscovery?
 
-		repoObjects = getCacheRepositoryService().searchObjects(type, query, result);
+		repoObjects = getCacheRepositoryService().searchObjects(type, query, null, result);
 
 		if (ResourceType.class.equals(type)) {
 			List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
@@ -1397,7 +1397,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private <T extends ObjectType> PrismObject<T> getRepoObject(Class<T> type, String oid, OperationResult result) throws ObjectNotFoundException, SchemaException{
 		
 		try {
-			return getCacheRepositoryService().getObject(type, oid, result);
+			return getCacheRepositoryService().getObject(type, oid, null, result);
 		} catch (ObjectNotFoundException e) {
 			recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
 //			result.recordFatalError("Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);

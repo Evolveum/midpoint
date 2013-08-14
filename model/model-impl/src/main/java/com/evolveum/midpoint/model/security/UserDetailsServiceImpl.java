@@ -101,7 +101,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
         LOGGER.trace("Looking for user, query:\n" + query.dump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query,
+        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
                 new OperationResult("Find by username"));
         if (list == null) {
             return null;
@@ -181,7 +181,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
         ObjectType object = repositoryService.getObject(UserType.class, oid,
-                new OperationResult(OPERATION_GET_USER)).asObjectable();
+        		null, new OperationResult(OPERATION_GET_USER)).asObjectable();
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;
         }

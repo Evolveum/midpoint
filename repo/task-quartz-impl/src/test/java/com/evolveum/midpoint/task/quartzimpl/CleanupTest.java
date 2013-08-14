@@ -90,7 +90,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         taskManager.cleanupTasks(policy, result);
 
         // THEN
-        List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, result);
+        List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
         AssertJUnit.assertNotNull(tasks);
         AssertJUnit.assertEquals(1, tasks.size());
 

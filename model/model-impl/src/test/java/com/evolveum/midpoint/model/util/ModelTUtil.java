@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 
@@ -68,6 +69,7 @@ public class ModelTUtil {
 		when(
 				repository.getObject(eq(SystemConfigurationType.class),
 						eq(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+						any(Collection.class),
 						any(OperationResult.class))).thenReturn(
 				systemConfiguration.asPrismObject());
 	}
@@ -131,11 +133,13 @@ public class ModelTUtil {
 			userOidExpected = user.getOid();
 			when(
 					repository.getObject(any(Class.class), eq(user.getOid()),
+							any(Collection.class),
 							any(OperationResult.class))).thenReturn(
 					user.asPrismObject());
 		} else {
 			when(
 					repository.getObject(any(Class.class), eq(userOid),
+							any(Collection.class),
 							any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("user not found."));
 		}

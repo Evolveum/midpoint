@@ -179,10 +179,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		TestUtil.displayTestTile("test003Connection");
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test003Connection");
-		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result).asObjectable();
+		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
-		connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), result);
+		connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), null, result);
 		ConnectorType connectorType = connector.asObjectable();
 		assertNotNull(connectorType);
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
@@ -193,7 +193,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Test connection result",operationResult);
 		TestUtil.assertSuccess("Test connection failed",operationResult);
 
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		
 		display("Resource after testResource (repository)",resourceTypeRepoAfter);
@@ -495,7 +495,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
 		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, StringUtils.lowerCase(ACCOUNT_NEW_DN));
 
@@ -559,7 +559,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		try {
 			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
-					result).asObjectable();
+					null, result).asObjectable();
 			// objType = container.getObject();
 			Assert.fail("Expected exception, but haven't got one.");
 		} catch (Exception ex) {
@@ -717,7 +717,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
 
 		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 //			assertEquals("lechuck", accountType.getName());
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=lechuck,ou=People,dc=example,dc=com", accountType.getName());
 
@@ -857,7 +857,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
         assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
         
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, result);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, null, result);
         ActivationType repoActivation = repoShadow.asObjectable().getActivation();
         assertNotNull("No activation in repo", repoActivation);
         XMLGregorianCalendar repoDisableTimestamp = repoActivation.getDisableTimestamp();
@@ -885,7 +885,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT_NEW_DISABLED_OID, addedObjectOid);
 
 		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=rapp,ou=People,dc=example,dc=com", accountType.getName());
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID,

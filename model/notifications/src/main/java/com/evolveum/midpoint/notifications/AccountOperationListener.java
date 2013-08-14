@@ -215,7 +215,7 @@ public class AccountOperationListener implements ResourceOperationListener {
             LOGGER.trace("Requestee OID = " + userOid + " for account " + accountOid);
         }
         try {
-            return cacheRepositoryService.getObject(UserType.class, userOid, result);
+            return cacheRepositoryService.getObject(UserType.class, userOid, null, result);
         } catch (ObjectNotFoundException e) {
             if (!isDelete) {
                 LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);

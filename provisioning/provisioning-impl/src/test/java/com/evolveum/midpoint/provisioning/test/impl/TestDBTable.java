@@ -130,9 +130,9 @@ public class TestDBTable extends AbstractIntegrationTest {
 		
 		OperationResult result = new OperationResult(TestDBTable.class.getName()+".test000Integrity");
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result).asObjectable();
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, result).asObjectable();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("DB Connector",connector);
 	}
@@ -147,7 +147,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		display("Test result",testResult);
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result).asObjectable();
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
 		display("Resource after test",resource);
 		display("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
 		
@@ -182,7 +182,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		TestUtil.assertSuccess("addObject has failed (result)",result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result).asObjectable();
+		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, accountType.getName());
 //		assertEquals("will", accountType.getName());
 

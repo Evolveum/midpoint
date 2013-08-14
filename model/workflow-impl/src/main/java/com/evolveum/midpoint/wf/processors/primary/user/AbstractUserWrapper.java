@@ -54,7 +54,7 @@ public abstract class AbstractUserWrapper extends AbstractWrapper {
                 return null;
             }
             try {
-                object = repositoryService.getObject(ObjectType.class, a.getTargetRef().getOid(), result).asObjectable();
+                object = repositoryService.getObject(ObjectType.class, a.getTargetRef().getOid(), null, result).asObjectable();
             } catch (ObjectNotFoundException e) {
                 throw new SystemException(e);
             } catch (SchemaException e) {

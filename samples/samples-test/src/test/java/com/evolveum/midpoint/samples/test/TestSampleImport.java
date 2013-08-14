@@ -128,7 +128,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 				ObjectType.F_NAME, PrismTestUtil.createPolyString(objectName)));
 //		QueryType query = QueryUtil.createNameQuery(objectName);
 		
-		List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, result);
+		List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, null, result);
 		for (PrismObject<T> o : objects) {
             T object = o.asObjectable();
 			display("Found object",object);

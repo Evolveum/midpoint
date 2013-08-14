@@ -25,6 +25,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -185,7 +186,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
             final String oid = "abababab-abab-abab-abab-000000000001";
             when(
                     repositoryService.getObject(any(Class.class), eq(oid),
-                            any(OperationResult.class))).thenThrow(
+                            any(Collection.class), any(OperationResult.class))).thenThrow(
                     new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
             modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), oid, new OperationOptionsType(),
@@ -225,7 +226,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
             final String oid = "abababab-abab-abab-abab-000000000001";
             when(
                     repositoryService.getObject(any(Class.class), eq(oid),
-                            any(OperationResult.class))).thenThrow(
+                            any(Collection.class), any(OperationResult.class))).thenThrow(
                     new ObjectNotFoundException("Object with oid '' not found."));
 
             final UserType user = PrismTestUtil.unmarshalObject(new File(
@@ -363,7 +364,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
         when(
                 repositoryService.getObject(any(Class.class), eq(oid),
-                        any(OperationResult.class))).thenThrow(
+                       any(Collection.class), any(OperationResult.class))).thenThrow(
                 new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
         final UserType user = PrismTestUtil.unmarshalObject(new File(

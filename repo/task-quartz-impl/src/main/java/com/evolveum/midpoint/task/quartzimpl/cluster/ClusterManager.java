@@ -214,7 +214,7 @@ public class ClusterManager {
 
     public List<PrismObject<NodeType>> getAllNodes(OperationResult result) {
         try {
-            return getRepositoryService().searchObjects(NodeType.class, null, result);
+            return getRepositoryService().searchObjects(NodeType.class, null, null, result);
         } catch (SchemaException e) {       // should not occur
             throw new SystemException("Cannot get the list of nodes from the repository", e);
         }
@@ -224,7 +224,7 @@ public class ClusterManager {
         try {
 //            QueryType q = QueryUtil.createNameQuery(nodeIdentifier);        // TODO change to query-by-node-id
         	ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
-            List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, result);
+            List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {
 //                result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
                 throw new ObjectNotFoundException("A node with identifier " + nodeIdentifier + " does not exist.");
@@ -253,7 +253,7 @@ public class ClusterManager {
         PrismObject<SystemConfigurationType> systemConfiguration;
         try {
             PrismObject<SystemConfigurationType> config = getRepositoryService().getObject(SystemConfigurationType.class,
-                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
             String versionInRepo = config.getVersion();
             String versionApplied = LoggingConfigurationManager.getCurrentlyUsedVersion();

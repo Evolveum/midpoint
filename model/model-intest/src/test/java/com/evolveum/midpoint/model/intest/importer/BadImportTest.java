@@ -91,13 +91,13 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 		// Jack is OK in the import file, he should be imported
 		try {
-			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
+			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
 			AssertJUnit.assertNotNull("Jack is null", jack);
 		} catch (ObjectNotFoundException e) {
 			AssertJUnit.fail("Jack was not imported");
 		}
 		
-		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, result);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, null, result);
 
 		AssertJUnit.assertNotNull(users);
 		AssertJUnit.assertEquals("Search retuned unexpected results: "+users, 2, users.size());

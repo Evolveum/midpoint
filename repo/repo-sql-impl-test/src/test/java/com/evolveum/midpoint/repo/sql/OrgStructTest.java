@@ -122,11 +122,11 @@ public class OrgStructTest extends BaseSQLRepoTest {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
         }
         
-        List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), opResult);
+        List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), null, opResult);
         AssertJUnit.assertNotNull(orgTypes);
         AssertJUnit.assertEquals(9, orgTypes.size());
 
-        OrgType orgF001 = repositoryService.getObject(OrgType.class, ORG_F001_OID, opResult).asObjectable();
+        OrgType orgF001 = repositoryService.getObject(OrgType.class, ORG_F001_OID, null, opResult).asObjectable();
         AssertJUnit.assertNotNull(orgF001);
         AssertJUnit.assertEquals("F0001", orgF001.getName().getOrig());
         AssertJUnit.assertEquals("The office of the most respectful Governor.", orgF001.getDescription());
@@ -139,9 +139,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
 //		PrismAsserts.assertEqualsPolyString("The Governor's Mansion", "The Governor's Mansion", orgF001.getLocality());
 
         
-        OrgType orgF003 = repositoryService.getObject(OrgType.class, ORG_F003_OID, opResult).asObjectable();
-        OrgType orgF004 = repositoryService.getObject(OrgType.class, ORG_F004_OID, opResult).asObjectable();
-        OrgType orgF006 = repositoryService.getObject(OrgType.class, ORG_F006_OID, opResult).asObjectable();
+        OrgType orgF003 = repositoryService.getObject(OrgType.class, ORG_F003_OID, null, opResult).asObjectable();
+        OrgType orgF004 = repositoryService.getObject(OrgType.class, ORG_F004_OID, null, opResult).asObjectable();
+        OrgType orgF006 = repositoryService.getObject(OrgType.class, ORG_F006_OID, null, opResult).asObjectable();
         
         AssertJUnit.assertNotNull(orgF006);
         AssertJUnit.assertEquals("F0006", orgF006.getName().getOrig());
@@ -167,7 +167,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
        	AssertJUnit.assertEquals(true,isEqual004);
        	        
         
-        OrgType pRoot = repositoryService.getObject(OrgType.class, ORG_PROJECT_ROOT_OID, opResult).asObjectable();
+        OrgType pRoot = repositoryService.getObject(OrgType.class, ORG_PROJECT_ROOT_OID, null, opResult).asObjectable();
         AssertJUnit.assertEquals("PRoot", pRoot.getName().getOrig());
         AssertJUnit.assertEquals("Project organizational structure root", pRoot.getDescription());
 //		PrismAsserts.assertEqualsPolyString("Projects", "Projects", pRoot.getDisplayName());
@@ -179,7 +179,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         query.setFilter(EqualsFilter.createEqual(null, userObjectDef, UserType.F_NAME, ELAINE_NAME));
 
-        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, opResult);
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 
         AssertJUnit.assertNotNull(users);
         AssertJUnit.assertEquals(1, users.size());
@@ -259,11 +259,11 @@ public class OrgStructTest extends BaseSQLRepoTest {
          repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
         }
                   
-     	OrgType orgF008 = repositoryService.getObject(OrgType.class, ORG_F008_OID, opResult).asObjectable();
-       	OrgType orgF009 = repositoryService.getObject(OrgType.class, ORG_F009_OID, opResult).asObjectable();
+     	OrgType orgF008 = repositoryService.getObject(OrgType.class, ORG_F008_OID, null, opResult).asObjectable();
+       	OrgType orgF009 = repositoryService.getObject(OrgType.class, ORG_F009_OID, null, opResult).asObjectable();
        	AssertJUnit.assertEquals(orgF008.getParentOrgRef().get(0).getOid(), orgF009.getOid());
        	       	
-       	OrgType orgF010 = repositoryService.getObject(OrgType.class, ORG_F010_OID, opResult).asObjectable();
+       	OrgType orgF010 = repositoryService.getObject(OrgType.class, ORG_F010_OID, null, opResult).asObjectable();
        	
        	ObjectReferenceType oRefType = new ObjectReferenceType();
         boolean isEqual009 = false;
@@ -699,7 +699,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_UNBOUNDED_DEPTH));
         objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-        List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
+        List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
         
         AssertJUnit.assertEquals(8, orgClosure.size());
         
@@ -739,7 +739,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_DEPTH1, null, 1));
         objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-        List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
+        List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
         
         AssertJUnit.assertEquals(4, sOrgClosure.size());
         
@@ -774,7 +774,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         ObjectQuery qSearch = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
         qSearch.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
         
-        List<PrismObject<OrgType>> rootOrgs = repositoryService.searchObjects(OrgType.class, qSearch, parentResult);
+        List<PrismObject<OrgType>> rootOrgs = repositoryService.searchObjects(OrgType.class, qSearch, null, parentResult);
         
         for (PrismObject<OrgType> ro : rootOrgs) 
         {
@@ -797,7 +797,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
 
-        UserType userElaine = repositoryService.getObject(UserType.class, ELAINE_OID, opResult).asObjectable();
+        UserType userElaine = repositoryService.getObject(UserType.class, ELAINE_OID, null, opResult).asObjectable();
         LOGGER.trace("elaine's og refs");
         for (ObjectReferenceType ort : userElaine.getParentOrgRef()) {
             LOGGER.trace("{}", ort);

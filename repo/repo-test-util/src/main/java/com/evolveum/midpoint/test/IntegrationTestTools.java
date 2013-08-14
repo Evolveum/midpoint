@@ -458,7 +458,7 @@ public class IntegrationTestTools {
 		
 		ObjectQuery query = createAllShadowsQuery(resourceType, prismContext);
 		
-		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class, query, result);
+		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 		LOGGER.trace("Checking {} shadows, query:\n{}", allShadows.size(), query.dump());
 
 		for (PrismObject<ShadowType> shadow: allShadows) {
@@ -517,7 +517,7 @@ public class IntegrationTestTools {
         assertNotNull("Null OID in "+shadowType, shadowType.getOid());
         PrismObject<ShadowType> repoShadow = null;
         try {
-        	repoShadow = repositoryService.getObject(ShadowType.class, shadowType.getOid(), parentResult);
+        	repoShadow = repositoryService.getObject(ShadowType.class, shadowType.getOid(), null, parentResult);
 		} catch (Exception e) {
 			AssertJUnit.fail("Got exception while trying to read "+shadowType+
 					": "+e.getCause()+": "+e.getMessage());
@@ -530,7 +530,7 @@ public class IntegrationTestTools {
 		assertEquals("Resource OID mismatch", resourceOid, repoResourceOid);
 		
 		try {
-        	repositoryService.getObject(ResourceType.class, resourceOid, parentResult);
+        	repositoryService.getObject(ResourceType.class, resourceOid, null, parentResult);
 		} catch (Exception e) {
 			AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+shadowType+
 					": "+e.getCause()+": "+e.getMessage());
@@ -548,7 +548,7 @@ public class IntegrationTestTools {
 			PrismContext prismContext, OperationResult parentResult) {
 		try {
 			ObjectQuery query = createShadowQuery(resourceShadow, prismContext);
-			List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, parentResult);
+			List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 			LOGGER.trace("Shadow check with filter\n{}\n found {} objects", query.dump(), results.size());
 			if (results.size() == 0) {
 				AssertJUnit.fail("No shadow found with query:\n"+query.dump());

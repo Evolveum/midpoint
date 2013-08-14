@@ -84,7 +84,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
         // THEN
         assertEquals("Wrong OID after add", RESOURCE_OPENDJ_OID, addOid);
         
-        PrismObject<ResourceType> resourceAfter = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
+        PrismObject<ResourceType> resourceAfter = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
         SqlRepoTestUtil.assertVersionProgress(null, resourceAfter.getVersion());
         lastVersion = resourceAfter.getVersion();
 
@@ -140,7 +140,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, modifications, result);
     	
 		// THEN
-		PrismObject<ResourceType> resourceAfter = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
+		PrismObject<ResourceType> resourceAfter = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
 		SqlRepoTestUtil.assertVersionProgress(lastVersion, resourceAfter.getVersion());
         lastVersion = resourceAfter.getVersion();
         System.out.println("Version: "+lastVersion);

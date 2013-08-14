@@ -411,7 +411,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         task.savePendingModifications(result);
         System.out.println("Task = " + task.dump());
 
-        PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, result);
+        PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
 
         task.setBindingImmediate(TaskBinding.LOOSE, result);
 
@@ -576,7 +576,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task1);
         System.out.println("getTask returned: " + task1.dump());
 
-        PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, taskOid(test), result);
+        PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println("getObject returned: " + po.dump());
 
         // .. it should be closed
@@ -632,7 +632,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Read from repo
 
-        PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), result);
+        PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
         TaskType repoTaskType = repoTask.asObjectable();
 
         extensionContainer = repoTask.getExtension();
@@ -661,7 +661,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), result);
+        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(t.dump());
 
         // .. it should be running
@@ -726,7 +726,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
@@ -792,7 +792,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), result);
+        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(t.dump());
 
         // .. it should be running
@@ -848,7 +848,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), result).getValue().getValue();
+        TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), null, result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
@@ -904,7 +904,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
@@ -1312,13 +1312,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final OperationResult result = createResult(test);
 
         Task task = taskManager.createTaskInstance();
-        PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, result);
+        PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
         task.setOwner(owner2);
         AssertJUnit.assertEquals("Task result for new task is not correct", OperationResultStatus.UNKNOWN, task.getResult().getStatus());
 
         taskManager.switchToBackground(task, result);
         AssertJUnit.assertEquals("Background task result is not correct (in memory)", OperationResultStatus.IN_PROGRESS, task.getResult().getStatus());
-        PrismObject<TaskType> task1 = repositoryService.getObject(TaskType.class, task.getOid(), result);
+        PrismObject<TaskType> task1 = repositoryService.getObject(TaskType.class, task.getOid(), null, result);
         AssertJUnit.assertEquals("Background task result is not correct (in repo)", OperationResultStatusType.IN_PROGRESS, task1.asObjectable().getResult().getStatus());
 
         // now change task's result and check the refresh() method w.r.t. result handling
@@ -1362,7 +1362,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
@@ -1408,9 +1408,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         ObjectFilter filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, TaskWaitingReasonType.WORKFLOW);
         ObjectFilter filter3 = AndFilter.createAnd(filter1, filter2);
 
-        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), result);
-        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter2), result);
-        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter3), result);
+        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), null, result);
+        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter2), null, result);
+        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter3), null, result);
 
         assertFalse("There were no tasks with executionStatus == WAITING found", prisms1.isEmpty());
         assertFalse("There were no tasks with waitingReason == WORKFLOW found", prisms2.isEmpty());
@@ -1450,21 +1450,21 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         TestUtil.assertSuccessOrWarning("suspendAndDeleteTasks result is not success/warning", result.getLastSubresult());
 
         try {
-            repositoryService.getObject(TaskType.class, childTask1.getOid(), result);
+            repositoryService.getObject(TaskType.class, childTask1.getOid(), null, result);
             assertTrue("Task " + childTask1 + " was not deleted from the repository", false);
         } catch (ObjectNotFoundException e) {
             // ok!
         }
 
         try {
-            repositoryService.getObject(TaskType.class, childTask2.getOid(), result);
+            repositoryService.getObject(TaskType.class, childTask2.getOid(), null, result);
             assertTrue("Task " + childTask2 + " was not deleted from the repository", false);
         } catch (ObjectNotFoundException e) {
             // ok!
         }
 
         try {
-            repositoryService.getObject(TaskType.class, parentTask.getOid(), result);
+            repositoryService.getObject(TaskType.class, parentTask.getOid(), null, result);
             assertTrue("Task " + parentTask + " was not deleted from the repository", false);
         } catch (ObjectNotFoundException e) {
             // ok!

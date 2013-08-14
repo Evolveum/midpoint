@@ -179,7 +179,7 @@ public class ShadowConstraintsChecker {
 						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null, identifierValues),
 						isNotDead));
 		
-		List<PrismObject<ShadowType>> foundObjects = repositoryService.searchObjects(ShadowType.class, query, result);
+		List<PrismObject<ShadowType>> foundObjects = repositoryService.searchObjects(ShadowType.class, query, null, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), query.dump()});
 		if (foundObjects.isEmpty()) {

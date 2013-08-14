@@ -152,7 +152,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_DBTABLE_OID, result).asObjectable();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_DBTABLE_OID, null, result).asObjectable();
 		assertNotNull(connector);
 		PrismAsserts.assertEqualsPolyString("Wrong connector name.", "ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
 //		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
@@ -190,7 +190,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import with fixed OID
-		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
+		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
 		display("Jack",jack);
 		assertNotNull(jack);
 		PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", jack.getGivenName());
@@ -206,7 +206,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
-		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
 		assertNotNull(users);
 		assertEquals("Search retuned unexpected results", 1, users.size());
@@ -395,7 +395,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		FileInputStream stream = new FileInputStream(IMPORT_TASK_FILE);
 		
 		// well, let's check whether task owner really exists
-		PrismObject<UserType> ownerPrism = repositoryService.getObject(UserType.class, TASK1_OWNER_OID, result);
+		PrismObject<UserType> ownerPrism = repositoryService.getObject(UserType.class, TASK1_OWNER_OID, null, result);
 		assertEquals("Task owner does not exist or has an unexpected OID", TASK1_OWNER_OID, ownerPrism.getOid());
 		
 		dummyAuditService.clear();
@@ -409,7 +409,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		TestUtil.assertSuccess("Import has failed (result)", result);
 
 		// Check import
-		PrismObject<TaskType> task1AsPrism = repositoryService.getObject(TaskType.class, TASK1_OID, result);
+		PrismObject<TaskType> task1AsPrism = repositoryService.getObject(TaskType.class, TASK1_OID, null, result);
 		TaskType task1AsType = task1AsPrism.asObjectable();
 		assertNotNull(task1AsType);
 		PrismAsserts.assertEqualsPolyString("Task name not imported correctly", "Task1: basic single-run task (takes 180x1 sec)", task1AsType.getName());
@@ -452,7 +452,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 
 		IntegrationTestTools.assertNoRepoCache();
 		
-		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Imported resource (repo)", importedRepoResource);
 		IntegrationTestTools.assertNoRepoCache();
 		assertDummyResource(importedRepoResource, true);
@@ -466,7 +466,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertNotNull("No synchronization", importedResourceType.getSynchronization());
 		
 		// Read it from repo again. The read from model triggers schema fetch which increases version
-		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Imported resource (repo2)", importedRepoResource);
 		IntegrationTestTools.assertNoRepoCache();
 		assertDummyResource(importedRepoResource, true);
@@ -506,7 +506,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		IntegrationTestTools.assertNoRepoCache();
 
-		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Reimported resource (repo)", repoResource);
 		assertDummyResource(repoResource, true);
 		
@@ -558,7 +558,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 
 		IntegrationTestTools.assertNoRepoCache();
 		
-		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
 		display("Imported resource (repo)", importedRepoResource);
 		IntegrationTestTools.assertNoRepoCache();
 		assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
@@ -571,7 +571,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 				CONNECOTR_DBTABLE_OID, false);
 		
 		// Read it from repo again. The read from model triggers schema fetch which increases version
-		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
+		importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
 		display("Imported resource (repo2)", importedRepoResource);
 		IntegrationTestTools.assertNoRepoCache();
 		assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,

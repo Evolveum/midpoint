@@ -25,6 +25,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import org.mockito.Mockito;
@@ -105,14 +106,16 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 		final List<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toList(UserType.class,
 				PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml"), ObjectListType.class));
 
-		when(repository.searchObjects(eq(UserType.class), any(ObjectQuery.class), any(OperationResult.class)))
+		when(repository.searchObjects(eq(UserType.class), any(ObjectQuery.class), 
+				any(Collection.class), any(OperationResult.class)))
 				.thenReturn(expectedUserList);
 
 		Task task = taskManager.createTaskInstance("List Users");
 		try {
 			final List<PrismObject<UserType>> returnedUserList = controller.searchObjects(UserType.class, new ObjectQuery(), null, task, task.getResult());
 
-			verify(repository, times(1)).searchObjects(eq(ObjectTypes.USER.getClassDefinition()), any(ObjectQuery.class), any(OperationResult.class));
+			verify(repository, times(1)).searchObjects(eq(ObjectTypes.USER.getClassDefinition()), any(ObjectQuery.class), 
+					any(Collection.class), any(OperationResult.class));
 			testObjectList((List)expectedUserList, (List)returnedUserList);
 		} finally {
 			LOGGER.debug(task.getResult().dump());

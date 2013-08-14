@@ -101,7 +101,7 @@ public class MiscDataUtil {
     // returns oid when user cannot be retrieved
     public String getUserNameByOid(String oid, OperationResult result) {
         try {
-            PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
+            PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
             return user.asObjectable().getName().getOrig();
         } catch (ObjectNotFoundException e) {
             // there should be a note in result by now
@@ -116,7 +116,7 @@ public class MiscDataUtil {
 
     public PrismObject<UserType> getRequester(Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
-        return repositoryService.getObject(UserType.class, oid, result);
+        return repositoryService.getObject(UserType.class, oid, null, result);
     }
 
     public PrismObject<? extends ObjectType> getObjectBefore(Map<String, Object> variables, PrismContext prismContext, OperationResult result) throws SchemaException, ObjectNotFoundException, JAXBException {
@@ -127,7 +127,7 @@ public class MiscDataUtil {
         } else {
             String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
             Validate.notNull(oid, "Object OID in process variables is null");
-            object = repositoryService.getObject(ObjectType.class, oid, result);
+            object = repositoryService.getObject(ObjectType.class, oid, null, result);
         }
 
         if (object.asObjectable() instanceof UserType) {
@@ -184,7 +184,7 @@ public class MiscDataUtil {
             if (assignmentType.getTarget() == null && assignmentType.getTargetRef() != null) {
                 PrismObject<? extends ObjectType> target = null;
                 try {
-                    target = repositoryService.getObject(ObjectType.class, assignmentType.getTargetRef().getOid(), result);
+                    target = repositoryService.getObject(ObjectType.class, assignmentType.getTargetRef().getOid(), null, result);
                     assignmentType.setTarget(target.asObjectable());
                 } catch (ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);

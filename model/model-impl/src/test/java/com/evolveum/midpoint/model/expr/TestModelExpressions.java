@@ -149,7 +149,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 
         importIfNeeded();
 
-        PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, result);
+        PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
         ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
@@ -176,7 +176,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 
         importIfNeeded();
 
-        PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, result);
+        PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
         ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);

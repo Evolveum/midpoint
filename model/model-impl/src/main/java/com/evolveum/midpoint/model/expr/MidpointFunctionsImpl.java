@@ -143,7 +143,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(UserType.class, oid, new OperationResult("getUserByOid")).asObjectable();
+        return repositoryService.getObject(UserType.class, oid, null, new OperationResult("getUserByOid")).asObjectable();
     }
 
     // todo here we could select "functional" org.units in order to filter out e.g. project managers from the list of managers
@@ -159,7 +159,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public OrgType getOrgByOid(String oid) throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(OrgType.class, oid, new OperationResult("getOrgByOid")).asObjectable();
+        return repositoryService.getObject(OrgType.class, oid, null, new OperationResult("getOrgByOid")).asObjectable();
     }
 
     @Override
@@ -167,7 +167,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         PolyString polyName = new PolyString(name);
         polyName.recompute(prismContext.getDefaultPolyStringNormalizer());
         ObjectQuery q = QueryUtil.createNameQuery(polyName, prismContext);
-        List<PrismObject<OrgType>> result = repositoryService.searchObjects(OrgType.class, q, new OperationResult("getOrgByName"));
+        List<PrismObject<OrgType>> result = repositoryService.searchObjects(OrgType.class, q, null, new OperationResult("getOrgByName"));
         if (result.isEmpty()) {
             throw new ObjectNotFoundException("No organizational unit with the name '" + name + "'", name);
         }
@@ -182,7 +182,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         Set<UserType> retval = new HashSet<UserType>();
         OperationResult result = new OperationResult("getManagerOfOrg");
         ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(orgOid, null, 1));
-        List<PrismObject<ObjectType>> members = repositoryService.searchObjects(ObjectType.class, objectQuery, result);
+        List<PrismObject<ObjectType>> members = repositoryService.searchObjects(ObjectType.class, objectQuery, null, result);
         for (PrismObject<ObjectType> member : members) {
             if (member.asObjectable() instanceof UserType) {
                 UserType user = (UserType) member.asObjectable();

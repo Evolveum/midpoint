@@ -179,7 +179,7 @@ public class ShadowManager {
 		// TODO: check for errors
 		List<PrismObject<ShadowType>> results;
 
-		results = repositoryService.searchObjects(ShadowType.class, query, parentResult);
+		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 
@@ -226,7 +226,7 @@ public class ShadowManager {
 		// TODO: check for errors
 		List<PrismObject<ShadowType>> results;
 
-		results = repositoryService.searchObjects(ShadowType.class, query, parentResult);
+		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 
@@ -365,7 +365,7 @@ public class ShadowManager {
 
 		List<PrismObject<ShadowType>> accountList = null;
 		try {
-			accountList = repositoryService.searchObjects(ShadowType.class, query, parentResult);
+			accountList = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError(
 					"Failed to search account according to the identifiers: " + change.getIdentifiers() + ". Reason: "

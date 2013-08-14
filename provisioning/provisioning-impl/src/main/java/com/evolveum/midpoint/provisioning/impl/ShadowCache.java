@@ -217,7 +217,7 @@ public abstract class ShadowCache {
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from the resource.
 		if (repositoryShadow == null) {
-			repositoryShadow = repositoryService.getObject(ShadowType.class, oid, parentResult);
+			repositoryShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.dump());
 			}
@@ -566,7 +566,7 @@ public abstract class ShadowCache {
 				    }
                     shadow = shadowTypeWhenNoOid.asPrismObject();
                 } else {
-				    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, parentResult);
+				    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, null, parentResult);
                 }
 			}
 		} else {
@@ -1385,7 +1385,7 @@ public abstract class ShadowCache {
 		}
 		PrismObject<ShadowType> repoShadow;
 		try {
-			repoShadow = repositoryService.getObject(ShadowType.class, associationType.getShadowRef().getOid(), result);
+			repoShadow = repositoryService.getObject(ShadowType.class, associationType.getShadowRef().getOid(), null, result);
 		} catch (ObjectNotFoundException e) {
 			throw new ObjectNotFoundException(e.getMessage()+" while resolving entitlement association OID in "+association, e);
 		}

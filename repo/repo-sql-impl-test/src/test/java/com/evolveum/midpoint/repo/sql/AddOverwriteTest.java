@@ -119,7 +119,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         final ObjectQuery query = new ObjectQuery();
         PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         query.setFilter(EqualsFilter.createEqual(null, userObjectDef, ObjectType.F_NAME, CARLA_NAME));
-        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, opResult);
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
         AssertJUnit.assertEquals(1, users.size());
         return users.get(0);
     }
@@ -167,7 +167,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         opResult.computeStatus();
         AssertJUnit.assertTrue(opResult.isSuccess());
 
-        PrismObject<ResourceType> resourceAfterAdd = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
+        PrismObject<ResourceType> resourceAfterAdd = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
         MidPointAsserts.assertOid(resourceAfterAdd, RESOURCE_OPENDJ_OID);
         MidPointAsserts.assertVersion(resourceAfterAdd, 0);
         
@@ -185,7 +185,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         opResult.computeStatus();
         AssertJUnit.assertTrue(opResult.isSuccess());
         
-        PrismObject<ResourceType> resourceAfterOverwrite = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
+        PrismObject<ResourceType> resourceAfterOverwrite = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
         MidPointAsserts.assertOid(resourceAfterOverwrite, RESOURCE_OPENDJ_OID);
         MidPointAsserts.assertVersion(resourceAfterOverwrite, 1);
         

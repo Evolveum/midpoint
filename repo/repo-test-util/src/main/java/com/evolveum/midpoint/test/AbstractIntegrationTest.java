@@ -284,7 +284,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 		EqualsFilter equal = EqualsFilter.createEqual(ConnectorType.class, prismContext, ConnectorType.F_CONNECTOR_TYPE, connectorType);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
-		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		if (connectors.size() != 1) {
 			throw new IllegalStateException("Cannot find connector type " + connectorType + ", got "
 					+ connectors);
@@ -299,7 +299,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		EqualsFilter equalVersion = EqualsFilter.createEqual(ConnectorType.class, prismContext, ConnectorType.F_CONNECTOR_VERSION, connectorVersion);
 		AndFilter filter = AndFilter.createAnd(equalType, equalVersion);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		if (connectors.size() != 1) {
 			throw new IllegalStateException("Cannot find connector type " + connectorType + ", version "+connectorVersion+", got "
 					+ connectors);
@@ -322,7 +322,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getSystemConfiguration");
-		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(systemConfig) not success", result);
 		return sysConf.asObjectable();
@@ -463,7 +463,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowRepo");
-		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, result);
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, null, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		assertShadowRepo(shadow, oid, username, resourceType);

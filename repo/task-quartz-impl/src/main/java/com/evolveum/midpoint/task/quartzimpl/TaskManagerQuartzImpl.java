@@ -494,7 +494,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		Task task;
 		try {
-			PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, taskOid, result);
+			PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, taskOid, null, result);
             task = createTaskInstance(taskPrism, result);
         } catch (ObjectNotFoundException e) {
 			result.recordFatalError("Task not found", e);
@@ -730,7 +730,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         List<PrismObject<NodeType>> nodesInRepository;
         try {
-            nodesInRepository = repositoryService.searchObjects(NodeType.class, query, result);
+            nodesInRepository = repositoryService.searchObjects(NodeType.class, query, null, result);
         } catch (SchemaException e) {
             result.recordFatalError("Couldn't get nodes from repository: " + e.getMessage());
             throw e;
@@ -785,7 +785,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         List<PrismObject<TaskType>> tasksInRepository;
         try {
-            tasksInRepository = repositoryService.searchObjects(TaskType.class, query, result);
+            tasksInRepository = repositoryService.searchObjects(TaskType.class, query, null, result);
         } catch (SchemaException e) {
             result.recordFatalError("Couldn't get tasks from repository: " + e.getMessage());
             throw e;
@@ -1107,7 +1107,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, result);
+        List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, null, result);
         if (list.isEmpty()) {
             throw new ObjectNotFoundException("Task with identifier " + identifier + " could not be found");
         } else if (list.size() > 1) {
@@ -1152,7 +1152,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 //        query = new ObjectQuery();  // todo remove this hack when searching will work
 
-        List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, result);
+        List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, null, result);
         List<Task> tasks = resolveTasksFromTaskTypes(prisms, result);
 
         result.recordSuccessIfUnknown();
@@ -1196,7 +1196,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                     LessFilter.createLessFilter(TaskType.class, getPrismContext(), TaskType.F_COMPLETION_TIMESTAMP, timeXml, true),
                     EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null)));
 
-            obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, result);
+            obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
         } catch (SchemaException e) {
             throw new SchemaException("Couldn't get the list of obsolete tasks: " + e.getMessage(), e);
         }

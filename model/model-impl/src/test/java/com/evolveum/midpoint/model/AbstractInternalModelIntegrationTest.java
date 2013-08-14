@@ -238,7 +238,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	protected LensFocusContext<UserType> fillContextWithUser(LensContext<UserType, ShadowType> context, String userOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
         return fillContextWithUser(context, user);
     }
 	
@@ -263,7 +263,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 
 	protected LensProjectionContext<ShadowType> fillContextWithAccount(LensContext<UserType, ShadowType> context, String accountOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        PrismObject<ShadowType> account = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> account = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         provisioningService.applyDefinition(account, result);
         return fillContextWithAccount(context, account, result);
 	}

@@ -105,7 +105,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlueType);
         
         // Check account
@@ -437,7 +437,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyRedType);
         
         // Check account
@@ -815,7 +815,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyType);
         
         // Check account
@@ -1158,7 +1158,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, task.getResult());
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, task.getResult());
         display("Repo shadow", accountShadow);
         assertShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
         

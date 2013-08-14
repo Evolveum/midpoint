@@ -185,7 +185,7 @@ public class SystemConfigurationHandler implements ChangeHook {
              */
 
             PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
-                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("System configuration version read from repo: " + config.getVersion());

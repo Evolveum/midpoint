@@ -226,7 +226,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", accountShadow);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
@@ -473,7 +473,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertAccounts(USER_JACK_OID, 2);
 		accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
  
-		PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, result);
+		PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
 		display("Account red (repo)", accountRedRepo);
         assertEnableTimestampShadow(accountRedRepo, startTime, endTime);
 	 
@@ -828,7 +828,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_KHAKI_OID);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", accountShadow);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyKhakiType);
         IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
@@ -960,7 +960,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userLargo);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
         
         // Check account
@@ -998,7 +998,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userLargo);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
         
         // Check account
@@ -1037,7 +1037,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userLargo);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
         
         // Check account
@@ -1080,7 +1080,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userLargo);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
         
         // Check account
@@ -1123,7 +1123,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userLargo);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
         
         // Check account
@@ -1160,7 +1160,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userLargo);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
         
         // Check account
@@ -1197,7 +1197,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userLargo);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
         
         // Check account

@@ -271,7 +271,7 @@ public class NodeRegistrar {
 
         // first, let us check the record of this node - whether it exists and whether the internalNodeIdentifier is OK
         try {
-            nodeInRepo = getRepositoryService().getObject(NodeType.class, oid, result);
+            nodeInRepo = getRepositoryService().getObject(NodeType.class, oid, null, result);
         } catch (ObjectNotFoundException e) {
             if (doesNodeExist(result, myName)) {
                 LoggingUtils.logException(LOGGER, "The record of this node cannot be read (OID {} not found), but " +
@@ -364,7 +364,7 @@ public class NodeRegistrar {
 
 //        QueryType q = QueryUtil.createNameQuery(name);
     	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.class, getPrismContext(), NodeType.F_NAME, name));
-        return getRepositoryService().searchObjects(NodeType.class, q, result);
+        return getRepositoryService().searchObjects(NodeType.class, q, null, result);
     }
 
 

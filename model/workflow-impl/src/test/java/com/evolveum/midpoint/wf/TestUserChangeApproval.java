@@ -161,12 +161,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	}
 
     private void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         checkUserApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef(), result);
     }
 
     private void checkUserApproversForCreate(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         checkUserApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getCreateApproverRef(), result);
     }
 
@@ -237,7 +237,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     }
 
     private void removeAllRoles(String oid, OperationResult result) throws Exception {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         for (AssignmentType at : user.asObjectable().getAssignment()) {
             ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT, prismContext, at.asPrismContainerValue().clone());
             repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
@@ -271,14 +271,14 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 assertNotNull("givenName delta is incorrect (not a replace delta)", givenNameDelta.isReplace());
                 assertEquals("givenName delta is incorrect (wrong value)", "JACK", ((PrismPropertyValue<PolyString>) givenNameDelta.getValuesToReplace().iterator().next()).getValue().getOrig());
 
-                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
                 assertEquals("Wrong given name before change", "Jack", jack.asObjectable().getGivenName().getOrig());
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
 
@@ -315,14 +315,14 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
             @Override
             void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
-                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, TestConstants.ROLE_R3_OID);
                 assertEquals("Wrong given name after immediate execution", "J-A-C-K", jack.asObjectable().getGivenName().getOrig());
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, TestConstants.ROLE_R3_OID);
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
@@ -414,7 +414,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
             @Override
             void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
-                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, TestConstants.ROLE_R1_OID);
                 assertNotAssignedRole(jack, TestConstants.ROLE_R2_OID);
                 assertNotAssignedRole(jack, TestConstants.ROLE_R3_OID);
@@ -742,7 +742,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         OperationResult result = new OperationResult("execution");
 
-        rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, result));
+        rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         if (oid != null) {
             removeAllRoles(oid, result);
@@ -904,7 +904,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     }
 
     private PrismObject<UserType> getUserFromRepo(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return repositoryService.getObject(UserType.class, oid, result);
+        return repositoryService.getObject(UserType.class, oid, null, result);
     }
 
     private boolean assignmentExists(List<AssignmentType> assignmentList, String targetOid) {
@@ -924,14 +924,14 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     private List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
         ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, name));
-        return repositoryService.searchObjects(UserType.class, q, result);
+        return repositoryService.searchObjects(UserType.class, q, null, result);
     }
 
     private void deleteUserFromModel(String name) throws SchemaException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         OperationResult result = new OperationResult("dummy");
         Task t = taskManager.createTaskInstance();
-        t.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, result));
+        t.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         if (!findUserInRepoUnchecked(name, result).isEmpty()) {
 

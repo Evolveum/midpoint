@@ -721,7 +721,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
 
         OperationResult result = new OperationResult("query org structure");
-        repositoryService.searchObjects(ObjectType.class, query, result);
+        repositoryService.searchObjects(ObjectType.class, query, null, result);
 
         AssertJUnit.assertEquals(expected, real);
 

@@ -444,7 +444,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
 
 		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(
-				ShadowType.class, query, opResult);
+				ShadowType.class, query, null, opResult);
 
 		LOGGER.trace("Found {} accounts that were not successfully processed.", shadows.size());
 		

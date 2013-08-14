@@ -226,7 +226,7 @@ public class AssignmentEvaluator {
 		}
 		PrismObject<? extends ObjectType> target = null;
 		try {
-			target = repository.getObject(clazz, oid, result);
+			target = repository.getObject(clazz, oid, null, result);
 			if (target == null) {
 				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
 			}

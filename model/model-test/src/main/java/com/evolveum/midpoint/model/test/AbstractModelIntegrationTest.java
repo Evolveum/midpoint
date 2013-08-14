@@ -293,7 +293,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("getObject");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertUserProperty(user, propertyName, expectedPropValues);
 	}
 	
@@ -305,7 +305,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertLinked");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertLinked(user, accountOid);
 	}
 	
@@ -341,7 +341,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertAccounts");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAccounts(user, numAccounts);
 	}
 	
@@ -506,7 +506,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void modifyAccountShadowReplace(String accountOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
 		String resourceOid = shadow.asObjectable().getResourceRef().getOid();
 		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
 		ObjectDelta<ShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountOid, resource, propertyPath, newRealValue);
@@ -783,7 +783,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertNoShadow(String username, PrismObject<ResourceType> resource, 
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		ObjectQuery query = createAccountShadowQuery(username, resource);
-		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, result);
+		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
 		if (accounts.isEmpty()) {
 			return;
 		}
@@ -794,7 +794,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertHasShadow(String username, PrismObject<ResourceType> resource, 
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		ObjectQuery query = createAccountShadowQuery(username, resource);
-		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, result);
+		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
 		if (accounts.isEmpty()) {
 			AssertJUnit.fail("No shadow for "+username+" on "+resource);
 		} else if (accounts.size() > 1) {
@@ -854,7 +854,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoAccountShadow");
 		// Check is shadow is gone
         try {
-        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         	AssertJUnit.fail("Shadow "+accountOid+" still exists");
         } catch (ObjectNotFoundException e) {
         	// This is OK
@@ -862,7 +862,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedRole(user, roleOid);
 	}
 	
@@ -871,7 +871,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
     protected void assertNotAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
         MidPointAsserts.assertNotAssignedRole(user, roleOid);
     }
 
@@ -880,7 +880,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assertAssignedOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedOrg(user, orgOid);
 	}
 	
@@ -893,7 +893,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertHasOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedOrg(user, orgOid);
 	}
 	
@@ -922,7 +922,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAssignedNoOrg(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedNoOrg(user);
 	}
 	
@@ -931,7 +931,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAssignedNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedNoRole(user);
 	}
 	
@@ -952,7 +952,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAssignedAccount(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedAccount(user, resourceOid);
 	}
 	
@@ -1528,7 +1528,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected <O extends ObjectType> void assertNoTrigger(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoTrigger");
-		PrismObject<O> object = repositoryService.getObject(type, oid, result);
+		PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		List<TriggerType> triggers = object.asObjectable().getTrigger();

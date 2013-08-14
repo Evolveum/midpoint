@@ -257,7 +257,7 @@ public class ObjectImporter {
         if (BooleanUtils.isTrue(options.isKeepOid()) && object.getOid() == null) {
 			// Try to check if there is existing object with the same type and name
         	ObjectQuery query = QueryUtil.createNameQuery(object);
-        	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, result);
+        	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
         	if (foundObjects.size() == 1) {
         		String oid = foundObjects.iterator().next().getOid();
         		object.setOid(oid);
@@ -281,7 +281,7 @@ public class ObjectImporter {
         		// this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
         		result.muteLastSubresultError();
         		ObjectQuery query = QueryUtil.createNameQuery(object);
-            	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, result);
+            	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
             	if (foundObjects.size() == 1) {
             		PrismObject<T> foundObject = foundObjects.iterator().next();
             		String deletedOid = deleteObject(foundObject, repository, result);
@@ -396,7 +396,7 @@ public class ObjectImporter {
             PrismObject<ConnectorType> connector = null;
             ConnectorType connectorType = null;
             try {
-                connector = repository.getObject(ConnectorType.class, connectorOid, result);
+                connector = repository.getObject(ConnectorType.class, connectorOid, null, result);
                 connectorType = connector.asObjectable();
             } catch (ObjectNotFoundException e) {
                 // No connector, no fun. We can't check the schema. But this is referential integrity problem.

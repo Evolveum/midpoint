@@ -29,8 +29,10 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -146,10 +148,10 @@ public class RepositoryCache implements RepositoryService {
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		if (!isCacheable(type)) {
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		if (!isCacheable(type) || options != null) {
 			LOGGER.trace("Cache: PASS {} ({})", oid, type.getSimpleName());
-			return repository.getObject(type, oid, parentResult);
+			return repository.getObject(type, oid, options, parentResult);
 		}
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache == null) {
@@ -162,7 +164,7 @@ public class RepositoryCache implements RepositoryService {
 			}
 			LOGGER.trace("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
-		PrismObject<T> object = repository.getObject(type, oid, parentResult);
+		PrismObject<T> object = repository.getObject(type, oid, null, parentResult);
 		cacheObject(cache, object);
 		return object;
 	}
@@ -193,11 +195,12 @@ public class RepositoryCache implements RepositoryService {
 	}
 	
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException {
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		// Cannot satisfy from cache, pass down to repository
-		List<PrismObject<T>> objects = repository.searchObjects(type, query, parentResult);
+		List<PrismObject<T>> objects = repository.searchObjects(type, query, options, parentResult);
 		Map<String, PrismObject<ObjectType>> cache = getCache();
-		if (cache != null) {
+		if (cache != null && options == null) {
 			for (PrismObject<T> object : objects) {
 				cacheObject(cache, object);
 			}
@@ -210,7 +213,7 @@ public class RepositoryCache implements RepositoryService {
 	 */
 	@Override
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-			final ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
+			final ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		final Map<String, PrismObject<ObjectType>> cache = getCache();
 		ResultHandler<T> myHandler = new ResultHandler<T>() {
 			@Override
@@ -219,7 +222,7 @@ public class RepositoryCache implements RepositoryService {
 				return handler.handle(object, parentResult);
 			}
 		};
-		repository.searchObjectsIterative(type, query, myHandler, parentResult);
+		repository.searchObjectsIterative(type, query, myHandler, options, parentResult);
 	}
 	
 	@Override

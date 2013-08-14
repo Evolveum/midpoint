@@ -152,10 +152,10 @@ public class TestCsvFile extends AbstractIntegrationTest {
 				+ ".test000Integrity");
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
 		ConnectorType connector = repositoryService
-				.getObject(ConnectorType.class, connectorOid, result).asObjectable();
+				.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("CSVFile Connector", connector);
 		
@@ -178,11 +178,11 @@ public class TestCsvFile extends AbstractIntegrationTest {
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		assertNotNull("No connector ref", resourceBefore.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore
-				.getConnectorRef().getOid(), result).asObjectable();
+				.getConnectorRef().getOid(), null, result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
@@ -195,7 +195,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		display("Test result", testResult);
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID, result);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable(); 
 		display("Resource after test", resourceTypeRepoAfter);
 

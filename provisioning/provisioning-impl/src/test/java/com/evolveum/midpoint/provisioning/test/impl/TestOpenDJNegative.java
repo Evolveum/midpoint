@@ -106,11 +106,11 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		TestUtil.displayTestTile("test003Connection");
 
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+".test003Connection");
-		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, result).asObjectable();
+		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		display("Resource before testResource (repository)", resourceTypeBefore);
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
-		connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), result);
+		connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), null, result);
 		ConnectorType connectorType = connector.asObjectable();
 		assertNotNull(connectorType);
 		XmlSchemaType xmlSchemaTypeBefore = resourceTypeBefore.getSchema();
@@ -124,7 +124,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("Test connection result (expected failure)",operationResult);
 		TestUtil.assertFailure(operationResult);
 		
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		display("Resource after testResource (repository)", resourceRepoAfter);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject()));
@@ -623,7 +623,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		display("repo shadow", repoAccountType);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_NEW_DN, repoAccountType.getName());
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, repoAccountType.getFailedOperationType());
@@ -659,7 +659,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
 		
 		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		display("repo shadow", repoAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, repoAccountType.getFailedOperationType());
 		OperationResultType repoResult = repoAccountType.getResult();
@@ -699,7 +699,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
 		
 		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_MODIFY_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		display("repo shadow", repoAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, repoAccountType.getFailedOperationType());
 		OperationResultType repoResult = repoAccountType.getResult();

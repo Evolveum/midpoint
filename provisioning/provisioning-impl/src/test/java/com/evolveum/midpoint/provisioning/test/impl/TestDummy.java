@@ -170,10 +170,10 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test000Integrity");
 
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result)
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result)
 				.asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, result).asObjectable();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
 		
@@ -203,7 +203,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class,
-				new ObjectQuery(), result);
+				new ObjectQuery(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -284,13 +284,13 @@ public class TestDummy extends AbstractDummyTest {
 		rememberResourceCacheStats();
 		
 		// Check that there is no schema before test (pre-condition)
-		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		ResourceType resourceTypeBefore = resourceBefore.asObjectable();
 		rememberResourceVersion(resourceBefore.getVersion());
 		assertNotNull("No connector ref", resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceTypeBefore.getConnectorRef().getOid());
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class,
-				resourceTypeBefore.getConnectorRef().getOid(), result).asObjectable();
+				resourceTypeBefore.getConnectorRef().getOid(), null, result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceTypeBefore.getSchema();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
@@ -304,7 +304,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
-				RESOURCE_DUMMY_OID, result);
+				RESOURCE_DUMMY_OID, null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		display("Resource after test", resourceTypeRepoAfter);
 
@@ -556,7 +556,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);;
+		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);;
 
 		// THEN
 		result.computeStatus();
@@ -888,7 +888,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		account.checkConsistence();
 
-		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result);
+		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
 		display("Account repo", accountRepo);
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeRepo.getName());
@@ -938,7 +938,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-				addedObjectOid, result);
+				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
@@ -972,7 +972,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
 		ShadowType accountType = repositoryService
-				.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, result).asObjectable();
+				.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -995,7 +995,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the shadow is in the repo
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-				addedObjectOid, result);
+				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
@@ -1191,7 +1191,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class,
-				query, result);
+				query, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1546,7 +1546,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(ACCOUNT_NEW_SCRIPT_OID, addedObjectOid);
 
 		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID,
-				result).asObjectable();
+				null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "william", accountType.getName());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -2072,7 +2072,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		group.checkConsistence();
 
-		ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, GROUP_PIRATES_OID, result)
+		ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, result)
 				.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", GROUP_PIRATES_NAME, groupRepoType.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
@@ -2093,7 +2093,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-				addedObjectOid, result);
+				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
@@ -2235,7 +2235,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		priv.checkConsistence();
 
-		ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, result)
+		ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, result)
 				.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_PILLAGE_NAME, groupRepoType.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
@@ -2254,7 +2254,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-				addedObjectOid, result);
+				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 
@@ -2594,7 +2594,7 @@ public class TestDummy extends AbstractDummyTest {
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
 		assertMember(group, ACCOUNT_LECHUCK_NAME);
 
-		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, result)
+		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, result)
 				.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_LECHUCK_NAME, accountType.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountType.getKind());
@@ -2658,7 +2658,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNoMember(group, ACCOUNT_LECHUCK_NAME);
 
 		try {
-			repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, result);
+			repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, result);
 			
 			AssertJUnit.fail("Shadow (repo) is not gone");
 		} catch (ObjectNotFoundException e) {
@@ -2698,7 +2698,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 		
 		try {
-			repositoryService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, result);
+			repositoryService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, result);
 			AssertJUnit.fail("Priv shadow is not gone (repo)");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -2739,7 +2739,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 		
 		try {
-			repositoryService.getObject(ShadowType.class, GROUP_PIRATES_OID, result);
+			repositoryService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, result);
 			AssertJUnit.fail("Group shadow is not gone (repo)");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -2787,7 +2787,7 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		assertDummyAccountAttributeValues("cptmorgan", DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 		
-		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, result);
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, result);
 		assertShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
 		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, "cptmorgan");
 		
@@ -3087,7 +3087,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong value of fullname attribute in current shadow", "Captain Blackbeard",
 				fullnameAttribute.getRealValue());
 
-		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, currentShadowType.getOid(), result);
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, currentShadowType.getOid(), null, result);
 		// TODO: check the shadow
 
 		
@@ -3152,7 +3152,7 @@ public class TestDummy extends AbstractDummyTest {
 				fullnameAttribute.getRealValue());
 		
 		drakeAccountOid = currentShadowType.getOid();
-		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, drakeAccountOid, result);
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, drakeAccountOid, null, result);
 		// TODO: check the shadow
 
 		checkAllShadows();
@@ -3214,7 +3214,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		try {
 			// The shadow should be gone
-			PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, drakeAccountOid, result);
+			PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, drakeAccountOid, null, result);
 			
 			AssertJUnit.fail("The shadow "+repoShadow+" is not gone from repo");
 		} catch (ObjectNotFoundException e) {

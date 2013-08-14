@@ -543,7 +543,7 @@ public class EncodingTest extends BaseSQLRepoTest {
             OperationResult subresult = result.createSubresult(result.getOperation() + ".getObject");
             PrismObject<UserType> userRetrieved;
             try {
-                userRetrieved = repositoryService.getObject(UserType.class, oid, subresult);
+                userRetrieved = repositoryService.getObject(UserType.class, oid, null, subresult);
             } catch (Exception e) {
                 result.recordFatalError(e);
                 return;
@@ -561,7 +561,7 @@ public class EncodingTest extends BaseSQLRepoTest {
                         toPolyString(USER_FULL_NAME), PolyStringNormMatchingRule.NAME.getLocalPart());
                 query.setFilter(filter);
                 subresult1.addParam("query", query);
-                List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, subresult1);
+                List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, null, subresult1);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
                 }

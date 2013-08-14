@@ -188,14 +188,14 @@ public class ConnectorManager {
 						+ resourceType);
 			}
 			String connOid = resourceType.getConnectorRef().getOid();
-			PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, result);
+			PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, null, result);
 			connectorType = connectorPrism.asObjectable();
 			resourceType.setConnector(connectorType);
 		}
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
 			// We need to resolve the connector host
 			String connectorHostOid = connectorType.getConnectorHostRef().getOid();
-			PrismObject<ConnectorHostType> connectorHost = repositoryService.getObject(ConnectorHostType.class, connectorHostOid, result);
+			PrismObject<ConnectorHostType> connectorHost = repositoryService.getObject(ConnectorHostType.class, connectorHostOid, null, result);
 			connectorType.setConnectorHost(connectorHost.asObjectable());
 		}
 		return connectorType;
@@ -367,7 +367,7 @@ public class ConnectorManager {
 		
 		List<PrismObject<ConnectorType>> foundConnectors;
 		try {
-			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, result);
+			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		} catch (SchemaException e) {
 			// If there is a schema error it must be a bug. Convert to runtime exception
 			LOGGER.error("Got SchemaException while not expecting it: " + e.getMessage(), e);

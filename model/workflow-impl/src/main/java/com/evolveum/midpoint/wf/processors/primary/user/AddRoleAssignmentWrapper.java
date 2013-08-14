@@ -314,6 +314,6 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         }
 
         String oid = approvalRequest.getItemToApprove().getTargetRef().getOid();
-        return repositoryService.getObject(RoleType.class, oid, result);
+        return repositoryService.getObject(RoleType.class, oid, null, result);
     }
 }

@@ -226,7 +226,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 				+ query.dump());
 		
 		List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query,
-				result);
+				null, result);
 
 		
 		assertEquals("Wrong number of shadows for ICF UID \"" + getWillRepoIcfUid() + "\"", 1, objects.size());

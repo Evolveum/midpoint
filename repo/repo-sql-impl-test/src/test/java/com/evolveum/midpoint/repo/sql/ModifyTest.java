@@ -126,7 +126,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         String oid = repositoryService.addObject(user, null, result);
 
-        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(TEST_DIR, "change-add-non-existing.xml"),
@@ -139,7 +139,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PropertyDelta.applyTo(deltas, userOld);
 
-        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
         LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
         AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "
@@ -164,7 +164,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(user, null, result);
         AssertJUnit.assertEquals(userOid, oid);
 
-        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(TEST_DIR, "change-add.xml"),
@@ -177,7 +177,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PropertyDelta.applyTo(deltas, userOld);
 
-        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
         LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
         AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "
@@ -196,7 +196,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(taskOid);
         System.out.println("GET");
         PrismObject<TaskType> getTask = null;
-        getTask = repositoryService.getObject(TaskType.class, taskOid, result);
+        getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         String lastVersion = getTask.getVersion();
         AssertJUnit.assertTrue(task.equivalent(getTask));
         TaskType taskType = null;
@@ -215,7 +215,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, result);
         System.out.println("GET");
-        getTask = repositoryService.getObject(TaskType.class, taskOid, result);
+        getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         taskType = getTask.asObjectable();
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
@@ -234,7 +234,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         checkReference(taskOid);
 
-        getTask = repositoryService.getObject(TaskType.class, taskOid, result);
+        getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         taskType = getTask.asObjectable();
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
@@ -252,7 +252,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         checkReference(taskOid);
 
-        getTask = repositoryService.getObject(TaskType.class, taskOid, result);
+        getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         taskType = getTask.asObjectable();
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
@@ -296,7 +296,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/role-ldap.xml"));
         repositoryService.addObject(roleLdap, null, parentResult);
 
-        RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, parentResult).asObjectable();
+        RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, null, parentResult).asObjectable();
         AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
         AssertJUnit.assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
 
@@ -309,7 +309,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), parentResult);
 
-        UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, parentResult).asObjectable();
+        UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, null, parentResult).asObjectable();
         AssertJUnit.assertEquals("assertion failed", 3, modifiedUser.getAssignment().size());
 
     }
@@ -324,7 +324,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         accShadow.asObjectable().setObjectChange(null);
 
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, parentResult);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         System.out.println("\nRepo shadow");
         System.out.println(repoShadow.dump());
 
@@ -334,7 +334,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(ShadowType.class, oid, d.getModifications(), parentResult);
 
-        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, parentResult);
+        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
     }
     
@@ -361,7 +361,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         accShadow.asObjectable().setObjectChange(null);
 
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, parentResult);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         System.out.println("\nRepo shadow");
         System.out.println(repoShadow.dump());
 
@@ -379,7 +379,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(ShadowType.class, oid, accountRefDeltas, parentResult);
 
-        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, parentResult);
+        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         System.out.println("\nAfter modify");
         System.out.println(afterModify.dump());
 
@@ -395,7 +395,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 		repositoryService.modifyObject(ShadowType.class, oid, modifications, parentResult);
 
 		afterModify = repositoryService.getObject(ShadowType.class,
-				oid, parentResult);
+				oid, null, parentResult);
 		System.out.println("\nAfter modify");
 		System.out.println(afterModify.dump());
 		
@@ -410,7 +410,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 	        repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, parentResult);
 //        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
 	        afterModify = repositoryService.getObject(ShadowType.class,
-					oid, parentResult);
+					oid, null, parentResult);
 			System.out.println("\nAfter modify");
 			System.out.println(afterModify.dump());
     }
@@ -427,7 +427,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         final String oid = repositoryService.addObject(user, null, result);
 
         user = prismContext.getPrismDomProcessor().parseObject(userFile);
-        PrismObject<UserType> readUser = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> readUser = repositoryService.getObject(UserType.class, oid, null, result);
         AssertJUnit.assertTrue("User was not saved correctly", user.diff(readUser).isEmpty());
         String lastVersion = readUser.getVersion();
 
@@ -445,7 +445,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         loot = user.findProperty(new ItemPath(UserType.F_EXTENSION, QNAME_LOOT));
         loot.setValue(new PrismPropertyValue(456));
 
-        readUser = repositoryService.getObject(UserType.class, oid, result);
+        readUser = repositoryService.getObject(UserType.class, oid, null, result);
         AssertJUnit.assertTrue("User was not modified correctly", user.diff(readUser).isEmpty());
 
         SqlRepoTestUtil.assertVersionProgress(lastVersion, readUser.getVersion());
@@ -606,7 +606,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, result);
 
-        PrismObject<ShadowType> afterFirstModify = repositoryService.getObject(ShadowType.class, account.getOid(), result);
+        PrismObject<ShadowType> afterFirstModify = repositoryService.getObject(ShadowType.class, account.getOid(), null, result);
         AssertJUnit.assertNotNull(afterFirstModify);
         ShadowType afterFirstModifyType = afterFirstModify.asObjectable();
         AssertJUnit.assertEquals(1, afterFirstModifyType.getSynchronizationSituationDescription().size());
@@ -627,7 +627,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, result);
 
-        PrismObject<ShadowType> afterSecondModify = repositoryService.getObject(ShadowType.class, account.getOid(), result);
+        PrismObject<ShadowType> afterSecondModify = repositoryService.getObject(ShadowType.class, account.getOid(), null, result);
         AssertJUnit.assertNotNull(afterSecondModify);
         ShadowType afterSecondModifyType = afterSecondModify.asObjectable();
         AssertJUnit.assertEquals(1, afterSecondModifyType.getSynchronizationSituationDescription().size());
@@ -641,7 +641,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), afterModifytimestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, result);
+        List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         AssertJUnit.assertNotNull(shadows);
         AssertJUnit.assertEquals(1, shadows.size());
 
@@ -757,7 +757,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
 
-        role = repositoryService.getObject(RoleType.class, oid, result);
+        role = repositoryService.getObject(RoleType.class, oid, null, result);
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
 

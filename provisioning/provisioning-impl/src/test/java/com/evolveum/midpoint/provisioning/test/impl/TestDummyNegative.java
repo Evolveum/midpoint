@@ -91,7 +91,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ "."+testName);
 		
 		// precondition
-		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Repo resource (before)", repoResource);
 		PrismContainer<Containerable> schema = repoResource.findContainer(ResourceType.F_SCHEMA);
 		assertTrue("Schema found in resource before the test (precondition)", schema == null || schema.isEmpty());

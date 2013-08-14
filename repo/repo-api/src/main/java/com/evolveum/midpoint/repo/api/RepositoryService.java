@@ -23,8 +23,10 @@ import javax.xml.datatype.Duration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -153,7 +155,8 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, OperationResult parentResult)
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+			OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 	
 	/**
@@ -251,7 +254,8 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 	
-	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, 
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 	
 	/**
@@ -286,7 +290,7 @@ public interface RepositoryService {
 	 */
 	
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, 
-			ResultHandler<T> handler, OperationResult parentResult)
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
 	/**

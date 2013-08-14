@@ -87,7 +87,7 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
         // let's get fresh data (not the ones read on user login)
         PrismObject<UserType> requester = null;
         try {
-            requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), result));
+            requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), null, result));
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
             requester = task.getOwner().clone();
@@ -110,7 +110,7 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
                 if (RoleType.COMPLEX_TYPE.equals(type) || OrgType.COMPLEX_TYPE.equals(type)) {
                     String oid = assignmentType.getTargetRef().getOid();
                     try {
-                        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, oid, result);
+                        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, oid, null, result);
                         assignmentType.setTarget(o.asObjectable());
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("Resolved {} to {} in {}", new Object[]{oid, o, user});

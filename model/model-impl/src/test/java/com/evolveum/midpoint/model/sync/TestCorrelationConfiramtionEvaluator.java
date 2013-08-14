@@ -73,7 +73,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		
 		importObjectFromFile(USER_JACK_FILENAME);
 			
-		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		//assert jack
 		assertNotNull(userType);
 			

@@ -95,7 +95,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicyDelta.getOid());
 
 		// Check object
-        PrismObject<ValuePolicyType> accountShadow = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, result);
+        PrismObject<ValuePolicyType> accountShadow = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
 
         // TODO: more asserts
 	}
@@ -175,7 +175,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account

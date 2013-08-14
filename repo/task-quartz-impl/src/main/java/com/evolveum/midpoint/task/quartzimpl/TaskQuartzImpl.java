@@ -1193,7 +1193,7 @@ public class TaskQuartzImpl implements Task {
 			throw new SchemaException("Task "+getOid()+" does not have an owner (missing ownerRef)");
 		}
 		try {
-			PrismObject<UserType> owner = repositoryService.getObject(UserType.class, ownerRef.getOid(), result);
+			PrismObject<UserType> owner = repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
             ownerRef.getValue().setObject(owner);
             return owner;
 		} catch (ObjectNotFoundException e) {
@@ -1335,7 +1335,7 @@ public class TaskQuartzImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 		
 		try {
-			PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), result);
+			PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), null, result);
 			objectRef.getValue().setObject(object);
 			result.recordSuccess();
 			return object;
@@ -2035,7 +2035,7 @@ public class TaskQuartzImpl implements Task {
 		
 		PrismObject<TaskType> repoObj;
 		try {
-			repoObj = repositoryService.getObject(TaskType.class, getOid(), result);
+			repoObj = repositoryService.getObject(TaskType.class, getOid(), null, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;
@@ -2196,7 +2196,7 @@ public class TaskQuartzImpl implements Task {
         }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, result);
+        List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
         result.recordSuccessIfUnknown();
         return list;
     }
@@ -2214,7 +2214,7 @@ public class TaskQuartzImpl implements Task {
         }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, result);
+        List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
         result.recordSuccessIfUnknown();
         return list;
     }

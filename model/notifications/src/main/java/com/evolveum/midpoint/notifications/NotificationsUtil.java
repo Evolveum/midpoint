@@ -53,7 +53,7 @@ public class NotificationsUtil {
         PrismObject<SystemConfigurationType> systemConfiguration;
         try {
             systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                    result);
+            		null, result);
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Couldn't get system configuration", e);
             throw new SystemException("Couldn't get system configuration", e);
@@ -69,7 +69,7 @@ public class NotificationsUtil {
 
     public static String getResourceNameFromRepo(RepositoryService repositoryService, String oid, OperationResult result) {
         try {
-            PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, oid, result);
+            PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, oid, null, result);
             return PolyString.getOrig(resource.asObjectable().getName());
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
@@ -93,7 +93,7 @@ public class NotificationsUtil {
 
         ObjectType objectType;
         try {
-            objectType = cacheRepositoryService.getObject(ObjectType.class, simpleObjectRef.getOid(), result).asObjectable();
+            objectType = cacheRepositoryService.getObject(ObjectType.class, simpleObjectRef.getOid(), null, result).asObjectable();
         } catch (ObjectNotFoundException e) {   // todo correct error handling
             throw new SystemException(e);
         } catch (SchemaException e) {

@@ -80,7 +80,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 		// result, because it was changed and in this call it is different as
 		// one in repo, therefore the following if)
 		PrismObject<ShadowType> repoShadow = getRepositoryService().getObject(ShadowType.class,
-				shadow.getOid(), parentResult);
+				shadow.getOid(), null, parentResult);
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		if (repoShadowType.getResult() != null) {
 			if (!repoShadowType.getResult().equals(oldShadow.asObjectable().getResult())) {

@@ -504,7 +504,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
                 
         // Check if the changes went well in the repo
-        PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, result);
+        PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, result);
         display("Upgraded fake resource (repo)", repoResource);
         assertNotNull("Null fake resource after getObject (repo)", repoResource);
         assertEquals("Oooops. The OID of fake resource mysteriously changed. Call the police! (repo)", RESOURCE_DUMMY_FAKE_OID, repoResource.getOid());
@@ -534,7 +534,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".assertDowngrade");
         OperationResult result = task.getResult();
         // Check if the changes went well in the repo
-        PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, result);
+        PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, result);
         display("Upgraded fake resource (repo)", repoResource);
         assertNotNull("Null fake resource after getObject (repo)", repoResource);
         assertEquals("Oooops. The OID of fake resource mysteriously changed. Call the police! (repo)", RESOURCE_DUMMY_FAKE_OID, repoResource.getOid());

@@ -87,7 +87,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 new PolyString("asdf", "asdf"), PolyStringStrictMatchingRule.NAME.getLocalPart());
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        repositoryService.searchObjectsIterative(UserType.class, query, handler, result);
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, result);
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
@@ -108,7 +108,7 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        repositoryService.searchObjectsIterative(UserType.class, null, handler, result);
+        repositoryService.searchObjectsIterative(UserType.class, null, handler, null, result);
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
@@ -148,7 +148,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         ObjectQuery query = new ObjectQuery();
         query.setPaging(ObjectPaging.createPaging(offset, size, ObjectType.F_NAME, OrderDirection.ASCENDING));
-        repositoryService.searchObjectsIterative(UserType.class, query, handler, result);
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, result);
         result.recomputeStatus();
 
         config.setIterativeSearchByPagingBatchSize(oldbatch);
@@ -168,7 +168,7 @@ public class SearchTest extends BaseSQLRepoTest {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         OperationResult result = new OperationResult("search");
-        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertEquals("Should find one user", 1, users.size());
@@ -177,7 +177,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 new PolyString(nonExistingNameOrig, nameNorm), PolyStringOrigMatchingRule.NAME.getLocalPart());
         query = ObjectQuery.createObjectQuery(filter);
 
-        users = repositoryService.searchObjects(UserType.class, query, result);
+        users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertEquals("Found user (shouldn't) because case insensitive search was used", 0, users.size());

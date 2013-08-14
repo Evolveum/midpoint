@@ -122,7 +122,7 @@ public class MidPointTaskListener implements TaskListener {
         if (stage == AuditEventStage.REQUEST) {
             if (delegateTask.getAssignee() != null) {
                 try {
-                    auditEventRecord.setTargetOwner(repositoryService.getObject(UserType.class, delegateTask.getAssignee(), result));
+                    auditEventRecord.setTargetOwner(repositoryService.getObject(UserType.class, delegateTask.getAssignee(), null, result));
                 } catch (ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Couldn't retrieve the work item assignee information", e);
                 } catch (SchemaException e) {

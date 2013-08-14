@@ -132,7 +132,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		rememberResourceCacheStats();
 		
 		// Check that there is no schema before test (pre-condition)
-		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		ResourceType resourceTypeBefore = resourceBefore.asObjectable();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
@@ -157,7 +157,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		rememberConnectorInstance(resourceProvisioning);
 				
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
-				RESOURCE_DUMMY_OID, result);
+				RESOURCE_DUMMY_OID, null, result);
 		assertHasSchema(resourceRepoAfter, "repo resource after");
 
 		assertSchemaMetadataUnchanged(resourceRepoAfter);
@@ -527,7 +527,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		try {
-			repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+			repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 			AssertJUnit.fail("Resource not gone from repo");
 		} catch (ObjectNotFoundException e) {
 			// This is expected

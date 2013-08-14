@@ -118,7 +118,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 				// Check if the shadow is already present in repo
 				try {
-					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), new OperationResult("mockSyncService.notifyChange"));
+					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService.notifyChange"));
 				} catch (Exception e) {
 					AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
 							": "+e.getCause()+": "+e.getMessage());
@@ -127,7 +127,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 				String resourceOid = ShadowUtil.getResourceOid(currentShadowType);
 				assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
 				try {
-					repositoryService.getObject(ResourceType.class, resourceOid, new OperationResult("mockSyncService.notifyChange"));
+					repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService.notifyChange"));
 				} catch (Exception e) {
 					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
 							": "+e.getCause()+": "+e.getMessage());
@@ -225,7 +225,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 				// Check if the shadow is already present in repo (if it is not a delete case)
 				if (!opDescription.getObjectDelta().isDelete() && !failure){
 				try {
-					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), new OperationResult("mockSyncService."+notificationDesc));
+					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService."+notificationDesc));
 				} catch (Exception e) {
 					AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
 							": "+e.getCause()+": "+e.getMessage());
@@ -235,7 +235,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 				String resourceOid = ShadowUtil.getResourceOid(currentShadowType);
 				assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
 				try {
-					repositoryService.getObject(ResourceType.class, resourceOid, new OperationResult("mockSyncService."+notificationDesc));
+					repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService."+notificationDesc));
 				} catch (Exception e) {
 					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
 							": "+e.getCause()+": "+e.getMessage());

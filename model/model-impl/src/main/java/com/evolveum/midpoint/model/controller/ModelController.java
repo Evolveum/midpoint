@@ -623,7 +623,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
     private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("System configuration version read from repo: " + config.getVersion());
@@ -665,7 +665,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
 					list = provisioning.searchObjects(type, query, result);
 				} else {
-					list = cacheRepositoryService.searchObjects(type, query, result);
+					list = cacheRepositoryService.searchObjects(type, query, options, result);
 				}
 				result.recordSuccess();
 				result.cleanupResult();

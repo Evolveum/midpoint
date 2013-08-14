@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collection;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -103,7 +104,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	public void getNonExistingObject() throws Exception {
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		Task task = taskManager.createTaskInstance("Get Object");
-		when(repository.getObject(any(Class.class),eq(oid), any(OperationResult.class)))
+		when(repository.getObject(any(Class.class),eq(oid), any(Collection.class), any(OperationResult.class)))
 				.thenThrow(new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
 		controller.getObject(ObjectType.class, oid, null, task, task.getResult());
@@ -116,7 +117,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 				"get-user-correct.xml"), UserType.class);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(eq(UserType.class),eq(oid), any(OperationResult.class)))
+		when(repository.getObject(eq(UserType.class),eq(oid), any(Collection.class), any(OperationResult.class)))
 				.thenReturn(expectedUser.asPrismObject());
 
 		Task task = taskManager.createTaskInstance("Get Object");
@@ -128,7 +129,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 			assertEquals(expectedUser.getName(), user.getName());
 
 			verify(repository, atLeastOnce()).getObject(eq(UserType.class), eq(oid),
-					any(OperationResult.class));
+					any(Collection.class), any(OperationResult.class));
 		} finally {
 			LOGGER.debug("getUserCorrect" + task.getResult().dump());
 		}

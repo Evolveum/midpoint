@@ -139,7 +139,7 @@ public class CorrelationConfirmationEvaluator {
 			PagingType paging = new PagingType();
 			// ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class,
 			// query, prismContext);
-			users = repositoryService.searchObjects(UserType.class, q, result);
+			users = repositoryService.searchObjects(UserType.class, q, null, result);
 
 			if (users == null) {
 				users = new ArrayList<PrismObject<UserType>>();

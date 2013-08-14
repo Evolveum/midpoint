@@ -113,7 +113,7 @@ public final class Utils {
 		myQuery.setPaging(myPaging);
 		boolean cont = true;
 		while (cont) {
-			List<PrismObject<T>> objects = repositoryService.searchObjects(type, myQuery, opResult);
+			List<PrismObject<T>> objects = repositoryService.searchObjects(type, myQuery, null, opResult);
 			for (PrismObject<T> object: objects) {
 				handler.handle(object);
 			}
@@ -176,7 +176,7 @@ public final class Utils {
 	            // Nothing to resolve, but let's check if the OID exists
 	            PrismObject<? extends ObjectType> object = null;
 	            try {
-	                object = repository.getObject(type, refVal.getOid(), result);
+	                object = repository.getObject(type, refVal.getOid(), null, result);
 	            } catch (ObjectNotFoundException e) {
 	            	String message = "Reference " + refName + " refers to a non-existing object " + refVal.getOid();
 	            	if (enforceReferentialIntegrity) {
@@ -242,7 +242,7 @@ public final class Utils {
 	        }
 	        try {
 	        	ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
-	            objects = (List)repository.searchObjects(type, query, result);
+	            objects = (List)repository.searchObjects(type, query, null, result);
 
 	        } catch (SchemaException e) {
 	            // This is unexpected, but may happen. Record fatal error

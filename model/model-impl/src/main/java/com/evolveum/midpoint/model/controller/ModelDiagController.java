@@ -151,7 +151,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				
 				PrismObject<UserType> userRetrieved;
 				try {
-					userRetrieved = repositoryService.getObject(UserType.class, oid, subresult);
+					userRetrieved = repositoryService.getObject(UserType.class, oid, null, subresult);
 				} catch (ObjectNotFoundException e) {
 					result.recordFatalError(e);
 					return;
@@ -181,7 +181,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 							toPolyString(USER_FULL_NAME));
 					query.setFilter(filter);
 					subresult.addParam("query", query);
-					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
+					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
 					}
@@ -210,7 +210,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 							USER_EMPLOYEE_TYPE[0]);
 					query.setFilter(filter);
 					subresult.addParam("query", query);
-					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
+					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
 					}
@@ -239,7 +239,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 							toPolyString(USER_ORGANIZATION[1]));
 					query.setFilter(filter);
 					subresult.addParam("query", query);
-					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
+					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
 					}

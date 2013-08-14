@@ -144,7 +144,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
@@ -187,7 +187,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         
 		// Check is shadow is gone
         try {
-        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         	AssertJUnit.fail("Shadow "+accountOid+" still exists");
         } catch (ObjectNotFoundException e) {
         	// This is OK
@@ -221,7 +221,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
@@ -257,7 +257,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
@@ -299,7 +299,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertUserNoAccountRefs(userJack);
 		        
 		// Check shadow (if it is unchanged)
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account (if it is unchanged)
@@ -361,7 +361,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "blackbeard");
         
         // Check account
@@ -397,7 +397,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "morgan");
         
         // Check account

@@ -145,7 +145,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 object.asObjectable().setOid(oids.get(i));
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
-                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), result);
+                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);
                 LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
                 checkContainersSize(newObject, object);
 
@@ -258,7 +258,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             id++;
         }
 
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, oid, result);
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, oid, null, result);
 
         ObjectDelta<UserType> delta = fileUser.diff(repoUser);
         AssertJUnit.assertNotNull(delta);
@@ -285,7 +285,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("ADD");
         String oid = repositoryService.addObject(fileAccount, null, result);
 
-        PrismObject<ShadowType> repoAccount = repositoryService.getObject(ShadowType.class, oid, result);
+        PrismObject<ShadowType> repoAccount = repositoryService.getObject(ShadowType.class, oid, null, result);
 
         ObjectDelta<ShadowType> delta = fileAccount.diff(repoAccount);
         AssertJUnit.assertNotNull(delta);
@@ -311,7 +311,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(filePasswordPolicy, null, result);
         AssertJUnit.assertNotNull(oid);
         AssertJUnit.assertEquals(pwdPolicyOid, oid);
-        PrismObject<ValuePolicyType> repoPasswordPolicy = repositoryService.getObject(ValuePolicyType.class, oid, result);
+        PrismObject<ValuePolicyType> repoPasswordPolicy = repositoryService.getObject(ValuePolicyType.class, oid, null, result);
         AssertJUnit.assertNotNull(repoPasswordPolicy);
 
         String systemCongigOid = "00000000-0000-0000-0000-000000000001";
@@ -321,7 +321,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(oid);
         AssertJUnit.assertEquals(systemCongigOid, oid);
 
-        PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
+        PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
 //		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicy());
         LOGGER.info("System config from repo: {}", repoSystemConfig.dump());
         AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable()
@@ -333,7 +333,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
         refDeltas.add(refDelta);
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
-        repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
+        repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
         LOGGER.info("system config after modify: {}", repoSystemConfig.dump());
         AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable()
                 .getGlobalPasswordPolicyRef());
@@ -373,7 +373,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("sync desc test");
         String oid = repositoryService.addObject(shadowType.asPrismObject(), null, result);
 
-        shadow = repositoryService.getObject(ShadowType.class, oid, result);
+        shadow = repositoryService.getObject(ShadowType.class, oid, null, result);
         shadowType = shadow.asObjectable();
         desc = shadowType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
@@ -420,7 +420,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("sync desc test");
         final String oid = repositoryService.addObject(shadowType.asPrismObject(), null, result);
 
-        shadow = repositoryService.getObject(ShadowType.class, oid, result);
+        shadow = repositoryService.getObject(ShadowType.class, oid, null, result);
         shadowType = shadow.asObjectable();
 
         token = shadowType.getIterationToken();

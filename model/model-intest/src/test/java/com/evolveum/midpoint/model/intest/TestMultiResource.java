@@ -637,7 +637,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_BLUE_OID);
         
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlueType);
         
         // Check account
@@ -674,7 +674,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
         
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account

@@ -222,7 +222,7 @@ public class TextFormatter {
 
     private PrismObject<? extends ObjectType> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
         try {
-            return cacheRepositoryService.getObject(ObjectType.class, oid, result);
+            return cacheRepositoryService.getObject(ObjectType.class, oid, null, result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);

@@ -169,11 +169,11 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test000Integrity");
 
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, result)
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
 				.asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
 		
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, result).asObjectable();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
 
@@ -196,12 +196,12 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test003ConnectionSchemaless");
 		// Check that there is no schema before test (pre-condition)
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, result)
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
 				.asObjectable();
 		assertNotNull("No connector ref", resourceBefore.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class,
-				resourceBefore.getConnectorRef().getOid(), result).asObjectable();
+				resourceBefore.getConnectorRef().getOid(), null, result).asObjectable();
 		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
@@ -218,7 +218,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertTestResourceFailure(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
-				RESOURCE_DUMMY_NO_SCHEMA_OID, result);
+				RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		display("Resource after test", resourceTypeRepoAfter);
 	}
@@ -275,7 +275,8 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 				+ ".test003ConnectionSchemaless");
 
 		// Check that there a schema before test (pre-condition)
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, result)
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, 
+				result)
 				.asObjectable();
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
@@ -292,7 +293,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
-				RESOURCE_DUMMY_NO_SCHEMA_OID, result);
+				RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		display("Resource after test", resourceTypeRepoAfter);
 		
@@ -424,7 +425,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		account.asPrismObject().checkConsistence();
 
-		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, result)
+		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result)
 				.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "will", accountType.getName());
 //		assertEquals("will", accountType.getName());
@@ -448,7 +449,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		// Check if the shadow is in the repo
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-				addedObjectOid, result);
+				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.dump());
 

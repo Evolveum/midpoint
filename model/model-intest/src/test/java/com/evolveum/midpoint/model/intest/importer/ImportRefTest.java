@@ -114,7 +114,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "jack");
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 
-		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
 		assertNotNull(users);
 		assertEquals("Search retuned unexpected results", 1, users.size());

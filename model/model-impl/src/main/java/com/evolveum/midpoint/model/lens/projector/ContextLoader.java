@@ -227,7 +227,7 @@ public class ContextLoader {
 		if (focusOid != null) {
 			// FIXME: hardcoded to user right now
 			LensFocusContext<F> focusContext = context.getOrCreateFocusContext((Class<F>) UserType.class);
-			PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, result);
+			PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, null, result);
 	        focusContext.setLoadedObject(object);
 		}
 	}
@@ -261,7 +261,7 @@ public class ContextLoader {
         	throw new IllegalArgumentException("No OID in primary focus delta");
         }
 
-        PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, result);
+        PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, null, result);
         focusContext.setLoadedObject(object);
         focusContext.setFresh(true);
     }
@@ -270,7 +270,7 @@ public class ContextLoader {
 			throws ObjectNotFoundException, SchemaException {
 		PrismObject<SystemConfigurationType> systemConfiguration = 
 			cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					result);
+					null, result);
 		if (systemConfiguration == null) {
 		    // throw new SystemException("System configuration object is null (should not happen!)");
 		    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
@@ -285,7 +285,7 @@ public class ContextLoader {
 			if (defaultUserTemplateRef == null) {
 				LOGGER.trace("No default user template");
 			} else {
-				PrismObject<ObjectTemplateType> defaultUserTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, defaultUserTemplateRef.getOid(), result);
+				PrismObject<ObjectTemplateType> defaultUserTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, defaultUserTemplateRef.getOid(), null, result);
 			    context.setUserTemplate(defaultUserTemplate.asObjectable());
 			}
 		}
@@ -303,7 +303,7 @@ public class ContextLoader {
 			
 			if (globalPasswordPolicy == null){
 				if (systemConfigurationType.getGlobalPasswordPolicyRef() != null){
-					PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(ValuePolicyType.class, systemConfigurationType.getGlobalPasswordPolicyRef().getOid(), result);
+					PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(ValuePolicyType.class, systemConfigurationType.getGlobalPasswordPolicyRef().getOid(), null, result);
 					if (passwordPolicy != null){
 						globalPasswordPolicy = passwordPolicy.asObjectable();
 					}
@@ -832,7 +832,7 @@ public class ContextLoader {
 					ObjectReferenceType passwordPolicyRef = rad.getPasswordPolicy();
 					if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {
 						PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(
-								ValuePolicyType.class, passwordPolicyRef.getOid(), result);
+								ValuePolicyType.class, passwordPolicyRef.getOid(), null, result);
 						if (passwordPolicy != null) {
 							projContext.setAccountPasswordPolicy(passwordPolicy.asObjectable());
 						}

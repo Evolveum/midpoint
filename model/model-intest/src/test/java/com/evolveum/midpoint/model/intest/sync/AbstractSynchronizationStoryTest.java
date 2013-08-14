@@ -800,7 +800,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         Collection<? extends ItemDelta> refDelta = PropertyDelta.createModificationReplacePropertyCollection(ResourceType.F_SYNCHRONIZATION, resource.asPrismObject().getDefinition(), resourceSync);
         repositoryService.modifyObject(ResourceType.class, resource.getOid(), refDelta, result);
 		
-        ResourceType res = repositoryService.getObject(ResourceType.class, resource.getOid(), result).asObjectable();
+        ResourceType res = repositoryService.getObject(ResourceType.class, resource.getOid(), null, result).asObjectable();
         assertNotNull(res);
         assertNotNull("Synchronization is not specified", res.getSynchronization());
         ObjectSynchronizationType ost = ResourceTypeUtil.determineSynchronization(res, UserType.class);

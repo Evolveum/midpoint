@@ -429,7 +429,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			if (synchronization != null){
 			ObjectReferenceType userTemplateRef = synchronization.getObjectTemplateRef();
 			if (userTemplateRef != null){
-				userTemplate = repositoryService.getObject(ObjectTemplateType.class, userTemplateRef.getOid(), parentResult).asObjectable();
+				userTemplate = repositoryService.getObject(ObjectTemplateType.class, userTemplateRef.getOid(), null, parentResult).asObjectable();
 			}
 			} 
 			
