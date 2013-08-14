@@ -1,35 +1,52 @@
-This is just quick install. For Full commented release notes go to:
+INSTALLING MIDPOINT FROM SOURCE CODE (Development Snapshot)
+-----------------------------------------------------------
+
+This file contains quick install guide. For Full commented installation manual go to:
 
 https://wiki.evolveum.com/display/midPoint/midPoint+Development+Snapshot
 
 1. Pre-requisities:
 
     1. Java 7
-    2. Apache Tomcat 6.x or 7.x
-    3. Get sources of midpoint via SVN or binary version of WAR
-    4. Deploy compiled or downloaded war in to Tomcat
+    2. Apache Maven 3
+    3. Apache Tomcat 6.x or 7.x (or another supported web container)
+    4. midPoint source code retrieved via Git or alternative mechanism
 
 2. Compile sources
  
-2.1 Building sources with test
+2.1 Building sources with tests
+
+Execute the following maven command:
 
    mvn install
+   
+Note: building midPoint with the tests takes considerably long time (approx. 1 hour)
 
 2.2 Building sources without tests
 
    mvn install -DskipTests=true
 
-2.3 Use compiled war file
+2.3 Compiled war file
 
-After building, the war file is located in the following place:
+After the build is complete the distribution archives are available in:
+
+   dist/target/
+
+The war file is also located in the following place:
 
    gui/admin-gui/target/midpoint.war
 
-Please deploy it to your Tomcat application server (copying midpoint.war to <tomcat>/webapps should do the trick).
+2.4 Deploy war file
 
-3. Comments
+Please deploy it to your Tomcat application server (copying midpoint.war to
+<tomcat>/webapps should do the trick) or to other supported web container.
 
-Build system tested with:
-Sun Java JDK 6 (1.6.0_26 or later) - DEPRECATED
-Sun Java JDK 7
-maven 3.0.4 (Maven 2 DOES NOT WORK properly)
+2.5 Access the GUI
+
+MidPoint web GUI should be accessible few moments after the web container
+starts and the application initialization is done. It is accessible on following
+URL by default:
+
+  http://<hostname>:<port>/midpoint
+
+where <hostname> and <port> are the hostname and port number of the web container.

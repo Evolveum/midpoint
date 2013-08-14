@@ -7,9 +7,15 @@
     <format>tar.bz2</format>
     <format>zip</format>
   </formats>
+  <files>
+  	<file>
+  		<source>../INSTALL-dist</source>
+  		<destName>INSTALL</destName>
+  	</file>
+  </files>
   <fileSets>
     <fileSet>
-    <directory>..</directory>
+      <directory>..</directory>
       <!-- <directory>${project.parent.basedir}</directory>  -->
       <outputDirectory>/</outputDirectory>
       <includes>
@@ -17,7 +23,6 @@
         <include>LICENSE</include>
         <include>NOTICE</include>
         <include>RELEASE-NOTES</include>
-        <include>INSTALL</include>
       </includes>
     </fileSet>
     <fileSet>
