@@ -24,6 +24,31 @@ import java.io.Serializable;
 public class GetOperationOptions implements Serializable {
 	
 	/**
+	 * Specifies whether to return specific items. It is used for optimizations.
+	 * Some requests only needs a subset of items therefore fetching them all is a waste
+	 * of resources. Other requests may need expensive data that are not normally returned by default.
+	 * <p>
+	 * If no retrieve option is set in the entire options set then it
+	 * means that the whole object with a default set of properties has to be
+	 * returned. This is equivalent to specifying DEFAULT retrieve root option.
+	 * <p>
+	 * If there is at least one retrieve option in the set then the following rules apply:
+	 * <ul>
+	 *   <li>Items marked as INCLUDE will be returned.</li>
+	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
+	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *       behave in the same way as superitem. E.g. if a superitem is marked as
+	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
+	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
+	 *   <li>For items that are not marked in any way and for which the superitem is also not marked the "I do not care" behavior is assumed.
+	 *       This means that they may be returned or they may be not. The implementation will return them if their retrieval is cheap
+	 *       but they will be most likely omitted from the result.</li>
+	 *  </ul>
+	 */
+	RetrieveOption retrieve;
+	
+	/**
 	 * Resolve the object reference. This only makes sense with a (path-based) selector.
 	 */
 	Boolean resolve;
@@ -42,12 +67,33 @@ public class GetOperationOptions implements Serializable {
 	Boolean raw;
 	
 	/**
-	 * Force to get object from the resource even if some of the error occurrd.
+	 * Force to get object from the resource even if some of the error occurred.
 	 * If the any copy of the shadow is fetched, we can't delete this object
 	 * from the gui, for example
 	 */
 	Boolean doNotDiscovery;
 	
+	
+	public RetrieveOption getRetrieve() {
+		return retrieve;
+	}
+
+	public void setRetrieve(RetrieveOption retrieve) {
+		this.retrieve = retrieve;
+	}
+	
+	public static RetrieveOption getRetrieve(GetOperationOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.retrieve;
+	}
+	
+	public static GetOperationOptions createRetrieve(RetrieveOption retrieve) {
+		GetOperationOptions options = new GetOperationOptions();
+		options.retrieve = retrieve;
+		return options;
+	}
 
 	public Boolean getResolve() {
 		return resolve;
