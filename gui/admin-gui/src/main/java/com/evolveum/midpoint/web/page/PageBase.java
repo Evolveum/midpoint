@@ -333,14 +333,13 @@ public abstract class PageBase extends WebPage {
     }
 
     /**
-     * It's here only because of eclipse ide - it's not properly filtering resources during maven build.
-     * "buildNumber" variable is not replaced.
+     * It's here only because of some IDEs - it's not properly filtering resources during maven build.
+     * "describe" variable is not replaced.
      *
-     * @return
-     * @deprecated
+     * @return "unknown" instead of "git describe" for current build.
      */
     @Deprecated
-    public String getBuildNumber() {
+    public String getDescribe() {
         return getString("pageBase.unknownBuildNumber");
     }
 
