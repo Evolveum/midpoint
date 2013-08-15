@@ -4528,7 +4528,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlation" type="q:QueryType" minOccurs="0">
+            <xsd:element name="correlation" type="q:QueryType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Correlation expression. It should return a list of candidate user entries that may be owners of a

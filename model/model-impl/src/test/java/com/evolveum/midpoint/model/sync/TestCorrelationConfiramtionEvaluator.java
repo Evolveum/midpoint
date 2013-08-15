@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.sync;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -80,9 +81,11 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
 		
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_OR_FILTER), QueryType.class);
+		List<QueryType> queries = new ArrayList<QueryType>();
+		queries.add(query);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
-		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, query, resourceType, result);
+		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
 		
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
 		assertEquals("Found more than one user.", 1, matchedUsers.size());
