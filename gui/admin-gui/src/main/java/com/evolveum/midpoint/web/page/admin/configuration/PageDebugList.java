@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -174,7 +175,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
         Class type = storage.getDebugListCategory().getClassDefinition();
-        addOrReplaceTable(type);
+        addOrReplaceTable(new RepositoryObjectDataProvider(this, type));
 
         initButtonBar(main);
     }
@@ -219,10 +220,10 @@ public class PageDebugList extends PageAdminConfiguration {
         main.add(zipCheck);
     }
 
-    private void addOrReplaceTable(Class<? extends ObjectType> type) {
+    private void addOrReplaceTable(RepositoryObjectDataProvider provider) {
         OptionContent content = (OptionContent) get(createComponentPath(ID_MAIN_FORM, ID_OPTION_CONTENT));
 
-        TablePanel table = new TablePanel(ID_TABLE, new RepositoryObjectDataProvider(this, type), initColumns(type));
+        TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()));
         table.setOutputMarkupId(true);
         content.getBodyContainer().addOrReplace(table);
     }
@@ -328,7 +329,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 model.setObject(null);
                 target.appendJavaScript("init()");
                 target.add(PageDebugList.this.get(createComponentPath(ID_MAIN_FORM, ID_OPTION)));
-                listObjectsPerformed(target, model.getObject(), choice.getObject());
+                listObjectsPerformed(target, model.getObject(), null);
             }
         };
         item.add(clearButton);
@@ -344,7 +345,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                listObjectsPerformed(target, model.getObject(), choice.getObject());
+                listObjectsPerformed(target, model.getObject(), null);
             }
         };
         item.add(searchButton);
@@ -417,7 +418,7 @@ public class PageDebugList extends PageAdminConfiguration {
         if (StringUtils.isNotEmpty(nameText)) {
             try {
                 ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.class, getPrismContext(),
-                        ObjectType.F_NAME, nameText);
+                        ObjectType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), nameText);
                 ObjectQuery query = new ObjectQuery();
                 query.setFilter(substring);
                 provider.setQuery(query);
@@ -432,7 +433,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         if (selected != null) {
             provider.setType(selected.getClassDefinition());
-            addOrReplaceTable(selected.getClassDefinition());
+            addOrReplaceTable(provider);
         }
 
         TablePanel table = getListTable();
