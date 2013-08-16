@@ -3127,6 +3127,22 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Pattern (regexp) for attribute value. If the value matches the pattern such value is tolerated.
+            			It is left in the attribute even if it is not derived from any mapping.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Pattern (regexp) for attribute value. If the value matches the pattern such value is NOT tolerated.
+            			The value must be derived from a mapping or it will be removed.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="access" type="tns:DepreactedAccessType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
