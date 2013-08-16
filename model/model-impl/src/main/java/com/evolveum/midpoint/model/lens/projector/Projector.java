@@ -302,7 +302,7 @@ public class Projector {
 			return;
 		}
 		int wave = 0;
-		for (ResourceObjectTypeDependencyType dependency :accountContext.getDependencies()) {
+		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
 			if (dependencyAccountContext == null) {

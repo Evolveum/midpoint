@@ -2993,6 +2993,16 @@
    			<xsd:extension base="tns:ShadowDiscriminatorType">
    				<xsd:sequence>
    					<xsd:element name="strictness" type="tns:ResourceObjectTypeDependencyStrictnessType" minOccurs="0"/>
+   					<xsd:element name="order" type="xsd:int" minOccurs="0" default="0">
+   						<xsd:annotation>
+   							<xsd:documentation>
+   								Specifies the order in which the dependency is applied. Lower-order dependecies
+   								are applied before higher-order dependencies. Dependencies with the same order
+   								are applied at the same time. There must be no circular dependency fromed from
+   								dependencies of the same order.
+   							</xsd:documentation>
+   						</xsd:annotation>
+   					</xsd:element>
    				</xsd:sequence>
    			</xsd:extension>
    		</xsd:complexContent>
@@ -3057,7 +3067,7 @@
             </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
-
+    
     <xsd:complexType name="ResourceAttributeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
