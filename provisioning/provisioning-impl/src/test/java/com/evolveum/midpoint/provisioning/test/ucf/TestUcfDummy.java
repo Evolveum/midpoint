@@ -287,7 +287,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		cc.configure(configContainer, result);
 		
 		// WHEN
-		resourceSchema = cc.fetchResourceSchema(result);
+		resourceSchema = cc.fetchResourceSchema(null, result);
 		
 		// THEN
 		display("Generated resource schema", resourceSchema);

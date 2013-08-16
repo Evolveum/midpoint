@@ -32,6 +32,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 /**
  * Connector instance configured for a specific resource.
  * 
@@ -125,7 +127,7 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
      * @throws ConfigurationException 
 	 */
-	public ResourceSchema fetchResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
+	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
 	 * Retrieves a specific object from the resource.
