@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizati
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * 
@@ -113,8 +114,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		accountType.setResource(resourceType);
 
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resourceType, UserType.class);
-		Element valueExpressionElement = findChildElement(synchronization.getCorrelation()
-				.getFilter(), SchemaConstants.NS_C, "valueExpression");
+		for (QueryType query : synchronization.getCorrelation()){
+		Element valueExpressionElement = findChildElement(query.getFilter(), SchemaConstants.NS_C, "valueExpression");
 		ExpressionType expression = PrismTestUtil.getPrismContext().getPrismJaxbProcessor()
 				.toJavaValue(valueExpressionElement, ExpressionType.class);
 		LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));
@@ -124,6 +125,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		LOGGER.info(result.dump());
 
 		assertEquals("Wrong expression result", "hbarbossa", name);
+		}
 	}
 
 	private Element findChildElement(Element element, String namespace, String name) {

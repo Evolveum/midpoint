@@ -89,73 +89,172 @@ public class CorrelationConfirmationEvaluator {
 	private ExpressionFactory expressionFactory;
 
 	public List<PrismObject<UserType>> findUsersByCorrelationRule(ShadowType currentShadow,
-			QueryType query, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			List<QueryType> queries, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-		if (query == null) {
+		if (queries == null || queries.isEmpty()) {
 			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
 					+ "returning empty list of users.", resourceType);
 			return null;
 		}
 
-		Element element = query.getFilter();
-		if (element == null) {
-			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
-					+ "returning empty list of users.", resourceType);
-			return null;
-		}
+		List<PrismObject<UserType>> users = null;
+		if (queries.size() == 1){
+			users = findUsersByCorrelationRule(currentShadow, queries.get(0), resourceType, result);
+		} else {
 
-		ObjectQuery q = null;
-		try {
-			q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
-			q = updateFilterWithAccountValues(currentShadow, resourceType, q, "Correlation expression", result);
-			if (q == null) {
-				// Null is OK here, it means that the value in the filter
-				// evaluated
-				// to null and the processing should be skipped
+			for (QueryType query : queries) {
+				List<PrismObject<UserType>> foundUsers = findUsersByCorrelationRule(
+						currentShadow, query, resourceType, result);
+				if (foundUsers == null && users == null) {
+					continue;
+				}
+				if (foundUsers != null && foundUsers.isEmpty() && users == null) {
+					users = new ArrayList<PrismObject<UserType>>();
+				}
+
+				if (users == null && foundUsers != null) {
+					users = foundUsers;
+				}
+				if (users != null && !users.isEmpty() && foundUsers != null
+						&& !foundUsers.isEmpty()) {
+					for (PrismObject<UserType> foundUser : foundUsers) {
+						if (!contains(users, foundUser)) {
+							users.add(foundUser);
+						}
+					}
+				}
+			}
+		}
+		
+		if (users != null) {
+			LOGGER.debug(
+					"SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}",
+					new Object[] { currentShadow, users.size(),
+							PrettyPrinter.prettyPrint(users, 3) });
+		}
+		return users;
+	}
+	
+	private boolean contains(List<PrismObject<UserType>> users, PrismObject<UserType> foundUser){
+		for (PrismObject<UserType> user : users){
+			if (user.getOid().equals(foundUser.getOid())){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	
+		
+		private List<PrismObject<UserType>> findUsersByCorrelationRule(ShadowType currentShadow, QueryType query, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+			Element element = query.getFilter();
+			if (element == null) {
+				LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
+						+ "returning empty list of users.", resourceType);
 				return null;
 			}
 			
-		} catch (SchemaException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
-					SchemaDebugUtil.prettyPrint(query));
-			throw new SchemaException("Couldn't convert query.", ex);
-		} catch (ObjectNotFoundException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
-					SchemaDebugUtil.prettyPrint(query));
-			throw new ObjectNotFoundException("Couldn't convert query.", ex);
-		} catch (ExpressionEvaluationException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
-					SchemaDebugUtil.prettyPrint(query));
-			throw new ExpressionEvaluationException("Couldn't convert query.", ex);
-		}
-		List<PrismObject<UserType>> users = null;
-		try {
-			// query = new QueryType();
-			// query.setFilter(filter);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}",
-						new Object[] {q.dump() });
+			ObjectQuery q = null;
+			try {
+				q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
+				q = updateFilterWithAccountValues(currentShadow, resourceType, q, "Correlation expression", result);
+				if (q == null) {
+					// Null is OK here, it means that the value in the filter
+					// evaluated
+					// to null and the processing should be skipped
+					return null;
+				}
+				
+				
+			} catch (SchemaException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+						SchemaDebugUtil.prettyPrint(query));
+				throw new SchemaException("Couldn't convert query.", ex);
+			} catch (ObjectNotFoundException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+						SchemaDebugUtil.prettyPrint(query));
+				throw new ObjectNotFoundException("Couldn't convert query.", ex);
+			} catch (ExpressionEvaluationException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+						SchemaDebugUtil.prettyPrint(query));
+				throw new ExpressionEvaluationException("Couldn't convert query.", ex);
 			}
-			PagingType paging = new PagingType();
-			// ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class,
-			// query, prismContext);
-			users = repositoryService.searchObjects(UserType.class, q, null, result);
+			
+			List<PrismObject<UserType>> users = null;
+			try {
+				// query = new QueryType();
+				// query.setFilter(filter);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}",
+							new Object[] {q.dump() });
+				}
+				PagingType paging = new PagingType();
+				// ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class,
+				// query, prismContext);
+				users = repositoryService.searchObjects(UserType.class, q, null, result);
 
-			if (users == null) {
-				users = new ArrayList<PrismObject<UserType>>();
+				if (users == null) {
+					users = new ArrayList<PrismObject<UserType>>();
+				}
+			} catch (RuntimeException ex) {
+				LoggingUtils.logException(LOGGER,
+						"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
+				throw new SystemException(
+						"Couldn't search users in repository, based on filter (See logs).", ex);
 			}
-		} catch (RuntimeException ex) {
-			LoggingUtils.logException(LOGGER,
-					"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
-			throw new SystemException(
-					"Couldn't search users in repository, based on filter (See logs).", ex);
+			
+			return users;
 		}
 
-		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", new Object[] {
-				currentShadow, users.size(), PrettyPrinter.prettyPrint(users, 3) });
-		return users;
+private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, PrismObject<UserType> userType, ResourceType resourceType, QueryType query, OperationResult result){
+	if (query == null) {
+		LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
+				+ "returning empty list of users.", resourceType);
+		return false;
 	}
 
+	Element element = query.getFilter();
+	if (element == null) {
+		LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
+				+ "returning empty list of users.", resourceType);
+		return false;
+	}
+
+	ObjectQuery q = null;
+	try {
+		q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
+		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", result);
+		if (q == null) {
+			// Null is OK here, it means that the value in the filter
+			// evaluated
+			// to null and the processing should be skipped
+			return false;
+		}
+	} catch (Exception ex) {
+		LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+				SchemaDebugUtil.prettyPrint(query));
+		throw new SystemException("Couldn't convert query.", ex);
+	}
+//	List<PrismObject<UserType>> users = null;
+//	try {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
+					new Object[] { currentShadow, SchemaDebugUtil.prettyPrint(query) });
+		}
+//		PagingType paging = new PagingType();
+		return ObjectQuery.match(userType, q.getFilter());
+
+//		if (users == null) {
+//			users = new ArrayList<PrismObject<UserType>>();
+//		}
+//	} catch (Exception ex) {
+//		LoggingUtils.logException(LOGGER,
+//				"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
+//		throw new SynchronizationException(
+//				"Couldn't search users in repository, based on filter (See logs).", ex);
+//	}
+
+}
 	public boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, PrismObject<UserType> userType, ResourceType resourceType, OperationResult result){
 
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resourceType, UserType.class);
@@ -167,62 +266,23 @@ public class CorrelationConfirmationEvaluator {
 			return false;
 		}
 		
-		QueryType query = synchronization.getCorrelation();
+		List<QueryType> queries = synchronization.getCorrelation();
 		
-		if (query == null) {
-			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
-					+ "returning empty list of users.", resourceType);
-			return false;
-		}
-
-		Element element = query.getFilter();
-		if (element == null) {
-			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
-					+ "returning empty list of users.", resourceType);
-			return false;
-		}
-
-		ObjectQuery q = null;
-		try {
-			q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
-			q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", result);
-			if (q == null) {
-				// Null is OK here, it means that the value in the filter
-				// evaluated
-				// to null and the processing should be skipped
-				return false;
+		for (QueryType query : queries){
+			if (true && matchUserCorrelationRule(currentShadow, userType, resourceType, query, result)){
+				LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", new Object[] {
+						currentShadow, userType });
+				return true;
 			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
-					SchemaDebugUtil.prettyPrint(query));
-			throw new SystemException("Couldn't convert query.", ex);
 		}
-//		List<PrismObject<UserType>> users = null;
-//		try {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
-						new Object[] { currentShadow, SchemaDebugUtil.prettyPrint(query) });
-			}
-//			PagingType paging = new PagingType();
-			boolean match = ObjectQuery.match(userType, q.getFilter());
-
-//			if (users == null) {
-//				users = new ArrayList<PrismObject<UserType>>();
-//			}
-//		} catch (Exception ex) {
-//			LoggingUtils.logException(LOGGER,
-//					"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
-//			throw new SynchronizationException(
-//					"Couldn't search users in repository, based on filter (See logs).", ex);
-//		}
-
-		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", new Object[] {
+		
+		
+		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} does not match user: {}", new Object[] {
 				currentShadow, userType });
-		return match;
+		return false;
 	}
 
-	
-	public List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users,
+		public List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users,
 			ShadowType currentShadow, ResourceType resource, ExpressionType expression, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
 			 {
 
