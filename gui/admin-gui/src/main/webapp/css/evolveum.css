@@ -770,9 +770,7 @@ div.tabPanel div.tab-row ul {
 div.tabPanel div.tab-row li {
     display: inline;
     list-style-type: none;
-	text-transform: capitalize;
 	font-size: 13px;
-	
 }
 
 div.tabPanel div.tab-row a {
