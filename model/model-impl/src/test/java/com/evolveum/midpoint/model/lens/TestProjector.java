@@ -67,6 +67,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -82,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
@@ -98,6 +100,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 		
 	public static final String TEST_DIR_NAME = "src/test/resources/lens";
 	public static final String USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC = TEST_DIR_NAME + "/user-barbossa-modify-assignment-replace-ac.xml";
+	private static final String RESOURCE_FAKE_A_OID = "fake-a";
 	
 	@Autowired(required = true)
 	private Projector projector;
@@ -1068,7 +1071,6 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         		PrismTestUtil.createPolyString("Largo LaGrande"));
         
     }
-
 	
 	private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<ShadowType> jackAccount = findAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME, resourceDummy);

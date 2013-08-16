@@ -290,21 +290,27 @@ public class Projector {
 	}
 
 	public <F extends ObjectType, P extends ObjectType> void sortAccountsToWaves(LensContext<F,P> context) throws PolicyViolationException {
+		// Reset wave numbers
+		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			projectionContext.setWave(-1);
+		}
+		
 		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 			determineAccountWave(context, projectionContext);
 		}
 	}
 	
 	// TODO: check for circular dependencies
-	private <F extends ObjectType, P extends ObjectType> void determineAccountWave(LensContext<F,P> context, LensProjectionContext<P> accountContext) throws PolicyViolationException {
+	private <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> determineAccountWave(LensContext<F,P> context, 
+			LensProjectionContext<P> accountContext) throws PolicyViolationException {
 		if (accountContext.getWave() >= 0) {
 			// This was already processed
-			return;
+			return accountContext;
 		}
 		int wave = 0;
 		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
-			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
+			LensProjectionContext<P> dependencyAccountContext = findDependencyContext(context, dependency);
 			if (dependencyAccountContext == null) {
 				if (dependency.getStrictness() == null || dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
@@ -321,7 +327,7 @@ public class Projector {
 					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
 				}
 			} else {
-				determineAccountWave(context, dependencyAccountContext);
+				dependencyAccountContext = determineAccountWave(context, dependencyAccountContext);
 				if (dependencyAccountContext.getWave() + 1 > wave) {
 					wave = dependencyAccountContext.getWave() + 1;
 				}
@@ -329,6 +335,13 @@ public class Projector {
 		}
 //		LOGGER.trace("Wave for {}: {}", accountContext.getResourceAccountType(), wave);
 		accountContext.setWave(wave);
+		return accountContext;
+	}
+	
+	private <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> findDependencyContext(
+			LensContext<F,P> context, ResourceObjectTypeDependencyType dependency){
+		ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
+		return context.findProjectionContext(refRat);
 	}
 	
 	private <F extends ObjectType, P extends ShadowType> boolean checkDependencies(LensContext<F,P> context, 

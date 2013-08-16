@@ -86,6 +86,14 @@ public class ResourceShadowDiscriminator implements Serializable {
 		this.intent = intent;
 	}
 
+	public int getOrder() {
+		return order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
 	/**
 	 * Thumbstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get. 
 	 */
