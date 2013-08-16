@@ -50,6 +50,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
   
 	private static final String TEST_DIR = "src/test/resources/sync";
 	private static final String CORRELATION_OR_FILTER = TEST_DIR + "/correlation-or-filter.xml";
+	private static final String CORRELATION_FIRST_FILTER = TEST_DIR + "/correlation-first-filter.xml";
+	private static final String CORRELATION_SECOND_FILTER = TEST_DIR + "/correlation-second-filter.xml";
 	
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
@@ -65,7 +67,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	}
 	
 	@Test
-	public void testCorrelationOrFilter() throws Exception{
+	public void test001CorrelationOrFilter() throws Exception{
 		String TEST_NAME = "testCorrelationOrFilter";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		
@@ -82,6 +84,40 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_OR_FILTER), QueryType.class);
 		List<QueryType> queries = new ArrayList<QueryType>();
+		queries.add(query);
+		
+		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
+		
+		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
+		assertEquals("Found more than one user.", 1, matchedUsers.size());
+		
+		PrismObject<UserType> jack = matchedUsers.get(0);
+		assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
+		
+	}
+	
+	@Test
+	public void test002CorrelationMoreThanOne() throws Exception{
+		String TEST_NAME = "testCorrelationMoreThanOne";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+//		importObjectFromFile(USER_JACK_FILENAME);
+			
+		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+		//assert jack
+		assertNotNull(userType);
+			
+		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		
+		List<QueryType> queries = new ArrayList<QueryType>();
+		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_FIRST_FILTER), QueryType.class);		
+		queries.add(query);
+		
+		query = PrismTestUtil.unmarshalObject(new File(CORRELATION_SECOND_FILTER), QueryType.class);		
 		queries.add(query);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
