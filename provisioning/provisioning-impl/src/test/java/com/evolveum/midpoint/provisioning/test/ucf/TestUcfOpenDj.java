@@ -185,7 +185,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		cc.initialize(null, null, result);
 		// TODO: assert something
 
-		resourceSchema = cc.fetchResourceSchema(result);
+		resourceSchema = cc.fetchResourceSchema(null, result);
 		display("Resource schema", resourceSchema);
 
 		AssertJUnit.assertNotNull(resourceSchema);

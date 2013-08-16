@@ -287,7 +287,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		cc.configure(configContainer, result);
 		
 		// WHEN
-		resourceSchema = cc.fetchResourceSchema(result);
+		resourceSchema = cc.fetchResourceSchema(null, result);
 		
 		// THEN
 		display("Generated resource schema", resourceSchema);
@@ -306,6 +306,49 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedResourceSchema.getDefinitions().size());
 		
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType);
+	}
+	
+	@Test
+	public void test030ResourceSchemaAccountObjectClass() throws ObjectNotFoundException, SchemaException, CommunicationException, GenericFrameworkException, ConfigurationException {
+		TestUtil.displayTestTile("test030ResourceSchemaAccountObjectClass");
+		
+		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
+		
+		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		assertNotNull("Failed to instantiate connector", cc);
+		
+		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+		display("Configuration container", configContainer);
+		cc.configure(configContainer, result);
+		
+		List<QName> objectClassesToGenerate = new ArrayList<QName>();
+		QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
+		objectClassesToGenerate.add(accountObjectClass);
+		// WHEN
+		resourceSchema = cc.fetchResourceSchema(objectClassesToGenerate, result);
+		
+		// THEN
+		display("Generated resource schema", resourceSchema);
+		assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
+		
+		assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
+		
+		assertEquals("Unexpected object class ", new QName(resource.asObjectable().getNamespace(), "accountObjectClass"), resourceSchema.getObjectClassDefinitions().iterator().next().getDefaultName());
+		
+		display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
+//		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
+//		
+//		Document xsdSchemaDom = resourceSchema.serializeToXsd();
+//		assertNotNull("No serialized resource schema", xsdSchemaDom);
+//		display("Serialized XSD resource schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
+//		
+//		// Try to re-parse
+//		ResourceSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
+//				"serialized schema", PrismTestUtil.getPrismContext());
+//		display("Re-parsed resource schema", reparsedResourceSchema);
+//		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedResourceSchema.getDefinitions().size());
+//		
+//		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType);
 	}
 	
 	@Test

@@ -364,7 +364,11 @@ public class ResourceManager {
 			// Fetch schema from connector, UCF will convert it to
 			// Schema Processor format and add all necessary annotations
 			InternalMonitor.recordConnectorSchemaFetch();
-			resourceSchema = connector.fetchResourceSchema(result);
+			List<QName> generateObjectClasses = null;
+			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
+				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
+			}
+			resourceSchema = connector.fetchResourceSchema(generateObjectClasses, result);
 
 			if (resourceSchema == null) {
 				LOGGER.warn("No resource schema fetched from {}", resource);
@@ -581,7 +585,12 @@ public class ResourceManager {
 			// to Schema Processor
 			// format, so it is already structured
 			InternalMonitor.recordConnectorSchemaFetch();
-			schema = connector.fetchResourceSchema(schemaResult);
+			List<QName> generateObjectClasses = null;
+			ResourceType resourceType = resource.asObjectable();
+			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
+				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
+			}
+			schema = connector.fetchResourceSchema(generateObjectClasses, schemaResult);
 		} catch (CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
 			return;

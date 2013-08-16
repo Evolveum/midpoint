@@ -119,6 +119,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -415,7 +416,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (resourceSchema == null || capabilities == null) {
 			try {
-				retrieveResourceSchema(result);
+				retrieveResourceSchema(null, result);
 			} catch (CommunicationException ex) {
 				// This is in fact fatal. There is not schema. Not even the pre-cached one. 
 				// The connector will not be able to work.
@@ -436,7 +437,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public ResourceSchema fetchResourceSchema(OperationResult parentResult) throws CommunicationException,
+	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
@@ -445,7 +446,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addContext("connector", connectorType);
 
 		try {
-			retrieveResourceSchema(result);
+			retrieveResourceSchema(generateObjectClasses, result);
 		} catch (CommunicationException ex) {
 			result.recordFatalError(ex);
 			throw ex;
@@ -476,7 +477,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addContext("connector", connectorType);
 
 		try {
-			retrieveResourceSchema(result);
+			retrieveResourceSchema(null, result);
 		} catch (CommunicationException ex) {
 			result.recordFatalError(ex);
 			throw ex;
@@ -493,7 +494,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return capabilities;
 	}
 	
-	private void retrieveResourceSchema(OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException {
+	private void retrieveResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException {
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
 		OperationResult icfResult = parentResult.createSubresult(ConnectorFacade.class.getName() + ".schema");
@@ -539,10 +540,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 
-		parseResourceSchema(icfSchema);
+		parseResourceSchema(icfSchema, generateObjectClasses);
 	}
 
-	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema icfSchema) {
+	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema icfSchema, List<QName> generateObjectClasses) {
 
 		AttributeInfo passwordAttributeInfo = null;
 		AttributeInfo enableAttributeInfo = null;
@@ -559,6 +560,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// "Flat" ICF object class names needs to be mapped to QNames
 			QName objectClassXsdName = objectClassToQname(objectClassInfo.getType());
 
+			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
+				continue;
+			}
+			
 			// ResourceObjectDefinition is a midPpoint way how to represent an
 			// object class.
 			// The important thing here is the last "type" parameter
@@ -767,6 +772,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			capabilities.add(capabilityObjectFactory.createScript(capScript));
 		}
 
+	}
+
+	private boolean shouldBeGenerated(List<QName> generateObjectClasses,
+			QName objectClassXsdName) {
+		if (generateObjectClasses == null || generateObjectClasses.isEmpty()){
+			return true;
+		}
+		
+		for (QName objClassToGenerate : generateObjectClasses){
+			if (objClassToGenerate.equals(objectClassXsdName)){
+				return true;
+			}
+		}
+		
+		return false;
 	}
 
 	@Override
@@ -1613,7 +1633,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// convert changes from icf to midpoint Change
 		List<Change<T>> changeList = null;
 		try {
-			PrismSchema schema = fetchResourceSchema(result);
+			PrismSchema schema = fetchResourceSchema(null, result);
 			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, schema, result);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex.getMessage(), ex);
