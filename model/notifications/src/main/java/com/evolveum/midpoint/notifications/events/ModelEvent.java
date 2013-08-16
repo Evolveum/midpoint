@@ -95,6 +95,17 @@ public class ModelEvent extends Event {
         }
     }
 
+    // a bit of hack but ...
+    public ChangeType getChangeType() {
+        if (isOperationType(EventOperationType.ADD)) {
+            return ChangeType.ADD;
+        } else if (isOperationType(EventOperationType.DELETE)) {
+            return ChangeType.DELETE;
+        } else {
+            return ChangeType.MODIFY;
+        }
+    }
+
     @Override
     public boolean isOperationType(EventOperationType eventOperationType) {
 
