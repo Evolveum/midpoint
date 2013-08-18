@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -138,7 +140,43 @@ public class ResourceTypeUtil {
 		}
 		return nativeCap.getAny();
 	}
+	
+	public static boolean hasSchemaGenerationConstraints(ResourceType resource){
+		if (resource == null){
+			return false;
+		}
+		
+		if (resource.getSchema() == null){
+			return false;
+		}
+		
+		if (resource.getSchema().getGenerationConstraints() == null){
+			return false;
+		}
+		
+		List<QName> constainst = resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
+		
+		if (constainst == null){
+			return false;
+		}
+		
+		return !constainst.isEmpty();
+	}
+	
+	public static List<QName> getSchemaGenerationConstraints(ResourceType resource){
+	
+		if (hasSchemaGenerationConstraints(resource)){
+			return resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
+		}
+		return null;
+	}
 
+	public static List<QName> getSchemaGenerationConstraints(PrismObject<ResourceType> resource){
+		if (resource == null){
+			return null;
+		}
+		return getSchemaGenerationConstraints(resource.asObjectable());
+	}
 
 	/**
 	 * Assumes that native capabilities are already cached. 

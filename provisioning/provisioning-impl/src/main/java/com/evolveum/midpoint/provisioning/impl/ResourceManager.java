@@ -89,6 +89,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaGenerationConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
@@ -364,10 +365,10 @@ public class ResourceManager {
 			// Fetch schema from connector, UCF will convert it to
 			// Schema Processor format and add all necessary annotations
 			InternalMonitor.recordConnectorSchemaFetch();
-			List<QName> generateObjectClasses = null;
-			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
-				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
-			}
+			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
+//			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
+//				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
+//			}
 			resourceSchema = connector.fetchResourceSchema(generateObjectClasses, result);
 
 			if (resourceSchema == null) {
@@ -474,6 +475,14 @@ public class ResourceManager {
 		PrismProperty<CachingMetadataType> cachingMetadataProperty = cval
 				.createProperty(XmlSchemaType.F_CACHING_METADATA);
 		cachingMetadataProperty.setRealValue(cachingMetadata);
+		List<QName> objectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
+		if (objectClasses != null) {
+			PrismProperty<SchemaGenerationConstraintsType> generationConstraints = cval
+					.createProperty(XmlSchemaType.F_GENERATION_CONSTRAINTS);
+			SchemaGenerationConstraintsType constraints = new SchemaGenerationConstraintsType();
+			constraints.getGenerateObjectClass().addAll(objectClasses);
+			generationConstraints.setRealValue(constraints);
+		}
 		PrismProperty<Element> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
 		ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
 		
@@ -585,11 +594,11 @@ public class ResourceManager {
 			// to Schema Processor
 			// format, so it is already structured
 			InternalMonitor.recordConnectorSchemaFetch();
-			List<QName> generateObjectClasses = null;
-			ResourceType resourceType = resource.asObjectable();
-			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
-				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
-			}
+			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
+//			ResourceType resourceType = resource.asObjectable();
+//			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
+//				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
+//			}
 			schema = connector.fetchResourceSchema(generateObjectClasses, schemaResult);
 		} catch (CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
