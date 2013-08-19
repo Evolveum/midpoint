@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.match;
 
+import java.util.regex.Pattern;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Matchable;
@@ -72,6 +74,22 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
 	@Override
 	public T normalize(T original) {
 		return original;
+	}
+
+	@Override
+	public boolean matches(T a, String regex) {
+		String valueToMatch = null;  
+		if (a instanceof Matchable){
+			return ((Matchable) a).matches(regex);
+		} else if (a instanceof String){
+			valueToMatch = (String) a;
+		} else if (a instanceof Integer){
+			valueToMatch = Integer.toString((Integer) a);
+		} else {
+			valueToMatch = String.valueOf(a);
+		}
+		
+		return Pattern.matches(regex, valueToMatch);
 	}
 	
 }

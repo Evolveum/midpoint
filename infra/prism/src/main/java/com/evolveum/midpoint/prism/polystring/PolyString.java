@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.io.Serializable;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -246,6 +247,11 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		} else if (!norm.equals(other.norm))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public boolean matches(String regex) {
+		return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);
 	}
 	
 }

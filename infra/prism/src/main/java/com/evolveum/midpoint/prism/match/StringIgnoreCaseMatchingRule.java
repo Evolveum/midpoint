@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.match;
 
+import java.util.regex.Pattern;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -62,6 +64,15 @@ public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
 	@Override
 	public String normalize(String original) {
 		return StringUtils.lowerCase(original);
+	}
+
+	@Override
+	public boolean matches(String a, String regex) {
+		if (a == null){
+			return false;
+		}
+		
+		return Pattern.matches(regex, a.toLowerCase()) || Pattern.matches(regex, a.toUpperCase());
 	}
 
 }

@@ -20,4 +20,6 @@ public interface Matchable<T> {
 
 	
 	public boolean match(T other);
+	
+	public boolean matches(String regex);
 }

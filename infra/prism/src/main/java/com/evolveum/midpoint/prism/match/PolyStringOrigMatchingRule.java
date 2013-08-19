@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.match;
 
+import java.util.regex.Pattern;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -66,6 +68,15 @@ public class PolyStringOrigMatchingRule implements MatchingRule<PolyString> {
 	@Override
 	public PolyString normalize(PolyString original) {
 		return original;
+	}
+
+	@Override
+	public boolean matches(PolyString a, String regex) {
+		if (a == null){
+			return false;
+		}
+		
+		return Pattern.matches(regex, a.getOrig());
 	}
 
 }

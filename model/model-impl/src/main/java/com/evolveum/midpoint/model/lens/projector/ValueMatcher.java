@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import java.util.Collection;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -50,6 +51,10 @@ public class ValueMatcher<T> {
 	
 	public boolean match(T realA, T realB) {
 		return matchingRule.match(realA, realB);
+	}
+	
+	public boolean matches(T realValue, String regex){
+		return matchingRule.matches(realValue, regex);
 	}
 	
 	public boolean hasRealValue(PrismProperty<T> property, PrismPropertyValue<T> pValue) {

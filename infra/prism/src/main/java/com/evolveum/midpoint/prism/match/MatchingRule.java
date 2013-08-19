@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.match;
 
+import java.util.regex.Pattern;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -42,6 +44,11 @@ public interface MatchingRule<T> {
 	 * Matches two objects. 
 	 */
 	boolean match(T a, T b);
+	
+	/**
+	 * Matches value against given regex. 
+	 */
+	boolean matches(T a, String regex);
 	
 	/**
 	 * Returns a normalized version of the value.

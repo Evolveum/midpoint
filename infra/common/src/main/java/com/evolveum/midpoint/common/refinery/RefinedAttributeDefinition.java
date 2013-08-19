@@ -47,6 +47,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private String displayName;
     private String description;
     private boolean tolerant = true;
+    private List<String> intolerantValuePattern;
+    private List<String> tolerantValuePattern;
     private ResourceAttributeDefinition attributeDefinition;
     private AttributeFetchStrategyType fetchStrategy;
     private MappingType outboundMappingType;
@@ -283,6 +285,16 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 	public void setMatchingRuleQName(QName matchingRuleQName) {
 		this.matchingRuleQName = matchingRuleQName;
 	}
+	
+	
+	public List<String> getTolerantValuePattern(){
+		return tolerantValuePattern;
+	}
+	
+	public List<String> getIntolerantValuePattern(){
+		return intolerantValuePattern;
+		
+	}
 
 	static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
     		ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext, 
@@ -329,6 +341,9 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         	} else {
         		rAttrDef.tolerant = schemaHandlingAttrDefType.isTolerant();
         	}
+        	
+        	rAttrDef.tolerantValuePattern = schemaHandlingAttrDefType.getTolerantValuePattern();
+        	rAttrDef.intolerantValuePattern = schemaHandlingAttrDefType.getIntolerantValuePattern();
         	
             if (schemaHandlingAttrDefType.getOutbound() != null) {
                 rAttrDef.setOutboundMappingType(schemaHandlingAttrDefType.getOutbound());

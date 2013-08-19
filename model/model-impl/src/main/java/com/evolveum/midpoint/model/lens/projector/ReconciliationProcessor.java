@@ -19,7 +19,10 @@ package com.evolveum.midpoint.model.lens.projector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -278,17 +281,64 @@ public class ReconciliationProcessor {
 				}
 
 			}
+			
+			decideIfTolerate(accCtx, attributeDefinition, arePValues, shouldBePValues, valueMatcher);
+			
+//				if (!attributeDefinition.isTolerant()) {
+//				for (PrismPropertyValue<Object> isPValue : arePValues) {
+//					if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
+//						recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.DELETE,
+//								isPValue.getValue(), null);
+//					}
+//				}
+//			}
+		}
+	}
 
+	private void decideIfTolerate(LensProjectionContext<ShadowType> accCtx,
+			RefinedAttributeDefinition attributeDefinition,
+			Collection<PrismPropertyValue<Object>> arePValues,
+			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePValues,
+			ValueMatcher valueMatcher) throws SchemaException {
+		
+		for (PrismPropertyValue<Object> isPValue : arePValues){
+			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
+				LOGGER.trace("Value {} of the attribute {} match with toletant value pattern. Value will be NOT DELETED." , new Object[]{isPValue, attributeDefinition});
+				continue;
+			}
+		
+			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
+				LOGGER.trace("Value {} of the attribute {} match with intoletant value pattern. Value will be DELETED." , new Object[]{isPValue, attributeDefinition});
+				recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.DELETE,
+						isPValue.getValue(), null);
+				continue;
+			}		
+				
+			
 			if (!attributeDefinition.isTolerant()) {
-				for (PrismPropertyValue<Object> isPValue : arePValues) {
-					if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
+				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
 						recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.DELETE,
 								isPValue.getValue(), null);
-					}
 				}
 			}
 		}
+		
 	}
+
+	private boolean matchPattern(List<String> patterns,
+			PrismPropertyValue<Object> isPValue, ValueMatcher valueMatcher) {
+		if (patterns == null || patterns.isEmpty()) {
+			return false;
+		}
+		for (String toleratePattern : patterns) {
+			if (valueMatcher.matches(isPValue.getValue(), toleratePattern)) {
+				return true;
+			}
+
+		}
+		return false;
+	}
+	
 
 	private <T> void recordDelta(ValueMatcher valueMatcher, LensProjectionContext<ShadowType> accCtx,
 			ResourceAttributeDefinition attrDef, ModificationType changeType, T value, ObjectType originObject)
