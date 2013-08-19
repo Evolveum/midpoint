@@ -490,6 +490,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return (Long) qExistClosure.uniqueResult() != 0;
 
     }
+    
+    private boolean existIncorrect(Session session, String ancestorOid, String descendantOid) {
+        // if not exist pair with same depth, then create else nothing
+        // do
+        Query qExistIncorrect = session
+                .createQuery("select count(*) from ROrgIncorrect as o where "
+                        + "o.ancestorOid = :ancestorOid "
+                        + "and o.descendantId = :descendantId and o.descendantOid = :descendantOid");
+        qExistIncorrect.setParameter("ancestorOid", ancestorOid);
+        qExistIncorrect.setParameter("descendantId", 0L);
+        qExistIncorrect.setParameter("descendantOid", descendantOid);
+
+        return (Long) qExistIncorrect.uniqueResult() != 0;
+
+    }
 
     private <T extends ObjectType> void fillHierarchy(RObject rOrg, Session session, boolean withIncorrect)
             throws SchemaException {
@@ -511,12 +526,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
 
             for (ROrgIncorrect orgInc : orgIncorrect) {
-                Query qOrg = session
-                        .createQuery("from ROrg where id = 0 and oid = :oid");
-                qOrg.setString("oid", orgInc.getDescendantOid());
-                ROrg rOrgI = (ROrg) qOrg.uniqueResult();
-				if (rOrgI != null) {
-					fillTransitiveHierarchy(rOrgI, rOrg.getOid(), session, !withIncorrect);
+                Query qObject = session
+                        .createQuery("from RObject where id = 0 and oid = :oid");
+                qObject.setString("oid", orgInc.getDescendantOid());
+                RObject rObjectI = (RObject) qObject.uniqueResult();
+				if (rObjectI != null) {
+					fillTransitiveHierarchy(rObjectI, rOrg.getOid(), session, !withIncorrect);
 					session.delete(orgInc);
 				}
             }
@@ -550,11 +565,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 if (!existClosure)
                     session.save(new ROrgClosure(o.getAncestor(), descendant, o.getDepth() + 1));
             }
-        } else if (withIncorrect) {
-            LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
-                    descendant.getOid()});
-            session.save(new ROrgIncorrect(ancestorOid, descendant.getOid(),
-                    descendant.getId()));
+        } else if (withIncorrect)
+        	{
+        	boolean existIncorrect = existIncorrect(session, ancestorOid, descendant.getOid());
+        	if (!existIncorrect) 
+        	{        	
+        		LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
+        				descendant.getOid()});
+        		session.save(new ROrgIncorrect(ancestorOid, descendant.getOid(),
+        				descendant.getId()));
+        	}
         }
     }
 

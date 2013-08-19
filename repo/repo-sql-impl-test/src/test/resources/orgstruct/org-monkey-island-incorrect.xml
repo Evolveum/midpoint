@@ -19,6 +19,40 @@
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
 
+	<!-- Users -->
+	
+	<user>
+		<name>cheese1</name>
+		<description>The owner of Scumm Bar</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType" relation="org:manager"/>
+		<fullName>Ignatius Cheese1</fullName>
+		<givenName>Ignatius1</givenName>
+		<familyName>Cheese1</familyName>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+	</user>
+
+	<user>
+		<name>elaine1</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType" relation="org:manager"/>
+		<fullName>Elaine Marley1</fullName>
+		<givenName>Elaine1</givenName>
+		<familyName>Marley1</familyName>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType" relation="org:manager"/>
+		</assignment>	
+	</user>
+	
+	
 	<!-- Functional organizational structure -->
 
 	<org oid="00000000-8888-6666-0000-100000000007">

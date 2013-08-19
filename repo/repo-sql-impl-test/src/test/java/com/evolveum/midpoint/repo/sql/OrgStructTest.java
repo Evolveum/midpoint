@@ -107,6 +107,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     String ELAINE_OID;
     private static final String ELAINE_NAME = "elaine";
+    private static final String ELAINE_NAME1 = "elaine1";
 
     @SuppressWarnings({ "unchecked", "unused" })
     @Test
@@ -291,7 +292,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
                 .add(Restrictions.eq("anc.oid", ORG_F007_OID));
         
         orgClosure = criteria.list();
-        AssertJUnit.assertEquals(4, orgClosure.size());
+        AssertJUnit.assertEquals(5, orgClosure.size());
 
         criteria = session.createCriteria(ROrgClosure.class)
         		.add(Restrictions.eq("depth", 2))
@@ -301,7 +302,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
 
         orgClosure = criteria.list();
-        AssertJUnit.assertEquals(2, orgClosure.size());
+        AssertJUnit.assertEquals(3, orgClosure.size());
          
         LOGGER.info("==============ORG INCORRECT TABLE==========");
         List<ROrgIncorrect> orgIncorrect = session.createQuery("from ROrgIncorrect").list();
@@ -309,6 +310,22 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(ORG_F012_OID, orgIncorrect.get(0).getAncestorOid());
         AssertJUnit.assertEquals(ORG_F010_OID, orgIncorrect.get(0).getDescendantOid());
 
+        
+        ObjectQuery query = new ObjectQuery();
+        PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        query.setFilter(EqualsFilter.createEqual(null, userObjectDef, UserType.F_NAME, ELAINE_NAME1));
+
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
+
+        AssertJUnit.assertNotNull(users);
+        AssertJUnit.assertEquals(1, users.size());
+        UserType elaine1 = users.get(0).asObjectable();
+        LOGGER.info("--->elaine1<----");
+        LOGGER.info(prismContext.silentMarshalObject(elaine1, LOGGER));
+        AssertJUnit.assertEquals("Expected name elaine, but got " + elaine1.getName().getOrig(), "elaine1", elaine1.getName().getOrig());
+        AssertJUnit.assertEquals("Expected elaine has one org ref, but got " + elaine1.getParentOrgRef().size(), 2, elaine1.getParentOrgRef().size());
+        AssertJUnit.assertEquals("Parent org ref oid not equal.", "00000000-8888-6666-0000-100000000011", elaine1.getParentOrgRef().get(0).getOid());
+        
         session.getTransaction().commit();
         session.close();
      }
