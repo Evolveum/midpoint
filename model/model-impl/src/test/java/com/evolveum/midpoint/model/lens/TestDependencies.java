@@ -118,6 +118,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 		initDummy("b", initTask, initResult); // depends on A
 		initDummy("c", initTask, initResult); // depends on B
 		initDummy("d", initTask, initResult); // depends on B
+		
+		initDummy("p", initTask, initResult); // depends on R (order 5)
+		initDummy("r", initTask, initResult); // depends on P (order 0)
 	}
 	
 	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException {
@@ -265,6 +268,38 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         	// this is expected
         }        
 	}
+
+	
+	@Test
+    public void test201SortToWavesPR() throws Exception {
+		final String TEST_NAME = "test201SortToWavesPR";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_ELAINE_OID, result);
+        fillContextWithDummyElaineAccount(context, "p", result);
+        fillContextWithDummyElaineAccount(context, "r", result);
+        
+        context.recompute();
+        display("Context before", context);        
+        context.checkConsistence();
+        
+        // WHEN
+        projector.sortAccountsToWaves(context);
+        
+        // THEN
+        display("Context after", context);
+        
+        assertWave(context, getDummyOid("p"), 0, 0);
+        assertWave(context, getDummyOid("r"), 0, 1);
+        assertWave(context, getDummyOid("p"), 5, 2);
+	}
+
 	
 	private LensProjectionContext<ShadowType> fillContextWithDummyElaineAccount(
 			LensContext<UserType, ShadowType> context, String dummyName, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -281,6 +316,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	private void assertWave(LensContext<UserType, ShadowType> context,
 			String resourceOid, int order, int expectedWave) {
 		LensProjectionContext<ShadowType> ctxAccDummy = findAccountContext(context, resourceOid, order);
+		assertNotNull("No context for "+resourceOid+", order="+order, ctxAccDummy);
         assertWave(ctxAccDummy, expectedWave);
 	}
 

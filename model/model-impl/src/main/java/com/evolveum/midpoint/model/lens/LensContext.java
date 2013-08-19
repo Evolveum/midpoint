@@ -190,27 +190,11 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		
 	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat) {
 		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
-			if (compareResourceShadowDiscriminator(rat, projCtx)) {
+			if (projCtx.compareResourceShadowDiscriminator(rat, true)) {
 				return projCtx;
 			}
 		}
 		return null;
-	}
-	
-	private boolean compareResourceShadowDiscriminator(ResourceShadowDiscriminator rsd,
-			LensProjectionContext<P> projCtx) {
-		ResourceShadowDiscriminator ctxRsd = projCtx.getResourceShadowDiscriminator();
-		if (rsd.equals(ctxRsd)) {
-			return true;
-		}
-		if (rsd.getIntent() == null && rsd.getResourceOid().equals(ctxRsd.getResourceOid())) {
-			try {
-				return projCtx.getRefinedAccountDefinition().isDefaultInAKind();
-			} catch (SchemaException e) {
-				throw new SystemException("Internal error: "+e.getMessage(), e);
-			}
-		}
-		return false;
 	}
 
 	public LensProjectionContext<P> findOrCreateProjectionContext(ResourceShadowDiscriminator rat) {

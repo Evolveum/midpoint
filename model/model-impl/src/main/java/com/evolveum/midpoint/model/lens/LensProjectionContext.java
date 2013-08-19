@@ -189,6 +189,29 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.resourceShadowDiscriminator = resourceShadowDiscriminator;
 	}
     
+    public boolean compareResourceShadowDiscriminator(ResourceShadowDiscriminator rsd, boolean compareOrder) {
+    	if (!rsd.getResourceOid().equals(resourceShadowDiscriminator.getResourceOid())) {
+    		return false;
+    	}
+    	if (rsd.getIntent() == null) {
+			try {
+				if (!getRefinedAccountDefinition().isDefaultInAKind()) {
+					return false;
+				}
+			} catch (SchemaException e) {
+				throw new SystemException("Internal error: "+e.getMessage(), e);
+			}
+		} else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
+			return false;
+		}
+    	
+    	if (compareOrder && rsd.getOrder() != resourceShadowDiscriminator.getOrder()) {
+    		return false;
+    	}
+		
+		return true;
+	}
+    
 	public boolean isThombstone() {
 		if (resourceShadowDiscriminator == null) {
 			return false;

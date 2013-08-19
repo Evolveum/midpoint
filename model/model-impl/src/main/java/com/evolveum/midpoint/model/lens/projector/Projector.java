@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -295,53 +296,118 @@ public class Projector {
 			projectionContext.setWave(-1);
 		}
 		
-		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-			determineAccountWave(context, projectionContext);
+		// Create a snapshot of the projection collection at the beginning of computation.
+		// The collection may be changed during computation (projections may be added). We do not want to process
+		// these added projections. They are already processed inside the computation.
+		// This also avoids ConcurrentModificationException
+		LensProjectionContext<P>[] projectionArray = context.getProjectionContexts().toArray(new LensProjectionContext[0]);
+		
+		for (LensProjectionContext<P> projectionContext: projectionArray) {
+			determineAccountWave(context, projectionContext, null);
 		}
 	}
 	
 	// TODO: check for circular dependencies
 	private <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> determineAccountWave(LensContext<F,P> context, 
-			LensProjectionContext<P> accountContext) throws PolicyViolationException {
+			LensProjectionContext<P> accountContext, ResourceObjectTypeDependencyType inDependency) throws PolicyViolationException {
 		if (accountContext.getWave() >= 0) {
 			// This was already processed
 			return accountContext;
 		}
-		int wave = 0;
-		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
-			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
-			LensProjectionContext<P> dependencyAccountContext = findDependencyContext(context, dependency);
+		int determinedWave = 0;
+		int determinedOrder = 0;
+		for (ResourceObjectTypeDependencyType outDependency: accountContext.getDependencies()) {
+			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
+				// There is incomming dependency. Deal only with dependencies of this order and lower
+				// otherwise we can end up in endless loop even for legal dependencies.
+				continue;
+			}
+			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(outDependency);
+			LensProjectionContext<P> dependencyAccountContext = findDependencyContext(context, outDependency);
 			if (dependencyAccountContext == null) {
-				if (dependency.getStrictness() == null || dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+				if (outDependency.getStrictness() == null || outDependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+": Account not provisioned");
-				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
+				} else if (outDependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied lax dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+"; depencency skipped");
-				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+				} else if (outDependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied relaxed dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+"; depencency skipped");
 				} else {
-					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
+					throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+refRat);
 				}
 			} else {
-				dependencyAccountContext = determineAccountWave(context, dependencyAccountContext);
-				if (dependencyAccountContext.getWave() + 1 > wave) {
-					wave = dependencyAccountContext.getWave() + 1;
+				dependencyAccountContext = determineAccountWave(context, dependencyAccountContext, outDependency);
+				if (dependencyAccountContext.getWave() + 1 > determinedWave) {
+					determinedWave = dependencyAccountContext.getWave() + 1;
+					if (outDependency.getOrder() == null) {
+						determinedOrder = 0;
+					} else {
+						determinedOrder = outDependency.getOrder();
+					}
 				}
 			}
 		}
-//		LOGGER.trace("Wave for {}: {}", accountContext.getResourceAccountType(), wave);
-		accountContext.setWave(wave);
-		return accountContext;
+		LensProjectionContext<P> resultAccountContext = accountContext; 
+		if (accountContext.getWave() >=0 && accountContext.getWave() != determinedWave) {
+			// Wave for this context was set during the run of this method (it was not set when we
+			// started, we checked at the beginning). Therefore this context must have been visited again.
+			// therefore there is a circular dependency. Therefore we need to create another context to split it.
+			resultAccountContext = createAnotherContext(context, accountContext, determinedOrder);
+		}
+//		LOGGER.trace("Wave for {}: {}", resultAccountContext.getResourceAccountType(), wave);
+		resultAccountContext.setWave(determinedWave);
+		return resultAccountContext;
 	}
 	
+	private boolean isHigerOrder(ResourceObjectTypeDependencyType a,
+			ResourceObjectTypeDependencyType b) {
+		Integer ao = a.getOrder();
+		Integer bo = b.getOrder();
+		if (ao == null) {
+			ao = 0;
+		}
+		if (bo == null) {
+			bo = 0;
+		}
+		return ao > bo;
+	}
+
+	/**
+	 * Find context that has the closest order to the dependency.
+	 */
 	private <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> findDependencyContext(
 			LensContext<F,P> context, ResourceObjectTypeDependencyType dependency){
 		ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
-		return context.findProjectionContext(refRat);
+		LensProjectionContext<P> selected = null;
+		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			if (!projectionContext.compareResourceShadowDiscriminator(refRat, false)) {
+				continue;
+			}
+			int ctxOrder = projectionContext.getResourceShadowDiscriminator().getOrder();
+			if (ctxOrder > refRat.getOrder()) {
+				continue;
+			}
+			if (selected == null) {
+				selected = projectionContext;
+			} else {
+				if (ctxOrder > selected.getResourceShadowDiscriminator().getOrder()) {
+					selected = projectionContext;
+				}
+			}
+		}
+		return selected;
+	}
+	
+	private <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> createAnotherContext(LensContext<F,P> context, 
+			LensProjectionContext<P> accountContext, int order) throws PolicyViolationException {
+		ResourceShadowDiscriminator origDiscr = accountContext.getResourceShadowDiscriminator();
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getIntent(), origDiscr.isThombstone());
+		discr.setOrder(order);
+		return context.createProjectionContext(discr);
 	}
 	
 	private <F extends ObjectType, P extends ShadowType> boolean checkDependencies(LensContext<F,P> context, 
