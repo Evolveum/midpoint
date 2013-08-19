@@ -20,12 +20,15 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -35,7 +38,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_node",
         indexes = {@Index(name = "iNodeName", columnNames = "name_orig")})
-public class RNode extends RObject {
+public class RNode extends RObject<NodeType> {
 
     private RPolyString name;
     private String nodeIdentifier;
@@ -152,9 +155,10 @@ public class RNode extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RNode repo, NodeType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RNode repo, NodeType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setHostname(repo.getHostname());
@@ -181,10 +185,11 @@ public class RNode extends RObject {
     }
 
     @Override
-    public NodeType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public NodeType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         NodeType object = new NodeType();
         RUtil.revive(object, prismContext);
-        RNode.copyToJAXB(this, object, prismContext);
+        RNode.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

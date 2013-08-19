@@ -30,6 +30,8 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -508,5 +510,18 @@ public final class RUtil {
 
         throw new IllegalArgumentException("Unknown value '" + object
                 + "' of type '" + object.getClass() + "', can't translate to '" + type + "'.");
+    }
+
+    public static boolean hasToLoadPath(QName container, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return hasToLoadPath(new ItemPath(container), options);
+    }
+
+    public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null) {
+            return true;
+        }
+
+        //todo implement
+        return false;
     }
 }

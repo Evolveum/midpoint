@@ -27,6 +27,8 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.type.PrefixedStringType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
@@ -39,6 +41,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,7 +59,7 @@ import java.util.Set;
                 @Index(name = "iShadowName", columnNames = "name_norm"),
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid")})
 @ForeignKey(name = "fk_shadow")
-public class RShadow extends RObject {
+public class RShadow<T extends ShadowType> extends RObject<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
     private RPolyString name;
@@ -325,9 +328,10 @@ public class RShadow extends RObject {
         return result1;
     }
 
-    public static void copyToJAXB(RShadow repo, ShadowType jaxb,
-                                  PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+    public static <T extends ShadowType> void copyToJAXB(RShadow<T> repo, ShadowType jaxb,
+                                  PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setObjectClass(repo.getObjectClass());
@@ -382,7 +386,7 @@ public class RShadow extends RObject {
         }
     }
 
-    public static void copyFromJAXB(ShadowType jaxb, RShadow repo,
+    public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow<T> repo,
                                     PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -442,11 +446,12 @@ public class RShadow extends RObject {
     }
 
     @Override
-    public ShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         ShadowType object = new ShadowType();
         RUtil.revive(object, prismContext);
-        RShadow.copyToJAXB(this, object, prismContext);
+        RShadow.copyToJAXB(this, object, prismContext, options);
 
-        return object;
+        return (T) object;
     }
 }

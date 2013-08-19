@@ -392,8 +392,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             orgClosure = criteria.list();
             
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] {orgClosure.get(0).getAncestor().toJAXB(prismContext),
-            	orgClosure.get(0).getDescendant().toJAXB(prismContext), orgClosure.get(0).getDepth() });
+            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] {orgClosure.get(0).getAncestor().toJAXB(prismContext, null),
+            	orgClosure.get(0).getDescendant().toJAXB(prismContext, null), orgClosure.get(0).getDepth() });
             
 //			LOGGER.info("==============CLOSURE TABLE FOR EACH==========");
 //			
@@ -667,8 +667,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==============CLOSURE TABLE==========");
         
         for (ROrgClosure o : orgClosure) {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
+            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
+                    o.getDescendant().toJAXB(prismContext, null), o.getDepth()});
 
         }
         session.getTransaction().commit();
@@ -746,8 +746,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         LOGGER.info("==============CLOSURE TABLE==========");
         for (ROrgClosure o : orgClosure) {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
+            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
+                    o.getDescendant().toJAXB(prismContext, null), o.getDepth()});
         }
         session.getTransaction().commit();
         session.close();

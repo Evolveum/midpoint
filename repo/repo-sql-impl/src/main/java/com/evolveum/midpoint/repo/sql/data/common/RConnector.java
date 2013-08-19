@@ -22,6 +22,8 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
@@ -32,6 +34,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +46,7 @@ import java.util.Set;
 @org.hibernate.annotations.Table(appliesTo = "m_connector",
         indexes = {@Index(name = "iConnectorName", columnNames = "name_orig"),
                 @Index(name = "iConnectorName", columnNames = "name_norm")})
-public class RConnector extends RObject {
+public class RConnector extends RObject<ConnectorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
     private RPolyString name;
@@ -178,9 +181,10 @@ public class RConnector extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RConnector repo, ConnectorType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RConnector repo, ConnectorType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setConnectorBundle(repo.getConnectorBundle());
@@ -232,10 +236,11 @@ public class RConnector extends RObject {
     }
 
     @Override
-    public ConnectorType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public ConnectorType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         ConnectorType object = new ConnectorType();
         RUtil.revive(object, prismContext);
-        RConnector.copyToJAXB(this, object, prismContext);
+        RConnector.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

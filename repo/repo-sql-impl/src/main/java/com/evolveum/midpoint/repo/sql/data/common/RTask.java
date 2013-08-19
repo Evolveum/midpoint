@@ -23,6 +23,8 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UriStack;
@@ -33,6 +35,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +47,7 @@ import java.util.Set;
 @org.hibernate.annotations.Table(appliesTo = "m_task",
         indexes = {@Index(name = "iTaskName", columnNames = "name_orig"),
                 @Index(name = "iTaskName", columnNames = "name_norm")})
-public class RTask extends RObject {
+public class RTask extends RObject<TaskType> {
 
     private RPolyString name;
     private String taskIdentifier;
@@ -357,9 +360,10 @@ public class RTask extends RObject {
         return result1;
     }
 
-    public static void copyToJAXB(RTask repo, TaskType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RTask repo, TaskType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
@@ -459,10 +463,11 @@ public class RTask extends RObject {
     }
 
     @Override
-    public TaskType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public TaskType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         TaskType object = new TaskType();
         RUtil.revive(object, prismContext);
-        RTask.copyToJAXB(this, object, prismContext);
+        RTask.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

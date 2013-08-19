@@ -27,6 +27,8 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeS
 import com.evolveum.midpoint.repo.sql.data.common.type.RResourceApproverRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -35,6 +37,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +50,7 @@ import java.util.Set;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_resource",
         indexes = {@Index(name = "iResourceName", columnNames = "name_orig")})
-public class RResource extends RObject {
+public class RResource extends RObject<ResourceType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
     private RPolyString name;
@@ -256,9 +259,10 @@ public class RResource extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RResource repo, ResourceType jaxb, PrismContext prismContext)
+    public static void copyToJAXB(RResource repo, ResourceType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setNamespace(repo.getNamespace());
@@ -363,10 +367,11 @@ public class RResource extends RObject {
     }
 
     @Override
-    public ResourceType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public ResourceType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         ResourceType object = new ResourceType();
         RUtil.revive(object, prismContext);
-        RResource.copyToJAXB(this, object, prismContext);
+        RResource.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

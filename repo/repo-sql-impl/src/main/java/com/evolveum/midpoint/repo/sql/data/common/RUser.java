@@ -18,11 +18,12 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -30,6 +31,7 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +50,7 @@ import java.util.Set;
                 @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_orig"),
                 @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_orig")})
 @ForeignKey(name = "fk_user")
-public class RUser extends RFocus {
+public class RUser extends RFocus<UserType> {
 
     private RPolyString name;
     private RPolyString fullName;
@@ -389,9 +391,10 @@ public class RUser extends RFocus {
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
     }
 
-    public static void copyToJAXB(RUser repo, UserType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RUser repo, UserType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RFocus.copyToJAXB(repo, jaxb, prismContext);
+        RFocus.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
@@ -417,31 +420,40 @@ public class RUser extends RFocus {
             jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
         }
 
-        List types = RUtil.safeSetToList(repo.getEmployeeType());
-        if (!types.isEmpty()) {
-            jaxb.getEmployeeType().addAll(types);
+        if (RUtil.hasToLoadPath(UserType.F_EMPLOYEE_TYPE, options)) {
+            List types = RUtil.safeSetToList(repo.getEmployeeType());
+            if (!types.isEmpty()) {
+                jaxb.getEmployeeType().addAll(types);
+            }
         }
 
-        List units = RUtil.safeSetPolyToList(repo.getOrganizationalUnit());
-        if (!units.isEmpty()) {
-            jaxb.getOrganizationalUnit().addAll(units);
+        if (RUtil.hasToLoadPath(UserType.F_ORGANIZATIONAL_UNIT, options)) {
+            List units = RUtil.safeSetPolyToList(repo.getOrganizationalUnit());
+            if (!units.isEmpty()) {
+                jaxb.getOrganizationalUnit().addAll(units);
+            }
         }
 
-        units = RUtil.safeSetPolyToList(repo.getOrganization());
-        if (!units.isEmpty()) {
-            jaxb.getOrganization().addAll(units);
+        if (RUtil.hasToLoadPath(UserType.F_ORGANIZATION, options)) {
+            List units = RUtil.safeSetPolyToList(repo.getOrganization());
+            if (!units.isEmpty()) {
+                jaxb.getOrganization().addAll(units);
+            }
         }
-        
-        if (repo.getResult() != null) {
-            jaxb.setResult(repo.getResult().toJAXB(prismContext));
+
+        if (RUtil.hasToLoadPath(UserType.F_RESULT, options)) {
+            if (repo.getResult() != null) {
+                jaxb.setResult(repo.getResult().toJAXB(prismContext));
+            }
         }
     }
 
     @Override
-    public UserType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public UserType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         UserType object = new UserType();
         RUtil.revive(object, prismContext);
-        RUser.copyToJAXB(this, object, prismContext);
+        RUser.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }
