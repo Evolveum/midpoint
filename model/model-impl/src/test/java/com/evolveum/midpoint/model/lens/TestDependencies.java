@@ -300,6 +300,40 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         assertWave(context, getDummyOid("p"), 5, 2);
 	}
 
+	/**
+	 * Different ordering of contexts as compared to previous tests. This results
+	 * in different order of computation.
+	 */
+	@Test
+    public void test202SortToWavesRP() throws Exception {
+		final String TEST_NAME = "test202SortToWavesRP";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_ELAINE_OID, result);
+        fillContextWithDummyElaineAccount(context, "r", result);
+        fillContextWithDummyElaineAccount(context, "p", result);
+        
+        context.recompute();
+        display("Context before", context);        
+        context.checkConsistence();
+        
+        // WHEN
+        projector.sortAccountsToWaves(context);
+        
+        // THEN
+        display("Context after", context);
+        
+        assertWave(context, getDummyOid("p"), 0, 0);
+        assertWave(context, getDummyOid("r"), 0, 1);
+        assertWave(context, getDummyOid("p"), 5, 2);
+	}
+
 	
 	private LensProjectionContext<ShadowType> fillContextWithDummyElaineAccount(
 			LensContext<UserType, ShadowType> context, String dummyName, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {

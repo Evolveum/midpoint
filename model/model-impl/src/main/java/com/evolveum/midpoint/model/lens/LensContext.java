@@ -175,6 +175,10 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return projectionContexts;
 	}
 	
+	public Iterator<LensProjectionContext<P>> getProjectionContextsIterator() {
+		return projectionContexts.iterator();
+	}
+	
 	public void addProjectionContext(LensProjectionContext<P> projectionContext) {
 		projectionContexts.add(projectionContext);
 	}
@@ -189,6 +193,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 		
 	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat) {
+		Validate.notNull(rat);
 		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
 			if (projCtx.compareResourceShadowDiscriminator(rat, true)) {
 				return projCtx;
@@ -310,29 +315,6 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 			}
 		}
 	}
-	
-	/**
-	 * Removes projection contexts that are not fresh.
-	 * These are usually artifacts left after the context reload. E.g. an account that used to be linked to a user before
-	 * but was removed in the meantime.
-	 */
-	public void removeRottenContexts() {
-		Iterator<LensProjectionContext<P>> projectionIterator = projectionContexts.iterator();
-		while (projectionIterator.hasNext()) {
-			LensProjectionContext<P> projectionContext = projectionIterator.next();
-			if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
-				// We must never remove contexts with primary delta. Even though it fails later on.
-				// What the user wishes should be done (or at least attempted) regardless of the consequences.
-				// Vox populi vox dei
-				continue;
-			}
-			if (!projectionContext.isFresh()) {
-				projectionIterator.remove();
-			}
-		}
-	}
-	
-	
 
 	public String getChannel() {
         return channel;

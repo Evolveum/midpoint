@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
 import org.apache.commons.lang.StringUtils;
+import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -77,6 +78,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	 * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
 	 */
 	private int wave = -1;
+	
+	/**
+	 * Indicates that the wave computation is still in progress.
+	 */
+	private transient boolean waveIncomplete = false;
 
     /**
      * Definition of account type.
@@ -173,7 +179,15 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.wave = wave;
 	}
 
-    public boolean isDoReconciliation() {
+    public boolean isWaveIncomplete() {
+		return waveIncomplete;
+	}
+
+	public void setWaveIncomplete(boolean waveIncomplete) {
+		this.waveIncomplete = waveIncomplete;
+	}
+
+	public boolean isDoReconciliation() {
         return doReconciliation;
     }
 
@@ -190,6 +204,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
     
     public boolean compareResourceShadowDiscriminator(ResourceShadowDiscriminator rsd, boolean compareOrder) {
+    	Validate.notNull(rsd.getResourceOid());
+    	if (resourceShadowDiscriminator == null) {
+    		// This may be valid case e.g. in case of broken contexts or if a context is just loading
+    		return false;
+    	}
     	if (!rsd.getResourceOid().equals(resourceShadowDiscriminator.getResourceOid())) {
     		return false;
     	}
@@ -884,6 +903,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         SchemaDebugUtil.indentDebugDump(sb, indent);
+        sb.append("PROJECTION ");
         sb.append(getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName());
         sb.append(" ");
         sb.append(getResourceShadowDiscriminator());
