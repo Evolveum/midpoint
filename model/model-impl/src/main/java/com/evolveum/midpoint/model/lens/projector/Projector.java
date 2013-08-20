@@ -258,6 +258,10 @@ public class Projector {
 	        
 	        LOGGER.trace("WAVE: Stopping the waves. There was {} waves", context.getProjectionWave());
 	        
+	        // We can do this only when computation of all the waves is finished. Before that we do not know
+	        // activation of every account and therefore cannot decide what is OK and what is not
+	        checkDeleteDependencies(context);
+	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
 	        result.recordSuccess();
@@ -482,11 +486,11 @@ public class Projector {
 	private <F extends ObjectType, P extends ShadowType> boolean checkDependencies(LensContext<F,P> context, 
     		LensProjectionContext<P> accountContext, XMLGregorianCalendar now, OperationResult result) throws PolicyViolationException {
 		if (accountContext.isDelete()) {
-			// It is OK if we depend on something that is not there if we are being removed
+			// It is OK if we depend on something that is not there if we are being removed ... for now
 			return true;
 		}
 		
-		if (accountContext.getOid() == null) {
+		if (accountContext.getOid() == null || accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
 			// Check for lower-order contexts
 			String lowerOrderOid = null;
 			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
@@ -502,7 +506,9 @@ public class Projector {
 				}
 			}
 			if (lowerOrderOid != null) {
-				accountContext.setOid(lowerOrderOid);
+				if (accountContext.getOid() == null) {
+					accountContext.setOid(lowerOrderOid);
+				}
 				if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
 					// This context cannot be ADD. There is a lower-order context with an OID
 					// it means that the lower-order projection exists, we cannot add it twice
@@ -553,6 +559,32 @@ public class Projector {
 			}
 		}
 		return true;
+	}
+	
+	private <F extends ObjectType, P extends ShadowType> void checkDeleteDependencies(LensContext<F,P> context) throws PolicyViolationException {
+		for (LensProjectionContext<P> accountContext: context.getProjectionContexts()) {
+			if (accountContext.isDelete()) {
+				// It is OK if we depend on something that is not there if we are being removed
+				// but we still need to check if others depends on me
+				for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+					if (projectionContext.isDelete()) {
+						// If someone who is being deleted depends on us then it does not really matter
+						continue;
+					}
+					for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
+						if (dependency.getResourceRef().getOid().equals(accountContext.getResource().getOid())) {
+							// Someone depends on us
+							if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT || 
+									dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+								throw new PolicyViolationException("Cannot remove "+accountContext.getHumanReadableName()
+										+" because "+projectionContext.getHumanReadableName()+" depends on it");
+							}
+						}
+					}
+				}
+				
+			}
+		}
 	}
 	
 	private <F extends ObjectType, P extends ShadowType> boolean wasProvisioned(LensProjectionContext<P> accountContext, int executionWave) {

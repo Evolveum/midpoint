@@ -242,6 +242,36 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		jackAssignRoleDummies(TEST_NAME);
 	}
 	
+	/**
+	 * Try to delete Jack's default dummy account. As other provisioned accounts depends on it the
+	 * operation should fail.
+	 */
+	@Test
+    public void test121JackTryDeleteAccount() throws Exception {
+		final String TEST_NAME = "test121JackTryDeleteAccount";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		dummyResource.resetBreakMode();
+		// Clean up user
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		String accountJackDummyOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+		
+		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountJackDummyOid, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
+        
+        try {
+			// WHEN
+	        modelService.executeChanges(deltas, null, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	display("Expected exception", e);
+        }
+	}
+	
 	@Test
     public void test123JackRenameRelative() throws Exception {
 		final String TEST_NAME = "test123JackRenameRelative";
