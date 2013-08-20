@@ -498,7 +498,7 @@ public class ChangeExecutor {
         }
         
     	if (LOGGER.isTraceEnabled()) {
-    		logDeltaExecution(objectDelta, context, null);
+    		logDeltaExecution(objectDelta, context, resource, null);
     	}
 
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
@@ -528,7 +528,7 @@ public class ChangeExecutor {
 	        		LOGGER.trace("EXECUTION result {}", result.getLastSubresult());
 	        	} else {
 	        		// Execution of deltas was not logged yet
-	        		logDeltaExecution(objectDelta, context, result.getLastSubresult());
+	        		logDeltaExecution(objectDelta, context, resource, result.getLastSubresult());
 	        	}
 	    	}
     	}
@@ -555,7 +555,8 @@ public class ChangeExecutor {
 	}
 
 	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
-				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F,P> context, OperationResult result) {
+				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F,P> context, 
+						ResourceType resource, OperationResult result) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("---[ ");
 		if (result == null) {
@@ -569,6 +570,9 @@ public class ChangeExecutor {
 		sb.append(" ").append(context.getChannel()).append("\n");
 		DebugUtil.debugDumpLabel(sb, "Wave", 0);
 		sb.append(" ").append(context.getExecutionWave()).append("\n");
+		if (resource != null) {
+			sb.append("Resource: ").append(resource.toString()).append("\n");
+		}
 		sb.append(objectDelta.dump());
 		sb.append("\n");
 		if (result != null) {

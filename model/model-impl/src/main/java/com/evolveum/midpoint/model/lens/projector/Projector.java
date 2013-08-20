@@ -448,12 +448,42 @@ public class Projector {
 		return otherCtx;
 	}
 	
+	/**
+	 * Check that the dependencies are still satisfied. Also check for high-ordes vs low-order operation consistency
+	 * and stuff like that. 
+	 */
 	private <F extends ObjectType, P extends ShadowType> boolean checkDependencies(LensContext<F,P> context, 
     		LensProjectionContext<P> accountContext, XMLGregorianCalendar now, OperationResult result) throws PolicyViolationException {
 		if (accountContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed
 			return true;
 		}
+		
+		if (accountContext.getOid() == null) {
+			// Check for lower-order contexts
+			String lowerOrderOid = null;
+			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+				if (accountContext == projectionContext) {
+					continue;
+				}
+				if (projectionContext.compareResourceShadowDiscriminator(accountContext.getResourceShadowDiscriminator(), false) &&
+						projectionContext.getResourceShadowDiscriminator().getOrder() < accountContext.getResourceShadowDiscriminator().getOrder()) {
+					if (projectionContext.getOid() != null) {
+						lowerOrderOid = projectionContext.getOid();
+						break;
+					}
+				}
+			}
+			if (lowerOrderOid != null) {
+				accountContext.setOid(lowerOrderOid);
+				if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
+					// This context cannot be ADD. There is a lower-order context with an OID
+					// it means that the lower-order projection exists, we cannot add it twice
+					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+				}
+			}
+		}		
+		
 		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
