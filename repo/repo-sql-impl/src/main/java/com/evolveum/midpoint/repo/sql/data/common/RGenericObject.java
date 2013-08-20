@@ -20,7 +20,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
@@ -28,6 +31,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -37,7 +41,7 @@ import javax.persistence.UniqueConstraint;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_generic_object",
         indexes = {@Index(name = "iGenericObjectName", columnNames = "name_orig")})
-public class RGenericObject extends RObject {
+public class RGenericObject extends RObject<GenericObjectType> {
 
     private RPolyString name;
     private String objectType;
@@ -81,9 +85,10 @@ public class RGenericObject extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RGenericObject repo, GenericObjectType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RGenericObject repo, GenericObjectType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setObjectType(repo.getObjectType());
@@ -98,11 +103,13 @@ public class RGenericObject extends RObject {
     }
 
     @Override
-    public GenericObjectType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public GenericObjectType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
+
         GenericObjectType object = new GenericObjectType();
         RUtil.revive(object, prismContext);
-        RGenericObject.copyToJAXB(this, object, prismContext);
+        RGenericObject.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }
-}                                                    
+}

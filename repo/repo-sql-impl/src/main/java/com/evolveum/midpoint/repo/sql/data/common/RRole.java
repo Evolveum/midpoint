@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -28,6 +30,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -37,7 +40,7 @@ import javax.persistence.UniqueConstraint;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_role",
         indexes = {@Index(name = "iRoleName", columnNames = "name_orig")})
-public class RRole extends RAbstractRole {
+public class RRole extends RAbstractRole<RoleType> {
 
     private RPolyString name;
     private String roleType;
@@ -86,9 +89,10 @@ public class RRole extends RAbstractRole {
         return result;
     }
 
-    public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext)
+    public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
-        RAbstractRole.copyToJAXB(repo, jaxb, prismContext);
+        RAbstractRole.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setRoleType(repo.getRoleType());
@@ -103,9 +107,10 @@ public class RRole extends RAbstractRole {
     }
 
     @Override
-    public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public RoleType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         RoleType object = new RoleType();
-        RRole.copyToJAXB(this, object, prismContext);
+        RRole.copyToJAXB(this, object, prismContext, options);
         RUtil.revive(object, prismContext);
         return object;
     }

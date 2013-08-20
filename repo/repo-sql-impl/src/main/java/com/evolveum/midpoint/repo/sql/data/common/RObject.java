@@ -27,7 +27,10 @@ import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
@@ -38,6 +41,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +53,7 @@ import java.util.Set;
         jpaName = "name", jpaType = RPolyString.class)})
 @Entity
 @ForeignKey(name = "fk_object")
-public abstract class RObject extends RContainer {
+public abstract class RObject<T extends ObjectType> extends RContainer {
 
     private String description;
     private RAnyContainer extension;
@@ -196,7 +200,8 @@ public abstract class RObject extends RContainer {
         return result;
     }
 
-    public static void copyToJAXB(RObject repo, ObjectType jaxb, PrismContext prismContext)
+    public static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -205,30 +210,37 @@ public abstract class RObject extends RContainer {
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Long.toString(repo.getVersion()));
 
-        if (repo.getExtension() != null) {
-            ExtensionType extension = new ExtensionType();
-            jaxb.setExtension(extension);
-            RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
-        }
-
-        List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
-        if (!orgRefs.isEmpty()) {
-            jaxb.getParentOrgRef().addAll(orgRefs);
-        }
-
-        if (repo.getTrigger() != null) {
-            for (RTrigger trigger : repo.getTrigger()) {
-                jaxb.getTrigger().add(trigger.toJAXB(prismContext));
+        if (RUtil.hasToLoadPath(ObjectType.F_EXTENSION, options)) {
+            if (repo.getExtension() != null) {
+                ExtensionType extension = new ExtensionType();
+                jaxb.setExtension(extension);
+                RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
             }
         }
 
-        if (repo.getMetadata() != null) {
-            jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
+        if (RUtil.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
+            List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
+            if (!orgRefs.isEmpty()) {
+                jaxb.getParentOrgRef().addAll(orgRefs);
+            }
         }
 
+        if (RUtil.hasToLoadPath(ObjectType.F_TRIGGER, options)) {
+            if (repo.getTrigger() != null) {
+                for (RTrigger trigger : repo.getTrigger()) {
+                    jaxb.getTrigger().add(trigger.toJAXB(prismContext));
+                }
+            }
+        }
+
+        if (RUtil.hasToLoadPath(ObjectType.F_METADATA, options)) {
+            if (repo.getMetadata() != null) {
+                jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
+            }
+        }
     }
 
-    public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)
+    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext)
             throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
@@ -268,5 +280,6 @@ public abstract class RObject extends RContainer {
         }
     }
 
-    public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;
+    public abstract T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException;
 }

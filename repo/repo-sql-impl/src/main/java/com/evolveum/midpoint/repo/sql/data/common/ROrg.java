@@ -20,12 +20,15 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -36,7 +39,7 @@ import java.util.Set;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_org",
         indexes = {@Index(name = "iOrgName", columnNames = "name_orig")})
-public class ROrg extends RAbstractRole {
+public class ROrg extends RAbstractRole<OrgType> {
 
     private RPolyString name;
     private RPolyString displayName;
@@ -145,9 +148,10 @@ public class ROrg extends RAbstractRole {
         repo.setOrgType(RUtil.listToSet(jaxb.getOrgType()));
     }
 
-    public static void copyToJAXB(ROrg repo, OrgType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(ROrg repo, OrgType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RAbstractRole.copyToJAXB(repo, jaxb, prismContext);
+        RAbstractRole.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setCostCenter(repo.getCostCenter());
@@ -158,10 +162,11 @@ public class ROrg extends RAbstractRole {
     }
 
     @Override
-    public OrgType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public OrgType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         OrgType object = new OrgType();
         RUtil.revive(object, prismContext);
-        ROrg.copyToJAXB(this, object, prismContext);
+        ROrg.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

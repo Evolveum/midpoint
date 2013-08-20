@@ -89,7 +89,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         super(repositoryFactory);
     }
 
-    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid, boolean lockForUpdate)
+    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid,
+                                                            Collection<SelectorOptions<GetOperationOptions>> options,
+                                                            boolean lockForUpdate)
             throws ObjectNotFoundException, SchemaException, DtoTranslationException {
 
         boolean lockedForUpdateViaHibernate = false;
@@ -135,7 +137,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
-        PrismObject<T> objectType = object.toJAXB(getPrismContext()).asPrismObject();
+        PrismObject<T> objectType = object.toJAXB(getPrismContext(), options).asPrismObject();
         validateObjectType(objectType, type);
 
         return objectType;
@@ -167,7 +169,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    return getObjectAttempt(type, oid, subResult);
+                    return getObjectAttempt(type, oid, options, subResult);
                 } catch (RuntimeException ex) {
                     attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
@@ -178,7 +180,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid, OperationResult result)
+    private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid,
+                                                                   Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                   OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         LOGGER.trace("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
 
@@ -188,7 +192,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
 
-            objectType = getObject(session, type, oid, false);
+            objectType = getObject(session, type, oid, options, false);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -264,7 +268,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             RUser user = users.get(0);
-            userType = user.toJAXB(getPrismContext());
+            userType = user.toJAXB(getPrismContext(), null);
 
             session.getTransaction().commit();
         } catch (DtoTranslationException ex) {
@@ -392,7 +396,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Collection<? extends ItemDelta> modifications = null;
         if (originalOid != null) {
             try {
-                PrismObject<T> oldObject = getObject(session, object.getCompileTimeClass(), originalOid, true);
+                PrismObject<T> oldObject = getObject(session, object.getCompileTimeClass(), originalOid, null, true);
                 ObjectDelta<T> delta = object.diff(oldObject);
                 modifications = delta.getModifications();
 
@@ -506,7 +510,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     }
 
-    private <T extends ObjectType> void fillHierarchy(RObject rOrg, Session session, boolean withIncorrect)
+    private <T extends ObjectType> void fillHierarchy(RObject<T> rOrg, Session session, boolean withIncorrect)
             throws SchemaException {
 
         if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid(), 0)) {
@@ -663,7 +667,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         for (RObject object : objectsToRecompute) {
             Criteria query = session.createCriteria(ClassMapper
-                    .getHQLTypeClass(object.toJAXB(getPrismContext())
+                    .getHQLTypeClass(object.toJAXB(getPrismContext(), null)
                             .getClass()));
             query.add(Restrictions.eq("oid", object.getOid()));
             query.add(Restrictions.eq("id", 0L));
@@ -776,7 +780,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    return searchObjectsAttempt(type, query, subResult);
+                    return searchObjectsAttempt(type, query, options, subResult);
                 } catch (RuntimeException ex) {
                     attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
@@ -809,6 +813,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
+                                                                             Collection<SelectorOptions<GetOperationOptions>> options,
                                                                              OperationResult result) throws SchemaException {
 
         List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
@@ -825,7 +830,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             for (Object object : objects) {
                 RObject rObject = updateCriteriaListObject(object);
 
-                ObjectType objectType = rObject.toJAXB(getPrismContext());
+                ObjectType objectType = rObject.toJAXB(getPrismContext(), options);
                 PrismObject<T> prismObject = objectType.asPrismObject();
                 validateObjectType(prismObject, type);
                 list.add(prismObject);
@@ -931,7 +936,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session = beginTransaction();
 
             // get user
-            PrismObject<T> prismObject = getObject(session, type, oid, true);
+            PrismObject<T> prismObject = getObject(session, type, oid, null, true);
             // apply diff
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.dump()});
@@ -980,7 +985,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 
     private <T extends ObjectType> void recomputeHierarchy(
-            RObject rObjectToModify, Session session,
+            RObject<T> rObjectToModify, Session session,
             Collection<? extends ItemDelta> modifications)
             throws SchemaException, DtoTranslationException {
 
@@ -1070,11 +1075,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         List<ROrgClosure> orgClosure = cOrgClosure.list();
 
         for (ROrgClosure o : orgClosure) {
-            LOGGER.trace(
-                    "1deleting from hierarchy: A: {} D:{} depth:{}",
-                    new Object[]{o.getAncestor().toJAXB(getPrismContext()),
-                            o.getDescendant().toJAXB(getPrismContext()),
-                            o.getDepth()});
+                LOGGER.trace(
+                        "1deleting from hierarchy: A: {} D:{} depth:{}",
+                        new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
+                                o.getDescendant().toJAXB(getPrismContext(), null),
+                                o.getDepth()});
             session.delete(o);
         }
         deleteHierarchy(rObjectToModify, session);
@@ -1204,7 +1209,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             if (shadows != null) {
                 for (RShadow shadow : shadows) {
-                    ShadowType jaxb = shadow.toJAXB(getPrismContext());
+                    ShadowType jaxb = shadow.toJAXB(getPrismContext(), null);
                     PrismObject<T> prismObject = jaxb.asPrismObject();
                     validateObjectType(prismObject, resourceObjectShadowType);
 
@@ -1487,7 +1492,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    searchObjectsIterativeAttempt(type, query, handler, subResult);
+                    searchObjectsIterativeAttempt(type, query, handler, options, subResult);
                     return;
                 } catch (RuntimeException ex) {
                     attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
@@ -1500,7 +1505,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> void searchObjectsIterativeAttempt(Class<T> type, ObjectQuery query,
-                                                                      ResultHandler<T> handler, OperationResult result)
+                                                                      ResultHandler<T> handler,
+                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                      OperationResult result)
             throws SchemaException {
 
         Session session = null;
@@ -1516,7 +1523,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     Object object = iterator.next();
                     RObject rObject = updateCriteriaListObject(object);
 
-                    ObjectType objectType = rObject.toJAXB(getPrismContext());
+                    ObjectType objectType = rObject.toJAXB(getPrismContext(), options);
                     PrismObject<T> prismObject = objectType.asPrismObject();
                     validateObjectType(prismObject, type);
 

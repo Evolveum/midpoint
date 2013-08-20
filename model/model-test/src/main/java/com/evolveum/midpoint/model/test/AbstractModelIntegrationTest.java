@@ -1633,7 +1633,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if ((values == null || values.isEmpty()) && (expectedAttributeValues == null || expectedAttributeValues.length == 0)) {
 			return;
 		}
-		assertNotNull("No values for attribute "+attributeName+" of dummy account "+username, values);
+		assertNotNull("No values for attribute "+attributeName+" of "+dummyInstanceName+" dummy account "+username, values);
 		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username+": "+values, expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
 			if (!values.contains(expectedValue)) {

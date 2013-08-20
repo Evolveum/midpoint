@@ -27,12 +27,15 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +53,7 @@ import java.util.Set;
 @ForeignKey(name = "fk_abstract_role")
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
         indexes = {@Index(name = "iRequestable", columnNames = "requestable")})
-public abstract class RAbstractRole extends RFocus {
+public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
     private Set<RExclusion> exclusion;
     private Boolean requestable;
@@ -201,9 +204,11 @@ public abstract class RAbstractRole extends RFocus {
         return result;
     }
 
-    public static void copyToJAXB(RAbstractRole repo, AbstractRoleType jaxb, PrismContext prismContext)
+    public static <T extends AbstractRoleType> void copyToJAXB(RAbstractRole<T> repo, AbstractRoleType jaxb,
+                                                               PrismContext prismContext,
+                                                               Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
-        RFocus.copyToJAXB(repo, jaxb, prismContext);
+        RFocus.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setRequestable(repo.getRequestable());
         if (repo.getInducement() != null) {
@@ -248,8 +253,8 @@ public abstract class RAbstractRole extends RFocus {
         }
     }
 
-    public static void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole repo, PrismContext prismContext)
-            throws DtoTranslationException {
+    public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
+                                                                 PrismContext prismContext) throws DtoTranslationException {
         RFocus.copyFromJAXB(jaxb, repo, prismContext);
         repo.setRequestable(jaxb.isRequestable());
 

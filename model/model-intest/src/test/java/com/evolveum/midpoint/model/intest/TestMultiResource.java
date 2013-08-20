@@ -85,6 +85,16 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_BEIGE_NAME = "beige";
 	protected static final String RESOURCE_DUMMY_BEIGE_NAMESPACE = MidPointConstants.NS_RI;
 	
+	protected static final File RESOURCE_DUMMY_DAVID_FILE = new File(TEST_DIR, "resource-dummy-david.xml");
+	protected static final String RESOURCE_DUMMY_DAVID_OID = "10000000-0000-0000-0000-000000300001";
+	protected static final String RESOURCE_DUMMY_DAVID_NAME = "david";
+	protected static final String RESOURCE_DUMMY_DAVID_NAMESPACE = MidPointConstants.NS_RI;
+	
+	protected static final File RESOURCE_DUMMY_GOLIATH_FILE = new File(TEST_DIR, "resource-dummy-goliath.xml");
+	protected static final String RESOURCE_DUMMY_GOLIATH_OID = "10000000-0000-0000-0000-000000300001";
+	protected static final String RESOURCE_DUMMY_GOLIATH_NAME = "goliath";
+	protected static final String RESOURCE_DUMMY_GOLIATH_NAMESPACE = MidPointConstants.NS_RI;
+	
 	// Assigns default dummy resource and red dummy resource
 	protected static final File ROLE_DUMMIES_FILE = new File(TEST_DIR, "role-dummies.xml");
 	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
@@ -92,6 +102,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String ROLE_DUMMIES_IVORY_OID = "12345678-d34d-b33f-f00d-55555511dddd";
 	protected static final File ROLE_DUMMIES_BEIGE_FILE = new File(TEST_DIR, "role-dummies-beige.xml");
 	protected static final String ROLE_DUMMIES_BEIGE_OID = "12345678-d34d-b33f-f00d-5555551bdddd";
+	protected static final File ROLE_FIGHT_FILE = new File(TEST_DIR, "role-fight.xml");
+	protected static final String ROLE_FIGHT_OID = "12345678-d34d-b33f-f00d-5555550303dd";
 	
 	protected static DummyResource dummyResourceYellow;
 	protected static DummyResourceContoller dummyResourceCtlYellow;
@@ -108,6 +120,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected ResourceType resourceDummyBeigeType;
 	protected PrismObject<ResourceType> resourceDummyBeige;
 	
+	protected static DummyResource dummyResourceDavid;
+	protected static DummyResourceContoller dummyResourceCtlDavid;
+	protected PrismObject<ResourceType> resourceDummyDavid;
+
+	protected static DummyResource dummyResourceGoliath;
+	protected static DummyResourceContoller dummyResourceCtlGoliath;
+	protected PrismObject<ResourceType> resourceDummyGoliath;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -132,10 +152,23 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		resourceDummyBeige = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BEIGE_FILE, RESOURCE_DUMMY_BEIGE_OID, initTask, initResult);
 		resourceDummyBeigeType = resourceDummyBeige.asObjectable();
 		dummyResourceCtlBeige.setResource(resourceDummyBeige);
-		
+
+		dummyResourceCtlDavid = DummyResourceContoller.create(RESOURCE_DUMMY_DAVID_NAME);
+		dummyResourceCtlDavid.extendDummySchema();
+		dummyResourceDavid = dummyResourceCtlDavid.getDummyResource();
+		resourceDummyDavid = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_DAVID_FILE, RESOURCE_DUMMY_DAVID_OID, initTask, initResult);
+		dummyResourceCtlDavid.setResource(resourceDummyDavid);
+
+		dummyResourceCtlGoliath = DummyResourceContoller.create(RESOURCE_DUMMY_GOLIATH_NAME);
+		dummyResourceCtlGoliath.extendDummySchema();
+		dummyResourceGoliath = dummyResourceCtlGoliath.getDummyResource();
+		resourceDummyGoliath = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GOLIATH_FILE, RESOURCE_DUMMY_GOLIATH_OID, initTask, initResult);
+		dummyResourceCtlGoliath.setResource(resourceDummyGoliath);
+
 		repoAddObjectFromFile(ROLE_DUMMIES_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_DUMMIES_IVORY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_DUMMIES_BEIGE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_FIGHT_FILE, RoleType.class, initResult);
 		
 		dummyResource.resetBreakMode();
 	}
@@ -207,6 +240,36 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		jackAssignRoleDummies(TEST_NAME);
+	}
+	
+	/**
+	 * Try to delete Jack's default dummy account. As other provisioned accounts depends on it the
+	 * operation should fail.
+	 */
+	@Test
+    public void test121JackTryDeleteAccount() throws Exception {
+		final String TEST_NAME = "test121JackTryDeleteAccount";
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		dummyResource.resetBreakMode();
+		// Clean up user
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		String accountJackDummyOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+		
+		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountJackDummyOid, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
+        
+        try {
+			// WHEN
+	        modelService.executeChanges(deltas, null, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	display("Expected exception", e);
+        }
 	}
 	
 	@Test
@@ -686,4 +749,54 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
 	}
     
+    @Test
+    public void test400DavidAndGoliath() throws Exception {
+		final String TEST_NAME = "test400DavidAndGoliath";
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        final String USER_NAME = "world";
+        final String USER_FULL_NAME = "The World";
+        
+        PrismObject<UserType> userBefore = createUser(USER_NAME, USER_FULL_NAME, true);
+        userBefore.asObjectable().getOrganizationalUnit().add(PrismTestUtil.createPolyStringType("stone"));
+        addObject(userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_NAME, USER_FULL_NAME, null, null);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_NAME, USER_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "stone take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("stone take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_NAME, USER_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "stone take throw hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("stone take throw hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "stone take throw hit fall win");
+	}
 }

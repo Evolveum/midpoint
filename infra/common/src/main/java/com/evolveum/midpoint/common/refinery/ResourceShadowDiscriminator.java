@@ -40,6 +40,7 @@ public class ResourceShadowDiscriminator implements Serializable {
 	private ShadowKindType kind = ShadowKindType.ACCOUNT;
 	private String intent;
 	private boolean thombstone;
+	private int order = 0;
 	
 	public ResourceShadowDiscriminator(String resourceOid, String intent) {
 		this(resourceOid, intent, false);
@@ -85,6 +86,14 @@ public class ResourceShadowDiscriminator implements Serializable {
 		this.intent = intent;
 	}
 
+	public int getOrder() {
+		return order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
 	/**
 	 * Thumbstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get. 
 	 */
@@ -121,7 +130,9 @@ public class ResourceShadowDiscriminator implements Serializable {
 		int result = 1;
 		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
-		result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
+		result = prime * result + order;
+		result = prime * result
+				+ ((resourceOid == null) ? 0 : resourceOid.hashCode());
 		result = prime * result + (thombstone ? 1231 : 1237);
 		return result;
 	}
@@ -141,6 +152,8 @@ public class ResourceShadowDiscriminator implements Serializable {
 		} else if (!intent.equals(other.intent))
 			return false;
 		if (kind != other.kind)
+			return false;
+		if (order != other.order)
 			return false;
 		if (resourceOid == null) {
 			if (other.resourceOid != null)
@@ -184,6 +197,18 @@ public class ResourceShadowDiscriminator implements Serializable {
 	
     @Override
 	public String toString() {
-		return "Discr(" + kind.value() + " ("+intent+") on "+ resourceOid + ( thombstone ? ", THOMBSTONE" : "" ) + ")";
+    	StringBuilder sb = new StringBuilder("Discr(");
+    	sb.append(kind.value());
+    	sb.append(" (").append(intent).append(") on ");
+    	sb.append(resourceOid);
+    	if (order != 0) {
+    		sb.append(" order=");
+    		sb.append(order);
+    	}
+    	if (thombstone) {
+    		sb.append(" THOMBSTONE");
+    	}
+    	sb.append(")");
+    	return sb.toString();
 	}
 }

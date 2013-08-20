@@ -21,19 +21,22 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import java.util.Collection;
 
 /**
  * @author lazyman
  */
 @Entity
 @ForeignKey(name = "fk_account_shadow")
-public class RAccountShadow extends RShadow {
+public class RAccountShadow extends RShadow<AccountShadowType> {
 
     private String accountType;
     private RCredentials credentials;
@@ -77,9 +80,10 @@ public class RAccountShadow extends RShadow {
         return result;
     }
 
-    public static void copyToJAXB(RAccountShadow repo, AccountShadowType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RAccountShadow repo, AccountShadowType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RShadow.copyToJAXB(repo, jaxb, prismContext);
+        RShadow.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setAccountType(repo.getAccountType());
 
@@ -102,10 +106,11 @@ public class RAccountShadow extends RShadow {
         }
     }
 
-    public ShadowType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public AccountShadowType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         AccountShadowType shadow = new AccountShadowType();
         RUtil.revive(shadow, prismContext);
-        RAccountShadow.copyToJAXB(this, shadow, prismContext);
+        RAccountShadow.copyToJAXB(this, shadow, prismContext, options);
 
         return shadow;
     }

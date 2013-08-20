@@ -27,8 +27,11 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -38,10 +41,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -56,7 +56,7 @@ import java.util.Set;
 @org.hibernate.annotations.Table(appliesTo = "m_focus",
         indexes = {@Index(name = "iFocusAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iFocusEffective", columnNames = "effectiveStatus")})
-public abstract class RFocus extends RObject {
+public abstract class RFocus<T extends FocusType> extends RObject<T> {
 
     private Set<RObjectReference> linkRef;
     private Set<RAssignment> assignments;
@@ -147,7 +147,7 @@ public abstract class RFocus extends RObject {
         return result;
     }
 
-    public static void copyFromJAXB(FocusType jaxb, RFocus repo, PrismContext prismContext) throws
+    public static <T extends FocusType> void copyFromJAXB(FocusType jaxb, RFocus<T> repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -169,21 +169,28 @@ public abstract class RFocus extends RObject {
         }
     }
 
-    public static void copyToJAXB(RFocus repo, FocusType jaxb, PrismContext prismContext) throws
+    public static <T extends FocusType> void copyToJAXB(RFocus<T> repo, FocusType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
-        List linkRefs = RUtil.safeSetReferencesToList(repo.getLinkRef(), prismContext);
-        if (!linkRefs.isEmpty()) {
-            jaxb.getLinkRef().addAll(linkRefs);
+        if (RUtil.hasToLoadPath(FocusType.F_LINK_REF, options)) {
+            List linkRefs = RUtil.safeSetReferencesToList(repo.getLinkRef(), prismContext);
+            if (!linkRefs.isEmpty()) {
+                jaxb.getLinkRef().addAll(linkRefs);
+            }
         }
 
-        for (RAssignment rAssignment : repo.getAssignment()) {
-            jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+        if (RUtil.hasToLoadPath(FocusType.F_ASSIGNMENT, options)) {
+            for (RAssignment rAssignment : repo.getAssignment()) {
+                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+            }
         }
 
-        if (repo.getActivation() != null) {
-            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
+        if (RUtil.hasToLoadPath(FocusType.F_ACTIVATION, options)) {
+            if (repo.getActivation() != null) {
+                jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
+            }
         }
     }
 }

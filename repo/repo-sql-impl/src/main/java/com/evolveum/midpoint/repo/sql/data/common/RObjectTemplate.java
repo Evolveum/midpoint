@@ -24,7 +24,9 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RIncludeRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.*;
@@ -32,6 +34,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +47,7 @@ import java.util.Set;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_object_template",
         indexes = {@Index(name = "iObjectTemplate", columnNames = "name_orig")})
-public class RObjectTemplate extends RObject {
+public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString name;
     private String mapping;
@@ -139,9 +142,10 @@ public class RObjectTemplate extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RObjectTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RObjectTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext,
+                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         //set name c:userTemplate or c:objectTemplate
         jaxb.asPrismObject().setName(repo.getType().getSchemaValue());
@@ -203,10 +207,11 @@ public class RObjectTemplate extends RObject {
     }
 
     @Override
-    public ObjectTemplateType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public ObjectTemplateType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         ObjectTemplateType object = new ObjectTemplateType();
         RUtil.revive(object, prismContext);
-        RObjectTemplate.copyToJAXB(this, object, prismContext);
+        RObjectTemplate.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

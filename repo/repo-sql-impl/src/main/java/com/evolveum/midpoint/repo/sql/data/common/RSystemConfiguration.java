@@ -22,6 +22,8 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -31,6 +33,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -40,7 +43,7 @@ import javax.persistence.*;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_system_configuration",
         indexes = {@Index(name = "iSystemConfigurationName", columnNames = "name_orig")})
-public class RSystemConfiguration extends RObject {
+public class RSystemConfiguration extends RObject<SystemConfigurationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
     private RPolyString name;
@@ -210,8 +213,9 @@ public class RSystemConfiguration extends RObject {
     }
 
     public static void copyToJAXB(RSystemConfiguration repo, SystemConfigurationType jaxb,
-                                  PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+                                  PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         if (repo.getDefaultUserTemplateRef() != null) {
@@ -295,10 +299,11 @@ public class RSystemConfiguration extends RObject {
     }
 
     @Override
-    public SystemConfigurationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public SystemConfigurationType toJAXB(PrismContext prismContext,
+                                          Collection<SelectorOptions<GetOperationOptions>> options) throws DtoTranslationException {
         SystemConfigurationType object = new SystemConfigurationType();
         RUtil.revive(object, prismContext);
-        RSystemConfiguration.copyToJAXB(this, object, prismContext);
+        RSystemConfiguration.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }
