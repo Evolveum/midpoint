@@ -307,7 +307,7 @@ public class ReconciliationProcessor {
 				continue;
 			}
 		
-			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
+			if (matchPattern(attributeDefinition.getIntolerantValuePattern(), isPValue, valueMatcher)){
 				LOGGER.trace("Value {} of the attribute {} match with intoletant value pattern. Value will be DELETED." , new Object[]{isPValue, attributeDefinition});
 				recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.DELETE,
 						isPValue.getValue(), null);

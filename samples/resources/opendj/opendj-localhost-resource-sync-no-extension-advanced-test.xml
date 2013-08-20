@@ -410,6 +410,7 @@ object.
 				<ref>ri:employeeType</ref>
 				<displayName>Employee Type</displayName>
 				<tolerant>false</tolerant>
+				<tolerantValuePattern>^res-.*</tolerantValuePattern>
 				<outbound>
 					<source>
 						<path>$user/employeeType</path>
