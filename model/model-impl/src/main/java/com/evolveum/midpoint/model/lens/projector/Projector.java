@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -318,7 +320,7 @@ public class Projector {
 		}
 		
 		for (LensProjectionContext<P> projectionContext: projectionArray) {
-			determineAccountWave(context, projectionContext, null);
+			determineAccountWave(context, projectionContext, null, null);
 			projectionContext.setWaveIncomplete(false);
 		}
 		
@@ -341,7 +343,7 @@ public class Projector {
 	
 	// TODO: check for circular dependencies
 	private <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> determineAccountWave(LensContext<F,P> context, 
-			LensProjectionContext<P> accountContext, ResourceObjectTypeDependencyType inDependency) throws PolicyViolationException {
+			LensProjectionContext<P> accountContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (!accountContext.isWaveIncomplete()) {
 			// This was already processed
 			return accountContext;
@@ -351,6 +353,9 @@ public class Projector {
 			accountContext.setWave(0);
 			return accountContext;
 		}
+		if (depPath == null) {
+			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
+		}
 		int determinedWave = 0;
 		int determinedOrder = 0;
 		for (ResourceObjectTypeDependencyType outDependency: accountContext.getDependencies()) {
@@ -359,6 +364,8 @@ public class Projector {
 				// otherwise we can end up in endless loop even for legal dependencies.
 				continue;
 			}
+			checkForCircular(depPath, outDependency);
+			depPath.add(outDependency);
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(outDependency);
 			LensProjectionContext<P> dependencyAccountContext = findDependencyContext(context, outDependency);
 			if (dependencyAccountContext == null) {
@@ -377,7 +384,7 @@ public class Projector {
 					throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+refRat);
 				}
 			} else {
-				dependencyAccountContext = determineAccountWave(context, dependencyAccountContext, outDependency);
+				dependencyAccountContext = determineAccountWave(context, dependencyAccountContext, outDependency, depPath);
 				if (dependencyAccountContext.getWave() + 1 > determinedWave) {
 					determinedWave = dependencyAccountContext.getWave() + 1;
 					if (outDependency.getOrder() == null) {
@@ -387,6 +394,7 @@ public class Projector {
 					}
 				}
 			}
+			depPath.remove(outDependency);
 		}
 		LensProjectionContext<P> resultAccountContext = accountContext; 
 		if (accountContext.getWave() >=0 && accountContext.getWave() != determinedWave) {
@@ -400,6 +408,24 @@ public class Projector {
 		return resultAccountContext;
 	}
 	
+	private void checkForCircular(List<ResourceObjectTypeDependencyType> depPath,
+			ResourceObjectTypeDependencyType outDependency) throws PolicyViolationException {
+		for (ResourceObjectTypeDependencyType pathElement: depPath) {
+			if (pathElement.equals(outDependency)) {
+				StringBuilder sb = new StringBuilder();
+				Iterator<ResourceObjectTypeDependencyType> iterator = depPath.iterator();
+				while (iterator.hasNext()) {
+					ResourceObjectTypeDependencyType el = iterator.next();
+					sb.append(el.getResourceRef().getOid());
+					if (iterator.hasNext()) {
+						sb.append("->");
+					}
+				}
+				throw new PolicyViolationException("Circular dependency, path: "+sb.toString());
+			}
+		}
+	}
+
 	private boolean isHigerOrder(ResourceObjectTypeDependencyType a,
 			ResourceObjectTypeDependencyType b) {
 		Integer ao = a.getOrder();
