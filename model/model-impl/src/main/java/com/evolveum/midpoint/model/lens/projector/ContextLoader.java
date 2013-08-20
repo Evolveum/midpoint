@@ -896,7 +896,7 @@ public class ContextLoader {
 			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
 				continue;
 			}
-			if (projectionContext.getResourceShadowDiscriminator() == null) {
+			if (projectionContext.isShadow() && projectionContext.getResourceShadowDiscriminator() == null) {
 				throw new IllegalStateException("No discriminator in "+projectionContext);
 			}
 		}

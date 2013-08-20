@@ -850,9 +850,14 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			sb.append("ID ");
 			sb.append(humanReadableAccountIdentifier);
 		}
-		sb.append(", type '");
-		sb.append(getResourceShadowDiscriminator().getIntent());
-		sb.append("', ");
+		ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
+		if (discr != null) {
+			sb.append(", type '");
+			sb.append(discr.getIntent());
+			sb.append("', ");
+		} else {
+			sb.append(" (no discriminator) ");
+		}
 		sb.append(getResource());
 		sb.append(")");
 		return sb.toString();

@@ -348,6 +348,7 @@ public class Projector {
 		}
 		if (accountContext.isDelete()) {
 			// Ignore dependencies if we are being removed
+			accountContext.setWave(0);
 			return accountContext;
 		}
 		int determinedWave = 0;
