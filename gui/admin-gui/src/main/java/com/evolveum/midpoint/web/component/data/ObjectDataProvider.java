@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.web.component.data;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -47,6 +49,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
     private Class<T> type;
+    private Collection<SelectorOptions<GetOperationOptions>> options;
 
     public ObjectDataProvider(Component component, Class<T> type) {
         super(component, true);
@@ -71,7 +74,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
             }
             query.setPaging(paging);
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, null, task, result);
+            List<PrismObject<T>> list = getModel().searchObjects(type, query, options, task, result);
             for (PrismObject<T> object : list) {
                 getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
             }
@@ -127,5 +130,13 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         this.type = type;
 
         clearCache();
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return options;
+    }
+
+    public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        this.options = options;
     }
 }

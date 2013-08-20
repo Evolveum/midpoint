@@ -1,18 +1,23 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -37,7 +42,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
                 UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
-        options.add(SelectorOptions.create(UserType.F_LINK_REF, GetOperationOptions.createResolve()));
+        options.add(SelectorOptions.create(UserType.F_LINK_REF,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 
         LOGGER.info("Search users");
         repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options, result);
@@ -54,5 +60,20 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
             repositoryService.addObject(user.asPrismObject(), null, result);
         }
+    }
+
+    @Test
+    public void testOptionsResolution() throws Exception {
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(UserType.F_LINK_REF,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+
+        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_LINK_REF, options));
+
+        options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD),
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+
+        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_CREDENTIALS, options));
     }
 }

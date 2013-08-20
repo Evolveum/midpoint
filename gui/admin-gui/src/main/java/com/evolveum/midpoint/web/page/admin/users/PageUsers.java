@@ -28,6 +28,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -340,6 +343,12 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         provider.setQuery(createQuery());
+
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(UserType.F_LINK_REF,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+        provider.setOptions(options);
+
         TablePanel table = new TablePanel<SelectableBean<UserType>>("table", provider, columns);
         table.setOutputMarkupId(true);
 

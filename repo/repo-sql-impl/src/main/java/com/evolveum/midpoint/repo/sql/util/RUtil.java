@@ -19,6 +19,8 @@ package com.evolveum.midpoint.repo.sql.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
@@ -31,6 +33,8 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -521,7 +525,70 @@ public final class RUtil {
             return true;
         }
 
-        //todo implement
+        //at first we filter retrieve options
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions =
+                new ArrayList<SelectorOptions<GetOperationOptions>>();
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (option.getOptions() == null || option.getOptions().getRetrieve() == null) {
+                continue;
+            }
+
+            retrieveOptions.add(option);
+        }
+
+        if (retrieveOptions.isEmpty()) {
+            return true;
+        }
+
+        for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
+            ObjectSelector selector = option.getSelector();
+            ItemPath selected = selector.getPath();
+            if (!isPathInSelected(path, selected)) {
+                continue;
+            }
+
+            RetrieveOption retrieveOption = option.getOptions().getRetrieve();
+            switch (retrieveOption) {
+                    case INCLUDE:
+                        return true;
+                    case EXCLUDE:
+                        return false;
+                    default:
+                        return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isPathInSelected(ItemPath path, ItemPath selected) {
+        if (selected == null || path == null) {
+            return false;
+        }
+
+        if (path.isEmpty()) {
+            if (selected.isEmpty()) {
+                return true;
+            }
+        } else {
+            List<ItemPathSegment> pSegments = path.getSegments();
+            List<ItemPathSegment> sSegments = selected.getSegments();
+
+            for (int i = 0; i < pSegments.size(); i++) {
+                if (sSegments.size() <= i) {
+                    return true;
+                }
+                NameItemPathSegment pSegment = (NameItemPathSegment) pSegments.get(i);
+                NameItemPathSegment sSegment = (NameItemPathSegment) sSegments.get(i);
+
+                if (!pSegment.equals(sSegment)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         return false;
     }
 }
