@@ -6366,6 +6366,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+
+                    <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for profiling purposes. The first iteration of profiling integration has
+                                only few configuration options, but profiling feature will grow in near future.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="cleanupPolicy" type="tns:CleanupPoliciesType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -7436,6 +7446,20 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- TODO profiling Configuration -->
+    <xsd:complexType name="ProfilingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A configuration for profiling features of midPoint.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="requestFilter" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType"/>
+
     <!-- notifications -->
 
     <xsd:complexType name="NotificationConfigurationType">
@@ -7452,6 +7476,7 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
+
 
     <xsd:complexType name="EventHandlerType">
         <xsd:annotation>

@@ -33,9 +33,33 @@
             <maxHistory>20</maxHistory>
         </rollingPolicy>
     </appender>
+
+    <!-- Appender for profiling purposes -->
+    <appender name="IDM-PROFILE_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+        <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
+        <!--for further documentation-->
+        <Append>true</Append>
+        <File>${catalina.base}/logs/idm-profile.log</File>
+        <encoder>
+            <pattern>%date %-5level: %message%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/idm-profile.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>20</maxHistory>
+        </rollingPolicy>
+    </appender>
+    <!-- Appender for profiling purposes -->
+
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="PROFILING" level="TRACE"/>
     <logger name="com.evolveum.midpoint" level="INFO" />
+    <logger name="com.evolveum.midpoint.web.util.MidPointProfilingServletFilter" level="TRACE">
+        <appender-ref ref="IDM-PROFILE_LOG"/>
+    </logger>
     <root level="WARN">
         <appender-ref ref="IDM_LOG"/>
     </root>
