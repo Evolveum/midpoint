@@ -5678,7 +5678,7 @@
             </xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
-    		<xsd:element ref="tns:description"/>
+    		<xsd:element ref="tns:description" minOccurs="0"/>
     		<xsd:element name="targetRef" type="tns:ObjectReferenceType">
     			<xsd:annotation>
     				<xsd:documentation>
