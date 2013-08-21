@@ -858,12 +858,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} catch (ConfigurationException ex) {
 			result.recordFatalError(ex);
 			throw ex;
+		} catch (SecurityViolationException ex) {
+			result.recordFatalError(ex);
+			throw ex;
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Object not found");
+			throw new ObjectNotFoundException("Object identified by " + identifiers + " was not found by "
+					+ connectorType);
+		} catch (SchemaException ex) {
+			result.recordFatalError(ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			result.recordFatalError(ex);
+			throw ex;
 		}
 
 		if (co == null) {
 			result.recordFatalError("Object not found");
 			throw new ObjectNotFoundException("Object identified by " + identifiers + " was not found by "
-					+ ObjectTypeUtil.toShortString(connectorType));
+					+ connectorType);
 		}
 
 		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);
