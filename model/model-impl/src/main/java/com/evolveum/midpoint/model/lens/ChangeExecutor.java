@@ -224,7 +224,6 @@ public class ChangeExecutor {
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace("No change for account "
 									+ accCtx.getResourceShadowDiscriminator());
-							LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
 						}
 						if (focusContext != null) {
 							updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
