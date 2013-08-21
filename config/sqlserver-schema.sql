@@ -406,17 +406,6 @@ CREATE TABLE m_org_org_type (
   orgType NVARCHAR(255)
 );
 
-CREATE TABLE m_password_policy (
-  lifetime     NVARCHAR(MAX),
-  name_norm    NVARCHAR(255),
-  name_orig    NVARCHAR(255),
-  stringPolicy NVARCHAR(MAX),
-  id           BIGINT       NOT NULL,
-  oid          NVARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-);
-
 CREATE TABLE m_reference (
   reference_type INT           NOT NULL,
   owner_id       BIGINT        NOT NULL,
@@ -539,6 +528,7 @@ CREATE TABLE m_system_configuration (
   name_norm                      NVARCHAR(255),
   name_orig                      NVARCHAR(255),
   notificationConfiguration      NVARCHAR(MAX),
+  profilingConfiguration         NVARCHAR(MAX),
   id                             BIGINT       NOT NULL,
   oid                            NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
@@ -653,6 +643,17 @@ CREATE TABLE m_user_organizational_unit (
   user_oid NVARCHAR(36) NOT NULL,
   norm     NVARCHAR(255),
   orig     NVARCHAR(255)
+);
+
+CREATE TABLE m_value_policy (
+  lifetime     NVARCHAR(MAX),
+  name_norm    NVARCHAR(255),
+  name_orig    NVARCHAR(255),
+  stringPolicy NVARCHAR(MAX),
+  id           BIGINT       NOT NULL,
+  oid          NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 );
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
@@ -837,13 +838,6 @@ ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_id, org_oid)
 REFERENCES m_org;
 
-CREATE INDEX iPasswordPolicy ON m_password_policy (name_orig);
-
-ALTER TABLE m_password_policy
-ADD CONSTRAINT fk_password_policy
-FOREIGN KEY (id, oid)
-REFERENCES m_object;
-
 ALTER TABLE m_reference
 ADD CONSTRAINT fk_reference_owner
 FOREIGN KEY (owner_id, owner_oid)
@@ -949,6 +943,13 @@ ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_id, user_oid)
 REFERENCES m_user;
+
+CREATE INDEX iValuePolicy ON m_value_policy (name_orig);
+
+ALTER TABLE m_value_policy
+ADD CONSTRAINT fk_value_policy
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
 
 CREATE TABLE hibernate_sequence (
   next_val BIGINT

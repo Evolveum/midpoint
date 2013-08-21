@@ -30,7 +30,7 @@ public enum RContainerType {
     CONNECTOR_HOST(RConnectorHost.class),
     GENERIC_OBJECT(RGenericObject.class),
     OBJECT(RObject.class),
-    PASSWORD_POLICY(RPasswordPolicy.class),
+    VALUE_POLICY(RValuePolicy.class),
     RESOURCE(RResource.class),
     SHADOW(RShadow.class),
     ROLE(RRole.class),

@@ -56,6 +56,13 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
     private String connectorFramework;
     private String notificationConfiguration;
     private String cleanupPolicy;
+    private String profilingConfiguration;
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getProfilingConfiguration() {
+        return profilingConfiguration;
+    }
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
@@ -161,6 +168,10 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
         this.cleanupPolicy = cleanupPolicy;
     }
 
+    public void setProfilingConfiguration(String profilingConfiguration) {
+        this.profilingConfiguration = profilingConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -192,6 +203,9 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
             return false;
         if (cleanupPolicy != null ? !cleanupPolicy.equals(that.cleanupPolicy) : that.cleanupPolicy != null)
             return false;
+        if (profilingConfiguration != null ? !profilingConfiguration.equals(that.profilingConfiguration) :
+                that.profilingConfiguration != null)
+            return false;
 
         return true;
     }
@@ -209,6 +223,7 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
         result = 31 * result + (connectorFramework != null ? connectorFramework.hashCode() : 0);
         result = 31 * result + (cleanupPolicy != null ? cleanupPolicy.hashCode() : 0);
+        result = 31 * result + (profilingConfiguration != null ? profilingConfiguration.hashCode() : 0);
         return result;
     }
 
@@ -256,6 +271,10 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
                     new ItemPath(SystemConfigurationType.F_CLEANUP_POLICY),
                     repo.getCleanupPolicy(),
                     CleanupPoliciesType.class, prismContext));
+            jaxb.setProfilingConfiguration(RUtil.toJAXB(SystemConfigurationType.class,
+                    new ItemPath(SystemConfigurationType.F_PROFILING_CONFIGURATION),
+                    repo.getProfilingConfiguration(),
+                    ProfilingConfigurationType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -293,6 +312,7 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
             repo.setNotificationConfiguration(RUtil.toRepo(jaxb.getNotificationConfiguration(), prismContext));
 
             repo.setCleanupPolicy(RUtil.toRepo(jaxb.getCleanupPolicy(), prismContext));
+            repo.setProfilingConfiguration(RUtil.toRepo(jaxb.getProfilingConfiguration(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

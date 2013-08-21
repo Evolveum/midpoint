@@ -507,20 +507,6 @@ CREATE TABLE m_org_org_type (
   COLLATE utf8_bin
   ENGINE =InnoDB;
 
-CREATE TABLE m_password_policy (
-  lifetime     LONGTEXT,
-  name_norm    VARCHAR(255),
-  name_orig    VARCHAR(255),
-  stringPolicy LONGTEXT,
-  id           BIGINT      NOT NULL,
-  oid          VARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE =InnoDB;
-
 CREATE TABLE m_reference (
   reference_type INTEGER      NOT NULL,
   owner_id       BIGINT       NOT NULL,
@@ -658,6 +644,7 @@ CREATE TABLE m_system_configuration (
   name_norm                      VARCHAR(255),
   name_orig                      VARCHAR(255),
   notificationConfiguration      LONGTEXT,
+  profilingConfiguration         LONGTEXT,
   id                             BIGINT      NOT NULL,
   oid                            VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
@@ -793,6 +780,20 @@ CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE =InnoDB;
+
+CREATE TABLE m_value_policy (
+  lifetime     LONGTEXT,
+  name_norm    VARCHAR(255),
+  name_orig    VARCHAR(255),
+  stringPolicy LONGTEXT,
+  id           BIGINT      NOT NULL,
+  oid          VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -1010,14 +1011,6 @@ ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_id, org_oid)
 REFERENCES m_org (id, oid);
 
-CREATE INDEX iPasswordPolicy ON m_password_policy (name_orig);
-
-ALTER TABLE m_password_policy
-ADD INDEX fk_password_policy (id, oid),
-ADD CONSTRAINT fk_password_policy
-FOREIGN KEY (id, oid)
-REFERENCES m_object (id, oid);
-
 ALTER TABLE m_reference
 ADD INDEX fk_reference_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_reference_owner
@@ -1137,6 +1130,14 @@ ADD INDEX fk_user_org_unit (user_id, user_oid),
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_id, user_oid)
 REFERENCES m_user (id, oid);
+
+CREATE INDEX iValuePolicy ON m_value_policy (name_orig);
+
+ALTER TABLE m_value_policy
+ADD INDEX fk_value_policy (id, oid),
+ADD CONSTRAINT fk_value_policy
+FOREIGN KEY (id, oid)
+REFERENCES m_object (id, oid);
 
 CREATE TABLE hibernate_sequence (
   next_val BIGINT

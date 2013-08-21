@@ -406,17 +406,6 @@ CREATE TABLE m_org_org_type (
   orgType VARCHAR(255)
 );
 
-CREATE TABLE m_password_policy (
-  lifetime     CLOB,
-  name_norm    VARCHAR(255),
-  name_orig    VARCHAR(255),
-  stringPolicy CLOB,
-  id           BIGINT      NOT NULL,
-  oid          VARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-);
-
 CREATE TABLE m_reference (
   reference_type INTEGER      NOT NULL,
   owner_id       BIGINT       NOT NULL,
@@ -539,6 +528,7 @@ CREATE TABLE m_system_configuration (
   name_norm                      VARCHAR(255),
   name_orig                      VARCHAR(255),
   notificationConfiguration      CLOB,
+  profilingConfiguration         CLOB,
   id                             BIGINT      NOT NULL,
   oid                            VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
@@ -653,6 +643,17 @@ CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
+);
+
+CREATE TABLE m_value_policy (
+  lifetime     CLOB,
+  name_norm    VARCHAR(255),
+  name_orig    VARCHAR(255),
+  stringPolicy CLOB,
+  id           BIGINT      NOT NULL,
+  oid          VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 );
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
@@ -837,13 +838,6 @@ ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_id, org_oid)
 REFERENCES m_org;
 
-CREATE INDEX iPasswordPolicy ON m_password_policy (name_orig);
-
-ALTER TABLE m_password_policy
-ADD CONSTRAINT fk_password_policy
-FOREIGN KEY (id, oid)
-REFERENCES m_object;
-
 ALTER TABLE m_reference
 ADD CONSTRAINT fk_reference_owner
 FOREIGN KEY (owner_id, owner_oid)
@@ -949,5 +943,12 @@ ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_id, user_oid)
 REFERENCES m_user;
+
+CREATE INDEX iValuePolicy ON m_value_policy (name_orig);
+
+ALTER TABLE m_value_policy
+ADD CONSTRAINT fk_value_policy
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
 
 CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;

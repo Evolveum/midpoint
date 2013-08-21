@@ -409,17 +409,6 @@ CREATE TABLE m_org_org_type (
   orgType VARCHAR2(255 CHAR)
 ) INITRANS 30;
 
-CREATE TABLE m_password_policy (
-  lifetime     CLOB,
-  name_norm    VARCHAR2(255 CHAR),
-  name_orig    VARCHAR2(255 CHAR),
-  stringPolicy CLOB,
-  id           NUMBER(19, 0)     NOT NULL,
-  oid          VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
-) INITRANS 30;
-
 CREATE TABLE m_reference (
   reference_type NUMBER(10, 0)      NOT NULL,
   owner_id       NUMBER(19, 0)      NOT NULL,
@@ -542,6 +531,7 @@ CREATE TABLE m_system_configuration (
   name_norm                      VARCHAR2(255 CHAR),
   name_orig                      VARCHAR2(255 CHAR),
   notificationConfiguration      CLOB,
+  profilingConfiguration         CLOB,
   id                             NUMBER(19, 0)     NOT NULL,
   oid                            VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (id, oid),
@@ -656,6 +646,17 @@ CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR2(36 CHAR) NOT NULL,
   norm     VARCHAR2(255 CHAR),
   orig     VARCHAR2(255 CHAR)
+) INITRANS 30;
+
+CREATE TABLE m_value_policy (
+  lifetime     CLOB,
+  name_norm    VARCHAR2(255 CHAR),
+  name_orig    VARCHAR2(255 CHAR),
+  stringPolicy CLOB,
+  id           NUMBER(19, 0)     NOT NULL,
+  oid          VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 ) INITRANS 30;
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
@@ -840,13 +841,6 @@ ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_id, org_oid)
 REFERENCES m_org;
 
-CREATE INDEX iPasswordPolicy ON m_password_policy (name_orig) INITRANS 30;
-
-ALTER TABLE m_password_policy
-ADD CONSTRAINT fk_password_policy
-FOREIGN KEY (id, oid)
-REFERENCES m_object;
-
 ALTER TABLE m_reference
 ADD CONSTRAINT fk_reference_owner
 FOREIGN KEY (owner_id, owner_oid)
@@ -952,5 +946,12 @@ ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_id, user_oid)
 REFERENCES m_user;
+
+CREATE INDEX iValuePolicy ON m_value_policy (name_orig) INITRANS 30;
+
+ALTER TABLE m_value_policy
+ADD CONSTRAINT fk_value_policy
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
 
 CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;
