@@ -31,10 +31,12 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -104,6 +106,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String ROLE_DUMMIES_BEIGE_OID = "12345678-d34d-b33f-f00d-5555551bdddd";
 	protected static final File ROLE_FIGHT_FILE = new File(TEST_DIR, "role-fight.xml");
 	protected static final String ROLE_FIGHT_OID = "12345678-d34d-b33f-f00d-5555550303dd";
+
+    protected static final String USER_WORLD_NAME = "world";
+    protected static final String USER_WORLD_FULL_NAME = "The World";
+
+	private static final String USER_FIELD_NAME = "field";
 	
 	protected static DummyResource dummyResourceYellow;
 	protected static DummyResourceContoller dummyResourceCtlYellow;
@@ -750,8 +757,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
     
     @Test
-    public void test400DavidAndGoliath() throws Exception {
-		final String TEST_NAME = "test400DavidAndGoliath";
+    public void test400DavidAndGoliathAddRole() throws Exception {
+		final String TEST_NAME = "test400DavidAndGoliathAddRole";
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -759,12 +766,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        final String USER_NAME = "world";
-        final String USER_FULL_NAME = "The World";
-        
-        PrismObject<UserType> userBefore = createUser(USER_NAME, USER_FULL_NAME, true);
+        PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         userBefore.asObjectable().getOrganizationalUnit().add(PrismTestUtil.createPolyStringType("stone"));
         addObject(userBefore);
+        
+        dummyAuditService.clear();
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -777,26 +783,186 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userAfter = getUser(userBefore.getOid());
 		display("User after fight", userAfter);
-		assertUser(userAfter, userBefore.getOid(), USER_NAME, USER_FULL_NAME, null, null);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
 		assertAccounts(userAfter, 2);
 		
-		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_NAME, USER_FULL_NAME, true);
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         
-		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_NAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "stone take");
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "stone (world) take");
         
-        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("stone take throw"));
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("stone (world) take throw"));
         
-        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_NAME, USER_FULL_NAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         
-        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_NAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "stone take throw hit");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "stone (world) take throw (world) hit");
         
-        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("stone take throw hit fall"));
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("stone (world) take throw (world) hit fall"));
         
-        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_NAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "stone take throw hit fall win");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "stone (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,3);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2,2);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+        
+        // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
+        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
+        ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
+        display("Last execution delta", executionDelta);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+	}
+    
+    @Test
+    public void test401DavidAndGoliathModifyOu() throws Exception {
+		final String TEST_NAME = "test401DavidAndGoliathModifyOu";
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock"));
+                
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (world) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (world) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (world) take throw (world) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (world) take throw (world) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2,2);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+        
+        // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
+        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
+        ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
+        display("Last execution delta", executionDelta);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+	}
+    
+    @Test
+    public void test410DavidAndGoliathRename() throws Exception {
+		final String TEST_NAME = "test410DavidAndGoliathRename";
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(userBefore.getOid(), UserType.F_NAME, task, result, PrismTestUtil.createPolyString(USER_FIELD_NAME));
+        
+     // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (field) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (field) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (field) take throw (field) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (field) take throw (field) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (field) take throw (field) hit fall (field) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2,2);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+        
+        // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
+        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
+        ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
+        display("Last execution delta", executionDelta);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
 	}
 }

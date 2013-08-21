@@ -214,6 +214,16 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		return delta;
 	}
 	
+	public ObjectDeltaOperation<?> getExecutionDelta(int index, ChangeType changeType, Class<?> typeClass) {
+		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: getExecutionDeltas(index)) {
+			ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
+			if (delta.getObjectTypeClass() == typeClass && delta.getChangeType() == changeType) {
+				return deltaOp;
+			}
+		}
+		return null;
+	}
+	
 	public void assertExecutionDeltaAdd() {
 		ObjectDeltaOperation<?> delta = getExecutionDelta(0);
 		assert delta.getObjectDelta().isAdd() : "Execution audit record is not add, it is "+delta;
@@ -262,13 +272,8 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 	}
 	
 	public void asserHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass) {
-		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: getExecutionDeltas(index)) {
-			ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
-			if (delta.getObjectTypeClass() == expectedClass && delta.getChangeType() == expectedChangeType) {
-				return;
-			}
-		}
-		assert false : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
+		ObjectDeltaOperation<? extends ObjectType> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
+		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
 	}
 	
 	public void assertExecutionDeltas(int expectedNumber) {
@@ -276,7 +281,7 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 	}
 	
 	public void assertExecutionDeltas(int index, int expectedNumber) {
-		assertEquals("Wrong number of execution deltas in audit trail", expectedNumber, getExecutionDeltas(index).size());
+		assertEquals("Wrong number of execution deltas in audit trail (index "+index+")", expectedNumber, getExecutionDeltas(index).size());
 	}
 
 	public void assertTarget(String expectedOid) {

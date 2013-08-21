@@ -276,8 +276,14 @@ public class PrismAsserts {
 	// DELTA asserts
 	
 	public static void assertModifications(ObjectDelta<?> objectDelta, int expectedNumberOfModifications) {
+		assertModifications(null, objectDelta, expectedNumberOfModifications);
+	}
+	
+	public static void assertModifications(String message, ObjectDelta<?> objectDelta, int expectedNumberOfModifications) {
 		assertIsModify(objectDelta);
-		assert objectDelta.getModifications().size() == expectedNumberOfModifications : "Wrong number of modifications in object delta "
+		assert objectDelta.getModifications().size() == expectedNumberOfModifications :
+				(message == null ? "" : (message + ": ")) +
+				"Wrong number of modifications in object delta "
 					+ objectDelta + ". Expected "+expectedNumberOfModifications+", was "+objectDelta.getModifications().size();
 	}
 

@@ -82,10 +82,13 @@
 					<source>
 						<path>locality</path>
 					</source>
+					<source>
+						<path>name</path>
+					</source>
 					<expression>
 						<script>
 							<includeNullInputs>false</includeNullInputs>
-							<code>locality + " hit"</code>
+							<code>locality + " (" + name + ") hit"</code>
 						</script>
 					</expression>
 				</outbound>

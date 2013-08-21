@@ -476,6 +476,8 @@ public class Projector {
 		discr.setOrder(order);
 		LensProjectionContext<P> otherCtx = context.createProjectionContext(discr);
 		otherCtx.setResource(origProjectionContext.getResource());
+		// Force recon for the new context. This is a primitive way how to avoid phantom changes.
+		otherCtx.setDoReconciliation(true);
 		return otherCtx;
 	}
 	

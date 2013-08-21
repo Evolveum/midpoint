@@ -191,7 +191,7 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		if (resource != null && !resource.isTolerateDuplicateValues()) {
 			for (Object currentValue: currentValues) {
 				if (currentValue.equals(valueToAdd)) {
-					throw new IllegalArgumentException("The value '"+valueToAdd+"' conflicts with existing value");
+					throw new IllegalArgumentException("The value '"+valueToAdd+"' of attribute '"+attrName+"' conflicts with existing value: Attempt to add value that already exists");
 				}
 			}
 		}

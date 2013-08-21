@@ -81,10 +81,13 @@
 					<source>
 						<path>organizationalUnit</path>
 					</source>
+					<source>
+						<path>name</path>
+					</source>
 					<expression>
 						<script>
 							<includeNullInputs>false</includeNullInputs>
-							<code>organizationalUnit + " take"</code>
+							<code>organizationalUnit + " (" + name + ") take"</code>
 						</script>
 					</expression>
 				</outbound>
@@ -102,16 +105,25 @@
 			</attribute>
 			<attribute>
 				<ref>ri:quote</ref>
+				<tolerant>false</tolerant>
 				<outbound>
 					<source>
 						<path>title</path>
 					</source>
+					<source>
+						<path>name</path>
+					</source>
 					<expression>
 						<script>
 							<includeNullInputs>false</includeNullInputs>
-							<code>title + " win"</code>
+							<code>title + " (" + name + ") win"</code>
 						</script>
 					</expression>
+					<condition>
+						<script>
+							<code>title != null</code>
+						</script>
+					</condition>
 				</outbound>
 			</attribute>
 			<dependency>
