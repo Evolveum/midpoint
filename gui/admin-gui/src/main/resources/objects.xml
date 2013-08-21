@@ -91,6 +91,16 @@
                 <maxFileSize>100MB</maxFileSize>
                 <append>true</append>
             </appender>
+            <!-- Appender for profiling purposes -->
+            <appender xsi:type="c:FileAppenderConfigurationType" name="IDM-PROFILE_LOG"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <pattern>%date %level: %msg%n</pattern>
+                <fileName>${catalina.base}/logs/idm-profile.log</fileName>
+                <filePattern>${catalina.base}/logs/idm-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
+                <maxHistory>10</maxHistory>
+                <maxFileSize>100MB</maxFileSize>
+                <append>true</append>
+            </appender>
             <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
             <rootLoggerLevel>INFO</rootLoggerLevel>
         </logging>
