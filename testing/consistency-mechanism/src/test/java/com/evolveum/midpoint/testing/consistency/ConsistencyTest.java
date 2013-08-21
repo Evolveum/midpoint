@@ -1095,8 +1095,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-	public void test018BmodifyObjectNotFoundAssignedAccount() throws Exception {
-		TestUtil.displayTestTile("test018BmodifyObjectNotFoundAssignedAccount");
+	public void test018BModifyObjectNotFoundAssignedAccount() throws Exception {
+		final String TEST_NAME = "test018BModifyObjectNotFoundAssignedAccount";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		OperationResult parentResult = new OperationResult(
@@ -1124,11 +1125,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, parentResult);
-//		modelService.modifyObject(ResourceObjectShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
-//				task, parentResult);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
 				USER_GUYBRUSH_OID, null, parentResult);
 		assertNotNull(modificatedUser);
@@ -1141,17 +1142,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<ShadowType> modifiedAccount = provisioningService.getObject(
 				ShadowType.class, referenceList.get(0).getOid(), null, parentResult);
 		assertNotNull(modifiedAccount);
-		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
+		PrismAsserts.assertEqualsPolyString("Wrong shadow name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(modifiedAccount);
 		assertAttribute(modifiedAccount.asObjectable(),
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "roomNumber"),
 				"cabin");
-		// assertEquals(
-		// attributeContainer.findProperty(
-		// new QName(resourceTypeOpenDjrepo.getNamespace(),
-		// "roomNumber")).getRealValue(
-		// String.class), "cabin");
 		assertNotNull(attributeContainer.findProperty(new QName(ResourceTypeUtil
 				.getResourceNamespace(resourceTypeOpenDjrepo), "businessCategory")));
 

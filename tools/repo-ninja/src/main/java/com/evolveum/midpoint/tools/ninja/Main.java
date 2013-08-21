@@ -36,6 +36,8 @@ public class Main {
     public static final Option username = new Option("U", "username", true, "JDBC username");
     public static final Option password = new Option("p", "password", true, "JDBC password");
     public static final Option Password = new Option("P", "password-prompt", false, "JDBC password (prompt)");
+    public static final Option exportOp = new Option("e", "export", true,
+            "Export objects to XML file provided by this option.");
 
 
     public static void main(String[] args) {
@@ -44,6 +46,7 @@ public class Main {
         options.addOption(validate);
         options.addOption(create);
         options.addOption(importOp);
+        options.addOption(exportOp);
         options.addOption(driver);
         options.addOption(url);
         options.addOption(username);
@@ -76,6 +79,12 @@ public class Main {
             if (valid && line.hasOption(importOp.getOpt())) {
                 String path = line.getOptionValue(importOp.getOpt());
                 ImportObjects objects = new ImportObjects(path);
+                objects.execute();
+            }
+
+            if (valid && line.hasOption(exportOp.getOpt())) {
+                String path = line.getOptionValue(exportOp.getOpt());
+                ExportObjects objects = new ExportObjects(path);
                 objects.execute();
             }
         } catch (ParseException ex) {
@@ -117,6 +126,7 @@ public class Main {
 
     private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("Main [-c <arg>][-h][-i <arg>][-v][-d <arg>][-u <arg>][-U <arg>][-p <arg>][-P]", options);
+        formatter.printHelp("Main [-c <arg>][-h][-i <arg>][-e <arg>][-v][-d <arg>][-u <arg>][-U <arg>][-p <arg>][-P]",
+                options);
     }
 }

@@ -212,6 +212,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     	if (!rsd.getResourceOid().equals(resourceShadowDiscriminator.getResourceOid())) {
     		return false;
     	}
+    	if (rsd.isThombstone() != resourceShadowDiscriminator.isThombstone()) {
+    		return false;
+    	}
     	if (rsd.getIntent() == null) {
 			try {
 				if (!getRefinedAccountDefinition().isDefaultInAKind()) {
