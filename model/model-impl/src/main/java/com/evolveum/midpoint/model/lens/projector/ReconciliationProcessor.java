@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -244,7 +245,29 @@ public class ReconciliationProcessor {
 			}
 
 			// Too loud :-)
-			// LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
+//			if (LOGGER.isTraceEnabled()) {
+//				StringBuilder sb = new StringBuilder();
+//				sb.append("Reconciliation\nATTR: ").append(PrettyPrinter.prettyPrint(attrName));
+//				sb.append("\n  Should be:");
+//				for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePValue : shouldBePValues) {
+//					sb.append("\n    ");
+//					sb.append(shouldBePValue.getPropertyValue());
+//					Mapping<?> shouldBeMapping = shouldBePValue.getMapping();
+//					if (shouldBeMapping.getStrength() != MappingStrengthType.STRONG) {
+//						sb.append(" STRONG");
+//					}
+//					if (shouldBeMapping.getStrength() != MappingStrengthType.WEAK) {
+//						sb.append(" WEAK");
+//					}
+//				}
+//				sb.append("\n  Is:");
+//				for (PrismPropertyValue<Object> isPVal : arePValues) {
+//					sb.append("\n    ");
+//					sb.append(isPVal);
+//				}
+//				LOGGER.trace("{}", sb.toString());	
+//			}
+			 
 
 			ValueMatcher<?> valueMatcher = ValueMatcher.createMatcher(attributeDefinition,
 					matchingRuleRegistry);

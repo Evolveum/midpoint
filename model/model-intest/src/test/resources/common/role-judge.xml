@@ -18,7 +18,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <name>Judge</name>    
-    <inducement>
+    <inducement id="1111">
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>

@@ -68,6 +68,7 @@ public class AssignmentType
 	// This is NOT GENERATED. It is supplied here manually for the testing.
 	public final static QName F_DESCRIPTION = new QName(ObjectType.NS_FOO, "description");
 	public final static QName F_ACCOUNT_CONSTRUCTION = new QName(ObjectType.NS_FOO, "accountConstruction");
+	public final static QName F_ACTIVATION = new QName(ObjectType.NS_FOO, "activation");
 	
 	private final static long serialVersionUID = 201202081233L;
     protected String description;

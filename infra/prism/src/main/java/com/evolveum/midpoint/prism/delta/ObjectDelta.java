@@ -695,7 +695,8 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 	    
     public <C> PropertyDelta<C> createPropertyModification(ItemPath path, PrismPropertyDefinition propertyDefinition) {
     	PropertyDelta<C> propertyDelta = new PropertyDelta<C>(path, propertyDefinition);
-    	addModification(propertyDelta);
+    	// No point in adding the modification to this delta. It will get merged anyway and it may disappear
+    	// it is not reliable and therefore it is better not to add it now.
     	return propertyDelta;
     }
     
@@ -827,6 +828,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	if (propertyValues != null) {
 	    	Collection<PrismPropertyValue<X>> valuesToReplace = toPrismPropertyValues(objectDelta.getPrismContext(), propertyValues);
 	    	propertyDelta.setValuesToReplace(valuesToReplace);
+	    	objectDelta.addModification(propertyDelta);
     	}
     }
 
@@ -836,6 +838,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	if (propertyValues != null) {
 	    	Collection<PrismPropertyValue<X>> valuesToAdd = toPrismPropertyValues(objectDelta.getPrismContext(), propertyValues);
 	    	propertyDelta.addValuesToAdd(valuesToAdd);
+	    	objectDelta.addModification(propertyDelta);
     	}
     }
     
@@ -845,6 +848,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	if (propertyValues != null) {
 	    	Collection<PrismPropertyValue<X>> valuesToDelete = toPrismPropertyValues(objectDelta.getPrismContext(), propertyValues);
 	    	propertyDelta.addValuesToDelete(valuesToDelete);
+	    	objectDelta.addModification(propertyDelta);
     	}
     }
     

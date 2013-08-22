@@ -251,7 +251,7 @@ public class SchemaDebugUtil {
 		if (act == null) {
 			return "null";
 		}
-		StringBuilder sb = new StringBuilder("AccountConstructionType(");
+		StringBuilder sb = new StringBuilder("ConstructionType(");
 		if (act.getResource() != null) {
 			sb.append(prettyPrint(act.getResource()));
 		}
@@ -278,7 +278,7 @@ public class SchemaDebugUtil {
 		if (vc == null) {
 			return "null";
 		}
-		StringBuilder sb = new StringBuilder("ValueConstructionType(");
+		StringBuilder sb = new StringBuilder("ResourceAttributeDefinitionType(");
 		if (vc.getRef() != null) {
 			sb.append("ref=");
 			sb.append(prettyPrint(vc.getRef()));

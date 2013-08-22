@@ -958,6 +958,7 @@ public class TestMappingDynamicSimple {
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
     	propDelta.addValueToAdd(new PrismPropertyValue<String>("CAPTAIN"));
     	propDelta.addValueToDelete(new PrismPropertyValue<String>("LANDLUBER"));
+    	delta.addModification(propDelta);
     	
 		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
 				"mapping-script-transform.xml", 

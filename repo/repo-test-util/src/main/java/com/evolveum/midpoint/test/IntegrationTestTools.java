@@ -766,4 +766,9 @@ public class IntegrationTestTools {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 	}
+
+	public static void displayXml(String message, PrismObject<? extends ObjectType> object) throws SchemaException {
+		String xml = PrismTestUtil.serializeObjectToString(object);
+		display(message, xml);
+	}
 }

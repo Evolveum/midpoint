@@ -530,7 +530,7 @@ public class TestDelta {
 		//Delta
     	PrismContainerValue<AssignmentType> assignmentValue = new PrismContainerValue<AssignmentType>();
     	// The value id is null
-    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue);
@@ -556,7 +556,7 @@ public class TestDelta {
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -564,7 +564,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
@@ -592,7 +592,7 @@ public class TestDelta {
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -629,7 +629,7 @@ public class TestDelta {
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -666,7 +666,7 @@ public class TestDelta {
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -703,7 +703,7 @@ public class TestDelta {
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -740,7 +740,7 @@ public class TestDelta {
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -748,7 +748,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
@@ -777,7 +777,7 @@ public class TestDelta {
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -893,6 +893,42 @@ public class TestDelta {
         Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
         assertEquals("Unexpected number of values to add", 1, valuesToAdd.size());
         assertTrue("Value "+assignmentValue2+" missing ", valuesToAdd.contains(assignmentValue2));
+    }
+	
+	@Test
+    public void testAddAssignmentActivationDifferentNullIdApplyToObject() throws Exception {
+		System.out.println("\n\n===[ testAddAssignmentActivationDifferentNullIdApplyToObject ]===\n");
+		// GIVEN
+		
+		// User
+		PrismObject<UserType> user = createUser();
+
+		//Delta
+    	PrismContainerValue<ActivationType> activationValue = new PrismContainerValue<ActivationType>();
+    	// The value id is null
+    	activationValue.setPropertyRealValue(ActivationType.F_ENABLED, true);
+    	
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				new ItemPath(
+						new NameItemPathSegment(UserType.F_ASSIGNMENT),
+						// We really need ID here. Otherwise it would not be clear to which assignment to add
+						new IdItemPathSegment(123L),
+						new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
+				PrismTestUtil.getPrismContext(), activationValue);
+				
+		// WHEN
+        userDelta.applyTo(user);
+        
+        // THEN
+        System.out.println("User after delta application:");
+        System.out.println(user.dump());
+        assertEquals("Wrong OID", USER_FOO_OID, user.getOid());
+        PrismAsserts.assertPropertyValue(user, UserType.F_ADDITIONAL_NAMES, PrismTestUtil.createPolyString("foobar"));
+        PrismContainer<AssignmentType> assignment = user.findContainer(UserType.F_ASSIGNMENT);
+        assertNotNull("No assignment", assignment);
+        assertEquals("Unexpected number of assignment values", 1, assignment.size());
+        
+        // TODO
     }
 	
 	@Test
@@ -1283,7 +1319,7 @@ public class TestDelta {
 		PrismContainer<AssignmentType> assignment = user.findOrCreateContainer(UserType.F_ASSIGNMENT);
     	PrismContainerValue<AssignmentType> assignmentValue = assignment.createNewValue();
     	assignmentValue.setId(123L);
-    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
     	
     	return user;
 	}
