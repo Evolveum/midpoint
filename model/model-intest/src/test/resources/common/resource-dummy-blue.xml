@@ -226,7 +226,12 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<valueExpression>
-						<path>$account/attributes/icfs:name</path>
+						<script>
+							<code>
+								basic.getAttributeValue(account, 
+									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name')
+							</code>
+						</script>
 					</valueExpression>
 				</q:equal>
 			</correlation>

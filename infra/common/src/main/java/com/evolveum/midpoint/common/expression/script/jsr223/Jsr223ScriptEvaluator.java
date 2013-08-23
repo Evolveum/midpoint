@@ -147,7 +147,12 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	
 	private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
 		try {
-			return JavaTypeConverter.convert(expectedType, rawValue);
+			T convertedValue = JavaTypeConverter.convert(expectedType, rawValue);
+			if (convertedValue instanceof PolyString) {
+				// Make sure it is fully computed
+				((PolyString)convertedValue).recompute(prismContext.getDefaultPolyStringNormalizer());
+			}
+			return convertedValue;
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
 		}

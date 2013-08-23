@@ -323,6 +323,63 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     }
 	
 	/**
+	 * Add mancomb also to the blue dummy resource. This account should be linked to the existing user.
+	 * Similar to the previous test but blue resource has a slightly different correlation expression.
+	 */
+	@Test
+    public void test315AddDummyBlueAccountMancomb() throws Exception {
+		final String TEST_NAME = "test315AddDummyBlueAccountMancomb";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
+        prepareNotifications();
+
+		/// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        dummyResourceCtlBlue.addAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", "Melee Island");
+        
+        // Wait for sync task to pick up the change
+        waitForSyncTaskNextRun(resourceDummyBlue);
+        
+        // Make sure that the "kickback" sync cycle of the other resource runs to completion
+        // We want to check the state after it gets stable
+        // and it could spoil the next test
+        waitForSyncTaskNextRun(resourceDummyBlue);
+        waitForSyncTaskNextRun(resourceDummyGreen);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        // The ckecks are simplified here because the developer has a lazy mood :-)
+        assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", true);
+        assertDummyAccount(RESOURCE_DUMMY_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", true);
+        
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        display("User mancomb", userMancomb);
+        assertNotNull("User mancomb disappeared", userMancomb);
+        assertUser(userMancomb, userMancomb.getOid(), ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", null, null);
+        assertAccounts(userMancomb, 2);
+        assertAccount(userMancomb, RESOURCE_DUMMY_BLUE_OID);
+        assertAccount(userMancomb, RESOURCE_DUMMY_GREEN_OID);
+
+        assertUsers(7);
+
+        // notifications
+        notificationManager.setDisabled(true);
+//        checkDummyTransportMessages("userPasswordNotifier", 1);                     // previously non-existing password is generated
+//        checkDummyTransportMessages("accountPasswordNotifier", 1);                  // password is then set on the account
+//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 2);            // changes on green & blue (induced)
+//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);        // account itself is not added (only the shadow is!)
+//        checkDummyTransportMessages("simpleUserNotifier", 1);
+//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+    }
+	
+	/**
 	 * Import sync task for default dummy resource as well. This does not do much as we will no be manipulating
 	 * the default dummy account directly. Just make sure that it does not do anything bad.
 	 */
