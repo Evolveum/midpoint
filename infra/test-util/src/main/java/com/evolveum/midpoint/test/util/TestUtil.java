@@ -251,6 +251,10 @@ public class TestUtil {
 	public static void assertSuccess(OperationResult result) {
 		assertSuccess("Operation "+result.getOperation()+" result", result);
 	}
+	
+	public static void assertSuccess(OperationResult result, int depth) {
+		assertSuccess("Operation "+result.getOperation()+" result", result, depth);
+	}
 
 	public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
 		boolean hasWarning = false;

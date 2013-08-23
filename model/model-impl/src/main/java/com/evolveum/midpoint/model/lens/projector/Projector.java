@@ -221,7 +221,7 @@ public class Projector {
 						continue;
 		        	}
 		        	
-		        	if (!checkDependencies(context, projectionContext, now, result)) {
+		        	if (!checkDependencies(context, projectionContext)) {
 		        		continue;
 		        	}
 		        	
@@ -260,7 +260,7 @@ public class Projector {
 	        
 	        // We can do this only when computation of all the waves is finished. Before that we do not know
 	        // activation of every account and therefore cannot decide what is OK and what is not
-	        checkDeleteDependencies(context);
+	        checkDependenciesFinal(context);
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
@@ -486,7 +486,7 @@ public class Projector {
 	 * and stuff like that. 
 	 */
 	private <F extends ObjectType, P extends ShadowType> boolean checkDependencies(LensContext<F,P> context, 
-    		LensProjectionContext<P> accountContext, XMLGregorianCalendar now, OperationResult result) throws PolicyViolationException {
+    		LensProjectionContext<P> accountContext) throws PolicyViolationException {
 		if (accountContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed ... for now
 			return true;
@@ -494,7 +494,7 @@ public class Projector {
 		
 		if (accountContext.getOid() == null || accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
 			// Check for lower-order contexts
-			String lowerOrderOid = null;
+			LensProjectionContext<P> lowerOrderContext = null;
 			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 				if (accountContext == projectionContext) {
 					continue;
@@ -502,19 +502,24 @@ public class Projector {
 				if (projectionContext.compareResourceShadowDiscriminator(accountContext.getResourceShadowDiscriminator(), false) &&
 						projectionContext.getResourceShadowDiscriminator().getOrder() < accountContext.getResourceShadowDiscriminator().getOrder()) {
 					if (projectionContext.getOid() != null) {
-						lowerOrderOid = projectionContext.getOid();
+						lowerOrderContext = projectionContext;
 						break;
 					}
 				}
 			}
-			if (lowerOrderOid != null) {
-				if (accountContext.getOid() == null) {
-					accountContext.setOid(lowerOrderOid);
+			if (lowerOrderContext != null) {
+				if (lowerOrderContext.getOid() != null) {
+					if (accountContext.getOid() == null) {
+						accountContext.setOid(lowerOrderContext.getOid());
+					}
+					if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
+						// This context cannot be ADD. There is a lower-order context with an OID
+						// it means that the lower-order projection exists, we cannot add it twice
+						accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+					}
 				}
-				if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
-					// This context cannot be ADD. There is a lower-order context with an OID
-					// it means that the lower-order projection exists, we cannot add it twice
-					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+				if (lowerOrderContext.isDelete()) {
+					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 				}
 			}
 		}		
@@ -563,13 +568,24 @@ public class Projector {
 		return true;
 	}
 	
-	private <F extends ObjectType, P extends ShadowType> void checkDeleteDependencies(LensContext<F,P> context) throws PolicyViolationException {
+	/**
+	 * Finally checks for all the dependencies. Some dependencies cannot be checked during wave computations as
+	 * we might not have all activation decisions yet. 
+	 */
+	private <F extends ObjectType, P extends ShadowType> void checkDependenciesFinal(LensContext<F,P> context) throws PolicyViolationException {
+		
+		for (LensProjectionContext<P> accountContext: context.getProjectionContexts()) {
+			checkDependencies(context, accountContext);
+		}
+		
 		for (LensProjectionContext<P> accountContext: context.getProjectionContexts()) {
 			if (accountContext.isDelete()) {
 				// It is OK if we depend on something that is not there if we are being removed
 				// but we still need to check if others depends on me
 				for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-					if (projectionContext.isDelete()) {
+					if (projectionContext.isDelete() 
+							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN 
+							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						// If someone who is being deleted depends on us then it does not really matter
 						continue;
 					}

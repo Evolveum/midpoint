@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -369,6 +370,14 @@ public class ResourceTypeUtil {
 		}
 		Boolean isOpportunistic = objectSynchronizationType.isOpportunistic();
 		return isOpportunistic == null || isOpportunistic;
+	}
+
+	public static int getDependencyOrder(ResourceObjectTypeDependencyType dependency) {
+		if (dependency.getOrder() == 0) {
+			return 0;
+		} else {
+			return dependency.getOrder();
+		}
 	}
 
 }

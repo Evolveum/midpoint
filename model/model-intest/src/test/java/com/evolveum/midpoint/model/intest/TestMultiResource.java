@@ -757,8 +757,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
     
     @Test
-    public void test400DavidAndGoliathAddRole() throws Exception {
-		final String TEST_NAME = "test400DavidAndGoliathAddRole";
+    public void test400DavidAndGoliathAssignRole() throws Exception {
+		final String TEST_NAME = "test400DavidAndGoliathAssignRole";
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -964,5 +964,49 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
         PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+	}
+    
+    @Test
+    public void test419DavidAndGoliathUnassignRole() throws Exception {
+		final String TEST_NAME = "test419DavidAndGoliathUnassignRole";
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result, 2);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccounts(userAfter, 0);
+		
+		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();        
 	}
 }

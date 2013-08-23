@@ -106,7 +106,7 @@
 			</attribute>
 			<dependency>
 				<resourceRef oid="10000000-0000-0000-0000-000000300001"/>
-				<strictness>strict</strictness>
+				<strictness>relaxed</strictness>
 			</dependency>
 			<activation>
             	<administrativeStatus>
