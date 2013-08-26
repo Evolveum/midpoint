@@ -30,6 +30,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.Expression;
@@ -135,6 +136,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
 	
 	Mapping(MappingType mappingType, String contextDescription, ExpressionFactory expressionFactory) {
+		Validate.notNull(mappingType);
 		this.contextDescription = contextDescription;
 		this.mappingType = mappingType;
 		this.expressionFactory = expressionFactory;

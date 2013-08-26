@@ -634,6 +634,11 @@ public class PrismAsserts {
 		});
 		assert false: message + ": " + suffix;
 	}
+	
+	public static <O extends Objectable> void assertEquivalent(File expectedFile, PrismObject<O> actual) throws SchemaException {
+		assertEquivalent("Object "+actual+" not equivalent to that from file "+expectedFile,expectedFile,actual);
+	}
+	
 	public static <O extends Objectable> void assertEquivalent(String message, File expectedFile, PrismObject<O> actual) throws SchemaException {
 		PrismObject<O> expected = toPrism(expectedFile);
 		assertEquivalent(message, expected, actual);

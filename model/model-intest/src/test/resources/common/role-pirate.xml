@@ -54,7 +54,7 @@
             <attribute>
                 <ref>ri:weapon</ref>
                 <outbound>
-                	<stregth>weak</stregth>
+                	<strength>weak</strength>
                 	<expression>
 						<value>cutlass</value>
 					</expression>
