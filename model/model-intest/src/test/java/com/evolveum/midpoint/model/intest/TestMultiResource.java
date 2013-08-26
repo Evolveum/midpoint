@@ -759,6 +759,41 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
 	}
     
+    /**
+     * This is mostly a cleanup. But it also tests some cases.
+     */
+    @Test
+    public void test319UnassignDummyRelative() throws Exception {
+		final String TEST_NAME = "test319UnassignDummyRelative";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after red dummy unassignment", userJack);
+		assertUserJack(userJack);
+		assertAccounts(userJack, 0);
+
+		assertNoDummyAccount("jack", "Jack Sparrow");
+        assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack");
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack");
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_OID, "jack");
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, "jack");
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_OID, "jack");
+        
+	}
+    
     @Test
     public void test400DavidAndGoliathAssignRole() throws Exception {
 		final String TEST_NAME = "test400DavidAndGoliathAssignRole";
