@@ -20,8 +20,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +48,7 @@ public class ExportObjects extends BaseNinjaAction {
         return builder.toString();
     }
     
-    public boolean execute() {
+    public boolean execute() throws UnsupportedEncodingException, FileNotFoundException {
         System.out.println("Starting objects export.");
 
         File file = new File(filePath);
@@ -55,55 +57,52 @@ public class ExportObjects extends BaseNinjaAction {
             return false;
         }
 
-        ClassPathXmlApplicationContext context = null;
-        OutputStreamWriter stream = null;
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(CONTEXTS);
+        final OutputStreamWriter stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
         
         try {
+        	
             System.out.println("Loading spring contexts.");
-            context = new ClassPathXmlApplicationContext(CONTEXTS);
             
             System.out.println("Set repository.");
             
             RepositoryService repository = context.getBean("repositoryService", RepositoryService.class);
-            PrismContext prismContext = context.getBean(PrismContext.class);
             
-            OperationResult result = new OperationResult("search set");
-            final List<PrismObject<ObjectType>> objects = new ArrayList<PrismObject<ObjectType>>();
+            ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() 
+            {
+            	
+            	PrismContext prismContext = context.getBean(PrismContext.class);
 
-            ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
-                @Override
-                public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
-                    objects.add(object);
+            	@Override
+                public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) 
+                {
+                    String displayName = getDisplayName(object);
+                    System.out.println("Exporting object " + displayName);
+
+                    OperationResult resultExport = new OperationResult("Export " + displayName);
+                    try 
+                    {
+                    	String stringObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
+                        stream.write("\t" + stringObject + "\n");
+                    } 
+                    catch (Exception ex) 
+                    {
+                    	System.out.println("Failed to parse objects to string for xml. Reason: " +  ex);
+                        resultExport.recordFatalError("Failed to parse objects to string for xml. Reason: ", ex);
+                    }
 
                     return true;
                 }
             };
             
-            repository.searchObjectsIterative(ObjectType.class, null, handler, null, result);
-                
-            System.out.println("Creating xml file " + file.getName());
-            stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
-            
-            String stringObject;
             stream.write(createHeaderForXml());
-           
-            for (PrismObject<ObjectType> object : objects) 
-            {
-                String displayName = getDisplayName(object);
-                System.out.println("Exporting object " + displayName);
+                    
+            OperationResult result = new OperationResult("search set");
 
-                OperationResult resultExport = new OperationResult("Export " + displayName);
-                try 
-                {
-                	stringObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
-                    stream.write("\t" + stringObject + "\n");
-                } 
-                catch (Exception ex) 
-                {
-                	System.out.println("Failed to parse objects to string for xml. Reason: " +  ex);
-                    result.recordFatalError("Failed to parse objects to string for xml. Reason: ", ex);
-                }
-            }
+            System.out.println("Creating xml file " + file.getName());
+
+            repository.searchObjectsIterative(ObjectType.class, null, handler, null, result);
+            
             stream.write("</objects>");
             System.out.println("Created xml file " + file.getName());
             
