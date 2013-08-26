@@ -181,7 +181,10 @@ public class TestUtil {
 			fail(logmsg);
 		}
 		
-		if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
+		if (result.isHandledError()) {
+			// There may be errors deeper in this result, even fatal errors. that's ok, we can ignore them.
+			return;
+		} else if (result.isSuccess() || result.isNotApplicable()) {
 			// OK ... expected error is as good as success
 		} else if (warningOk && result.getStatus() == OperationResultStatus.WARNING) {
 			// OK
@@ -255,6 +258,11 @@ public class TestUtil {
 	public static void assertSuccess(OperationResult result, int depth) {
 		assertSuccess("Operation "+result.getOperation()+" result", result, depth);
 	}
+	
+	public static void assertStatus(OperationResult result, OperationResultStatus expectedStatus) {
+		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());		
+	}
+
 
 	public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
 		boolean hasWarning = false;

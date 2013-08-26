@@ -613,7 +613,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         if (expectAccount) {
         	TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         } else {
-        	TestUtil.assertPartialError(result);
+        	TestUtil.assertStatus(result, OperationResultStatus.HANDLED_ERROR);
+//        	TestUtil.assertPartialError(result);
         }
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -665,6 +666,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddAndAssignRelative() throws Exception {
 		final String TEST_NAME = "test300AddAndAssignRelative";
+		TestUtil.displayTestTile(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -722,6 +724,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310AddedAccountAndUnassignRelative() throws Exception {
 		final String TEST_NAME = "test310AddedAccountAndUnassignRelative";
+		TestUtil.displayTestTile(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -759,6 +762,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400DavidAndGoliathAssignRole() throws Exception {
 		final String TEST_NAME = "test400DavidAndGoliathAssignRole";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -831,6 +835,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test401DavidAndGoliathModifyOu() throws Exception {
 		final String TEST_NAME = "test401DavidAndGoliathModifyOu";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -900,6 +905,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410DavidAndGoliathRename() throws Exception {
 		final String TEST_NAME = "test410DavidAndGoliathRename";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -969,6 +975,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test419DavidAndGoliathUnassignRole() throws Exception {
 		final String TEST_NAME = "test419DavidAndGoliathUnassignRole";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1008,5 +1015,249 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();        
+	}
+    
+    @Test
+    public void test420DavidAndGoliathAssignRoleGoliathDown() throws Exception {
+		final String TEST_NAME = "test420DavidAndGoliathAssignRoleGoliathDown";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
+        		UserType.F_LOCALITY, prismContext);
+        userDelta.addModificationReplaceProperty(UserType.F_TITLE);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        userBefore = findUserByUsername(USER_FIELD_NAME);
+        display("User before", userBefore);
+        
+        dummyResourceGoliath.setBreakMode(BreakMode.NETWORK);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        // Inner errors are expected
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID); // This is unfinished shadow
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (field) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (field) take throw"));
+        
+        // Goliath is down. No account.
+                        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,3);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2,1);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);        
+	}
+    
+    @Test(enabled=false)
+    public void test422DavidAndGoliathAssignRoleGoliathUpRecompute() throws Exception {
+		final String TEST_NAME = "test422DavidAndGoliathAssignRoleGoliathUpRecompute";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
+        
+        dummyResourceGoliath.setBreakMode(BreakMode.NONE);
+        
+        // WHEN
+        modelService.recompute(UserType.class, userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (field) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (field) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (field) take throw (field) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (field) take throw (field) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (field) take throw (field) hit fall (field) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2,2);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+        
+    }
+    
+    @Test
+    public void test429DavidAndGoliathUnassignRole() throws Exception {
+		final String TEST_NAME = "test429DavidAndGoliathUnassignRole";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+//        TestUtil.assertSuccess(result, 2);
+        
+        dummyResourceGoliath.setBreakMode(BreakMode.NONE);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccounts(userAfter, 0);
+		
+		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();        
+	}
+    
+    @Test
+    public void test430DavidAndGoliathAssignRoleDavidDown() throws Exception {
+		final String TEST_NAME = "test430DavidAndGoliathAssignRoleDavidDown";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
+        		UserType.F_LOCALITY, prismContext);
+        userDelta.addModificationReplaceProperty(UserType.F_TITLE);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        userBefore = findUserByUsername(USER_FIELD_NAME);
+        display("User before", userBefore);
+        
+        dummyResourceGoliath.setBreakMode(BreakMode.NONE);
+        dummyResourceDavid.setBreakMode(BreakMode.NETWORK);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        // Inner errors are expected
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID); // This is unfinished shadow
+		// No goliath account, not even tried, the dependency stopped it
+		assertAccounts(userAfter, 1);
+		
+		// David is down. No account.
+		
+		// Goliath depends on David, no account.
+		
+		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
+		                                
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,1);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(2,1);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
+        
 	}
 }

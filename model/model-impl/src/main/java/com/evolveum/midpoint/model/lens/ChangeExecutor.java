@@ -323,8 +323,20 @@ public class ChangeExecutor {
         	return;
         }
         UserType userTypeNew = (UserType) objectTypeNew;
+        
+        if (accCtx.getResourceShadowDiscriminator() != null && accCtx.getResourceShadowDiscriminator().getOrder() > 0) {
+        	// Don't mess with links for higher-order contexts. The link should be dealt with
+        	// during processing of zero-order context.
+        	return;
+        }
+        
         String accountOid = accCtx.getOid();
         if (accountOid == null) {
+        	if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+        		// This seems to be OK. In quite a strange way, but still OK.
+        		return;
+        	}
+        	LOGGER.trace("Account has null OID, this should not happen, context:\n{}", accCtx.dump());
             throw new IllegalStateException("Account has null OID, this should not happen");
         }
 
