@@ -322,7 +322,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
-        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // No value for ship ... no place to get it from
         assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 	}
@@ -387,7 +387,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // No value for ship ... no place to get it from
         assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 	}
@@ -482,7 +482,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
         assertAccounts(userJack, 4);
 
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "The Great Voodoo Master");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
         
@@ -490,7 +490,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
 
         display("YELLOW dummy account", getDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME));
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
@@ -498,12 +498,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best CAPTAIN the Caribbean has ever seen");
         
-        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
         assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
         assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
@@ -516,7 +516,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         jackRename(TEST_NAME, "jackie", "Jackie Sparrow", task, result);
-        jackRename(TEST_NAME, USER_JACK_USERNAME, "Jack Sparrow", task, result);
+        jackRename(TEST_NAME, USER_JACK_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, task, result);
     }
     
     public void jackRename(final String TEST_NAME, String toName, String toFullName, Task task, OperationResult result) throws Exception {
@@ -626,7 +626,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     	assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME);
 
     	if (expectAccount) {
-    		assertDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+    		assertDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
     		// This is actually pulled from the uncreated shadow
             assertDummyAccountAttribute(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
     	} else {
@@ -689,7 +689,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		display("User after default dummy account add", userJack);
 		assertUserJack(userJack);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -710,14 +710,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlueType);
+        assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyBlueType);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlueType);
+        assertShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyBlueType);
         
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack", "Jack Sparrow", true);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         
 	}
     
@@ -748,14 +748,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertDummyShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertDummyShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
         
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
 	}
     
@@ -785,16 +785,334 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack);
 		assertAccounts(userJack, 0);
 
-		assertNoDummyAccount("jack", "Jack Sparrow");
-        assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack");
-        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack");
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_OID, "jack");
-        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, "jack");
-        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_OID, "jack");
+		assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_OID, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_OID, ACCOUNT_JACK_DUMMY_USERNAME);
         
 	}
     
+    /**
+     * Attempt to add yellow account should fail. There is unsatisfied strict dependency on
+     * default dummy resource.
+     */
     @Test
+    public void test350AddAccountYellow() throws Exception {
+		final String TEST_NAME = "test350AddAccountYellow";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyYellow);
+        
+        // WHEN
+        try {
+	        TestUtil.displayWhen(TEST_NAME);
+	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+		
+    }
+    
+    @Test
+    public void test352AddAccountIvory() throws Exception {
+		final String TEST_NAME = "test352AddAccountIvory";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyIvory);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		
+    }
+    
+    @Test
+    public void test354AddAccountBeige() throws Exception {
+		final String TEST_NAME = "test354AddAccountBeige";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyBeige);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		
+    }
+    
+    @Test
+    public void test360AddAccountDummy() throws Exception {
+		final String TEST_NAME = "test360AddAccountDummy";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummy);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		
+    }
+    
+    /**
+     * This should work now as the dependency is satisfied.
+     */
+    @Test
+    public void test362AddAccountYellow() throws Exception {
+		final String TEST_NAME = "test362AddAccountYellow";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyYellow);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		
+    }
+    
+    /**
+     * The account cannot be deleted because there is strict dependency on it (from yellow resource).
+     */
+    @Test
+    public void test370DeleteAccountDummy() throws Exception {
+		final String TEST_NAME = "test370DeleteAccountDummy";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummy);
+        
+        // WHEN
+        try {
+	        TestUtil.displayWhen(TEST_NAME);
+	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAccount(user, RESOURCE_DUMMY_OID);
+        
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		
+    }
+    
+    /**
+     * The account cannot be unlinked because there is strict dependency on it (from yellow resource).
+     */
+    @Test
+    public void test372UnlinkAccountDummy() throws Exception {
+		final String TEST_NAME = "test372UnlinkAccountDummy";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserUnlinkAccount(USER_JACK_OID, resourceDummy);
+        
+        // WHEN
+        try {
+	        TestUtil.displayWhen(TEST_NAME);
+	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAccount(user, RESOURCE_DUMMY_OID);
+
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		
+    }
+    
+    @Test
+    public void test374DeleteAccountYellow() throws Exception {
+		final String TEST_NAME = "test374DeleteAccountYellow";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyYellow);
+        
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+	        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAccount(user, RESOURCE_DUMMY_OID);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		
+    }
+    
+    /**
+     * This should go well now as the dependency is gone.
+     */
+    @Test
+    public void test376DeleteAccountDummy() throws Exception {
+		final String TEST_NAME = "test376DeleteAccountDummy";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummy);
+        
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
+    }
+    
+    /**
+     * Beige resource has relaxed dependency on default dummy. Even though the default dummy is no
+     * longer there the delete should go smoothly.
+     */
+    @Test
+    public void test378DeleteAccountBeige() throws Exception {
+		final String TEST_NAME = "test378DeleteAccountBeige";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyBeige);
+        
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
+    }
+    
+    /**
+     * Ivory resource has lax dependency on default dummy. Even though the default dummy is no
+     * longer there the delete should go smoothly.
+     */
+    @Test
+    public void test379DeleteAccountIvory() throws Exception {
+		final String TEST_NAME = "test379DeleteAccountIvory";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyIvory);
+        
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
+    }
+    
+	@Test
     public void test400DavidAndGoliathAssignRole() throws Exception {
 		final String TEST_NAME = "test400DavidAndGoliathAssignRole";
 		TestUtil.displayTestTile(TEST_NAME);

@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyStrictnessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
@@ -377,6 +378,15 @@ public class ResourceTypeUtil {
 			return 0;
 		} else {
 			return dependency.getOrder();
+		}
+	}
+
+	public static ResourceObjectTypeDependencyStrictnessType getDependencyStrictness(
+			ResourceObjectTypeDependencyType dependency) {
+		if (dependency.getStrictness() == null) {
+			return ResourceObjectTypeDependencyStrictnessType.STRICT;
+		} else {
+			return dependency.getStrictness();
 		}
 	}
 

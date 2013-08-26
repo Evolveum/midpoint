@@ -201,6 +201,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String ACCOUNT_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy.xml";
 	public static final String ACCOUNT_JACK_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy-red.xml";
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
+	public static final String ACCOUNT_JACK_DUMMY_FULLNAME = "Jack Sparrow";
 	
 	public static final String ACCOUNT_HERMAN_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-herman-dummy.xml";
 	public static final String ACCOUNT_HERMAN_DUMMY_OID = "22220000-2200-0000-0000-444400004444";
