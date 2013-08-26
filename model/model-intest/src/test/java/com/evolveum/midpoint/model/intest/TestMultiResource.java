@@ -1084,6 +1084,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);        
 	}
     
+    // MID-1566
     @Test(enabled=false)
     public void test422DavidAndGoliathAssignRoleGoliathUpRecompute() throws Exception {
 		final String TEST_NAME = "test422DavidAndGoliathAssignRoleGoliathUpRecompute";
