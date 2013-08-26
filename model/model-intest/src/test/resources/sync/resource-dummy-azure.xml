@@ -15,10 +15,9 @@
   ~ limitations under the License.
   -->
 
-<!-- BLUE dummy resource for testing. It is used in multi-resource tests. It also
-     has mostly WEAK mappings, therefore it is used in weak mapping tests. -->
+<!-- AZURE resource. It disables unmatched accounts. -->
 
-<resource oid="10000000-0000-0000-0000-000000000204"
+<resource oid="10000000-0000-0000-0000-00000000a204"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
@@ -27,7 +26,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Blue</name>
+	<name>Dummy Resource Azure</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -46,7 +45,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>blue</icfi:instanceId>
+			<icfi:instanceId>azure</icfi:instanceId>
 			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 
@@ -253,7 +252,7 @@
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#NoNsEnSe</channel>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#reconciliation</channel>
 	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount"/>
 	        </reaction>
         </objectSynchronization>

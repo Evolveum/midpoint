@@ -23,6 +23,8 @@ import com.evolveum.midpoint.model.util.Utils;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.prism.OriginType;
@@ -30,10 +32,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -70,7 +75,7 @@ public class DisableAccountAction extends ModifyUserAction {
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
-		// found account does not have owner, account should be deleted
+		// found account does not have owner, account should be disabled
 		if (StringUtils.isEmpty(userOid)) {
 			OperationResult subResult = result.createSubresult(ACTION_DISABLE_ACCOUNT);
 			String accOid = null;
@@ -97,12 +102,18 @@ public class DisableAccountAction extends ModifyUserAction {
 				throw new SchemaException(message);
 			}
 
-			PrismProperty oldValue = shadow.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			PrismProperty<ActivationStatusType> oldValue = shadow.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 			
 			if (oldValue == null){
 				String message = "Could not find item for path: " + SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS +" for object: " + shadow.dump() ;
 				subResult.recordFatalError(message);
 				throw new SchemaException(message);
+			}
+			
+			if (!oldValue.isEmpty() && oldValue.getRealValue() == ActivationStatusType.DISABLED) {
+				LOGGER.trace("Account {} already disabled, skipping disable reaction", shadow);
+				subResult.recordNotApplicableIfUnknown();
+				return null;
 			}
 			
 			PropertyDelta delta = new PropertyDelta<Object>(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, oldValue.getDefinition());
@@ -124,9 +135,46 @@ public class DisableAccountAction extends ModifyUserAction {
 			Collection<? extends ItemDelta> modifications = MiscUtil.createCollection(delta);
 
             Utils.setRequestee(task, userOid);
-            getProvisioningService().modifyObject(ShadowType.class, accOid, modifications, null, null, task, subResult);
-            Utils.clearRequestee(task);
-			subResult.recordSuccess();
+            
+            AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.REQUEST);
+            ObjectDelta<ShadowType> accountDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accOid, getPrismContext());
+            accountDelta.addModification(delta.clone());
+            auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(MiscSchemaUtil.createCollection(accountDelta)));
+            getAuditService().audit(auditRecord, task);
+            
+            try {
+            	
+            	getProvisioningService().modifyObject(ShadowType.class, accOid, modifications, null, null, task, subResult);
+            	
+            	subResult.recordSuccess();
+            } catch (CommunicationException e) {
+            	subResult.recordFatalError(e);
+            	throw e;
+            } catch (ConfigurationException e) {
+            	subResult.recordFatalError(e);
+            	throw e;
+            } catch (ObjectAlreadyExistsException e) {
+            	subResult.recordFatalError(e);
+            	throw e;
+            } catch (ObjectNotFoundException e) {
+            	subResult.recordFatalError(e);
+            	throw e;
+            } catch (SchemaException e) {
+            	subResult.recordFatalError(e);
+            	throw e;
+            } catch (SecurityViolationException e) {
+            	subResult.recordFatalError(e);
+            	throw e;
+            } catch (RuntimeException e) {
+            	subResult.recordFatalError(e);
+            	throw e;
+            } finally {
+            	Utils.clearRequestee(task);
+                auditRecord.setEventStage(AuditEventStage.EXECUTION);
+                auditRecord.setOutcome(subResult.getStatus());
+                getAuditService().audit(auditRecord, task);
+            }			
+
 			return null;
 		} else {
 			return super.executeChanges(userOid, change, userTemplate, situation, task, result);
