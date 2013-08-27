@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -373,14 +374,15 @@ public class Projector {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(outDependency);
 			LensProjectionContext<P> dependencyAccountContext = findDependencyContext(context, outDependency);
 			if (dependencyAccountContext == null) {
-				if (outDependency.getStrictness() == null || outDependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+				ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = ResourceTypeUtil.getDependencyStrictness(outDependency);
+				if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+": Account not provisioned");
-				} else if (outDependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
+				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied lax dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+"; depencency skipped");
-				} else if (outDependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied relaxed dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+"; depencency skipped");
@@ -527,16 +529,17 @@ public class Projector {
 		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
+			ResourceObjectTypeDependencyStrictnessType strictness = ResourceTypeUtil.getDependencyStrictness(dependency);
 			if (dependencyAccountContext == null) {
-				if (dependency.getStrictness() == null || dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+				if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					// This should not happen, it is checked before projection
 					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+": No context in dependency check");
-				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
+				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied lax dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+"; depencency skipped");
-				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied relaxed dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+"; depencency skipped");
@@ -545,8 +548,8 @@ public class Projector {
 				}
 			} else {
 				// We have the context of the object that we depend on. We need to check if it was provisioned.
-				if (dependency.getStrictness() == null || dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT
-						|| dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+				if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT
+						|| strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					if (wasProvisioned(dependencyAccountContext, context.getExecutionWave())) {
 						// everything OK
 					} else {
@@ -557,7 +560,7 @@ public class Projector {
 						accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 						return false;
 					}
-				} else if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.LAX) {
+				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// we don't care what happened, just go on
 					return true;
 				} else {
@@ -579,11 +582,13 @@ public class Projector {
 		}
 		
 		for (LensProjectionContext<P> accountContext: context.getProjectionContexts()) {
-			if (accountContext.isDelete()) {
+			if (accountContext.isDelete() 
+					|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
 				// It is OK if we depend on something that is not there if we are being removed
 				// but we still need to check if others depends on me
 				for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-					if (projectionContext.isDelete() 
+					if (projectionContext.isDelete()
+							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK
 							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN 
 							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						// If someone who is being deleted depends on us then it does not really matter
@@ -592,8 +597,7 @@ public class Projector {
 					for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
 						if (dependency.getResourceRef().getOid().equals(accountContext.getResource().getOid())) {
 							// Someone depends on us
-							if (dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.STRICT || 
-									dependency.getStrictness() == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+							if (ResourceTypeUtil.getDependencyStrictness(dependency) == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 								throw new PolicyViolationException("Cannot remove "+accountContext.getHumanReadableName()
 										+" because "+projectionContext.getHumanReadableName()+" depends on it");
 							}

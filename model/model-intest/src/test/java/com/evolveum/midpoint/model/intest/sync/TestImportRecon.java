@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,11 +36,13 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -53,6 +56,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -62,10 +66,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
-		
+	
+	private static final File TEST_DIR = new File("src/test/resources/sync");
+	
+	private static final String ACCOUNT_OTIS_NAME = "otis";
+	private static final String ACCOUNT_OTIS_FULLNAME = "Otis";
+	
+	protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
+	protected static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
+	protected static final String RESOURCE_DUMMY_AZURE_NAME = "azure";
+	protected static final String RESOURCE_DUMMY_AZURE_NAMESPACE = MidPointConstants.NS_RI;
+	
+	protected static final File TASK_RECONCILE_DUMMY_AZURE_FILE = new File(TEST_DIR, "task-reconcile-dummy-azure.xml");
+	protected static final String TASK_RECONCILE_DUMMY_AZURE_OID = "10000000-0000-0000-5656-56560000a204";
+	
+	protected DummyResource dummyResourceAzure;
+	protected DummyResourceContoller dummyResourceCtlAzure;
+	protected ResourceType resourceDummyAzureType;
+	protected PrismObject<ResourceType> resourceDummyAzure;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		dummyResourceCtlAzure = DummyResourceContoller.create(RESOURCE_DUMMY_AZURE_NAME, resourceDummyAzure);
+		dummyResourceCtlAzure.extendDummySchema();
+		dummyResourceAzure = dummyResourceCtlAzure.getDummyResource();
+		resourceDummyAzure = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_AZURE_FILE, RESOURCE_DUMMY_AZURE_OID, initTask, initResult); 
+		resourceDummyAzureType = resourceDummyAzure.asObjectable();
+		dummyResourceCtlAzure.setResource(resourceDummyAzure);	
 		
 		// Create an account that midPoint does not know about yet
 		dummyResourceCtl.addAccount(USER_RAPP_USERNAME, "Rapp Scallion", "Scabb Island");
@@ -256,50 +285,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
-        // Check audit
-        display("Audit", dummyAuditService);
-        
-        List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
-        
-        
-    	
-    	int i=0;
-    	while (i < (auditRecords.size() - 1)) {
-    		AuditEventRecord reconStartRecord = auditRecords.get(i);
-    		if (reconStartRecord.getEventType() == AuditEventType.EXECUTE_CHANGES_RAW) {
-    			i++;
-    			continue;
-    		}
-            assertNotNull("No reconStartRecord audit record", reconStartRecord);
-        	assertEquals("Wrong stage in reconStartRecord audit record: "+reconStartRecord, AuditEventStage.REQUEST, reconStartRecord.getEventStage());
-        	assertEquals("Wrong type in reconStartRecord audit record: "+reconStartRecord, AuditEventType.RECONCILIATION, reconStartRecord.getEventType());
-        	assertTrue("Unexpected delta in reconStartRecord audit record "+reconStartRecord, reconStartRecord.getDeltas() == null || reconStartRecord.getDeltas().isEmpty());
-        	i++;
-        	break;
-    	}
-
-    	int modifications = 0;
-    	for (; i < (auditRecords.size() - 1); i+=2) {
-        	AuditEventRecord requestRecord = auditRecords.get(i);
-        	assertNotNull("No request audit record ("+i+")", requestRecord);
-        	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
-        	assertTrue("Unexpected delta in request audit record "+requestRecord, requestRecord.getDeltas() == null || requestRecord.getDeltas().isEmpty());
-
-        	AuditEventRecord executionRecord = auditRecords.get(i+1);
-        	assertNotNull("No execution audit record ("+i+")", executionRecord);
-        	assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
-        	
-        	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
-        	modifications++;
-
-        }
-        assertEquals("Unexpected number of audit modifications", 1, modifications);
-
-        AuditEventRecord reconStopRecord = auditRecords.get(i);
-        assertNotNull("No reconStopRecord audit record", reconStopRecord);
-    	assertEquals("Wrong stage in reconStopRecord audit record: "+reconStopRecord, AuditEventStage.EXECUTION, reconStopRecord.getEventStage());
-    	assertEquals("Wrong type in reconStopRecord audit record: "+reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
-    	assertTrue("Unexpected delta in reconStopRecord audit record "+reconStopRecord, reconStopRecord.getDeltas() == null || reconStopRecord.getDeltas().isEmpty());
+        assertReconAuditModifications(1);
 	}
 
 	@Test
@@ -381,6 +367,163 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		script = new ProvisioningScriptSpec("He left it dead, and with its head");
 		script.addArgSingle("how", "enabled");
 		scripts.add(script);
+	}
+	
+	@Test
+    public void test300ReconcileDummyAzure() throws Exception {
+		final String TEST_NAME = "test300ReconcileDummyAzure";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyResource.setBreakMode(BreakMode.NONE);
+        dummyResourceAzure.setBreakMode(BreakMode.NONE);
+        
+        // Create some illegal account
+        dummyResourceCtlAzure.addAccount(ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME);
+        
+        dummyResourceAzure.purgeScriptHistory();
+        dummyAuditService.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_AZURE_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after reconcile", users);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);        
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        
+        // Otis
+        assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
+        assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        // Calypso is protected account. Reconciliation should not touch it
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
+        
+        
+        assertEquals("Unexpected number of users", 7, users.size());
+        
+        display("Dummy resource (azure)", dummyResourceAzure.dump());
+        
+        assertReconAuditModifications(1);
+	}
+	
+	@Test
+    public void test310ReconcileDummyAzureAgain() throws Exception {
+		final String TEST_NAME = "test310ReconcileDummyAzureAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyResource.setBreakMode(BreakMode.NONE);
+        dummyResourceAzure.setBreakMode(BreakMode.NONE);
+        
+        dummyResourceAzure.purgeScriptHistory();
+        dummyAuditService.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after reconcile", users);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);        
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        
+        // Otis
+        assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
+        assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        // Calypso is protected account. Reconciliation should not touch it
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
+        
+        
+        assertEquals("Unexpected number of users", 7, users.size());
+        
+        display("Dummy resource (azure)", dummyResourceAzure.dump());
+        
+        assertReconAuditModifications(0);
+	}
+	
+	private void assertReconAuditModifications(int expectedModifications) {
+		// Check audit
+        display("Audit", dummyAuditService);
+        
+        List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
+        
+        
+    	int i=0;
+    	while (i < (auditRecords.size() - 1)) {
+    		AuditEventRecord reconStartRecord = auditRecords.get(i);
+    		if (reconStartRecord.getEventType() == AuditEventType.EXECUTE_CHANGES_RAW) {
+    			i++;
+    			continue;
+    		}
+            assertNotNull("No reconStartRecord audit record", reconStartRecord);
+        	assertEquals("Wrong stage in reconStartRecord audit record: "+reconStartRecord, AuditEventStage.REQUEST, reconStartRecord.getEventStage());
+        	assertEquals("Wrong type in reconStartRecord audit record: "+reconStartRecord, AuditEventType.RECONCILIATION, reconStartRecord.getEventType());
+        	assertTrue("Unexpected delta in reconStartRecord audit record "+reconStartRecord, reconStartRecord.getDeltas() == null || reconStartRecord.getDeltas().isEmpty());
+        	i++;
+        	break;
+    	}
+
+    	int modifications = 0;
+    	for (; i < (auditRecords.size() - 1); i+=2) {
+        	AuditEventRecord requestRecord = auditRecords.get(i);
+        	assertNotNull("No request audit record ("+i+")", requestRecord);
+        	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
+        	// Request audit may or may not have a delta. Usual records will not have a delta. But e.g. disableAccount reactions will have.
+
+        	AuditEventRecord executionRecord = auditRecords.get(i+1);
+        	assertNotNull("No execution audit record ("+i+")", executionRecord);
+        	assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
+        	
+        	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
+        	modifications++;
+
+        }
+        assertEquals("Unexpected number of audit modifications", expectedModifications, modifications);
+
+        AuditEventRecord reconStopRecord = auditRecords.get(i);
+        assertNotNull("No reconStopRecord audit record", reconStopRecord);
+    	assertEquals("Wrong stage in reconStopRecord audit record: "+reconStopRecord, AuditEventStage.EXECUTION, reconStopRecord.getEventStage());
+    	assertEquals("Wrong type in reconStopRecord audit record: "+reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
+    	assertTrue("Unexpected delta in reconStopRecord audit record "+reconStopRecord, reconStopRecord.getDeltas() == null || reconStopRecord.getDeltas().isEmpty());
 	}
 
 	private void assertNoImporterUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {

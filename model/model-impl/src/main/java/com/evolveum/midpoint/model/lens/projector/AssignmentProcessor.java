@@ -374,17 +374,22 @@ public class AssignmentProcessor {
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
+            	// Account was removed and added in the same operation. This is the case if e.g. one role is
+            	// removed and another is added and they include the same account.
+            	// Keep original account state
             	
             	LensProjectionContext<ShadowType> projectionContext = context.findProjectionContext(rat);
+            	if (projectionContext == null) {
+                	// The projection should exist before the change but it does not
+                	// This happens during reconciliation if there is an inconsistency. 
+                	// Pretend that the assignment was just added. That should do.
+            		projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
+                }
             	projectionContext.setAssigned(true);
             	projectionContext.setLegal(true);
             	projectionContext.setLegalOld(true);
-                // Account was removed and added in the same operation, therefore keep its original state
-                // TODO
-                throw new UnsupportedOperationException("add+delete of projection is not supported yet");
-                //continue;
-
                 
+
             // SITUATION: The projection is ASSIGNED
             } else if (plusAccountMap.containsKey(rat)) {
             	

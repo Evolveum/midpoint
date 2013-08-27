@@ -403,6 +403,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return userDelta;
 	}
 	
+	protected ObjectDelta<UserType> createModifyUserDeleteAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		String accountOid = getAccountRef(userOid, resource.getOid());
+		PrismObject<ShadowType> account = getAccount(accountOid);
+		
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		
+		return userDelta;
+	}
+	
+	protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		String accountOid = getAccountRef(userOid, resource.getOid());
+		
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setOid(accountOid);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		
+		return userDelta;
+	}
+	
 	protected ObjectDelta<ShadowType> createModifyAccountShadowEmptyDelta(String accountOid) {
 		return ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
 	}
@@ -828,6 +853,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         return accountOid;
+	}
+	
+	protected String getAccountRef(String userOid, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		return getAccountRef(getUser(userOid), resourceOid);
 	}
 	
 	protected String getAccountRef(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {

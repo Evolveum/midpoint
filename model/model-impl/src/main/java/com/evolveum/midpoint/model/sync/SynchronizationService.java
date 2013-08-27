@@ -154,12 +154,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						Collection modifications = SynchronizationSituationUtil
 								.createSynchronizationSituationAndDescriptionDelta(object,
 										situation.getSituation(), task.getChannel());
-//						PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
-//								situation.getSituation());
-//						if (syncSituationDelta != null){
-//							modifications.add(syncSituationDelta);
-//						}
-//						modifications.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
 						repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
 						subResult.recordSuccess();
 						return;
@@ -403,7 +397,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
-		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
+		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation(), change.getSourceChannel());
 		
 		//must be here, bacause when the reaction has no action, the situation will be not set.
 		saveExecutedSituationDescription(target, situation, change, parentResult);
@@ -509,22 +503,40 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	}
 
-	private List<Action> findActionsForReaction(List<Reaction> reactions, SynchronizationSituationType situation) {
+	private List<Action> findActionsForReaction(List<Reaction> reactions, SynchronizationSituationType situation, String channel) {
 		List<Action> actions = new ArrayList<Action>();
 		if (reactions == null) {
 			return actions;
 		}
 
 		Reaction reaction = null;
+		Reaction defaultReaction = null;
 		for (Reaction react : reactions) {
 			if (react.getSituation() == null) {
 				LOGGER.warn("Reaction ({}) doesn't contain situation element, skipping.", reactions.indexOf(react));
 				continue;
 			}
 			if (situation.equals(react.getSituation())) {
-				reaction = react;
-				break;
+				if (react.getChannel() != null && !react.getChannel().isEmpty()) {
+					if (react.getChannel().contains("") || react.getChannel().contains(null)) {
+						defaultReaction = react;
+					}
+					if (react.getChannel().contains(channel)) {
+						reaction = react;
+						break;
+					} else {
+						LOGGER.trace("Skipping reaction {} because the channel does not match {}", react, channel);
+						continue;
+					}
+				} else {
+					defaultReaction = react;
+				}
 			}
+		}
+		
+		if (reaction == null) {
+			LOGGER.trace("Using default reaction {}", defaultReaction);
+			reaction = defaultReaction;
 		}
 
 		if (reaction == null) {

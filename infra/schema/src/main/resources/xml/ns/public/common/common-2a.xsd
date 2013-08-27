@@ -3041,8 +3041,9 @@
                 		But no error is thrown if the dependent object is provisioned without the other object.
                 		If both objects are being provisioned in the same operation (context) and provisioning of the
                 		object that we depend on fails the provisioning of the dependent object will be skipped.
-                		The lax strictness only guarantees ordering in case that both objects are being provisioned 
-                		in the same operation (context).
+                		The relaxed strictness guarantees ordering in case that both objects are being provisioned 
+                		in the same operation (context) and delaying of the operation on dependend resource in case
+                		the operation on independent resource fails.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RELAXED"/>

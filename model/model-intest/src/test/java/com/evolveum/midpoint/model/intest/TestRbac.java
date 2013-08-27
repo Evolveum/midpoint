@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -29,9 +30,12 @@ import javax.xml.namespace.QName;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -43,12 +47,14 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -94,6 +100,29 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter filter = EqualsFilter.createEqual(RoleType.class, prismContext, RoleType.F_REQUESTABLE, true);
+        ObjectQuery query = new ObjectQuery();
+		query.setFilter(filter);
+        
+		// WHEN
+		PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
+        
+        // THEN
+        display("Role pirate", rolePirate);
+        IntegrationTestTools.displayXml("Role pirate", rolePirate);
+        assertNotNull("No pirate", rolePirate);
+        
+        PrismAsserts.assertEquivalent(ROLE_PIRATE_FILE, rolePirate);
+	}
+	
+	@Test
     public void test010SearchReuqestableRoles() throws Exception {
 		final String TEST_NAME = "test010SearchReuqestableRoles";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -122,6 +151,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
@@ -130,13 +162,16 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Caribbean");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Caribbean");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Caribbean has ever seen");
 	}
 	
@@ -166,11 +201,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
 	
@@ -191,7 +226,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
 	@Test
@@ -224,8 +259,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		        
         // Precondition (simplified)
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "weapon", "rum");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "rum");
         
         // gossip is a tolerant attribute. Make sure there there is something to tolerate
   		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -246,13 +281,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 1);
         assertAccounts(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
-        // The account already has a value for 'weapon', it should be unchanged. But it is not.
-        // The relative change does cannot see the existing value so it adds its own.
-        assertDefaultDummyAccountAttribute("jack", "weapon", "rum", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
+        // The account already has a value for 'weapon', it should be unchanged.
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "rum");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
         
 	}
@@ -269,7 +303,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         		        
         // Precondition (simplified)
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         
         // WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -283,10 +317,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 2);
         assertAccounts(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
         
 	}
@@ -301,7 +335,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         		        
         // Precondition (simplified)
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         
         // WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
@@ -315,10 +349,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 3);
         assertAccounts(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
         
 	}
@@ -343,10 +377,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 2);
         assertAccounts(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
 	
@@ -370,10 +404,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 1);
         assertAccounts(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
 	
@@ -395,7 +429,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	@Test
@@ -421,14 +455,14 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
         		"jack sailed Caribbean, immediately Caribbean, role , with this The Seven Seas while focused on Caribbean (in Pirate)");
 	}
 	
@@ -457,7 +491,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	/**
@@ -479,14 +513,14 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
         		"jack sailed Adriatic, immediately Adriatic, role , with this The Seven Seas while focused on  (in Pirate)");
 	}
 	
@@ -508,7 +542,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	/**
@@ -538,14 +572,14 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
         		"jack sailed Caribbean, immediately Adriatic, role , with this The Seven Seas while focused on Caribbean (in Pirate)");
 	}
 	
@@ -574,7 +608,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	@Test
@@ -593,14 +627,14 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
         		"jack sailed Marmara Sea, immediately Marmara Sea, role Black Sea, with this The Seven Seas while focused on  (in Pirate)");
 	}
 	
@@ -622,7 +656,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	@Test
@@ -648,14 +682,14 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
         		"jack sailed Caribbean, immediately Marmara Sea, role Black Sea, with this The Seven Seas while focused on Caribbean (in Pirate)");
 	}
 	
@@ -684,7 +718,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	@Test
@@ -703,14 +737,14 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute("jack", DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
         		"jack sailed Indian Ocean, immediately , role Indian Ocean, with this The Seven Seas while focused on  (in Pirate)");
 	}
 	
@@ -732,7 +766,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	//////////////////////
@@ -758,12 +792,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
 	}
 	
@@ -789,11 +823,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Isla de Muerta has ever seen", EXISTING_GOSSIP);
 	}
 	
@@ -816,9 +850,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
 
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, EXISTING_GOSSIP);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, EXISTING_GOSSIP);
 	}
 	
 	/**
@@ -848,7 +882,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertNoLinkedAccount(userJack);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	@Test
@@ -867,12 +901,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        assertDummyAccount("jack", "Jack Sparrow", true);
-        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
-        assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
-        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Isla de Muerta has ever seen");
 	}
 	
@@ -905,7 +939,123 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertNoLinkedAccount(userJack);
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	@Test
+    public void test600JackAssignRoleJudge() throws Exception {
+		final String TEST_NAME = "test600JackAssignRoleJudge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable Justice");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
+//        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+//        		"Jack Sparrow is the best pirate Caribbean has ever seen");
+	}
+	
+	/**
+	 * Judge and pirate are excluded roles. This should fail.
+	 */
+	@Test
+    public void test602JackAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test602JackAssignRolePirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+	        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable Justice");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
+	}
+	
+	@Test
+    public void test605JackUnAssignRoleJudgeAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test605JackUnAssignRoleJudgeAssignRolePirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, false);
+        userDelta.addModification(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, true));
+        
+        // WHEN
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
+        // Even though Jack is a pirate now the mapping from the role is not applied.
+        // the mapping is weak and the account already has a value for weapon from the times
+        // Jack was a judge. So it is unchanged
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Isla de Muerta has ever seen");
+	}
+	
+	@Test
+    public void test609JackUnAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test609JackUnAssignRolePirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
 }
