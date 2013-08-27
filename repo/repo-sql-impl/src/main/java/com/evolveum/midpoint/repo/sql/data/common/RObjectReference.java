@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
@@ -40,6 +41,8 @@ import javax.persistence.*;
 @Entity
 @IdClass(RObjectReferenceId.class)
 @Table(name = "m_reference")
+@org.hibernate.annotations.Table(appliesTo = "m_reference",
+        indexes = {@Index(name = "iReferenceTargetOid", columnNames = "targetOid")})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = RObjectReference.REFERENCE_TYPE, discriminatorType = DiscriminatorType.INTEGER)
 public class RObjectReference implements ObjectReference {
