@@ -18,10 +18,14 @@ package com.evolveum.midpoint.schema;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
@@ -55,6 +59,39 @@ public class PagingConvertor {
 		}
 		if (OrderDirectionType.DESCENDING == directionType){
 			return OrderDirection.DESCENDING;
+		}
+		return null;
+	}
+	
+	public static PagingType createPagingType(ObjectPaging paging){
+		if (paging == null){
+			return null;
+		}
+		PagingType pagingType = new PagingType();
+		pagingType
+				.setOrderDirection(toOrderDirectionType(paging.getDirection()));
+		pagingType.setMaxSize(paging.getMaxSize());
+		pagingType.setOffset(paging.getOffset());
+		if (paging.getOrderBy() != null) {
+			Element orderBy = DOMUtil.createElement(new QName(
+					SchemaConstantsGenerated.NS_QUERY, "orderBy"));
+			DOMUtil.setQNameValue(orderBy, paging.getOrderBy());
+			pagingType.setOrderBy(orderBy);
+		}
+		
+		return pagingType;
+	}
+	
+	private static OrderDirectionType toOrderDirectionType(OrderDirection direction){
+		if (direction == null){
+			return null;
+		}
+		
+		if (OrderDirection.ASCENDING == direction){
+			return OrderDirectionType.ASCENDING;
+		}
+		if (OrderDirection.DESCENDING == direction){
+			return OrderDirectionType.DESCENDING;
 		}
 		return null;
 	}

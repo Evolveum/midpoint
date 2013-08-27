@@ -76,7 +76,7 @@
             <xsd:element name="matching" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Property which specifies matching rules. E.g. for poluString, 
+                        Property which specifies matching rules. E.g. for polyString, 
                         matching rules can be: norm, orig, strict etc.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -175,6 +175,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="condition" type="xsd:anyType" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:filter"/> 
             <xsd:element name="paging" type="tns:PagingType" minOccurs="0"/>
         </xsd:sequence>
