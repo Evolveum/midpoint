@@ -111,6 +111,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceDummyGreenType;
 	protected PrismObject<ResourceType> resourceDummyGreen;
 	
+	protected DummyResource dummyResourceBlack;
+	protected DummyResourceContoller dummyResourceCtlBlack;
+	protected ResourceType resourceDummyBlackType;
+	protected PrismObject<ResourceType> resourceDummyBlack;
+	
 	protected ResourceType resourceDummySchemalessType;
 	protected PrismObject<ResourceType> resourceDummySchemaless;
 	
@@ -174,6 +179,13 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GREEN_FILENAME, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
 		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 		dummyResourceCtlGreen.setResource(resourceDummyGreen);
+		
+		dummyResourceCtlBlack = DummyResourceContoller.create(RESOURCE_DUMMY_BLACK_NAME, resourceDummyBlack);
+		dummyResourceCtlBlack.extendDummySchema();
+		dummyResourceBlack = dummyResourceCtlBlack.getDummyResource();
+		resourceDummyBlack = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLACK_FILENAME, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
+		resourceDummyBlackType = resourceDummyBlack.asObjectable();
+		dummyResourceCtlBlack.setResource(resourceDummyBlack);
 		
 		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
