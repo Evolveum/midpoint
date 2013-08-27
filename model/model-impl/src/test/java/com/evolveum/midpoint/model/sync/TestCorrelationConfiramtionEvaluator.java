@@ -52,6 +52,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	private static final String CORRELATION_OR_FILTER = TEST_DIR + "/correlation-or-filter.xml";
 	private static final String CORRELATION_FIRST_FILTER = TEST_DIR + "/correlation-first-filter.xml";
 	private static final String CORRELATION_SECOND_FILTER = TEST_DIR + "/correlation-second-filter.xml";
+	private static final String CORRELATION_WITH_CONDITION = TEST_DIR + "/correlation-with-condition.xml";
+	private static final String CORRELATION_WITH_CONDITION_EMPL_NUMBER = TEST_DIR + "/correlation-with-condition-emplNumber.xml";
 	
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
@@ -118,6 +120,40 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		queries.add(query);
 		
 		query = PrismTestUtil.unmarshalObject(new File(CORRELATION_SECOND_FILTER), QueryType.class);		
+		queries.add(query);
+		
+		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
+		
+		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
+		assertEquals("Found more than one user.", 1, matchedUsers.size());
+		
+		PrismObject<UserType> jack = matchedUsers.get(0);
+		assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
+		
+	}
+	
+	@Test
+	public void test002CorrelationWithCondition() throws Exception{
+		String TEST_NAME = "testCorrelationMoreThanOne";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+//		importObjectFromFile(USER_JACK_FILENAME);
+			
+		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+		//assert jack
+		assertNotNull(userType);
+			
+		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		
+		List<QueryType> queries = new ArrayList<QueryType>();
+		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION), QueryType.class);		
+		queries.add(query);
+		
+		query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION_EMPL_NUMBER), QueryType.class);		
 		queries.add(query);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
