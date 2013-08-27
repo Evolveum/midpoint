@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -776,6 +777,12 @@ public class PrismAsserts {
 			return false;
 		}
 		return a.equals(b);
+	}
+	
+	public static <T> void assertEqualsCollectionUnordered(String message, Collection<T> actualCollection, T... expectedValues) {
+		List<T> expectedCollection = Arrays.asList(expectedValues);
+		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection) : message + ": expected "+expectedCollection+
+			"; was "+actualCollection;
 	}
 
 }

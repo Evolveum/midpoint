@@ -91,6 +91,15 @@ public class QueryConvertor {
 
 		try {
 			ObjectQuery query = new ObjectQuery();
+			
+			Object condition = queryType.getCondition();
+			if (condition != null){
+				if (!(condition instanceof Element)){
+					throw new SchemaException("Bad condition specified.");
+				}
+				query.setCondition((Element) condition);
+			}
+			
 			if (criteria != null) {
 				ObjectFilter filter = parseFilter(objDef, criteria);
 				query.setFilter(filter);
@@ -115,6 +124,8 @@ public class QueryConvertor {
 		Element filterType = createFilterType(filter, doc, prismContext);
 		QueryType queryType = new QueryType();
 		queryType.setFilter(filterType);
+		queryType.setPaging(PagingConvertor.createPagingType(query.getPaging()));
+		queryType.setCondition(query.getCondition());
 		return queryType;
 		} catch (SchemaException ex){
 			throw new SchemaException("Failed to convert query. Reason: " + ex.getMessage(), ex);

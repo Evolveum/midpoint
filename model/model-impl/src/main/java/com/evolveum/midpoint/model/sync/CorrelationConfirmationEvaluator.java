@@ -99,27 +99,34 @@ public class CorrelationConfirmationEvaluator {
 
 		List<PrismObject<UserType>> users = null;
 		if (queries.size() == 1){
-			users = findUsersByCorrelationRule(currentShadow, queries.get(0), resourceType, result);
+			if (satisfyCondition(currentShadow, queries.get(0), resourceType, "Condition expression", result)){
+				LOGGER.trace("Condition {} in correlation expression evaluated to true", queries.get(0).getCondition());
+				users = findUsersByCorrelationRule(currentShadow, queries.get(0), resourceType, result);
+			}
+			
 		} else {
 
 			for (QueryType query : queries) {
-				List<PrismObject<UserType>> foundUsers = findUsersByCorrelationRule(
-						currentShadow, query, resourceType, result);
-				if (foundUsers == null && users == null) {
-					continue;
-				}
-				if (foundUsers != null && foundUsers.isEmpty() && users == null) {
-					users = new ArrayList<PrismObject<UserType>>();
-				}
+				//TODO: better description
+				if (satisfyCondition(currentShadow, query, resourceType, "Condition expression", result)) {
+					LOGGER.trace("Condition {} in correlation expression evaluated to true", query.getCondition());
+					List<PrismObject<UserType>> foundUsers = findUsersByCorrelationRule(
+							currentShadow, query, resourceType, result);
+					if (foundUsers == null && users == null) {
+						continue;
+					}
+					if (foundUsers != null && foundUsers.isEmpty() && users == null) {
+						users = new ArrayList<PrismObject<UserType>>();
+					}
 
-				if (users == null && foundUsers != null) {
-					users = foundUsers;
-				}
-				if (users != null && !users.isEmpty() && foundUsers != null
-						&& !foundUsers.isEmpty()) {
-					for (PrismObject<UserType> foundUser : foundUsers) {
-						if (!contains(users, foundUser)) {
-							users.add(foundUser);
+					if (users == null && foundUsers != null) {
+						users = foundUsers;
+					}
+					if (users != null && !users.isEmpty() && foundUsers != null && !foundUsers.isEmpty()) {
+						for (PrismObject<UserType> foundUser : foundUsers) {
+							if (!contains(users, foundUser)) {
+								users.add(foundUser);
+							}
 						}
 					}
 				}
@@ -135,6 +142,30 @@ public class CorrelationConfirmationEvaluator {
 		return users;
 	}
 	
+	private boolean satisfyCondition(ShadowType currentShadow, QueryType query,
+			ResourceType resourceType, String shortDesc,
+			OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException {
+		
+		if (query.getCondition() == null){
+			return true;
+		}
+		
+		ExpressionType condition = createExpression((Element) query.getCondition());
+		Map<QName, Object> variables = getDefaultXPathVariables(null,currentShadow, resourceType);
+		ItemDefinition outputDefinition = new PrismPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELMENT_NAME,
+				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
+				prismContext);
+		PrismPropertyValue<Boolean> satisfy = evaluate(variables,
+				outputDefinition, condition, shortDesc, parentResult);
+		if (satisfy.getValue() == null) {
+			return false;
+		}
+
+		return satisfy.getValue();
+	}
+
 	private boolean contains(List<PrismObject<UserType>> users, PrismObject<UserType> foundUser){
 		for (PrismObject<UserType> user : users){
 			if (user.getOid().equals(foundUser.getOid())){
@@ -353,19 +384,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 			return;
 		}
 		
-		ExpressionType valueExpression = null;
-		try {
-			valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
-					valueExpressionElement, ExpressionType.class);
-			
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
-			}
-		} catch (JAXBException ex) {
-			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
-			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
-		}
-			
+		ExpressionType valueExpression = createExpression(valueExpressionElement);			
 		
 		try {
 			PrismPropertyValue expressionResult = evaluateExpression(currentShadow, resource,
@@ -406,6 +425,24 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 		}
 
 	}
+	
+	private ExpressionType createExpression(Element valueExpressionElement) throws SchemaException{
+		ExpressionType valueExpression = null;
+		try {
+			valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
+					valueExpressionElement, ExpressionType.class);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
+			}
+		} catch (JAXBException ex) {
+			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
+			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
+		}
+		
+		return valueExpression;
+
+	}
 
 	public static Map<QName, Object> getDefaultXPathVariables(UserType user,
 			ShadowType shadow, ResourceType resource) {
@@ -442,11 +479,25 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 					DOMUtil.XSD_STRING, prismContext);
 		}
 		
+		return evaluate(variables, outputDefinition, valueExpression, shortDesc, parentResult);
+		
+		
+//		String expressionResult = expressionHandler.evaluateExpression(currentShadow, valueExpression,
+//				shortDesc, result);
+   	}
+	
+	private PrismPropertyValue evaluate(Map<QName, Object> variables,
+			ItemDefinition outputDefinition, ExpressionType valueExpression,
+			String shortDesc, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{
+		
 		Expression<PrismPropertyValue> expression = expressionFactory.makeExpression(valueExpression,
 				outputDefinition, shortDesc, parentResult);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, parentResult);
 		PrismValueDeltaSetTriple<PrismPropertyValue> outputTriple = expression.evaluate(params);
+		
+		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
+		
 		if (outputTriple == null) {
 			return null;
 		}
@@ -459,9 +510,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
         }
 
         return nonNegativeValues.iterator().next();
-//		String expressionResult = expressionHandler.evaluateExpression(currentShadow, valueExpression,
-//				shortDesc, result);
-   	}
+	}
 	
 	public boolean evaluateConfirmationExpression(UserType user, ShadowType shadow, ResourceType resource,
 			ExpressionType expressionType, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
