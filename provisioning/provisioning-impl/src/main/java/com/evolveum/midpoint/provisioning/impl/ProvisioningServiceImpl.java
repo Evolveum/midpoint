@@ -1059,6 +1059,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".searchObjectsIterative");
+        result.setSummarizeSuccesses(true);
+        result.setSummarizeErrors(true);
+        result.setSummarizePartialErrors(true);
+
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
@@ -1122,29 +1126,39 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				OperationResult accountResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
 
-				PrismObject shadow = shadowType.asPrismObject();
-				validateObject(shadow);
-				boolean doContinue = handler.handle(shadow, accountResult);
-				accountResult.computeStatus();
+                boolean doContinue;
+                try {
+                    PrismObject shadow = shadowType.asPrismObject();
+                    validateObject(shadow);
+                    doContinue = handler.handle(shadow, accountResult);
+                    accountResult.computeStatus();
 
-				if (!accountResult.isSuccess()) {
-					Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
-							.createModificationReplacePropertyCollection(ShadowType.F_RESULT,
-									getResourceObjectShadowDefinition(), accountResult.createOperationResultType());
-					try {
-						cacheRepositoryService.modifyObject(ShadowType.class, shadowType.getOid(),
-								shadowModificationType, result);
-					} catch (ObjectNotFoundException ex) {
-						result.recordFatalError("Saving of result to " + shadow
-								+ " shadow failed: Not found: " + ex.getMessage(), ex);
-					} catch (ObjectAlreadyExistsException ex) {
-						result.recordFatalError("Saving of result to " + shadow
-								+ " shadow failed: Already exists: " + ex.getMessage(), ex);
-					} catch (SchemaException ex) {
-						result.recordFatalError("Saving of result to " + shadow
-								+ " shadow failed: Schema error: " + ex.getMessage(), ex);
-					}
-				}
+                    if (!accountResult.isSuccess()) {
+                        Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
+                                .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
+                                        getResourceObjectShadowDefinition(), accountResult.createOperationResultType());
+                        try {
+                            cacheRepositoryService.modifyObject(ShadowType.class, shadowType.getOid(),
+                                    shadowModificationType, result);
+                        } catch (ObjectNotFoundException ex) {
+                            result.recordFatalError("Saving of result to " + shadow
+                                    + " shadow failed: Not found: " + ex.getMessage(), ex);
+                        } catch (ObjectAlreadyExistsException ex) {
+                            result.recordFatalError("Saving of result to " + shadow
+                                    + " shadow failed: Already exists: " + ex.getMessage(), ex);
+                        } catch (SchemaException ex) {
+                            result.recordFatalError("Saving of result to " + shadow
+                                    + " shadow failed: Schema error: " + ex.getMessage(), ex);
+                        }
+                    }
+                } finally {
+                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
+                    // AbstractSummarizingResultHandler [lazyman]
+                    if (result.isSuccess()) {
+                        result.getSubresults().clear();
+                    }
+                    result.summarize();
+                }
 
 				return doContinue;
 			}
