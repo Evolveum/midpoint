@@ -155,39 +155,29 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
     private <T extends ObjectType> void dumpObjectsToStream(final Writer writer, OperationResult result) throws Exception {
         final PageBase page = getPage();
 
-//        ResultHandler handler = new ResultHandler() {
-//
-//            @Override
-//            public boolean handle(PrismObject object, OperationResult parentResult) {
-//                try {
-//                    String xml = page.getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
-//                    writer.write('\t');
-//                    writer.write(xml);
-//                    writer.write('\n');
-//                } catch (IOException ex) {
-//                    throw new SystemException(ex.getMessage(), ex);
-//                } catch (SchemaException ex) {
-//                    throw new SystemException(ex.getMessage(), ex);
-//                }
-//
-//                return true;
-//            }
-//        };
+        ResultHandler handler = new ResultHandler() {
+
+            @Override
+            public boolean handle(PrismObject object, OperationResult parentResult) {
+                try {
+                    String xml = page.getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
+                    writer.write('\t');
+                    writer.write(xml);
+                    writer.write('\n');
+                } catch (IOException ex) {
+                    throw new SystemException(ex.getMessage(), ex);
+                } catch (SchemaException ex) {
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+
+                return true;
+            }
+        };
 
         ModelService service = page.getModelService();
-        List<PrismObject<T>> objects = service.searchObjects((Class<T>) type, query,
+        service.searchObjectsIterative((Class<T>) type, query, handler,
                 SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
-        if (objects == null) {
-            return;
-        }
-
-        for (PrismObject<T> object : objects) {
-            String xml = page.getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
-            writer.write('\t');
-            writer.write(xml);
-            writer.write('\n');
-        }
     }
 
     private PageBase getPage() {
