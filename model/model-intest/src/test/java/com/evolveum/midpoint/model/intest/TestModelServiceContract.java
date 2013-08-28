@@ -71,6 +71,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -135,10 +136,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test041SearchResources() throws Exception {
-        TestUtil.displayTestTile(this, "test041SearchResources");
+		final String TEST_NAME = "test041SearchResources";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test041SearchResources");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -151,8 +153,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, query, null, task, result);
 
 		// THEN
-        assertNotNull("null rearch return", resources);
-        assertFalse("Empty rearch return", resources.isEmpty());
+        assertNotNull("null search return", resources);
+        assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 8, resources.size());
         
         result.computeStatus();
@@ -161,6 +163,48 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource);
         }
+	}
+	
+	@Test
+    public void test042SearchResourcesIterative() throws Exception {
+		final String TEST_NAME = "test042SearchResourcesIterative";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        // opendj is not started, so we do not want to list it (it returns partial_error)
+        ObjectQuery query = ObjectQuery.createObjectQuery(
+                new NotFilter(
+                        EqualsFilter.createEqual(ResourceType.class, prismContext, ResourceType.F_NAME, new PolyString(RESOURCE_OPENDJ_NAME), PolyStringOrigMatchingRule.NAME.getLocalPart())));
+        
+
+        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        		
+        ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
+			@Override
+			public boolean handle(PrismObject<ResourceType> resource, OperationResult parentResult) {
+				try {
+					assertResource(resource);
+				} catch (JAXBException e) {
+					throw new RuntimeException(e.getMessage(),e);
+				}
+				resources.add(resource);
+				return true;
+			}
+		};
+        
+		// WHEN
+        modelService.searchObjectsIterative(ResourceType.class, query, handler, null, task, result);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess("searchObjects result", result);
+
+        assertFalse("Empty search return", resources.isEmpty());
+        assertEquals("Unexpected number of resources found", 8, resources.size());
 	}
 	
 	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {

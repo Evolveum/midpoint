@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
@@ -603,84 +604,93 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		repoObjects = getCacheRepositoryService().searchObjects(type, query, null, result);
 
-		if (ResourceType.class.equals(type)) {
-			List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
-			for (PrismObject<T> repoObject : repoObjects) {
-				OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
-						+ ".searchObjects.object");
-				PrismObject<ResourceType> repoResource = (PrismObject<ResourceType>) repoObject;
+		List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
+		for (PrismObject<T> repoObject : repoObjects) {
+			OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
+					+ ".searchObjects.object");
 
-				try {
+			try {
 
-					PrismObject<ResourceType> completeResource = resourceManager.getResource(repoResource,
-							objResult);
-					newObjListType.add((PrismObject<T>) completeResource);
+				PrismObject<T> completeResource = completeObject(type, repoObject, objResult);
+				newObjListType.add((PrismObject<T>) completeResource);
 
-                    objResult.computeStatusIfUnknown();
-                    if (!objResult.isSuccess()) {
-                        completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
-                        result.addSubresult(objResult);
-                    }
+                objResult.computeStatusIfUnknown();
+                if (!objResult.isSuccess()) {
+                    completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
+                    result.addSubresult(objResult);
+                }
 
-					// TODO: what else do to with objResult??
+				// TODO: what else do to with objResult??
 
-				} catch (ObjectNotFoundException e) {
-					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							repoResource, e.getMessage(), e });
-					objResult.recordFatalError(e);
-					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(repoObject);
-					result.addSubresult(objResult);
-					result.recordPartialError(e);
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+						repoObject, e.getMessage(), e });
+				objResult.recordFatalError(e);
+				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+				newObjListType.add(repoObject);
+				result.addSubresult(objResult);
+				result.recordPartialError(e);
 
-				} catch (SchemaException e) {
-					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							repoResource, e.getMessage(), e });
-					objResult.recordFatalError(e);
-					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(repoObject);
-					result.addSubresult(objResult);
-					result.recordPartialError(e);
+			} catch (SchemaException e) {
+				LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+						repoObject, e.getMessage(), e });
+				objResult.recordFatalError(e);
+				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+				newObjListType.add(repoObject);
+				result.addSubresult(objResult);
+				result.recordPartialError(e);
 
-				} catch (CommunicationException e) {
-					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							repoResource, e.getMessage(), e });
-					objResult.recordFatalError(e);
-					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(repoObject);
-					result.addSubresult(objResult);
-					result.recordPartialError(e);
+			} catch (CommunicationException e) {
+				LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+						repoObject, e.getMessage(), e });
+				objResult.recordFatalError(e);
+				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+				newObjListType.add(repoObject);
+				result.addSubresult(objResult);
+				result.recordPartialError(e);
 
-				} catch (ConfigurationException e) {
-					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							repoResource, e.getMessage(), e });
-					objResult.recordFatalError(e);
-					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(repoObject);
-					result.addSubresult(objResult);
-					result.recordPartialError(e);
+			} catch (ConfigurationException e) {
+				LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+						repoObject, e.getMessage(), e });
+				objResult.recordFatalError(e);
+				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+				newObjListType.add(repoObject);
+				result.addSubresult(objResult);
+				result.recordPartialError(e);
 
-				} catch (RuntimeException e) {
-					// FIXME: Strictly speaking, the runtime exception should
-					// not be handled here.
-					// The runtime exceptions should be considered fatal anyway
-					// ... but some of the
-					// ICF exceptions are still translated to system exceptions.
-					// So this provides
-					// a better robustness now.
-					LOGGER.error("System error while completing {}: {}. Using non-complete resource.", new Object[] {
-							repoResource, e.getMessage(), e });
-					objResult.recordFatalError(e);
-					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(repoObject);
-					result.addSubresult(objResult);
-					result.recordPartialError(e);
-				}
+			} catch (RuntimeException e) {
+				// FIXME: Strictly speaking, the runtime exception should
+				// not be handled here.
+				// The runtime exceptions should be considered fatal anyway
+				// ... but some of the
+				// ICF exceptions are still translated to system exceptions.
+				// So this provides
+				// a better robustness now.
+				LOGGER.error("System error while completing {}: {}. Using non-complete object.", new Object[] {
+						repoObject, e.getMessage(), e });
+				objResult.recordFatalError(e);
+				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+				newObjListType.add(repoObject);
+				result.addSubresult(objResult);
+				result.recordPartialError(e);
 			}
-			return newObjListType;
 		}
+		return newObjListType;
 
-		return repoObjects;
+	}
+	
+	private <T extends ObjectType> PrismObject<T> completeObject(Class<T> type, PrismObject<T> inObject, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+
+		if (ResourceType.class.equals(type)) {
+
+				PrismObject<ResourceType> completeResource = resourceManager.getResource((PrismObject<ResourceType>) inObject,
+						result);
+				return (PrismObject<T>) completeResource;
+		} else {
+
+			return inObject;
+			
+		}
 
 	}
 
@@ -1047,7 +1057,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
+	public <T extends ObjectType> void searchObjectsIterative(final Class<T> type, ObjectQuery query, final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1069,6 +1079,52 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectFilter filter = null;
 		if (query != null) {
 			filter = query.getFilter();
+		}
+		
+		if (!ShadowType.class.isAssignableFrom(type)) {
+			ResultHandler<T> internalHandler = new ResultHandler<T>() {
+				@Override
+				public boolean handle(PrismObject<T> object, OperationResult objResult) {
+					PrismObject<T> completeObject;
+					try {
+						completeObject = completeObject(type, object, objResult);
+					} catch (SchemaException e) {
+						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+								object, e.getMessage(), e });
+						objResult.recordFatalError(e);
+						object.asObjectable().setFetchResult(objResult.createOperationResultType());
+						completeObject = object;
+					} catch (ObjectNotFoundException e) {
+						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+								object, e.getMessage(), e });
+						objResult.recordFatalError(e);
+						object.asObjectable().setFetchResult(objResult.createOperationResultType());
+						completeObject = object;
+					} catch (CommunicationException e) {
+						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+								object, e.getMessage(), e });
+						objResult.recordFatalError(e);
+						object.asObjectable().setFetchResult(objResult.createOperationResultType());
+						completeObject = object;
+					} catch (ConfigurationException e) {
+						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+								object, e.getMessage(), e });
+						objResult.recordFatalError(e);
+						object.asObjectable().setFetchResult(objResult.createOperationResultType());
+						completeObject = object;
+					}
+					validateObject(completeObject);
+					return handler.handle(completeObject, objResult);
+				}
+			};
+			
+			getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+			
+			
+			result.computeStatus();
+			result.recordSuccessIfUnknown();
+			result.cleanupResult();
+			return;
 		}
 		
 		String resourceOid = null;
