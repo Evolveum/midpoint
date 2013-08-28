@@ -146,20 +146,25 @@ public class LocalNodeManager {
         }
         try {
             if (!doQuartzTablesExist(connection)) {
-                try {
-                    Reader scriptReader = getResourceReader(configuration.getSqlSchemaFile());
 
-                    ScriptRunner runner = new ScriptRunner(connection, false, true);
-                    runner.runScript(scriptReader);
+                if (configuration.isCreateQuartzTables()) {
+                    try {
+                        Reader scriptReader = getResourceReader(configuration.getSqlSchemaFile());
 
-                } catch (IOException ex) {
-                    throw new TaskManagerInitializationException("Could not read Quartz database schema file: " + configuration.getSqlSchemaFile(), ex);
-                } catch (SQLException e) {
-                    throw new TaskManagerInitializationException("Could not create Quartz JDBC Job Store tables from " + configuration.getSqlSchemaFile(), e);
-                }
+                        ScriptRunner runner = new ScriptRunner(connection, false, true);
+                        runner.runScript(scriptReader);
 
-                if (!doQuartzTablesExist(connection)) {
-                    throw new TaskManagerInitializationException("Quartz tables seem not to exist even after running creation script.");
+                    } catch (IOException ex) {
+                        throw new TaskManagerInitializationException("Could not read Quartz database schema file: " + configuration.getSqlSchemaFile(), ex);
+                    } catch (SQLException e) {
+                        throw new TaskManagerInitializationException("Could not create Quartz JDBC Job Store tables from " + configuration.getSqlSchemaFile(), e);
+                    }
+
+                    if (!doQuartzTablesExist(connection)) {
+                        throw new TaskManagerInitializationException("Quartz tables seem not to exist even after running creation script.");
+                    }
+                } else {
+                    throw new TaskManagerInitializationException("Quartz tables seem not to exist and their automatic creation is disabled (createQuartzTables is set to false).");
                 }
             }
         } finally {
