@@ -39,6 +39,7 @@ import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -66,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnectionCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 import org.apache.commons.io.FileUtils;
@@ -265,6 +268,79 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		
 		IntegrationTestTools.assertIcfResourceSchemaSanity(returnedSchema, resourceType);
 
+	}
+	
+	@Test
+	public void test006Capabilities() throws Exception {
+		final String TEST_NAME = "test006Capabilities";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
+
+		// WHEN
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, result).asObjectable();
+		
+		// THEN
+		display("Resource from provisioninig", resource);
+		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
+		
+		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
+		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
+        assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
+        
+        // Connector cannot do activation, this should be null
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
+        assertNull("Found activation capability while not expecting it" ,capAct);
+        
+        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
+        assertNotNull("No script capability", capScript);
+        List<Host> scriptHosts = capScript.getHost();
+        assertEquals("Wrong number of script hosts", 2, scriptHosts.size());
+        assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
+        assertScriptHost(capScript, ProvisioningScriptHostType.CONNECTOR);
+                
+        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
+        for (Object capability : effectiveCapabilities) {
+        	System.out.println("Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
+        
+	}
+
+	private void assertScriptHost(ScriptCapabilityType capScript, ProvisioningScriptHostType expectedHostType) {
+		for (Host host: capScript.getHost()) {
+			if (host.getType() == expectedHostType) {
+				return;
+			}
+		}
+		AssertJUnit.fail("No script capability with host type "+expectedHostType);
+	}
+	
+	@Test
+	public void test500ExeucuteScript() throws Exception {
+		final String TEST_NAME = "test500ExeucuteScript";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ProvisioningScriptType script = new ProvisioningScriptType();
+		script.setHost(ProvisioningScriptHostType.RESOURCE);
+		script.setLanguage("exec");
+		script.setCode("cp target/midpoint-flatfile.csv target/midpoint-flatfile-scriptcopy.csv");
+
+		// WHEN
+		provisioningService.executeScript(RESOURCE_CSV_OID, script, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("executeScript result", result);
+		TestUtil.assertSuccess("executeScript has failed (result)", result);
+		
+		File copyFile = new File("target/midpoint-flatfile-scriptcopy.csv");
+		assertTrue("Script haven't copied the file", copyFile.exists());
+		
 	}
 	
 }
