@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.ajaxDownload;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.request.IRequestCycle;
@@ -28,6 +30,8 @@ import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.time.Duration;
 
 public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AjaxDownloadBehaviorFromFile.class);
 
 	private boolean addAntiCache;
 	private String contentType = "text";
@@ -62,11 +66,16 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
 		IResourceStream resourceStream = new FileResourceStream(new File(file));
 		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(
 				new ResourceStreamRequestHandler(resourceStream) {
-					@Override
+
+                    @Override
 					public void respond(IRequestCycle requestCycle) {
-						super.respond(requestCycle);
-                        if (removeFile) {
-						    Files.remove(file);
+                        try {
+						    super.respond(requestCycle);
+                        } finally {
+                            if (removeFile) {
+                                LOGGER.debug("Removing file '{}'.", new Object[]{file.getAbsolutePath()});
+                                Files.remove(file);
+                            }
                         }
 					}
 				}.setFileName(file.getName()).setContentDisposition(ContentDisposition.ATTACHMENT)

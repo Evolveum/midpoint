@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.ajaxDownload.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
@@ -97,8 +97,6 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageDebugList.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
-    private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "loadObjects";
-    private static final String OPERATION_CREATE_DOWNLOAD_FILE = DOT_CLASS + "createDownloadFile";
 
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -110,6 +108,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_TABLE = "table";
     private static final String ID_CHOICE = "choice";
     private static final String ID_DELETE_SELECTED = "deleteSelected";
+    private static final String ID_EXPORT = "export";
     private static final String ID_EXPORT_ALL = "exportAll";
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_CLEAR_BUTTON = "clearButton";
@@ -191,25 +190,29 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         main.add(delete);
 
-        final AjaxDownloadBehaviorFromFile ajaxDownloadBehavior = new AjaxDownloadBehaviorFromFile(true) {
-
-            @Override
-            protected File initFile() {
-                return initDownloadFile(choice);
-            }
-        };
+        final PageDebugDownloadBehaviour ajaxDownloadBehavior = new PageDebugDownloadBehaviour();
         main.add(ajaxDownloadBehavior);
 
 
-        AjaxLinkButton export = new AjaxLinkButton(ID_EXPORT_ALL,
+        AjaxLinkButton export = new AjaxLinkButton(ID_EXPORT,
+                createStringResource("pageDebugList.button.export")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                initDownload(ajaxDownloadBehavior, target, false);
+            }
+        };
+        main.add(export);
+
+        AjaxLinkButton exportAll = new AjaxLinkButton(ID_EXPORT_ALL,
                 createStringResource("pageDebugList.button.exportAll")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ajaxDownloadBehavior.initiate(target);
+                initDownload(ajaxDownloadBehavior, target, true);
             }
         };
-        main.add(export);
+        main.add(exportAll);
 
         AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<Boolean>(false)) {
 
@@ -218,6 +221,32 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
         main.add(zipCheck);
+    }
+
+    private void initDownload(PageDebugDownloadBehaviour downloadBehaviour, AjaxRequestTarget target, boolean all) {
+        Class<? extends ObjectType> type = all ? ObjectType.class : getExportType();
+        downloadBehaviour.setType(type);
+
+        downloadBehaviour.setQuery(createExportQuery());
+        downloadBehaviour.setUseZip(hasToZip());
+        downloadBehaviour.initiate(target);
+    }
+
+    private Class<? extends ObjectType> getExportType() {
+        Class type = getTableDataProvider().getType();
+        return type == null ? ObjectType.class : type;
+    }
+
+    private ObjectQuery createExportQuery() {
+        ObjectQuery query = getTableDataProvider().getQuery();
+
+        ObjectQuery clonedQuery = null;
+        if (query != null) {
+            clonedQuery = new ObjectQuery();
+            clonedQuery.setFilter(query.getFilter());
+        }
+
+        return clonedQuery;
     }
 
     private void addOrReplaceTable(RepositoryObjectDataProvider provider) {
@@ -264,45 +293,6 @@ public class PageDebugList extends PageAdminConfiguration {
         columns.add(column);
 
         return columns;
-    }
-
-    //todo remove argument, choice model all over the place (at least two of them, again two variables...)
-    private File initDownloadFile(IModel<ObjectTypes> choice) {
-        OperationResult result = new OperationResult(OPERATION_CREATE_DOWNLOAD_FILE);
-        MidPointApplication application = getMidpointApplication();
-        WebApplicationConfiguration config = application.getWebApplicationConfiguration();
-        File folder = new File(config.getExportFolder());
-        if (!folder.exists() || !folder.isDirectory()) {
-            folder.mkdir();
-        }
-
-        String suffix = choice.getObject().getClassDefinition().getSimpleName() + "_"
-                + System.currentTimeMillis();
-        File file = new File(folder, "ExportedData_" + suffix + ".xml");
-
-        try {
-            result.recordSuccess();
-            if (hasToZip()) {
-                file = createZipForDownload(file, folder, suffix, result);
-            } else {
-                file.createNewFile();
-                createXmlForDownload(file, result);
-            }
-            result.recomputeStatus();
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't init download link", ex);
-            result.recordFatalError("Couldn't init download link", ex);
-        }
-
-        if (!result.isSuccess()) {
-            showResultInSession(result);
-            getSession().error(getString("pageDebugList.message.createFileException"));
-            Files.remove(file);
-
-            setResponsePage(PageDebugList.class);
-        }
-
-        return file;
     }
 
     private boolean hasToZip() {
@@ -392,7 +382,10 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             protected List<ObjectTypes> load() {
                 List<ObjectTypes> choices = new ArrayList<ObjectTypes>();
+
                 Collections.addAll(choices, ObjectTypes.values());
+                choices.remove(ObjectTypes.OBJECT);
+
                 Collections.sort(choices, new Comparator<ObjectTypes>() {
 
                     @Override
@@ -549,130 +542,5 @@ public class PageDebugList extends PageAdminConfiguration {
         this.choice = choice;
         this.object = object;
         dialog.show(target);
-    }
-
-    private void createXmlForDownload(File file, OperationResult result) {
-        OutputStreamWriter stream = null;
-        try {
-            LOGGER.trace("creating xml file {}", file.getName());
-            stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
-            List<PrismObject> objects = getExportedObjects();
-            String stringObject;
-            stream.write(createHeaderForXml());
-            for (PrismObject object : objects) {
-            	if (LOGGER.isTraceEnabled()) {
-            		LOGGER.trace("Exporting object:\n{}", object.dump());
-            	}
-                //todo this will create file that doesn't contain all objects, operation result wont show it if it happened in the middle of file
-                try {
-                    stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
-                    stream.write("\t" + stringObject + "\n");
-                } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Failed to parse objects to string for xml. Reason:", ex);
-                    result.recordFatalError("Failed to parse objects to string for xml. Reason:", ex);
-                }
-            }
-            stream.write("</objects>");
-            LOGGER.debug("created xml file {}", file.getName());
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't create xml file", ex);
-            result.recordFatalError("Couldn't create xml file", ex);
-        }
-
-        if (stream != null) {
-            IOUtils.closeQuietly(stream);
-        }
-    }
-
-    private List<PrismObject> getExportedObjects() {
-        ObjectQuery query = getTableDataProvider().getQuery();
-
-        ObjectQuery clonedQuery = null;
-        if (query != null) {
-            clonedQuery = new ObjectQuery();
-            clonedQuery.setFilter(query.getFilter());
-        }
-        Class type = getTableDataProvider().getType();
-        if (type == null) {
-            type = ObjectType.class;
-        }
-
-        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECT);
-        List<PrismObject> objects = null;
-        try {
-            objects = getModelService().searchObjects(type, clonedQuery,
-                    SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
-                    createSimpleTask(OPERATION_SEARCH_OBJECT), result);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load objects", ex);
-        } finally {
-            result.recomputeStatus();
-        }
-
-        if (WebMiscUtil.showResultInPage(result)) {
-            showResult(result);
-        }
-
-        return objects != null ? objects : new ArrayList<PrismObject>();
-    }
-
-    private File createZipForDownload(File file, File folder, String suffix, OperationResult result) {
-        File zipFile = new File(folder, "ExportedData_" + suffix + ".zip");
-        OutputStreamWriter stream = null;
-        ZipOutputStream out = null;
-        try {
-            LOGGER.trace("adding file {} to zip archive", file.getName());
-            out = new ZipOutputStream(new FileOutputStream(zipFile));
-            final ZipEntry entry = new ZipEntry(file.getName());
-            List<PrismObject> objects = getExportedObjects();
-
-            String stringObject;
-            //FIXME: could cause problem with unzip in java when size is not set, however it is not our case
-            //entry.setSize(stringObject.length());
-            out.putNextEntry(entry);
-            out.write(createHeaderForXml().getBytes());
-            for (PrismObject object : objects) {
-                //todo this will create file that doesn't contain all objects, operation result wont show it if it happened in the middle of file
-                try {
-                    stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
-                    out.write(("\t" + stringObject + "\n").getBytes());
-                } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Failed to parse object " + WebMiscUtil.getName(object)
-                            + " to string for zip", ex);
-                    result.recordFatalError("Failed to parse object " + WebMiscUtil.getName(object)
-                            + " to string for zip", ex);
-                }
-            }
-            out.write("</objects>".getBytes());
-            stream = new OutputStreamWriter(out, "utf-8");        //todo wtf?
-            LOGGER.debug("added file {} to zip archive", file.getName());
-        } catch (IOException ex) {
-            LoggingUtils.logException(LOGGER, "Failed to write to stream.", ex);
-            result.recordFatalError("Failed to write to stream.", ex);
-        } finally {
-            //todo wtf? check on stream != null, than using out
-            if (null != stream) {
-                try {
-                    out.finish();
-                    out.closeEntry();
-                    out.close();
-                    stream.close();
-                } catch (final IOException ex) {
-                    LoggingUtils.logException(LOGGER, "Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
-                    result.recordFatalError("Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
-                }
-            }
-        }
-        return zipFile;
-    }
-
-    private String createHeaderForXml() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        builder.append("<objects xmlns='").append(SchemaConstantsGenerated.NS_COMMON).append("'\n");
-        builder.append("\txmlns:c='").append(SchemaConstantsGenerated.NS_COMMON).append("'\n");
-        builder.append("\txmlns:org='").append(SchemaConstants.NS_ORG).append("'>\n");
-
-        return builder.toString();
     }
 }

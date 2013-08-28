@@ -70,6 +70,10 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
             throw new QueryException("Can't query based on clob property value '" + def + "'.");
         }
 
+        if (ObjectType.class.equals(context.getType()) && new ItemPath(ObjectType.F_NAME).equals(fullPath)) {
+            throw new QueryException("Can't query ObjectType based on " + ObjectType.F_NAME + " property.");
+        }
+
         String propertyName = def.getJpaName();
         String alias = context.getAlias(filter.getParentPath());
 
