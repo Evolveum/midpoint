@@ -137,8 +137,8 @@ public final class Utils {
 			object.accept(visitor);
 	    }
 	    
-	    
-	    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository, 
+
+	    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
 	    				boolean enforceReferentialIntegrity, PrismContext prismContext, String contextDesc, OperationResult parentResult) {
 	    	PrismReference reference = (PrismReference) refVal.getParent();
 	    	QName refName = reference.getName();
@@ -171,7 +171,7 @@ public final class Utils {
 	            if (filter != null) {
 	                // We have both filter and OID. We will choose OID, but let's at
 	                // least log a warning
-	            	LOGGER.debug("Both OID and filter for property {} in {}, OID takes precedense", refName, contextDesc);
+	            	LOGGER.debug("Both OID and filter for property {} in {}, OID takes precedence", refName, contextDesc);
 	            }
 	            // Nothing to resolve, but let's check if the OID exists
 	            PrismObject<? extends ObjectType> object = null;

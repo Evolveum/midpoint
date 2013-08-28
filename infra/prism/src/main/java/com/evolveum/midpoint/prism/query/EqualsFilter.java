@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -119,8 +121,14 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 
         return filter;
     }
-	
-	@Override
+
+    public static EqualsFilter createPolyStringOrigEqual(Class<? extends Objectable> type, PrismContext prismContext,
+                                           QName propertyName, PolyStringType realValue)
+            throws SchemaException {
+        return createEqual(type, prismContext, propertyName, realValue, PolyStringOrigMatchingRule.NAME.getLocalPart());
+    }
+
+    @Override
 	public EqualsFilter clone() {
 		EqualsFilter clone = new EqualsFilter(getParentPath(), getDefinition(), getMatchingRule(), (List<PrismValue>) getValues());
 		cloneValues(clone);

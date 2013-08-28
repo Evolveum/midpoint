@@ -5575,6 +5575,9 @@
                 Rules for approving something (e.g. assignment of a role to a user).
                 Specifies the structure of approvers and their relations.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
@@ -5594,6 +5597,9 @@
             <xsd:documentation>
                 One "level" (or step) in the approval process.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>

@@ -470,7 +470,7 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
     }
 
     @Override
-    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return getProcessWrapper(variables).getRequestSpecificData(task, variables, result);
     }
 
