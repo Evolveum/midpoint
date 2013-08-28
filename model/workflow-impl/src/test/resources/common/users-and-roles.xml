@@ -15,7 +15,9 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
@@ -49,7 +51,18 @@
 
     <role oid="00000001-d34d-b33f-f00d-000000000002">
         <name>Role2</name>
-        <approverRef oid="00000000-d34d-b33f-f00d-111111111112" type="UserType"/>
+        <approvalSchema>
+            <level>
+                <approverRef type="c:UserType">
+                    <filter>
+                        <q:equal>
+                            <q:path>c:name</q:path>
+                            <q:value>r2boss</q:value>
+                        </q:equal>
+                    </filter>
+                </approverRef>
+            </level>
+        </approvalSchema>
     </role>
 
     <role oid="00000001-d34d-b33f-f00d-000000000003">

@@ -155,7 +155,6 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
                             }
                             if (approvalRequired) {
                                 AssignmentType aCopy = at.asContainerable().clone();
-                                aCopy.setTarget(role);
                                 approvalRequestList.add(createApprovalRequest(aCopy, role));
                                 valueIterator.remove();
                             }
@@ -197,6 +196,9 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             AssignmentType assignmentType = approvalRequest.getItemToApprove();
             RoleType roleType = (RoleType) assignmentType.getTarget();
 
+            assignmentType.setTarget(null);         // we must remove the target object (leaving only target OID) in order to avoid problems with deserialization
+            ((ApprovalRequestImpl<AssignmentType>) approvalRequest).setItemToApprove(assignmentType);   // set the modified value back
+
             Validate.notNull(roleType);
             Validate.notNull(roleType.getName());
             String roleName = roleType.getName().getOrig();
@@ -234,7 +236,8 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
         ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<AssignmentType>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition);
-        addRoleDelta.addValueToAdd(approvalRequest.getItemToApprove().asPrismContainerValue().clone());
+        PrismContainerValue<AssignmentType> assignmentValue = approvalRequest.getItemToApprove().asPrismContainerValue().clone();
+        addRoleDelta.addValueToAdd(assignmentValue);
 
         return ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
     }
@@ -246,7 +249,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     // ------------------------------------------------------------ Things that execute on when item is being approved
 
     @Override
-    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
@@ -266,8 +269,19 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
         AssignmentType assignment = (AssignmentType) request.getItemToApprove();
         Validate.notNull(assignment, "Approval request does not contain as assignment");
 
-        RoleType role = (RoleType) (assignment).getTarget();
-        Validate.notNull(role, "Approval request does not contain role information");
+        ObjectReferenceType roleRef = assignment.getTargetRef();
+        Validate.notNull(roleRef, "Approval request does not contain role reference");
+        String roleOid = roleRef.getOid();
+        Validate.notNull(roleOid, "Approval request does not contain role OID");
+
+        RoleType role;
+        try {
+            role = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable();
+        } catch (ObjectNotFoundException e) {
+            throw new ObjectNotFoundException("Role with OID " + roleOid + " does not exist anymore.");
+        } catch (SchemaException e) {
+            throw new SchemaException("Couldn't get role with OID " + roleOid + " because of schema exception.");
+        }
 
         form.setRole(role.getName() == null ? role.getOid() : role.getName().getOrig());        // ==null should not occur
         form.setRequesterComment(assignment.getDescription());

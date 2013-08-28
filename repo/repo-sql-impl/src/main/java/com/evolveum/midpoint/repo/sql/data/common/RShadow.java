@@ -57,7 +57,8 @@ import java.util.Set;
                 @Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iShadowEffective", columnNames = "effectiveStatus"),
                 @Index(name = "iShadowName", columnNames = "name_norm"),
-                @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid")})
+                @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
+                @Index(name = "iShadowDead", columnNames = "dead")})
 @ForeignKey(name = "fk_shadow")
 public class RShadow<T extends ShadowType> extends RObject<T> {
 

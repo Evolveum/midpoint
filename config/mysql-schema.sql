@@ -1011,6 +1011,8 @@ ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_id, org_oid)
 REFERENCES m_org (id, oid);
 
+CREATE INDEX iReferenceTargetOid ON m_reference (targetOid);
+
 ALTER TABLE m_reference
 ADD INDEX fk_reference_owner (owner_id, owner_oid),
 ADD CONSTRAINT fk_reference_owner
@@ -1032,6 +1034,8 @@ ADD INDEX fk_role (id, oid),
 ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role (id, oid);
+
+CREATE INDEX iShadowDead ON m_shadow (dead);
 
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
 

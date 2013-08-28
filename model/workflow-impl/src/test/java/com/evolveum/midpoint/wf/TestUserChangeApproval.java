@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfProcessInstanceShadowTaskHandler;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -120,7 +122,18 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-        repoAddObjectsFromFile(TestConstants.USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
+        importObjectFromFile(TestConstants.USERS_AND_ROLES_FILENAME, initResult);
+
+        // check Role2 approver OID (it is filled-in using search filter)
+        List<PrismObject<RoleType>> roles = findRoleInRepoUnchecked("Role2", initResult);
+        assertEquals("Wrong number of Role2 objects found in repo", 1, roles.size());
+        RoleType role2 = roles.get(0).asObjectable();
+
+//        could be done also like this
+//        RoleType role2 = repositoryService.getObject(RoleType.class, TestConstants.ROLE_R2_OID, null, initResult).asObjectable();
+
+        ObjectReferenceType approver = role2.getApprovalSchema().getLevel().get(0).getApproverRef().get(0);
+        assertEquals("Wrong OID of Role2's approver", TestConstants.R2BOSS_OID, approver.getOid());
 	}
 
     /**
@@ -923,8 +936,13 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     }
 
     private List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, name));
+        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createPolyStringOrigEqual(UserType.class, prismContext, UserType.F_NAME, new PolyStringType(name)));
         return repositoryService.searchObjects(UserType.class, q, null, result);
+    }
+
+    private List<PrismObject<RoleType>> findRoleInRepoUnchecked(String name, OperationResult result) throws SchemaException {
+        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createPolyStringOrigEqual(UserType.class, prismContext, RoleType.F_NAME, new PolyStringType(name)));
+        return repositoryService.searchObjects(RoleType.class, q, null, result);
     }
 
     private void deleteUserFromModel(String name) throws SchemaException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {

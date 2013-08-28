@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -457,5 +458,22 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
         time = System.currentTimeMillis() - time;
         System.out.println(">>> " + time);
+    }
+
+    @Test
+    public void test() throws Exception {
+        OperationResult result = new OperationResult("asdf");
+        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
+
+            @Override
+            public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
+                objects.add(object);
+                return true;
+            }
+        };
+
+        repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, result);
+        AssertJUnit.assertTrue(!objects.isEmpty());
     }
 }

@@ -743,6 +743,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Create capabilities from supported connector operations
 
 		Set<Class<? extends APIOperation>> supportedOperations = icfConnectorFacade.getSupportedOperations();
+		
+		LOGGER.trace("Connector supported operations: {}", supportedOperations);
 
 		if (supportedOperations.contains(SyncApiOp.class)) {
 			LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();

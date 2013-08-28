@@ -137,12 +137,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
 			}
 			return !isStopOnError();
-		}
-		
-		// FIXME: hack. Hardcoded ugly summarization of successes
-		if (result.isSuccess()) {
-			result.getSubresults().clear();
-		}
+		} finally {
+            // FIXME: hack. Hardcoded ugly summarization of successes. something like
+            // AbstractSummarizingResultHandler [lazyman]
+            if (result.isSuccess()) {
+                result.getSubresults().clear();
+            }
+            result.summarize();
+        }
 
 		if (!cont) {
 			// we assume that the handleObject really knows what he's doing and already set up result accordingly

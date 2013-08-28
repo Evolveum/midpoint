@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -69,6 +70,12 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";
+
+    /**
+     * This constant provides count threshold for same subresults (same operation and
+     * status) during summarize operation.
+     */
+    private static final int SUBRESULT_STRIP_THRESHOLD = 10;
 	
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	public static final String CONTEXT_PROGRESS = "progress";
@@ -1092,6 +1099,25 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			merge(similar, subresult);
 			iterator.remove();
 		}
+
+        // subresult stripping if necessary
+        // we strip subresults that have same operation name and status, if there are more of them than threshold
+        Map<OperationStatusKey, Integer> counter = new HashMap<OperationStatusKey, Integer>();
+        iterator = getSubresults().iterator();
+        while (iterator.hasNext()) {
+            OperationResult sr = iterator.next();
+            OperationStatusKey key = new OperationStatusKey(sr.getOperation(), sr.getStatus());
+            if (counter.containsKey(key)) {
+                int count = counter.get(key);
+                if (count > SUBRESULT_STRIP_THRESHOLD) {
+                    iterator.remove();
+                } else {
+                   counter.put(key, ++count);
+                }
+            } else {
+                counter.put(key, 1);
+            }
+        }
 	}
 
 	private void merge(OperationResult target, OperationResult source) {
@@ -1345,5 +1371,36 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 //    public OperationResult clone() {
 //        return CloneUtil.clone(this);
 //    }
+
+    private static class OperationStatusKey {
+
+        private String operation;
+        private OperationResultStatus status;
+
+        private OperationStatusKey(String operation, OperationResultStatus status) {
+            this.operation = operation;
+            this.status = status;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            OperationStatusKey that = (OperationStatusKey) o;
+
+            if (operation != null ? !operation.equals(that.operation) : that.operation != null) return false;
+            if (status != that.status) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = operation != null ? operation.hashCode() : 0;
+            result = 31 * result + (status != null ? status.hashCode() : 0);
+            return result;
+        }
+    }
 
 }

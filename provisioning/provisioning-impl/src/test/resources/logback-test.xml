@@ -27,7 +27,8 @@
 	<logger name="com.evolveum.midpoint.provisioning.impl" level="ALL" />
 	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
-    <logger name="org.identityconnectors.databasetable" level="TRACE" />
+    <logger name="org.identityconnectors" level="TRACE" />
+    <logger name="org.forgerock.openicf" level="TRACE" />
 	<logger name="PROFILING" level="TRACE" />
 	<root level="INFO">
 		<appender-ref ref="X" />
