@@ -150,7 +150,7 @@ public class QueryInterpreter {
             criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
         }
 
-        if (countingObjects && query != null && query.getPaging() != null) {
+        if (!countingObjects && query != null && query.getPaging() != null) {
             criteria = updatePagingAndSorting(criteria, type, query.getPaging());
         }
 
