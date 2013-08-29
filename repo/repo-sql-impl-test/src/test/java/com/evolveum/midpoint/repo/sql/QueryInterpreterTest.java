@@ -471,17 +471,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         return HibernateToSqlTranslator.toSql(criteria);
     }
 
-    private Session open() {
-        Session session = getFactory().openSession();
-        session.beginTransaction();
-        return session;
-    }
-
-    private void close(Session session) {
-        session.getTransaction().commit();
-        session.close();
-    }
-
     @Test
     public void queryTrigger() throws Exception {
         final Date NOW = new Date();

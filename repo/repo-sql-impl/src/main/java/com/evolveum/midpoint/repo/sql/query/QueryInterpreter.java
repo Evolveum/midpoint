@@ -115,7 +115,7 @@ public class QueryInterpreter {
         Validate.notNull(prismContext, "Prism context must not be null.");
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Interpreting get for type '{}', oid:\n{}", new Object[]{type, oid});
+            LOGGER.trace("Interpreting get for type '{}', oid:\n{}", new Object[]{type.getSimpleName(), oid});
         }
 
         Criteria main = session.createCriteria(ClassMapper.getHQLTypeClass(type));
@@ -187,8 +187,8 @@ public class QueryInterpreter {
         //add fetch mode JOIN based on retrieve options
         for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
             ObjectSelector selector = option.getSelector();
-            if (selector.getPath() == null || selector.getPath().size() > 1) {
-                //fetching mode update for subcriterias will be supported later
+            if (selector.getPath() == null || selector.getPath().size() != 1) {
+                //fetching mode update for subcriteria will be supported later
                 continue;
             }
 
