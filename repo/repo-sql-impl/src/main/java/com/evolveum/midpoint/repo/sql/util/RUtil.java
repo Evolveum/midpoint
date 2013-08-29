@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
@@ -516,18 +517,14 @@ public final class RUtil {
                 + "' of type '" + object.getClass() + "', can't translate to '" + type + "'.");
     }
 
-    public static boolean hasToLoadPath(QName container, Collection<SelectorOptions<GetOperationOptions>> options) {
-        return hasToLoadPath(new ItemPath(container), options);
-    }
-
-    public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (options == null) {
-            return true;
-        }
-
-        //at first we filter retrieve options
+    public static List<SelectorOptions<GetOperationOptions>> filterRetrieveOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions =
                 new ArrayList<SelectorOptions<GetOperationOptions>>();
+        if (options == null) {
+            return retrieveOptions;
+        }
+
         for (SelectorOptions<GetOperationOptions> option : options) {
             if (option.getOptions() == null || option.getOptions().getRetrieve() == null) {
                 continue;
@@ -536,6 +533,15 @@ public final class RUtil {
             retrieveOptions.add(option);
         }
 
+        return retrieveOptions;
+    }
+
+    public static boolean hasToLoadPath(QName container, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return hasToLoadPath(new ItemPath(container), options);
+    }
+
+    public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
         if (retrieveOptions.isEmpty()) {
             return true;
         }
@@ -549,12 +555,12 @@ public final class RUtil {
 
             RetrieveOption retrieveOption = option.getOptions().getRetrieve();
             switch (retrieveOption) {
-                    case INCLUDE:
-                        return true;
-                    case EXCLUDE:
-                        return false;
-                    default:
-                        return true;
+                case INCLUDE:
+                    return true;
+                case EXCLUDE:
+                    return false;
+                default:
+                    return true;
             }
         }
 
@@ -590,5 +596,35 @@ public final class RUtil {
         }
 
         return false;
+    }
+
+    /**
+     * This method creates full {@link ItemPath} from {@link com.evolveum.midpoint.prism.query.ValueFilter} created from
+     * main item path and last element, which is now definition.
+     * <p/>
+     * Will be deleted after query api update
+     *
+     * @param filter
+     * @return
+     */
+    @Deprecated
+    public static ItemPath createFullPath(ValueFilter filter) {
+        ItemDefinition def = filter.getDefinition();
+        ItemPath parentPath = filter.getParentPath();
+
+        List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
+        if (parentPath != null) {
+            for (ItemPathSegment segment : parentPath.getSegments()) {
+                if (!(segment instanceof NameItemPathSegment)) {
+                    continue;
+                }
+
+                NameItemPathSegment named = (NameItemPathSegment) segment;
+                segments.add(new NameItemPathSegment(named.getName()));
+            }
+        }
+        segments.add(new NameItemPathSegment(def.getName()));
+
+        return new ItemPath(segments);
     }
 }

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
@@ -89,14 +90,15 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     private String createPropertyNamePrefix(RefFilter filter) throws QueryException {
         QueryContext context = getContext();
 
+        ItemPath path = RUtil.createFullPath(filter);
+
         StringBuilder sb = new StringBuilder();
-        String alias = context.getAlias(createFullPath(filter));
+        String alias = context.getAlias(path);
         if (StringUtils.isNotEmpty(alias)) {
             sb.append(alias);
             sb.append('.');
         }
 
-        ItemPath path = createFullPath(filter);
         List<Definition> definitions = createDefinitionPath(path, context);
         ReferenceDefinition refDefinition = getReferenceDefinition(definitions, filter);
         if (refDefinition.isEmbedded()) {
