@@ -29,6 +29,10 @@ import com.evolveum.midpoint.repo.sql.query.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query.restriction.Restriction;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -38,9 +42,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -100,7 +106,29 @@ public class QueryInterpreter {
         AVAILABLE_MATCHERS = Collections.unmodifiableMap(matchers);
     }
 
-    public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,
+    public Criteria interpretGet(String oid, Class<? extends ObjectType> type,
+                                 Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
+                                Session session) throws QueryException {
+        Validate.notNull(oid, "Oid must not be null.");
+        Validate.notNull(type, "Type must not be null.");
+        Validate.notNull(session, "Session must not be null.");
+        Validate.notNull(prismContext, "Prism context must not be null.");
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Interpreting get for type '{}', oid:\n{}", new Object[]{type, oid});
+        }
+
+        Criteria main = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+        main.add(Restrictions.eq("id", 0L));
+        main.add(Restrictions.eq("oid", oid));
+
+        updateFetchingMode(main, type, options);
+
+        return main;
+    }
+
+    public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type,
+                              Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
                               boolean interpretPagingAndSorting, Session session) throws QueryException {
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(session, "Session must not be null.");
@@ -121,7 +149,66 @@ public class QueryInterpreter {
             criteria = updatePagingAndSorting(criteria, type, query.getPaging());
         }
 
+        updateFetchingMode(criteria, type, options);
+
         return criteria;
+    }
+
+    private void updateFetchingMode(Criteria criteria, Class<? extends ObjectType> type,
+                                    Collection<SelectorOptions<GetOperationOptions>> options) {
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions = RUtil.filterRetrieveOptions(options);
+        if (retrieveOptions.isEmpty()) {
+            // we don't need to touch fetch strategies if there are not custom retrieve options
+            return;
+        }
+
+        LOGGER.debug("Updating fetch mode for created criteria.");
+        LOGGER.trace("Options for fetch mode {}.", new Object[]{options});
+
+        //fetch mode cleanup
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+        for (Definition def : definition.getDefinitions()) {
+            if (def instanceof EntityDefinition) {
+                EntityDefinition child = (EntityDefinition) def;
+                if (child.isEmbedded()) {
+                    continue;
+                }
+
+                LOGGER.trace("Setting fetch mode for {} to {}.", new Object[]{child.getJpaName(), FetchMode.SELECT});
+                criteria.setFetchMode(child.getJpaName(), FetchMode.SELECT);
+            }
+
+            // there is not need to set fetch mode for properties, collections (already have fetch mode
+            // SELECT by default). For AnyDefinition it will be implemented later, if necessary. For
+            // reference it's not needed (they are in collections or they are embedded)
+        }
+
+        //add fetch mode JOIN based on retrieve options
+        for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
+            ObjectSelector selector = option.getSelector();
+            if (selector.getPath() == null || selector.getPath().size() > 1) {
+                //fetching mode update for subcriterias will be supported later
+                continue;
+            }
+
+            Definition def = definition.findDefinition(selector.getPath(), Definition.class);
+            if (def == null) {
+                continue;
+            }
+
+            if (!(def instanceof EntityDefinition)) {
+                continue;
+            }
+
+            if (Set.class.equals(def.getJpaType())) {
+                //we don't need to update fetch mode for collections
+                continue;
+            }
+
+            LOGGER.trace("Setting fetch mode for {} to {}.", new Object[]{def.getJpaName(), FetchMode.JOIN});
+            criteria.setFetchMode(def.getJpaName(), FetchMode.JOIN);
+        }
     }
 
     private Criteria interpretQuery(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,

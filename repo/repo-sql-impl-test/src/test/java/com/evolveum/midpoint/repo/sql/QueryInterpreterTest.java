@@ -434,7 +434,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         QueryInterpreter interpreter = new QueryInterpreter();
         LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 
-        Criteria criteria = interpreter.interpret(query, type, prismContext, !interpretCount, session);
+        Criteria criteria = interpreter.interpret(query, type, null, prismContext, !interpretCount, session);
         if (interpretCount) {
             criteria.setProjection(Projections.rowCount());
         }
@@ -464,7 +464,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         } catch (Exception ex) {
             LOGGER.info("error while converting query: " + ex.getMessage(), ex);
         }
-        Criteria criteria = interpreter.interpret(query, type, prismContext, !interpretCount, session);
+        Criteria criteria = interpreter.interpret(query, type, null, prismContext, !interpretCount, session);
         if (interpretCount) {
             criteria.setProjection(Projections.rowCount());
         }

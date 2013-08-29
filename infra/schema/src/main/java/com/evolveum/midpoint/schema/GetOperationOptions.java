@@ -232,13 +232,16 @@ public class GetOperationOptions implements Serializable {
 				return false;
 		} else if (!doNotDiscovery.equals(other.doNotDiscovery))
 			return false;
+        if (retrieve != null ? !retrieve.equals(other.retrieve) : other.retrieve != null)
+            return false;
+
 		return true;
 	}
 
 	@Override
 	public String toString() {
 		return "GetOperationOptions(resolve=" + resolve + ", noFetch=" + noFetch
-				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+")";
+				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+", retrieve="+retrieve+")";
 	}
 
 }

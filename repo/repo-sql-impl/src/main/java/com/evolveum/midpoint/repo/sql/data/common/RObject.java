@@ -35,12 +35,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
+import org.hibernate.bytecode.internal.javassist.FieldHandled;
+import org.hibernate.bytecode.internal.javassist.FieldHandler;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -53,7 +53,7 @@ import java.util.Set;
         jpaName = "name", jpaType = RPolyString.class)})
 @Entity
 @ForeignKey(name = "fk_object")
-public abstract class RObject<T extends ObjectType> extends RContainer {
+public abstract class RObject<T extends ObjectType> extends RContainer {//} implements FieldHandled {
 
     private String description;
     private RAnyContainer extension;
@@ -64,15 +64,40 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
     private Set<RTrigger> trigger;
     private RMetadata metadata;
 
+//    /**
+//     * Used for lazy loading properties (entities)
+//     */
+//    private FieldHandler fieldHandler;
+//
+//    public FieldHandler getFieldHandler() {
+//        return fieldHandler;
+//    }
+//
+//    public void setFieldHandler(FieldHandler fieldHandler) {
+//        this.fieldHandler = fieldHandler;
+//    }
+
     @Transient
     public abstract RPolyString getName();
 
     public abstract void setName(RPolyString name);
 
+//    @LazyToOne(LazyToOneOption.NO_PROXY)
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RMetadata getMetadata() {
+//        if (fieldHandler != null) {
+//            return (RMetadata) fieldHandler.readObject(this, "metadata", metadata);
+//        }
         return metadata;
+    }
+
+    public void setMetadata(RMetadata metadata) {
+//        if (fieldHandler != null) {
+//            this.metadata = (RMetadata) fieldHandler.writeObject(this, "metadata", this.metadata, metadata);
+//            return;
+//        }
+        this.metadata = metadata;
     }
 
     //    @ForeignKey(name = "fk_trigger_owner")
@@ -160,10 +185,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
     public void setVersion(long version) {
         this.version = version;
-    }
-
-    public void setMetadata(RMetadata metadata) {
-        this.metadata = metadata;
     }
 
     @Override
