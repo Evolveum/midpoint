@@ -91,7 +91,7 @@ public class RUser extends RFocus<UserType>  {//implements FieldHandled {
 //    }
 
 //    @LazyToOne(LazyToOneOption.NO_PROXY)
-    @OneToOne(optional = false, mappedBy = "owner", orphanRemoval = true)
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
 //        if (fieldHandler != null) {

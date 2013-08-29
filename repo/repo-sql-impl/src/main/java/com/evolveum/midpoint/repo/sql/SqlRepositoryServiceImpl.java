@@ -742,7 +742,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Criteria criteria;
             if (query != null && query.getFilter() != null) {
                 QueryInterpreter interpreter = new QueryInterpreter();
-                criteria = interpreter.interpret(query, type, createOptions(query), getPrismContext(), false, session);
+                criteria = interpreter.interpret(query, type, null, getPrismContext(), false, session);
             } else {
                 criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             }
@@ -760,40 +760,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         return count;
-    }
-
-    /**
-     * This method creates selector options for count operation. Options are created to help query interpreter
-     * setup proper fetching strategies when building criteria.
-     *
-     * @param query
-     * @return
-     */
-    private Collection<SelectorOptions<GetOperationOptions>> createOptions(ObjectQuery query){
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                new ArrayList<SelectorOptions<GetOperationOptions>>();
-        if (query == null || query.getFilter() == null) {
-            return options;
-        }
-
-        ObjectFilter filter = query.getFilter();
-        return createOptionsFromFilter(filter, options);
-    }
-
-    private Collection<SelectorOptions<GetOperationOptions>> createOptionsFromFilter(ObjectFilter filter,
-                                                                                     Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (filter instanceof ValueFilter) {
-            ValueFilter vFilter = (ValueFilter) filter;
-            ItemPath path = RUtil.createFullPath(vFilter);
-            options.add(SelectorOptions.create(path, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        } else if (filter instanceof LogicalFilter) {
-            LogicalFilter lFilter = (LogicalFilter) filter;
-            for (ObjectFilter cFilter : lFilter.getCondition()) {
-                createOptionsFromFilter(cFilter, options);
-            }
-        }
-
-        return options;
     }
 
     @Override
