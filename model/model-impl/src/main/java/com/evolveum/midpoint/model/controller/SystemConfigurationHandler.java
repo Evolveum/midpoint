@@ -15,36 +15,31 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
 
 /**
  * @author semancik
@@ -72,14 +67,14 @@ public class SystemConfigurationHandler implements ChangeHook {
     }
 
     public void postInit(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
-        applyLoggingConfiguration(systemConfiguration, parentResult);
+        LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(systemConfiguration);
+        applyLoggingConfiguration(loggingConfig, systemConfiguration.asObjectable().getVersion(), parentResult);
+        //applyLoggingConfiguration(systemConfiguration.asObjectable().getLogging(), systemConfiguration.asObjectable().getVersion(), parentResult);
     }
 
-    private void applyLoggingConfiguration(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
-        SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
-        LoggingConfigurationType loggingConfigType = systemConfigurationType.getLogging();
-        if (loggingConfigType != null) {
-            LoggingConfigurationManager.configure(loggingConfigType, systemConfiguration.getVersion(), parentResult);
+    private void applyLoggingConfiguration(LoggingConfigurationType loggingConfig, String version, OperationResult parentResult) {
+        if (loggingConfig != null) {
+            LoggingConfigurationManager.configure(loggingConfig, version, parentResult);
         }
     }
 
@@ -169,6 +164,7 @@ public class SystemConfigurationHandler implements ChangeHook {
         }
 
         if (!relatesToSystemConfiguration) {
+            LOGGER.trace("invoke() EXITING: Changes not related to systemConfiguration");
             return HookOperationMode.FOREGROUND;
         }
 
@@ -176,6 +172,7 @@ public class SystemConfigurationHandler implements ChangeHook {
         try {
             if (isDeletion) {
                 LoggingConfigurationManager.resetCurrentlyUsedVersion();        // because the new config (if any) will have version number probably starting at 1 - so to be sure to read it when it comes
+                LOGGER.trace("invoke() EXITING because operation is DELETION");
                 return HookOperationMode.FOREGROUND;
             }
 
@@ -187,10 +184,9 @@ public class SystemConfigurationHandler implements ChangeHook {
             PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("System configuration version read from repo: " + config.getVersion());
-            }
-            applyLoggingConfiguration(config, result);
+            LOGGER.trace("invoke() SystemConfig from repo: " + config.getVersion() + ", ApplyingLoggingConfiguration");
+
+            applyLoggingConfiguration(config.asObjectable().getLogging(), config.asObjectable().getVersion(), result);
             result.recordSuccessIfUnknown();
 
         } catch (ObjectNotFoundException e) {
