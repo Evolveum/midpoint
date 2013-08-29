@@ -735,7 +735,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-        String real = getInterpretedQuery(session, ObjectType.class, query, true);
+        String real = getInterpretedQuery(session, UserType.class, query, true);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
