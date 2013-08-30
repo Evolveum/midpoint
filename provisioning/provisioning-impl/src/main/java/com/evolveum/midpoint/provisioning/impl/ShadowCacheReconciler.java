@@ -72,13 +72,16 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 	
 	private void cleanShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
-		PrismObject<ShadowType> oldShadow = shadow.clone();
-		ShadowUtil.getAttributesContainer(oldShadow).clear();
-		ProvisioningUtil.normalizeShadow(shadow.asObjectable(), parentResult);
+		PrismObject<ShadowType> normalizedShadow = shadow.clone();
+		
+		ProvisioningUtil.normalizeShadow(normalizedShadow.asObjectable(), parentResult);
 
+		LOGGER.trace("normalized shadow {}", normalizedShadow.dump());
 		// FIXME: ugly hack, need to be fixed (problem with comparing operation
 		// result, because it was changed and in this call it is different as
 		// one in repo, therefore the following if)
+		PrismObject<ShadowType> oldShadow = shadow.clone();
+		ShadowUtil.getAttributesContainer(oldShadow).clear();
 		PrismObject<ShadowType> repoShadow = getRepositoryService().getObject(ShadowType.class,
 				shadow.getOid(), null, parentResult);
 		ShadowType repoShadowType = repoShadow.asObjectable();
@@ -87,13 +90,16 @@ public class ShadowCacheReconciler extends ShadowCache{
 				oldShadow.asObjectable().setResult(repoShadowType.getResult());
 			}
 		}
-
-		ObjectDelta delta = oldShadow.diff(shadow);
+//		ShadowUtil.getAttributesContainer(repoShadow).clear();
+		
+		LOGGER.trace("origin shadow with failure description {}", oldShadow.dump());
+		
+		ObjectDelta delta = oldShadow.diff(normalizedShadow);
 
 		LOGGER.trace("Normalizing shadow: change description: {}", delta.dump());
 		// prismContext.adopt(shadow);
 		try {
-			getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), delta.getModifications(),
+			getRepositoryService().modifyObject(ShadowType.class, oldShadow.getOid(), delta.getModifications(),
 					parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Couldn't modify shadow: schema violation: " + ex.getMessage(), ex);

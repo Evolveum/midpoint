@@ -272,11 +272,30 @@ public abstract class ShadowCache {
 						"Found changes that have been not applied to the account yet. Trying to apply them now.");
 			}
 			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.dump());
+				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.dump());
+			}
+			
+			// Complete the shadow by adding attributes from the resource object
+			PrismObject<ShadowType> resultShadow = completeShadow(connector, resourceShadow, repositoryShadow, resource, objectClassDefinition, parentResult);
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.dump());
+			}
+			
+			parentResult.recordSuccess();
+			return resultShadow;
+
+			
 		} catch (Exception ex) {
 			try {
 				boolean compensate = GetOperationOptions.isDoNotDiscovery(options)? false : true;
 				resourceShadow = handleError(ex, repositoryShadow, FailedOperation.GET, resource, null, compensate,
 						null, parentResult);
+				
+				return resourceShadow;
+
 			} catch (GenericFrameworkException e) {
 				throw new SystemException(e);
 			} catch (ObjectAlreadyExistsException e) {
@@ -284,21 +303,7 @@ public abstract class ShadowCache {
 			}
 		}
 		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.dump());
-			LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.dump());
-		}
 		
-		// Complete the shadow by adding attributes from the resource object
-		PrismObject<ShadowType> resultShadow = completeShadow(connector, resourceShadow, repositoryShadow, resource, objectClassDefinition, parentResult);
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow when assembled:\n{}", resultShadow.dump());
-		}
-		
-		parentResult.recordSuccess();
-		return resultShadow;
-
 	}
 
 	public abstract String afterAddOnResource(PrismObject<ShadowType> shadow, ResourceType resource, 
