@@ -899,7 +899,9 @@ ADD CONSTRAINT fk_authorization_action
 FOREIGN KEY (role_id, role_oid)
 REFERENCES m_authorization (id, oid);
 
-CREATE INDEX iConnectorName ON m_connector (name_orig, name_norm);
+CREATE INDEX iConnectorNameNorm ON m_connector (name_norm);
+
+CREATE INDEX iConnectorNameOrig ON m_connector (name_orig);
 
 ALTER TABLE m_connector
 ADD INDEX fk_connector (id, oid),
@@ -1035,15 +1037,17 @@ ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role (id, oid);
 
+CREATE INDEX iShadowNameOrig ON m_shadow (name_orig);
+
 CREATE INDEX iShadowDead ON m_shadow (dead);
+
+CREATE INDEX iShadowNameNorm ON m_shadow (name_norm);
 
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
 
 CREATE INDEX iShadowAdministrative ON m_shadow (administrativeStatus);
 
 CREATE INDEX iShadowEffective ON m_shadow (effectiveStatus);
-
-CREATE INDEX iShadowName ON m_shadow (name_orig, name_norm);
 
 ALTER TABLE m_shadow
 ADD INDEX fk_shadow (id, oid),
@@ -1065,7 +1069,9 @@ ADD CONSTRAINT fk_system_configuration
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
 
-CREATE INDEX iTaskName ON m_task (name_orig, name_norm);
+CREATE INDEX iTaskNameNameNorm ON m_task (name_norm);
+
+CREATE INDEX iTaskNameOrig ON m_task (name_orig);
 
 ALTER TABLE m_task
 ADD INDEX fk_task (id, oid),
