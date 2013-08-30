@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -51,7 +52,7 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         ValueFilter valFilter = (ValueFilter) filter;
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        ItemPath fullPath = createFullPath(valFilter);
+        ItemPath fullPath = RUtil.createFullPath(valFilter);
 
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
 
@@ -64,10 +65,14 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         QueryContext context = getContext();
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        ItemPath fullPath = createFullPath(filter);
+        ItemPath fullPath = RUtil.createFullPath(filter);
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
         if (def.isLob()) {
             throw new QueryException("Can't query based on clob property value '" + def + "'.");
+        }
+
+        if (ObjectType.class.equals(context.getType()) && new ItemPath(ObjectType.F_NAME).equals(fullPath)) {
+            throw new QueryException("Can't query ObjectType based on " + ObjectType.F_NAME + " property.");
         }
 
         String propertyName = def.getJpaName();

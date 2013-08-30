@@ -67,36 +67,6 @@ public abstract class Restriction<T extends ObjectFilter> {
 
     public abstract boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException;
 
-    /**
-     * This method creates full {@link ItemPath} from {@link ValueFilter} created from
-     * main item path and last element, which is now definition.
-     * <p/>
-     * Will be deleted after query api update (that will be after query v2 interpreter release)
-     *
-     * @param filter
-     * @return
-     */
-    @Deprecated
-    protected ItemPath createFullPath(ValueFilter filter) {
-        ItemDefinition def = filter.getDefinition();
-        ItemPath parentPath = filter.getParentPath();
-
-        List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
-        if (parentPath != null) {
-            for (ItemPathSegment segment : parentPath.getSegments()) {
-                if (!(segment instanceof NameItemPathSegment)) {
-                    continue;
-                }
-
-                NameItemPathSegment named = (NameItemPathSegment) segment;
-                segments.add(new NameItemPathSegment(named.getName()));
-            }
-        }
-        segments.add(new NameItemPathSegment(def.getName()));
-
-        return new ItemPath(segments);
-    }
-
     // todo don't know if cloning is necessary.. [lazyman]
     public abstract Restriction cloneInstance();
 }

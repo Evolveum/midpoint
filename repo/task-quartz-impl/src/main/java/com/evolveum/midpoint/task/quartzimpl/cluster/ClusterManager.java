@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 import java.util.List;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
@@ -261,7 +263,9 @@ public class ClusterManager {
             // we do not try to determine which one is "newer" - we simply use the one from repo
             if (!versionInRepo.equals(versionApplied)) {
                 //LOGGER.info("System configuration change check: detected difference between version in repo ({}) and currently applied version ({}) - configuration from repo will be applied now.", versionInRepo, versionApplied);
-                LoggingConfigurationManager.configure(config.asObjectable().getLogging(), versionInRepo, result);
+                LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
+                //LoggingConfigurationManager.configure(config.asObjectable().getLogging(), versionInRepo, result);
+                LoggingConfigurationManager.configure(loggingConfig, versionInRepo, result);
             } else {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("System configuration change check: version in repo = version currently applied = {}", versionApplied);

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.criterion.Criterion;
 
 /**
@@ -40,7 +41,7 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
         ValueFilter valFilter = (ValueFilter) filter;
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        ItemPath fullPath = createFullPath(valFilter);
+        ItemPath fullPath = RUtil.createFullPath(valFilter);
 
         CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);
         if (def == null) {
@@ -52,7 +53,7 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
     @Override
     public Criterion interpretInternal(ValueFilter filter) throws QueryException {
-        ItemPath fullPath = createFullPath(filter);
+        ItemPath fullPath = RUtil.createFullPath(filter);
         QueryContext context = getContext();
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);

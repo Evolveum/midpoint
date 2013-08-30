@@ -187,10 +187,8 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             }
         }
 
-        if (RUtil.hasToLoadPath(FocusType.F_ACTIVATION, options)) {
-            if (repo.getActivation() != null) {
-                jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-            }
+        if (repo.getActivation() != null) {
+            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
         }
     }
 }

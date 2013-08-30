@@ -25,11 +25,13 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
+import org.hibernate.annotations.*;
+import org.hibernate.bytecode.internal.javassist.FieldHandled;
+import org.hibernate.bytecode.internal.javassist.FieldHandler;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +52,7 @@ import java.util.Set;
                 @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_orig"),
                 @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_orig")})
 @ForeignKey(name = "fk_user")
-public class RUser extends RFocus<UserType> {
+public class RUser extends RFocus<UserType>  {//implements FieldHandled {
 
     private RPolyString name;
     private RPolyString fullName;
@@ -75,10 +77,35 @@ public class RUser extends RFocus<UserType> {
     private Set<RPolyString> organization;
     private ROperationResult result;
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
+//    /**
+//     * Used for lazy loading properties (entities)
+//     */
+//    private FieldHandler fieldHandler;
+//
+//    public FieldHandler getFieldHandler() {
+//        return fieldHandler;
+//    }
+//
+//    public void setFieldHandler(FieldHandler fieldHandler) {
+//        this.fieldHandler = fieldHandler;
+//    }
+
+//    @LazyToOne(LazyToOneOption.NO_PROXY)
+    @OneToOne(optional = false, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
+//        if (fieldHandler != null) {
+//            return (ROperationResult) fieldHandler.readObject(this, "result", result);
+//        }
         return result;
+    }
+
+    public void setResult(ROperationResult result) {
+//        if (fieldHandler != null) {
+//            this.result = (ROperationResult) fieldHandler.writeObject(this, "result", this.result, result);
+//            return;
+//        }
+        this.result = result;
     }
     
     @ElementCollection
@@ -281,11 +308,6 @@ public class RUser extends RFocus<UserType> {
     public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
     }
-    
-    public void setResult(ROperationResult result) {
-        this.result = result;
-    }
-
 
     @Override
     public boolean equals(Object o) {

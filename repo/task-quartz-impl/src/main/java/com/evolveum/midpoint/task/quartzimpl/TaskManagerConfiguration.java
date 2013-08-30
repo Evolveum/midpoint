@@ -52,6 +52,7 @@ public class TaskManagerConfiguration {
     private static final String JDBC_USER_CONFIG = "jdbcUser";
     private static final String JDBC_PASSWORD_CONFIG = "jdbcPassword";
     private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
+    private static final String CREATE_QUARTZ_TABLES = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
     private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
@@ -72,6 +73,7 @@ public class TaskManagerConfiguration {
     private static final boolean STOP_ON_INITIALIZATION_FAILURE_DEFAULT = true;
     private static final int THREADS_DEFAULT = 10;
     private static final boolean CLUSTERED_DEFAULT = false;             // do not change this value!
+    private static final boolean CREATE_QUARTZ_TABLES_DEFAULT = true;
     private static final String NODE_ID_DEFAULT = "DefaultNode";
     private static final int JMX_PORT_DEFAULT = 20001;
     private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
@@ -109,6 +111,7 @@ public class TaskManagerConfiguration {
     private String jdbcUrl;
     private String jdbcUser;
     private String jdbcPassword;
+    private boolean createQuartzTables;
 
     private String hibernateDialect;
     private boolean databaseIsEmbedded;
@@ -242,6 +245,8 @@ public class TaskManagerConfiguration {
 
         sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
         jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
+
+        createQuartzTables = c.getBoolean(CREATE_QUARTZ_TABLES, CREATE_QUARTZ_TABLES_DEFAULT);
     }
 
     /**
@@ -401,5 +406,13 @@ public class TaskManagerConfiguration {
 
     public boolean isRunNowKeepsOriginalSchedule() {
         return runNowKeepsOriginalSchedule;
+    }
+
+    public boolean isCreateQuartzTables() {
+        return createQuartzTables;
+    }
+
+    public void setCreateQuartzTables(boolean createQuartzTables) {
+        this.createQuartzTables = createQuartzTables;
     }
 }

@@ -347,6 +347,8 @@ public class PageUsers extends PageAdminUsers {
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(UserType.F_LINK_REF,
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+        options.add(SelectorOptions.create(UserType.F_ASSIGNMENT,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
         TablePanel table = new TablePanel<SelectableBean<UserType>>("table", provider, columns);

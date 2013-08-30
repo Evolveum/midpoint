@@ -48,9 +48,12 @@ public class LoggingConfigurationManager {
 	
 	final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
+    private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
+    private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
+
     private static String currentlyUsedVersion = null;
 
-	public static void configure(LoggingConfigurationType config, String version, OperationResult result) {
+    public static void configure(LoggingConfigurationType config, String version, OperationResult result) {
 
 		OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
 		
@@ -197,7 +200,19 @@ public class LoggingConfigurationManager {
 				sb.append("\t<appender name=\"");
 				sb.append(a.getName());
 				sb.append("\" class=\""+appenderClass+"\">\n");
-				sb.append("\t\t<file>");
+
+                //Apply profiling appender filter if necessary
+                if(IDM_PROFILE_APPENDER.equals(appender.getName())){
+                    for(ClassLoggerConfigurationType cs: config.getClassLogger()){
+                        if(REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage())){
+                            LOGGER.info("Defining ProfilingLogbackFilter to IDM_LOG Appender.");
+                            sb.append(defineProfilingLogbackFilter());
+                        }
+                    }
+                }
+
+
+                sb.append("\t\t<file>");
 				sb.append(fileName);
 				sb.append("</file>\n");
 				sb.append("\t\t<append>");
@@ -329,6 +344,10 @@ public class LoggingConfigurationManager {
 		sb.append("\t\t<OnMatch>ACCEPT</OnMatch>\n");
 		sb.append("\t</turboFilter>\n");
 	}
+
+    private static String defineProfilingLogbackFilter(){
+        return ("\t<filter class=\"com.evolveum.midpoint.util.logging.ProfilingLogbackFilter\" />\n");
+    }
 
     public static String getCurrentlyUsedVersion() {
         return currentlyUsedVersion;

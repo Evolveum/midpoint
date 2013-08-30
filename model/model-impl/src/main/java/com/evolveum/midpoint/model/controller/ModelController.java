@@ -76,6 +76,7 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -705,7 +706,82 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		return list;
 	}
+	
+	@Override
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+			final ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+		Validate.notNull(type, "Object type must not be null.");
+		Validate.notNull(parentResult, "Result type must not be null.");
+		if (query != null) {
+			ModelUtils.validatePaging(query.getPaging());
+		}
+		RepositoryCache.enter();
+
+		boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
+		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+		result.addParams(new String[] { "query", "paging", "searchInProvisioning" },
+                query, (query != null ? query.getPaging() : "undefined"), searchInProvisioning);
+		
+        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+
+        ResultHandler<T> internalHandler = new ResultHandler<T>() {
+			@Override
+			public boolean handle(PrismObject<T> object,
+					OperationResult parentResult) {
+				validateObject(object, rootOptions, parentResult);
+				return handler.handle(object, parentResult);
+			}
+		};
+        
+		try {
+			if (query != null){
+                if (query.getPaging() == null) {
+                    LOGGER.trace("Searching objects with null paging (query in TRACE).");
+                } else {
+                    LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
+                            new Object[] { query.getPaging().getOffset(), query.getPaging().getMaxSize(),
+                                    query.getPaging().getDirection(), query.getPaging().getOrderBy() });
+                }
+			}
+			
+			try {
+				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
+					provisioning.searchObjectsIterative(type, query, internalHandler, result);
+				} else {
+					cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result);
+				}
+				result.recordSuccess();
+				result.cleanupResult();
+			} catch (CommunicationException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, result);
+				throw e;
+			} catch (ConfigurationException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, result);
+				throw e;
+			} catch (ObjectNotFoundException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, result);
+				throw e;
+			} catch (SchemaException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, result);
+				throw e;
+			} catch (SecurityViolationException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, result);
+				throw e;
+			} catch (RuntimeException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, result);
+				throw e;
+			} finally {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(result.dump(false));
+				}
+			}
+
+		} finally {
+			RepositoryCache.exit();
+		}
+		
+	}
 
 	private void processSearchException(Exception e, GetOperationOptions rootOptions,
 			boolean searchInProvisioning, OperationResult result) {

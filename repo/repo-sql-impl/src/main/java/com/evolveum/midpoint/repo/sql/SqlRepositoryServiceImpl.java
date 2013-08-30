@@ -25,9 +25,9 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -36,11 +36,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.LabeledString;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -53,7 +49,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.*;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -92,7 +87,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid,
                                                             Collection<SelectorOptions<GetOperationOptions>> options,
                                                             boolean lockForUpdate)
-            throws ObjectNotFoundException, SchemaException, DtoTranslationException {
+            throws ObjectNotFoundException, SchemaException, DtoTranslationException, QueryException {
 
         boolean lockedForUpdateViaHibernate = false;
         boolean lockedForUpdateViaSql = false;
@@ -130,7 +125,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
-        RObject object = (RObject) session.get(ClassMapper.getHQLTypeClass(type), new RContainerId(oid), lockOptions);
+        QueryInterpreter interpreter = new QueryInterpreter();
+        Criteria criteria = interpreter.interpretGet(oid, type, options, getPrismContext(), session);
+        criteria.setLockMode(lockOptions.getLockMode());
+        RObject object = (RObject) criteria.uniqueResult();
+
         LOGGER.trace("Got it.");
         if (object == null) {
             throwObjectNotFoundException(type, oid);
@@ -202,6 +201,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rollbackTransaction(session, ex, "Schema error while getting object with oid: "
                     + oid + ". Reason: " + ex.getMessage(), result, true);
             throw ex;
+        } catch (QueryException ex) {
+            handleGeneralCheckedException(ex, session, result);
         } catch (DtoTranslationException ex) {
             handleGeneralCheckedException(ex, session, result);
         } catch (RuntimeException ex) {
@@ -405,6 +406,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 version = (version == null) ? 0L : ++version;
 
                 rObject.setVersion(version);
+            } catch (QueryException ex) {
+                handleGeneralCheckedException(ex, session, null);
             } catch (ObjectNotFoundException ex) {
                 //it's ok that object was not found, therefore we won't be overwriting it
             }
@@ -739,7 +742,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Criteria criteria;
             if (query != null && query.getFilter() != null) {
                 QueryInterpreter interpreter = new QueryInterpreter();
-                criteria = interpreter.interpret(query, type, getPrismContext(), false, session);
+                criteria = interpreter.interpret(query, type, createOptions(query), getPrismContext(), false, session);
             } else {
                 criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             }
@@ -757,6 +760,40 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         return count;
+    }
+
+    /**
+     * This method creates selector options for count operation. Options are created to help query interpreter
+     * setup proper fetching strategies when building criteria.
+     *
+     * @param query
+     * @return
+     */
+    private Collection<SelectorOptions<GetOperationOptions>> createOptions(ObjectQuery query){
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                new ArrayList<SelectorOptions<GetOperationOptions>>();
+        if (query == null || query.getFilter() == null) {
+            return options;
+        }
+
+        ObjectFilter filter = query.getFilter();
+        return createOptionsFromFilter(filter, options);
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> createOptionsFromFilter(ObjectFilter filter,
+                                                                                     Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (filter instanceof ValueFilter) {
+            ValueFilter vFilter = (ValueFilter) filter;
+            ItemPath path = RUtil.createFullPath(vFilter);
+            options.add(SelectorOptions.create(path, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+        } else if (filter instanceof LogicalFilter) {
+            LogicalFilter lFilter = (LogicalFilter) filter;
+            for (ObjectFilter cFilter : lFilter.getCondition()) {
+                createOptionsFromFilter(cFilter, options);
+            }
+        }
+
+        return options;
     }
 
     @Override
@@ -821,7 +858,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
             QueryInterpreter interpreter = new QueryInterpreter();
-            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), true, session);
+            Criteria criteria = interpreter.interpret(query, type, options, getPrismContext(), true, session);
 
             List objects = criteria.list();
             LOGGER.trace("Found {} objects, translating to JAXB.",
@@ -972,6 +1009,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (SchemaException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
+        } catch (QueryException ex) {
+            handleGeneralCheckedException(ex, session, result);
         } catch (DtoTranslationException ex) {
             handleGeneralCheckedException(ex, session, result);
         } catch (RuntimeException ex) {
@@ -1514,7 +1553,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
             QueryInterpreter interpreter = new QueryInterpreter();
-            Criteria criteria = interpreter.interpret(query, type, getPrismContext(), true, session);
+            Criteria criteria = interpreter.interpret(query, type, options, getPrismContext(), true, session);
 
             ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
             try {

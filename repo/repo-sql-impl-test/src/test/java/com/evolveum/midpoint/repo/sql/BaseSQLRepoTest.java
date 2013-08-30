@@ -34,6 +34,8 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -56,6 +58,8 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private SessionFactory factory;
 
+    protected static Set<Class> initializedClasses = new HashSet<Class>();
+
     public SessionFactory getFactory() {
         return factory;
     }
@@ -64,6 +68,14 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         RUtil.fixCompositeIDHandling(factory);
 
         this.factory = factory;
+    }
+
+    protected boolean isSystemInitialized() {
+        return initializedClasses.contains(this.getClass());
+    }
+
+    private void setSystemInitialized() {
+        initializedClasses.add(this.getClass());
     }
 
     @BeforeClass
@@ -79,9 +91,13 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     }
 
     @BeforeMethod
-    public void beforeMethod(Method method) {
+    public void beforeMethod(Method method) throws Exception {
         System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
+
+        if (!isSystemInitialized()) {
+            initSystem();
+        }
     }
 
     @AfterMethod
@@ -94,5 +110,9 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         String dialect = sessionFactoryBean.getHibernateProperties().getProperty("hibernate.dialect");
 
         return H2Dialect.class.getName().equals(dialect);
+    }
+
+    public void initSystem() throws Exception {
+
     }
 }

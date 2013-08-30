@@ -283,16 +283,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         close(session);
     }
 
-    @Test
+    @Test(expectedExceptions = QueryException.class)
     public void queryObjectByName() throws Exception {
         Session session = open();
-
-        Criteria main = session.createCriteria(RObject.class, "o");
-        main.add(Restrictions.and(
-                Restrictions.eq("o.name.orig", "cpt. Jack Sparrow"),
-                Restrictions.eq("o.name.norm", "cpt jack sparrow")));
-        main.addOrder(Order.asc("o.name.orig"));
-        String expected = HibernateToSqlTranslator.toSql(main);
 
         EqualsFilter filter = EqualsFilter.createEqual(ObjectType.class, prismContext, ObjectType.F_NAME,
                 new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
@@ -301,9 +294,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
         String real = getInterpretedQuery(session, ObjectType.class, query);
-
-        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
-        AssertJUnit.assertEquals(expected, real);
 
         close(session);
     }
@@ -444,7 +434,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         QueryInterpreter interpreter = new QueryInterpreter();
         LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 
-        Criteria criteria = interpreter.interpret(query, type, prismContext, !interpretCount, session);
+        Criteria criteria = interpreter.interpret(query, type, null, prismContext, !interpretCount, session);
         if (interpretCount) {
             criteria.setProjection(Projections.rowCount());
         }
@@ -474,7 +464,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         } catch (Exception ex) {
             LOGGER.info("error while converting query: " + ex.getMessage(), ex);
         }
-        Criteria criteria = interpreter.interpret(query, type, prismContext, !interpretCount, session);
+        Criteria criteria = interpreter.interpret(query, type, null, prismContext, !interpretCount, session);
         if (interpretCount) {
             criteria.setProjection(Projections.rowCount());
         }
@@ -732,20 +722,20 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void countObjectOrderByName() throws Exception {
         Session session = open();
 
-        Criteria main = session.createCriteria(RObject.class, "o");
+        Criteria main = session.createCriteria(RUser.class, "u");
         main.add(Restrictions.and(
-                Restrictions.eq("o.name.orig", "cpt. Jack Sparrow"),
-                Restrictions.eq("o.name.norm", "cpt jack sparrow")));
+                Restrictions.eq("u.name.orig", "cpt. Jack Sparrow"),
+                Restrictions.eq("u.name.norm", "cpt jack sparrow")));
         main.setProjection(Projections.rowCount());
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.class, prismContext, ObjectType.F_NAME,
+            EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME,
                 new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
 
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-        String real = getInterpretedQuery(session, ObjectType.class, query, true);
+        String real = getInterpretedQuery(session, UserType.class, query, true);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
