@@ -42,6 +42,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -51,6 +53,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 public class GenericErrorHandler extends ErrorHandler{
 
 	private static final String COMPENSATE_OPERATION = GenericErrorHandler.class.getName()+".compensate";
+	private static final Trace LOGGER = TraceManager.getTrace(GenericErrorHandler.class);
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
@@ -102,8 +105,12 @@ public class GenericErrorHandler extends ErrorHandler{
 					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);
 					result.computeStatus();
 					if (result.isSuccess()) {
+						LOGGER.trace("Postponed operation was finished successfully while getting shadow. Getting new object.");
 						PrismObject prismShadow = provisioningService.getObject(shadow.getClass(),
 								shadow.getOid(), null, result);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Got {} after finishing postponed operation.", prismShadow.dump());
+					}
 						shadow = (T) prismShadow.asObjectable();
 					}
 				} finally {
