@@ -52,7 +52,7 @@ import java.util.Set;
                 @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_orig"),
                 @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_orig")})
 @ForeignKey(name = "fk_user")
-public class RUser extends RFocus<UserType>  {//implements FieldHandled {
+public class RUser extends RFocus<UserType> {// implements FieldHandled {
 
     private RPolyString name;
     private RPolyString fullName;
@@ -91,7 +91,7 @@ public class RUser extends RFocus<UserType>  {//implements FieldHandled {
 //    }
 
 //    @LazyToOne(LazyToOneOption.NO_PROXY)
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)//, fetch = FetchType.LAZY)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
 //        if (fieldHandler != null) {

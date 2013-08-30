@@ -35,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.hibernate.annotations.*;
+import org.hibernate.bytecode.internal.javassist.FieldHandled;
+import org.hibernate.bytecode.internal.javassist.FieldHandler;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -53,10 +55,10 @@ import java.util.Set;
 @Entity
 @Table(name = "m_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
-        indexes = {@Index(name = "iShadowName", columnNames = "name_orig"),
+        indexes = {@Index(name = "iShadowNameOrig", columnNames = "name_orig"),
                 @Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iShadowEffective", columnNames = "effectiveStatus"),
-                @Index(name = "iShadowName", columnNames = "name_norm"),
+                @Index(name = "iShadowNameNorm", columnNames = "name_norm"),
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
                 @Index(name = "iShadowDead", columnNames = "dead")})
 @ForeignKey(name = "fk_shadow")

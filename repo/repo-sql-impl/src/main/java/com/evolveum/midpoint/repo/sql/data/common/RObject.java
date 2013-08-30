@@ -53,7 +53,7 @@ import java.util.Set;
         jpaName = "name", jpaType = RPolyString.class)})
 @Entity
 @ForeignKey(name = "fk_object")
-public abstract class RObject<T extends ObjectType> extends RContainer {//} implements FieldHandled {
+public abstract class RObject<T extends ObjectType> extends RContainer {//implements FieldHandled {
 
     private String description;
     private RAnyContainer extension;
@@ -83,7 +83,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//} impl
     public abstract void setName(RPolyString name);
 
 //    @LazyToOne(LazyToOneOption.NO_PROXY)
-    @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
+    @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)//, fetch = FetchType.LAZY)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RMetadata getMetadata() {
 //        if (fieldHandler != null) {
@@ -100,7 +100,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//} impl
         this.metadata = metadata;
     }
 
-    //    @ForeignKey(name = "fk_trigger_owner")
     @ForeignKey(name = "none")
     @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})

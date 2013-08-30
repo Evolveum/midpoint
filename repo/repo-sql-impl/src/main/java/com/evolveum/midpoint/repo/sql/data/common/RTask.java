@@ -45,8 +45,8 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_task")
 @org.hibernate.annotations.Table(appliesTo = "m_task",
-        indexes = {@Index(name = "iTaskName", columnNames = "name_orig"),
-                @Index(name = "iTaskName", columnNames = "name_norm")})
+        indexes = {@Index(name = "iTaskNameOrig", columnNames = "name_orig"),
+                @Index(name = "iTaskNameNameNorm", columnNames = "name_norm")})
 public class RTask extends RObject<TaskType> {
 
     private RPolyString name;
