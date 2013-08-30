@@ -337,25 +337,25 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
     }
-    
-    @Test(enabled=false)
+
+    @Test(enabled = false)
     public void testModifyAccountMetadata() throws Exception {
         OperationResult parentResult = new OperationResult("testModifyAccountMetadata");
-        
+
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/user-modify-link-account.xml"));
-        
-        
+
+
         PrismObject<ShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-modify-metadata.xml"));
-       
+
         MetadataType metaData = new MetadataType();
-    	metaData.setCreateChannel("channel");
-    	metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-    	accShadow.asObjectable().setMetadata(metaData);
-        
-    	System.out.println("\nAcc shadow");
+        metaData.setCreateChannel("channel");
+        metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+        accShadow.asObjectable().setMetadata(metaData);
+
+        System.out.println("\nAcc shadow");
         System.out.println(accShadow.dump());
-    	
-    	String oid = repositoryService.addObject(accShadow, null, parentResult);
+
+        String oid = repositoryService.addObject(accShadow, null, parentResult);
         System.out.println("\nAcc shadow");
         System.out.println(accShadow.dump());
 
@@ -368,14 +368,14 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectDelta d = repoShadow.diff(accShadow);
         System.out.println("\nDelta");
         System.out.println(d.dump());
-        
-      	PrismObjectDefinition accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+
+        PrismObjectDefinition accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismReferenceValue accountRef = new PrismReferenceValue();
         accountRef.setOid(oid);
         accountRef.setTargetType(ShadowType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
-        		UserType.F_LINK_REF, user.getDefinition(), accountRef); 
+                UserType.F_LINK_REF, user.getDefinition(), accountRef);
 
         repositoryService.modifyObject(ShadowType.class, oid, accountRefDeltas, parentResult);
 
@@ -384,35 +384,35 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println(afterModify.dump());
 
         Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
-        	PropertyDelta pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
-        	modifications.add(pdelta);
+        PropertyDelta pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
+        modifications.add(pdelta);
 
-		pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA,
-				MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, XmlTypeConverter
-				.createXMLGregorianCalendar(System.currentTimeMillis()));
-		modifications.add(pdelta);
+        pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA,
+                MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, XmlTypeConverter
+                .createXMLGregorianCalendar(System.currentTimeMillis()));
+        modifications.add(pdelta);
 
-		repositoryService.modifyObject(ShadowType.class, oid, modifications, parentResult);
+        repositoryService.modifyObject(ShadowType.class, oid, modifications, parentResult);
 
-		afterModify = repositoryService.getObject(ShadowType.class,
-				oid, null, parentResult);
-		System.out.println("\nAfter modify");
-		System.out.println(afterModify.dump());
-		
-		
-		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-		 List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
-	                createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, timestamp, null);
-	        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
-	                createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
-	        syncSituationDeltas.add(syncSituationDelta);
+        afterModify = repositoryService.getObject(ShadowType.class,
+                oid, null, parentResult);
+        System.out.println("\nAfter modify");
+        System.out.println(afterModify.dump());
 
-	        repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, parentResult);
+
+        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
+                createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, timestamp, null);
+        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
+                createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
+        syncSituationDeltas.add(syncSituationDelta);
+
+        repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, parentResult);
 //        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
-	        afterModify = repositoryService.getObject(ShadowType.class,
-					oid, null, parentResult);
-			System.out.println("\nAfter modify");
-			System.out.println(afterModify.dump());
+        afterModify = repositoryService.getObject(ShadowType.class,
+                oid, null, parentResult);
+        System.out.println("\nAfter modify");
+        System.out.println(afterModify.dump());
     }
 
     @Test
@@ -656,10 +656,14 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         LOGGER.info("add:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
         Session session = getFactory().openSession();
-        session.beginTransaction();
-        final RContainerId ID = (RContainerId) session.save(s1);
-        session.getTransaction().commit();
-        session.close();
+        final RContainerId ID;
+        try {
+            session.beginTransaction();
+            ID = (RContainerId) session.save(s1);
+            session.getTransaction().commit();
+        } finally {
+            session.close();
+        }
 
         //modify1
         s1 = new RAccountShadow();
@@ -676,26 +680,32 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         LOGGER.info("modify1:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
         session = getFactory().openSession();
-        session.beginTransaction();
-        session.merge(s1);
-        session.getTransaction().commit();
-        session.close();
+        try {
+            session.beginTransaction();
+            session.merge(s1);
+            session.getTransaction().commit();
+        } finally {
+            session.close();
+        }
 
         //get1
         session = getFactory().openSession();
-        session.beginTransaction();
-        RAccountShadow shadow = (RAccountShadow) session.get(RAccountShadow.class, ID);
-        LOGGER.info("get1:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
-        AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
+        try {
+            session.beginTransaction();
+            RAccountShadow shadow = (RAccountShadow) session.get(RAccountShadow.class, ID);
+            LOGGER.info("get1:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
+            AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
 
-        Iterator<RSynchronizationSituationDescription> i = shadow.getSynchronizationSituationDescription().iterator();
-        Date t;
-        while (i.hasNext()) {
-            t = XMLGregorianCalendarType.asDate(i.next().getTimestampValue());
-            LOGGER.info("Date from result: {}, {}", new Object[]{t, t.getTime()});
+            Iterator<RSynchronizationSituationDescription> i = shadow.getSynchronizationSituationDescription().iterator();
+            Date t;
+            while (i.hasNext()) {
+                t = XMLGregorianCalendarType.asDate(i.next().getTimestampValue());
+                LOGGER.info("Date from result: {}, {}", new Object[]{t, t.getTime()});
+            }
+            session.getTransaction().commit();
+        } finally {
+            session.close();
         }
-        session.getTransaction().commit();
-        session.close();
 
         //modify2
         s1 = new RAccountShadow();
@@ -713,26 +723,33 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         LOGGER.info("modify2:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
         session = getFactory().openSession();
-        session.beginTransaction();
-        session.merge(s1);
-        session.getTransaction().commit();
-        session.close();
+        try {
+            session.beginTransaction();
+            session.merge(s1);
+            session.getTransaction().commit();
+        } finally {
+            session.close();
+        }
 
         //get2
         session = getFactory().openSession();
-        session.beginTransaction();
-        shadow = (RAccountShadow) session.get(RAccountShadow.class, ID);
-        LOGGER.info("get2:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
+        try {
+            session.beginTransaction();
+            RAccountShadow shadow = (RAccountShadow) session.get(RAccountShadow.class, ID);
+            LOGGER.info("get2:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
 
-        i = shadow.getSynchronizationSituationDescription().iterator();
-        while (i.hasNext()) {
-            t = XMLGregorianCalendarType.asDate(i.next().getTimestampValue());
-            LOGGER.info("Date from result: {}, {}", new Object[]{t, t.getTime()});
+            Date t;
+            Iterator<RSynchronizationSituationDescription> i = shadow.getSynchronizationSituationDescription().iterator();
+            while (i.hasNext()) {
+                t = XMLGregorianCalendarType.asDate(i.next().getTimestampValue());
+                LOGGER.info("Date from result: {}, {}", new Object[]{t, t.getTime()});
+            }
+
+            AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
+            session.getTransaction().commit();
+        } finally {
+            session.close();
         }
-
-        AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
-        session.getTransaction().commit();
-        session.close();
     }
 
     @Test

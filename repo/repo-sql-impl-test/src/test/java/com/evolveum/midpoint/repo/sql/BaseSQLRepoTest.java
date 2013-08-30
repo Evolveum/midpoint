@@ -28,6 +28,7 @@ import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -104,6 +105,17 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     @AfterMethod
     public void afterMethod(Method method) {
+        try {
+            Session session = factory.getCurrentSession();
+            if (session != null) {
+                session.close();
+                AssertJUnit.fail("Session is still open, check test code or bug in sql service.");
+            }
+        } catch (Exception ex) {
+            //it's ok
+            LOGGER.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
+        }
+
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
     }
