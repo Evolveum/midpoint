@@ -659,20 +659,44 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// TODO: better checks
 	}
 
-	private OperationResultType modifyUserAddAccount(String modifyUserRequest) throws FileNotFoundException,
-			JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
-		checkRepoOpenDjResource();
-		assertNoRepoCache();
+//	private OperationResultType modifyUserAddAccount(String modifyUserRequest) throws FileNotFoundException,
+//			JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
+//		checkRepoOpenDjResource();
+//		assertNoRepoCache();
+//
+//		ObjectModificationType objectChange = unmarshallJaxbFromFile(modifyUserRequest,
+//				ObjectModificationType.class);
+//
+//		// WHEN
+//		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+//
+//		// THEN
+//		assertNoRepoCache();
+//		return result;
+//	}
+	
+	private String assertUserOneAccountRef(String userOid) throws Exception{
+		OperationResult parentResult = new OperationResult("getObject from repo");
+		
+		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, userOid,
+				null, parentResult);
+		UserType repoUserType = repoUser.asObjectable();
 
-		ObjectModificationType objectChange = unmarshallJaxbFromFile(modifyUserRequest,
-				ObjectModificationType.class);
+		parentResult.computeStatus();
+		TestUtil.assertSuccess("getObject has failed", parentResult);
+		display("User (repository)", repoUser);
 
-		// WHEN
-		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
-
-		// THEN
-		assertNoRepoCache();
-		return result;
+		List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
+		assertEquals("No accountRefs", 1, accountRefs.size());
+		ObjectReferenceType accountRef = accountRefs.get(0);
+		
+		return accountRef.getOid();
+		//check if the jackie account already exists on the resource
+//				UserType user = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult).asObjectable();
+//				assertNotNull(user);
+//				assertEquals(1, user.getLinkRef().size());
+//				
+//				return user.getLinkRef().get(0).getOid();
 	}
 
 	/**
@@ -716,19 +740,19 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		OperationResult repoResult = new OperationResult("getObject");
 
-
-		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID,
-				null, repoResult);
-		UserType repoUserType = repoUser.asObjectable();
-
-		repoResult.computeStatus();
-		TestUtil.assertSuccess("getObject has failed", repoResult);
-		display("User (repository)", repoUser);
-
-		List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
-		assertEquals("No accountRefs", 1, accountRefs.size());
-		ObjectReferenceType accountRef = accountRefs.get(0);
-		accountShadowOidOpendj = accountRef.getOid();
+		
+//		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID,
+//				null, repoResult);
+//		UserType repoUserType = repoUser.asObjectable();
+//
+//		repoResult.computeStatus();
+//		TestUtil.assertSuccess("getObject has failed", repoResult);
+//		display("User (repository)", repoUser);
+//
+//		List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
+//		assertEquals("No accountRefs", 1, accountRefs.size());
+//		ObjectReferenceType accountRef = accountRefs.get(0);
+		accountShadowOidOpendj = assertUserOneAccountRef(USER_JACK_OID);
 		assertFalse(accountShadowOidOpendj.isEmpty());
 
 		// Check if shadow was created in the repo
@@ -757,7 +781,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
 
 		display("LDAP account", entry);
-
+	
 		OpenDJController.assertAttribute(entry, "uid", "jackie");
 		OpenDJController.assertAttribute(entry, "givenName", "Jack");
 		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
@@ -834,6 +858,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	}
 
+	private void assertUserNoAccountRef(String userOid, OperationResult parentResult) throws Exception{
+		PrismObject<UserType> user = repositoryService
+				.getObject(UserType.class, userOid, null, parentResult);
+		assertEquals(0, user.asObjectable().getLinkRef().size());
+
+	}
+	
 	@Test
 	public void test014addAccountAlreadyExistLinked() throws Exception {
 		TestUtil.displayTestTile("test014addAccountAlreadyExistLinked");
@@ -842,15 +873,17 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
 		testAddUserToRepo("test014testAssAccountAlreadyExistLinked", USER_JACK2_FILENAME, USER_JACK2_OID);
 
-		PrismObject<UserType> user = repositoryService
-				.getObject(UserType.class, USER_JACK2_OID, null, parentResult);
-		assertEquals(0, user.asObjectable().getLinkRef().size());
-
-		//check if the jackie account already exists on the resource
-				UserType jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult).asObjectable();
-				assertNotNull(jackUser);
-				assertEquals(1, jackUser.getLinkRef().size());
-				PrismObject<ShadowType> jackUserAccount = repositoryService.getObject(ShadowType.class, jackUser.getLinkRef().get(0).getOid(), null, parentResult);
+		assertUserNoAccountRef(USER_JACK2_OID, parentResult);
+//		PrismObject<UserType> user = repositoryService
+//				.getObject(UserType.class, USER_JACK2_OID, null, parentResult);
+//		assertEquals(0, user.asObjectable().getLinkRef().size());
+//
+//		//check if the jackie account already exists on the resource
+		String accountRef = assertUserOneAccountRef(USER_JACK_OID);
+//				UserType jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult).asObjectable();
+//				assertNotNull(jackUser);
+//				assertEquals(1, jackUser.getLinkRef().size());
+				PrismObject<ShadowType> jackUserAccount = repositoryService.getObject(ShadowType.class, accountRef, null, parentResult);
 				display("Jack's account: ", jackUserAccount.dump());
 				
 		
@@ -1018,9 +1051,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		testAddUserToRepo("add user - test015 account already exist unlinked", USER_WILL_FILENAME,
 				USER_WILL_OID);
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_WILL_OID, null, parentResult);
-		assertNotNull(user);
-		assertEquals(0, user.asObjectable().getLinkRef().size());
+		assertUserNoAccountRef(USER_WILL_OID, parentResult);
+//		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_WILL_OID, null, parentResult);
+//		assertNotNull(user);
+//		assertEquals(0, user.asObjectable().getLinkRef().size());
 
 		Task task = taskManager.createTaskInstance();
 		
@@ -1124,12 +1158,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
-				null, parentResult);
-		assertNotNull(user);
-		assertEquals("Expecting that user has one account reference, but found "
-				+ user.asObjectable().getLinkRef().size() + " reference", 1, user.asObjectable()
-				.getLinkRef().size());
+		assertUserOneAccountRef(USER_GUYBRUSH_OID);
+		
+//		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
+//				null, parentResult);
+//		assertNotNull(user);
+//		assertEquals("Expecting that user has one account reference, but found "
+//				+ user.asObjectable().getLinkRef().size() + " reference", 1, user.asObjectable()
+//				.getLinkRef().size());
 
 		Task task = taskManager.createTaskInstance();
 		
@@ -1156,12 +1192,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			}
 		}
 
-		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
-				USER_GUYBRUSH_OID, null, parentResult);
-		assertNotNull(modificatedUser);
-		assertEquals("Expecting that user does not have account reference, but found "
-				+ modificatedUser.asObjectable().getLinkRef().size() + " reference", 0, modificatedUser
-				.asObjectable().getLinkRef().size());
+		assertUserNoAccountRef(USER_GUYBRUSH_OID, parentResult);
+//		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
+//				USER_GUYBRUSH_OID, null, parentResult);
+//		assertNotNull(modificatedUser);
+//		assertEquals("Expecting that user does not have account reference, but found "
+//				+ modificatedUser.asObjectable().getLinkRef().size() + " reference", 0, modificatedUser
+//				.asObjectable().getLinkRef().size());
 
 		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
 
@@ -1179,12 +1216,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME, ShadowType.class, parentResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
-				null, parentResult);
-		assertNotNull(user);
-		assertEquals("Expecting that user has one account reference, but found "
-				+ user.asObjectable().getLinkRef().size() + " reference", 1, user.asObjectable()
-				.getLinkRef().size());
+		assertUserOneAccountRef(USER_GUYBRUSH_OID);
+		
+//		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID,
+//				null, parentResult);
+//		assertNotNull(user);
+//		assertEquals("Expecting that user has one account reference, but found "
+//				+ user.asObjectable().getLinkRef().size() + " reference", 1, user.asObjectable()
+//				.getLinkRef().size());
 
 		Task task = taskManager.createTaskInstance();
 		
@@ -1207,17 +1246,18 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
-		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
-				USER_GUYBRUSH_OID, null, parentResult);
-		assertNotNull(modificatedUser);
-		List<ObjectReferenceType> referenceList = modificatedUser.asObjectable().getLinkRef();
-		assertEquals("Expecting that user has one account reference, but found " + referenceList.size()
-				+ " reference", 1, referenceList.size());
+		String accountOid = assertUserOneAccountRef(USER_GUYBRUSH_OID);
+//		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
+//				USER_GUYBRUSH_OID, null, parentResult);
+//		assertNotNull(modificatedUser);
+//		List<ObjectReferenceType> referenceList = modificatedUser.asObjectable().getLinkRef();
+//		assertEquals("Expecting that user has one account reference, but found " + referenceList.size()
+//				+ " reference", 1, referenceList.size());
 
-		assertFalse("Old shadow oid and new shadow oid should not be the same.", ACCOUNT_GUYBRUSH_OID.equals(referenceList.get(0).getOid()));
+		assertFalse("Old shadow oid and new shadow oid should not be the same.", ACCOUNT_GUYBRUSH_OID.equals(accountOid));
 		
 		PrismObject<ShadowType> modifiedAccount = provisioningService.getObject(
-				ShadowType.class, referenceList.get(0).getOid(), null, parentResult);
+				ShadowType.class, accountOid, null, parentResult);
 		assertNotNull(modifiedAccount);
 		PrismAsserts.assertEqualsPolyString("Wrong shadow name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 		ResourceAttributeContainer attributeContainer = ShadowUtil
@@ -1241,12 +1281,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		repoAddObjectFromFile(ACCOUNT_HECTOR_FILENAME, ShadowType.class, parentResult);
 		repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_HECTOR_NOT_FOUND_OID,
-				null, parentResult);
-		assertNotNull(user);
-		assertEquals("Expecting that user has one account reference, but found "
-				+ user.asObjectable().getLinkRef().size() + " reference", 1, user.asObjectable()
-				.getLinkRef().size());
+		assertUserOneAccountRef(USER_HECTOR_NOT_FOUND_OID);
+//		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_HECTOR_NOT_FOUND_OID,
+//				null, parentResult);
+//		assertNotNull(user);
+//		assertEquals("Expecting that user has one account reference, but found "
+//				+ user.asObjectable().getLinkRef().size() + " reference", 1, user.asObjectable()
+//				.getLinkRef().size());
 
 		Task task = taskManager.createTaskInstance();
 
@@ -1280,19 +1321,20 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test020addObjectCommunicationProblem() throws Exception {
 		TestUtil.displayTestTile("test020 add object - communication problem");
-		OperationResult result = new OperationResult("add object communication error.");
-		repoAddObjectFromFile(USER_E_FILENAME, UserType.class, result);
+		OperationResult parentResult = new OperationResult("add object communication error.");
+		repoAddObjectFromFile(USER_E_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_E_OID, null, result);
-		assertNotNull(addedUser);
-		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
-		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
-				0, accountRefs.size());
+		assertUserNoAccountRef(USER_E_OID, parentResult);
+//		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_E_OID, null, result);
+//		assertNotNull(addedUser);
+//		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
+//		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+//				0, accountRefs.size());
 
 		
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_E_OID, UserType.class, task, result);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_E_OID, UserType.class, task, parentResult);
 		
 //		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 //				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
@@ -1305,11 +1347,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		modelService.executeChanges(deltas, null, task, result);
 //		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
 
-		result.computeStatus();
-		display("add object communication problem result: ", result);
-		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		parentResult.computeStatus();
+		display("add object communication problem result: ", parentResult);
+		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
 		
-		String accountOid = checkRepoUser(USER_E_OID, result); 
+		String accountOid = checkRepoUser(USER_E_OID, parentResult); 
 //		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
 //				USER_E_OID, null, result);
 //		assertNotNull(userAferModifyOperation);
@@ -1318,7 +1360,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //				accountRefs.size());
 //
 //		String accountOid = accountRefs.get(0).getOid();
-		checkPostponedAccount(accountOid, "e", "e", "e", "e", FailedOperationTypeType.ADD, task, result);
+		checkPostponedAccount(accountOid, "e", "e", "e", "e", FailedOperationTypeType.ADD, task, parentResult);
 //		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, null, result).asObjectable();
 //		assertNotNull(faieldAccount);
 //		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
@@ -1343,16 +1385,17 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		TestUtil.displayTestTile("test021 add modify object - communication problem");
 		OperationResult parentResult = new OperationResult("add object communication error.");
 
-		PrismObject<UserType> userE = repositoryService.getObject(UserType.class, USER_E_OID, null, parentResult);
-		assertNotNull(userE);
-		List<ObjectReferenceType> accountRefs = userE.asObjectable().getLinkRef();
-		 assertEquals("Expected that user has 1 account reference, but found "
-		 + accountRefs.size(),
-		 1, accountRefs.size());
+		String accountOid = assertUserOneAccountRef(USER_E_OID);
+//		PrismObject<UserType> userE = repositoryService.getObject(UserType.class, USER_E_OID, null, parentResult);
+//		assertNotNull(userE);
+//		List<ObjectReferenceType> accountRefs = userE.asObjectable().getLinkRef();
+//		 assertEquals("Expected that user has 1 account reference, but found "
+//		 + accountRefs.size(),
+//		 1, accountRefs.size());
 
 		 Task task = taskManager.createTaskInstance();
 		 
-		 requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountRefs.get(0).getOid(), ShadowType.class, task, parentResult);
+		 requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, parentResult);
 //		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 //				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
 //
@@ -1367,7 +1410,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		modelService.modifyObject(ResourceObjectShadowType.class, accountRefs.get(0).getOid(),
 //				delta.getModifications(), task, result);
 
-		String accountOid = accountRefs.get(0).getOid();
+//		String accountOid = accountRefs.get(0).getOid();
 		
 		checkPostponedAccount(accountOid, "e", "Jackkk", "e", "e", "emp4321", FailedOperationTypeType.ADD, task, parentResult);
 		
@@ -1395,15 +1438,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		TestUtil.displayTestTile("test022 modify object - communication problem");
 		OperationResult parentResult = new OperationResult("modify object - communication problem");
-		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult)
-				.asObjectable();
-		assertNotNull(userJack);
-		assertEquals(1, userJack.getLinkRef().size());
-		String accountRefOid = userJack.getLinkRef().get(0).getOid();
+		String accountOid = assertUserOneAccountRef(USER_JACK_OID);
+//		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult)
+//				.asObjectable();
+//		assertNotNull(userJack);
+//		assertEquals(1, userJack.getLinkRef().size());
+//		String accountRefOid = userJack.getLinkRef().get(0).getOid();
 
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountRefOid, ShadowType.class, task, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, parentResult);
 		
 //		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 //				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
@@ -1419,7 +1463,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		modelService.modifyObject(ResourceObjectShadowType.class, accountRefOid, delta.getModifications(), task,
 //				parentResult);
 
-		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountRefOid,
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid,
 				null, parentResult).asObjectable();
 		assertNotNull(faieldAccount);
 		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
@@ -1437,11 +1481,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	public void test023deleteObjectCommunicationProblem() throws Exception {
 		TestUtil.displayTestTile("test023 delete object - communication problem");
 		OperationResult parentResult = new OperationResult("modify object - communication problem");
-		UserType userJack = repositoryService.getObject(UserType.class, USER_DENIELS_OID, null, parentResult)
-				.asObjectable();
-		assertNotNull(userJack);
-		assertEquals(1, userJack.getLinkRef().size());
-		String accountRefOid = userJack.getLinkRef().get(0).getOid();
+		
+		String accountOid = assertUserOneAccountRef(USER_DENIELS_OID);
+		
+//		UserType userJack = repositoryService.getObject(UserType.class, USER_DENIELS_OID, null, parentResult)
+//				.asObjectable();
+//		assertNotNull(userJack);
+//		assertEquals(1, userJack.getLinkRef().size());
+//		String accountRefOid = userJack.getLinkRef().get(0).getOid();
 
 		
 		Task task = taskManager.createTaskInstance();
@@ -1461,10 +1508,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		
 //		modelService.modifyObject(UserType.class, USER_DENIELS_OID, delta.getModifications(), task,
 //				parentResult);
-
-		UserType userJackAftermodify = repositoryService.getObject(UserType.class, USER_DENIELS_OID,
-				null, parentResult).asObjectable();
-		assertNotNull(userJack);
+		
+		assertUserNoAccountRef(USER_DENIELS_OID, parentResult);
+		
+//
+//		UserType userJackAftermodify = repositoryService.getObject(UserType.class, USER_DENIELS_OID,
+//				null, parentResult).asObjectable();
+//		assertNotNull(userJack);
 //		 assertEquals(0, userJack.getAccountRef().size());
 
 		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class, ACCOUNT_DENIELS_OID, prismContext);
@@ -1522,9 +1572,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		testAddUserToRepo("add user - test025 account already exists communication problem", USER_ELAINE_FILENAME,
 				USER_ELAINE_OID);
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_ELAINE_OID, null, parentResult);
-		assertNotNull(user);
-		assertEquals(0, user.asObjectable().getLinkRef().size());
+		assertUserNoAccountRef(USER_ELAINE_OID, parentResult);
+		
+//		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_ELAINE_OID, null, parentResult);
+//		assertNotNull(user);
+//		assertEquals(0, user.asObjectable().getLinkRef().size());
 
 		
 		Task task = taskManager.createTaskInstance();
@@ -1545,11 +1597,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		// WHEN
 ////		displayWhen(TEST_NAME);
 //		modelService.executeChanges(deltas, null, task, parentResult);
-		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_ELAINE_OID, null, parentResult);
-		assertNotNull(repoUser);
-		assertEquals("user does not contain reference to shadow", 1, repoUser.asObjectable().getLinkRef().size());
-		String shadowOid = repoUser.asObjectable().getLinkRef().get(0).getOid();
-		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
+//		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_ELAINE_OID, null, parentResult);
+//		assertNotNull(repoUser);
+//		assertEquals("user does not contain reference to shadow", 1, repoUser.asObjectable().getLinkRef().size());
+//		String shadowOid = repoUser.asObjectable().getLinkRef().get(0).getOid();
+		
+		String accountOid = assertUserOneAccountRef(USER_ELAINE_OID);
+		
+		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull("Shadow must not be null", shadow);
 		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Failed operation type must not be null.", FailedOperationTypeType.ADD, shadowType.getFailedOperationType());
@@ -1570,10 +1625,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
         
 		OperationResult parentResult = new OperationResult(TEST_NAME);
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_JACK2_OID, null, parentResult);
-		assertNotNull(user);
-		UserType userType = user.asObjectable();
-		assertNotNull(userType.getLinkRef());
+		
+		assertUserOneAccountRef(USER_JACK2_OID);
+//		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_JACK2_OID, null, parentResult);
+//		assertNotNull(user);
+//		UserType userType = user.asObjectable();
+//		assertNotNull(userType.getLinkRef());
 		
 		
 //		PrismObjectDefinition accountDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceObjectShadowType.class);
@@ -1583,11 +1640,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 //		modifications.add(delta);
 		
-		PropertyDelta fullNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), user.getDefinition(), new PolyString("jackNew2"));
+		PropertyDelta fullNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
 		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
-		PropertyDelta<ActivationStatusType> enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
+		PropertyDelta<ActivationStatusType> enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDelta.addValueToAdd(enabledUserAction);
 		modifications.add(enabledDelta);
 		
@@ -1599,9 +1656,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		modelService.executeChanges(deltas, null, task, parentResult);
 		parentResult.computeStatus();
-		assertEquals("Expected that user has one account reference, but got " + userType.getLinkRef().size(), 1, userType.getLinkRef().size());	
-		String shadowOid = userType.getLinkRef().get(0).getOid();
-		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
+		String accountOid = assertUserOneAccountRef(USER_JACK2_OID);
+//		assertEquals("Expected that user has one account reference, but got " + userType.getLinkRef().size(), 1, userType.getLinkRef().size());	
+//		String shadowOid = userType.getLinkRef().get(0).getOid();
+		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(account);
 		ShadowType shadow = account.asObjectable();
 		assertNotNull(shadow.getObjectChange());
@@ -1609,15 +1667,15 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		
 		Collection<PropertyDelta> newModifications = new ArrayList<PropertyDelta>();
-		PropertyDelta fullNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), user.getDefinition(), new PolyString("jackNew2a"));
+		PropertyDelta fullNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(fullNameDeltaNew);
 		
 		
-		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), user.getDefinition(), new PolyString("jackNew2a"));
+		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
 		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
-		PropertyDelta<ActivationStatusType> enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, user.getDefinition());
+		PropertyDelta<ActivationStatusType> enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);
 		
@@ -1627,7 +1685,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		modelService.executeChanges(newDeltas, null, task, parentResult);
 		
-		account = modelService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
+		account = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(account);
 		shadow = account.asObjectable();
 		assertNotNull(shadow.getObjectChange());
@@ -1651,11 +1709,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult("test027getDiscoveryAddCommunicationProblem");
 		repoAddObjectFromFile(USER_ANGELIKA_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ANGELIKA_OID, null, parentResult);
-		assertNotNull(addedUser);
-		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
-		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
-				0, accountRefs.size());
+		assertUserNoAccountRef(USER_ANGELIKA_OID, parentResult);
+//		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ANGELIKA_OID, null, parentResult);
+//		assertNotNull(addedUser);
+//		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
+//		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+//				0, accountRefs.size());
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -1678,14 +1737,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("add object communication problem result: ", parentResult);
 		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
 		
-		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
-				USER_ANGELIKA_OID, null, parentResult);
-		assertNotNull(userAferModifyOperation);
-		accountRefs = userAferModifyOperation.asObjectable().getLinkRef();
-		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(), 1,
-				accountRefs.size());
+		
+		String accountOid = assertUserOneAccountRef(USER_ANGELIKA_OID);
+//		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
+//				USER_ANGELIKA_OID, null, parentResult);
+//		assertNotNull(userAferModifyOperation);
+//		accountRefs = userAferModifyOperation.asObjectable().getLinkRef();
+//		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(), 1,
+//				accountRefs.size());
 
-		String accountOid = accountRefs.get(0).getOid();
+//		String accountOid = accountRefs.get(0).getOid();
 		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, null, parentResult).asObjectable();
 		assertNotNull(faieldAccount);
 		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
@@ -1734,12 +1795,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		//prepare user 
 		repoAddObjectFromFile(USER_ALICE_FILENAME, UserType.class, parentResult);
+		
+		assertUserNoAccountRef(USER_ALICE_OID, parentResult);
 
-		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ALICE_OID, null, parentResult);
-		assertNotNull(addedUser);
-		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
-		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
-				0, accountRefs.size());
+//		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ALICE_OID, null, parentResult);
+//		assertNotNull(addedUser);
+//		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
+//		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+//				0, accountRefs.size());
 
 		Task task = taskManager.createTaskInstance();
 		//and add account to the user while resource is UP
@@ -1759,14 +1822,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		//then stop openDJ
 		openDJController.stop();
-		UserType userJack = repositoryService.getObject(UserType.class, USER_ALICE_OID, null, parentResult)
-				.asObjectable();
-		assertNotNull(userJack);
-		assertEquals(1, userJack.getLinkRef().size());
-		String accountRefOid = userJack.getLinkRef().get(0).getOid();
+		
+		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
+//		UserType userJack = repositoryService.getObject(UserType.class, USER_ALICE_OID, null, parentResult)
+//				.asObjectable();
+//		assertNotNull(userJack);
+//		assertEquals(1, userJack.getLinkRef().size());
+//		String accountRefOid = userJack.getLinkRef().get(0).getOid();
 
 		//and make some modifications to the account while resource is DOWN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountRefOid, ShadowType.class, task, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, parentResult);
 //		objectChange = unmarshallJaxbFromFile(
 //				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
 //
@@ -1779,7 +1844,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //				parentResult);
 
 		//check the state after execution
-		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountRefOid,
+		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid,
 				null, parentResult).asObjectable();
 		assertNotNull(faieldAccount);
 		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
@@ -1802,7 +1867,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
 		
 		//and then try to get account -> result is that the modifications will be applied to the account
-		PrismObject<ShadowType> aliceAcc = modelService.getObject(ShadowType.class, accountRefOid, null, task, parentResult);
+		PrismObject<ShadowType> aliceAcc = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(aliceAcc);
 		ShadowType aliceAccount = aliceAcc.asObjectable();
 		displayJaxb("Shadow after discovery: ", aliceAccount, ShadowType.COMPLEX_TYPE);
@@ -1832,11 +1897,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult("test029modifyDiscoveryAddCommunicationProblem");
 		repoAddObjectFromFile(USER_BOB_NO_FAMILY_NAME_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_BOB_NO_FAMILY_NAME_OID, null, parentResult);
-		assertNotNull(addedUser);
-		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
-		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
-				0, accountRefs.size());
+		assertUserNoAccountRef(USER_BOB_NO_FAMILY_NAME_OID, parentResult);
+//		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_BOB_NO_FAMILY_NAME_OID, null, parentResult);
+//		assertNotNull(addedUser);
+//		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
+//		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+//				0, accountRefs.size());
 
 		Task task = taskManager.createTaskInstance();
 		
@@ -1859,14 +1925,15 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("add object communication problem result: ", parentResult);
 		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
 		
-		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
-				USER_BOB_NO_FAMILY_NAME_OID, null, parentResult);
-		assertNotNull(userAferModifyOperation);
-		accountRefs = userAferModifyOperation.asObjectable().getLinkRef();
-		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(), 1,
-				accountRefs.size());
+		String accountOid = assertUserOneAccountRef(USER_BOB_NO_FAMILY_NAME_OID);
+//		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
+//				USER_BOB_NO_FAMILY_NAME_OID, null, parentResult);
+//		assertNotNull(userAferModifyOperation);
+//		accountRefs = userAferModifyOperation.asObjectable().getLinkRef();
+//		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(), 1,
+//				accountRefs.size());
 
-		String accountOid = accountRefs.get(0).getOid();
+//		String accountOid = accountRefs.get(0).getOid();
 		ShadowType faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, null, parentResult).asObjectable();
 		assertNotNull(faieldAccount);
 		displayJaxb("shadow from the repository: ", faieldAccount, ShadowType.COMPLEX_TYPE);
@@ -1911,7 +1978,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		OperationResult modifyFamilyNameResult = new OperationResult("execute changes -> modify user's family name");
 		LOGGER.trace("execute changes -> modify user's family name");
-		Collection<? extends ItemDelta> familyNameDelta = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, addedUser.getDefinition(), new PolyString("Dylan"));
+		Collection<? extends ItemDelta> familyNameDelta = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, getUserDefinition(), new PolyString("Dylan"));
 		ObjectDelta familyNameD = ObjectDelta.createModifyDelta(USER_BOB_NO_FAMILY_NAME_OID, familyNameDelta, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> modifyFamilyNameDelta = createDeltaCollection(familyNameD);
 		modelService.executeChanges(modifyFamilyNameDelta, null, task, modifyFamilyNameResult);
@@ -1952,11 +2019,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult("test30modifyObjectCommunicationProblemWeakMapping");
 		repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_JOHN_WEAK_OID, null, parentResult);
-		assertNotNull(addedUser);
-		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
-		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
-				0, accountRefs.size());
+		assertUserNoAccountRef(USER_JOHN_WEAK_OID, parentResult);
+		
+//		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_JOHN_WEAK_OID, null, parentResult);
+//		assertNotNull(addedUser);
+//		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
+//		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+//				0, accountRefs.size());
 
 		Task task = taskManager.createTaskInstance();
 		
@@ -1979,13 +2048,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("add object communication problem result: ", parentResult);
 		assertEquals("Expected success but got: " + parentResult.getStatus(), OperationResultStatus.SUCCESS, parentResult.getStatus());
 		
-		PrismObject<UserType> userJohn = repositoryService.getObject(UserType.class, USER_JOHN_WEAK_OID, null, parentResult);
-		assertNotNull(userJohn);
-		accountRefs = userJohn.asObjectable().getLinkRef();
-		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(),
-				1, accountRefs.size());
-
-		String accountOid = accountRefs.get(0).getOid();
+		String accountOid = assertUserOneAccountRef(USER_JOHN_WEAK_OID);
+//		PrismObject<UserType> userJohn = repositoryService.getObject(UserType.class, USER_JOHN_WEAK_OID, null, parentResult);
+//		assertNotNull(userJohn);
+//		accountRefs = userJohn.asObjectable().getLinkRef();
+//		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(),
+//				1, accountRefs.size());
+//
+//		String accountOid = accountRefs.get(0).getOid();
 		
 		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(johnAccount);
@@ -2041,11 +2111,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult("test31modifyObjectCommunicationProblemWeakAndStrongMapping");
 		repoAddObjectFromFile(USER_DONALD_FILENAME, UserType.class, parentResult);
 
-		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_DONALD_OID, null, parentResult);
-		assertNotNull(addedUser);
-		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
-		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
-				0, accountRefs.size());
+		assertUserNoAccountRef(USER_DONALD_OID, parentResult);
+		
+//		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_DONALD_OID, null, parentResult);
+//		assertNotNull(addedUser);
+//		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getLinkRef();
+//		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+//				0, accountRefs.size());
 		
 		Task task = taskManager.createTaskInstance();
 		
@@ -2069,13 +2141,15 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("add object communication problem result: ", parentResult);
 		assertEquals("Expected success but got: " + parentResult.getStatus(), OperationResultStatus.SUCCESS, parentResult.getStatus());
 		
-		PrismObject<UserType> userJohn = repositoryService.getObject(UserType.class, USER_DONALD_OID, null, parentResult);
-		assertNotNull(userJohn);
-		accountRefs = userJohn.asObjectable().getLinkRef();
-		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(),
-				1, accountRefs.size());
-
-		String accountOid = accountRefs.get(0).getOid();
+		String accountOid = assertUserOneAccountRef(USER_DONALD_OID);
+		
+//		PrismObject<UserType> userJohn = repositoryService.getObject(UserType.class, USER_DONALD_OID, null, parentResult);
+//		assertNotNull(userJohn);
+//		accountRefs = userJohn.asObjectable().getLinkRef();
+//		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(),
+//				1, accountRefs.size());
+//
+//		String accountOid = accountRefs.get(0).getOid();
 		
 		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(johnAccount);
