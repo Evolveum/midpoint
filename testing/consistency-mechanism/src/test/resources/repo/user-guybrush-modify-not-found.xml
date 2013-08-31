@@ -15,11 +15,11 @@
   ~ limitations under the License.
   -->
 
-<user oid="c0c010c0-d34d-b33f-f00d-111111111222"
+<user oid="c0c010c0-d34d-b33f-f00d-111111111333"
    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>guybrush123</name>
 
-    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="AccountShadowType"/>
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111333" type="AccountShadowType"/>
 
      <assignment>
 		<construction>
