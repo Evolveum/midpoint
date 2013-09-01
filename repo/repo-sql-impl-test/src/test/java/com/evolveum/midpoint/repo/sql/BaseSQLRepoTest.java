@@ -22,11 +22,13 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -80,28 +82,40 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     @BeforeClass
     public void beforeClass() throws Exception {
-        System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
+        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
     }
 
     @AfterClass
     public void afterClass() {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<\n", new Object[]{getClass().getName()});
+        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
     }
 
     @BeforeMethod
     public void beforeMethod(Method method) throws Exception {
-        System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
+        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
 
         if (!isSystemInitialized()) {
             initSystem();
+            setSystemInitialized();
         }
     }
 
     @AfterMethod
     public void afterMethod(Method method) {
+        try {
+            Session session = factory.getCurrentSession();
+            if (session != null) {
+                session.close();
+                AssertJUnit.fail("Session is still open, check test code or bug in sql service.");
+            }
+        } catch (Exception ex) {
+            //it's ok
+            LOGGER.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
+        }
+
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
     }
@@ -114,5 +128,16 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     public void initSystem() throws Exception {
 
+    }
+
+    protected Session open() {
+        Session session = getFactory().openSession();
+        session.beginTransaction();
+        return session;
+    }
+
+    protected void close(Session session) {
+        session.getTransaction().commit();
+        session.close();
     }
 }
