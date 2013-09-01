@@ -408,35 +408,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				ldapConnectorOid, null, result);
 		display("LDAP Connector: ", ldapConnector);
 
-		// Check if Derby resource was imported correctly
-
-		// PrismObject<ResourceType> derbyResource =
-		// repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID,
-		// null,
-		// result);
-		// AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
-
-		// assertCache();
-		//
-		// String dbConnectorOid =
-		// derbyResource.asObjectable().getConnectorRef().getOid();
-		// PrismObject<ConnectorType> dbConnector =
-		// repositoryService.getObject(ConnectorType.class, dbConnectorOid,
-		// null, result);
-		// display("DB Connector: ", dbConnector);
-		//
-		// // Check if password was encrypted during import
-		// Object configurationPropertiesElement =
-		// JAXBUtil.findElement(derbyResource.asObjectable().getConfiguration().getAny(),
-		// new QName(dbConnector.asObjectable().getNamespace(),
-		// "configurationProperties"));
-		// Object passwordElement =
-		// JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),
-		// new QName(dbConnector.asObjectable().getNamespace(), "password"));
-		// System.out.println("Password element: " + passwordElement);
-
-		// TODO: test if OpenDJ and Derby are running
-
 		repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, null, result);
 	}
 
@@ -815,11 +786,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
 		assertAttributes(modelShadow, "jackie", "Jack", "Sparrow", "Jack Sparrow");
-//		assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jackie");
-//		assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
-//		assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
-//		assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Jack Sparrow");
-		// assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l",
 		// "middle of nowhere");
 		assertNull("carLicense attribute sneaked to LDAP",
 				OpenDJController.getAttributeValue(entry, "carLicense"));
@@ -1310,29 +1276,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.start();
 		//and set the resource availability status to UP
 		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
-//		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-//				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-//				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), AvailabilityStatusType.UP);
-//		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-//		modifications.add(resourceStatusDelta);
-//		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
-		//and then try to get account -> result is that the account will be created while getting it
 		
 		checkNormalizedShadowWithAttributes(accountOid, "angelika", "angelika", "angelika", "angelika", false, task, parentResult);
-//		PrismObject<ShadowType> angelicaAcc = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-//		assertNotNull(angelicaAcc);
-//		ShadowType angelicaAccount = angelicaAcc.asObjectable();
-//		displayJaxb("Shadow after discovery: ", angelicaAccount, ShadowType.COMPLEX_TYPE);
-//		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
-//		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
-//		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
-//		assertEquals(resourceTypeOpenDjrepo.getOid(), angelicaAccount.getResourceRef().getOid());
-////		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
-//		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "sn", "angelika");
-//		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "cn", "angelika");
-//		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "givenName", "angelika");
-//		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "uid", "angelika");
-//		
 	}
 	
 	private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, OperationResult parentResult) throws Exception {
@@ -1374,28 +1319,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.start();
 		//and set the resource availability status to UP
 		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
-//		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-//				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-//				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), AvailabilityStatusType.UP);
-//		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-//		modifications.add(resourceStatusDelta);
-//		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
 		
 		//and then try to get account -> result is that the modifications will be applied to the account
 		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
 		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
-//		PrismObject<ShadowType> aliceAcc = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-//		assertNotNull(aliceAcc);
-//		ShadowType aliceAccount = aliceAcc.asObjectable();
-//		displayJaxb("Shadow after discovery: ", aliceAccount, ShadowType.COMPLEX_TYPE);
-//		assertNull("Alice's account after discovery must not have failed opertion.", aliceAccount.getFailedOperationType());
-//		assertNull("Alice's account after discovery must not have result.", aliceAccount.getResult());
-//		assertNull("Object changes in alices's account after discovery must be null", aliceAccount.getObjectChange());
-//		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "sn", "alice");
-//		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "cn", "alice");
-//		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
-//		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "uid", "alice");
-//		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
 		//and finally stop openDJ
 		openDJController.stop();
@@ -1432,18 +1359,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.start();
 		//and set the resource availability status to UP
 		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
-//		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-//				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-//				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), AvailabilityStatusType.UP);
-//		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-//		modifications.add(resourceStatusDelta);
-//		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
-		//and then try to get account -> result is that the account will be created while getting it
 		
-		try{
-		modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-		fail("expected schema exception was not thrown");
-		} catch (SchemaException ex){
+		try {
+			modelService.getObject(ShadowType.class, accountOid, null, task,
+					parentResult);
+			fail("expected schema exception was not thrown");
+		} catch (SchemaException ex) {
 			LOGGER.info("schema exeption while trying to re-add account after communication problem without family name..this is expected.");
 			parentResult.muteLastSubresultError();
 			parentResult.recordSuccess();
@@ -1470,20 +1391,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull("Bob's account must contain reference on the resource", bobRepoAccount.getResourceRef());
 		
 		checkNormalizedShadowWithAttributes(accountOid, "bob", "Bob", "Dylan", "Bob Dylan", false, task, parentResult);
-		
-//		PrismObject<ShadowType> bobResourceAcc = modelService.getObject(ShadowType.class, accountOid, null, task, modifyFamilyNameResult);
-//		assertNotNull(bobResourceAcc);
-//		ShadowType bobResourceAccount = bobResourceAcc.asObjectable();
-//		displayJaxb("Shadow after discovery: ", angelicaAccount, ResourceObjectShadowType.COMPLEX_TYPE);
-//		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
-//		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
-//		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
-//		assertEquals(resourceTypeOpenDjrepo.getOid(), bobResourceAccount.getResourceRef().getOid());
-////		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
-//		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "sn", "Dylan");
-//		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "cn", "Bob Dylan");
-//		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "givenName", "Bob");
-//		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "uid", "bob");
 		
 //		openDJController.stop();
 	}
@@ -1540,20 +1447,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		checkNormalizedShadowWithAttributes(accountOid, "john", "john", "weak", "john weak", "manager", false, task, parentResult);
 		
-//		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-//		assertNotNull(johnAccount);
-//		ShadowType johnAccountType = johnAccount.asObjectable();
-////		displayJaxb("Shadow after discovery: ", angelicaAccount, ResourceObjectShadowType.COMPLEX_TYPE);
-////		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
-////		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
-////		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
-//		assertEquals(resourceTypeOpenDjrepo.getOid(), johnAccountType.getResourceRef().getOid());
-////		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "sn", "weak");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "cn", "john weak");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "givenName", "john");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "uid", "john");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "employeeType", "manager");
 		
 		//stop opendj and try to modify employeeType (weak mapping)
 		openDJController.stop();
@@ -1565,16 +1458,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		checkNormalizedShadowBasic(accountOid, "john", true, task, parentResult);
 		
-//		johnAccount = repositoryService.getObject(ShadowType.class, accountOid, null, parentResult);
-//		//assert shadow..we expected no additional information in shadow because we modify attribute with weak mapping.
-//		assertNotNull(johnAccount);
-//		johnAccountType = johnAccount.asObjectable();
-//		displayJaxb("Shadow after discovery: ", johnAccountType, ShadowType.COMPLEX_TYPE);
-//		assertNull("John's account must not have failed opertion.", johnAccountType.getFailedOperationType());
-//		assertNull("John's account must not have result.", johnAccountType.getResult());
-//		assertNull("John's account must not have object change", johnAccountType.getObjectChange());
-//		assertNotNull("John's account must contain reference on the resource", johnAccountType.getResourceRef());
-	
 	}
 
 	
@@ -1599,21 +1482,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				
 		ShadowType johnAccountType = checkNormalizedShadowWithAttributes(accountOid, "donald", "donald", "trump", "donald trump", false, task, parentResult);
 		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "employeeType", "manager");
-//		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-//		assertNotNull(johnAccount);
-//		ShadowType johnAccountType = johnAccount.asObjectable();
-////		displayJaxb("Shadow after discovery: ", angelicaAccount, ResourceObjectShadowType.COMPLEX_TYPE);
-////		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
-////		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
-////		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
-//		assertEquals(resourceTypeOpenDjrepo.getOid(), johnAccountType.getResourceRef().getOid());
-////		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "sn", "trump");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "cn", "donald trump");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "givenName", "donald");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "uid", "donald");
-//		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "employeeType", "manager");
-//		
+
 		//stop opendj and try to modify employeeType (weak mapping)
 		openDJController.stop();
 		
@@ -1839,48 +1708,20 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		// check if the account was added after reconciliation
 		UserType userE = repositoryService.getObject(UserType.class, USER_E_OID, null, result).asObjectable();
-		assertNotNull(userE);
-		List<ObjectReferenceType> accountRefs = userE.getLinkRef();
-		assertFalse(accountRefs.isEmpty());
-		assertEquals(1, accountRefs.size());
-
-		ShadowType addedAccount = modelService.getObject(ShadowType.class,
-				accountRefs.get(0).getOid(), null, null, result).asObjectable();
-		assertNotNull(addedAccount);
-		displayJaxb("shadow from the repository: ", addedAccount, ShadowType.COMPLEX_TYPE);
-		assertNull("Expected that FailedOperationType in e's account is null, but it has value "+ addedAccount.getFailedOperationType(),
-				addedAccount.getFailedOperationType());
-		assertNull(addedAccount.getResult());
-		assertNotNull(addedAccount.getResourceRef());
-		assertEquals(resourceTypeOpenDjrepo.getOid(), addedAccount.getResourceRef().getOid());
-		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		String accountOid = assertUserOneAccountRef(USER_E_OID);
+		
+		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "Jackkk", "e", "e", true, null, result);
+		assertAttribute(eAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 		ResourceAttributeContainer attributeContainer = ShadowUtil
-				.getAttributesContainer(addedAccount);
+				.getAttributesContainer(eAccount);
 		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getIdentifiers();
 		assertNotNull(identifiers);
 		assertFalse(identifiers.isEmpty());
 		assertEquals(1, identifiers.size());
-		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "sn", "e");
-		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "cn", "e");
-		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
-		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "uid", "e");
-		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
 		// check if the account was modified during reconciliation process
-		userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
-		display("Jack after", userJack);
-		assertNotNull(userJack);
-		assertEquals("Wrong number of jack's accounts", 1, userJack.getLinkRef().size());
-		String accountRefOid = userJack.getLinkRef().get(0).getOid();
-		ShadowType modifiedAccount = modelService.getObject(ShadowType.class, accountRefOid,
-				null, null, result).asObjectable();
-		assertNotNull(modifiedAccount);
-		displayJaxb("shadow from the repository: ", modifiedAccount, ShadowType.COMPLEX_TYPE);
-		assertNull("Expected that FailedOperationType is null, but isn't",
-				modifiedAccount.getFailedOperationType());
-		assertNull("result in the modified account after reconciliation must be null.", modifiedAccount.getResult());
-		assertNull("Expected that modification in shadow are null, but got: "+ modifiedAccount.getObjectChange(), modifiedAccount.getObjectChange());
-		
+		String jackAccountOid = assertUserOneAccountRef(USER_JACK_OID);
+		ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, "jack", true, null, result);
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
@@ -1896,30 +1737,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		}
 		
-		UserType userElaine = repositoryService.getObject(UserType.class, USER_ELAINE_OID, null, result).asObjectable();
-		assertNotNull(userElaine);
-		assertEquals("elaine must have only one reference ont he account", 1, userElaine.getLinkRef().size());
-		String accountElaineRefOid = userElaine.getLinkRef().get(0).getOid();
-		ShadowType elaineAccount = modelService.getObject(ShadowType.class, accountElaineRefOid,
-				null, null, result).asObjectable();
-		assertNotNull(elaineAccount);
-		displayJaxb("shadow from the repository: ", elaineAccount, ShadowType.COMPLEX_TYPE);
-		assertNull("Expected that FailedOperationType in elaine's account is null, but isn't",
-				elaineAccount.getFailedOperationType());
-		assertNull("result in the modified account after reconciliation must be null.", elaineAccount.getResult());
-		assertIcfsNameAttribute(elaineAccount, "uid=elaine,ou=people,dc=example,dc=com");
-		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
-		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		String elaineAccountOid = assertUserOneAccountRef(USER_ELAINE_OID);
+		modifiedAccount = checkNormalizedShadowBasic(elaineAccountOid, "elaine", true, null, result);
+		assertIcfsNameAttribute(modifiedAccount, "uid=elaine,ou=people,dc=example,dc=com");
 
-		UserType userJack2 = repositoryService.getObject(UserType.class, USER_JACK2_OID, null, result).asObjectable();
-		assertNotNull(userJack2);
-		assertEquals(1, userJack2.getLinkRef().size());
-		String jack2Oid = userJack2.getLinkRef().get(0).getOid();
-		ShadowType jack2Shadow = provisioningService.getObject(ShadowType.class, jack2Oid, null, result).asObjectable();
-		assertNotNull(jack2Shadow);
-		assertNull("ObjectChnage in jack2 account must be null", jack2Shadow.getObjectChange());
-		assertNull("result in the jack2 shadow must be null", jack2Shadow.getResult());
-		assertNull("failed operation in jack2 shadow must be null", jack2Shadow.getFailedOperationType());
+		accountOid = assertUserOneAccountRef(USER_JACK2_OID);
+		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, null, result);
 		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "givenName", "jackNew2a");
 		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "cn", "jackNew2a");
 
