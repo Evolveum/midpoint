@@ -98,7 +98,7 @@ public class LensUtil {
 		if (resourceType == null) {
 			// Fetching from provisioning to take advantage of caching and
 			// pre-parsed schema
-			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result)
+			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result)
 					.asObjectable();
 			context.rememberResource(resourceType);
 		}
@@ -515,7 +515,7 @@ public class LensUtil {
 		
 		try{
 		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-				accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
+				accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), null, result);
 		// TODO: use setLoadedObject() instead?
 		accCtx.setObjectCurrent(objectOld);
 		ShadowType oldShadow = objectOld.asObjectable();

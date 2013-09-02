@@ -450,7 +450,7 @@ public class ChangeExecutor {
 		
     	PrismObject<ShadowType> account = null;
     	try {
-    		account = provisioning.getObject(ShadowType.class, accountRef, GetOperationOptions.createNoFetch(), result);
+    		account = provisioning.getObject(ShadowType.class, accountRef, GetOperationOptions.createNoFetch(), task, result);
     	} catch (Exception ex){
     		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;
@@ -812,7 +812,7 @@ public class ChangeExecutor {
 		OperationProvisioningScriptsType scripts = null;
 		try {
 			PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid,
-					GetOperationOptions.createNoFetch(), result);
+					GetOperationOptions.createNoFetch(), task, result);
 			scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.DELETE, resource,
 					result);
 		} catch (ObjectNotFoundException ex) {
@@ -829,7 +829,7 @@ public class ChangeExecutor {
             Collection<? extends ItemDelta> modifications, LensContext<F, P> context, ProvisioningOperationOptions options, 
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
-    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), result);
+    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), task, result);
     	OperationProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);
         Utils.setRequestee(task, context);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);

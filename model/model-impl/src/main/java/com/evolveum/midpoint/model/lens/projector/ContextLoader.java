@@ -418,7 +418,7 @@ public class ContextLoader {
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
 				GetOperationOptions options = GetOperationOptions.createNoFetch();
 				try {
-					shadow = provisioningService.getObject(ShadowType.class, oid, options , result);
+					shadow = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 				} catch (ObjectNotFoundException e) {
 					// Broken accountRef. We need to mark it for deletion
 					LensProjectionContext<ShadowType> accountContext = getOrCreateBrokenAccountContext(context, oid);
@@ -534,7 +534,7 @@ public class ContextLoader {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 						// We need to fetch from provisioning and not repository so the correct definition will be set.
 						GetOperationOptions options = GetOperationOptions.createNoFetch();
-						account = provisioningService.getObject(ShadowType.class, oid, options , result);
+						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
 						accountContext.setLoadedObject(account);
@@ -580,7 +580,7 @@ public class ContextLoader {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 						// We need to fetch from provisioning and not repository so the correct definition will be set.
 						GetOperationOptions options = GetOperationOptions.createNoFetch();
-						account = provisioningService.getObject(ShadowType.class, oid, options , result);
+						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
 						accountContext.setLoadedObject(account);
@@ -589,7 +589,7 @@ public class ContextLoader {
 						try{
 						// Broken accountRef. We need to try again with raw options, because the error should be thrown becaue of non-existent resource
 						GetOperationOptions options = GetOperationOptions.createRaw();
-						account = provisioningService.getObject(ShadowType.class, oid, options , result);
+						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						accountContext = getOrCreateBrokenAccountContext(context, oid);
 						accountContext.setFresh(true);
 						accountContext.setExists(false);
@@ -662,7 +662,7 @@ public class ContextLoader {
 					// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 					// We need to fetch from provisioning and not repository so the correct definition will be set.
 					GetOperationOptions options = GetOperationOptions.createNoFetch();
-					account = provisioningService.getObject(ShadowType.class, oid, options , result);
+					account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 					// We will not set old account if the delta is delete. The
 					// account does not really exists now.
 					// (but the OID and resource will be set from the repo
@@ -684,7 +684,7 @@ public class ContextLoader {
 						throw new IllegalArgumentException("No resource OID in " + account);
 					}
 					ResourceType resourceType = provisioningService.getObject(ResourceType.class,
-							resourceOid, null, result).asObjectable();
+							resourceOid, null, null, result).asObjectable();
 					context.rememberResource(resourceType);
 					accountCtx.setResource(resourceType);
 				}
@@ -811,7 +811,7 @@ public class ContextLoader {
 //						]}
 					try{
 					PrismObject<P> objectOld = provisioningService.getObject(
-							projContext.getObjectTypeClass(), projectionObjectOid, options, result);
+							projContext.getObjectTypeClass(), projectionObjectOid, options, null, result);
 					projContext.setLoadedObject(objectOld);
 					P oldShadow = objectOld.asObjectable();
 					if (projContext.isDoReconciliation()) {
@@ -867,7 +867,7 @@ public class ContextLoader {
 			if (resourceType == null) {
 				resourceType = context.getResource(resourceOid);
 				if (resourceType == null) {
-					PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
+					PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result);
 					resourceType = resource.asObjectable();
 					context.rememberResource(resourceType);
 				}

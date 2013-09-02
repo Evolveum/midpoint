@@ -202,7 +202,7 @@ public abstract class ShadowCache {
 		return prismContext;
 	}
 	
-	public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow, GetOperationOptions options,
+	public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow, GetOperationOptions options, Task task, 
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 
@@ -292,7 +292,7 @@ public abstract class ShadowCache {
 			try {
 				boolean compensate = GetOperationOptions.isDoNotDiscovery(options)? false : true;
 				resourceShadow = handleError(ex, repositoryShadow, FailedOperation.GET, resource, null, compensate,
-						null, parentResult);
+						task, parentResult);
 				
 				return resourceShadow;
 

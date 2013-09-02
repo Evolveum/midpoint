@@ -174,7 +174,7 @@ public class ExpressionHandler {
 			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " defines null resource OID.");
 		}
 
-		return modelObjectResolver.getObjectSimple(ResourceType.class, ref.getOid(), null, result);
+		return modelObjectResolver.getObjectSimple(ResourceType.class, ref.getOid(), null, null, result);
 	}
 
 	public static Map<QName, Object> getDefaultXPathVariables(UserType user,

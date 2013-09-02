@@ -140,7 +140,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 //	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-			GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException,
+			GetOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
@@ -249,7 +249,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				try {
 	
 					resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow(oid,
-							(PrismObject<ShadowType>) (repositoryObject), options, result);
+							(PrismObject<ShadowType>) (repositoryObject), options, task, result);
 		
 				} catch (ObjectNotFoundException e) {
 					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
@@ -266,6 +266,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				} catch (SecurityViolationException e) {
 					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 					throw e;
+				} catch (RuntimeException e){
+					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					throw new SystemException(e);
 				}
 				
 	
@@ -378,7 +381,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			// Resolve resource
-			PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, result);
+			PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 
 			ResourceType resourceType = resource.asObjectable();
 
@@ -977,7 +980,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		PrismObject<ResourceType> resource = null;
 				
 		try{
-			resource = getObject(ResourceType.class, resourceOid, null, result);
+			resource = getObject(ResourceType.class, resourceOid, null, null, result);
 		} catch (SecurityViolationException ex){
 			recordFatalError(LOGGER, result, "Could not get resource: security violation: " + ex.getMessage(), ex);
 			result.cleanupResult(ex);
@@ -1154,7 +1157,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			// Don't use repository. Repository resource will not have properly
 			// set capabilities
-			resource = getObject(ResourceType.class, resourceOid, null, result);
+			resource = getObject(ResourceType.class, resourceOid, null, null, result);
 
 		} catch (ObjectNotFoundException e) {
 			recordFatalError(LOGGER, result, "Resource with oid " + resourceOid + "not found: " + e.getMessage(), e);

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.ShadowCacheReconciler;
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -86,8 +89,7 @@ public class GenericErrorHandler extends ErrorHandler{
 		
 		switch (op) {
 		case GET:
-				if ((shadow.isDead() != null && shadow.isDead()) || shadow.getResource().getOperationalState() != null
-						&& AvailabilityStatusType.DOWN == shadow.getResource().getOperationalState().getLastAvailabilityStatus() || !compensate) {
+				if (ShadowUtil.isDead(shadow) || ResourceTypeUtil.isDown(shadow.getResource()) || !compensate) {
 					result.recordStatus(OperationResultStatus.PARTIAL_ERROR,
 							"Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 					result.computeStatus();
@@ -102,17 +104,22 @@ public class GenericErrorHandler extends ErrorHandler{
 					throw new GenericFrameworkException(message, ex);
 				}
 				try {
+					//ProvisioningOperationOptions.createCompletePostponed(false);
 					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);
 					result.computeStatus();
 					if (result.isSuccess()) {
 						LOGGER.trace("Postponed operation was finished successfully while getting shadow. Getting new object.");
 						PrismObject prismShadow = provisioningService.getObject(shadow.getClass(),
-								shadow.getOid(), null, result);
+								shadow.getOid(), null, task, result);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Got {} after finishing postponed operation.", prismShadow.dump());
 					}
 						shadow = (T) prismShadow.asObjectable();
 					}
+//				} catch(Exception e){
+//					result.recordFatalError("Could not finish operation " + operation + ". Reason: " + e.getMessage()));
+//					// just throw the origin exception
+//					throw new GenericFrameworkException(ex);
 				} finally {
 					result.computeStatus();
 				}

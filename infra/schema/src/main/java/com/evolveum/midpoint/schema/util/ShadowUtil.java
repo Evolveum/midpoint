@@ -342,5 +342,9 @@ public class ShadowUtil {
     	Boolean protectedObject = shadowType.isProtectedObject();
     	return (protectedObject != null && protectedObject);
     }
+    
+    public static boolean isDead(ShadowType shadow){
+    	return shadow.isDead() != null && shadow.isDead();
+    }
 	
 }

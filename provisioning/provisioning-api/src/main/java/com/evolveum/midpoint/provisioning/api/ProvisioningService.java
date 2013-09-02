@@ -113,7 +113,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, GetOperationOptions options, OperationResult parentResult)
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, GetOperationOptions options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
 			SecurityViolationException;
 	

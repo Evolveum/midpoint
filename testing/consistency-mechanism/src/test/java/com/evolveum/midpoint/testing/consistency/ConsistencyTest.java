@@ -92,6 +92,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -219,6 +220,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String USER_DONALD_FILENAME = REPO_DIR_NAME + "user-donald.xml";
 	private static final String USER_DONALD_OID = "c0c010c0-d34d-b33f-f00d-999111111777";
 	
+	private static final String USER_DISCOVERY_FILENAME = REPO_DIR_NAME + "user-discovery.xml";
+	private static final String USER_DISCOVERY_OID = "c0c010c0-d34d-b33f-f00d-111112226666";
+	
 	private static final String ACCOUNT_GUYBRUSH_FILENAME = REPO_DIR_NAME + "account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
 	
@@ -260,6 +264,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
 	private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
 	private static final String LDIF_MORGAN_FILENAME = "src/test/resources/request/morgan.ldif";
+	private static final String LDIF_DISCOVERY_FILENAME = "src/test/resources/request/discovery.ldif";
 
 //	private static final QName IMPORT_OBJECTCLASS = new QName(
 //			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -419,6 +424,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		TestUtil.displayTestTile("test001TestConnectionOpenDJ");
 
+		Task task = taskManager.createTaskInstance();
 		// GIVEN
 
 		assertNoRepoCache();
@@ -450,11 +456,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
 		PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(
-				ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+				ResourceType.class, RESOURCE_OPENDJ_OID, null, task, opResult);
 		display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
 
 		PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class,
-				RESOURCE_OPENDJ_OID, null, opResult);
+				RESOURCE_OPENDJ_OID, null, task, opResult);
 		display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
 		checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
@@ -886,7 +892,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		MidPointAsserts.assertAssignments(user, 1);
 
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class,
-				accountOid,null,  parentResult);
+				accountOid, null, task, parentResult);
 
 		ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(account);
 
@@ -986,7 +992,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_GUYBRUSH_NOT_FOUND_OID);
 		
 		PrismObject<ShadowType> modifiedAccount = provisioningService.getObject(
-				ShadowType.class, accountOid, null, parentResult);
+				ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(modifiedAccount);
 		assertShadowName(modifiedAccount.asObjectable(), "uid=guybrush123,ou=people,dc=example,dc=com");
 //		PrismAsserts.assertEqualsPolyString("Wrong shadow name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
@@ -1499,6 +1505,44 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
 	}
+	
+	//TODO: enable after notify failure will be implemented..
+	@Test(enabled = false)
+	public void test032getDiscoveryAddCommunicationProblemAlreadyExists() throws Exception{
+		TestUtil.displayTestTile("test032getDiscoveryAddCommunicationProblemAlreadyExists");
+		OperationResult parentResult = new OperationResult("test032getDiscoveryAddCommunicationProblemAlreadyExists");
+		repoAddObjectFromFile(USER_DISCOVERY_FILENAME, UserType.class, parentResult);
+
+		assertUserNoAccountRef(USER_DISCOVERY_OID, parentResult);
+				
+		Task task = taskManager.createTaskInstance();
+		
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_DISCOVERY_OID, UserType.class, task, parentResult);
+		
+		parentResult.computeStatus();
+		display("add object communication problem result: ", parentResult);
+		assertEquals("Expected success but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
+		
+		String accountOid = assertUserOneAccountRef(USER_DISCOVERY_OID);
+		
+		openDJController.start();
+		assertTrue(EmbeddedUtils.isRunning());
+		
+		Entry entry = openDJController.addEntryFromLdifFile(LDIF_DISCOVERY_FILENAME);
+		SearchResultEntry searchResult = openDJController.searchByUid("discovery");
+		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
+		OpenDJController.assertAttribute(searchResult, "givenName", "discovery");
+		OpenDJController.assertAttribute(searchResult, "sn", "discovery");
+		OpenDJController.assertAttribute(searchResult, "cn", "discovery");
+		OpenDJController.assertAttribute(searchResult, "mail", "discovery@deep.in.the.caribbean.com");
+		String dn = searchResult.getDN().toString();
+		assertEquals("DN attribute " + dn + " not equals", dn, "uid=discovery,ou=people,dc=example,dc=com");
+		
+		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
+
+		modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
+		
+	}
 
 	/**
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
@@ -1678,6 +1722,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
         // TODO: check OpenDJ Account        
 	}
+
 
 	
 	// This should run last. It starts a task that may interfere with other tests
