@@ -140,7 +140,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertVersion(resourceBefore, "0");
 
 		// WHEN
-		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
 		// THEN
 		display("Resource", resource);
@@ -184,7 +184,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		
 		// WHEN
-		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
 		// THEN
 		display("Resource(1)", resource);
@@ -211,7 +211,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertConnectorInstanceUnchanged(resourceProvisioning);
 		
 		// WHEN
-		resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
 		// THEN
 		display("Resource(2)", resource);
@@ -257,7 +257,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
 		
-		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 		display("Resource(2)", resource);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
@@ -314,7 +314,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceVersionIncrement(versionAfter, 1);
 
 		// WHEN
-		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		display("Resource", resource);
@@ -362,7 +362,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
 		
-		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 		display("Resource(2)", resource);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
@@ -421,7 +421,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceVersionIncrement(versionAfter, 1);
 
 		// WHEN
-		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		display("Resource", resource);
@@ -534,7 +534,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		}
 		
 		try {
-			provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+			provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 			AssertJUnit.fail("Resource not gone from provisioning");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -561,7 +561,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceVersionIncrement(versionAfter, 1);
 
 		// WHEN
-		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		display("Resource", resource);
@@ -615,7 +615,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 	private PrismObject<ShadowType> getAccount(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".getAccount");
-		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, oid, null, result);
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, oid, null, null, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		return account;

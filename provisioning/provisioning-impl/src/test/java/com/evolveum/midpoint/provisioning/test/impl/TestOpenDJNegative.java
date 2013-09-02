@@ -141,9 +141,10 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+".test004ResourceAndConnectorCaching");
 
+		Task task = taskManager.createTaskInstance();
 		// WHEN
 		// This should NOT throw an exception. It should just indicate the failure in results
-		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, task, result);
 		ResourceType resourceType = resource.asObjectable();
 
 		// THEN
@@ -156,7 +157,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertNull("Resource schema found", resourceSchema);
 		
 		// WHEN
-		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -190,7 +191,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		try {
-			ShadowType acct = provisioningService.getObject(ShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
+			ShadowType acct = provisioningService.getObject(ShadowType.class, NON_EXISTENT_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 			
 			AssertJUnit.fail("getObject succeeded unexpectedly");
 		} catch (ObjectNotFoundException e) {
@@ -218,7 +219,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				
 		try {
 
-			ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
+			ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 
 			AssertJUnit.fail("getObject succeeded unexpectedly");
 		} catch (CommunicationException e) {
@@ -463,7 +464,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		try {
-			ShadowType acct = provisioningService.getObject(ShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
+			ShadowType acct = provisioningService.getObject(ShadowType.class, NON_EXISTENT_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 			
 			AssertJUnit.fail("getObject succeeded unexpectedly");
 		} catch (ObjectNotFoundException e) {
@@ -490,7 +491,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 				
-		PrismObject<ShadowType> acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, result);
+		PrismObject<ShadowType> acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, taskManager.createTaskInstance(), result);
 
 		display("Account", acct);
 		
@@ -612,8 +613,9 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		display("Account to add", object);
 
+		Task task = taskManager.createTaskInstance();
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -632,7 +634,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
-				null, result).asObjectable();
+				null, task, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_NEW_DN, provisioningAccountType.getName());
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, provisioningAccountType.getFailedOperationType());
@@ -650,8 +652,9 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 
+		Task task = taskManager.createTaskInstance();
 		// WHEN
-		provisioningService.deleteObject(ShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_DELETE_OID, null, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -668,7 +671,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
-				null, result).asObjectable();
+				null, task, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, provisioningAccountType.getFailedOperationType());
 		OperationResultType provisioningResult = provisioningAccountType.getResult();
@@ -689,8 +692,9 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 		
+		Task task = taskManager.createTaskInstance();
 		provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
-				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
+				delta.getModifications(), null, null, task, result);
 		
 	
 		// THEN
@@ -707,7 +711,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_MODIFY_OID,
-				null, result).asObjectable();
+				null, task, result).asObjectable();
 		display("provisioning shadow", provisioningAccountType);
 		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, provisioningAccountType.getFailedOperationType());
 		OperationResultType provisioningResult = provisioningAccountType.getResult();

@@ -230,7 +230,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 				+ ".test004Configuration");
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, result);
+		resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, null, result);
 		resourceType = resource.asObjectable();
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -279,7 +279,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, result).asObjectable();
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, null, result).asObjectable();
 		
 		// THEN
 		display("Resource from provisioninig", resource);

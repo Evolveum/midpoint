@@ -279,7 +279,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	ShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
-        ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+        ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowUtil.getIntent(accountType));
         LensProjectionContext<ShadowType> accountSyncContext = context.findOrCreateProjectionContext(rat);

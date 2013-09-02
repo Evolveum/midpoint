@@ -100,7 +100,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		try {
 			
 			// WHEN
-			PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+			PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 			
 			// THEN
 			display("Resource with broken schema", resource);

@@ -230,7 +230,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		TestUtil.displayTestTile("test004ResourceAndConnectorCaching");
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test004ResourceAndConnectorCaching");
-		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, null, result);
 		resourceType = resource.asObjectable();
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resource, false, result);
@@ -239,7 +239,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No resource schema", resourceSchema);
 		
 		// WHEN
-		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, null, result);
 		
 		// THEN
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -272,7 +272,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test005Capabilities");
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, result).asObjectable();
 		
 		// THEN
 		display("Resource from provisioninig", resource);
@@ -398,11 +398,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
 		System.out.println(objectToAdd.asPrismObject().dump());
 
-		String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		Task task = taskManager.createTaskInstance();
+		String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, null, task, result);
 		assertEquals(ACCOUNT1_OID, addedObjectOid);
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-		ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
+		ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
 
 		assertNotNull(acct);
 
@@ -426,7 +427,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		try {
-			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, null, result).asObjectable();
+			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, null, null, result).asObjectable();
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -460,7 +461,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		try {
-			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, null, result).asObjectable();
+			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, null, null, result).asObjectable();
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -503,7 +504,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().dump());
 
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		Task task = taskManager.createTaskInstance();
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
@@ -512,7 +514,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, StringUtils.lowerCase(ACCOUNT_NEW_DN));
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
-				null, result).asObjectable();
+				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 	}
 
@@ -553,16 +555,17 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().dump());
 
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		Task task = taskManager.createTaskInstance();
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 		assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
 
-		provisioningService.deleteObject(ShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_DELETE_OID, null, null, task, result);
 
 		ShadowType objType = null;
 
 		try {
 			objType = provisioningService.getObject(ShadowType.class, ACCOUNT_DELETE_OID,
-					null, result).asObjectable();
+					null, task, result).asObjectable();
 			Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
 		} catch (ObjectNotFoundException ex) {
 			System.out.println("Catched ObjectNotFoundException.");
@@ -619,7 +622,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 		
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_MODIFY_OID, null, result).asObjectable();
+				ACCOUNT_MODIFY_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 		
 		display("Object after change",accountType);
 		
@@ -676,7 +679,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT_MODIFY_PASSWORD_OID, addedObjectOid);
 		
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_MODIFY_PASSWORD_OID, null, result).asObjectable();
+				ACCOUNT_MODIFY_PASSWORD_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 		
 		display("Object before password change",accountType);
 		
@@ -734,7 +737,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=lechuck,ou=People,dc=example,dc=com", accountType.getName());
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-				null, result).asObjectable();
+				null,taskManager.createTaskInstance(), result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=lechuck,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 //			assertEquals("lechuck", provisioningAccountType.getName());
 		
@@ -814,7 +817,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         assertShadows(9);
         
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
-        PrismObject<ShadowType> accountNew = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID, null, result);
+        PrismObject<ShadowType> accountNew = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID, null, taskManager.createTaskInstance(), result);
     }
 
 	private void assertShadows(int expectedCount) throws SchemaException {
@@ -848,7 +851,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// THEN
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_DISABLE_SIMULATED_OID, null, result).asObjectable();
+				ACCOUNT_DISABLE_SIMULATED_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 		
 		display("Object after change",accountType);
 		
@@ -901,7 +904,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=rapp,ou=People,dc=example,dc=com", accountType.getName());
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID,
-				null, result).asObjectable();
+				null, taskManager.createTaskInstance(), result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", "uid=rapp,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 		
 		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		

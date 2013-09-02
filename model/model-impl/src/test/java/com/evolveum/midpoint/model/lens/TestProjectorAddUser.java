@@ -117,7 +117,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 
 		when(
 				provisioning.getObject(eq(ResourceType.class), eq(AbstractInternalModelIntegrationTest.RESOURCE_DUMMY_OID), any(GetOperationOptions.class),
-						any(OperationResult.class))).thenReturn(
+						any(Task.class), any(OperationResult.class))).thenReturn(
 				resourceType.asPrismObject());
 		when(
 				provisioning.addObject(any(PrismObject.class), any(OperationProvisioningScriptsType.class),

@@ -121,7 +121,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceType.getOid(), null, result);
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceType.getOid(), null, taskManager.createTaskInstance(), result);
 		
 		// THEN
 		assertNotNull("Resource is null", resource);

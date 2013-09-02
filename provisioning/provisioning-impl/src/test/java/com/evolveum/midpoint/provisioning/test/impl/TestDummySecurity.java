@@ -208,7 +208,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 		
 		// THEN
 		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, result);
+				ACCOUNT_WILL_OID, null, syncTask, result);
 		display("Account provisioning", accountProvisioning);
 
 	}
@@ -319,7 +319,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null,
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, 
 				result).asObjectable();
 
 		// THEN

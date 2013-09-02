@@ -344,7 +344,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test004Configuration");
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 		resourceType = resource.asObjectable();
 		
 		// THEN
@@ -483,7 +483,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 		ResourceType resourceType = resource.asObjectable();
 
 		// THEN
@@ -622,7 +622,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
-				null, result);
+				null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -702,7 +702,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
-				null, result);
+				null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -907,7 +907,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, result);
+				ACCOUNT_WILL_OID, null, syncTask, result);
 		display("Account provisioning", accountProvisioning);
 		ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
 		display("account from provisioning", accountTypeProvisioning);
@@ -978,7 +978,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_MORGAN_OID, null, result).asObjectable();
+				ACCOUNT_MORGAN_OID, null, syncTask, result).asObjectable();
 		display("account from provisioning", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME,
 				provisioningAccountType.getName());
@@ -1015,7 +1015,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null,
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, 
 				result).asObjectable();
 
 		// THEN
@@ -1055,7 +1055,7 @@ public class TestDummy extends AbstractDummyTest {
 		options.setNoFetch(true);
 
 		// WHEN
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options,
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
 				result).asObjectable();
 
 		// THEN
@@ -1503,7 +1503,7 @@ public class TestDummy extends AbstractDummyTest {
 		willDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, null);
 
 		// WHEN
-		PrismObject<ShadowType> accountWill = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> accountWill = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1552,7 +1552,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, null, result).asObjectable();
+				ACCOUNT_NEW_SCRIPT_OID, null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "william", provisioningAccountType.getName());
 
 		// Check if the account was created in the dummy resource
@@ -1742,7 +1742,7 @@ public class TestDummy extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null,
+		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
 				result).asObjectable();
 		assertNotNull(accountType);
 
@@ -1787,7 +1787,7 @@ public class TestDummy extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null,
+		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
 				result).asObjectable();
 		assertNotNull(accountType);
 		display("Retrieved account shadow", accountType);
@@ -1831,7 +1831,7 @@ public class TestDummy extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null,
+		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
 				result).asObjectable();
 		assertNotNull(accountType);
 
@@ -1878,7 +1878,7 @@ public class TestDummy extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null,
+		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
 				result).asObjectable();
 		assertNotNull(accountType);
 
@@ -1926,7 +1926,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 		ShadowType shadowType = shadow.asObjectable();
 
 		// THEN
@@ -2080,7 +2080,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		ShadowType groupProvisioningType = provisioningService.getObject(ShadowType.class,
-				GROUP_PIRATES_OID, null, result).asObjectable();
+				GROUP_PIRATES_OID, null, task, result).asObjectable();
 		display("group from provisioning", groupProvisioningType);
 		checkGroupPirates(groupProvisioningType, result);
 
@@ -2113,7 +2113,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null,
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, null, 
 				result).asObjectable();
 
 		// THEN
@@ -2156,7 +2156,7 @@ public class TestDummy extends AbstractDummyTest {
 		options.setNoFetch(true);
 
 		// WHEN
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options,
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options, null, 
 				result).asObjectable();
 
 		// THEN
@@ -2243,7 +2243,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		ShadowType privProvisioningType = provisioningService.getObject(ShadowType.class,
-				PRIVILEGE_PILLAGE_OID, null, result).asObjectable();
+				PRIVILEGE_PILLAGE_OID, null, task, result).asObjectable();
 		display("priv from provisioning", privProvisioningType);
 		checkPrivPillage(privProvisioningType, result);
 
@@ -2273,7 +2273,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null,
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, null, 
 				result).asObjectable();
 
 		// THEN
@@ -2353,7 +2353,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// WHEN
-		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2432,7 +2432,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// WHEN
-		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2604,7 +2604,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> provisioningAccount = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_LECHUCK_OID, null, result);
+				ACCOUNT_LECHUCK_OID, null, task, result);
 		ShadowType provisioningAccountType = provisioningAccount.asObjectable();
 		display("account from provisioning", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_LECHUCK_NAME, provisioningAccountType.getName());
@@ -2666,7 +2666,7 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		try {
-			provisioningService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, result);
+			provisioningService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, task, result);
 			
 			AssertJUnit.fail("Shadow (provisioning) is not gone");
 		} catch (ObjectNotFoundException e) {
@@ -2705,7 +2705,7 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		try {
-			provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, result);
+			provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, task, result);
 			AssertJUnit.fail("Priv shadow is not gone (provisioning)");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -2746,7 +2746,7 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		try {
-			provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, result);
+			provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, task, result);
 			AssertJUnit.fail("Group shadow is not gone (provisioning)");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -2850,7 +2850,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test501GetProtectedAccount");
 
 		// WHEN
-		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, result);
 
 		assertEquals(""+account+" is not protected", Boolean.TRUE, account.asObjectable().isProtectedObject());
 		checkConsistency(account);
@@ -3270,7 +3270,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		try {
-			PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, null,
+			PrismObject<ResourceType> object = provisioningService.getObject(ResourceType.class, NOT_PRESENT_OID, null, null,
 					result);
 			AssertJUnit.fail("Expected ObjectNotFoundException to be thrown, but getObject returned " + object
 					+ " instead");

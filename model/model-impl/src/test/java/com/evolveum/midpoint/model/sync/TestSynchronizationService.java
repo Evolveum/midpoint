@@ -142,7 +142,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         dummyAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, "999");
         
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
+        PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
         change.setCurrentShadow(accountShadowJack);
         change.setResource(resourceDummy);
         change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
@@ -196,7 +196,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         dummyAccount.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
         
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
+        PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
         change.setCurrentShadow(accountShadowJack);
         change.setResource(resourceDummy);
         change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);

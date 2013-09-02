@@ -253,7 +253,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test006GetObjectSchemaless");
 
-		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, null, result);
 		assertNotNull("Resource is null", resource);
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull("No connector ref", resourceType.getConnectorRef());
@@ -331,7 +331,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test106GetObjectStaticSchema");
 
-		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, result);
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result);
 		assertNotNull("Resource is null", resource);
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull("No connector ref", resourceType.getConnectorRef());
@@ -355,7 +355,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 				+ ".test107Capabilities");
 
 		// WHEN
-		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, result)
+		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result)
 				.asObjectable();
 
 		// THEN
@@ -431,7 +431,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 //		assertEquals("will", accountType.getName());
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, result).asObjectable();
+				ACCOUNT_WILL_OID, null, null, result).asObjectable();
 		display("account from provisioning", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
 //		assertEquals("will", provisioningAccountType.getName());

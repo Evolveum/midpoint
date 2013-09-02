@@ -186,7 +186,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, accountType.getName());
 //		assertEquals("will", accountType.getName());
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result).asObjectable();
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, provisioningAccountType.getName());
 //		assertEquals("will", provisioningAccountType.getName());
 		
@@ -219,7 +219,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
 		Task task = taskManager.createTaskInstance();
 		// WHEN
-		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		
 		// THEN
 		result.computeStatus();
