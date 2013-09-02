@@ -67,6 +67,9 @@ This resource definition contains only the very basic definitions for midPoint t
   				<icfcad:SyncGlobalCatalogServer>null</icfcad:SyncGlobalCatalogServer>
 				<icfcad:SyncDomainController>null</icfcad:SyncDomainController>
 			</icfc:configurationProperties>
+            <icfc:resultsHandlerConfiguration>  <!-- currently this requires latest Evolveum version of .net connector server -->
+                <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+            </icfc:resultsHandlerConfiguration>
 
 		</connectorConfiguration>
 

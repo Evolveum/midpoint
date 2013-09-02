@@ -69,7 +69,12 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcad:SyncDomainController>null</icfcad:SyncDomainController>
 			</icfc:configurationProperties>
 
-		</connectorConfiguration>
+            <icfc:resultsHandlerConfiguration>  <!-- currently this requires latest Evolveum version of .net connector server -->
+                <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+            </icfc:resultsHandlerConfiguration>
+
+
+        </connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint

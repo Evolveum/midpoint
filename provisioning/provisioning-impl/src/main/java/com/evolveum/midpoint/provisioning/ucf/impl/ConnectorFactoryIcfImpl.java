@@ -139,7 +139,17 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION, "TimeoutsType");
 
-	static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<String, Class<? extends APIOperation>>();
+    public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME = "resultsHandlerConfiguration";
+    public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+            CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
+    public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE = new QName(NS_ICF_CONFIGURATION,
+            "ResultsHandlerConfigurationType");
+    public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER = "enableNormalizingResultsHandler";
+    public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER = "enableFilteredResultsHandler";
+    public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER = "enableCaseInsensitiveFilter";
+    public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER = "enableAttributesToGetSearchResultsHandler";
+
+    static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<String, Class<? extends APIOperation>>();
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";

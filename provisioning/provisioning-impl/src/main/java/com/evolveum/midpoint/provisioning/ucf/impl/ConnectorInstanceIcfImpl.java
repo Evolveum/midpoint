@@ -42,6 +42,7 @@ import org.identityconnectors.framework.api.ConfigurationProperty;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
+import org.identityconnectors.framework.api.ResultsHandlerConfiguration;
 import org.identityconnectors.framework.api.operations.APIOperation;
 import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
@@ -346,6 +347,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		configurationContainerDef.createContainerDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
+        configurationContainerDef.createContainerDefinition(
+                ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT,
+                ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE, 0, 1);
 
 		// No need to create definition of "configuration" element.
 		// midPoint will look for this element, but it will be generated as part
@@ -2437,6 +2441,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME));
 		transformConnectorTimeoutsConfiguration(apiConfig, connectorTimeoutsContainer);
 
+        PrismContainer resultsHandlerConfigurationContainer = configuration.findContainer(new QName(
+                ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
+                ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME));
+        ResultsHandlerConfiguration resultsHandlerConfiguration = apiConfig.getResultsHandlerConfiguration();
+        transformResultsHandlerConfiguration(resultsHandlerConfiguration, resultsHandlerConfigurationContainer);
+
 		if (numConfingProperties == 0) {
 			throw new SchemaException("No configuration properties found. Wrong namespace? (expected: "
 					+ connectorConfNs + ")");
@@ -2559,7 +2569,47 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private int parseInt(PrismProperty<?> prop) {
+    private void transformResultsHandlerConfiguration(ResultsHandlerConfiguration resultsHandlerConfiguration,
+                                                     PrismContainer<?> resultsHandlerConfigurationContainer) throws SchemaException {
+
+        if (resultsHandlerConfigurationContainer == null || resultsHandlerConfigurationContainer.getValue() == null) {
+            return;
+        }
+
+        for (PrismProperty prismProperty : resultsHandlerConfigurationContainer.getValue().getProperties()) {
+            QName propertyQName = prismProperty.getName();
+            if (propertyQName.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)) {
+                String subelementName = propertyQName.getLocalPart();
+                if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER
+                        .equals(subelementName)) {
+                    resultsHandlerConfiguration.setEnableNormalizingResultsHandler(parseBoolean(prismProperty));
+                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER
+                        .equals(subelementName)) {
+                    resultsHandlerConfiguration.setEnableFilteredResultsHandler(parseBoolean(prismProperty));
+                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER
+                        .equals(subelementName)) {
+                    resultsHandlerConfiguration.setEnableCaseInsensitiveFilter(parseBoolean(prismProperty));
+                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER
+                        .equals(subelementName)) {
+                    resultsHandlerConfiguration.setEnableAttributesToGetSearchResultsHandler(parseBoolean(prismProperty));
+                } else {
+                    throw new SchemaException(
+                            "Unexpected element "
+                                    + propertyQName
+                                    + " in "
+                                    + ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
+                }
+            } else {
+                throw new SchemaException(
+                        "Unexpected element "
+                                + propertyQName
+                                + " in "
+                                + ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
+            }
+        }
+    }
+
+    private int parseInt(PrismProperty<?> prop) {
 		return prop.getRealValue(Integer.class);
 	}
 
@@ -2574,7 +2624,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private Object convertToIcfSingle(PrismProperty<?> configProperty, Class<?> expectedType)
+    private boolean parseBoolean(PrismProperty<?> prop) {
+        return prop.getRealValue(Boolean.class);
+    }
+
+    private Object convertToIcfSingle(PrismProperty<?> configProperty, Class<?> expectedType)
 			throws ConfigurationException {
 		if (configProperty == null) {
 			return null;

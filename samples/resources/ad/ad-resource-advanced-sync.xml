@@ -70,6 +70,11 @@ This resource definition contains only the very basic definitions for midPoint t
 		<icfcad:SyncDomainController>localhost</icfcad:SyncDomainController><!-- hostname of DC to look up for changes when synchronizing -->
             </icfc:configurationProperties>
 
+            <icfc:resultsHandlerConfiguration>  <!-- currently this requires latest Evolveum version of .net connector server -->
+                <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+            </icfc:resultsHandlerConfiguration>
+
+
         </connectorConfiguration>
 
         <!-- Resource schema definition.

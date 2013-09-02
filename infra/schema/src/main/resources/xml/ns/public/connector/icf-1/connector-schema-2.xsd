@@ -178,6 +178,64 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-	
+
+    <xsd:complexType name="ResultsHandlerConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type that contains configuration of ICF results handlers.
+
+                There is a default consisting of these handlers: NormalizingResultsHandler, FilteredResultsHandler, AttributesToGetSearchResultsHandler.
+
+                This configuration allow to overconfigure the chain. E.g. to enable case-sensitive searches.
+
+                (This configuration is common for all ICF connectors, therefore it may be part of a static schema.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enableNormalizingResultsHandler" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enableFilteredResultsHandler" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enableCaseInsensitiveFilter" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enableAttributesToGetSearchResultsHandler" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="resultsHandlerConfiguration" type="tns:ResultsHandlerConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Element that contains configuration of ICF results handlers.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
