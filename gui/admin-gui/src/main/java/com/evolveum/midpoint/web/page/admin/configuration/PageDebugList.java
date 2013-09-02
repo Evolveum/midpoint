@@ -19,8 +19,10 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -410,8 +413,11 @@ public class PageDebugList extends PageAdminConfiguration {
         RepositoryObjectDataProvider provider = getTableDataProvider();
         if (StringUtils.isNotEmpty(nameText)) {
             try {
+                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+                String normalizedString = normalizer.normalize(nameText);
+
                 ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.class, getPrismContext(),
-                        ObjectType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), nameText);
+                        ObjectType.F_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString);
                 ObjectQuery query = new ObjectQuery();
                 query.setFilter(substring);
                 provider.setQuery(query);

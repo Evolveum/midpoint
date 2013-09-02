@@ -102,7 +102,7 @@ public final class Utils {
         }
 
         ObjectReferenceType resourceRef = shadow.getResourceRef();
-        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, result).asObjectable();
+        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, null, result).asObjectable();
     }
     
 	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 

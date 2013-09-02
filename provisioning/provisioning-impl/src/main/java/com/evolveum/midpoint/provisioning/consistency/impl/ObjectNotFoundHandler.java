@@ -247,7 +247,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				subResult.muteError();
 			}
 			if (oid != null) {
-				PrismObject prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, result);
+				PrismObject prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
 				shadow = (T) prismShadow.asObjectable();
 				parentResult.recordHandledError("Account was re-created by the discovery.");
 				result.computeStatus();

@@ -144,7 +144,7 @@ public class ReconciliationProcessor {
 			if (!accContext.isFullShadow()) {
 				// We need to load the object
 				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-						accContext.getOid(), GetOperationOptions.createDoNotDiscovery(), result);
+						accContext.getOid(), GetOperationOptions.createDoNotDiscovery(), null, result);
 				ShadowType oldShadow = objectOld.asObjectable();
 				accContext.determineFullShadowFlag(oldShadow.getFetchResult());
 				accContext.setLoadedObject(objectOld);

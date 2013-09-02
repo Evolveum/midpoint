@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -83,14 +84,14 @@ public class ModelObjectResolver implements ObjectResolver {
 				if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
 					expectedType = (Class<O>) typeClass;
 				}
-				return getObjectSimple(expectedType, oid, null, result);
+				return getObjectSimple(expectedType, oid, null, null, result);
 	}
 	
-	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, OperationResult result) throws ObjectNotFoundException {
-		return resolve(refVal, string, null, result);
+	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {
+		return resolve(refVal, string, null, task, result);
 	}
 
-	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, 
+	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task, 
 			OperationResult result) throws ObjectNotFoundException {
 		String oid = refVal.getOid();
 		Class<?> typeClass = ObjectType.class;
@@ -102,13 +103,13 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (typeQName != null) {
 			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 		}
-		return ((ObjectType) getObjectSimple((Class)typeClass, oid, options, result)).asPrismObject();
+		return ((ObjectType) getObjectSimple((Class)typeClass, oid, options, task, result)).asPrismObject();
 	}
 	
-	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, 
+	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task, 
 			OperationResult result) throws ObjectNotFoundException {
 		try {
-			return getObject(clazz, oid, options, result);
+			return getObject(clazz, oid, options, task, result);
 		} catch (SystemException ex) {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
@@ -122,13 +123,13 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 	}
 	
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, GetOperationOptions options, 
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, GetOperationOptions options, Task task,  
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;
 			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
-				object = provisioning.getObject(clazz, oid, options, result);
+				object = provisioning.getObject(clazz, oid, options, task, result);
 				if (object == null) {
 					throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
 							+" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());

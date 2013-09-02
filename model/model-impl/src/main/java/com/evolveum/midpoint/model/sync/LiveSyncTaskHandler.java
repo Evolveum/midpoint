@@ -93,7 +93,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	        ResourceType resource = null;
 	        try {
 
-	            resource = provisioningService.getObject(ResourceType.class, resourceOid, null, opResult).asObjectable();
+	            resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, opResult).asObjectable();
 
 	        } catch (ObjectNotFoundException ex) {
 	            LOGGER.error("Live Sync: Resource {} not found: {}", new Object[]{resourceOid, ex.getMessage(), ex});

@@ -246,7 +246,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
         T objectType;
         try {
 
-        	objectType = modelObjectResolver.getObject(type, objectOid, null, opResult);
+        	objectType = modelObjectResolver.getObject(type, objectOid, null, task, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Import: {} {} not found: {}", new Object[]{typeName, objectOid, ex.getMessage(), ex});

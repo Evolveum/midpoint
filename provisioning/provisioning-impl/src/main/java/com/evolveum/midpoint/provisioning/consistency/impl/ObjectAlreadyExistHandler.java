@@ -90,6 +90,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			resourceAccount = foundAccount.get(0);
 		}
 
+		try{
 		if (resourceAccount != null) {
 			// Original object and found object share the same object class, therefore they must
 			// also share a kind. We can use this short-cut.
@@ -99,9 +100,9 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 //			Task task = taskManager.createTaskInstance();
 			changeNotificationDispatcher.notifyChange(change, task, operationResult);
 		}
-
+		} finally {
 		operationResult.computeStatus();
-
+		}
 		if (operationResult.isSuccess()) {
 			parentResult.recordSuccess();
 			parentResult.muteLastSubresultError();

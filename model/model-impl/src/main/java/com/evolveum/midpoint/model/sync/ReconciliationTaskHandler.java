@@ -149,7 +149,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		PrismObject<ResourceType> resource;
 		try {
-			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, opResult);
+			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, opResult);
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
 			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, progress, null, task, opResult);
@@ -376,7 +376,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
-			provisioningService.getObject(ShadowType.class, shadow.getOid(), null, opResult);
+			provisioningService.getObject(ShadowType.class, shadow.getOid(), null, task, opResult);
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
 			reactShadowGone(shadow, resource, task, opResult);

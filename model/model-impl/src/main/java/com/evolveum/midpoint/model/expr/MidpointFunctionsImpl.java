@@ -382,12 +382,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
     
     public <O extends ObjectType> O getObject(Class<O> type, String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-    	return modelObjectResolver.getObject(type, oid, null, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
+    	return modelObjectResolver.getObject(type, oid, null, null, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
     }
     
     public <T> int countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
-    	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, result);
+    	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
     	return countAccounts(resourceType, attributeName, attributeValue, result);
     }
     

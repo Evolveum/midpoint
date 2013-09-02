@@ -224,7 +224,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             Utils.clearRequestee(task);
-            object = objectResolver.getObject(clazz, oid, rootOptions, result).asPrismObject();
+            object = objectResolver.getObject(clazz, oid, rootOptions, task, result).asPrismObject();
 
 			resolve(object, options, task, result);
 		} catch (SchemaException e) {
@@ -297,7 +297,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		for (PrismReferenceValue refVal: reference.getValues()) {
 			PrismObject<?> refObject = refVal.getObject();
 			if (refObject == null) {
-				refObject = objectResolver.resolve(refVal, object.toString(), option.getOptions(), result);
+				refObject = objectResolver.resolve(refVal, object.toString(), option.getOptions(), task, result);
 				refVal.setObject(refObject);
 			}
 			if (!rest.isEmpty()) {
@@ -439,7 +439,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		try {
 
             Utils.clearRequestee(task);
-			PrismObject<F> focus = objectResolver.getObject(type, oid, null, result).asPrismContainer();
+			PrismObject<F> focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
 			
 			LOGGER.trace("Recomputing {}", focus);
 
