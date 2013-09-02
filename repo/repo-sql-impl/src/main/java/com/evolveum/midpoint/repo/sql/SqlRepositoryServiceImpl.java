@@ -737,19 +737,32 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         Session session = null;
         try {
-            session = beginReadOnlyTransaction();
-            LOGGER.trace("Updating query criteria.");
-            Criteria criteria;
-            if (query != null && query.getFilter() != null) {
-                QueryInterpreter interpreter = new QueryInterpreter();
-                criteria = interpreter.interpret(query, type, null, getPrismContext(), true, session);
-            } else {
-                criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-            }
-            criteria.setProjection(Projections.rowCount());
+            Class<? extends RObject> hqlType = ClassMapper.getHQLTypeClass(type);
 
-            LOGGER.trace("Selecting total count.");
-            Long longCount = (Long) criteria.uniqueResult();
+            session = beginReadOnlyTransaction();
+            Long longCount;
+            if (query == null || query.getFilter() == null) {
+                // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
+                // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
+                MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
+                String table = namingStrategy.classToTableName(hqlType.getSimpleName());
+                SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + table);
+                Number n = (Number) sqlQuery.uniqueResult();
+                longCount = n.longValue();
+            } else {
+                LOGGER.trace("Updating query criteria.");
+                Criteria criteria;
+                if (query != null && query.getFilter() != null) {
+                    QueryInterpreter interpreter = new QueryInterpreter();
+                    criteria = interpreter.interpret(query, type, null, getPrismContext(), true, session);
+                } else {
+                    criteria = session.createCriteria(hqlType);
+                }
+                criteria.setProjection(Projections.rowCount());
+
+                LOGGER.trace("Selecting total count.");
+                longCount = (Long) criteria.uniqueResult();
+            }
             count = longCount.intValue();
         } catch (QueryException ex) {
             handleGeneralCheckedException(ex, session, result);
