@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
@@ -190,23 +191,20 @@ public class PageRole extends PageAdminRoles {
         }
 
         OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
+        Holder<PrismObject<RoleType>> objectHolder = new Holder<PrismObject<RoleType>>(null);
+        validateObject(dto.getXml(), objectHolder, true, result);
         try {
         	Task task = createSimpleTask(OPERATION_SAVE_ROLE);
+            PrismObject<RoleType> newRole = objectHolder.getValue();
+
             if (!isEditing()) {
                 //we're adding new role
-                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-                PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
-
                 ObjectDelta delta = ObjectDelta.createAddDelta(newRole);
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             } else {
                 //we're editing existing role
-                PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
                 PrismObject<RoleType> oldRole = dto.getObject();
-                PrismObject<RoleType> newRole = domProcessor.parseObject(dto.getXml(), RoleType.class);
-
                 ObjectDelta<RoleType> delta = oldRole.diff(newRole);
-
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
             }
         } catch (Exception ex) {

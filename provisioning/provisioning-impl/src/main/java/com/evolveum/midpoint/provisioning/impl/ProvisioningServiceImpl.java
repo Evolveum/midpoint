@@ -339,7 +339,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					result.recordSuccess();
 				}
 				result.cleanupResult(ex);
-				throw new ObjectAlreadyExistsException("Could't add object. Object already exists: " + ex.getMessage(),
+				throw new ObjectAlreadyExistsException("Couldn't add object. Object already exists: " + ex.getMessage(),
 						ex);
 			} catch (ConfigurationException ex) {
 				recordFatalError(LOGGER, result, "Couldn't add object. Configuration error: " + ex.getMessage(), ex);
