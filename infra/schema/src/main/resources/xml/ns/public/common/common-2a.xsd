@@ -4786,7 +4786,7 @@
                                 Version of the connector. Used only for display purposes and for searching during imports. Therefore it
                                 may be any (sensible) string, but it should be reasonably stable to avoid broken imports.
 
-                                May be any string (numberic convention is recommended, but not required).
+                                May be any string (numeric convention is recommended, but not required).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4853,7 +4853,7 @@
                                 as host names, ports, administrator names and so on.
 
                                 Connector schema is only
-                                available at run-time and may be diffrent
+                                available at run-time and may be different
                                 for every connector. It is supposed to be
                                 dynamically interpreted in run-time.
 

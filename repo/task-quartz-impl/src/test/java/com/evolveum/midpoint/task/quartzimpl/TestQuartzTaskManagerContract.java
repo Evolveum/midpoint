@@ -1312,6 +1312,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final OperationResult result = createResult(test);
 
         Task task = taskManager.createTaskInstance();
+        task.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
         PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
         task.setOwner(owner2);
         AssertJUnit.assertEquals("Task result for new task is not correct", OperationResultStatus.UNKNOWN, task.getResult().getStatus());
