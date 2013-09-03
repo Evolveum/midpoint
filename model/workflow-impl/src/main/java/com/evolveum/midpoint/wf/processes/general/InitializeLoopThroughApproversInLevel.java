@@ -169,7 +169,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
     }
 
     private ExpressionFactory getExpressionFactory() {
-        LOGGER.info("Getting expressionFactory");
+        LOGGER.trace("Getting expressionFactory");
         ExpressionFactory ef = SpringApplicationContextHolder.getApplicationContext().getBean("expressionFactory", ExpressionFactory.class);
         if (ef == null) {
             throw new IllegalStateException("expressionFactory bean cannot be found");

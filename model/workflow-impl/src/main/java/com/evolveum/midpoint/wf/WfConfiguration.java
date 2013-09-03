@@ -63,9 +63,9 @@ public class WfConfiguration implements BeanFactoryAware {
     public static final String KEY_AUTO_DEPLOYMENT_FROM = "autoDeploymentFrom";
     public static final String KEY_ALLOW_APPROVE_OTHERS_ITEMS = "allowApproveOthersItems";
 
-    public static final String[] KNOWN_KEYS = { "midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
+    public static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
             KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
-            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS, CHANGE_PROCESSORS_SECTION };
+            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS, CHANGE_PROCESSORS_SECTION);
 
     @Autowired(required = true)
     private MidpointConfiguration midpointConfiguration;
@@ -160,8 +160,8 @@ public class WfConfiguration implements BeanFactoryAware {
         validate();
     }
 
-    public void checkAllowedKeys(Configuration c, String[] knownKeys) {
-        Set<String> knownKeysSet = new HashSet<String>(knownKeys.length);
+    public void checkAllowedKeys(Configuration c, List<String> knownKeys) {
+        Set<String> knownKeysSet = new HashSet<String>(knownKeys.size());
         for (String key : knownKeys) {
             knownKeysSet.add(key);
         }

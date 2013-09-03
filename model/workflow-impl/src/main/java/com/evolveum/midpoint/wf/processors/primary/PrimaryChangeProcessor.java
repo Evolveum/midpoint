@@ -33,14 +33,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
-import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.taskHandlers.WfPropagateTaskObjectReferenceTaskHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
@@ -48,15 +47,12 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -64,16 +60,15 @@ import java.util.Map;
 /**
  * @author mederly
  */
-public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNameAware, BeanFactoryAware {
+public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
     public static final String UNKNOWN_OID = "?";
 
-    private static final String KEY_ENABLED = "enabled";
     private static final String KEY_WRAPPER = "wrapper";
 
-    private static final String[] KNOWN_KEYS = { KEY_ENABLED, KEY_WRAPPER };
+    private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_WRAPPER);
 
     @Autowired
     WfTaskUtil wfTaskUtil;
@@ -84,14 +79,6 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
     @Autowired
     ProcessInstanceController processInstanceController;
 
-    @Autowired
-    private WfConfiguration wfConfiguration;
-
-    String beanName;
-
-    private BeanFactory beanFactory;
-
-    private boolean enabled;
 
     List<PrimaryApprovalProcessWrapper> processWrappers;
 
@@ -101,44 +88,33 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
 
     @PostConstruct
     public void init() {
-        Validate.notNull(beanName, "Bean name was not set correctly.");
+        initializeBaseProcessor(LOCALLY_KNOWN_KEYS);
         processWrappers = getPrimaryChangeProcessorWrappers();
         for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
             processWrapper.setChangeProcessor(this);
         }
     }
 
-    public List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers() {
+    private List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers() {
+
+        Configuration c = getProcessorConfiguration();
 
         List<PrimaryApprovalProcessWrapper> retval = new ArrayList<PrimaryApprovalProcessWrapper>();
 
-        Configuration c = wfConfiguration.getChangeProcessorsConfig().subset(beanName);
-        if (c.isEmpty()) {
-            LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors or is empty.");
-            return retval;
-        }
-
-        wfConfiguration.checkAllowedKeys(c, KNOWN_KEYS);
-
-        enabled = c.getBoolean(KEY_ENABLED, true);
-        if (!enabled) {
-            LOGGER.info("Primary change processor " + beanName + " is DISABLED.");
-        }
-
         String[] wrappers = c.getStringArray(KEY_WRAPPER);
         if (wrappers == null || wrappers.length == 0) {
-            LOGGER.warn("No wrappers defined for primary change processor " + beanName);
+            LOGGER.warn("No wrappers defined for primary change processor " + getBeanName());
         } else {
             for (String wrapperName : wrappers) {
                 LOGGER.trace("Searching for wrapper " + wrapperName);
                 try {
-                    PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) beanFactory.getBean(wrapperName);
+                    PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) getBeanFactory().getBean(wrapperName);
                     retval.add(wrapper);
                 } catch(BeansException e) {
                     throw new SystemException("Process wrapper " + wrapperName + " could not be found.", e);
                 }
             }
-            LOGGER.debug("Resolved " + retval.size() + " process wrappers for primary change processor " + beanName);
+            LOGGER.debug("Resolved " + retval.size() + " process wrappers for primary change processor " + getBeanName());
         }
         return retval;
     }
@@ -501,20 +477,5 @@ public abstract class PrimaryChangeProcessor implements ChangeProcessor, BeanNam
         return wrapper.getProcessInstanceDetailsPanelName(processInstance);
     }
 
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    @Override
-    public void setBeanName(String name) {
-        LOGGER.trace("Setting bean name to {}", name);
-        this.beanName = name;
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
 
 }

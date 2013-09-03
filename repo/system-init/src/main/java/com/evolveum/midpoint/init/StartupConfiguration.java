@@ -34,6 +34,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String MIDPOINT_HOME = "midpoint.home";
 
     private CompositeConfiguration config = null;
+    private XMLConfiguration xmlConfig = null;          // just in case when we need to access original XML document
     private String configFilename = null;
 
     /**
@@ -105,6 +106,11 @@ public class StartupConfiguration implements MidpointConfiguration {
             }
         }
         return sub;
+    }
+
+    @Override
+    public XMLConfiguration getXmlConfiguration() {
+        return xmlConfig;
     }
 
     /**
@@ -192,7 +198,8 @@ public class StartupConfiguration implements MidpointConfiguration {
                 this.setConfigFilename(path);
                 //Load and parse properties
                 config.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
-                config.addConfiguration(new XMLConfiguration(this.getConfigFilename()));
+                xmlConfig = new XMLConfiguration(this.getConfigFilename());
+                config.addConfiguration(xmlConfig);
 
             } catch (ConfigurationException e) {
                 LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
@@ -203,7 +210,8 @@ public class StartupConfiguration implements MidpointConfiguration {
         } else {
             // Load from class path
             try {
-                config.addConfiguration(new XMLConfiguration(this.getConfigFilename()));
+                xmlConfig = new XMLConfiguration(this.getConfigFilename());
+                config.addConfiguration(xmlConfig);
             } catch (ConfigurationException e) {
                 LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
                 System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:"

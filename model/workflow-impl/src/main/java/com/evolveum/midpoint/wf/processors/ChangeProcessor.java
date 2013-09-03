@@ -79,5 +79,9 @@ public interface ChangeProcessor {
 
     String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
 
+    /**
+     * Checks whether this change processor is enabled (typically, using the midpoint configuration file).
+     * @return true if enabled, false if not
+     */
     boolean isEnabled();
 }
