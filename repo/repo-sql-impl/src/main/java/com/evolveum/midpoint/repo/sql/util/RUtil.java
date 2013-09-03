@@ -555,10 +555,10 @@ public final class RUtil {
 
             RetrieveOption retrieveOption = option.getOptions().getRetrieve();
             switch (retrieveOption) {
-                case INCLUDE:
-                    return true;
                 case EXCLUDE:
+                case DEFAULT:
                     return false;
+                case INCLUDE:
                 default:
                     return true;
             }

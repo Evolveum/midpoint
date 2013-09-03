@@ -43,7 +43,7 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Override
     public void initSystem() throws Exception {
-        OperationResult result = new OperationResult("{Partial loading");
+        OperationResult result = new OperationResult("Partial loading");
         USER_OIDS = addUsers(1, result);
         result.recomputeStatus();
 
@@ -61,9 +61,10 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
         //join with container, object, focus, any, operation_result, metadata
         AssertJUnit.assertEquals(6, StringUtils.countMatches(mainSql, "join"));
 
-        mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, null, true);
+        mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, options, true);
         AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
 
+        LOGGER.debug(">>> REAL SEARCH");
         //real search - 9 selects
         repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options,
                 new OperationResult("asdf"));
@@ -79,12 +80,35 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 
         String mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, options, false);
-        //join with container, object, focus, any
+        //join with container, object, focus, any, operation_result, metadata
         AssertJUnit.assertEquals(6, StringUtils.countMatches(mainSql, "join"));
 
-        mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, null, true);
+        mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, options, true);
         AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
 
+        LOGGER.debug(">>> REAL SEARCH");
+        //real search
+        repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options,
+                new OperationResult("asdf"));
+    }
+
+    @Test
+    public void searchUserDefaultPath() throws Exception {
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
+                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
+                GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT)));
+
+        String mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, options, false);
+        //join with container, object, focus, any
+        AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
+
+        mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, options, true);
+        AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
+
+        LOGGER.debug(">>> REAL SEARCH");
         //real search
         repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options,
                 new OperationResult("asdf"));
@@ -107,6 +131,7 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
         mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, null, true);
         AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
 
+        LOGGER.debug(">>> REAL SEARCH");
         //real search
         repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options,
                 new OperationResult("asdf"));
@@ -128,6 +153,7 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
         mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, null, true);
         AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
 
+        LOGGER.debug(">>> REAL SEARCH");
         //real search
         repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options,
                 new OperationResult("asdf"));
@@ -149,6 +175,7 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
         mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, null, true);
         AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
 
+        LOGGER.debug(">>> REAL SEARCH");
         //real search
         repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options,
                 new OperationResult("asdf"));
@@ -172,6 +199,7 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
         mainSql = getInterpreted(ObjectQuery.createObjectQuery(filter), UserType.class, null, true);
         AssertJUnit.assertEquals(4, StringUtils.countMatches(mainSql, "join"));
 
+        LOGGER.debug(">>> REAL SEARCH");
         //real search
         repositoryService.searchObjects(UserType.class, ObjectQuery.createObjectQuery(filter), options,
                 new OperationResult("asdf"));

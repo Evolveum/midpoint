@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -79,8 +80,13 @@ public class RepositoryObjectDataProvider
 			}
 			query.setPaging(paging);
 
-            List<PrismObject<? extends ObjectType>> list = getModel().searchObjects((Class) type, query,
-                    SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
+            //RAW and DEFAULT retrieve option selected
+            Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+            GetOperationOptions opt = GetOperationOptions.createRaw();
+            opt.setRetrieve(RetrieveOption.DEFAULT);
+            options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
+
+            List<PrismObject<? extends ObjectType>> list = getModel().searchObjects((Class) type, query, options,
                     getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {
                 getAvailableData().add(createItem(object, result));
