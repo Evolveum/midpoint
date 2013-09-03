@@ -946,7 +946,7 @@ public class PageLogging extends PageAdminConfiguration {
 			for (AppenderConfiguration appender : dto.getAppenders()) {
 				appender.setEditing(false);
 			}
-			result.recordSuccess();
+			result.computeStatusIfUnknown();
 		} catch (Exception ex) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save logging configuration.", ex);
