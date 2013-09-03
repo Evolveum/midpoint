@@ -112,27 +112,42 @@ public class PrismObjectPanel extends Panel {
      * @return true if panel should look like its' object is disabled (strike through font).
      */
     public boolean isDisabled(ObjectWrapper wrapper) {
-        PrismObject object = wrapper.getObject();
+//        PrismObject object = wrapper.getObject();
+//
+//        if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
+//            ActivationStatusType status = getActivationStatus(object, ActivationType.F_EFFECTIVE_STATUS);
+//            return ActivationStatusType.DISABLED.equals(status);
+//        } else if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+//            ActivationStatusType status = getActivationStatus(object, ActivationType.F_ADMINISTRATIVE_STATUS);
+//            return ActivationStatusType.DISABLED.equals(status);
+//        }
 
-        if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            ActivationStatusType status = getActivationStatus(object, ActivationType.F_EFFECTIVE_STATUS);
-            return ActivationStatusType.DISABLED.equals(status);
-        } else if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            ActivationStatusType status = getActivationStatus(object, ActivationType.F_ADMINISTRATIVE_STATUS);
-            return ActivationStatusType.DISABLED.equals(status);
+        // attempt to fix MID-1580
+        ContainerWrapper activation = wrapper.findContainerWrapper(new ItemPath(
+                ShadowType.F_ACTIVATION));
+        if (activation == null) {
+            return false;
         }
-
-        return false;
+        PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
+        if (enabledProperty == null || enabledProperty.getValues().isEmpty()) {
+            return false;
+        }
+        ValueWrapper value = enabledProperty.getValues().get(0);
+        if (value.getValue() == null) {
+            return false;
+        }
+        ActivationStatusType status = (ActivationStatusType) value.getValue().getValue();
+        return ActivationStatusType.DISABLED.equals(status);
     }
 
-    private ActivationStatusType getActivationStatus(PrismObject object, QName property) {
-        PrismProperty prismProperty = object.findProperty(new ItemPath(ShadowType.F_ACTIVATION, property));
-        if (prismProperty == null || prismProperty.isEmpty()) {
-            return null;
-        }
-
-        return (ActivationStatusType) prismProperty.getRealValue();
-    }
+//    private ActivationStatusType getActivationStatus(PrismObject object, QName property) {
+//        PrismProperty prismProperty = object.findProperty(new ItemPath(ShadowType.F_ACTIVATION, property));
+//        if (prismProperty == null || prismProperty.isEmpty()) {
+//            return null;
+//        }
+//
+//        return (ActivationStatusType) prismProperty.getRealValue();
+//    }
 
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
