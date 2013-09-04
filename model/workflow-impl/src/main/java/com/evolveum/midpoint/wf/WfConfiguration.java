@@ -161,15 +161,18 @@ public class WfConfiguration implements BeanFactoryAware {
     }
 
     public void checkAllowedKeys(Configuration c, List<String> knownKeys) {
-        Set<String> knownKeysSet = new HashSet<String>(knownKeys.size());
-        for (String key : knownKeys) {
-            knownKeysSet.add(key);
-        }
+        Set<String> knownKeysSet = new HashSet<String>(knownKeys);
 
         Iterator<String> keyIterator = c.getKeys();
-        while (keyIterator.hasNext()) {
+        while (keyIterator.hasNext())  {
             String keyName = keyIterator.next();
-            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(StringUtils.substringBefore(keyName, "."))) {
+            String normalizedKeyName = StringUtils.substringBefore(keyName, ".");                       // because of subkeys
+            normalizedKeyName = StringUtils.substringBefore(normalizedKeyName, "[");                    // because of [@xmlns:c]
+            int colon = normalizedKeyName.indexOf(':');                                                 // because of c:generalChangeProcessorConfiguration
+            if (colon != -1) {
+                normalizedKeyName = normalizedKeyName.substring(colon + 1);
+            }
+            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {         // ...we need to test both because of keys like 'midpoint.home'
                 throw new SystemException("Unknown key " + keyName + " in workflow configuration");
             }
         }

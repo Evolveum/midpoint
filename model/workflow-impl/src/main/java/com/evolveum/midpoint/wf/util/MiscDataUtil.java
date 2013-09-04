@@ -21,11 +21,14 @@ import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -52,6 +55,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 import java.util.Map;
 
 /**
@@ -169,6 +173,14 @@ public class MiscDataUtil {
         }
     }
 
+    public static String serializeContainerableToXml(Containerable containerable, PrismContext prismContext) {
+        try {
+            return prismContext.getPrismJaxbProcessor().marshalContainerableToString(containerable);
+        } catch (JAXBException e) {
+            throw new SystemException("Couldn't serialize a Containerable " + containerable + " into XML", e);
+        }
+    }
+
     public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
         try {
             return prismContext.getPrismJaxbProcessor().unmarshalObject(xml, ObjectType.class);
@@ -176,6 +188,16 @@ public class MiscDataUtil {
             throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
+        }
+    }
+
+    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
+        try {
+            return prismContext.getPrismJaxbProcessor().unmarshalSingleValueContainer(xml, Containerable.class);
+        } catch (JAXBException e) {
+            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
         }
     }
 

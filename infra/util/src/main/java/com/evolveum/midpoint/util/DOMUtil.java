@@ -163,17 +163,23 @@ public class DOMUtil {
         return document;
     }
 
-	public static Document parseDocument(String doc) {
+    public static DocumentBuilder createDocumentBuilder() {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        try {
+            return factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException("Error creating document builder " + e.getMessage(), e);
+        }
+    }
+
+    public static Document parseDocument(String doc) {
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			DocumentBuilder loader = factory.newDocumentBuilder();
+			DocumentBuilder loader = createDocumentBuilder();
 			return loader.parse(IOUtils.toInputStream(doc, "utf-8"));
 		} catch (SAXException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		} catch (IOException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
-		} catch (ParserConfigurationException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
@@ -1097,5 +1103,4 @@ public class DOMUtil {
 	public static void setNill(Element element) {
 		element.setAttributeNS(XSI_NIL.getNamespaceURI(), XSI_NIL.getLocalPart(), "true");
 	}
-
 }

@@ -17,11 +17,13 @@ package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.*;
 import org.apache.commons.lang.NotImplementedException;
 
+import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -174,6 +176,8 @@ public class StartupConfiguration implements MidpointConfiguration {
             config = new CompositeConfiguration();
         }
 
+        DocumentBuilder documentBuilder = DOMUtil.createDocumentBuilder();          // we need namespace-aware document builder (see GeneralChangeProcessor.java)
+
         /* configuration logic */
         // load from midpoint.home
         if (null != System.getProperty(MIDPOINT_HOME)) {
@@ -198,9 +202,7 @@ public class StartupConfiguration implements MidpointConfiguration {
                 this.setConfigFilename(path);
                 //Load and parse properties
                 config.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
-                xmlConfig = new XMLConfiguration(this.getConfigFilename());
-                config.addConfiguration(xmlConfig);
-
+                createXmlConfiguration(documentBuilder);
             } catch (ConfigurationException e) {
                 LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
                 System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:"
@@ -210,14 +212,21 @@ public class StartupConfiguration implements MidpointConfiguration {
         } else {
             // Load from class path
             try {
-                xmlConfig = new XMLConfiguration(this.getConfigFilename());
-                config.addConfiguration(xmlConfig);
+                createXmlConfiguration(documentBuilder);
             } catch (ConfigurationException e) {
                 LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
                 System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:"
                         + e.getMessage());
             }
         }
+    }
+
+    private void createXmlConfiguration(DocumentBuilder documentBuilder) throws ConfigurationException {
+        xmlConfig = new XMLConfiguration();
+        xmlConfig.setDocumentBuilder(documentBuilder);
+        xmlConfig.setFileName(this.getConfigFilename());
+        xmlConfig.load();
+        config.addConfiguration(xmlConfig);
     }
 
     @Override

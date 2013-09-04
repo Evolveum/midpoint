@@ -36,6 +36,9 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
@@ -312,6 +315,14 @@ public class PrismJaxbProcessor {
         return marshalObjectToDom(jaxbObject, elementQName, (Document) null);
     }
 
+    public String marshalContainerableToString(Containerable containerable) throws JAXBException {
+        return marshalObjectToString(containerable, determineElementQName(containerable));
+    }
+
+    public <T> String marshalObjectToString(T jaxbObject, QName elementQName) throws JAXBException {
+        JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementQName, (Class) jaxbObject.getClass(), jaxbObject);
+        return marshalElementToString(jaxbElement);
+    }
 
     public <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
 		if (doc == null) {
@@ -439,8 +450,30 @@ public class PrismJaxbProcessor {
 		adopt(value, type);
 		return value;
 	}
-	
-	public <T> T unmarshalObject(Object domOrJaxbElement, Class<T> type) throws SchemaException {
+
+    // element name must correspond to the name that points to the container definition
+    public <T extends Containerable> PrismContainer<T> unmarshalSingleValueContainer(String stringXml, Class<T> type) throws JAXBException, SchemaException {
+        JAXBElement<T> element = unmarshalElement(stringXml, type);
+        if (element == null) {
+            return null;
+        }
+        T value = element.getValue();
+
+        // this is a bit tricky - we have to create a container and put the newly obtained value into it
+        PrismContainerValue<T> containerValue = value.asPrismContainerValue();
+        containerValue.revive(prismContext);
+        PrismContainerDefinition definition = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(element.getName());
+        if (definition == null) {
+            throw new IllegalStateException("There's no container definition for element name " + element.getName());
+        }
+        containerValue.applyDefinition(definition, false);
+        PrismContainer container = definition.instantiate();
+        container.add(containerValue);
+        return container;
+    }
+
+
+    public <T> T unmarshalObject(Object domOrJaxbElement, Class<T> type) throws SchemaException {
 		JAXBElement<T> element;
 		if (domOrJaxbElement instanceof JAXBElement<?>) {
 			element = (JAXBElement<T>) domOrJaxbElement;
@@ -643,8 +676,19 @@ public class PrismJaxbProcessor {
 		}
 		throw new IllegalStateException("Cannot determine element name of "+objectable);
 	}
-	
-	private boolean isObjectable(Class type) {
+
+    private QName determineElementQName(Containerable containerable) {
+        PrismContainerValue prismContainerValue = containerable.asPrismContainerValue();
+        PrismContainerDefinition<?> definition = prismContainerValue.getParent() != null ? prismContainerValue.getParent().getDefinition() : null;
+        if (definition != null) {
+            if (definition.getNameOrDefaultName() != null) {
+                return definition.getNameOrDefaultName();
+            }
+        }
+        throw new IllegalStateException("Cannot determine element name of " + containerable + " (parent = " + prismContainerValue.getParent() + ", definition = " + definition + ")");
+    }
+
+    private boolean isObjectable(Class type) {
 		return Objectable.class.isAssignableFrom(type);
 	}
 	

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
-import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.taskHandlers.WfPropagateTaskObjectReferenceTaskHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -50,10 +49,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -69,16 +66,6 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     private static final String KEY_WRAPPER = "wrapper";
 
     private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_WRAPPER);
-
-    @Autowired
-    WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    TaskManager taskManager;
-
-    @Autowired
-    ProcessInstanceController processInstanceController;
-
 
     List<PrimaryApprovalProcessWrapper> processWrappers;
 
@@ -219,7 +206,20 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             if (taskObject != null && taskObject.getOid() == null) {
                 taskObject = null;
             }
-            prepareAndSaveRootTask(executionMode, contextForRootTask, rootTask, prepareTaskName(context), taskObject, result);
+
+            // handlers for root task (good to set before prepareAndSaveRootTask, as after that method
+            // the root task is stored into repository)
+
+            if (executionMode != ExecutionMode.ALL_IMMEDIATELY) {
+                rootTask.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, new ScheduleType(), null);
+                rootTask.pushHandlerUri(WfPrepareRootOperationTaskHandler.HANDLER_URI, new ScheduleType(), null);
+                try {
+                    wfTaskUtil.storeModelContext(rootTask, contextForRootTask);
+                } catch (SchemaException e) {
+                    throw new SchemaException("Couldn't put model context into root workflow task " + rootTask, e);
+                }
+            }
+            prepareAndSaveRootTask(contextForRootTask, rootTask, prepareRootTaskName(context), taskObject, result);
 
             StartProcessInstructionForPrimaryStage instruction0 = null;
             Task task0 = null;
@@ -292,21 +292,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
                 processInstanceController.startProcessInstance(instruction, childTask, result);
             }
 
-            if (LOGGER.isTraceEnabled()) {
-
-                LOGGER.trace("============ Situation just before root task starts waiting for subtasks ============");
-                LOGGER.trace("Root task = " + rootTask.dump());
-                if (wfTaskUtil.hasModelContext(rootTask)) {
-                    LOGGER.trace("Context in root task = " + wfTaskUtil.retrieveModelContext(rootTask, result).debugDump());
-                }
-                for (Task child : rootTask.listSubtasks(result)) {
-                    LOGGER.trace("Child task = " + child.dump());
-                    if (wfTaskUtil.hasModelContext(child)) {
-                        LOGGER.trace("Context in child task = " + wfTaskUtil.retrieveModelContext(child, result).debugDump());
-                    }
-                }
-                LOGGER.trace("Now the root task starts waiting for child tasks");
-            }
+            logTasksBeforeStart(rootTask, result);
 
             // resume task0, if it exists
             if (task0 != null) {
@@ -342,17 +328,6 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
 
-    private String prepareTaskName(ModelContext context) {
-
-        String operation = context.getFocusContext().getPrimaryDelta().getChangeType().toString().toLowerCase();
-        String name = MiscDataUtil.getObjectName(context);
-
-        DateFormat dateFormat = DateFormat.getDateTimeInstance();
-        String time = dateFormat.format(new Date());
-
-        return "Workflow for " + operation + " " + name + " (started " + time + ")";
-    }
-
     private LensContext prepareContextWithNoDelta(LensContext context, ObjectDelta<? extends ObjectType> changeAsPrototype) {
         LensContext contextCopy = ((LensContext) context).clone();
         contextCopy.replacePrimaryFocusDelta(
@@ -380,54 +355,6 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
         }
         return true;
-    }
-
-    private void prepareAndSaveRootTask(ExecutionMode mode, ModelContext rootContext, Task task, String defaultTaskName, PrismObject taskObject, OperationResult result) throws SchemaException {
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("prepareAndSaveRootTask starting; mode = " + mode + ", task = " + task + ", model context to be stored = " + (rootContext != null ? rootContext.debugDump() : "none"));
-        }
-
-        if (!task.isTransient()) {
-            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
-        }
-
-        if (task.getHandlerUri() != null) {
-            throw new IllegalStateException("Workflow-related task should have no handler URI at this moment; task = " + task + ", existing handler URI = " + task.getHandlerUri());
-        }
-
-        wfTaskUtil.setTaskNameIfEmpty(task, new PolyStringType(defaultTaskName));
-        task.setCategory(TaskCategory.WORKFLOW);
-
-        if (taskObject != null) {
-            task.setObjectTransient(taskObject);
-        }
-
-        // handlers
-
-        if (mode != ExecutionMode.ALL_IMMEDIATELY) {
-            task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, new ScheduleType(), null);
-            task.pushHandlerUri(WfPrepareRootOperationTaskHandler.HANDLER_URI, new ScheduleType(), null);
-            try {
-                wfTaskUtil.storeModelContext(task, rootContext);
-            } catch (SchemaException e) {
-                throw new SchemaException("Couldn't put model context into root workflow task " + task, e);
-            }
-        }
-
-        // otherwise, we put no handler here, as the sole purpose of the task is to wait for its children (if ALL_IMMEDIATELY)
-
-        // At this moment, we HAVE NOT entered wait-for-tasks state, because we have no prerequisite tasks (in this case,
-        // children) defined yet. Entering that state would result in immediate execution of this task. We have to
-        // enter this state after all children tasks are created.
-
-        task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Saving root task: " + task.dump());
-        }
-
-        taskManager.switchToBackground(task, result);
     }
 
     @Override

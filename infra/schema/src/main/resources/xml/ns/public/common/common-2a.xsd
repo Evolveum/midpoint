@@ -7895,6 +7895,29 @@
     </xsd:complexType>
     <xsd:element name="dummyNotifier" type="tns:DummyNotifierType" substitutionGroup="tns:handler" />
 
-
+    <xsd:complexType name="GeneralChangeProcessorConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for GeneralChangeProcessor (workflows).
+                We use JAXB because the structure is quite complex.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="scenario" minOccurs="0" maxOccurs="unbounded" type="tns:GeneralChangeProcessorScenarioType" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="generalChangeProcessorConfiguration" type="tns:GeneralChangeProcessorConfigurationType" />
+    <xsd:complexType name="GeneralChangeProcessorScenarioType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A scenario for GeneralChangeProcessor.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" minOccurs="0" type="xsd:string" />
+            <xsd:element name="activationCondition" minOccurs="0" maxOccurs="1" type="tns:ExpressionType" />
+            <xsd:element name="processName" minOccurs="1" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>
 
