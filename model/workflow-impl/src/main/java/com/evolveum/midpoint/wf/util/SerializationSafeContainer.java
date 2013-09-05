@@ -30,6 +30,16 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
+ * Helper class that allows putting (almost) arbitrary objects into Activiti processes.
+ *
+ * Generally, prism objects and containers and jaxb objects are stored in their XML form,
+ * allowing for safe deserialization in potentially newer version of midpoint.
+ *
+ * Other serializable items are stored as such.
+ *
+ * There's a child class (JaxbValueContainer) that allows directly retrieving XML representation of the object
+ * (if there's one).
+ *
  * @author mederly
  */
 public class SerializationSafeContainer<T> implements Serializable {
@@ -54,30 +64,34 @@ public class SerializationSafeContainer<T> implements Serializable {
     private transient PrismContext prismContext;
 
     public SerializationSafeContainer(T value, PrismContext prismContext) {
-
         Validate.notNull(prismContext, "prismContext must not be null");
-
-        this.actualValue = value;
         this.prismContext = prismContext;
+        setValue(value);
+    }
+
+    public void setValue(T value) {
+        this.actualValue = value;
 
         if (value instanceof PrismObject) {
+            checkPrismContext();
             this.valueForStorageWhenEncoded = MiscDataUtil.serializeObjectToXml((PrismObject) value, prismContext);
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.PRISM_OBJECT;
         } else if (value instanceof Containerable) {
+            checkPrismContext();
             this.valueForStorageWhenEncoded = MiscDataUtil.serializeContainerableToXml((Containerable) value, prismContext);
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.PRISM_CONTAINER;
         } else if (value != null && prismContext.getPrismJaxbProcessor().canConvert(value.getClass())) {
+            checkPrismContext();
             try {
-                //this.valueForStorageWhenEncoded = prismContext.getPrismJaxbProcessor().marshalObjectToString(value);
                 this.valueForStorageWhenEncoded = prismContext.getPrismJaxbProcessor().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));
             } catch (JAXBException e) {
                 throw new SystemException("Couldn't serialize JAXB object of type " + value.getClass(), e);
             }
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.JAXB;
-        } else {
+        } else if (value == null || value instanceof Serializable) {
             this.valueForStorageWhenNotEncoded = value;
             this.valueForStorageWhenEncoded = null;
             encodingScheme = EncodingScheme.NONE;
@@ -85,7 +99,13 @@ public class SerializationSafeContainer<T> implements Serializable {
             if (value instanceof Itemable) {
                 LOGGER.warn("Itemable value is used as not-encoded serializable item; value = " + value);
             }
+        } else {
+            throw new IllegalStateException("Attempt to put non-serializable item " + value.getClass() + " into " + this.getClass().getSimpleName());
         }
+    }
+
+    private void checkPrismContext() {
+        Validate.notNull(prismContext, "In SerializationSafeContainer the prismContext is not set up");
     }
 
     public T getValue() {

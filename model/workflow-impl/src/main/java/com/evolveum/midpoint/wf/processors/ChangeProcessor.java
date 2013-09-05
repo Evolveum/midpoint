@@ -84,4 +84,5 @@ public interface ChangeProcessor {
      * @return true if enabled, false if not
      */
     boolean isEnabled();
+
 }

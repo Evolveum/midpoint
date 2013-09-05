@@ -49,7 +49,7 @@ public interface WorkflowService {
      * @return number of relevant work items
      * @throws WorkflowException
      */
-    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws WorkflowException;
+    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws WorkflowException;
 
     /**
      * Lists work items related to a user.
@@ -62,7 +62,7 @@ public interface WorkflowService {
      * @return list of work items
      * @throws WorkflowException
      */
-    public List<WorkItem> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws WorkflowException;
+    List<WorkItem> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws WorkflowException;
 
     /**
      * Provides detailed information about a given work item (may be inefficient, so use with care).
@@ -73,18 +73,18 @@ public interface WorkflowService {
      * @throws ObjectNotFoundException
      * @throws WorkflowException
      */
-    public WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+    WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
 
     /*
      * Process instances
      * =================
      */
 
-    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException;
+    int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException;
 
-    public List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException;
+    List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException;
 
-    public ProcessInstance getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+    ProcessInstance getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
 
     /**
      * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)
@@ -111,13 +111,15 @@ public interface WorkflowService {
      * @param decision true = approve, false = reject
      * @param parentResult
      */
-    public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult);
+    void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult);
 
-    public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult result);
+    void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult result);
 
-    public void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
+    void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult);
 
-    public void deleteProcessInstance(String instanceId, OperationResult parentResult);
+    void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
+
+    void deleteProcessInstance(String instanceId, OperationResult parentResult);
 
     /*
      * MISC
@@ -127,7 +129,7 @@ public interface WorkflowService {
     public boolean isEnabled();
 
     // TODO remove this
-    public PrismContext getPrismContext();
+    PrismContext getPrismContext();
 
     String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
 
@@ -138,4 +140,5 @@ public interface WorkflowService {
     List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
     boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem);
+
 }

@@ -1,10 +1,7 @@
 package com.evolveum.midpoint.wf.processors;
 
-import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -19,8 +16,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
+import com.evolveum.midpoint.wf.StartProcessInstruction;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.WfTaskUtil;
+import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.configuration.Configuration;
@@ -31,7 +31,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -63,7 +62,6 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
 
     @Autowired
     protected ProcessInstanceController processInstanceController;
-
 
     private Configuration processorConfiguration;
 
@@ -194,16 +192,25 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     protected void validateElement(Element element) throws SchemaException {
         OperationResult result = new OperationResult("validateElement");
         Validator validator = new Validator(prismContext);
-        validator.setVerbose(true);
-        validator.setValidateSchema(true);
-        validator.validateObject(element, result);
+        validator.validateSchema(element, result);
         result.computeStatus();
         if (!result.isSuccess()) {
             throw new SchemaException(result.getMessage(), result.getCause());
         }
     }
 
+    public void prepareCommonInstructionAttributes(StartProcessInstruction instruction, String objectOid, String requesterOid) {
 
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requesterOid);
+        if (objectOid != null) {
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
+        }
+
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, this.getClass().getName());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
+        instruction.setNoProcess(false);
+    }
 
 
 }

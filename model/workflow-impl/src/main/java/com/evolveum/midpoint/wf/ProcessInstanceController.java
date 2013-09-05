@@ -289,7 +289,7 @@ public class ProcessInstanceController {
         }
 
         if (stage == AuditEventStage.EXECUTION) {
-            auditEventRecord.setResult(WorkflowResult.fromBooleanAsString((Boolean) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER)));
+            auditEventRecord.setResult((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
         }
         auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
         auditService.audit(auditEventRecord, task);
@@ -373,7 +373,8 @@ public class ProcessInstanceController {
 
     private void notifyProcessEnd(ProcessEvent event, Task task, OperationResult result) {
         for (ProcessListener processListener : processListeners) {
-            processListener.onProcessInstanceEnd((String) event.getVariables().get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME), event.getVariables(), (Boolean) event.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER), result);
+            processListener.onProcessInstanceEnd((String) event.getVariables().get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+                    event.getVariables(), (String) event.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER), result);
         }
     }
 
@@ -521,9 +522,9 @@ public class ProcessInstanceController {
         }
     }
 
-    public void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, Boolean approved) {
+    public void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, String decision) {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, processInstanceName, processVariables, approved);
+            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, processInstanceName, processVariables, decision);
         }
     }
 

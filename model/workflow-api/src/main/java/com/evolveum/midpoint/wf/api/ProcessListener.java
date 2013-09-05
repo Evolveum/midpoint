@@ -27,7 +27,7 @@ public interface ProcessListener {
 
     void onProcessInstanceStart(String instanceName, Map<String, Object> variables, OperationResult result);
 
-    // beware, 'approved' depends on WF_ANSWER process variable, which may or may not be present!
-    void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, Boolean approved, OperationResult result);
+    // beware, 'decision' depends on WF_ANSWER process variable, which may or may not be present!
+    void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, String decision, OperationResult result);
 
 }

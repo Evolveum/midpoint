@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.wf.processes.general.*;
+import com.evolveum.midpoint.wf.processes.itemApproval.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
@@ -71,22 +71,34 @@ public class ItemApprovalPanel extends Panel {
         Label itemToBeApprovedLabel = new Label(ID_ITEM_TO_BE_APPROVED_LABEL, new StringResourceModel("${}", new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                Boolean result = model.getObject().getAnswer();
-                if (result == null) {
+                if (!model.getObject().isAnswered()) {
                     return "ItemApprovalPanel.itemToBeApproved";
                 } else {
-                    return result ? "ItemApprovalPanel.itemThatWasApproved" : "ItemApprovalPanel.itemThatWasRejected";
+                    Boolean result = model.getObject().getAnswerAsBoolean();
+                    if (result == null) {
+                        return "ItemApprovalPanel.itemThatWasCompleted";        // actually, this should not happen, if the process is ItemApproval
+                    } else if (result) {
+                        return "ItemApprovalPanel.itemThatWasApproved";
+                    } else {
+                        return "ItemApprovalPanel.itemThatWasRejected";
+                    }
                 }
             }
         }));
         itemToBeApprovedLabel.add(new AttributeModifier("color", new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                Boolean result = model.getObject().getAnswer();
-                if (result == null) {
+                if (!model.getObject().isAnswered()) {
                     return "black";         // should not be visible, anyway
                 } else {
-                    return result ? "green" : "red";
+                    Boolean result = model.getObject().getAnswerAsBoolean();
+                    if (result == null) {
+                        return "black";        // actually, this should not happen, if the process is ItemApproval
+                    } else if (result) {
+                        return "green";
+                    } else {
+                        return "red";
+                    }
                 }
             }
         }));

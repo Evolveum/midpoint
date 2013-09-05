@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -120,5 +121,21 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         LensContext<UserType, ShadowType> contextRetrieved = LensContext.fromLensContextType(contextTypeRetrieved, prismContext, provisioningService, result);
 
         assertEquals("Context after serialization/deserialization does not match context before it (object to add is changed)", context.getFocusContext().getPrimaryDelta().getObjectToAdd(), contextRetrieved.getFocusContext().getPrimaryDelta().getObjectToAdd());
+    }
+
+    @Test(enabled = true)
+    public void test101SerializeJaxb() throws Exception {
+
+        OperationResult result = new OperationResult("test101SerializeJaxb");
+
+        ScheduleType scheduleType = new ScheduleType();
+        scheduleType.setInterval(100);
+
+        JaxbValueContainer<ScheduleType> container = new JaxbValueContainer<ScheduleType>(scheduleType, prismContext);
+        container.clearActualValue();
+        System.out.println("XML value = " + container.getXmlValue());
+        ScheduleType scheduleTypeRetrieved = container.getValue();
+
+        assertEquals("Object after serialization/deserialization does not match original one", scheduleType, scheduleTypeRetrieved);
     }
 }

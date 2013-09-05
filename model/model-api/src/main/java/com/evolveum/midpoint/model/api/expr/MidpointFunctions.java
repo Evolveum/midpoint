@@ -17,12 +17,16 @@
 package com.evolveum.midpoint.model.api.expr;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 
 import java.util.Collection;
 import java.util.List;
@@ -63,4 +67,6 @@ public interface MidpointFunctions {
     String getPlaintextAccountPasswordFromDelta(ObjectDelta<? extends ShadowType> delta) throws EncryptionException;
 
     String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) throws EncryptionException;
+
+    ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 }

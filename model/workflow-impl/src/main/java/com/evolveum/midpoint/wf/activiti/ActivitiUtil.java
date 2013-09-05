@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.wf.activiti;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 import java.io.Serializable;
@@ -51,6 +53,15 @@ public class ActivitiUtil implements Serializable {
             LOGGER.debug("Approver for role " + r + " determined to be " + approver);
         }
         return approver;
+    }
+
+    public void revive(SerializationSafeContainer<?> container) {
+        container.setPrismContext(SpringApplicationContextHolder.getPrismContext());
+    }
+
+    // todo - better name?
+    public MidpointFunctions midpoint() {
+        return SpringApplicationContextHolder.getMidpointFunctions();
     }
 
     @Override

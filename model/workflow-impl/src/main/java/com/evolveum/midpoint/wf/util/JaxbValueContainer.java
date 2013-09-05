@@ -12,7 +12,7 @@ import java.io.Serializable;
  *
  * @author mederly
  */
-public class JaxbValueContainer<T extends Serializable> extends SerializationSafeContainer<T> {
+public class JaxbValueContainer<T> extends SerializationSafeContainer<T> {
 
     private static final long serialVersionUID = 1233214324324368L;
 
@@ -30,5 +30,14 @@ public class JaxbValueContainer<T extends Serializable> extends SerializationSaf
         }
 
         return valueForStorageWhenEncoded;
+    }
+
+    // prerequisite: the object already contained a value, so the encoding scheme is known
+    public void setXmlValue(String newValue) {
+        if (encodingScheme != EncodingScheme.JAXB && encodingScheme != EncodingScheme.PRISM_CONTAINER && encodingScheme != EncodingScheme.PRISM_OBJECT) {
+            throw new UnsupportedOperationException("Couldn't set new XML value for an object with encodingScheme = " + encodingScheme);
+        }
+        valueForStorageWhenEncoded = newValue;
+        clearActualValue();
     }
 }

@@ -93,7 +93,7 @@ public class WfConfiguration implements BeanFactoryAware {
     private List<ChangeProcessor> changeProcessors = null;
 
     private int processCheckInterval;
-    private String autoDeploymentFrom;
+    private String[] autoDeploymentFrom;
 
     @PostConstruct
     void initialize() {
@@ -148,7 +148,10 @@ public class WfConfiguration implements BeanFactoryAware {
         jdbcPassword = c.getString(KEY_JDBC_PASSWORD, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
         processCheckInterval = c.getInt(KEY_PROCESS_CHECK_INTERVAL, 10);    // todo set to bigger default for production use
-        autoDeploymentFrom = c.getString(KEY_AUTO_DEPLOYMENT_FROM, AUTO_DEPLOYMENT_FROM_DEFAULT);
+        autoDeploymentFrom = c.getStringArray(KEY_AUTO_DEPLOYMENT_FROM);
+        if (autoDeploymentFrom.length == 0) {
+            autoDeploymentFrom = new String[] { AUTO_DEPLOYMENT_FROM_DEFAULT };
+        }
         allowApproveOthersItems = c.getBoolean(KEY_ALLOW_APPROVE_OTHERS_ITEMS, false);
 
         if (allowApproveOthersItems) {
@@ -231,7 +234,7 @@ public class WfConfiguration implements BeanFactoryAware {
         return processCheckInterval;
     }
 
-    public String getAutoDeploymentFrom() {
+    public String[] getAutoDeploymentFrom() {
         return autoDeploymentFrom;
     }
 

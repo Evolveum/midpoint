@@ -7,8 +7,11 @@ import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
+import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -27,15 +30,32 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.StartProcessInstruction;
+import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
+import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.util.JaxbValueContainer;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.activiti.engine.FormService;
+import org.activiti.engine.form.FormProperty;
+import org.activiti.engine.form.TaskFormData;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.SubsetConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -72,6 +92,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private MidpointConfiguration midpointConfiguration;
+
+    @Autowired
+    private ActivitiEngine activitiEngine;
 
     private GeneralChangeProcessorConfigurationType processorConfigurationType;
 
@@ -162,7 +185,8 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             // to which object (e.g. user) is the task related?
             PrismObject taskObject = context.getFocusContext().getObjectNew();
-            if (taskObject != null && taskObject.getOid() == null) {
+            String taskObjectOid = taskObject != null ? taskObject.getOid() : null;
+            if (taskObject != null && taskObjectOid == null) {
                 taskObject = null;
             }
 
@@ -189,6 +213,10 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             instruction.setExecuteImmediately(false);
             instruction.setNoProcess(false);
             instruction.setProcessName(scenarioType.getProcessName());
+            LensContextType lensContextType = ((LensContext<?,?>) context).toPrismContainer().getValue().asContainerable();
+
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
+            prepareCommonInstructionAttributes(instruction, taskObjectOid, rootTask.getOwner().getOid());
             instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
             processInstanceController.startProcessInstance(instruction, childTask, result);
@@ -277,12 +305,60 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public void finishProcess(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        //To change body of implemented methods use File | Settings | File Templates.
+
+        // we simply put model context back into parent task
+        // (or if it is null, we set the task to skip model context processing)
+
+        // it is safe to directly access the parent, because (1) it is in waiting state, (2) we are its only child
+
+        Task rootTask = task.getParentTask(result);
+
+        SerializationSafeContainer <LensContextType> contextContainer = (SerializationSafeContainer<LensContextType>) event.getVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT);
+        LensContextType lensContextType = null;
+        if (contextContainer != null) {
+            contextContainer.setPrismContext(prismContext);
+            lensContextType = contextContainer.getValue();
+        }
+
+        if (lensContextType == null) {
+            LOGGER.debug(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT + " not present in process, this means we should stop processing. Task = {}", task);
+            wfTaskUtil.setSkipModelContextProcessingProperty(rootTask, true, result);
+        } else {
+            LOGGER.debug("Putting (changed or unchanged) value of " + CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT + " into the task {}", task);
+            wfTaskUtil.storeModelContext(rootTask, lensContextType.asPrismContainerValue().getContainer());
+        }
+
+        rootTask.savePendingModifications(result);
+        LOGGER.trace("finishProcess ending for task {}", task);
     }
 
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+        }
+
+        PrismObjectDefinition<GenericObjectType> prismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(GenericObjectType.COMPLEX_TYPE);
+        PrismObject<GenericObjectType> prism = prismDefinition.instantiate();
+
+        TaskFormData data = activitiEngine.getFormService().getTaskFormData(task.getId());
+        for (FormProperty formProperty : data.getFormProperties()) {
+            if (formProperty.isReadable() && !formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
+                LOGGER.trace("- processing property {} having value {}", formProperty.getId(), formProperty.getValue());
+                if (formProperty.getValue() != null) {
+                    QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());
+                    PrismPropertyDefinition<String> prismPropertyDefinition = new PrismPropertyDefinition<String>(propertyName, propertyName, DOMUtil.XSD_STRING, prismContext);
+                    PrismProperty<String> prismProperty = prismPropertyDefinition.instantiate();
+                    prismProperty.addRealValue(formProperty.getValue());
+                    prism.add(prismProperty);
+                }
+            }
+        }
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resulting prism object instance = " + prism.debugDump());
+        }
+        return prism;
+
     }
 
     @Override

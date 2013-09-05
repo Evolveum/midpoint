@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.activiti;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.wf.ProcessInstanceController;
@@ -72,6 +73,10 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 
     public static AuditService getAuditService() {
         return getBean("auditService", AuditService.class);
+    }
+
+    public static MidpointFunctions getMidpointFunctions() {
+        return getBean("midpointFunctionsImpl", MidpointFunctions.class);
     }
 }
 

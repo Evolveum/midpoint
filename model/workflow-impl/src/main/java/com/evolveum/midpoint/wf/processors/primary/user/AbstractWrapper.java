@@ -33,16 +33,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.StartProcessInstruction;
 import com.evolveum.midpoint.wf.WfTaskUtil;
-import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
-import com.evolveum.midpoint.wf.processes.general.Constants;
-import com.evolveum.midpoint.wf.processes.general.Decision;
-import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
-import com.evolveum.midpoint.wf.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.processes.itemApproval.Constants;
+import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
+import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,7 +67,7 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
     @Autowired
     WfTaskUtil wfTaskUtil;
 
-    ChangeProcessor changeProcessor;
+    PrimaryChangeProcessor changeProcessor;
 
     String getObjectOid(ModelContext<?,?> modelContext) {
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
@@ -126,19 +124,10 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
     }
 
     void prepareCommonInstructionAttributes(StartProcessInstructionForPrimaryStage instruction, ModelContext<?,?> modelContext, String objectOid, PrismObject<UserType> requester, Task task) {
-        ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
+        changeProcessor.prepareCommonInstructionAttributes(instruction, objectOid, requester.getOid());
 
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
-        if (objectOid != null) {
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
-        }
-
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
         instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
         instruction.setWrapper(this);
-        instruction.setNoProcess(false);
     }
 
     public void setDeltaProcessVariable(StartProcessInstruction instruction, ObjectDelta delta) {
@@ -161,7 +150,7 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
     @Override
     public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException {
         List<ObjectDelta<Objectable>> deltaIn = wfTaskUtil.retrieveDeltasToProcess(task);
-        if (Boolean.TRUE.equals(event.getAnswer())) {
+        if (CommonProcessVariableNames.isApproved(event.getAnswer())) {
             return new ArrayList<ObjectDelta<Objectable>>(deltaIn);
         } else {
             return new ArrayList<ObjectDelta<Objectable>>();
@@ -175,7 +164,7 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
     @Override
     public List<ObjectReferenceType> getApprovedBy(ProcessEvent event) {
         List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
-        if (!Boolean.TRUE.equals(event.getAnswer())) {
+        if (!CommonProcessVariableNames.isApproved(event.getAnswer())) {
             return retval;
         }
         List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
@@ -191,12 +180,12 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
     }
 
     @Override
-    public ChangeProcessor getChangeProcessor() {
+    public PrimaryChangeProcessor getChangeProcessor() {
         return changeProcessor;
     }
 
     @Override
-    public void setChangeProcessor(ChangeProcessor changeProcessor) {
+    public void setChangeProcessor(PrimaryChangeProcessor changeProcessor) {
         this.changeProcessor = changeProcessor;
     }
 

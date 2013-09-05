@@ -211,7 +211,7 @@ public class WorkItemProvider {
                 ((WorkItemDetailed) wi).setRequester(miscDataUtil.getRequester(variables, result));
                 PrismObject<? extends ObjectType> objectBefore = miscDataUtil.getObjectBefore(variables, prismContext, result);
                 ((WorkItemDetailed) wi).setObjectOld(objectBefore);
-                ((WorkItemDetailed) wi).setObjectDelta(miscDataUtil.getObjectDelta(variables, result));
+                ((WorkItemDetailed) wi).setObjectDelta(miscDataUtil.getObjectDelta(variables, result, true));
                 ((WorkItemDetailed) wi).setObjectNew(miscDataUtil.getObjectAfter(variables, ((WorkItemDetailed) wi).getObjectDelta(), objectBefore, prismContext, result));
                 ((WorkItemDetailed) wi).setRequestSpecificData(getRequestSpecificData(task, variables, result));
                 ((WorkItemDetailed) wi).setTrackingData(getTrackingData(task, variables, result));

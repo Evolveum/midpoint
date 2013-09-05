@@ -136,29 +136,30 @@ public class ActivitiEngine {
     private void autoDeploy() {
 
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        String adf = wfConfiguration.getAutoDeploymentFrom();
+        String[] autoDeploymentFrom = wfConfiguration.getAutoDeploymentFrom();
 
-        Resource[] resources;
-        try {
-            resources = resolver.getResources(adf);
-        } catch (IOException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get resources to be automatically deployed from " + adf, e);
-            return;
-        }
-
-        LOGGER.info("Auto deployment from " + adf + " yields " + resources.length + " resource(s)");
-        for (Resource resource : resources) {
+        for (String adf : autoDeploymentFrom) {
+            Resource[] resources;
             try {
-                autoDeployResource(resource);
+                resources = resolver.getResources(adf);
             } catch (IOException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
-            } catch (XPathExpressionException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
-            } catch (RuntimeException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+                LoggingUtils.logException(LOGGER, "Couldn't get resources to be automatically deployed from " + adf, e);
+                continue;
+            }
+
+            LOGGER.info("Auto deployment from " + adf + " yields " + resources.length + " resource(s)");
+            for (Resource resource : resources) {
+                try {
+                    autoDeployResource(resource);
+                } catch (IOException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+                } catch (XPathExpressionException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+                } catch (RuntimeException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+                }
             }
         }
-
     }
 
     private void autoDeployResource(Resource resource) throws IOException, XPathExpressionException {

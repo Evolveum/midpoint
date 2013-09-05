@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -43,11 +42,11 @@ import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
-import com.evolveum.midpoint.wf.processes.general.RecordIndividualDecision;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import org.activiti.engine.form.FormProperty;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
@@ -55,7 +54,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -141,15 +141,29 @@ public class MiscDataUtil {
     }
 
     public ObjectDelta getObjectDelta(Map<String, Object> variables, OperationResult result) throws JAXBException, SchemaException {
+        return getObjectDelta(variables, result, false);
+    }
+
+    public ObjectDelta getObjectDelta(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
         StringHolder deltaXml = (StringHolder) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
-        Validate.notNull(deltaXml, "There's no delta in process variables");
+        if (deltaXml == null) {
+            if (mayBeNull) {
+                return null;
+            } else {
+                throw new IllegalStateException("There's no delta in process variables");
+            }
+        }
         ObjectDeltaType objectDeltaType = prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
         return DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
     }
 
     public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDelta delta, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
         if (delta == null) {
-            delta = getObjectDelta(variables, result);
+            delta = getObjectDelta(variables, result, true);
+        }
+
+        if (delta == null) {
+            return null;
         }
 
         PrismObject<? extends ObjectType> objectAfter = objectBefore.clone();
@@ -246,6 +260,16 @@ public class MiscDataUtil {
             return true;
         }
         return wfConfiguration.isAllowApproveOthersItems() && AuthorizationEvaluator.checkAuthorities(principal, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL);
+    }
+
+    // todo move to something activiti-related
+
+    public static Map<String,FormProperty> formPropertiesAsMap(List<FormProperty> properties) {
+        Map<String,FormProperty> retval = new HashMap<String,FormProperty>();
+        for (FormProperty property : properties) {
+            retval.put(property.getId(), property);
+        }
+        return retval;
     }
 
 }

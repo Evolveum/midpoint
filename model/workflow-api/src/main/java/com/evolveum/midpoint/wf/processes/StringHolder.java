@@ -35,6 +35,10 @@ public class StringHolder implements Serializable {
         return value;
     }
 
+    public void setValue(String value) {
+        this.value = value;
+    }
+
     @Override
     public String toString() {
         return value;

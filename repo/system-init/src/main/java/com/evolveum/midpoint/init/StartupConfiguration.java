@@ -18,6 +18,7 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.*;
@@ -204,9 +205,10 @@ public class StartupConfiguration implements MidpointConfiguration {
                 config.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
                 createXmlConfiguration(documentBuilder);
             } catch (ConfigurationException e) {
-                LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
-                System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:"
-                        + e.getMessage());
+                String message = "Unable to read configuration file [" + this.getConfigFilename() + "]: " + e.getMessage();
+                LOGGER.error(message);
+                System.out.println(message);
+                throw new SystemException(message, e);      // there's no point in continuing with midpoint initialization
             }
 
         } else {
@@ -214,9 +216,10 @@ public class StartupConfiguration implements MidpointConfiguration {
             try {
                 createXmlConfiguration(documentBuilder);
             } catch (ConfigurationException e) {
-                LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
-                System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:"
-                        + e.getMessage());
+                String message = "Unable to read configuration file [" + this.getConfigFilename() + "]: " + e.getMessage();
+                LOGGER.error(message);
+                System.out.println(message);
+                throw new SystemException(message, e);
             }
         }
     }

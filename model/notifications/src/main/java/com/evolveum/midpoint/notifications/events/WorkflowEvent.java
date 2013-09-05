@@ -19,8 +19,10 @@ package com.evolveum.midpoint.notifications.events;
 import com.evolveum.midpoint.notifications.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
+import org.apache.commons.lang.Validate;
 
 import java.util.Map;
 
@@ -31,11 +33,14 @@ abstract public class WorkflowEvent extends Event {
 
     private String processName;
     private Map<String,Object> variables;
-    private OperationStatus operationStatus;            // success = approval, failure = refusal (for now); in-progress = unknown
+    private String operationStatusCustom;                // exact string representation of the status (useful for work items that return custom statuses)
     private ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
 
-    public WorkflowEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+    public WorkflowEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType) {
         super(lightweightIdentifierGenerator);
+
+        Validate.notNull(changeType, "changeType is null");
+        this.changeType = changeType;
     }
 
     public String getProcessName() {
@@ -55,24 +60,24 @@ abstract public class WorkflowEvent extends Event {
     }
 
     public OperationStatus getOperationStatus() {
-        return operationStatus;
+        return resultToStatus(changeType, operationStatusCustom);
     }
 
-    public void setOperationStatus(OperationStatus operationStatus) {
-        this.operationStatus = operationStatus;
+    public String getOperationStatusCustom() {
+        return operationStatusCustom;
+    }
+
+    public void setOperationStatusCustom(String operationStatusCustom) {
+        this.operationStatusCustom = operationStatusCustom;
     }
 
     @Override
     public boolean isStatusType(EventStatusType eventStatusType) {
-        return operationStatus.matchesEventStatusType(eventStatusType);
+        return getOperationStatus().matchesEventStatusType(eventStatusType);
     }
 
     public ChangeType getChangeType() {
         return changeType;
-    }
-
-    public void setChangeType(ChangeType changeType) {
-        this.changeType = changeType;
     }
 
     @Override
@@ -92,13 +97,30 @@ abstract public class WorkflowEvent extends Event {
         return isFailure();             // for now
     }
 
+    private OperationStatus resultToStatus(ChangeType changeType, String decision) {
+        if (changeType != ChangeType.DELETE) {
+            return OperationStatus.SUCCESS;
+        } else {
+            if (decision == null) {
+                return OperationStatus.IN_PROGRESS;
+            } else if (decision.equals(CommonProcessVariableNames.DECISION_APPROVED)) {
+                return OperationStatus.SUCCESS;
+            } else if (decision.equals(CommonProcessVariableNames.DECISION_REJECTED)) {
+                return OperationStatus.FAILURE;
+            } else {
+                return OperationStatus.OTHER;
+            }
+        }
+    }
+
+
     @Override
     public String toString() {
         return "WorkflowEvent{" +
                 "event=" + super.toString() +
                 ", processName='" + processName + '\'' +
                 ", changeType=" + changeType +
-                ", operationStatus=" + operationStatus +
+                ", operationStatusCustom=" + operationStatusCustom +
                 '}';
     }
 

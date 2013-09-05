@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.events;
 
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.SimpleObjectRef;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -34,8 +35,8 @@ public class WorkItemEvent extends WorkflowEvent {
     private String workItemName;
     private SimpleObjectRef assignee;
 
-    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
-        super(lightweightIdentifierGenerator);
+    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType) {
+        super(lightweightIdentifierGenerator, changeType);
     }
 
     public String getWorkItemName() {
