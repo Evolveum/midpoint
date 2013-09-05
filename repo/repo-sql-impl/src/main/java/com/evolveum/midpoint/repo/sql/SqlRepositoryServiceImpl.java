@@ -443,6 +443,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
             Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
+            criteria.add(Restrictions.eq("id", 0L));
             criteria.add(Restrictions.eq("oid", object.getOid()));
             criteria.setProjection(Projections.rowCount());
 
