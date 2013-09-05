@@ -250,7 +250,9 @@ is not zero to avoid string to integer conversion losing the first character.</d
 			<minLength>4</minLength>
 			<maxLength>4</maxLength>
 			<minUniqueChars>2</minUniqueChars>
-			<checkAgainstDictionary>false</checkAgainstDictionary>
+			<!-- not implemented yet
+			 <checkAgainstDictionary>false</checkAgainstDictionary>
+			 -->
 			<checkPattern />
 			<limit>
 				<description>Numeric characters (first digit - excluding zero)</description>

@@ -291,7 +291,9 @@ object.
 		<limitations>
 			<minLength>5</minLength>
 			<minUniqueChars>2</minUniqueChars>
-			<checkAgainstDictionary>true</checkAgainstDictionary>
+			<!-- not implemented yet
+			 <checkAgainstDictionary>true</checkAgainstDictionary>
+			 -->
 			<checkPattern />
 		</limitations>
 	</stringPolicy>
