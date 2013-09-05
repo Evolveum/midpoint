@@ -16,19 +16,28 @@
 
 package com.evolveum.midpoint.tools.ninja;
 
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * @author lazyman
@@ -50,41 +59,68 @@ public class ImportObjects extends BaseNinjaAction {
             return false;
         }
 
+        InputStream input = null;
         ClassPathXmlApplicationContext context = null;
         try {
             System.out.println("Loading spring contexts.");
             context = new ClassPathXmlApplicationContext(CONTEXTS);
 
-            System.out.println("Parsing import file.");
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(objects), "utf-8");
+            input = new ReaderInputStream(reader, reader.getEncoding());
+
+            final RepositoryService repository = context.getBean("repositoryService", RepositoryService.class);
             PrismContext prismContext = context.getBean(PrismContext.class);
-            PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-            List<PrismObject<?>> list = domProcessor.parseObjects(objects);
-            list = list != null ? list : new ArrayList<PrismObject<?>>();
 
-            System.out.println("Found '" + list.size() + "' objects, starting import.");
-            RepositoryService repository = context.getBean("repositoryService", RepositoryService.class);
-            for (PrismObject object : list) {
-                String displayName = getDisplayName(object);
-                System.out.println("Importing object " + displayName);
+            EventHandler handler = new EventHandler() {
 
-                OperationResult result = new OperationResult("Import " + displayName);
-                try {
-                    repository.addObject(object, null, result);
-                } catch (Exception ex) {
-                    System.out.println("Exception occurred during import, reason: " + ex.getMessage());
-                    ex.printStackTrace();
-                } finally {
-                    result.recomputeStatus();
+                @Override
+                public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+                    return EventResult.cont();
                 }
 
-                if (!result.isSuccess()) {
-                    System.out.println("Operation result was not success, dumping result.\n" + result.debugDump(3));
+                @Override
+                public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
+                    try {
+                        String displayName = getDisplayName(object);
+                        System.out.println("Importing object " + displayName);
+
+                        repository.addObject((PrismObject<ObjectType>) object, null, objectResult);
+                    } catch (Exception ex) {
+                        objectResult.recordFatalError("Unexpected problem: " + ex.getMessage(), ex);
+
+                        System.out.println("Exception occurred during import, reason: " + ex.getMessage());
+                        ex.printStackTrace();
+                    }
+
+                    objectResult.recordSuccessIfUnknown();
+                    if (objectResult.isAcceptable()) {
+                        // Continue import
+                        return EventResult.cont();
+                    } else {
+                        return EventResult.skipObject(objectResult.getMessage());
+                    }
                 }
+
+                @Override
+                public void handleGlobalError(OperationResult currentResult) {
+                }
+            };
+            Validator validator = new Validator(prismContext, handler);
+            validator.setVerbose(true);
+            validator.setValidateSchema(true);
+
+            OperationResult result = new OperationResult("Import objeccts");
+            validator.validate(input, result, OperationConstants.IMPORT_OBJECT);
+
+            result.recomputeStatus();
+            if (!result.isSuccess()) {
+                System.out.println("Operation result was not success, dumping result.\n" + result.debugDump(3));
             }
         } catch (Exception ex) {
-            System.out.println("Exception occurred during context loading, reason: " + ex.getMessage());
+            System.out.println("Exception occurred during import task, reason: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
+            IOUtils.closeQuietly(input);
             destroyContext(context);
         }
 
