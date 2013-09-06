@@ -80,9 +80,9 @@ public interface PrimaryApprovalProcessWrapper {
 
     List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException;
 
-    ChangeProcessor getChangeProcessor();
+    PrimaryChangeProcessor getChangeProcessor();
 
-    void setChangeProcessor(ChangeProcessor changeProcessor);
+    void setChangeProcessor(PrimaryChangeProcessor changeProcessor);
 
     PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 

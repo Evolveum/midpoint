@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvi
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -155,7 +156,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                     @Override
                     public Object getObject() {
                         ProcessInstanceDto pi = rowModel.getObject();
-                        Boolean result = pi.getAnswer();
+                        Boolean result = CommonProcessVariableNames.approvalBooleanValue(pi.getAnswer());
                         if (result == null) {
                             return "";
                         } else {

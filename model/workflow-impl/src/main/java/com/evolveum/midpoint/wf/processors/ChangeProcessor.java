@@ -59,7 +59,7 @@ public interface ChangeProcessor {
      *              ERROR = something wrong has happened, there's no point in continuing with this operation.
      *         null if the request is not relevant to this processor
      */
-    HookOperationMode startProcessesIfNeeded(ModelContext context, Task task, OperationResult result) throws SchemaException;
+    HookOperationMode processModelInvocation(ModelContext context, Task task, OperationResult result) throws SchemaException;
 
     /**
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
@@ -79,5 +79,10 @@ public interface ChangeProcessor {
 
     String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
 
+    /**
+     * Checks whether this change processor is enabled (typically, using the midpoint configuration file).
+     * @return true if enabled, false if not
+     */
     boolean isEnabled();
+
 }

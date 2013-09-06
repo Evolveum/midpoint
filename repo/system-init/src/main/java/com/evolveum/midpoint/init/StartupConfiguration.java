@@ -17,11 +17,14 @@ package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.*;
 import org.apache.commons.lang.NotImplementedException;
 
+import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -34,6 +37,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String MIDPOINT_HOME = "midpoint.home";
 
     private CompositeConfiguration config = null;
+    private XMLConfiguration xmlConfig = null;          // just in case when we need to access original XML document
     private String configFilename = null;
 
     /**
@@ -107,6 +111,11 @@ public class StartupConfiguration implements MidpointConfiguration {
         return sub;
     }
 
+    @Override
+    public XMLConfiguration getXmlConfiguration() {
+        return xmlConfig;
+    }
+
     /**
      * Initialize system configuration
      */
@@ -168,6 +177,8 @@ public class StartupConfiguration implements MidpointConfiguration {
             config = new CompositeConfiguration();
         }
 
+        DocumentBuilder documentBuilder = DOMUtil.createDocumentBuilder();          // we need namespace-aware document builder (see GeneralChangeProcessor.java)
+
         /* configuration logic */
         // load from midpoint.home
         if (null != System.getProperty(MIDPOINT_HOME)) {
@@ -192,24 +203,33 @@ public class StartupConfiguration implements MidpointConfiguration {
                 this.setConfigFilename(path);
                 //Load and parse properties
                 config.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
-                config.addConfiguration(new XMLConfiguration(this.getConfigFilename()));
-
+                createXmlConfiguration(documentBuilder);
             } catch (ConfigurationException e) {
-                LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
-                System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:"
-                        + e.getMessage());
+                String message = "Unable to read configuration file [" + this.getConfigFilename() + "]: " + e.getMessage();
+                LOGGER.error(message);
+                System.out.println(message);
+                throw new SystemException(message, e);      // there's no point in continuing with midpoint initialization
             }
 
         } else {
             // Load from class path
             try {
-                config.addConfiguration(new XMLConfiguration(this.getConfigFilename()));
+                createXmlConfiguration(documentBuilder);
             } catch (ConfigurationException e) {
-                LOGGER.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
-                System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:"
-                        + e.getMessage());
+                String message = "Unable to read configuration file [" + this.getConfigFilename() + "]: " + e.getMessage();
+                LOGGER.error(message);
+                System.out.println(message);
+                throw new SystemException(message, e);
             }
         }
+    }
+
+    private void createXmlConfiguration(DocumentBuilder documentBuilder) throws ConfigurationException {
+        xmlConfig = new XMLConfiguration();
+        xmlConfig.setDocumentBuilder(documentBuilder);
+        xmlConfig.setFileName(this.getConfigFilename());
+        xmlConfig.load();
+        config.addConfiguration(xmlConfig);
     }
 
     @Override

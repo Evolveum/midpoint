@@ -88,8 +88,8 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     }
 
     @Override
-    public void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, Boolean approved, OperationResult result) {
-        WorkflowProcessEvent event = createWorkflowProcessEvent(instanceName, variables, ChangeType.DELETE, (Boolean) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER), result);
+    public void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, String decision, OperationResult result) {
+        WorkflowProcessEvent event = createWorkflowProcessEvent(instanceName, variables, ChangeType.DELETE, decision, result);
         processEvent(event, result);
     }
 
@@ -100,21 +100,20 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     }
 
     @Override
-    public void onWorkItemCompletion(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, Boolean approved) {
-        WorkItemEvent event = createWorkItemEvent(workItemName, assigneeOid, processInstanceName, processVariables, ChangeType.DELETE, approved);
+    public void onWorkItemCompletion(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, String decision) {
+        WorkItemEvent event = createWorkItemEvent(workItemName, assigneeOid, processInstanceName, processVariables, ChangeType.DELETE, decision);
         processEvent(event);
     }
 
-    private WorkflowProcessEvent createWorkflowProcessEvent(String instanceName, Map<String, Object> variables, ChangeType changeType, Boolean answer, OperationResult result) {
-        WorkflowProcessEvent event = new WorkflowProcessEvent(lightweightIdentifierGenerator);
-        fillInEvent(event, instanceName, variables, changeType, answer, result);
+    private WorkflowProcessEvent createWorkflowProcessEvent(String instanceName, Map<String, Object> variables, ChangeType changeType, String decision, OperationResult result) {
+        WorkflowProcessEvent event = new WorkflowProcessEvent(lightweightIdentifierGenerator, changeType);
+        fillInEvent(event, instanceName, variables, decision, result);
         return event;
     }
 
-    private void fillInEvent(WorkflowEvent event, String instanceName, Map<String, Object> variables, ChangeType changeType, Boolean answer, OperationResult result) {
+    private void fillInEvent(WorkflowEvent event, String instanceName, Map<String, Object> variables, String decision, OperationResult result) {
         event.setProcessName(instanceName);
-        event.setOperationStatus(resultToStatus(changeType, answer));
-        event.setChangeType(changeType);
+        event.setOperationStatusCustom(decision);
         event.setVariables(variables);
 
         String objectXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
@@ -145,27 +144,13 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
         event.setRequesterOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID));
     }
 
-    private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, ChangeType changeType, Boolean answer) {
-        WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator);
+    private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, ChangeType changeType, String decision) {
+        WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType);
         event.setWorkItemName(workItemName);
         event.setAssigneeOid(assigneeOid);
-        fillInEvent(event, processInstanceName, processVariables, changeType, answer, new OperationResult("dummy"));
+        fillInEvent(event, processInstanceName, processVariables, decision, new OperationResult("dummy"));
         return event;
 
-    }
-
-    private OperationStatus resultToStatus(ChangeType changeType, Boolean answer) {
-        if (changeType != ChangeType.DELETE) {
-            return OperationStatus.SUCCESS;
-        } else {
-            if (answer == null) {
-                return OperationStatus.IN_PROGRESS;
-            } else if (answer) {
-                return OperationStatus.SUCCESS;
-            } else {
-                return OperationStatus.FAILURE;
-            }
-        }
     }
 
     private void processEvent(WorkflowEvent event, OperationResult result) {

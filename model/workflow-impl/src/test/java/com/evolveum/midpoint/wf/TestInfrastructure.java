@@ -16,22 +16,37 @@
 
 package com.evolveum.midpoint.wf;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.util.JaxbValueContainer;
+import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -84,5 +99,43 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         assertEquals("Incorrect approvers",
                 new HashSet(Arrays.asList(SystemObjectsType.USER_ADMINISTRATOR.value(), TestConstants.R1BOSS_OID, TestConstants.R2BOSS_OID)),
                 new HashSet(Arrays.asList(approvers.getValue(0).getOid(), approvers.getValue(1).getOid(), approvers.getValue(2).getOid())));
+    }
+
+    @Test(enabled = true)
+    public void test100SerializeContext() throws Exception {
+
+        OperationResult result = new OperationResult("test100SerializeContext");
+
+        LensContext<UserType, ShadowType> context = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext, provisioningService);
+        PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BARBOSSA_FILENAME));
+        CryptoUtil.encryptValues(protector, bill);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(bill);
+        LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+        focusContext.setPrimaryDelta(userDelta);
+
+        LensContextType contextType = context.toPrismContainer().getValue().asContainerable();
+        JaxbValueContainer<LensContextType> container = new JaxbValueContainer<LensContextType>(contextType, prismContext);
+        container.clearActualValue();
+        System.out.println("XML value = " + container.getXmlValue());
+        LensContextType contextTypeRetrieved = container.getValue();
+        LensContext<UserType, ShadowType> contextRetrieved = LensContext.fromLensContextType(contextTypeRetrieved, prismContext, provisioningService, result);
+
+        assertEquals("Context after serialization/deserialization does not match context before it (object to add is changed)", context.getFocusContext().getPrimaryDelta().getObjectToAdd(), contextRetrieved.getFocusContext().getPrimaryDelta().getObjectToAdd());
+    }
+
+    @Test(enabled = true)
+    public void test101SerializeJaxb() throws Exception {
+
+        OperationResult result = new OperationResult("test101SerializeJaxb");
+
+        ScheduleType scheduleType = new ScheduleType();
+        scheduleType.setInterval(100);
+
+        JaxbValueContainer<ScheduleType> container = new JaxbValueContainer<ScheduleType>(scheduleType, prismContext);
+        container.clearActualValue();
+        System.out.println("XML value = " + container.getXmlValue());
+        ScheduleType scheduleTypeRetrieved = container.getValue();
+
+        assertEquals("Object after serialization/deserialization does not match original one", scheduleType, scheduleTypeRetrieved);
     }
 }

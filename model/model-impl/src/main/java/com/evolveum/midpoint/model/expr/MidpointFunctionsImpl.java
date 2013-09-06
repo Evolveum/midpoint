@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ModelObjectResolver;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.*;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -85,6 +88,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Autowired(required=true)
     private RepositoryService repositoryService;
+
+    @Autowired
+    private ProvisioningService provisioningService;
 
     @Autowired(required = true)
     private transient Protector protector;
@@ -490,5 +496,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	} else {
     		return currentResult.createMinorSubresult(operationName);
     	}
+    }
+
+    // functions working with ModelContext
+
+    @Override
+    public ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        return LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
+    }
+
+    public LensContextType wrapModelContext(LensContext<?,?> lensContext) throws SchemaException {
+        return lensContext.toPrismContainer().getValue().asContainerable();
     }
 }

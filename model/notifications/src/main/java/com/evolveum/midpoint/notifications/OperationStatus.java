@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
  * To change this template use File | Settings | File Templates.
  */
 public enum OperationStatus {
-    SUCCESS, IN_PROGRESS, FAILURE;
+    SUCCESS, IN_PROGRESS, FAILURE, OTHER;
 
     public boolean matchesEventStatusType(EventStatusType eventStatusType) {
         switch (eventStatusType) {

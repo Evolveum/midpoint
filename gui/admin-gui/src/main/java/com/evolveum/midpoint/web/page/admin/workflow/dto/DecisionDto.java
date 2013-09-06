@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.wf.processes.general.Decision;
+import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
 
 import java.io.Serializable;
 

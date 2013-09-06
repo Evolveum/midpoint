@@ -23,7 +23,7 @@
 
     <process id="ItemApproval" name="General multi-level item approval process" isExecutable="true">
         <extensionElements>
-            <activiti:executionListener event="end" class="com.evolveum.midpoint.wf.processes.general.MidPointProcessListener" />
+            <activiti:executionListener event="end" class="com.evolveum.midpoint.wf.processes.common.MidPointProcessListener" />
         </extensionElements>
 
 
@@ -41,10 +41,10 @@
         <startEvent id="start" name="Start" />
         <sequenceFlow sourceRef="start" targetRef="start.1" />
 
-        <serviceTask id="start.1" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+        <serviceTask id="start.1" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
         <sequenceFlow sourceRef="start.1" targetRef="initializeLoopThroughLevels" />
 
-        <serviceTask id="initializeLoopThroughLevels" activiti:class="com.evolveum.midpoint.wf.processes.general.InitializeLoopThroughLevels" />
+        <serviceTask id="initializeLoopThroughLevels" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.InitializeLoopThroughLevels" />
         <sequenceFlow sourceRef="initializeLoopThroughLevels" targetRef="loopLevels" />
 
         <!-- New variable:
@@ -65,11 +65,11 @@
             <startEvent id="loopLevels.start" />
             <sequenceFlow sourceRef="loopLevels.start" targetRef="loopLevels.start.1" />
 
-            <serviceTask id="loopLevels.start.1" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+            <serviceTask id="loopLevels.start.1" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
             <sequenceFlow sourceRef="loopLevels.start.1" targetRef="loopLevels.initializeLoopThroughApprovers" />
 
             <!-- here we (besides other things) evaluate expressions describing approvers at this level and fill-in approversInLevel - list of references -->
-            <serviceTask id="loopLevels.initializeLoopThroughApprovers" activiti:class="com.evolveum.midpoint.wf.processes.general.InitializeLoopThroughApproversInLevel" />
+            <serviceTask id="loopLevels.initializeLoopThroughApprovers" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.InitializeLoopThroughApproversInLevel" />
             <sequenceFlow sourceRef="loopLevels.initializeLoopThroughApprovers" targetRef="loopLevels.shouldBeLevelExecutedQ" />
 
             <!-- variables:
@@ -102,7 +102,7 @@
                 <startEvent id="loopLevels.loopApprovers.start" />
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.start" targetRef="loopLevels.loopApprovers.start.1" />
 
-                <serviceTask id="loopLevels.loopApprovers.start.1" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+                <serviceTask id="loopLevels.loopApprovers.start.1" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.start.1" targetRef="loopLevels.loopApprovers.approve" />
 
                 <userTask id="loopLevels.loopApprovers.approve" name="${approvalTaskName}" activiti:assignee="${approverRef.oid}">
@@ -115,39 +115,39 @@
                         -->
                         <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
-                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.processes.general.MidPointTaskListener" />
-                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.processes.general.MidPointTaskListener" />
+                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
+                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
                     </extensionElements>
                 </userTask>
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.approve" targetRef="loopLevels.loopApprovers.recordDecision" />
 
                 <!-- modifies decisionList, allDecisions, and loopApproversInLevel_stop (if necessary) -->
-                <serviceTask id="loopLevels.loopApprovers.recordDecision" activiti:class="com.evolveum.midpoint.wf.processes.general.RecordIndividualDecision" />
+                <serviceTask id="loopLevels.loopApprovers.recordDecision" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.RecordIndividualDecision" />
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.recordDecision" targetRef="loopLevels.loopApprovers.before.end" />
 
-                <serviceTask id="loopLevels.loopApprovers.before.end" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+                <serviceTask id="loopLevels.loopApprovers.before.end" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.before.end" targetRef="loopLevels.loopApprovers.end" />
 
                 <endEvent id="loopLevels.loopApprovers.end" />
             </subProcess>
             <sequenceFlow sourceRef="loopLevels.loopApprovers" targetRef="loopLevels.before.summarizeDecisions" />
 
-            <serviceTask id="loopLevels.before.summarizeDecisions" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+            <serviceTask id="loopLevels.before.summarizeDecisions" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
             <sequenceFlow sourceRef="loopLevels.before.summarizeDecisions" targetRef="loopLevels.summarizeDecisions" />
 
             <!-- modifies loopLevels_stop, if necessary -->
-            <serviceTask id="loopLevels.summarizeDecisions" activiti:class="com.evolveum.midpoint.wf.processes.general.SummarizeDecisionsInLevel" />
+            <serviceTask id="loopLevels.summarizeDecisions" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.SummarizeDecisionsInLevel" />
             <sequenceFlow sourceRef="loopLevels.summarizeDecisions" targetRef="loopLevels.end" />
 
             <endEvent id="loopLevels.end" />
         </subProcess>
         <sequenceFlow sourceRef="loopLevels" targetRef="before.prepareResult"></sequenceFlow>
 
-        <serviceTask id="before.prepareResult" activiti:class="com.evolveum.midpoint.wf.processes.general.DumpVariables" />
+        <serviceTask id="before.prepareResult" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
         <sequenceFlow sourceRef="before.prepareResult" targetRef="prepareResult"></sequenceFlow>
 
         <!-- prepares wfAnswer -->
-        <serviceTask id="prepareResult" activiti:class="com.evolveum.midpoint.wf.processes.general.PrepareResult" />
+        <serviceTask id="prepareResult" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.PrepareResult" />
         <sequenceFlow sourceRef="prepareResult" targetRef="end"></sequenceFlow>
 
         <endEvent id="end" />

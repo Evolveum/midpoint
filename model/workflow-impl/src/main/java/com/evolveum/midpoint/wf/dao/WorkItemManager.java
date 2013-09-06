@@ -55,22 +55,26 @@ public class WorkItemManager {
     private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
     private static final String DOT_INTERFACE = WorkflowService.class.getName() + ".";
 
-    private static final String OPERATION_APPROVE_OR_REJECT_WORK_ITEM = DOT_INTERFACE + "approveOrRejectWorkItem";
+    private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItemWithDetails";
 
-
+    // choiceDecision - contains the name of the button ([B]xxxx) that was pressed
+    // approvalDecision - contains true or false (approved / rejected)
+    //
+    // exactly one of choiceDecision and approvalDecision must be set
+    //
     // todo error reporting
-    public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult parentResult) {
+    public void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult) {
 
         MidPointPrincipal principal = MiscDataUtil.getPrincipalUser();
 
-        OperationResult result = parentResult.createSubresult(OPERATION_APPROVE_OR_REJECT_WORK_ITEM);
+        OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParam("taskId", taskId);
         result.addParam("decision", decision);
         result.addParam("task-specific data", specific);
         result.addContext("user", principal.getUser());
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Approving/rejecting work item " + taskId);
+            LOGGER.trace("Completing work item " + taskId);
             LOGGER.trace("Decision: " + decision);
             LOGGER.trace("WorkItem form object (task-specific) = " + (specific != null ? specific.debugDump() : "(none)"));
             LOGGER.trace("User: " + principal.getUser());
@@ -87,7 +91,17 @@ public class WorkItemManager {
         }
 
         Map<String,String> propertiesToSubmit = new HashMap<String,String>();
-        propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, Boolean.toString(decision));
+
+        propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
+
+        // we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
+        for (FormProperty formProperty : data.getFormProperties()) {
+            if (formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
+                boolean value = formProperty.getId().equals(CommonProcessVariableNames.FORM_BUTTON_PREFIX + decision);
+                LOGGER.trace("Setting the value of {} to writable property {}", value, formProperty.getId());
+                propertiesToSubmit.put(formProperty.getId(), Boolean.toString(value));
+            }
+        }
 
         if (specific != null) {
 
@@ -105,7 +119,8 @@ public class WorkItemManager {
 
                     Object value;
 
-                    if (!CommonProcessVariableNames.FORM_FIELD_DECISION.equals(formProperty.getId())) {
+                    if (!CommonProcessVariableNames.FORM_FIELD_DECISION.equals(formProperty.getId()) &&
+                            !formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
 
                         // todo strip [flags] section
                         QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());

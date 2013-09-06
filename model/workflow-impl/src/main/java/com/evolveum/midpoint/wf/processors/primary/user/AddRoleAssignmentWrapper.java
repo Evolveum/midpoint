@@ -18,7 +18,6 @@ package com.evolveum.midpoint.wf.processors.primary.user;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -30,15 +29,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
-import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
-import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
+import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -123,6 +121,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
                     }
                     if (approvalRequired) {
                         AssignmentType aCopy = a.clone();
+                        PrismContainerValue.copyDefinition(aCopy, a);
                         aCopy.setTarget(role);
                         approvalRequestList.add(createApprovalRequest(aCopy, role));
                         assignmentTypeIterator.remove();
@@ -155,6 +154,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
                             }
                             if (approvalRequired) {
                                 AssignmentType aCopy = at.asContainerable().clone();
+                                PrismContainerValue.copyDefinition(aCopy, at.asContainerable());
                                 approvalRequestList.add(createApprovalRequest(aCopy, role));
                                 valueIterator.remove();
                             }

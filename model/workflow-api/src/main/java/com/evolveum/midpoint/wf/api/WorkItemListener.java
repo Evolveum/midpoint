@@ -25,5 +25,5 @@ public interface WorkItemListener {
 
     public void onWorkItemCreation(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables);
 
-    public void onWorkItemCompletion(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, Boolean approved);
+    public void onWorkItemCompletion(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, String decision);
 }

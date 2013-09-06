@@ -63,9 +63,9 @@ public class WfConfiguration implements BeanFactoryAware {
     public static final String KEY_AUTO_DEPLOYMENT_FROM = "autoDeploymentFrom";
     public static final String KEY_ALLOW_APPROVE_OTHERS_ITEMS = "allowApproveOthersItems";
 
-    public static final String[] KNOWN_KEYS = { "midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
+    public static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
             KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
-            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS, CHANGE_PROCESSORS_SECTION };
+            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS, CHANGE_PROCESSORS_SECTION);
 
     @Autowired(required = true)
     private MidpointConfiguration midpointConfiguration;
@@ -93,7 +93,7 @@ public class WfConfiguration implements BeanFactoryAware {
     private List<ChangeProcessor> changeProcessors = null;
 
     private int processCheckInterval;
-    private String autoDeploymentFrom;
+    private String[] autoDeploymentFrom;
 
     @PostConstruct
     void initialize() {
@@ -148,7 +148,10 @@ public class WfConfiguration implements BeanFactoryAware {
         jdbcPassword = c.getString(KEY_JDBC_PASSWORD, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
         processCheckInterval = c.getInt(KEY_PROCESS_CHECK_INTERVAL, 10);    // todo set to bigger default for production use
-        autoDeploymentFrom = c.getString(KEY_AUTO_DEPLOYMENT_FROM, AUTO_DEPLOYMENT_FROM_DEFAULT);
+        autoDeploymentFrom = c.getStringArray(KEY_AUTO_DEPLOYMENT_FROM);
+        if (autoDeploymentFrom.length == 0) {
+            autoDeploymentFrom = new String[] { AUTO_DEPLOYMENT_FROM_DEFAULT };
+        }
         allowApproveOthersItems = c.getBoolean(KEY_ALLOW_APPROVE_OTHERS_ITEMS, false);
 
         if (allowApproveOthersItems) {
@@ -160,16 +163,19 @@ public class WfConfiguration implements BeanFactoryAware {
         validate();
     }
 
-    public void checkAllowedKeys(Configuration c, String[] knownKeys) {
-        Set<String> knownKeysSet = new HashSet<String>(knownKeys.length);
-        for (String key : knownKeys) {
-            knownKeysSet.add(key);
-        }
+    public void checkAllowedKeys(Configuration c, List<String> knownKeys) {
+        Set<String> knownKeysSet = new HashSet<String>(knownKeys);
 
         Iterator<String> keyIterator = c.getKeys();
-        while (keyIterator.hasNext()) {
+        while (keyIterator.hasNext())  {
             String keyName = keyIterator.next();
-            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(StringUtils.substringBefore(keyName, "."))) {
+            String normalizedKeyName = StringUtils.substringBefore(keyName, ".");                       // because of subkeys
+            normalizedKeyName = StringUtils.substringBefore(normalizedKeyName, "[");                    // because of [@xmlns:c]
+            int colon = normalizedKeyName.indexOf(':');                                                 // because of c:generalChangeProcessorConfiguration
+            if (colon != -1) {
+                normalizedKeyName = normalizedKeyName.substring(colon + 1);
+            }
+            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {         // ...we need to test both because of keys like 'midpoint.home'
                 throw new SystemException("Unknown key " + keyName + " in workflow configuration");
             }
         }
@@ -228,7 +234,7 @@ public class WfConfiguration implements BeanFactoryAware {
         return processCheckInterval;
     }
 
-    public String getAutoDeploymentFrom() {
+    public String[] getAutoDeploymentFrom() {
         return autoDeploymentFrom;
     }
 

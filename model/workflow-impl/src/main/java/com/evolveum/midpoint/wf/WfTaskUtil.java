@@ -410,10 +410,12 @@ public class WfTaskUtil {
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {
         Validate.notNull(context, "model context cannot be null");
-
         PrismContainer<LensContextType> modelContext = ((LensContext) context).toPrismContainer();
-        //task.setExtensionContainerValue(SchemaConstants.MODEL_CONTEXT_NAME, modelContext);
-        task.setExtensionContainer(modelContext);
+        storeModelContext(task, modelContext);
+    }
+
+    public void storeModelContext(Task task, PrismContainer<LensContextType> context) throws SchemaException {
+        task.setExtensionContainer(context);
     }
 
     public void storeDeltasToProcess(List<ObjectDelta<? extends ObjectType>> deltas, Task task) throws SchemaException {

@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.*;
 import com.evolveum.midpoint.wf.dao.ProcessInstanceManager;
 import com.evolveum.midpoint.wf.dao.ProcessInstanceProvider;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.wf.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -102,12 +100,17 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult) {
-        workItemManager.approveOrRejectWorkItemWithDetails(taskId, null, decision, parentResult);
+        workItemManager.completeWorkItemWithDetails(taskId, null, CommonProcessVariableNames.approvalStringValue(decision), parentResult);
     }
 
     @Override
     public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult parentResult) {
-        workItemManager.approveOrRejectWorkItemWithDetails(taskId, specific, decision, parentResult);
+        workItemManager.completeWorkItemWithDetails(taskId, specific, CommonProcessVariableNames.approvalStringValue(decision), parentResult);
+    }
+
+    @Override
+    public void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult) {
+        workItemManager.completeWorkItemWithDetails(taskId, specific, decision, parentResult);
     }
 
     /*
