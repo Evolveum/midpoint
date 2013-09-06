@@ -54,6 +54,7 @@ import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.executions.WfTaskUtil;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfProcessInstanceShadowTaskHandler;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;

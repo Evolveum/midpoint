@@ -16,10 +16,13 @@
 
 package com.evolveum.midpoint.wf.processors.primary.user;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -31,15 +34,20 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.executions.StartInstruction;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
@@ -79,7 +87,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     // ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) {
+    public List<StartInstruction> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getAssignmentToApproveList(change, result);
         if (approvalRequestList == null) {
@@ -180,8 +188,8 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     }
 
     // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
-    private List<StartProcessInstructionForPrimaryStage> prepareStartProcessInstructions(ModelContext<?, ?> modelContext, Task task, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) {
-        List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
+    private List<StartInstruction> prepareStartProcessInstructions(ModelContext<?, ?> modelContext, Task task, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+        List<StartInstruction> instructions = new ArrayList<StartInstruction>();
 
         String userName = MiscDataUtil.getObjectName(modelContext);
 
@@ -206,7 +214,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             String objectOid = getObjectOid(modelContext);
             PrismObject<UserType> requester = getRequester(task, result);
 
-            StartProcessInstructionForPrimaryStage instruction = new StartProcessInstructionForPrimaryStage();
+            StartInstruction instruction = new StartInstruction(task, getChangeProcessor());
 
             prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
             instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, userName);
@@ -214,7 +222,6 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
             instruction.setSimple(false);
 
-            instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
             String andExecuting = instruction.isExecuteImmediately() ? "and executing " : "";
             instruction.setTaskName(new PolyStringType("Workflow for approving " + andExecuting + "adding " + roleName + " to " + userName));
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, "Adding " + roleName + " to " + userName);
@@ -223,8 +230,7 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
 
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
-            instruction.setDelta(delta);
-            setDeltaProcessVariable(instruction, delta);
+            setDeltaProcessAndTaskVariables(instruction, delta);
 
             instructions.add(instruction);
         }

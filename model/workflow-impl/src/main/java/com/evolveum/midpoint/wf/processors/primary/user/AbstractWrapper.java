@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.wf.processors.primary.user;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -31,9 +33,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.StartProcessInstruction;
-import com.evolveum.midpoint.wf.WfTaskUtil;
+import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.executions.StartInstruction;
+import com.evolveum.midpoint.wf.executions.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
@@ -42,13 +45,18 @@ import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -123,20 +131,34 @@ public abstract class AbstractWrapper implements PrimaryApprovalProcessWrapper {
         }
     }
 
-    void prepareCommonInstructionAttributes(StartProcessInstructionForPrimaryStage instruction, ModelContext<?,?> modelContext, String objectOid, PrismObject<UserType> requester, Task task) {
-        changeProcessor.prepareCommonInstructionAttributes(instruction, objectOid, requester.getOid());
+    void prepareCommonInstructionAttributes(StartInstruction instruction, ModelContext<?,?> modelContext, String objectOid, PrismObject<UserType> requester, Task task) throws SchemaException {
+
+        changeProcessor.prepareCommonInstructionAttributes(instruction, objectOid, requester);
+
+        instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
         instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
-        instruction.setWrapper(this);
+        instruction.addTaskVariable(wfTaskUtil.getWfProcessWrapperPropertyDefinition(), this.getClass().getName());
+
+        if (instruction.isExecuteImmediately()) {
+            // actually, context should be emptied anyway; but to be sure, let's do it here as well
+            instruction.addTaskModelContext(changeProcessor.prepareContextWithNoDelta((LensContext) modelContext));
+        }
     }
 
-    public void setDeltaProcessVariable(StartProcessInstruction instruction, ObjectDelta delta) {
+    public void setDeltaProcessAndTaskVariables(StartInstruction instruction, ObjectDelta delta) {
         try {
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
         } catch(JAXBException e) {
             throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
+        }
+
+        try {
+            instruction.addTaskDeltasVariable(wfTaskUtil.getWfDeltaToProcessPropertyDefinition(), delta);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
         }
     }
 

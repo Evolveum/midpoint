@@ -20,7 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.wf.ProcessInstanceController;
+import com.evolveum.midpoint.wf.executions.ExecutionController;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -67,8 +67,8 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
         return getBean("prismContext", PrismContext.class);
     }
 
-    public static ProcessInstanceController getProcessInstanceController() {
-        return getBean("processInstanceController", ProcessInstanceController.class);
+    public static ExecutionController getProcessInstanceController() {
+        return getBean("executionController", ExecutionController.class);
     }
 
     public static AuditService getAuditService() {

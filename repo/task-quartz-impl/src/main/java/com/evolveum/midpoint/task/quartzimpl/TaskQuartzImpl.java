@@ -1573,6 +1573,19 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public void setExtensionItem(Item item) throws SchemaException {
+        if (item instanceof PrismProperty) {
+            setExtensionProperty((PrismProperty) item);
+        } else if (item instanceof PrismReference) {
+            setExtensionReference((PrismReference) item);
+        } else if (item instanceof PrismContainer) {
+            setExtensionContainer((PrismContainer) item);
+        } else {
+            throw new IllegalArgumentException("Unknown kind of item: " + (item == null ? "(null)" : item.getClass()));
+        }
+    }
+
+    @Override
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
 	}

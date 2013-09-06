@@ -29,31 +29,22 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.StartProcessInstruction;
+import com.evolveum.midpoint.wf.executions.StartInstruction;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
-import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
-import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
-import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.activiti.engine.FormService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
 import org.apache.commons.configuration.Configuration;
@@ -64,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -202,17 +192,17 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             // ========== preparing child task, starting WF process ===========
 
-            StartProcessInstruction instruction = new StartProcessInstruction();
+            StartInstruction instruction = new StartInstruction(rootTask, this);
             instruction.setExecuteImmediately(false);
             instruction.setNoProcess(false);
             instruction.setProcessName(scenarioType.getProcessName());
             LensContextType lensContextType = ((LensContext<?,?>) context).toPrismContainer().getValue().asContainerable();
 
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
-            prepareCommonInstructionAttributes(instruction, taskObjectOid, rootTask.getOwner().getOid());
+            prepareCommonInstructionAttributes(instruction, taskObjectOid, rootTask.getOwner());
             instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
-            processInstanceController.startProcessInstance(instruction, rootTask, this, result);
+            executionController.startExecution(instruction, result);
 
             // ========== complete the action ===========
 

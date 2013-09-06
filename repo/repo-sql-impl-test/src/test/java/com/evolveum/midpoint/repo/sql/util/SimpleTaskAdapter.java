@@ -350,6 +350,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void setExtensionItem(Item item) throws SchemaException {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public void modifyExtension(ItemDelta itemDelta) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }

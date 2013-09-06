@@ -589,6 +589,12 @@ public interface Task extends Dumpable {
      */
     <T extends Containerable> void setExtensionContainerValue(QName containerName, T value) throws SchemaException;
 
+    /**
+     * Puts generic item into extension.
+     * @param item
+     */
+    void setExtensionItem(Item item) throws SchemaException;
+
     // ---------------------------------------------------------------------------- Task extension - ADD (add values)
 
     /**

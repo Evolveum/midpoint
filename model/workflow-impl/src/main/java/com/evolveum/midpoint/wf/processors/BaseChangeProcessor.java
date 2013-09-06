@@ -15,13 +15,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.ProcessInstanceController;
-import com.evolveum.midpoint.wf.StartProcessInstruction;
+import com.evolveum.midpoint.wf.executions.ExecutionController;
+import com.evolveum.midpoint.wf.executions.StartInstruction;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.WfTaskUtil;
+import com.evolveum.midpoint.wf.executions.WfTaskUtil;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
@@ -61,7 +62,7 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     protected TaskManager taskManager;
 
     @Autowired
-    protected ProcessInstanceController processInstanceController;
+    protected ExecutionController executionController;
 
     private Configuration processorConfiguration;
 
@@ -199,9 +200,8 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         }
     }
 
-    public void prepareCommonInstructionAttributes(StartProcessInstruction instruction, String objectOid, String requesterOid) {
-
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requesterOid);
+    public void prepareCommonInstructionAttributes(StartInstruction instruction, String objectOid, PrismObject<UserType> requester) {
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
         if (objectOid != null) {
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
         }
@@ -211,6 +211,7 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
         instruction.setNoProcess(false);
     }
+
 
 
 }
