@@ -161,7 +161,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public HookOperationMode startProcessesIfNeeded(ModelContext context, Task rootTask, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(ModelContext context, Task rootTask, OperationResult result) throws SchemaException {
 
         warnIfNoScenarios();
 
@@ -202,13 +202,6 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             // ========== preparing child task, starting WF process ===========
 
-            Task childTask = rootTask.createSubtask();
-            if (taskObject != null) {
-                childTask.setObjectTransient(taskObject);
-            }
-
-            wfTaskUtil.setChangeProcessor(childTask, this);
-
             StartProcessInstruction instruction = new StartProcessInstruction();
             instruction.setExecuteImmediately(false);
             instruction.setNoProcess(false);
@@ -219,7 +212,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             prepareCommonInstructionAttributes(instruction, taskObjectOid, rootTask.getOwner().getOid());
             instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
-            processInstanceController.startProcessInstance(instruction, childTask, result);
+            processInstanceController.startProcessInstance(instruction, rootTask, this, result);
 
             // ========== complete the action ===========
 

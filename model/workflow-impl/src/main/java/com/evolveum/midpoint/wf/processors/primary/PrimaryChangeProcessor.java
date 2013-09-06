@@ -107,7 +107,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public HookOperationMode startProcessesIfNeeded(ModelContext context, Task task, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(ModelContext context, Task task, OperationResult result) throws SchemaException {
 
         if (context.getState() != ModelState.PRIMARY || context.getFocusContext() == null) {
             return null;
@@ -171,7 +171,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return startProcessInstructions;
     }
 
-    private HookOperationMode startProcesses(List<StartProcessInstructionForPrimaryStage> startProcessInstructions, final ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Task rootTask, OperationResult result) {
+    private HookOperationMode startProcesses(List<StartProcessInstructionForPrimaryStage> startProcessInstructions, final ModelContext context, final ObjectDelta<? extends ObjectType> changeWithoutApproval, Task rootTask, OperationResult result) {
 
         Throwable failReason;
 
@@ -221,7 +221,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
             prepareAndSaveRootTask(contextForRootTask, rootTask, prepareRootTaskName(context), taskObject, result);
 
-            StartProcessInstructionForPrimaryStage instruction0 = null;
+            final StartProcessInstructionForPrimaryStage instruction0;
             Task task0 = null;
 
             // in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
@@ -232,7 +232,9 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
                 instruction0.setExecuteImmediately(true);
                 instruction0.setTaskName(new PolyStringType("Executing changes that do not require approval"));
                 instruction0.setDelta(changeWithoutApproval);
-                startProcessInstructions.add(0, instruction0);
+                startProcessInstructions.add(0, instruction0);      // it must be the first one!
+            } else {
+                instruction0 = null;
             }
 
             for (final StartProcessInstructionForPrimaryStage instruction : startProcessInstructions) {
@@ -241,23 +243,48 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
                     LOGGER.trace("Processing start instruction: " + instruction.debugDump());
                 }
 
-                Task childTask = rootTask.createSubtask();
-                if (taskObject != null) {
-                    childTask.setObjectTransient(taskObject);
+                ProcessInstanceController.TaskCustomizer customizer = new ProcessInstanceController.TaskCustomizer() {
+                    @Override
+                    public void customize(Task childTask, OperationResult result) throws SchemaException {
+
+                        if (instruction == instruction0) {
+
+                            // task0 should execute only after all subtasks are created, because when it finishes, it
+                            // writes some information to all dependent tasks (i.e. they must exist at that time)
+                            childTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
+
+                            // for add operations we have to propagate ObjectOID
+                            if (context.getFocusContext().getPrimaryDelta().isAdd()) {
+                                childTask.pushHandlerUri(WfPropagateTaskObjectReferenceTaskHandler.HANDLER_URI, null, null);
+                            }
+                        }
+
+                        if (instruction.startsWorkflowProcess()) {
+                            wfTaskUtil.setProcessWrapper(childTask, instruction.getWrapper());
+                            wfTaskUtil.storeDeltasToProcess(instruction.getDeltas(), childTask);        // will be processed by wrapper on wf process termination
+
+                            // if this has to be executed directly, we have to provide a model context for the execution
+                            if (instruction.isExecuteImmediately()) {
+                                // actually, context should be emptied anyway; but to be sure, let's do it here as well
+                                LensContext contextCopy = prepareContextWithNoDelta((LensContext) context, changeWithoutApproval);
+                                wfTaskUtil.storeModelContext(childTask, contextCopy);
+                            }
+
+                        } else {
+                            // we have to put deltas into model context, as it will be processed directly by ModelOperationTaskHandler
+                            LensContext contextCopy = ((LensContext) context).clone();
+                            contextCopy.replacePrimaryFocusDeltas(instruction.getDeltas());
+                            wfTaskUtil.storeModelContext(childTask, contextCopy);
+                        }
+
+
+                    }
                 }
 
-                // remember task for instruction0
+                Task childTask = processInstanceController.startProcessInstance(instruction, rootTask, this, customizer, result);
+
                 if (instruction == instruction0) {
                     task0 = childTask;
-
-                    // task0 should execute only after all subtasks are created, because when it finishes, it
-                    // writes some information to all dependent tasks (i.e. they must exist at that time)
-                    task0.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
-
-                    // for add operations we have to propagate ObjectOID
-                    if (context.getFocusContext().getPrimaryDelta().isAdd()) {
-                        task0.pushHandlerUri(WfPropagateTaskObjectReferenceTaskHandler.HANDLER_URI, null, null);
-                    }
                 }
 
                 // establish the dependency on delta0 for immediately-executed parts
@@ -270,26 +297,6 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
                     task0.savePendingModifications(result);
                 }
 
-                if (instruction.startsWorkflowProcess()) {
-                    wfTaskUtil.setProcessWrapper(childTask, instruction.getWrapper());
-                    wfTaskUtil.setChangeProcessor(childTask, this);
-                    wfTaskUtil.storeDeltasToProcess(instruction.getDeltas(), childTask);        // will be processed by wrapper on wf process termination
-
-                    // if this has to be executed directly, we have to provide a model context for the execution
-                    if (instruction.isExecuteImmediately()) {
-                        // actually, context should be emptied anyway; but to be sure, let's do it here as well
-                        LensContext contextCopy = prepareContextWithNoDelta((LensContext) context, changeWithoutApproval);
-                        wfTaskUtil.storeModelContext(childTask, contextCopy);
-                    }
-
-                } else {
-                    // we have to put deltas into model context, as it will be processed directly by ModelOperationTaskHandler
-                    LensContext contextCopy = ((LensContext) context).clone();
-                    contextCopy.replacePrimaryFocusDeltas(instruction.getDeltas());
-                    wfTaskUtil.storeModelContext(childTask, contextCopy);
-                }
-
-                processInstanceController.startProcessInstance(instruction, childTask, result);
             }
 
             logTasksBeforeStart(rootTask, result);

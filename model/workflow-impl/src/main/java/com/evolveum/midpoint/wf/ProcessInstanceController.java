@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
 import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.taskHandlers.WfPrepareChildOperationTaskHandler;
 import com.evolveum.midpoint.wf.taskHandlers.WfProcessInstanceShadowTaskHandler;
@@ -100,38 +98,51 @@ public class ProcessInstanceController {
     private Set<ProcessListener> processListeners = new HashSet<ProcessListener>();
     private Set<WorkItemListener> workItemListeners = new HashSet<WorkItemListener>();
 
-//    @PostConstruct
-//    public void init() {
-//        registerProcessListener(workflowListener);
-//        registerWorkItemListener(workflowListener);
-//    }
+    public interface TaskCustomizer {
+        void customize(Task childTask, OperationResult result) throws SchemaException;
+    }
 
-    public void startProcessInstance(StartProcessInstruction instruction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    /**
+     * Starts the process instance, just as prescribed by the start process instruction.
+     *
+     * @param instruction
+     * @param task
+     * @param result
+     * @throws SchemaException
+     * @throws ObjectNotFoundException
+     */
 
-        prepareChildTask(instruction, task, result);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Saving workflow monitoring/execution task: " + task.dump());
-        }
+    public Task startProcessInstance(StartProcessInstruction instruction, Task rootTask, ChangeProcessor changeProcessor, TaskCustomizer customizer, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        saveChildTask(task, result);
+        Task childTask = createChildTask(instruction, rootTask, changeProcessor, customizer, result);
 
         if (!instruction.isNoProcess()) {
-            startWorkflowProcessInstance(instruction, task, result);
+            startWorkflowProcessInstance(instruction, childTask, result);
         }
+
+        return childTask;
 
     }
 
     /*************************** WORKING WITH TASKS ***************************/
 
-    private void prepareChildTask(StartProcessInstruction instruction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Task createChildTask(StartProcessInstruction instruction, Task rootTask, ChangeProcessor changeProcessor, TaskCustomizer customizer, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("prepareChildTask starting; task = " + task);
+            LOGGER.trace("createChildTask starting; root task = " + rootTask);
         }
 
-        checkTaskCleanness(task, false);
+        Task task = rootTask.createSubtask();
 
+        if (customizer != null) {
+            customizer.customize(task, result);
+        }
+
+        if (rootTask.getObjectRef() != null) {
+            task.setObjectRef(rootTask.getObjectRef());
+        }
+        wfTaskUtil.setChangeProcessor(task, changeProcessor);
         wfTaskUtil.setTaskNameIfEmpty(task, instruction.getTaskName());
         setDefaultTaskOwnerIfEmpty(task, result);
         task.setCategory(TaskCategory.WORKFLOW);
@@ -148,16 +159,14 @@ public class ProcessInstanceController {
         if (instruction.startsWorkflowProcess()) {
             pushProcessShadowHandler(instruction.isSimple(), task, result);
         }
-    }
 
-    private void checkTaskCleanness(Task task, boolean noHandlers) {
-        if (!task.isTransient()) {
-            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Saving workflow monitoring/execution task: " + task.dump());
         }
 
-        if (noHandlers && task.getHandlerUri() != null) {
-            throw new IllegalStateException("Workflow-related task should have no handler URI at this moment; task = " + task + ", existing handler URI = " + task.getHandlerUri());
-        }
+        taskManager.switchToBackground(task, result);
+
+        return task;
     }
 
 
@@ -193,14 +202,6 @@ public class ProcessInstanceController {
         }
     }
 
-    private void prepareAndSaveChildTask(StartProcessInstruction instruction, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        prepareChildTask(instruction, task, result);
-        saveChildTask(task, result);
-    }
-
-    private void saveChildTask(Task task, OperationResult result) {
-        taskManager.switchToBackground(task, result);
-    }
 
     /*************************** WORKING WITH ACTIVITI ***************************/
 

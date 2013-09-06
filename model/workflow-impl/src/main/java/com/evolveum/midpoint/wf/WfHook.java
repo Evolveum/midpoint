@@ -18,7 +18,6 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -83,7 +82,7 @@ public class WfHook implements ChangeHook {
 
         logOperationInformation(context);
 
-        HookOperationMode retval = startProcessesIfNeeded(context, task, result);
+        HookOperationMode retval = processModelInvocation(context, task, result);
         result.recordSuccessIfUnknown();
         return retval;
     }
@@ -115,7 +114,7 @@ public class WfHook implements ChangeHook {
         }
     }
 
-    HookOperationMode startProcessesIfNeeded(ModelContext context, Task task, OperationResult result) {
+    HookOperationMode processModelInvocation(ModelContext context, Task task, OperationResult result) {
 
         for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
             if (LOGGER.isTraceEnabled()) {
@@ -126,7 +125,7 @@ public class WfHook implements ChangeHook {
                 continue;
             }
             try {
-                HookOperationMode hookOperationMode = changeProcessor.startProcessesIfNeeded(context, task, result);
+                HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, task, result);
                 if (hookOperationMode != null) {
                     return hookOperationMode;
                 }
