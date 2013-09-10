@@ -326,7 +326,37 @@
 		</accountType>
 		
 	</schemaHandling>
-	
+	<scripts>
+		<script>
+			<host>resource</host>	
+			<language>Shell</language>	
+			<argument>
+				<path>$user/name</path>
+				<name>midpoint_usercn</name><!-- this is sAMAccountName -->
+			</argument>
+			<argument>
+				<script>
+					<code>
+				'/dir/id/' + user.getFamilyName() + '_' + user.getName()
+					</code>
+				</script>
+				<name>midpoint_idpath</name>
+			</argument>
+			<argument>
+				<script>
+					<code>
+				'/dir/temp/' + user.getFamilyName() + '_' + user.getName()
+					</code>
+				</script>
+				<name>midpoint_temppath</name>
+			</argument>
+<code>user.getFamilyName() + '_' + user.getName()</code>
+			
+<!-- 			<operation>add</operation> -->
+			<operation>reconcile</operation>
+			<order>before</order>
+		</script>
+	</scripts>
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
 	</consistency>
