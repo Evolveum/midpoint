@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.Job;
-import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -174,19 +174,18 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             // ========== preparing root task ===========
 
-            JobCreateInstruction rootInstruction = createInstructionForRoot(context, taskFromModel, prepareRootTaskName(context), determineTaskObject(context));
+            JobCreationInstruction rootInstruction = createInstructionForRoot(context, taskFromModel);
             Job rootJob = createRootJob(rootInstruction, taskFromModel, result);
 
             // ========== preparing child task, starting WF process ===========
 
-            JobCreateInstruction instruction = JobCreateInstruction.createWfProcessChildJob(rootJob);
+            JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(rootJob);
             instruction.setProcessDefinitionKey(scenarioType.getProcessName());
+            instruction.setRequesterOidInProcess(taskFromModel.getOwner());
+            instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
             LensContextType lensContextType = ((LensContext<?,?>) context).toPrismContainer().getValue().asContainerable();
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
-
-            prepareCommonInstructionAttributes(instruction, null, taskFromModel.getOwner());
-            instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
             jobController.createJob(instruction, rootJob, result);
 

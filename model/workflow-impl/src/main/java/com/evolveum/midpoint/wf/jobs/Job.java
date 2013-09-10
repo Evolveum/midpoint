@@ -1,13 +1,20 @@
 package com.evolveum.midpoint.wf.jobs;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
-import org.apache.commons.lang.Validate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class that describes jobs related to workflow module:
@@ -50,6 +57,16 @@ public class Job {
         return changeProcessor;
     }
     //endregion
+
+
+    @Override
+    public String toString() {
+        return "Job{" +
+                "task=" + task +
+                ", activitiId='" + activitiId + '\'' +
+                ", changeProcessor=" + changeProcessor +
+                '}';
+    }
 
     public void addDependent(Job job) {
         jobController.addDependency(this, job);
@@ -96,5 +113,50 @@ public class Job {
         }
         taskResult.recordStatus(result.getStatus(), result.getMessage(), result.getCause());
         task.setResultImmediate(taskResult, result);
+    }
+
+    public boolean hasModelContext() {
+        return getWfTaskUtil().hasModelContext(task);
+    }
+
+    private WfTaskUtil getWfTaskUtil() {
+        return jobController.getWfTaskUtil();
+    }
+
+    public ModelContext retrieveModelContext(OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        return getWfTaskUtil().retrieveModelContext(task, result);
+    }
+
+    public List<Job> listChildren(OperationResult result) throws SchemaException {
+        List<Job> jobs = new ArrayList<Job>();
+        for (Task subtask : task.listSubtasks(result)) {
+            jobs.add(jobController.recreateChildJob(subtask, this));
+        }
+        return jobs;
+    }
+
+    public List<ObjectDelta<Objectable>> retrieveResultingDeltas() throws SchemaException {
+        return getWfTaskUtil().retrieveResultingDeltas(task);
+    }
+
+    public void setSkipModelContextProcessingProperty(boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        getWfTaskUtil().setSkipModelContextProcessingProperty(task, value, result);
+    }
+
+    public void storeModelContext(ModelContext modelContext) throws SchemaException {
+        getWfTaskUtil().storeModelContext(task, modelContext);
+    }
+
+    public List<Job> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        List<Job> jobs = new ArrayList<Job>();
+        for (Task subtask : task.listDependents(result)) {
+            jobs.add(jobController.recreateJob(subtask));
+        }
+        return jobs;
+    }
+
+    public Job getParentJob(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        Task parentTask = task.getParentTask(result);
+        return jobController.recreateJob(parentTask);
     }
 }

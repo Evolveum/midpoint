@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +55,12 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPropagateTaskObjectReferenceTaskHandler.class);
 
+    //region Spring beans and initialization
     @Autowired
     private TaskManager taskManager;
+
+    @Autowired
+    private JobController jobController;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -64,35 +70,46 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
         LOGGER.trace("Registering with taskManager as a handler for " + HANDLER_URI);
         taskManager.registerHandler(HANDLER_URI, this);
     }
+    //endregion
 
+    //region Body
     @Override
     public TaskRunResult run(Task task) {
 
         TaskRunResult.TaskRunResultStatus status = TaskRunResult.TaskRunResultStatus.FINISHED;
 
-        LOGGER.trace("WfPropagateTaskObjectReferenceTaskHandler starting... task = {}", task);
-
         OperationResult result = task.getResult().createSubresult(WfPropagateTaskObjectReferenceTaskHandler.class + ".run");
+
+        Job job;
+        try {
+            job = jobController.recreateJob(task);
+        } catch (SchemaException e) {
+            return reportException("Couldn't create a job from task " + task, task, result, e);
+        } catch (ObjectNotFoundException e) {
+            return reportException("Couldn't create a job from task " + task, task, result, e);
+        }
+
+        LOGGER.trace("WfPropagateTaskObjectReferenceTaskHandler starting... job = {}", job);
 
         ModelContext modelContext;
         try {
-            modelContext = wfTaskUtil.retrieveModelContext(task, result);
+            modelContext = job.retrieveModelContext(result);
             if (modelContext == null) {
-                throw new IllegalStateException("There's no model context in the task; task = " + task);
+                throw new IllegalStateException("There's no model context in the task; job = " + job);
             }
         } catch (SchemaException e) {
-            return reportException("Couldn't retrieve model context from task " + task, task, result, e);
+            return reportException("Couldn't retrieve model context from job " + job, task, result, e);
         } catch (ObjectNotFoundException e) {
-            return reportException("Couldn't retrieve model context from task " + task, task, result, e);
+            return reportException("Couldn't retrieve model context from job " + job, task, result, e);
         } catch (CommunicationException e) {
-            return reportException("Couldn't retrieve model context from task " + task, task, result, TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR, e);
+            return reportException("Couldn't retrieve model context from job " + job, task, result, TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR, e);
         } catch (ConfigurationException e) {
-            return reportException("Couldn't retrieve model context from task " + task, task, result, e);
+            return reportException("Couldn't retrieve model context from job " + job, task, result, e);
         }
 
         String oid = ((LensContext) modelContext).getFocusContext().getOid();
         if (oid == null) {
-            LOGGER.warn("No object OID in task " + task);
+            LOGGER.warn("No object OID in job " + job);
         } else {
 
             Class typeClass = ((LensContext) modelContext).getFocusContext().getObjectTypeClass();
@@ -111,32 +128,30 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                     LOGGER.warn("object reference in task " + task + " is already set, although it shouldn't be");
                 }
 
-                List<Task> dependents = null;
+                List<Job> dependents;
                 try {
-                    dependents = task.listDependents(result);
-                    dependents.add(task.getParentTask(result));
+                    dependents = job.listDependents(result);
+                    dependents.add(job.getParentJob(result));
                 } catch (SchemaException e) {
-                    return reportException("Couldn't get task dependents from task " + task, task, result, e);
+                    return reportException("Couldn't get dependents from job " + job, task, result, e);
                 } catch (ObjectNotFoundException e) {
-                    return reportException("Couldn't get task dependents from task " + task, task, result, e);
+                    return reportException("Couldn't get dependents from job " + job, task, result, e);
                 }
 
-                for (Task dependent : dependents) {
-                    if (dependent.getObjectRef() == null) {
-                        if (dependent.getObjectRef() == null) {
-                            try {
-                                dependent.setObjectRefImmediate(objectReferenceType, result);
-                            } catch (ObjectNotFoundException e) {
-                                // note we DO NOT return, because we want to set all references we can
-                                reportException("Couldn't set object reference on task " + dependent, task, result, e);
-                            } catch (SchemaException e) {
-                                reportException("Couldn't set object reference on task " + dependent, task, result, e);
-                            } catch (ObjectAlreadyExistsException e) {
-                                reportException("Couldn't set object reference on task " + dependent, task, result, e);
-                            }
-                        } else {
-                            LOGGER.warn("object reference in task " + task + " is already set, although it shouldn't be");
+                for (Job dependent : dependents) {
+                    if (dependent.getTask().getObjectRef() == null) {
+                        try {
+                            dependent.getTask().setObjectRefImmediate(objectReferenceType, result);
+                        } catch (ObjectNotFoundException e) {
+                            // note we DO NOT return, because we want to set all references we can
+                            reportException("Couldn't set object reference on job " + dependent, task, result, e);
+                        } catch (SchemaException e) {
+                            reportException("Couldn't set object reference on job " + dependent, task, result, e);
+                        } catch (ObjectAlreadyExistsException e) {
+                            reportException("Couldn't set object reference on job " + dependent, task, result, e);
                         }
+                    } else {
+                        LOGGER.warn("object reference in job " + dependent + " is already set, although it shouldn't be");
                     }
                 }
             }
@@ -162,7 +177,9 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
         runResult.setOperationResult(task.getResult());
         return runResult;
     }
+    //endregion
 
+    //region Other task handler stuff
     @Override
     public Long heartbeat(Task task) {
         return null;		// null - as *not* to record progress (which would overwrite operationResult!)
@@ -181,5 +198,6 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
     public List<String> getCategoryNames() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
+    //endregion
 
 }

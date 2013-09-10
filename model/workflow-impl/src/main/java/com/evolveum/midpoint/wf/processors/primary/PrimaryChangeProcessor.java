@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
@@ -72,19 +72,20 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     @PostConstruct
     public void init() {
         initializeBaseProcessor(LOCALLY_KNOWN_KEYS);
-        if (isEnabled()) {
-            processWrappers = getPrimaryChangeProcessorWrappers();
-            for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
-                processWrapper.setChangeProcessor(this);
-            }
+        processWrappers = getPrimaryChangeProcessorWrappers();
+        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
+            processWrapper.setChangeProcessor(this);
         }
     }
 
     private List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers() {
 
-        Configuration c = getProcessorConfiguration();
-
         List<PrimaryApprovalProcessWrapper> retval = new ArrayList<PrimaryApprovalProcessWrapper>();
+
+        Configuration c = getProcessorConfiguration();
+        if (c == null) {
+            return retval;
+        }
 
         String[] wrappers = c.getStringArray(KEY_WRAPPER);
         if (wrappers == null || wrappers.length == 0) {
@@ -95,7 +96,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
                 try {
                     PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) getBeanFactory().getBean(wrapperName);
                     retval.add(wrapper);
-                } catch(BeansException e) {
+                } catch (BeansException e) {
                     throw new SystemException("Process wrapper " + wrapperName + " could not be found.", e);
                 }
             }
@@ -123,23 +124,23 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         // examine the request using process wrappers
 
         ObjectDelta<? extends ObjectType> changeBeingDecomposed = change.clone();
-        List<JobCreateInstruction> jobCreateInstructions = gatherStartInstructions(context, changeBeingDecomposed, taskFromModel, result);
+        List<JobCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, changeBeingDecomposed, taskFromModel, result);
 
         // start the process(es)
 
-        if (jobCreateInstructions.isEmpty()) {
+        if (jobCreationInstructions.isEmpty()) {
             LOGGER.trace("There are no workflow processes to be started, exiting.");
             return null;
         } else {
-            return startJobs(jobCreateInstructions, context, changeBeingDecomposed, taskFromModel, result);
+            return startJobs(jobCreationInstructions, context, changeBeingDecomposed, taskFromModel, result);
         }
     }
 
-    private List<JobCreateInstruction> gatherStartInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task taskFromModel, OperationResult result) throws SchemaException {
-        List<JobCreateInstruction> startProcessInstructions = new ArrayList<JobCreateInstruction>();
+    private List<JobCreationInstruction> gatherStartInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task taskFromModel, OperationResult result) throws SchemaException {
+        List<JobCreationInstruction> startProcessInstructions = new ArrayList<JobCreationInstruction>();
 
         for (PrimaryApprovalProcessWrapper wrapper : processWrappers) {
-            List<JobCreateInstruction> instructions = wrapper.prepareJobCreateInstructions(context, changeBeingDecomposed, taskFromModel, result);
+            List<JobCreationInstruction> instructions = wrapper.prepareJobCreationInstructions(context, changeBeingDecomposed, taskFromModel, result);
             logWrapperResult(wrapper, instructions);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);
@@ -156,12 +157,12 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             } catch (SystemException e) {
                 throw new SystemException("Couldn't serialize object to be added to XML", e);
             }
-            for (JobCreateInstruction instruction : startProcessInstructions) {
+            for (JobCreationInstruction instruction : startProcessInstructions) {
                 instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
             }
         }
 
-        for (JobCreateInstruction instruction : startProcessInstructions) {
+        for (JobCreationInstruction instruction : startProcessInstructions) {
             if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
                 // if we want to execute approved changes immediately in this instruction, we have to wait for
                 // task0 (if there is any) and then to update our model context with the results (if there are any)
@@ -172,18 +173,18 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return startProcessInstructions;
     }
 
-    private void logWrapperResult(PrimaryApprovalProcessWrapper wrapper, List<JobCreateInstruction> instructions) {
+    private void logWrapperResult(PrimaryApprovalProcessWrapper wrapper, List<JobCreationInstruction> instructions) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Wrapper " + wrapper.getClass() + " returned the following process start instructions (count: " + (instructions == null ? "(null)" : instructions.size()) + "):");
             if (instructions != null) {
-                for (JobCreateInstruction instruction : instructions) {
+                for (JobCreationInstruction instruction : instructions) {
                     LOGGER.trace(instruction.debugDump(0));
                 }
             }
         }
     }
 
-    private HookOperationMode startJobs(List<JobCreateInstruction> instructions, final ModelContext context, final ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result) {
+    private HookOperationMode startJobs(List<JobCreationInstruction> instructions, final ModelContext context, final ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result) {
 
         Throwable failReason;
         try {
@@ -195,7 +196,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
             // start the jobs
             List<Job> jobs = new ArrayList<Job>(instructions.size());
-            for (JobCreateInstruction instruction : instructions) {
+            for (JobCreationInstruction instruction : instructions) {
                 Job job = jobController.createJob(instruction, rootJob.getTask(), result);
                 jobs.add(job);
             }
@@ -238,45 +239,31 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
 
+    private Job createRootJob(ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result, ExecutionMode executionMode) throws SchemaException, ObjectNotFoundException {
+        LensContext contextForRootTask = determineContextForRootTask(context, changeWithoutApproval, executionMode);
+        JobCreationInstruction instructionForRoot = createInstructionForRoot(contextForRootTask, context, taskFromModel);
+        if (executionMode != ExecutionMode.ALL_IMMEDIATELY) {
+            instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
+            instructionForRoot.setExecuteModelOperationHandler(true);
+        }
+        return super.createRootJob(instructionForRoot, taskFromModel, result);
+    }
+
     // Child job0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
     private Job createJob0(ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Job rootJob, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (!changeWithoutApproval.isEmpty() && executionMode != ExecutionMode.ALL_AFTERWARDS) {
             ModelContext modelContext = contextCopyWithDeltaReplaced(context, changeWithoutApproval);
-            JobCreateInstruction instruction0 = JobCreateInstruction.createModelOperationChildJob(rootJob, modelContext);
+            JobCreationInstruction instruction0 = JobCreationInstruction.createModelOperationChildJob(rootJob, modelContext);
             instruction0.setTaskName(new PolyStringType("Executing changes that do not require approval"));
             if (context.getFocusContext().getPrimaryDelta().isAdd()) {
                 instruction0.setHandlersAfterModelOperation(WfPropagateTaskObjectReferenceTaskHandler.HANDLER_URI);  // for add operations we have to propagate ObjectOID
             }
             instruction0.setCreateSuspended(true);   // task0 should execute only after all subtasks are created, because when it finishes, it
-                                                     // writes some information to all dependent tasks (i.e. they must exist at that time)
+            // writes some information to all dependent tasks (i.e. they must exist at that time)
             return jobController.createJob(instruction0, rootJob, result);
         } else {
             return null;
         }
-    }
-
-    private Job createRootJob(ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result, ExecutionMode executionMode) throws SchemaException, ObjectNotFoundException {
-        LensContext contextForRootTask = determineContextForRootTask(context, changeWithoutApproval, executionMode);
-        PrismObject taskObject = determineTaskObject(context);                      // to which object (e.g. user) is the task related?
-
-        JobCreateInstruction instructionForRoot = createInstructionForRoot(contextForRootTask, taskFromModel, prepareRootTaskName(context), taskObject);
-        if (executionMode != ExecutionMode.ALL_IMMEDIATELY) {
-            instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
-            instructionForRoot.setExecuteModelOperationHandler(true);
-        }
-        return createRootJob(instructionForRoot, taskFromModel, result);
-    }
-
-    private ExecutionMode determineExecutionMode(List<JobCreateInstruction> instructions) {
-        ExecutionMode executionMode;
-        if (shouldAllExecuteImmediately(instructions)) {
-            executionMode = ExecutionMode.ALL_IMMEDIATELY;
-        } else if (shouldAllExecuteAfterwards(instructions)) {
-            executionMode = ExecutionMode.ALL_AFTERWARDS;
-        } else {
-            executionMode = ExecutionMode.MIXED;
-        }
-        return executionMode;
     }
 
     private LensContext determineContextForRootTask(ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, ExecutionMode executionMode) throws SchemaException {
@@ -309,8 +296,20 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return contextCopy;
     }
 
-    private boolean shouldAllExecuteImmediately(List<JobCreateInstruction> startProcessInstructions) {
-        for (JobCreateInstruction instruction : startProcessInstructions) {
+    private ExecutionMode determineExecutionMode(List<JobCreationInstruction> instructions) {
+        ExecutionMode executionMode;
+        if (shouldAllExecuteImmediately(instructions)) {
+            executionMode = ExecutionMode.ALL_IMMEDIATELY;
+        } else if (shouldAllExecuteAfterwards(instructions)) {
+            executionMode = ExecutionMode.ALL_AFTERWARDS;
+        } else {
+            executionMode = ExecutionMode.MIXED;
+        }
+        return executionMode;
+    }
+
+    private boolean shouldAllExecuteImmediately(List<JobCreationInstruction> startProcessInstructions) {
+        for (JobCreationInstruction instruction : startProcessInstructions) {
             if (!instruction.isExecuteApprovedChangeImmediately()) {
                 return false;
             }
@@ -318,8 +317,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return true;
     }
 
-    private boolean shouldAllExecuteAfterwards(List<JobCreateInstruction> startProcessInstructions) {
-        for (JobCreateInstruction instruction : startProcessInstructions) {
+    private boolean shouldAllExecuteAfterwards(List<JobCreationInstruction> startProcessInstructions) {
+        for (JobCreationInstruction instruction : startProcessInstructions) {
             if (instruction.isExecuteApprovedChangeImmediately()) {
                 return false;
             }
@@ -328,6 +327,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
     //endregion
 
+    //region Processing process finish event
     @Override
     public void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         PrimaryChangeProcessorJob pcpJob = new PrimaryChangeProcessorJob(job);
@@ -337,7 +337,9 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         pcpJob.addApprovedBy(wrapper.getApprovedBy(event));
         pcpJob.commitChanges(result);
     }
+    //endregion
 
+    //region User interaction
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return getProcessWrapper(variables).getRequestSpecificData(task, variables, result);
@@ -346,6 +348,20 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return getProcessWrapper(variables).getAdditionalData(task, variables, result);
+    }
+
+    @Override
+    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
+        String wrapperName = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+        Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
+        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
+        return wrapper.getProcessInstanceDetailsPanelName(processInstance);
+    }
+    //endregion
+
+    //region Getters and setters
+    public List<PrimaryApprovalProcessWrapper> getProcessWrappers() {
+        return processWrappers;
     }
 
     private PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
@@ -360,19 +376,6 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
         }
         throw new IllegalStateException("Wrapper " + name + " is not registered.");
-    }
-
-    @Override
-    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
-        String wrapperName = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
-        Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
-        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
-        return wrapper.getProcessInstanceDetailsPanelName(processInstance);
-    }
-
-    //region Getters and setters
-    public List<PrimaryApprovalProcessWrapper> getProcessWrappers() {
-        return processWrappers;
     }
     //endregion
 }

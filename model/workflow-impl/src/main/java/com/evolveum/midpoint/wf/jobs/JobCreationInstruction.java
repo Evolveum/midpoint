@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,12 +35,13 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
@@ -58,7 +60,7 @@ import javax.xml.namespace.QName;
  *
  * @author mederly
  */
-public class JobCreateInstruction implements DebugDumpable {
+public class JobCreationInstruction implements DebugDumpable {
 
     private ChangeProcessor changeProcessor;
 
@@ -86,45 +88,46 @@ public class JobCreateInstruction implements DebugDumpable {
     private List<UriStackEntry> handlersAfterWfProcess = new ArrayList<UriStackEntry>();
 
     //region Constructors
-    protected JobCreateInstruction(ChangeProcessor changeProcessor) {
+    protected JobCreationInstruction(ChangeProcessor changeProcessor) {
         Validate.notNull(changeProcessor);
         this.changeProcessor = changeProcessor;
     }
 
-    protected JobCreateInstruction(Job parentJob) {
+    protected JobCreationInstruction(Job parentJob) {
         this(parentJob.getChangeProcessor());
     }
 
-    public static JobCreateInstruction createModelOperationRootJob(ChangeProcessor changeProcessor, ModelContext modelContext) throws SchemaException {
-        JobCreateInstruction instruction = new JobCreateInstruction(changeProcessor);
+    public static JobCreationInstruction createModelOperationRootJob(ChangeProcessor changeProcessor, ModelContext modelContext) throws SchemaException {
+        JobCreationInstruction instruction = new JobCreationInstruction(changeProcessor);
         instruction.setNoProcess(true);
         instruction.addTaskModelContext(modelContext);
         instruction.setExecuteModelOperationHandler(true);
         return instruction;
     }
 
-    public static JobCreateInstruction createNoModelOperationRootJob(ChangeProcessor changeProcessor) throws SchemaException {
-        JobCreateInstruction instruction = new JobCreateInstruction(changeProcessor);
+    public static JobCreationInstruction createNoModelOperationRootJob(ChangeProcessor changeProcessor) throws SchemaException {
+        JobCreationInstruction instruction = new JobCreationInstruction(changeProcessor);
         instruction.setNoProcess(true);
         instruction.setExecuteModelOperationHandler(false);
         return instruction;
     }
 
-    public static JobCreateInstruction createWfProcessChildJob(ChangeProcessor changeProcessor) {
-        return createWfProcessChildJobInternal(new JobCreateInstruction(changeProcessor));
+    public static JobCreationInstruction createWfProcessChildJob(ChangeProcessor changeProcessor) {
+        return createWfProcessChildJobInternal(new JobCreationInstruction(changeProcessor));
     }
 
-    public static JobCreateInstruction createWfProcessChildJob(Job parentJob) {
-        return createWfProcessChildJobInternal(new JobCreateInstruction(parentJob));
+    public static JobCreationInstruction createWfProcessChildJob(Job parentJob) {
+        return createWfProcessChildJobInternal(new JobCreationInstruction(parentJob));
     }
 
-    private static JobCreateInstruction createWfProcessChildJobInternal(JobCreateInstruction instruction) {
+    private static JobCreationInstruction createWfProcessChildJobInternal(JobCreationInstruction instruction) {
         instruction.setNoProcess(false);
+        instruction.initializeCommonProcessVariables();
         return instruction;
     }
 
-    public static JobCreateInstruction createModelOperationChildJob(Job parentJob, ModelContext modelContext) throws SchemaException {
-        JobCreateInstruction instruction = new JobCreateInstruction(parentJob);
+    public static JobCreationInstruction createModelOperationChildJob(Job parentJob, ModelContext modelContext) throws SchemaException {
+        JobCreationInstruction instruction = new JobCreationInstruction(parentJob);
         instruction.setNoProcess(true);
         instruction.addTaskModelContext(modelContext);
         instruction.setExecuteModelOperationHandler(true);
@@ -155,6 +158,10 @@ public class JobCreateInstruction implements DebugDumpable {
 
     public void addProcessVariable(String name, Serializable value) {
         processVariables.put(name, value);
+    }
+
+    private void removeProcessVariable(String name) {
+        processVariables.remove(name);
     }
 
     public PolyStringType getTaskName() {
@@ -316,7 +323,7 @@ public class JobCreateInstruction implements DebugDumpable {
         taskVariables.put(definition.getName(), property);
     }
 
-    // a bit of hack - why should JobCreateInstruction deal with deltas? - but nevertheless quite useful
+    // a bit of hack - why should JobCreationInstruction deal with deltas? - but nevertheless quite useful
     public void addTaskDeltasVariable(PrismPropertyDefinition<ObjectDeltaType> definition, Collection<ObjectDelta> deltas) throws SchemaException {
         List<ObjectDeltaType> deltaTypes = new ArrayList<ObjectDeltaType>(deltas.size());
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
@@ -336,9 +343,29 @@ public class JobCreateInstruction implements DebugDumpable {
     }
     //endregion
 
+    //region Setters for process variables
+    public void initializeCommonProcessVariables() {
+        addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
+        addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
+        addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
+    }
+
+    public void setRequesterOidInProcess(PrismObject<UserType> requester) {
+        addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
+    }
+
+    public void setObjectOidInProcess(String objectOid) {
+        if (objectOid != null) {
+            addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
+        } else {
+            removeProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
+        }
+    }
+    //endregion
+
     //region Diagnostics
     public String toString() {
-        return "JobCreateInstruction: processDefinitionKey = " + processDefinitionKey + ", simple: " + simple + ", variables: " + processVariables;
+        return "JobCreationInstruction: processDefinitionKey = " + processDefinitionKey + ", simple: " + simple + ", variables: " + processVariables;
     }
 
     @Override
@@ -351,7 +378,7 @@ public class JobCreateInstruction implements DebugDumpable {
         StringBuilder sb = new StringBuilder();
 
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("JobCreateInstruction: process: " + processDefinitionKey + " (" +
+        sb.append("JobCreationInstruction: process: " + processDefinitionKey + " (" +
                 (simple ? "simple" : "smart") + ", " +
                 (executeApprovedChangeImmediately ? "execute-immediately" : "execute-at-end") + ", " +
                 (noProcess ? "no-process" : "with-process") +

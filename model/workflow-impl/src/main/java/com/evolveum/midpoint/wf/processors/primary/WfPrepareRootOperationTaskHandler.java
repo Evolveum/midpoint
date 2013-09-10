@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
+import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,21 +49,21 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareRootOperationTaskHandler.class);
 
+    //region Spring dependencies and initialization
     @Autowired
     private TaskManager taskManager;
 
     @Autowired
-    private WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    private WfConfiguration wfConfiguration;
+    private JobController jobController;
 
     @PostConstruct
     public void init() {
         LOGGER.trace("Registering with taskManager as a handler for " + HANDLER_URI);
         taskManager.registerHandler(HANDLER_URI, this);
     }
+    //endregion
 
+    //region run method
 	@Override
 	public TaskRunResult run(Task task) {
 
@@ -71,29 +73,30 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
             OperationResult result = task.getResult();
 
-            List<Task> children = task.listSubtasks(result);
+            Job rootJob = jobController.recreateRootJob(task);
+            List<Job> children = rootJob.listChildren(result);
 
-            LensContext rootContext = (LensContext) wfTaskUtil.retrieveModelContext(task, result);
+            LensContext rootContext = (LensContext) rootJob.retrieveModelContext(result);
 
             boolean changed = false;
-            for (Task child : children) {
+            for (Job child : children) {
 
-                if (child.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
-                    throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getExecutionStatus());
+                if (child.getTaskExecutionStatus() != TaskExecutionStatus.CLOSED) {
+                    throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getTaskExecutionStatus());
                 }
 
-                if (wfTaskUtil.hasModelContext(child)) {
+                if (child.hasModelContext()) {
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Child task {} has model context present - skipping fetching deltas from it.");
+                        LOGGER.trace("Child job {} has model context present - skipping fetching deltas from it.", child);
                     }
                 } else {
-                    List<ObjectDelta<Objectable>> deltas = wfTaskUtil.retrieveResultingDeltas(child);
+                    List<ObjectDelta<Objectable>> deltas = child.retrieveResultingDeltas();
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Task {} returned {} deltas", child, deltas.size());
+                        LOGGER.trace("Child job {} returned {} deltas", child, deltas.size());
                     }
                     for (ObjectDelta delta : deltas) {
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Adding delta from task {} to root model context; delta = {}", child, delta.debugDump(0));
+                            LOGGER.trace("Adding delta from job {} to root model context; delta = {}", child, delta.debugDump(0));
                         }
                         rootContext.getFocusContext().addPrimaryDelta(delta);
                         changed = true;
@@ -102,8 +105,8 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
             }
 
             if (changed) {
-                wfTaskUtil.storeModelContext(task, rootContext);
-                task.savePendingModifications(result);
+                rootJob.storeModelContext(rootContext);
+                rootJob.commitChanges(result);
             }
 
         } catch (SchemaException e) {
@@ -127,7 +130,9 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 		runResult.setRunResultStatus(status);
 		return runResult;
 	}
-	
+    //endregion
+
+    //region Other task handler stuff
 	@Override
 	public Long heartbeat(Task task) {
 		return null;		// null - as *not* to record progress (which would overwrite operationResult!)
@@ -146,5 +151,6 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
     public List<String> getCategoryNames() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
+    //endregion
 
 }

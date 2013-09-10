@@ -25,13 +25,21 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,7 +49,8 @@ import java.util.List;
 
 /**
  * This handler prepares model operation to be executed within the context of child task:
- * - prepares model operation context - currently, adds OID if necessary (if delta0 was 'add object' delta)
+ * - prepares model operation context, filling it up with approved delta(s)
+ * - adds OID if necessary (if delta0 was 'add object' delta)
  *
  * @author mederly
  */
@@ -54,18 +63,21 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareChildOperationTaskHandler.class);
 
+    //region Spring dependencies and initialization
     @Autowired
     private TaskManager taskManager;
 
     @Autowired
-    private WfTaskUtil wfTaskUtil;
+    private JobController jobController;
 
     @PostConstruct
     public void init() {
         LOGGER.trace("Registering with taskManager as a handler for " + HANDLER_URI);
         taskManager.registerHandler(HANDLER_URI, this);
     }
+    //endregion
 
+    //region Body
     @Override
     public TaskRunResult run(Task task) {
 
@@ -75,16 +87,18 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
         try {
 
+            Job job = jobController.recreateJob(task);
+
             OperationResult result = task.getResult();
 
-            ModelContext modelContext = wfTaskUtil.retrieveModelContext(task, result);
+            ModelContext modelContext = job.retrieveModelContext(result);
             if (modelContext == null) {
                 throw new IllegalStateException("There's no model context in child task; task = " + task);
             }
 
             // prepare deltaOut to be used
 
-            List<ObjectDelta<Objectable>> deltasOut = wfTaskUtil.retrieveResultingDeltas(task);
+            List<ObjectDelta<Objectable>> deltasOut = job.retrieveResultingDeltas();
             if (LOGGER.isTraceEnabled()) { dumpDeltaOut(deltasOut); }
             ObjectDelta deltaOut = ObjectDelta.summarize(deltasOut);
 
@@ -95,7 +109,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                     LOGGER.trace("We'll set skip model context processing property.");
                 }
 
-                wfTaskUtil.setSkipModelContextProcessingProperty(task, true, result);
+                job.setSkipModelContextProcessingProperty(true, result);
 
             } else {
 
@@ -117,7 +131,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Resulting model context to be stored into task {}:\n{}", task, modelContext.debugDump(0));
                 }
-                wfTaskUtil.storeModelContext(task, modelContext);
+                job.storeModelContext(modelContext);
             }
 
             task.savePendingModifications(result);
@@ -157,9 +171,10 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
         }
 
         Task task0 = prerequisites.get(0);
+        Job job0 = jobController.recreateJob(task0);
         Validate.isTrue(task0.isClosed(), "Task0 should be already closed; it is " + task0.getExecutionStatus());
 
-        LensContext context0 = (LensContext) wfTaskUtil.retrieveModelContext(task0, result);
+        LensContext context0 = (LensContext) job0.retrieveModelContext(result);
         if (context0 == null) {
             throw new IllegalStateException("There's no model context in task0; task0 = " + task);
         }
@@ -191,7 +206,9 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
             LOGGER.trace(delta.debugDump());
         }
     }
+    //endregion
 
+    //region Other task handler stuff
     @Override
     public Long heartbeat(Task task) {
         return null;		// null - as *not* to record progress (which would overwrite operationResult!)
@@ -210,5 +227,5 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     public List<String> getCategoryNames() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
-
+    //endregion
 }

@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
@@ -130,9 +130,10 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
         }
     }
 
-    void prepareCommonInstructionAttributes(JobCreateInstruction instruction, ModelContext<?,?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
+    void prepareCommonInstructionAttributes(JobCreationInstruction instruction, ModelContext<?,?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
 
-        changeProcessor.prepareCommonInstructionAttributes(instruction, objectOid, requester);      // todo fix this not quite clean approach...
+        instruction.setRequesterOidInProcess(requester);
+        instruction.setObjectOidInProcess(objectOid);
 
         instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
@@ -146,7 +147,7 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
         }
     }
 
-    public void setDeltaProcessAndTaskVariables(JobCreateInstruction instruction, ObjectDelta delta) {
+    public void setDeltaProcessAndTaskVariables(JobCreationInstruction instruction, ObjectDelta delta) {
         try {
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
         } catch(JAXBException e) {

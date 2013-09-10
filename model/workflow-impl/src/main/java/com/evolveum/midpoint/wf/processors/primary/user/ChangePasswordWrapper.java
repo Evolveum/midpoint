@@ -31,7 +31,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
@@ -74,10 +74,10 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
     private PrismContext prismContext;
 
     @Override
-    public List<JobCreateInstruction> prepareJobCreateInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
-        List<JobCreateInstruction> instructions = new ArrayList<JobCreateInstruction>();
+        List<JobCreationInstruction> instructions = new ArrayList<JobCreationInstruction>();
 
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
@@ -126,13 +126,13 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
         return new ApprovalRequestImpl("Password change", null, approvers, null, null, prismContext);
     }
 
-    private JobCreateInstruction createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
+    private JobCreationInstruction createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
         String userName = MiscDataUtil.getObjectName(modelContext);
         String objectOid = getObjectOid(modelContext);
         PrismObject<UserType> requester = getRequester(taskFromModel, result);
 
-        JobCreateInstruction instruction = JobCreateInstruction.createWfProcessChildJob(getChangeProcessor());
+        JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(getChangeProcessor());
 
         prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester);
 

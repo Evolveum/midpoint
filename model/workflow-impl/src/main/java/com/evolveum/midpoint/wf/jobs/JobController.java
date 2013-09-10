@@ -128,11 +128,11 @@ public class JobController {
      * @throws ObjectNotFoundException
      */
 
-    public Job createJob(JobCreateInstruction instruction, Job parentJob, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public Job createJob(JobCreationInstruction instruction, Job parentJob, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return createJob(instruction, parentJob.getTask(), result);
     }
 
-    public Job createJob(JobCreateInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public Job createJob(JobCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Processing start instruction: " + instruction.debugDump());
@@ -146,16 +146,23 @@ public class JobController {
         return job;
     }
 
-    private Job recreateChildJob(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public Job recreateJob(Task task) throws SchemaException, ObjectNotFoundException {
         return new Job(this, task, wfTaskUtil.getProcessId(task), wfTaskUtil.getChangeProcessor(task));
     }
 
+    public Job recreateChildJob(Task subtask, Job parentJob) {
+        return new Job(this, subtask, wfTaskUtil.getProcessId(subtask), parentJob.getChangeProcessor());
+    }
+
+    public Job recreateRootJob(Task task) {
+        return new Job(this, task, wfTaskUtil.getChangeProcessor(task));
+    }
     //endregion
 
     //region Working with midPoint tasks
     /*************************** WORKING WITH TASKS ***************************/
 
-    private Task createTask(JobCreateInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Task createTask(JobCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         ChangeProcessor changeProcessor = instruction.getChangeProcessor();
 
@@ -298,7 +305,7 @@ public class JobController {
     //region Working with Activiti process instances
     /*************************** WORKING WITH ACTIVITI ***************************/
 
-    private void startWorkflowProcessInstance(Job job, JobCreateInstruction instruction, OperationResult result) {
+    private void startWorkflowProcessInstance(Job job, JobCreationInstruction instruction, OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("startWorkflowProcessInstance starting; instruction = " + instruction);
@@ -315,7 +322,6 @@ public class JobController {
         StartProcessCommand spc = new StartProcessCommand();
         spc.setTaskOid(task.getOid());
         spc.setProcessName(instruction.getProcessDefinitionKey());
-        //spc.setSendStartConfirmation(instruction.isSimple());	// for simple processes we should get wrapper-generated start events
         spc.setSendStartConfirmation(true);     // we always want to get start confirmation
         spc.setVariablesFrom(instruction.getProcessVariables());
         spc.setProcessOwner(task.getOwner().getOid());
@@ -350,7 +356,7 @@ public class JobController {
      */
     public void processWorkflowMessage(ProcessEvent event, Task task, OperationResult result) throws Exception {
 
-        Job job = recreateChildJob(task, result);
+        Job job = recreateJob(task);
 
         recordProcessInstanceState(job, getStateDescription(event), event, result);
 
@@ -627,5 +633,7 @@ public class JobController {
     public WfTaskUtil getWfTaskUtil() {
         return wfTaskUtil;
     }
+
+
     //endregion
 }

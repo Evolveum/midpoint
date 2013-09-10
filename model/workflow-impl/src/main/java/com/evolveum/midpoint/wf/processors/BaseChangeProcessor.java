@@ -14,11 +14,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.Job;
-import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
-import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -45,9 +44,7 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseChangeProcessor.class);
 
-    private static final String KEY_ENABLED = "enabled";
-    private static final List<String> KNOWN_KEYS = Arrays.asList(KEY_ENABLED);
-
+    //region Spring beans
     @Autowired
     private WfConfiguration wfConfiguration;
 
@@ -62,6 +59,13 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
 
     @Autowired
     protected JobController jobController;
+    //endregion
+
+    //region Initialization and configuration
+    // =================================================================================== Initialization and configuration
+
+    private static final String KEY_ENABLED = "enabled";
+    private static final List<String> KNOWN_KEYS = Arrays.asList(KEY_ENABLED);
 
     private Configuration processorConfiguration;
 
@@ -69,9 +73,6 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     private BeanFactory beanFactory;
 
     private boolean enabled = false;
-
-    //region Initialization and configuration
-    // =================================================================================== Initialization and configuration
 
     protected void initializeBaseProcessor() {
         initializeBaseProcessor(null);
@@ -143,7 +144,7 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     // =================================================================================== Processing model invocation
 
     protected Job createRootJob(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        JobCreateInstruction rootInstruction = createInstructionForRoot(context, taskFromModel, prepareRootTaskName(context), determineTaskObject(context));
+        JobCreationInstruction rootInstruction = createInstructionForRoot(context, taskFromModel);
         return jobController.createJob(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
     }
 
@@ -156,13 +157,20 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         return taskObject;
     }
 
-    protected JobCreateInstruction createInstructionForRoot(ModelContext modelContext, Task taskFromModel, String defaultTaskName, PrismObject taskObject) throws SchemaException {
+    protected JobCreationInstruction createInstructionForRoot(ModelContext modelContext, Task taskFromModel) throws SchemaException {
+        return createInstructionForRoot(modelContext, modelContext, taskFromModel);
+    }
 
-        JobCreateInstruction instruction;
-        if (modelContext != null) {
-            instruction = JobCreateInstruction.createModelOperationRootJob(this, modelContext);
+    protected JobCreationInstruction createInstructionForRoot(ModelContext contextForRoot, ModelContext modelContext, Task taskFromModel) throws SchemaException {
+
+        String defaultTaskName = prepareRootTaskName(modelContext);
+        PrismObject taskObject = determineTaskObject(modelContext);
+
+        JobCreationInstruction instruction;
+        if (contextForRoot != null) {
+            instruction = JobCreationInstruction.createModelOperationRootJob(this, contextForRoot);
         } else {
-            instruction = JobCreateInstruction.createNoModelOperationRootJob(this);
+            instruction = JobCreationInstruction.createNoModelOperationRootJob(this);
         }
 
         instruction.setTaskName(new PolyStringType(defaultTaskName));
@@ -208,37 +216,25 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         }
     }
 
-    protected Job createRootJob(JobCreateInstruction rootInstruction, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    protected Job createRootJob(JobCreationInstruction rootInstruction, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
         Job rootJob = jobController.createJob(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
         wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootJob.getTask().getOid(), result);
         return rootJob;
     }
 
-    // todo what with this?
-    public void prepareCommonInstructionAttributes(JobCreateInstruction instruction, String objectOid, PrismObject<UserType> requester) {
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
-        if (objectOid != null) {
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
-        }
-
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, this.getClass().getName());
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
-        instruction.setNoProcess(false);
-    }
-
     protected void logTasksBeforeStart(Job rootJob, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         if (LOGGER.isTraceEnabled()) {
-            Task rootTask = rootJob.getTask();
             LOGGER.trace("============ Situation just before root task starts waiting for subtasks ============");
-            LOGGER.trace("Root task = " + rootTask.dump());
-            if (wfTaskUtil.hasModelContext(rootTask)) {
-                LOGGER.trace("Context in root task = " + wfTaskUtil.retrieveModelContext(rootTask, result).debugDump());
+            LOGGER.trace("Root job = {}; task = {}", rootJob, rootJob.getTask().dump());
+            if (rootJob.hasModelContext()) {
+                LOGGER.trace("Context in root task = " + rootJob.retrieveModelContext(result).debugDump());
             }
-            for (Task child : rootTask.listSubtasks(result)) {
-                LOGGER.trace("Child task = " + child.dump());
-                if (wfTaskUtil.hasModelContext(child)) {
-                    LOGGER.trace("Context in child task = " + wfTaskUtil.retrieveModelContext(child, result).debugDump());
+            List<Job> children = rootJob.listChildren(result);
+            for (int i = 0; i < children.size(); i++) {
+                Job child = children.get(i);
+                LOGGER.trace("Child job #" + i + " = {}, its task = {}", child, child.getTask().dump());
+                if (child.hasModelContext()) {
+                    LOGGER.trace("Context in child task = " + child.retrieveModelContext(result).debugDump());
                 }
             }
             LOGGER.trace("Now the root task starts waiting for child tasks");
