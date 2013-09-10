@@ -25,7 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.executions.StartInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -63,11 +63,11 @@ public interface PrimaryApprovalProcessWrapper {
      *
      * @param modelContext Original model context (e.g. to be able to get information about whole context of the operation)
      * @param change Change to be examined and modified (as a side effect!)
-     * @param task General context of the operation - the method should not modify the task.
+     * @param taskFromModel General context of the operation - the method should not modify the task.
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)
      * @return list of start process instructions
      */
-    List<StartInstruction> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) throws SchemaException;
+    List<JobCreateInstruction> prepareJobCreateInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * Returns the name of process instance details GUI panel. (Currently not used.)
@@ -78,7 +78,7 @@ public interface PrimaryApprovalProcessWrapper {
     // TODO (after this mark)
     //-------------------------------------------------------------------------------------
 
-    List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, Task task, OperationResult result) throws SchemaException;
+    List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PrimaryChangeProcessorJob job, OperationResult result) throws SchemaException;
 
     PrimaryChangeProcessor getChangeProcessor();
 

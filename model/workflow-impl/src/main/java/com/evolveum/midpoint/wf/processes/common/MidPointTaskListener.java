@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
@@ -64,100 +65,28 @@ public class MidPointTaskListener implements TaskListener {
 
         // auditing & notifications
 
+        JobController jobController = SpringApplicationContextHolder.getProcessInstanceController();
+
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
-            auditWorkItemEvent(delegateTask, AuditEventStage.REQUEST, result);
-            SpringApplicationContextHolder.getProcessInstanceController().notifyWorkItemCreated(
+            jobController.auditWorkItemEvent(delegateTask.getVariables(), delegateTask.getId(), getWorkItemName(delegateTask), delegateTask.getAssignee(), AuditEventStage.REQUEST, result);
+            jobController.notifyWorkItemCreated(
                     delegateTask.getName(),
                     delegateTask.getAssignee(),
                     getWorkItemName(delegateTask),
                     delegateTask.getVariables());
         } else if (TaskListener.EVENTNAME_COMPLETE.equals(delegateTask.getEventName())) {
-            auditWorkItemEvent(delegateTask, AuditEventStage.EXECUTION, result);
-            SpringApplicationContextHolder.getProcessInstanceController().notifyWorkItemCompleted(
+            jobController.auditWorkItemEvent(delegateTask.getVariables(), delegateTask.getId(), getWorkItemName(delegateTask), delegateTask.getAssignee(), AuditEventStage.EXECUTION, result);
+            jobController.notifyWorkItemCompleted(
                     delegateTask.getName(),
                     delegateTask.getAssignee(),
                     getWorkItemName(delegateTask),
                     delegateTask.getVariables(),
                     (String) delegateTask.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
         }
-
     }
 
     private String getWorkItemName(DelegateTask delegateTask) {
         return (String) delegateTask.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME);
     }
 
-    private void auditWorkItemEvent(DelegateTask delegateTask, AuditEventStage stage, OperationResult result) {
-
-        Map<String,Object> variables = delegateTask.getVariables();
-
-        MiscDataUtil miscDataUtil = SpringApplicationContextHolder.getMiscDataUtil();
-        RepositoryService repositoryService = SpringApplicationContextHolder.getRepositoryService();
-
-        AuditEventRecord auditEventRecord = new AuditEventRecord();
-        auditEventRecord.setEventType(AuditEventType.WORK_ITEM);
-        auditEventRecord.setEventStage(stage);
-
-        String requesterOid = (String) delegateTask.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
-        if (requesterOid != null) {
-            try {
-                auditEventRecord.setInitiator(miscDataUtil.getRequester(delegateTask.getVariables(), result));
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
-            }
-        }
-
-        PrismObject<GenericObjectType> workItemObject = new PrismObject<GenericObjectType>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
-        workItemObject.asObjectable().setName(new PolyStringType(getWorkItemName(delegateTask)));
-        workItemObject.asObjectable().setOid(delegateTask.getId());
-        auditEventRecord.setTarget(workItemObject);
-
-        if (stage == AuditEventStage.REQUEST) {
-            if (delegateTask.getAssignee() != null) {
-                try {
-                    auditEventRecord.setTargetOwner(repositoryService.getObject(UserType.class, delegateTask.getAssignee(), null, result));
-                } catch (ObjectNotFoundException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't retrieve the work item assignee information", e);
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't retrieve the work item assignee information", e);
-                }
-            }
-        } else {
-            MidPointPrincipal principal = MiscDataUtil.getPrincipalUser();
-            if (principal != null && principal.getUser() != null) {
-                auditEventRecord.setTargetOwner(principal.getUser().asPrismObject());
-            }
-        }
-
-        ObjectDelta delta;
-        try {
-            delta = miscDataUtil.getObjectDelta(variables, result, true);
-            if (delta != null) {
-                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
-            }
-        } catch (JAXBException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta to be approved", e);
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta to be approved", e);
-        }
-
-        auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
-        if (stage == AuditEventStage.EXECUTION) {
-            auditEventRecord.setResult((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
-            auditEventRecord.setMessage((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
-        }
-
-        Task shadowTask = null;
-        try {
-            shadowTask = miscDataUtil.getShadowTask(variables, result);
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve workflow-related task", e);
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve workflow-related task", e);
-        }
-
-        SpringApplicationContextHolder.getAuditService().audit(auditEventRecord, shadowTask);
-    }
 }

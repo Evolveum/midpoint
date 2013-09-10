@@ -23,7 +23,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.executions.ExecutionController;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.messages.*;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.activiti.engine.HistoryService;
@@ -57,7 +57,7 @@ public class ActivitiInterface {
     private TaskManager taskManager;
 
     @Autowired
-    private ExecutionController executionController;
+    private JobController jobController;
 
     /**
      * Processes a message coming from midPoint to activiti. Although currently activiti is co-located with midPoint,
@@ -155,7 +155,7 @@ public class ActivitiInterface {
                 activitiEngine.getIdentityService().setAuthenticatedUserId(owner);
             }
             //String businessKey = (String) map.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID);
-            //ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), businessKey, map);
+            //ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessDefinitionKey(), businessKey, map);
             ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), map);
 
             // let us send a reply back (useful for listener-free processes)
@@ -222,7 +222,7 @@ public class ActivitiInterface {
                 if (asynchronous && task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
                     LOGGER.trace("Asynchronous message received in a state different from WAITING ({}), ignoring it. Task = {}", task.getExecutionStatus(), task);
                 } else {
-                    executionController.processWorkflowMessage(event, task, result);
+                    jobController.processWorkflowMessage(event, task, result);
                 }
 
             } else {

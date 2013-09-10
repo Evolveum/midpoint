@@ -30,8 +30,8 @@ import com.evolveum.midpoint.wf.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.dao.WorkItemProvider;
 
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.executions.ExecutionController;
-import com.evolveum.midpoint.wf.executions.WfTaskUtil;
+import com.evolveum.midpoint.wf.jobs.JobController;
+import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     private ProcessInstanceManager processInstanceManager;
 
     @Autowired
-    private ExecutionController executionController;
+    private JobController jobController;
 
     @Autowired
     private WorkItemProvider workItemProvider;
@@ -177,12 +177,12 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public void registerProcessListener(ProcessListener processListener) {
-        executionController.registerProcessListener(processListener);
+        jobController.registerProcessListener(processListener);
     }
 
     @Override
     public void registerWorkItemListener(WorkItemListener workItemListener) {
-        executionController.registerWorkItemListener(workItemListener);
+        jobController.registerWorkItemListener(workItemListener);
     }
 
     @Override

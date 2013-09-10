@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.wf.executions;
+package com.evolveum.midpoint.wf.jobs;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
@@ -7,13 +7,13 @@ import org.apache.commons.lang.Validate;
 /**
  * @author mederly
  */
-public class ExecutionContext {
+public class JobContext {
 
     private String parentTaskOid;
     private Task parentTask;
     private ChangeProcessor changeProcessor;
 
-    public ExecutionContext(Task parentTask, ChangeProcessor changeProcessor) {
+    public JobContext(Task parentTask, ChangeProcessor changeProcessor) {
         Validate.notNull(parentTask);
         Validate.notNull(changeProcessor);
         this.parentTask = parentTask;

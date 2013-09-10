@@ -20,7 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.wf.executions.ExecutionController;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -47,6 +47,12 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
         return getBean("activitiInterface", ActivitiInterface.class);
     }
 
+    private static<T> T getBean(Class<T> aClass) {
+        String className = aClass.getSimpleName();
+        String beanName = Character.toLowerCase(className.charAt(0)) + className.substring(1);
+        return getBean(beanName, aClass);
+    }
+
     private static<T> T getBean(String name, Class<T> aClass) {
         T bean = getApplicationContext().getBean(name, aClass);
         if (bean == null) {
@@ -56,23 +62,23 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
     }
 
     public static MiscDataUtil getMiscDataUtil() {
-        return getBean("miscDataUtil", MiscDataUtil.class);
+        return getBean(MiscDataUtil.class);
     }
 
     public static RepositoryService getRepositoryService() {
-        return getBean("repositoryService", RepositoryService.class);
+        return getBean(RepositoryService.class);
     }
 
     public static PrismContext getPrismContext() {
-        return getBean("prismContext", PrismContext.class);
+        return getBean(PrismContext.class);
     }
 
-    public static ExecutionController getProcessInstanceController() {
-        return getBean("executionController", ExecutionController.class);
+    public static JobController getProcessInstanceController() {
+        return getBean(JobController.class);
     }
 
     public static AuditService getAuditService() {
-        return getBean("auditService", AuditService.class);
+        return getBean(AuditService.class);
     }
 
     public static MidpointFunctions getMidpointFunctions() {

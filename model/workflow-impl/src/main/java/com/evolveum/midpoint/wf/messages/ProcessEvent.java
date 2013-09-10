@@ -50,10 +50,6 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
         return (String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
     }
 
-    public String getState() {
-        return (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE);
-    }
-
     public String getPid() {
         return pid;
     }

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.executions.StartInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
@@ -66,7 +66,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public class ChangePasswordWrapper extends AbstractUserWrapper {
+public class ChangePasswordWrapper extends BaseUserWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordWrapper.class);
 
@@ -74,10 +74,10 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
     private PrismContext prismContext;
 
     @Override
-    public List<StartInstruction> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) throws SchemaException {
+    public List<JobCreateInstruction> prepareJobCreateInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
-        List<StartInstruction> instructions = new ArrayList<StartInstruction>();
+        List<JobCreateInstruction> instructions = new ArrayList<JobCreateInstruction>();
 
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
@@ -97,7 +97,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
                 }
                 ApprovalRequest<String> approvalRequest = createApprovalRequest(delta);
                 approvalRequestList.add(approvalRequest);
-                instructions.add(createStartProcessInstruction(modelContext, delta, approvalRequest, task, result));
+                instructions.add(createStartProcessInstruction(modelContext, delta, approvalRequest, taskFromModel, result));
                 deltaIterator.remove();
             }
         }
@@ -126,17 +126,17 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         return new ApprovalRequestImpl("Password change", null, approvers, null, null, prismContext);
     }
 
-    private StartInstruction createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task task, OperationResult result) throws SchemaException {
+    private JobCreateInstruction createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
         String userName = MiscDataUtil.getObjectName(modelContext);
         String objectOid = getObjectOid(modelContext);
-        PrismObject<UserType> requester = getRequester(task, result);
+        PrismObject<UserType> requester = getRequester(taskFromModel, result);
 
-        StartInstruction instruction = new StartInstruction(task, getChangeProcessor());
+        JobCreateInstruction instruction = JobCreateInstruction.createWfProcessChildJob(getChangeProcessor());
 
-        prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
+        prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester);
 
-        instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
+        instruction.setProcessDefinitionKey(GENERAL_APPROVAL_PROCESS);
         instruction.setSimple(false);
 
         instruction.setTaskName(new PolyStringType("Workflow for approving password change for " + userName));
@@ -146,7 +146,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve changing password for " + userName);
 
-        instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+        instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
         ObjectDelta objectDelta = itemDeltaToObjectDelta(objectOid, delta);
         setDeltaProcessAndTaskVariables(instruction, objectDelta);

@@ -42,7 +42,7 @@ public class PrimaryUserChangeProcessor extends PrimaryChangeProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryUserChangeProcessor.class);
 
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, Task task, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException {
 
         if (context.getState() != ModelState.PRIMARY || context.getFocusContext() == null) {
             return null;
@@ -63,7 +63,7 @@ public class PrimaryUserChangeProcessor extends PrimaryChangeProcessor {
         }
 
         // the rest is quite generic
-        return super.processModelInvocation(context, task, result);
+        return super.processModelInvocation(context, taskFromModel, result);
     }
 
 

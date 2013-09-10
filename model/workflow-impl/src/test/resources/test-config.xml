@@ -33,9 +33,10 @@
             <jdbcDriver>org.h2.Driver</jdbcDriver>
             <jdbcUsername>sa</jdbcUsername>
             <jdbcPassword/>
-            <autoDeploymentFrom>file:d:/midpoint/home/processes/*.bpmn20.xml</autoDeploymentFrom>
+            <!-- <autoDeploymentFrom>file:d:/midpoint/home/processes/*.bpmn20.xml</autoDeploymentFrom> -->
             <changeProcessors>
                 <generalChangeProcessor>
+                    <enabled>false</enabled>
                     <c:generalChangeProcessorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
                         <c:scenario>
                             <c:activationCondition>

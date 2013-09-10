@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.executions;
+package com.evolveum.midpoint.wf.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -92,6 +92,7 @@ public class WfTaskUtil {
     private PrismPropertyDefinition wfDeltaToProcessPropertyDefinition;
     private PrismPropertyDefinition wfResultingDeltaPropertyDefinition;
     private PrismPropertyDefinition wfProcessInstanceFinishedPropertyDefinition;
+    private PrismPropertyDefinition wfRootTaskOidPropertyDefinition;
     private PrismReferenceDefinition wfApprovedByReferenceDefinition;
 
     @PostConstruct
@@ -108,6 +109,7 @@ public class WfTaskUtil {
         wfDeltaToProcessPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
         wfResultingDeltaPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
         wfProcessInstanceFinishedPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
+        wfRootTaskOidPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFROOT_TASK_OID_PROPERTY_NAME);
         wfApprovedByReferenceDefinition = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(Constants.WFAPPROVED_BY_REFERENCE_NAME);
 
         Validate.notNull(wfModelContextContainerDefinition, SchemaConstants.MODEL_CONTEXT_NAME + " definition was not found");
@@ -121,6 +123,7 @@ public class WfTaskUtil {
         Validate.notNull(wfDeltaToProcessPropertyDefinition, Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfResultingDeltaPropertyDefinition, Constants.WFRESULTING_DELTA_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfProcessInstanceFinishedPropertyDefinition, Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfRootTaskOidPropertyDefinition, Constants.WFROOT_TASK_OID_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfApprovedByReferenceDefinition, Constants.WFAPPROVED_BY_REFERENCE_NAME + " definition was not found");
 
         if (wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
@@ -508,6 +511,14 @@ public class WfTaskUtil {
     public boolean isProcessInstanceFinished(Task task) {
         Boolean value = getExtensionValue(Boolean.class, task, Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
         return value != null ? value : false;
+    }
+
+    public void setRootTaskOidImmediate(Task task, String value, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        setExtensionPropertyImmediate(task, wfRootTaskOidPropertyDefinition, value, result);
+    }
+
+    public String getRootTaskOid(Task task) {
+        return getExtensionValue(String.class, task, Constants.WFROOT_TASK_OID_PROPERTY_NAME);
     }
 
     public void setSkipModelContextProcessingProperty(Task task, boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {

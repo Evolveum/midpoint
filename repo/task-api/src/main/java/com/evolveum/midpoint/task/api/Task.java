@@ -671,6 +671,14 @@ public interface Task extends Dumpable {
     void setObjectRef(ObjectReferenceType objectRef);
 
     /**
+     * Sets the object reference.
+     *
+     * @param oid
+     * @param type
+     */
+    void setObjectRef(String oid, QName type);
+
+    /**
      * "Immediate" version of the previous method.
      */
 
@@ -919,5 +927,6 @@ public interface Task extends Dumpable {
      */
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException;
+
 
 }

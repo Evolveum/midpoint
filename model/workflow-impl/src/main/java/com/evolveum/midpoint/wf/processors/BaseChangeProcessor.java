@@ -6,8 +6,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -15,10 +13,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.executions.ExecutionController;
-import com.evolveum.midpoint.wf.executions.StartInstruction;
+import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.executions.WfTaskUtil;
+import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
@@ -62,7 +61,7 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     protected TaskManager taskManager;
 
     @Autowired
-    protected ExecutionController executionController;
+    protected JobController jobController;
 
     private Configuration processorConfiguration;
 
@@ -70,6 +69,9 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     private BeanFactory beanFactory;
 
     private boolean enabled = false;
+
+    //region Initialization and configuration
+    // =================================================================================== Initialization and configuration
 
     protected void initializeBaseProcessor() {
         initializeBaseProcessor(null);
@@ -126,35 +128,53 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         this.beanFactory = beanFactory;
     }
 
+    protected void validateElement(Element element) throws SchemaException {
+        OperationResult result = new OperationResult("validateElement");
+        Validator validator = new Validator(prismContext);
+        validator.validateSchema(element, result);
+        result.computeStatus();
+        if (!result.isSuccess()) {
+            throw new SchemaException(result.getMessage(), result.getCause());
+        }
+    }
+    //endregion
 
-    protected void prepareAndSaveRootTask(ModelContext rootContext, Task task, String defaultTaskName, PrismObject taskObject, OperationResult result) throws SchemaException {
+    //region Processing model invocation
+    // =================================================================================== Processing model invocation
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("prepareAndSaveRootTask starting; task = " + task + ", model context to be stored = " + (rootContext != null ? rootContext.debugDump() : "none"));
+    protected Job createRootJob(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        JobCreateInstruction rootInstruction = createInstructionForRoot(context, taskFromModel, prepareRootTaskName(context), determineTaskObject(context));
+        return jobController.createJob(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
+    }
+
+    // to which object (e.g. user) is the task related?
+    protected PrismObject determineTaskObject(ModelContext context) {
+        PrismObject taskObject = context.getFocusContext().getObjectNew();
+        if (taskObject != null && taskObject.getOid() == null) {
+            taskObject = null;
+        }
+        return taskObject;
+    }
+
+    protected JobCreateInstruction createInstructionForRoot(ModelContext modelContext, Task taskFromModel, String defaultTaskName, PrismObject taskObject) throws SchemaException {
+
+        JobCreateInstruction instruction;
+        if (modelContext != null) {
+            instruction = JobCreateInstruction.createModelOperationRootJob(this, modelContext);
+        } else {
+            instruction = JobCreateInstruction.createNoModelOperationRootJob(this);
         }
 
-        if (!task.isTransient()) {
-            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
-        }
-
-        wfTaskUtil.setTaskNameIfEmpty(task, new PolyStringType(defaultTaskName));
-        task.setCategory(TaskCategory.WORKFLOW);
-
-        if (taskObject != null) {
-            task.setObjectTransient(taskObject);
-        }
+        instruction.setTaskName(new PolyStringType(defaultTaskName));
+        instruction.setTaskObject(taskObject);
+        instruction.setTaskOwner(taskFromModel.getOwner());
 
         // At this moment, we HAVE NOT entered wait-for-tasks state, because we have no prerequisite tasks (in this case,
         // children) defined yet. Entering that state would result in immediate execution of this task. We have to
-        // enter this state after all children tasks are created.
+        // enter this state only after all children tasks are created.
+        instruction.setCreateWaiting(true);
 
-        task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Saving root task: " + task.dump());
-        }
-
-        taskManager.switchToBackground(task, result);
+        return instruction;
     }
 
     protected String prepareRootTaskName(ModelContext context) {
@@ -173,8 +193,43 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         return "Workflow for " + operation + " " + name + " (started " + time + ")";
     }
 
-    protected void logTasksBeforeStart(Task rootTask, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    protected Task determineParentTaskForRoot(Task taskFromModel) {
+
+        // this is important: if existing task which we have got from model is transient (this is usual case), we create our root task as a task without parent!
+        // however, if the existing task is persistent (perhaps because the model operation executes already in the context of a workflow), we create a subtask
+        // todo think heavily about this; there might be a problem if a transient task from model gets (in the future) persistent
+        // -- in that case, it would not wait for its workflow-related children (but that's its problem, because children could finish even before
+        // that task is switched to background)
+
+        if (taskFromModel.isTransient()) {
+            return null;
+        } else {
+            return taskFromModel;
+        }
+    }
+
+    protected Job createRootJob(JobCreateInstruction rootInstruction, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        Job rootJob = jobController.createJob(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
+        wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootJob.getTask().getOid(), result);
+        return rootJob;
+    }
+
+    // todo what with this?
+    public void prepareCommonInstructionAttributes(JobCreateInstruction instruction, String objectOid, PrismObject<UserType> requester) {
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
+        if (objectOid != null) {
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
+        }
+
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, this.getClass().getName());
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
+        instruction.setNoProcess(false);
+    }
+
+    protected void logTasksBeforeStart(Job rootJob, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         if (LOGGER.isTraceEnabled()) {
+            Task rootTask = rootJob.getTask();
             LOGGER.trace("============ Situation just before root task starts waiting for subtasks ============");
             LOGGER.trace("Root task = " + rootTask.dump());
             if (wfTaskUtil.hasModelContext(rootTask)) {
@@ -189,29 +244,12 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
             LOGGER.trace("Now the root task starts waiting for child tasks");
         }
     }
+    //endregion
 
-    protected void validateElement(Element element) throws SchemaException {
-        OperationResult result = new OperationResult("validateElement");
-        Validator validator = new Validator(prismContext);
-        validator.validateSchema(element, result);
-        result.computeStatus();
-        if (!result.isSuccess()) {
-            throw new SchemaException(result.getMessage(), result.getCause());
-        }
+    //region Getters and setters
+    public WfTaskUtil getWfTaskUtil() {
+        return wfTaskUtil;
     }
-
-    public void prepareCommonInstructionAttributes(StartInstruction instruction, String objectOid, PrismObject<UserType> requester) {
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
-        if (objectOid != null) {
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
-        }
-
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, this.getClass().getName());
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
-        instruction.setNoProcess(false);
-    }
-
-
+    //endregion
 
 }

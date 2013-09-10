@@ -1276,6 +1276,15 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public void setObjectRef(String oid, QName type) {
+        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+        objectReferenceType.setOid(oid);
+        objectReferenceType.setType(type);
+        setObjectRef(objectReferenceType);
+    }
+
+
+    @Override
     public void setObjectRefImmediate(ObjectReferenceType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         processModificationNow(setObjectRefAndPrepareDelta(value), parentResult);

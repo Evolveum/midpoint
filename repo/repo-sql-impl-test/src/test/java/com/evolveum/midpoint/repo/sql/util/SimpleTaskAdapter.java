@@ -236,6 +236,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void setObjectRef(String oid, QName type) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public void setObjectTransient(PrismObject object) {
         throw new UnsupportedOperationException("not implemented yet.");
     }

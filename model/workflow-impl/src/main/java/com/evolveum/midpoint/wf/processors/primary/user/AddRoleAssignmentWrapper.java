@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.executions.StartInstruction;
+import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
@@ -77,7 +77,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component("addRoleAssignmentWrapper")
-public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
+public class AddRoleAssignmentWrapper extends BaseUserWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddRoleAssignmentWrapper.class);
 
@@ -87,14 +87,14 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     // ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<StartInstruction> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) throws SchemaException {
+    public List<JobCreateInstruction> prepareJobCreateInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getAssignmentToApproveList(change, result);
         if (approvalRequestList == null) {
             return null;
+        } else {
+            return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
         }
-
-        return prepareStartProcessInstructions(modelContext, task, result, approvalRequestList);
     }
 
     private List<ApprovalRequest<AssignmentType>> getAssignmentToApproveList(ObjectDelta<? extends ObjectType> change, OperationResult result) {
@@ -188,8 +188,8 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
     }
 
     // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
-    private List<StartInstruction> prepareStartProcessInstructions(ModelContext<?, ?> modelContext, Task task, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
-        List<StartInstruction> instructions = new ArrayList<StartInstruction>();
+    private List<JobCreateInstruction> prepareJobCreateInstructions(ModelContext<?, ?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+        List<JobCreateInstruction> instructions = new ArrayList<JobCreateInstruction>();
 
         String userName = MiscDataUtil.getObjectName(modelContext);
 
@@ -212,17 +212,17 @@ public class AddRoleAssignmentWrapper extends AbstractUserWrapper {
             String roleName = roleType.getName().getOrig();
 
             String objectOid = getObjectOid(modelContext);
-            PrismObject<UserType> requester = getRequester(task, result);
+            PrismObject<UserType> requester = getRequester(taskFromModel, result);
 
-            StartInstruction instruction = new StartInstruction(task, getChangeProcessor());
+            JobCreateInstruction instruction = JobCreateInstruction.createWfProcessChildJob(getChangeProcessor());
 
-            prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
+            prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester);
             instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, userName);
 
-            instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
+            instruction.setProcessDefinitionKey(GENERAL_APPROVAL_PROCESS);
             instruction.setSimple(false);
 
-            String andExecuting = instruction.isExecuteImmediately() ? "and executing " : "";
+            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
             instruction.setTaskName(new PolyStringType("Workflow for approving " + andExecuting + "adding " + roleName + " to " + userName));
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, "Adding " + roleName + " to " + userName);
 

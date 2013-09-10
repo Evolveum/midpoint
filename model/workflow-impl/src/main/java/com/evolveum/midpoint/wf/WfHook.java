@@ -77,7 +77,7 @@ public class WfHook implements ChangeHook {
         Validate.notNull(parentResult);
 
         OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
-        result.addParam("task", task.toString());
+        result.addParam("taskFromModel", task.toString());
         result.addContext("model state", context.getState());
 
         logOperationInformation(context);
@@ -114,7 +114,7 @@ public class WfHook implements ChangeHook {
         }
     }
 
-    HookOperationMode processModelInvocation(ModelContext context, Task task, OperationResult result) {
+    HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) {
 
         for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
             if (LOGGER.isTraceEnabled()) {
@@ -125,7 +125,7 @@ public class WfHook implements ChangeHook {
                 continue;
             }
             try {
-                HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, task, result);
+                HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, taskFromModel, result);
                 if (hookOperationMode != null) {
                     return hookOperationMode;
                 }

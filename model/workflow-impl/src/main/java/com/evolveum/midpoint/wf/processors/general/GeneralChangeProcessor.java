@@ -6,7 +6,6 @@ import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,7 +28,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.executions.StartInstruction;
+import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProces
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.form.FormProperty;
@@ -151,7 +150,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, Task rootTask, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException {
 
         warnIfNoScenarios();
 
@@ -160,54 +159,41 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
-                return applyScenario(scenarioType, context, rootTask, result);
+                return applyScenario(scenarioType, context, taskFromModel, result);
             }
         }
         LOGGER.trace("No scenario found to be applicable, exiting the change processor.");
         return HookOperationMode.FOREGROUND;
     }
 
-    private HookOperationMode applyScenario(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task rootTask, OperationResult result) {
+    private HookOperationMode applyScenario(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task taskFromModel, OperationResult result) {
 
         Throwable failReason;
 
         try {
 
-            // to which object (e.g. user) is the task related?
-            PrismObject taskObject = context.getFocusContext().getObjectNew();
-            String taskObjectOid = taskObject != null ? taskObject.getOid() : null;
-            if (taskObject != null && taskObjectOid == null) {
-                taskObject = null;
-            }
-
             // ========== preparing root task ===========
 
-            rootTask.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, new ScheduleType(), null);
-            try {
-                wfTaskUtil.storeModelContext(rootTask, context);
-            } catch (SchemaException e) {
-                throw new SchemaException("Couldn't put model context into root workflow task " + rootTask, e);
-            }
-            prepareAndSaveRootTask(context, rootTask, prepareRootTaskName(context), taskObject, result);
+            JobCreateInstruction rootInstruction = createInstructionForRoot(context, taskFromModel, prepareRootTaskName(context), determineTaskObject(context));
+            Job rootJob = createRootJob(rootInstruction, taskFromModel, result);
 
             // ========== preparing child task, starting WF process ===========
 
-            StartInstruction instruction = new StartInstruction(rootTask, this);
-            instruction.setExecuteImmediately(false);
-            instruction.setNoProcess(false);
-            instruction.setProcessName(scenarioType.getProcessName());
-            LensContextType lensContextType = ((LensContext<?,?>) context).toPrismContainer().getValue().asContainerable();
+            JobCreateInstruction instruction = JobCreateInstruction.createWfProcessChildJob(rootJob);
+            instruction.setProcessDefinitionKey(scenarioType.getProcessName());
 
+            LensContextType lensContextType = ((LensContext<?,?>) context).toPrismContainer().getValue().asContainerable();
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
-            prepareCommonInstructionAttributes(instruction, taskObjectOid, rootTask.getOwner());
+
+            prepareCommonInstructionAttributes(instruction, null, taskFromModel.getOwner());
             instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
-            executionController.startExecution(instruction, result);
+            jobController.createJob(instruction, rootJob, result);
 
             // ========== complete the action ===========
 
-            logTasksBeforeStart(rootTask, result);
-            rootTask.startWaitingForTasksImmediate(result);
+            logTasksBeforeStart(rootJob, result);
+            rootJob.startWaitingForSubtasks(result);
 
             return HookOperationMode.BACKGROUND;
 
@@ -287,8 +273,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
 
     @Override
-    public void finishProcess(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    public void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
+        Task task = job.getTask();
         // we simply put model context back into parent task
         // (or if it is null, we set the task to skip model context processing)
 
@@ -312,7 +299,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         }
 
         rootTask.savePendingModifications(result);
-        LOGGER.trace("finishProcess ending for task {}", task);
+        LOGGER.trace("onProcessEnd ending for task {}", task);
     }
 
     @Override
