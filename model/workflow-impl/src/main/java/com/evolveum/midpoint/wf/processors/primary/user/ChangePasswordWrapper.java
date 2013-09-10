@@ -19,27 +19,39 @@ package com.evolveum.midpoint.wf.processors.primary.user;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.jobs.JobCreateInstruction;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.processes.general.ApprovalRequest;
-import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
-import com.evolveum.midpoint.wf.processors.primary.StartProcessInstructionForPrimaryStage;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
+import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
+import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is a preliminary version of 'password approval' process wrapper. The idea is that in some cases, a user may request
@@ -54,7 +66,7 @@ import java.util.*;
  * @author mederly
  */
 @Component
-public class ChangePasswordWrapper extends AbstractUserWrapper {
+public class ChangePasswordWrapper extends BaseUserWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordWrapper.class);
 
@@ -62,10 +74,10 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
     private PrismContext prismContext;
 
     @Override
-    public List<StartProcessInstructionForPrimaryStage> prepareProcessesToStart(ModelContext<?,?> modelContext, ObjectDelta<? extends ObjectType> change, Task task, OperationResult result) {
+    public List<JobCreateInstruction> prepareJobCreateInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
-        List<StartProcessInstructionForPrimaryStage> instructions = new ArrayList<StartProcessInstructionForPrimaryStage>();
+        List<JobCreateInstruction> instructions = new ArrayList<JobCreateInstruction>();
 
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
@@ -85,7 +97,7 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
                 }
                 ApprovalRequest<String> approvalRequest = createApprovalRequest(delta);
                 approvalRequestList.add(approvalRequest);
-                instructions.add(createStartProcessInstruction(modelContext, delta, approvalRequest, task, result));
+                instructions.add(createStartProcessInstruction(modelContext, delta, approvalRequest, taskFromModel, result));
                 deltaIterator.remove();
             }
         }
@@ -114,17 +126,17 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         return new ApprovalRequestImpl("Password change", null, approvers, null, null, prismContext);
     }
 
-    private StartProcessInstructionForPrimaryStage createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task task, OperationResult result) {
+    private JobCreateInstruction createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
         String userName = MiscDataUtil.getObjectName(modelContext);
         String objectOid = getObjectOid(modelContext);
-        PrismObject<UserType> requester = getRequester(task, result);
+        PrismObject<UserType> requester = getRequester(taskFromModel, result);
 
-        StartProcessInstructionForPrimaryStage instruction = new StartProcessInstructionForPrimaryStage();
+        JobCreateInstruction instruction = JobCreateInstruction.createWfProcessChildJob(getChangeProcessor());
 
-        prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester, task);
+        prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester);
 
-        instruction.setProcessName(GENERAL_APPROVAL_PROCESS);
+        instruction.setProcessDefinitionKey(GENERAL_APPROVAL_PROCESS);
         instruction.setSimple(false);
 
         instruction.setTaskName(new PolyStringType("Workflow for approving password change for " + userName));
@@ -134,11 +146,10 @@ public class ChangePasswordWrapper extends AbstractUserWrapper {
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve changing password for " + userName);
 
-        instruction.setExecuteImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+        instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
         ObjectDelta objectDelta = itemDeltaToObjectDelta(objectOid, delta);
-        instruction.setDelta(objectDelta);
-        setDeltaProcessVariable(instruction, objectDelta);
+        setDeltaProcessAndTaskVariables(instruction, objectDelta);
 
         return instruction;
     }

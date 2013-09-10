@@ -33,7 +33,25 @@
             <jdbcDriver>org.h2.Driver</jdbcDriver>
             <jdbcUsername>sa</jdbcUsername>
             <jdbcPassword/>
+            <!-- <autoDeploymentFrom>file:d:/midpoint/home/processes/*.bpmn20.xml</autoDeploymentFrom> -->
             <changeProcessors>
+                <generalChangeProcessor>
+                    <enabled>false</enabled>
+                    <c:generalChangeProcessorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+                        <c:scenario>
+                            <c:activationCondition>
+                                <c:script><c:code>context.getState() == com.evolveum.midpoint.model.api.context.ModelState.PRIMARY</c:code></c:script>
+                            </c:activationCondition>
+                            <c:processName>MyGreatPrimaryProcess</c:processName>
+                        </c:scenario>
+                        <c:scenario>
+                            <c:activationCondition>
+                                <c:script><c:code>false &amp;&amp; context.getState() == com.evolveum.midpoint.model.api.context.ModelState.SECONDARY</c:code></c:script>
+                            </c:activationCondition>
+                            <c:processName>MyGreatSecondaryProcess</c:processName>
+                        </c:scenario>
+                    </c:generalChangeProcessorConfiguration>
+                </generalChangeProcessor>
                 <primaryUserChangeProcessor>
                     <wrapper>addRoleAssignmentWrapper</wrapper>
                     <wrapper>changePasswordWrapper</wrapper>

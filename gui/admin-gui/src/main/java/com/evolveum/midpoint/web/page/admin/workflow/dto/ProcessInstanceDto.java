@@ -99,8 +99,17 @@ public class ProcessInstanceDto extends Selectable {
         return processInstance.getVariables().get(name);
     }
 
-    public Boolean getAnswer() {
-        return (Boolean) processInstance.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
+    public String getAnswer() {
+        return (String) processInstance.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
+    }
+
+    public boolean isAnswered() {
+        return getAnswer() != null;
+    }
+
+    // null if not answered or answer is not true/false
+    public Boolean getAnswerAsBoolean() {
+        return CommonProcessVariableNames.approvalBooleanValue(getAnswer());
     }
 
     public boolean isFinished() {

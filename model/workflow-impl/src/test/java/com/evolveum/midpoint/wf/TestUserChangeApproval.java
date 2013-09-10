@@ -33,7 +33,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -53,10 +52,10 @@ import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.api.Constants;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
-import com.evolveum.midpoint.wf.processes.general.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
-import com.evolveum.midpoint.wf.taskHandlers.WfPrepareRootOperationTaskHandler;
-import com.evolveum.midpoint.wf.taskHandlers.WfProcessInstanceShadowTaskHandler;
+import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
+import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.jobs.WfProcessInstanceShadowTaskHandler;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -228,7 +227,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
             String oid = assignmentType.getTargetRef().getOid();
             assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-            assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.valueOf(record.getResult()));
+            assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.fromStandardWfAnswer(record.getResult()));
         }
     }
 
@@ -244,7 +243,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
                 String oid = assignmentType.getTargetRef().getOid();
                 assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-                assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.valueOf(record.getResult()));
+                assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.fromStandardWfAnswer(record.getResult()));
             }
         }
     }
@@ -751,11 +750,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         prepareNotifications();
         dummyAuditService.clear();
 
-        Task rootTask = taskManager.createTaskInstance(TestUserChangeApproval.class.getName() + "."+testName);
+        Task modelTask = taskManager.createTaskInstance(TestUserChangeApproval.class.getName() + "."+testName);
 
         OperationResult result = new OperationResult("execution");
 
-        rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
+        modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         if (oid != null) {
             removeAllRoles(oid, result);
@@ -769,20 +768,24 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         // WHEN
 
-       	HookOperationMode mode = clockwork.run(context, rootTask, result);
+       	HookOperationMode mode = clockwork.run(context, modelTask, result);
 
         // THEN
 
         assertEquals("Unexpected state of the context", ModelState.PRIMARY, context.getState());
         assertEquals("Wrong mode after clockwork.run in "+context.getState(), HookOperationMode.BACKGROUND, mode);
-        rootTask.refresh(result);
+        modelTask.refresh(result);
 
-        assertTrue("Task is not persistent", rootTask.isPersistent());
+        String rootTaskOid = wfTaskUtil.getRootTaskOid(modelTask);
+        assertNotNull("Root task OID is not set in model task", rootTaskOid);
+
+        Task rootTask = taskManager.getTask(rootTaskOid, result);
+        assertTrue("Root task is not persistent", rootTask.isPersistent());          // trivial ;)
 
         UriStack uriStack = rootTask.getOtherHandlersUriStack();
         if (!immediate) {
             assertEquals("Invalid handler at stack position 0", ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, uriStack.getUriStackEntry().get(0).getHandlerUri());
-            assertEquals("Invalid current handler", WfPrepareRootOperationTaskHandler.HANDLER_URI, rootTask.getHandlerUri());
+//            assertEquals("Invalid current handler", WfPrepareRootOperationTaskHandler.HANDLER_URI, rootTask.getHandlerUri());
         } else {
             assertTrue("There should be no handlers for root tasks with immediate execution mode", uriStack == null || uriStack.getUriStackEntry().isEmpty());
         }
@@ -820,6 +823,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         if (immediate) {
             waitForTaskClose(task0, 20000);
+            //TestUtil.assertSuccess(task0.getResult());            // todo enable this
             contextCreator.assertsAfterImmediateExecutionFinished(rootTask, result);
         }
 
@@ -856,6 +860,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         }
 
         waitForTaskClose(rootTask, 60000);
+        //TestUtil.assertSuccess(rootTask.getResult());
         contextCreator.assertsRootTaskFinishes(rootTask, result);
 
         if (oid == null) {

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.common.configuration.api;
  * @author mamut
  */
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.XMLConfiguration;
 
 public interface MidpointConfiguration {
 	
@@ -49,4 +50,11 @@ public interface MidpointConfiguration {
 	 *         {@code config.getInt("port", 1234);}
 	 */
 	public Configuration getConfiguration(String componetID);
+
+    /**
+     * A bit of hack - if there's a need to retrieve original midpoint config as XML.
+     *
+     * @return
+     */
+    public XMLConfiguration getXmlConfiguration();
 }

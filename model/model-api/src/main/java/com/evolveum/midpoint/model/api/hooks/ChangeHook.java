@@ -52,18 +52,4 @@ public interface ChangeHook {
      *     (this case is currently not defined very well)
      */
     HookOperationMode invoke(ModelContext context, Task task, OperationResult result);
-
-	/**
-	 * Callback after the change is executed by the model. The callback gets a view of the
-	 * changes after they were executed - with filled-in OIDs, generated values, etc. 
-	 * 
-	 * The callback may be used to post-process the changes, e.g. to notify users about their
-	 * new accounts.
-	 *
-	 * @param changes changes after the execution
-	 * @param task task in which context we execute
-	 * @param result ????
-	 */
-//    @Deprecated
-//	void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result);
 }

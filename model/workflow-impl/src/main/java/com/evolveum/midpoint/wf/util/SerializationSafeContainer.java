@@ -17,34 +17,29 @@
 package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
+ * Helper class that allows putting (almost) arbitrary objects into Activiti processes.
+ *
+ * Generally, prism objects and containers and jaxb objects are stored in their XML form,
+ * allowing for safe deserialization in potentially newer version of midpoint.
+ *
+ * Other serializable items are stored as such.
+ *
+ * There's a child class (JaxbValueContainer) that allows directly retrieving XML representation of the object
+ * (if there's one).
+ *
  * @author mederly
  */
 public class SerializationSafeContainer<T> implements Serializable {
@@ -60,33 +55,43 @@ public class SerializationSafeContainer<T> implements Serializable {
     // if there's no need to encode the value, it is stored in the first attribute
     // if there is (e.g. for PrismObjects) the encoded value is stored in the second attribute
     private T valueForStorageWhenNotEncoded;
-    private String valueForStorageWhenEncoded;
+    protected String valueForStorageWhenEncoded;
 
-    private EncodingScheme encodingScheme;
+    // beware, for JAXB, PRISM_OBJECT and PRISM_CONTAINER encoding schemes the value must be XML, as it might be
+    // exposed through JaxbValueContainer
+    protected EncodingScheme encodingScheme;
 
     private transient PrismContext prismContext;
 
     public SerializationSafeContainer(T value, PrismContext prismContext) {
-
         Validate.notNull(prismContext, "prismContext must not be null");
-
-        this.actualValue = value;
         this.prismContext = prismContext;
+        setValue(value);
+    }
 
-        if (value instanceof PrismObject) {         // todo what with Itemable?
+    public void setValue(T value) {
+        this.actualValue = value;
+
+        if (value instanceof PrismObject) {
+            checkPrismContext();
             this.valueForStorageWhenEncoded = MiscDataUtil.serializeObjectToXml((PrismObject) value, prismContext);
             this.valueForStorageWhenNotEncoded = null;
-            encodingScheme = EncodingScheme.PRISM;
+            encodingScheme = EncodingScheme.PRISM_OBJECT;
+        } else if (value instanceof Containerable) {
+            checkPrismContext();
+            this.valueForStorageWhenEncoded = MiscDataUtil.serializeContainerableToXml((Containerable) value, prismContext);
+            this.valueForStorageWhenNotEncoded = null;
+            encodingScheme = EncodingScheme.PRISM_CONTAINER;
         } else if (value != null && prismContext.getPrismJaxbProcessor().canConvert(value.getClass())) {
+            checkPrismContext();
             try {
-                //this.valueForStorageWhenEncoded = prismContext.getPrismJaxbProcessor().marshalObjectToString(value);
                 this.valueForStorageWhenEncoded = prismContext.getPrismJaxbProcessor().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));
             } catch (JAXBException e) {
                 throw new SystemException("Couldn't serialize JAXB object of type " + value.getClass(), e);
             }
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.JAXB;
-        } else {
+        } else if (value == null || value instanceof Serializable) {
             this.valueForStorageWhenNotEncoded = value;
             this.valueForStorageWhenEncoded = null;
             encodingScheme = EncodingScheme.NONE;
@@ -94,7 +99,13 @@ public class SerializationSafeContainer<T> implements Serializable {
             if (value instanceof Itemable) {
                 LOGGER.warn("Itemable value is used as not-encoded serializable item; value = " + value);
             }
+        } else {
+            throw new IllegalStateException("Attempt to put non-serializable item " + value.getClass() + " into " + this.getClass().getSimpleName());
         }
+    }
+
+    private void checkPrismContext() {
+        Validate.notNull(prismContext, "In SerializationSafeContainer the prismContext is not set up");
     }
 
     public T getValue() {
@@ -113,8 +124,11 @@ public class SerializationSafeContainer<T> implements Serializable {
                 throw new IllegalStateException("PrismContext not set for SerializationSafeContainer holding " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH));
             }
 
-            if (encodingScheme == EncodingScheme.PRISM) {
+            if (encodingScheme == EncodingScheme.PRISM_OBJECT) {
                 actualValue = (T) MiscDataUtil.deserializeObjectFromXml(valueForStorageWhenEncoded, prismContext);
+                return actualValue;
+            } else if (encodingScheme == EncodingScheme.PRISM_CONTAINER) {
+                actualValue = (T) MiscDataUtil.deserializeContainerFromXml(valueForStorageWhenEncoded, prismContext).getValue().asContainerable();
                 return actualValue;
             } else if (encodingScheme == EncodingScheme.JAXB) {
                 try {
@@ -147,7 +161,12 @@ public class SerializationSafeContainer<T> implements Serializable {
         this.prismContext = prismContext;
     }
 
-    public enum EncodingScheme { PRISM, JAXB, NONE };
+    // for testing purposes
+    public void clearActualValue() {
+        actualValue = null;
+    }
+
+    public enum EncodingScheme {PRISM_OBJECT, JAXB, PRISM_CONTAINER, NONE };
 
     @Override
     public String toString() {

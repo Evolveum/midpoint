@@ -16,25 +16,28 @@
 
 package com.evolveum.midpoint.wf.processes;
 
+import org.omg.CORBA.UNKNOWN;
+
 /**
  * @author mederly
  */
 public enum WorkflowResult {
 
-    REJECTED, APPROVED, UNKNOWN;
+    REJECTED, APPROVED, UNKNOWN, OTHER;
 
-    public static WorkflowResult fromBoolean(Boolean answer) {
+    public static WorkflowResult fromStandardWfAnswer(String answer) {
 
         if (answer == null) {
             return UNKNOWN;
-        } else if (answer) {
-            return APPROVED;
         } else {
-            return REJECTED;
+            Boolean booleanValue = CommonProcessVariableNames.approvalBooleanValue(answer);
+            if (booleanValue == null) {
+                return OTHER;
+            } else if (booleanValue) {
+                return APPROVED;
+            } else {
+                return REJECTED;
+            }
         }
-    }
-
-    public static String fromBooleanAsString(Boolean answer) {
-        return String.valueOf(fromBoolean(answer));
     }
 }

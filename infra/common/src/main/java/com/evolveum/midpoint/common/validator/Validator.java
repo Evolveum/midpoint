@@ -439,7 +439,8 @@ public class Validator {
 		
 	}
 
-	private Node validateSchema(Element objectDoc, OperationResult objectResult) {
+    // this was made public to allow validation of pre-parsed non-prism documents
+	public Node validateSchema(Element objectDoc, OperationResult objectResult) {
 		OperationResult result = objectResult.createSubresult(Validator.class.getName() + ".validateSchema");
 		DOMResult validationResult = new DOMResult();
 		try {
@@ -449,8 +450,8 @@ public class Validator {
 			objectResult.computeStatus("Validation error: " + e.getMessage());
 			return null;
 		} catch (IOException e) {
-			result.recordFatalError("OI error during validation: " + e.getMessage(), e);
-			objectResult.computeStatus("OI error during validation: " + e.getMessage());
+			result.recordFatalError("IO error during validation: " + e.getMessage(), e);
+			objectResult.computeStatus("IO error during validation: " + e.getMessage());
 			return null;
 		}
 		result.recordSuccess();

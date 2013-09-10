@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -51,7 +52,7 @@ public interface ChangeProcessor {
      * and arranges everything to carry out that interaction.
      *
      * @param context
-     * @param task
+     * @param taskFromModel
      * @param result
      * @return non-null value if it processed the request;
      *              BACKGROUND = the process continues in background,
@@ -59,7 +60,7 @@ public interface ChangeProcessor {
      *              ERROR = something wrong has happened, there's no point in continuing with this operation.
      *         null if the request is not relevant to this processor
      */
-    HookOperationMode startProcessesIfNeeded(ModelContext context, Task task, OperationResult result) throws SchemaException;
+    HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
@@ -72,12 +73,16 @@ public interface ChangeProcessor {
      * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
-    void finishProcess(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+    void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
     PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
 
+    /**
+     * Checks whether this change processor is enabled (typically, using the midpoint configuration file).
+     * @return true if enabled, false if not
+     */
     boolean isEnabled();
 }

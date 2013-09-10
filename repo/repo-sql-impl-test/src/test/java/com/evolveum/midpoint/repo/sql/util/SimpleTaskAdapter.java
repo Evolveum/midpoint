@@ -236,6 +236,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void setObjectRef(String oid, QName type) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public void setObjectTransient(PrismObject object) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
@@ -346,6 +351,11 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public <T extends Containerable> void setExtensionContainerValue(QName containerName, T value)
             throws SchemaException {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public void setExtensionItem(Item item) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 

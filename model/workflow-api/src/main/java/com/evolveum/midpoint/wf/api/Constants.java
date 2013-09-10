@@ -34,6 +34,8 @@ public class Constants {
     public static final QName WFSTATUS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "status");
     public static final QName WFAPPROVED_BY_REFERENCE_NAME = new QName(WORKFLOW_EXTENSION_NS, "approvedBy");
 
+    public static final QName WFROOT_TASK_OID_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "rootTaskOid");
+
 //    public static final String AUDIT_RESULT_APPROVAL = "approved";
 //    public static final String AUDIT_RESULT_COMMENT = "comment";
 //    public static final String AUDIT_RESULT_METHOD = WorkItem.class.getName() + ".do";

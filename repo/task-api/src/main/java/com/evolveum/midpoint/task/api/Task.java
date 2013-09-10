@@ -589,6 +589,12 @@ public interface Task extends Dumpable {
      */
     <T extends Containerable> void setExtensionContainerValue(QName containerName, T value) throws SchemaException;
 
+    /**
+     * Puts generic item into extension.
+     * @param item
+     */
+    void setExtensionItem(Item item) throws SchemaException;
+
     // ---------------------------------------------------------------------------- Task extension - ADD (add values)
 
     /**
@@ -663,6 +669,14 @@ public interface Task extends Dumpable {
      * @param objectRef
      */
     void setObjectRef(ObjectReferenceType objectRef);
+
+    /**
+     * Sets the object reference.
+     *
+     * @param oid
+     * @param type
+     */
+    void setObjectRef(String oid, QName type);
 
     /**
      * "Immediate" version of the previous method.
@@ -913,5 +927,6 @@ public interface Task extends Dumpable {
      */
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException;
+
 
 }

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.wf.messages;
 
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.processes.general.ProcessVariableNames;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,19 +46,8 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
      */
     private boolean running;
 
-    public Boolean getAnswer() {
-        Object a = variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
-        if (a == null) {
-            return null;
-        } if (a instanceof Boolean) {
-            return (Boolean) a;
-        } else {
-            return "true".equals(a);
-        }
-    }
-
-    public String getState() {
-        return (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE);
+    public String getAnswer() {
+        return (String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
     }
 
     public String getPid() {
