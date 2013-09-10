@@ -58,6 +58,7 @@ import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -82,6 +83,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -320,6 +322,13 @@ public class TestCsvFile extends AbstractIntegrationTest {
 	public void test500ExeucuteScript() throws Exception {
 		final String TEST_NAME = "test500ExeucuteScript";
 		TestUtil.displayTestTile(TEST_NAME);
+		
+		String osName = System.getProperty("os.name");
+		IntegrationTestTools.display("OS", osName);
+		if (!"Linux".equals(osName)) {
+			display("SKIPPING test, cannot execute on "+osName);
+			return;
+		}
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -328,7 +337,15 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		ProvisioningScriptType script = new ProvisioningScriptType();
 		script.setHost(ProvisioningScriptHostType.RESOURCE);
 		script.setLanguage("exec");
-		script.setCode("cp target/midpoint-flatfile.csv target/midpoint-flatfile-scriptcopy.csv");
+		script.setCode("src/test/script/csvscript.sh");
+		ProvisioningScriptArgumentType argName = new ProvisioningScriptArgumentType();
+		argName.setName("NAME");
+		JAXBElement<Object> valueEvaluator = new ObjectFactory().createValue(null);
+		Element domElement = DOMUtil.createElement(valueEvaluator.getName());
+		domElement.setTextContent("World");
+		valueEvaluator.setValue(domElement);
+		argName.getExpressionEvaluator().add(valueEvaluator);
+		script.getArgument().add(argName);
 
 		// WHEN
 		provisioningService.executeScript(RESOURCE_CSV_OID, script, task, result);
@@ -338,8 +355,10 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		display("executeScript result", result);
 		TestUtil.assertSuccess("executeScript has failed (result)", result);
 		
-		File copyFile = new File("target/midpoint-flatfile-scriptcopy.csv");
-		assertTrue("Script haven't copied the file", copyFile.exists());
+		File scriptOutFile = new File("target/hello.txt");
+		assertTrue("Script haven't created the file", scriptOutFile.exists());
+		String fileContent = MiscUtil.readFile(scriptOutFile);
+		assertEquals("Wrong script output", "Hello World", fileContent);
 		
 	}
 	
