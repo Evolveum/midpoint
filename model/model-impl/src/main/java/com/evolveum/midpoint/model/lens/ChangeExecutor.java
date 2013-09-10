@@ -871,7 +871,8 @@ public class ChangeExecutor {
 			ProvisioningOperationTypeType operation, ProvisioningScriptOrderType order, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 		  OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 	        if (resourceScripts != null) {
-	        	for (OperationProvisioningScriptType script: resourceScripts.getScript()) {
+	        	OperationProvisioningScriptsType scripts = resourceScripts.clone();
+	        	for (OperationProvisioningScriptType script: scripts.getScript()) {
 	        		if (script.getOperation().contains(operation)) {
 	        			if (order == null || order == script.getOrder()) {
 		        			for (ProvisioningScriptArgumentType argument : script.getArgument()){
@@ -904,7 +905,7 @@ public class ChangeExecutor {
 		if (outputTriple != null) {
 			nonNegativeValues = outputTriple.getNonNegativeValues();
 		}
-		
+			
 		//replace dynamic script with static value..
 		argument.getExpressionEvaluator().clear();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
@@ -922,7 +923,7 @@ public class ChangeExecutor {
 				argument.getExpressionEvaluator().add(el);
 			}
 		}
-    }
+	}
     
     private Map<QName, Object> getDefaultExpressionVariables(PrismObject<UserType> user, 
     		PrismObject<? extends ShadowType> account, PrismObject<ResourceType> resource) {		
