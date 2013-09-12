@@ -80,19 +80,19 @@ public class ExecutionManager {
         }
     }
 
-    public boolean stopSchedulersAndTasks(List<String> nodeList, long timeToWait, OperationResult parentResult) {
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long timeToWait, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".stopSchedulersAndTasks");
-        result.addCollectionOfSerializablesAsParam("nodeList", nodeList);
+        result.addCollectionOfSerializablesAsParam("nodeList", nodeIdentifiers);
         result.addParam("timeToWait", timeToWait);
 
-        LOGGER.info("Stopping schedulers and tasks on nodes: {}, waiting {} ms for task(s) shutdown.", nodeList, timeToWait);
+        LOGGER.info("Stopping schedulers and tasks on nodes: {}, waiting {} ms for task(s) shutdown.", nodeIdentifiers, timeToWait);
 
-        for (String nodeIdentifier : nodeList) {
+        for (String nodeIdentifier : nodeIdentifiers) {
             stopScheduler(nodeIdentifier, result);
         }
         ClusterStatusInformation csi = getClusterStatusInformation(true, result);
-        Set<ClusterStatusInformation.TaskInfo> taskInfoList = csi.getTasksOnNodes(nodeList);
+        Set<ClusterStatusInformation.TaskInfo> taskInfoList = csi.getTasksOnNodes(nodeIdentifiers);
 
         LOGGER.debug("{} task(s) found on nodes that are going down, stopping them.", taskInfoList.size());
 
@@ -219,7 +219,7 @@ public class ExecutionManager {
      *            to be scheduled (e.g. when suspending tasks, CSI has to be taken after tasks have been unscheduled;
      *            when stopping schedulers, CSI has to be taken after schedulers were stopped). May be null; in that case
      *            the method will query nodes themselves.
-     * @param waitTime How long to wait for task stop. -1 means no wait will be performed.
+     * @param waitTime How long to wait for task stop. Value less than zero means no wait will be performed.
      * @param clusterwide If false, only tasks running on local node will be stopped.
      * @param parentResult
      * @return

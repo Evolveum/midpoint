@@ -16,20 +16,19 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.NodeExecutionStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -41,13 +40,20 @@ import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.page.admin.server.dto.NodeDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.NodeDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatusFilter;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -57,13 +63,22 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.w3c.dom.Document;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -89,6 +104,8 @@ public class PageTasks extends PageAdminTasks {
     private static final String OPERATION_SYNCHRONIZE_TASKS = DOT_CLASS + "synchronizeTasks";
     private static final String ALL_CATEGORIES = "";
     private static final String ID_SHOW_SUBTASKS = "showSubtasks";
+
+    public static final long WAIT_FOR_TASK_STOP = 2000L;
 
     public PageTasks() {
         initLayout();
@@ -397,7 +414,6 @@ public class PageTasks extends PageAdminTasks {
         }
     }
 
-
     private String createObjectRef(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
 
@@ -605,9 +621,7 @@ public class PageTasks extends PageAdminTasks {
         List<String> categories = new ArrayList<String>();
         categories.add(ALL_CATEGORIES);
 
-        TaskManager manager = getTaskManager();
-
-        List<String> list = manager.getAllTaskCategories();
+        List<String> list = getTaskService().getAllTaskCategories();
         if (list != null) {
             categories.addAll(list);
             Collections.sort(categories);
@@ -644,6 +658,7 @@ public class PageTasks extends PageAdminTasks {
         return false;
     }
 
+    //region Task-level actions
     private void suspendTasksPerformed(AjaxRequestTarget target) {
         List<TaskDto> taskTypeList = WebMiscUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskTypeList, target)) {
@@ -651,46 +666,20 @@ public class PageTasks extends PageAdminTasks {
         }
 
         OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
-        TaskManager taskManager = getTaskManager();
-        List<Task> taskList = new ArrayList<Task>();
         try {
-            for (TaskDto taskDto : taskTypeList) {
-                Task task = taskManager.getTask(taskDto.getOid(), result);
-
-                if (TaskExecutionStatus.SUSPENDED.equals(task.getExecutionStatus()) || TaskExecutionStatus.CLOSED.equals(task.getExecutionStatus())) {
-                    warn(getString("pageTasks.message.alreadySuspended", task.getName()));
+            boolean suspended = getTaskService().suspendTasks(TaskDto.getOids(taskTypeList), WAIT_FOR_TASK_STOP, result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                if (suspended) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
                 } else {
-                    taskList.add(task);
+                    result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
                 }
             }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get information on tasks to be suspended.", ex);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't suspend the task(s) due to an unexpected exception", e);
         }
-
-        boolean suspended = false;
-        if (!result.isError()) {
-            try {
-                suspended = taskManager.suspendTasks(taskList, 2000L, result);
-            } catch (Exception e) {
-                result.recordFatalError("Couldn't suspend tasks.", e);
-            }
-        }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        if (result.isSuccess()) {
-            if (suspended) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
-            } else {
-                result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
-            }
-        }
-
-        if (!result.isSuccess() || !taskList.isEmpty()) {
-            showResult(result);
-        }
+        showResult(result);
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
@@ -704,44 +693,17 @@ public class PageTasks extends PageAdminTasks {
             return;
         }
 
-        boolean atLeastOneToBeResumed = false;
-
-        OperationResult mainResult = new OperationResult(OPERATION_RESUME_TASKS);
-        TaskManager taskManager = getTaskManager();
-        for (TaskDto taskDto : taskDtoList) {
-            OperationResult result = mainResult.createSubresult(OPERATION_RESUME_TASK);
-            try {
-                Task task = taskManager.getTask(taskDto.getOid(), result);
-                if (!TaskExecutionStatus.SUSPENDED.equals(task.getExecutionStatus())) {
-                    warn(getString("pageTasks.message.alreadyResumed", task.getName()));
-                } else {
-                    atLeastOneToBeResumed = true;
-                    taskManager.resumeTask(task, result);
-                }
-                result.recordSuccessIfUnknown();
+        OperationResult result = new OperationResult(OPERATION_RESUME_TASKS);
+        try {
+            getTaskService().resumeTasks(TaskDto.getOids(taskDtoList), result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
             }
-            // some situations (e.g. resume task that is not suspended) are recorded in OperationResult only (i.e. no exception)
-            // ordinary exceptions (ObjectNotFoundException, SchemaException) are already recorded in the result (and an exception is thrown)
-            // unexpected exceptions are not recorded in OperationResult, only the exception is thrown
-            catch (ObjectNotFoundException e) {
-                // see above
-            } catch (SchemaException e) {
-                // see above
-            } catch (Exception e) {
-                result.recordPartialError("Couldn't resume task due to an unexpected exception.", e);
-            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't resume the task(s) due to an unexpected exception", e);
         }
-        if (mainResult.isUnknown()) {
-            mainResult.recomputeStatus();
-        }
-
-        if (mainResult.isSuccess()) {
-            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
-        }
-
-        if (!mainResult.isSuccess() || atLeastOneToBeResumed) {
-            showResult(mainResult);
-        } // otherwise, the warning has been issued and there's no point in displaying info about success in resuming tasks
+        showResult(result);
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
@@ -749,37 +711,22 @@ public class PageTasks extends PageAdminTasks {
         target.add(getNodeTable());
     }
 
-    private void nodeDetailsPerformed(AjaxRequestTarget target, String oid) {
-
-    }
-
     private void deleteTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskTypeList = WebMiscUtil.getSelectedData(getTaskTable());
-        if (!isSomeTaskSelected(taskTypeList, target)) {
+        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
+        if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_TASKS);
-        TaskManager taskManager = getTaskManager();
-        List<String> taskOidList = new ArrayList<String>();
-        for (TaskDto taskDto : taskTypeList) {
-            taskOidList.add(taskDto.getOid());
-        }
-
         try {
-            taskManager.suspendAndDeleteTasks(taskOidList, 2000L, true, result);
+            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
+            }
         } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't delete the tasks.", e);
+            result.recordFatalError("Couldn't delete the task(s) because of an unexpected exception", e);
         }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
-        }
-
         showResult(result);
 
         TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
@@ -798,38 +745,26 @@ public class PageTasks extends PageAdminTasks {
         }
 
         OperationResult result = new OperationResult(OPERATION_SCHEDULE_TASKS);
-        TaskManager taskManager = getTaskManager();
-        for (TaskDto taskDto : taskDtoList) {
-            try {
-                Task task = taskManager.getTask(taskDto.getOid(), result);
-                taskManager.scheduleTaskNow(task, result);
-            }
-            // some situations (e.g. resume task that is not suspended) are recorded in OperationResult only (i.e. no exception)
-            // ordinary exceptions (ObjectNotFoundException, SchemaException) are already recorded in the result (and an exception is thrown)
-            // unexpected exceptions are not recorded in OperationResult, only the exception is thrown
-            catch (ObjectNotFoundException e) {
-                // see above
-            } catch (SchemaException e) {
-                // see above
-            } catch (Exception e) {
-                // only the last error is recorded but we don't care much (low probability of this case)
-                result.recordPartialError("Couldn't schedule task due to an unexpected exception.", e);
-            }
-        }
-        if (result.isUnknown()) {
+        try {
+            getTaskService().scheduleTasksNow(TaskDto.getOids(taskDtoList), result);
             result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't schedule the task(s) due to an unexpected exception.", e);
         }
-
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");
-        }
-
         showResult(result);
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTaskTable());
         target.add(getNodeTable());
+    }
+    //endregion
+
+    //region Node-level actions
+    private void nodeDetailsPerformed(AjaxRequestTarget target, String oid) {
 
     }
 
@@ -840,34 +775,19 @@ public class PageTasks extends PageAdminTasks {
         }
 
         OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS_AND_TASKS);
-
-        TaskManager taskManager = getTaskManager();
-        List<String> nodeList = new ArrayList<String>();
-        for (NodeDto nodeDto : nodeDtoList) {
-            nodeList.add(nodeDto.getNodeIdentifier());
-        }
-
-        boolean suspended = false;
         try {
-            suspended = taskManager.stopSchedulersAndTasks(nodeList, 2000L, result);
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't stop schedulers.", e);
-        }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        //System.out.println("Result after recompute = " + result.dump());
-
-        if (result.isSuccess()) {
-            if (suspended) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped, including tasks that were running on them.");
-            } else {
-                result.recordWarning("Selected node scheduler(s) have been successfully paused; however, some of the tasks they were executing are still running on them. Please check their completion using task list.");
+            boolean suspended = getTaskService().stopSchedulersAndTasks(NodeDto.getNodeIdentifiers(nodeDtoList), WAIT_FOR_TASK_STOP, result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                if (suspended) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped, including tasks that were running on them.");
+                } else {
+                    result.recordWarning("Selected node scheduler(s) have been successfully paused; however, some of the tasks they were executing are still running on them. Please check their completion using task list.");
+                }
             }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't stop schedulers due to an unexpected exception.", e);
         }
-
         showResult(result);
 
         //refresh feedback and table
@@ -883,25 +803,14 @@ public class PageTasks extends PageAdminTasks {
         }
 
         OperationResult result = new OperationResult(OPERATION_START_SCHEDULERS);
-        TaskManager taskManager = getTaskManager();
-        for (NodeDto nodeDto : nodeDtoList) {
-            try {
-                if (nodeDto.getExecutionStatus() == NodeExecutionStatus.ERROR) {
-                    result.createSubresult("startScheduler").recordFatalError("Couldn't start the scheduler on node " + nodeDto.getName() + ", because the node is in error state.");
-                } else {
-                    taskManager.startScheduler(nodeDto.getNodeIdentifier(), result);
-                }
-            } catch (Exception e) {
-                result.recordFatalError("Couldn't start the scheduler on node " + nodeDto.getName(), e);
+        try {
+            getTaskService().startSchedulers(NodeDto.getNodeIdentifiers(nodeDtoList), result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");
             }
-        }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't start the scheduler(s) because of unexpected exception.", e);
         }
 
         showResult(result);
@@ -919,122 +828,15 @@ public class PageTasks extends PageAdminTasks {
         }
 
         OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS);
-        TaskManager taskManager = getTaskManager();
-        for (NodeDto nodeDto : nodeDtoList) {
-            try {
-                taskManager.stopScheduler(nodeDto.getNodeIdentifier(), result);
-            } catch (Exception e) {
-                result.recordFatalError("Couldn't stop the scheduler on node " + nodeDto.getName(), e);
-            }
-        }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");
-        }
-
-        showResult(result);
-
-        //refresh feedback and table
-        target.add(getFeedbackPanel());
-        target.add(getTaskTable());
-        target.add(getNodeTable());
-    }
-
-    private void deactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_DEACTIVATE_SERVICE_THREADS);
-
-        TaskManager taskManager = getTaskManager();
-//        List<NodeDto> nodeDtoList = getSelectedNodes();
-//
-//        if (nodeDtoList.size() != 1 || !taskManager.getNodeId().equals(nodeDtoList.get(0).getNodeIdentifier())) {
-//            error("Service threads can be deactivated on local node only.");
-//            target.add(getFeedbackPanel());
-//            return;
-//        }
-
-        boolean stopped = false;
         try {
-            stopped = taskManager.deactivateServiceThreads(2000L, result);
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't deactivate service threads on this node.");
-        }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        if (result.isSuccess()) {
-            if (stopped) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully deactivated.");
-            } else {
-                result.recordWarning("Deactivation of service threads on local node have been successfully requested; however, some of the tasks are still running. Please check their completion using task list.");
+            getTaskService().stopSchedulers(NodeDto.getNodeIdentifiers(nodeDtoList), result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");
             }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't stop the scheduler(s) because of unexpected exception.", e);
         }
-
-        showResult(result);
-
-        //refresh feedback and table
-        target.add(getFeedbackPanel());
-        target.add(getTaskTable());
-        target.add(getNodeTable());
-    }
-
-    private void reactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_REACTIVATE_SERVICE_THREADS);
-
-        TaskManager taskManager = getTaskManager();
-//        List<NodeDto> nodeDtoList = getSelectedNodes();
-//
-//        if (nodeDtoList.size() != 1 || !taskManager.getNodeId().equals(nodeDtoList.get(0).getNodeIdentifier())) {
-//            error("Service threads can be reactivated on local node only.");
-//            target.add(getFeedbackPanel());
-//            return;
-//        }
-
-        try {
-            taskManager.reactivateServiceThreads(result);
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't reactivate service threads on local node.");
-        }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully reactivated.");
-        }
-
-        showResult(result);
-
-        //refresh feedback and table
-        target.add(getFeedbackPanel());
-        target.add(getTaskTable());
-        target.add(getNodeTable());
-    }
-
-    private void synchronizeTasksPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_SYNCHRONIZE_TASKS);
-
-        TaskManager taskManager = getTaskManager();
-
-        try {
-            taskManager.synchronizeTasks(result);
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't synchronize tasks.");
-        }
-
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-            if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
-                result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
-            }
-        }
-
         showResult(result);
 
         //refresh feedback and table
@@ -1050,25 +852,52 @@ public class PageTasks extends PageAdminTasks {
         }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
+
+        Task task = createSimpleTask(OPERATION_DELETE_NODES);
+
         for (NodeDto nodeDto : nodeDtoList) {
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            deltas.add(ObjectDelta.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
             try {
-                getMidpointApplication().getTaskManager().deleteNode(nodeDto.getNodeIdentifier(), result);
-            } catch (Exception e) {
-                result.recordFatalError("Couldn't delete the node " + nodeDto.getName(), e);
+                getModelService().executeChanges(deltas, null, task, result);
+            } catch (Exception e) {     // until java 7 we do it in this way
+                result.recordFatalError("Couldn't delete the node " + nodeDto.getNodeIdentifier(), e);
             }
         }
 
-        if (result.isUnknown()) {
-            result.recomputeStatus();
-        }
-
+        result.computeStatus();
         if (result.isSuccess()) {
             result.recordStatus(OperationResultStatus.SUCCESS, "Selected node(s) have been successfully deleted.");
         }
+        showResult(result);
 
         NodeDtoProvider provider = (NodeDtoProvider) getNodeTable().getDataTable().getDataProvider();
         provider.clearCache();
 
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
+    }
+    //endregion
+
+    //region Diagnostics actions
+    private void deactivateServiceThreadsPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_DEACTIVATE_SERVICE_THREADS);
+
+        try {
+            boolean stopped = getTaskService().deactivateServiceThreads(WAIT_FOR_TASK_STOP, result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                if (stopped) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully deactivated.");
+                } else {
+                    result.recordWarning("Deactivation of service threads on local node have been successfully requested; however, some of the tasks are still running. Please check their completion using task list.");
+                }
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't deactivate service threads on this node because of an unexpected exception.", e);
+        }
         showResult(result);
 
         //refresh feedback and table
@@ -1076,6 +905,47 @@ public class PageTasks extends PageAdminTasks {
         target.add(getTaskTable());
         target.add(getNodeTable());
     }
+
+    private void reactivateServiceThreadsPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_REACTIVATE_SERVICE_THREADS);
+
+        try {
+            getTaskService().reactivateServiceThreads(result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully reactivated.");
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't reactivate service threads on local node because of an unexpected exception.", e);
+        }
+        showResult(result);
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
+    }
+
+    private void synchronizeTasksPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_SYNCHRONIZE_TASKS);
+
+        try {
+            getTaskService().synchronizeTasks(result);
+            result.computeStatus();
+            if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
+                result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't synchronize tasks because of an unexpected exception.", e);
+        }
+        showResult(result);
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getTaskTable());
+        target.add(getNodeTable());
+    }
+    //endregion
 
     private void searchFilterPerformed(AjaxRequestTarget target, IModel<TaskDtoExecutionStatusFilter> status,
             IModel<String> category, IModel<Boolean> showSubtasks) {

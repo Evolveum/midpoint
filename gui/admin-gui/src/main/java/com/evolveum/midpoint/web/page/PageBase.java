@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -98,6 +99,8 @@ public abstract class PageBase extends WebPage {
     private ModelService modelService;
     @SpringBean(name = "modelController")
     private ModelInteractionService modelInteractionService;
+    @SpringBean(name = "modelController")
+    private TaskService taskService;
     @SpringBean(name = "modelDiagController")
     private ModelDiagnosticService modelDiagnosticService;
     @SpringBean(name = "taskManager")
@@ -217,6 +220,10 @@ public abstract class PageBase extends WebPage {
 
     public ModelService getModelService() {
         return modelService;
+    }
+
+    public TaskService getTaskService() {
+        return taskService;
     }
 
     protected ModelInteractionService getModelInteractionService() {

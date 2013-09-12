@@ -88,6 +88,9 @@ public class ContextFactory {
 					// Focus delta has to be complete now with all the definition already in place
 					delta.checkConsistence(false, true, true);
 				}
+                if (focusDelta != null) {
+                    throw new IllegalStateException("More than one focus delta used in model operation");
+                }
 				focusDelta = (ObjectDelta<F>) delta;
 			} else {
 				// This must be projection delta

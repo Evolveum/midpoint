@@ -24,6 +24,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.apache.commons.lang.NotImplementedException;
@@ -53,17 +55,13 @@ import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -79,14 +77,12 @@ import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -128,7 +124,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService, ModelInteractionService {
+public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -1208,5 +1204,76 @@ public class ModelController implements ModelService, ModelInteractionService {
     public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, result);
     }
+
+    //region Task-related operations
+
+    @Override
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
+        return taskManager.suspendTasks(taskOids, waitForStop, parentResult);
+    }
+
+    @Override
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) {
+        taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+    }
+
+    @Override
+    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) {
+        taskManager.resumeTasks(taskOids, parentResult);
+    }
+
+    @Override
+    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
+        taskManager.scheduleTasksNow(taskOids, parentResult);
+    }
+
+    @Override
+    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
+        return taskManager.deactivateServiceThreads(timeToWait, parentResult);
+    }
+
+    @Override
+    public void reactivateServiceThreads(OperationResult parentResult) {
+        taskManager.reactivateServiceThreads(parentResult);
+    }
+
+    @Override
+    public boolean getServiceThreadsActivationState() {
+        return taskManager.getServiceThreadsActivationState();
+    }
+
+    @Override
+    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        taskManager.stopSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    @Override
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
+        return taskManager.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+    }
+
+    @Override
+    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        taskManager.startSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    @Override
+    public void synchronizeTasks(OperationResult parentResult) {
+        taskManager.synchronizeTasks(parentResult);
+    }
+
+    @Override
+    public List<String> getAllTaskCategories() {
+        return taskManager.getAllTaskCategories();
+    }
+
+    @Override
+    public String getHandlerUriForCategory(String category) {
+        return taskManager.getHandlerUriForCategory(category);
+    }
+    //endregion
+
+    //region Workflow-related operations
+    //endregion
 
 }

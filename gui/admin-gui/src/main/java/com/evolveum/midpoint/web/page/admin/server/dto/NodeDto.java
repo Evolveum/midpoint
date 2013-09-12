@@ -30,6 +30,9 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author lazyman
  */
@@ -113,4 +116,13 @@ public class NodeDto extends Selectable {
     public String getManagementPort() {
         return managementPort;
     }
+
+    public static List<String> getNodeIdentifiers(List<NodeDto> nodeDtoList) {
+        List<String> nodeList = new ArrayList<String>();
+        for (NodeDto nodeDto : nodeDtoList) {
+            nodeList.add(nodeDto.getNodeIdentifier());
+        }
+        return nodeList;
+    }
+
 }

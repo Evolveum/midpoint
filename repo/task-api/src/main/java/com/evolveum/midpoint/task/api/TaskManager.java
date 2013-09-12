@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -62,6 +61,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
  */
 public interface TaskManager {
 
+    long WAIT_INDEFINITELY = 0L;
+    long DO_NOT_WAIT = -1L;
+    long DO_NOT_STOP = -2L;
+
+    //region Basic working with tasks (create, get, modify, delete)
     // ==================================================== Basic working with tasks (create, get, modify, delete)
 
 	/**
@@ -260,7 +264,9 @@ public interface TaskManager {
      * @param oid
      */
     void onTaskDelete(String oid, OperationResult parentResult);
+    //endregion
 
+    //region Searching for tasks
     // ==================================================== Searching for tasks
 
     /**
@@ -339,27 +345,24 @@ public interface TaskManager {
      * @return
      */
     ClusterStatusInformation getRunningTasksClusterwide(long allowedAge, OperationResult parentResult);
+    //endregion
 
+    //region Suspending, resuming and scheduling the tasks
     // ==================================================== Suspending and resuming the tasks
 
     /**
      * Suspends a set of tasks. Sets their execution status to SUSPENDED. Stops their execution (unless doNotStop is set).
      *
-     * @param tasks a set of tasks to be suspended
+     * @param taskOids a collection of OIDs of tasks that have to be suspended
      * @param waitTime how long (in milliseconds) to wait for stopping the execution of tasks;
-     *                 0 means wait indefinitely
-     *                 -1 means stop the task but do not wait for finishing their execution
-     * @param doNotStop if true, the task execution will not be stopped. They will only be put into SUSPENDED state, and
-     *                  their executions (if any) will be left as they are
+     *                 WAIT_INDEFINITELY means wait indefinitely :)
+     *                 DO_NOT_WAIT means stop the tasks, but do not wait for finishing their execution
+     *                 DO_NOT_STOP means do not try to stop the task execution. Tasks will only be put into SUSPENDED state, and
+     *                  their executions (if any) will be left as they are. Use this option only when you know what you're doing.
      * @param parentResult
-     * @return true if all the tasks were stopped, false if some tasks continue to run or stopping was not requested
+     * @return true if all the tasks were stopped, false if some tasks continue to run or if stopping was not requested (DO_NOT_STOP option)
      */
-    boolean suspendTasks(Collection<Task> tasks, long waitTime, boolean doNotStop, OperationResult parentResult);
-
-    /**
-     * Suspend a set of tasks. The same as above, but uses a default for doNotStop (false).
-     */
-    boolean suspendTasks(Collection<Task> tasks, long waitTime, OperationResult parentResult);
+    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult);
 
     /**
 	 * Suspend a task. The same as above - stops one-member set.
@@ -374,7 +377,7 @@ public interface TaskManager {
      * @param alsoSubtasks Should also subtasks be deleted?
      * @param parentResult
      */
-    void suspendAndDeleteTasks(List<String> taskOidList, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult);
+    void suspendAndDeleteTasks(Collection<String> taskOidList, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult);
 
     /**
 	 * Resume suspended task.
@@ -384,6 +387,15 @@ public interface TaskManager {
 	 * @throws ObjectNotFoundException
 	 */
 	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    /**
+     * Resume suspended tasks.
+     *
+     * @param taskOids a collection of OIDs of tasks that have to be resumed
+     * @throws SchemaException
+     * @throws com.evolveum.midpoint.util.exception.ObjectNotFoundException
+     */
+    void resumeTasks(Collection<String> taskOids, OperationResult parentResult);
 
     /**
      * Puts a runnable/running task into WAITING state.
@@ -425,6 +437,17 @@ public interface TaskManager {
      */
     void scheduleTaskNow(Task task, OperationResult parentResult);
 
+    /**
+     * Schedules a RUNNABLE tasks to be run immediately. (If a task will really start immediately,
+     * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
+     *
+     * @param taskOids a collection of OIDs of tasks that have to be scheduled
+     * @param parentResult
+     */
+    void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult);
+    //endregion
+
+    //region Working with nodes (searching, mananging)
     // ==================================================== Working with nodes (searching, mananging)
 
     /**
@@ -467,11 +490,13 @@ public interface TaskManager {
      * Deletes a node from the repository.
      * (Checks whether the node is not up before deleting it.)
      *
-     * @param nodeIdentifier
+     * @param nodeOid
      * @param result
      */
-    void deleteNode(String nodeIdentifier, OperationResult result);
+    void deleteNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    //endregion
 
+    //region Managing state of the node(s)
     // ==================================================== Managing state of the node(s)
 
 	/**
@@ -518,17 +543,19 @@ public interface TaskManager {
      */
     void stopScheduler(String nodeIdentifier, OperationResult parentResult);
 
+    void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult);
+
     /**
      * Stops a set of schedulers (on their nodes) and tasks that are executing on these nodes.
      *
-     * @param nodeList list of node identifiers
+     * @param nodeIdentifiers collection of node identifiers
      * @param waitTime how long to wait for task shutdown, in milliseconds
      *                 0 = indefinitely
      *                 -1 = do not wait at all
      * @param parentResult
      * @return
      */
-    boolean stopSchedulersAndTasks(List<String> nodeList, long waitTime, OperationResult parentResult);
+    boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult);
 
     /**
      * Starts the scheduler on a given node. A prerequisite is that the node is running and its
@@ -539,8 +566,10 @@ public interface TaskManager {
      */
     void startScheduler(String nodeIdentifier, OperationResult parentResult);
 
+    void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult);
+    //endregion
 
-
+    //region Miscellaneous methods
     // ==================================================== Miscellaneous methods
 
     /**
@@ -593,4 +622,5 @@ public interface TaskManager {
      * @param handler instance of the handler
      */
     void registerHandler(String uri, TaskHandler handler);
+    //endregion
 }
