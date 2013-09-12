@@ -655,6 +655,8 @@ public class ChangeExecutor {
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
+        } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
+            taskManager.deleteNode(oid, result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
         	ProvisioningOperationOptions options = copyFromModelOptions(context.getOptions());
         	if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){

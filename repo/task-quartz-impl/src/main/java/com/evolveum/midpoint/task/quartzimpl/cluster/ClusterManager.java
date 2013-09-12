@@ -99,8 +99,8 @@ public class ClusterManager {
     }
 
 
-    public void deleteNode(String nodeIdentifier, OperationResult result) {
-        nodeRegistrar.deleteNode(nodeIdentifier, result);
+    public void deleteNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        nodeRegistrar.deleteNode(nodeOid, result);
     }
 
     public void createNodeObject(OperationResult result) throws TaskManagerInitializationException {
@@ -114,7 +114,6 @@ public class ClusterManager {
     public boolean isUp(NodeType nodeType) {
         return nodeRegistrar.isUp(nodeType);
     }
-
 
     class ClusterManagerThread extends Thread {
 
@@ -221,6 +220,11 @@ public class ClusterManager {
             throw new SystemException("Cannot get the list of nodes from the repository", e);
         }
     }
+
+    public PrismObject<NodeType> getNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return getRepositoryService().getObject(NodeType.class, nodeOid, null, result);
+    }
+
 
     public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
         try {

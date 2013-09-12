@@ -661,4 +661,12 @@ public class TaskDto extends Selectable {
     public OperationResult getTaskOperationResult() {
         return taskOperationResult;
     }
+
+    public static List<String> getOids(List<TaskDto> taskDtoList) {
+        List<String> retval = new ArrayList<String>();
+        for (TaskDto taskDto : taskDtoList) {
+            retval.add(taskDto.getOid());
+        }
+        return retval;
+    }
 }

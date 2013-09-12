@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -421,32 +420,22 @@ public class NodeRegistrar {
         return taskManager.getPrismContext();
     }
 
-    public void deleteNode(String nodeIdentifier, OperationResult parentResult) {
+    public void deleteNode(String nodeOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         OperationResult result = parentResult.createSubresult(NodeRegistrar.class.getName() + ".deleteNode");
-        result.addParam("nodeIdentified", nodeIdentifier);
+        result.addParam("nodeOid", nodeOid);
 
-        boolean deleted = false;
+        PrismObject<NodeType> nodePrism = clusterManager.getNode(nodeOid, result);
 
-        List<PrismObject<NodeType>> nodes = clusterManager.getAllNodes(result);
-        for (PrismObject<NodeType> nodePrism : nodes) {
-            if (nodeIdentifier.equals(nodePrism.asObjectable().getNodeIdentifier())) {
-                deleted = true;
-                if (isUp(nodePrism.asObjectable())) {
-                    result.recordFatalError("Node " + nodeIdentifier + " cannot be deleted, because it is currently up.");
-                } else {
-                    try {
-                        taskManager.getRepositoryService().deleteObject(NodeType.class, nodePrism.getOid(), result);
-                        result.recordSuccess();
-                    } catch (ObjectNotFoundException e) {
-                        // should not occur
-                        result.recordFatalError("Node " + nodeIdentifier + " cannot be deleted, because it does not exist in repository.");
-                    }
-                }
+        if (isUp(nodePrism.asObjectable())) {
+            result.recordFatalError("Node " + nodeOid + " cannot be deleted, because it is currently up.");
+        } else {
+            try {
+                taskManager.getRepositoryService().deleteObject(NodeType.class, nodePrism.getOid(), result);
+                result.recordSuccess();
+            } catch (ObjectNotFoundException e) {
+                throw new SystemException("Unexpected ObjectNotFoundException when deleting a node", e);
             }
-        }
-        if (!deleted) {
-            result.recordFatalError("Node " + nodeIdentifier + " cannot be deleted, because it does not exist in repository.");
         }
     }
 }
