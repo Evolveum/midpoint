@@ -27,11 +27,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import org.hibernate.Session;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -126,9 +123,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // (see shutdown() method)
     private static final long WAIT_ON_SHUTDOWN = 2000;
 
-    /*
-    *  ********************* INITIALIZATION AND SHUTDOWN *********************
-    */
+    //region Initialization and shutdown
+    // ********************* INITIALIZATION AND SHUTDOWN *********************
 
     /**
      * Initialization.
@@ -226,6 +222,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         LOGGER.info("Task Manager shutdown finished");
     }
 
+    //endregion
+
+    //region Node state management (???)
     /*
      *  ********************* STATE MANAGEMENT *********************
      */
@@ -233,11 +232,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public boolean isInErrorState() {
         return nodeErrorStatus != NodeErrorStatus.OK;
     }
+    //endregion
 
-    /*
-     *  ********************* OWN BUSINESS LOGIC *********************
-     */
-
+    //region Suspend, resume, pause, unpause
     /*
     * First here are TaskManager API methods implemented in this class,
     * then those, which are delegated to helper classes.
@@ -286,35 +283,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) {
-
-        return suspendTasks(oneItemSet(task), waitTime, parentResult);
-    }
-
-    public boolean suspendTask(Task task, long waitTime, boolean doNotStop, OperationResult parentResult) {
-
-        return suspendTasks(oneItemSet(task), waitTime, doNotStop, parentResult);
-    }
-
-    private<T> Set<T> oneItemSet(T item) {
-        Set<T> set = new HashSet<T>();
-        set.add(item);
-        return set;
+        return suspendTasksResolved(oneItemSet(task), waitTime, parentResult);
     }
 
     @Override
-    public boolean suspendTasks(Collection<Task> tasks, long waitTime, OperationResult parentResult) {
-        return suspendTasks(tasks, waitTime, false, parentResult);
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
+        return suspendTasksResolved(resolveTaskOids(taskOids, parentResult), waitForStop, parentResult);
     }
 
-    @Override
-    public boolean suspendTasks(Collection<Task> tasks, long waitTime, boolean doNotStop, OperationResult parentResult) {
+    public boolean suspendTasksResolved(Collection<Task> tasks, long waitForStop, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendTasks");
         result.addArbitraryCollectionAsParam("tasks", tasks);
-        result.addParam("waitTime", waitTime);
-        result.addParam("doNotStop", doNotStop);
+        result.addParam("waitForStop", waitingInfo(waitForStop));
 
-        LOGGER.info("Suspending tasks " + tasks + " (waiting " + waitTime + " msec)");
+        LOGGER.info("Suspending tasks {}; {}.", tasks, waitingInfo(waitForStop));
 
         for (Task task : tasks) {
 
@@ -339,11 +322,23 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         boolean stopped = false;
-        if (!doNotStop) {
-            stopped = executionManager.stopTasksRunAndWait(tasks, null, waitTime, true, result);
+        if (waitForStop != DO_NOT_STOP) {
+            stopped = executionManager.stopTasksRunAndWait(tasks, null, waitForStop, true, result);
         }
         result.computeStatus();
         return stopped;
+    }
+
+    private String waitingInfo(long waitForStop) {
+        if (waitForStop == WAIT_INDEFINITELY) {
+            return "wait indefinitely";
+        } else if (waitForStop == DO_NOT_WAIT) {
+            return "stop tasks, but do not wait";
+        } else if (waitForStop == DO_NOT_STOP) {
+            return "do not stop tasks";
+        } else {
+            return "stop tasks and wait " + waitForStop + " ms for their completion";
+        }
     }
 
     // todo: better name for this method
@@ -399,6 +394,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
+    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "resumeTasks");
+        for (String oid : taskOids) {
+            try {
+                resumeTask(getTask(oid, result), result);
+            } catch (ObjectNotFoundException e) {           // result is already updated
+                LoggingUtils.logException(LOGGER, "Couldn't resume task with OID {}", e, oid);
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't resume task with OID {}", e, oid);
+            }
+        }
+        result.computeStatus();
+    }
+
+    @Override
     public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
 
@@ -435,7 +445,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             result.computeStatus();
         }
     }
+    //endregion
 
+    //region Working with task instances (other than suspend/resume)
     /*
      *  ********************* WORKING WITH TASK INSTANCES *********************
      */
@@ -488,7 +500,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTask");
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTask");          // todo ... or .createSubresult (without 'minor')?
 		result.addParam(OperationResult.PARAM_OID, taskOid);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 		
@@ -508,7 +520,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return task;
 	}
 
-	@Override
+    @Override
 	public void switchToBackground(final Task task, OperationResult parentResult) {
 
 		parentResult.recordStatus(OperationResultStatus.IN_PROGRESS, "Task switched to background");
@@ -627,13 +639,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void suspendAndDeleteTasks(List<String> taskOidList, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult) {
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendAndDeleteTasks");
-        result.addCollectionOfSerializablesAsParam("taskOidList", taskOidList);
+        result.addCollectionOfSerializablesAsParam("taskOids", taskOids);
 
         List<Task> tasksToBeDeleted = new ArrayList<Task>();
-        for (String oid : taskOidList) {
+        for (String oid : taskOids) {
             try {
                 Task task = getTask(oid, result);
                 tasksToBeDeleted.add(task);
@@ -653,7 +665,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         // now suspend the tasks before deletion
-        suspendTasks(tasksToBeDeleted, suspendTimeout, result);
+        suspendTasksResolved(tasksToBeDeleted, suspendTimeout, result);
 
         // delete them
         for (Task task : tasksToBeDeleted) {
@@ -696,14 +708,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw e;
         }
     }
+    //endregion
 
-    @Override
-    public Long getNextRunStartTime(String oid, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getNextRunStartTime");
-        result.addParam("oid", oid);
-        return executionManager.getNextRunStartTime(oid, result);
-    }
-
+    //region Searching tasks and nodes
     /*
      *  ********************* SEARCHING TASKS AND NODES *********************
      */
@@ -811,7 +818,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public int countTasks(ObjectQuery query, OperationResult result) throws SchemaException {
         return repositoryService.countObjects(TaskType.class, query, result);
     }
+    //endregion
 
+    //region Managing handlers and task categories
     /*
     *  ********************* MANAGING HANDLERS AND TASK CATEGORIES *********************
     */
@@ -862,7 +871,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
         return null;
     }
+    //endregion
 
+    //region Task creation/removal listeners
     /*
     *  ********************* TASK CREATION/REMOVAL LISTENERS *********************
     */
@@ -915,7 +926,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.recordSuccessIfUnknown();
 
     }
+    //endregion
 
+    //region Other methods + getters and setters (CLEAN THIS UP)
     /*
      *  ********************* OTHER METHODS + GETTERS AND SETTERS *********************
      */
@@ -975,8 +988,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public ExecutionManager getExecutionManager() {
         return executionManager;
     }
+    //endregion
 
-
+    //region Delegation (CLEAN THIS UP)
     /*
      *  ********************* DELEGATIONS *********************
      */
@@ -1006,8 +1020,26 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
+    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        OperationResult result = new OperationResult(DOT_INTERFACE + "stopSchedulers");
+        for (String nodeIdentifier : nodeIdentifiers) {
+            stopScheduler(nodeIdentifier, result);
+        }
+        result.computeStatus();
+    }
+
+    @Override
     public void startScheduler(String nodeIdentifier, OperationResult parentResult) {
         executionManager.startScheduler(nodeIdentifier, parentResult);
+    }
+
+    @Override
+    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        OperationResult result = new OperationResult(DOT_INTERFACE + "startSchedulers");
+        for (String nodeIdentifier : nodeIdentifiers) {
+            startScheduler(nodeIdentifier, result);
+        }
+        result.computeStatus();
     }
 
 //    @Override
@@ -1016,8 +1048,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 //    }
 
     @Override
-    public boolean stopSchedulersAndTasks(List<String> nodeList, long timeToWait, OperationResult result) {
-        return executionManager.stopSchedulersAndTasks(nodeList, timeToWait, result);
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long timeToWait, OperationResult result) {
+        return executionManager.stopSchedulersAndTasks(nodeIdentifiers, timeToWait, result);
     }
 
 //    @Override
@@ -1055,13 +1087,29 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void deleteNode(String nodeIdentifier, OperationResult result) {
-        clusterManager.deleteNode(nodeIdentifier, result);
+    public void deleteNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        clusterManager.deleteNode(nodeOid, result);
     }
 
     @Override
     public void scheduleTaskNow(Task task, OperationResult parentResult) {
         executionManager.scheduleTaskNow(task, parentResult);
+    }
+
+    @Override
+    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "scheduleTasksNow");
+        result.addCollectionOfSerializablesAsParam("taskOids", taskOids);
+        for (String oid : taskOids) {
+            try {
+                scheduleTaskNow(getTask(oid, result), result);
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't schedule task with OID {}", e, oid);
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't schedule task with OID {}", e, oid);
+            }
+        }
+        result.computeStatus();
     }
 
     public void unscheduleTask(Task task, OperationResult parentResult) {
@@ -1256,5 +1304,34 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     }
 
+    private<T> Set<T> oneItemSet(T item) {
+        Set<T> set = new HashSet<T>();
+        set.add(item);
+        return set;
+    }
 
+    // if there are problems with retrieving a task, we just log exception and put into operation result
+    private List<Task> resolveTaskOids(Collection<String> oids, OperationResult parentResult) {
+        List<Task> retval = new ArrayList<Task>();
+        OperationResult result = parentResult.createMinorSubresult(DOT_IMPL_CLASS + ".resolveTaskOids");
+        for (String oid : oids) {
+            try {
+                retval.add(getTask(oid, result));
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve task with OID {}", e, oid);        // result is updated in getTask
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve task with OID {}", e, oid);
+            }
+        }
+        result.computeStatus();
+        return retval;
+    }
+
+    @Override
+    public Long getNextRunStartTime(String oid, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getNextRunStartTime");
+        result.addParam("oid", oid);
+        return executionManager.getNextRunStartTime(oid, result);
+    }
+    //endregion
 }
