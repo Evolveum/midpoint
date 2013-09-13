@@ -30,6 +30,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -54,6 +55,7 @@ public class TestExpressionFunctions {
 	public static final File TEST_DIR = new File("src/test/resources/expression/functions");
 	public static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
 	public static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
+	public static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	private static final String ATTR_FULLNAME_LOCAL_PART = "fullname";
 	private static final String ATTR_WEAPON_LOCAL_PART = "weapon";
     
@@ -200,6 +202,38 @@ public class TestExpressionFunctions {
         // THEN
         TestUtil.assertSetEquals("Wrong value for attribute "+ATTR_WEAPON_LOCAL_PART, attrVals, "rum", "smell");
     }
+    
+    @Test
+    public void testgetResourceIcfConfigurationPropertyValueStringHost() throws Exception {
+    	final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringHost";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_OPENDJ_FILE);
+
+        // WHEN
+        String val = f.getResourceIcfConfigurationPropertyValue(resource.asObjectable(), "host");
+
+        // THEN
+        assertEquals("Wrong value of ICF configuration property", "localhost", val);
+    }
+    
+    @Test
+    public void testgetResourceIcfConfigurationPropertyValueStringPort() throws Exception {
+    	final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringPort";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+        // GIVEN
+    	BasicExpressionFunctions f = createBasicFunctions();
+    	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_OPENDJ_FILE);
+
+        // WHEN
+        int val = f.getResourceIcfConfigurationPropertyValue(resource.asObjectable(), "port");
+
+        // THEN
+        assertEquals("Wrong value of ICF configuration property", 10389, val);
+    }
 
     @Test
     public void testDetermineLdapSingleAttributeValue01() throws Exception {
@@ -323,7 +357,8 @@ public class TestExpressionFunctions {
 
     @Test
     public void testParseDateTime() throws Exception {
-    	System.out.println("\n===[ testParseDateTime ]===\n");
+    	final String TEST_NAME = "testParseDateTime";
+    	TestUtil.displayTestTile(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
