@@ -49,6 +49,7 @@ public class LoggingConfigurationManager {
 	final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
+    private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.MidpointAspect";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
 
     private static String currentlyUsedVersion = null;
@@ -204,7 +205,7 @@ public class LoggingConfigurationManager {
                 //Apply profiling appender filter if necessary
                 if(IDM_PROFILE_APPENDER.equals(appender.getName())){
                     for(ClassLoggerConfigurationType cs: config.getClassLogger()){
-                        if(REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage())){
+                        if(REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage()) || PROFILING_ASPECT_LOGGER.endsWith(cs.getPackage())){
                             LOGGER.info("Defining ProfilingLogbackFilter to IDM_LOG Appender.");
                             sb.append(defineProfilingLogbackFilter());
                         }

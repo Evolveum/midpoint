@@ -42,7 +42,7 @@
         <Append>true</Append>
         <File>${catalina.base}/logs/idm-profile.log</File>
         <encoder>
-            <pattern>%date %-5level: %message%n</pattern>
+            <pattern>%date [%X{subSystem}] %-5level: %message%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${catalina.base}/logs/idm-profile.log.%d{yyyy-MM-dd}</fileNamePattern>
