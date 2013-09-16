@@ -48,12 +48,12 @@ public class AspectProfilingFilters {
     private static Trace LOGGER = TraceManager.getTrace(AspectProfilingFilters.class);
 
     //Subsystems
-    public static final String SUBSYSTEM_REPOSITORY = "REPO";
-    public static final String SUBSYSTEM_TASKMANAGER = "TASK";
-    public static final String SUBSYSTEM_PROVISIONING = "PROV";
-    public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "ROCL";
-    public static final String SUBSYSTEM_MODEL = "MODE";
-    public static final String SUBSYSTEM_UCF = "_UCF";
+    public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
+    public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
+    public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
+    public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
+    public static final String SUBSYSTEM_MODEL = "MODEL";
+    public static final String SUBSYSTEM_UCF = "UCF";
 
     private static boolean isRepositoryProfiled = false;
     private static boolean isTaskManagerProfiled = false;

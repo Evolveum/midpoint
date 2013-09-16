@@ -26,6 +26,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.MDC;
+import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
@@ -42,21 +43,25 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class MidpointAspect {
 
+    private static AtomicInteger idcounter = new AtomicInteger(0);
+
 	// This logger provide profiling informations
-    final static Trace LOGGER = TraceManager.getTrace(MidpointAspect.class);
+    private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
+    private static Trace LOGGER = TraceManager.getTrace(MidpointAspect.class);
 
     //Defines status of Aspect based profiling
     private static boolean isProfilingActive = false;
 
 	private static final String MDC_SUBSYSTEM_KEY = "subsystem";
+    public static final String INDENT_STRING = " ";
 
     //Subsystems
-	public static final String SUBSYSTEM_REPOSITORY = "REPO";
-	public static final String SUBSYSTEM_TASKMANAGER = "TASK";
-	public static final String SUBSYSTEM_PROVISIONING = "PROV";
-	public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "ROCL";
-	public static final String SUBSYSTEM_MODEL = "MODE";
-	public static final String SUBSYSTEM_UCF = "_UCF";
+	public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
+	public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
+	public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
+	public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
+	public static final String SUBSYSTEM_MODEL = "MODEL";
+	public static final String SUBSYSTEM_UCF = "UCF";
 	
 	public static final String[] SUBSYSTEMS = { SUBSYSTEM_REPOSITORY, SUBSYSTEM_TASKMANAGER, SUBSYSTEM_PROVISIONING, 
 		SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, SUBSYSTEM_MODEL, SUBSYSTEM_UCF };
@@ -103,18 +108,72 @@ public class MidpointAspect {
 	}
 
 	private Object wrapSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
-	    Object retValue;
+	    Object retValue = null;
 		String prev = null;
+        int id = 0;
+        int d = 1;
+        boolean exc = false;
+        String excName = null;
 		// Profiling start
 		long startTime = System.nanoTime();
+
+        final StringBuilder infoLog = new StringBuilder("#### Entry: ");
 
 		try {
 			// Marking MDC->Subsystem with current one subsystem and mark
 			// previous
 			prev = swapSubsystemMark(subsystem);
 
+            if (LOGGER_PROFILING.isDebugEnabled()) {
+                id = idcounter.incrementAndGet();
+                infoLog.append(id);
+            }
+
+            if (LOGGER_PROFILING.isTraceEnabled()) {
+
+                String depth = MDC.get("depth");
+                if (depth == null || depth.isEmpty()) {
+                    d = 0;
+                } else {
+                    d = Integer.parseInt(depth);
+                }
+                d++;
+                MDC.put("depth", Integer.toString(d));
+                for (int i = 0; i < d; i++) {
+                    infoLog.append(INDENT_STRING);
+                }
+            }
+
+            // is profiling info is needed
+            if (LOGGER_PROFILING.isDebugEnabled()) {
+                infoLog.append(getClassName(pjp));
+                LOGGER_PROFILING.debug("{}->{}", infoLog, pjp.getSignature().getName());
+
+                // If debug enable get entry parameters and log them
+                if (LOGGER_PROFILING.isTraceEnabled()) {
+                    final Object[] args = pjp.getArgs();
+                    // final String[] names = ((CodeSignature)
+                    // pjp.getSignature()).getParameterNames();
+                    // @SuppressWarnings("unchecked")
+                    // final Class<CodeSignature>[] types = ((CodeSignature)
+                    // pjp.getSignature()).getParameterTypes();
+                    final StringBuffer sb = new StringBuffer();
+                    sb.append("###### args: ");
+                    sb.append("(");
+                    for (int i = 0; i < args.length; i++) {
+                        sb.append(formatVal(args[i]));
+                        if (args.length != i + 1) {
+                            sb.append(", ");
+                        }
+                    }
+                    sb.append(")");
+                    LOGGER_PROFILING.trace(sb.toString());
+                }
+            }
+
 			// if profiling info is needed - start
             if(isProfilingActive){
+                LOGGER.info("Profiling is active: onStart");
 			    AspectProfilingFilters.applyGranularityFilterOnStart(pjp, subsystem);
             }
 
@@ -123,15 +182,67 @@ public class MidpointAspect {
 				retValue = pjp.proceed();
 
 			} catch (Exception e) {
+                excName = e.getClass().getName();
+                exc = true;
 				throw e;
 			}
 			// Return original response
 			return retValue;
 
 		} finally {
-			// Restore previously marked subsystem executed before return
+            // Depth -1
+            if (LOGGER_PROFILING.isTraceEnabled()) {
+                d--;
+                MDC.put("depth", Integer.toString(d));
+            }
+
+            // Restore previously marked subsystem executed before return
+            if (LOGGER_PROFILING.isDebugEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("##### Exit: ");
+                if (LOGGER_PROFILING.isDebugEnabled()) {
+                    sb.append(id);
+                    sb.append(" ");
+                }
+                // sb.append("/");
+                if (LOGGER_PROFILING.isTraceEnabled()) {
+                    for (int i = 0; i < d + 1; i++) {
+                        sb.append(INDENT_STRING);
+                    }
+                }
+                sb.append(getClassName(pjp));
+                sb.append("->");
+                sb.append(pjp.getSignature().getName());
+
+                if (LOGGER_PROFILING.isDebugEnabled()) {
+                    sb.append(" etime: ");
+                    // Mark end of processing
+                    long elapsed = System.nanoTime() - startTime;
+                    sb.append((long) (elapsed / 1000000));
+                    sb.append('.');
+                    long mikros = (long) (elapsed / 1000) % 1000;
+                    if (mikros < 100) {
+                        sb.append('0');
+                    }
+                    if (mikros < 10) {
+                        sb.append('0');
+                    }
+                    sb.append(mikros);
+                    sb.append(" ms");
+                }
+
+                LOGGER_PROFILING.debug(sb.toString());
+                if (LOGGER_PROFILING.isTraceEnabled()) {
+                    if (exc) {
+                        LOGGER_PROFILING.trace("###### return exception: {}", excName);
+                    } else {
+                        LOGGER_PROFILING.trace("###### retval: {}", formatVal(retValue));
+                    }
+                }
+            }
 
             if(isProfilingActive){
+                LOGGER.info("Profiling is active: OnEnd.");
                 AspectProfilingFilters.applyGranularityFilterOnEnd(pjp, subsystem, startTime);
             }
 
@@ -203,7 +314,6 @@ public class MidpointAspect {
         isProfilingActive = false;
     }
 
-    @Deprecated
     private String formatVal(Object value) {
 		if (value == null) {
 			return ("null");
@@ -211,7 +321,7 @@ public class MidpointAspect {
 		try {
 			return PrettyPrinter.prettyPrint(value);
 		} catch (Throwable t) {
-            LOGGER.error("Internal error formatting a value: {}", value, t);
+            LOGGER_PROFILING.error("Internal error formatting a value: {}", value, t);
 			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage()+" value="+value;
 		}
 	}

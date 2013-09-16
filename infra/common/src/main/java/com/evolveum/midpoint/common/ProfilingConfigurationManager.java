@@ -70,13 +70,13 @@ public class ProfilingConfigurationManager {
     public static LoggingConfigurationType checkSystemProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism){
         SystemConfigurationType systemConfig = systemConfigurationPrism.asObjectable();
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
-
+        boolean isSubsystemConfig = false;
 
         if(profilingConfig == null || !profilingConfig.isEnabled())
             return systemConfig.getLogging();
         //TODO - fix bug, call applyProfilingConfiguration here as well.
         else{
-            boolean isSubsystemConfig = applySubsystemProfiling(systemConfig);
+            isSubsystemConfig = applySubsystemProfiling(systemConfig);
             return applyProfilingConfiguration(systemConfigurationPrism, profilingConfig, isSubsystemConfig);
         }
     }   //checkSystemProfilingConfiguration
@@ -92,7 +92,7 @@ public class ProfilingConfigurationManager {
 
         if(loggingConfig != null){
             //LOGGER.info("entering profiling config applyProfilingConfiguration()");
-            if(profilingConfig.isRequestFilter()){
+            if(checkXsdBooleanValue(profilingConfig.isRequestFilter())){
                 ClassLoggerConfigurationType requestFilterLogger = new ClassLoggerConfigurationType();
                 requestFilterLogger.setPackage(REQUEST_FILTER_LOGGER_CLASS_NAME);
                 requestFilterLogger.setLevel(LoggingLevelType.TRACE);
@@ -126,15 +126,15 @@ public class ProfilingConfigurationManager {
         int dumpInterval = 0;
         boolean subSystemProfiling = false;
 
-        profiledSubsystems.put(SUBSYSTEM_PROVISIONING, profilingConfig.isProvisioning());
-        profiledSubsystems.put(SUBSYSTEM_REPOSITORY, profilingConfig.isRepository());
-        profiledSubsystems.put(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, profilingConfig.isResourceObjectChangeListener());
-        profiledSubsystems.put(SUBSYSTEM_TASKMANAGER, profilingConfig.isTaskManager());
-        profiledSubsystems.put(SUBSYSTEM_UCF, profilingConfig.isUcf());
-        profiledSubsystems.put(SUBSYSTEM_MODEL, profilingConfig.isModel());
+        profiledSubsystems.put(SUBSYSTEM_PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
+        profiledSubsystems.put(SUBSYSTEM_REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
+        profiledSubsystems.put(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, checkXsdBooleanValue(profilingConfig.isResourceObjectChangeListener()));
+        profiledSubsystems.put(SUBSYSTEM_TASKMANAGER, checkXsdBooleanValue(profilingConfig.isTaskManager()));
+        profiledSubsystems.put(SUBSYSTEM_UCF, checkXsdBooleanValue(profilingConfig.isUcf()));
+        profiledSubsystems.put(SUBSYSTEM_MODEL, checkXsdBooleanValue(profilingConfig.isModel()));
 
         for(Boolean b: profiledSubsystems.values()){
-            if(b){
+            if(b != null && b){
                 subSystemProfiling = true;
                 break;
             }
@@ -150,5 +150,14 @@ public class ProfilingConfigurationManager {
         }
     }   //applySubsystemProfiling
 
+    /*
+    *   Check value of Boolean in xsd
+    * */
+    private static boolean checkXsdBooleanValue(Boolean value){
+        if(value == null || !value)
+            return false;
+        else
+            return true;
+    }   //checkXsdBooleanValue
 
 }   //ProfilingConfigurationManager
