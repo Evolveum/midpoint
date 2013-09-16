@@ -52,6 +52,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -265,7 +266,8 @@ public class ChangeExecutor {
 				// account was already linked..
 				// and also do not set fatal error to the operation result, this is a special case
 				// if it is fatal, it will be set later
-//				recordProjectionExecutionException(e, accCtx, subResult, null);
+				// but we need to set some result
+				subResult.recordHandledError(e);
 				continue;
 			} catch (CommunicationException e) {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
@@ -450,7 +452,8 @@ public class ChangeExecutor {
 		
     	PrismObject<ShadowType> account = null;
     	try {
-    		account = provisioning.getObject(ShadowType.class, accountRef, GetOperationOptions.createNoFetch(), task, result);
+    		account = provisioning.getObject(ShadowType.class, accountRef, 
+    				SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
     	} catch (Exception ex){
     		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;
@@ -812,7 +815,7 @@ public class ChangeExecutor {
 		OperationProvisioningScriptsType scripts = null;
 		try {
 			PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid,
-					GetOperationOptions.createNoFetch(), task, result);
+					SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 			scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.DELETE, resource,
 					result);
 		} catch (ObjectNotFoundException ex) {
@@ -829,7 +832,8 @@ public class ChangeExecutor {
             Collection<? extends ItemDelta> modifications, LensContext<F, P> context, ProvisioningOperationOptions options, 
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
-    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createRaw(), task, result);
+    	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, 
+    			SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
     	OperationProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, ProvisioningOperationTypeType.MODIFY, resource, result);
         Utils.setRequestee(task, context);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);

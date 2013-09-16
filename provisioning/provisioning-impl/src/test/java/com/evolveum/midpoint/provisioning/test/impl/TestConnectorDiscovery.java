@@ -104,7 +104,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".listConnectorsTest");
 		
-		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, result);
+		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, null, result);
 		assertNotNull(connectors);
 		
 		for (PrismObject<ConnectorType> connector : connectors){

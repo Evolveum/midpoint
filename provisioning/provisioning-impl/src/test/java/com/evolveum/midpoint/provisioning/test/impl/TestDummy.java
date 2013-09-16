@@ -89,6 +89,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -1051,8 +1052,9 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "."+TEST_NAME);
 
-		GetOperationOptions options = new GetOperationOptions();
-		options.setNoFetch(true);
+		GetOperationOptions rootOptions = new GetOperationOptions();
+		rootOptions.setNoFetch(true);
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 
 		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
@@ -1137,7 +1139,7 @@ public class TestDummy extends AbstractDummyTest {
 		};
 
 		// WHEN
-		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
 
 		// THEN
 		result.computeStatus();
@@ -1153,7 +1155,7 @@ public class TestDummy extends AbstractDummyTest {
 		foundObjects.clear();
 
 		// WHEN
-		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
 
 		// THEN
 
@@ -1219,7 +1221,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-				query, result);
+				query, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1272,7 +1274,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,
-				new ObjectQuery(), result);
+				new ObjectQuery(), null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1954,42 +1956,71 @@ public class TestDummy extends AbstractDummyTest {
 	
 	@Test
 	public void test160SearchNull() throws Exception {
-		testSeachIterative("test160Search", null, 
+		final String TEST_NAME = "test160SearchNull";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterative(TEST_NAME, null, null, true,
 				"meathook", "daemon", "morgan", "Will");
 	}
 	
 	@Test
 	public void test161SearchShipSeaMonkey() throws Exception {
-		testSeachIterativeSingleAttrFilter("test161SearchShipSeaMonkey", 
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey",
+		final String TEST_NAME = "test161SearchShipSeaMonkey";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey", null, true,
 				"meathook");
 	}
-	
+		
 	// See MID-1460
 	@Test(enabled=false)
 	public void test162SearchShipNull() throws Exception {
-		testSeachIterativeSingleAttrFilter("test162SearchShipNull", 
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null,
+		final String TEST_NAME = "test162SearchShipNull";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null, null, true,
 				"daemon", "Will");
 	}
 	
-	private <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal, String... expectedAccountIds) throws Exception {
+	@Test
+	public void test165SearchUidExact() throws Exception {
+		final String TEST_NAME = "test165SearchUidExact";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME,
+				ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid(), null, true,
+				"Will");
+	}
+	
+	@Test
+	public void test166SearchUidExactNoFetch() throws Exception {
+		final String TEST_NAME = "test166SearchUidExactNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid(),
+				GetOperationOptions.createNoFetch(), false,
+				"Will");
+	}
+	
+	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal, 
+			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
+		testSeachIterativeSingleAttrFilter(TEST_NAME, dummyResourceCtl.getAttributeQName(attrName), attrVal, 
+				rootOptions, fullShadow, expectedAccountIds);
+	}
+	
+	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, QName attrQName, T attrVal, 
+			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
 		PrismPropertyValue<T> attrPVal = null;
 		if (attrVal != null) {
 			attrPVal = new PrismPropertyValue<T>(attrVal);
 		}
-		QName attrQName = dummyResourceCtl.getAttributeQName(attrName);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
 		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, attrPVal);
 		
-		testSeachIterative(TEST_NAME, filter, expectedAccountIds);
+		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountIds);
 	}
 	
-	private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, String... expectedAccountIds) throws Exception {
-		TestUtil.displayTestTile(TEST_NAME);
-		// GIVEN
+	private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, GetOperationOptions rootOptions, 
+			final boolean fullShadow, String... expectedAccountIds) throws Exception {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
@@ -2013,13 +2044,15 @@ public class TestDummy extends AbstractDummyTest {
 				ObjectType objectType = object.asObjectable();
 				assertTrue(objectType instanceof ShadowType);
 				ShadowType shadow = (ShadowType) objectType;
-				checkAccountShadow(shadow, parentResult);
+				checkAccountShadow(shadow, parentResult, fullShadow);
 				return true;
 			}
 		};
 
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
+		
 		// WHEN
-		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, result);
 
 		// THEN
 		result.computeStatus();
@@ -2152,8 +2185,9 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "."+TEST_NAME);
 
-		GetOperationOptions options = new GetOperationOptions();
-		options.setNoFetch(true);
+		GetOperationOptions rootOptions = new GetOperationOptions();
+		rootOptions.setNoFetch(true);
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 
 		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options, null, 

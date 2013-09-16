@@ -49,6 +49,15 @@ public abstract class LogicalFilter extends ObjectFilter{
 		return clonedConditions;
 	}
 
+	@Override
+	public void accept(Visitor visitor) {
+		super.accept(visitor);
+		for (ObjectFilter condition: getCondition()) {
+			condition.accept(visitor);
+		}
+	}
+	
+
 //	@Override
 //	public String dump() {
 //		// TODO Auto-generated method stub

@@ -17,6 +17,11 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
  * Almost the same as TestDummy but this is using a caseIgnore resource version.
@@ -39,6 +44,24 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Override
 	protected String getWillRepoIcfUid() {
 		return "will";
+	}
+	
+	@Test
+	public void test175SearchUidCase() throws Exception {
+		final String TEST_NAME = "test175SearchUidCase";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, 
+				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", null, true,
+				"Will");
+	}
+	
+	@Test
+	public void test176SearchUidCaseNoFetch() throws Exception {
+		final String TEST_NAME = "test176SearchUidCaseNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, 
+				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
+				"Will");
 	}
 	
 	

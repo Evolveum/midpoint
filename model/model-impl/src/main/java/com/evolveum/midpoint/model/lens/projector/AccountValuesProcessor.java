@@ -265,7 +265,7 @@ public class AccountValuesProcessor {
 		        	
 			        checker.setPrismContext(prismContext);
 			        checker.setContext(context);
-			        checker.setRepositoryService(repositoryService);
+			        checker.setProvisioningService(provisioningService);
 			        checker.check(result);
 			        if (checker.isSatisfiesConstraints()) {
 			        	LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);

@@ -321,7 +321,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
 
 		OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
-		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, searchResult);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);
 
 		opResult.computeStatus();
 
