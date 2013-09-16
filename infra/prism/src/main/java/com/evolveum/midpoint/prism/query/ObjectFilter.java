@@ -55,4 +55,8 @@ public abstract class ObjectFilter implements Dumpable, DebugDumpable, Serializa
 		clone.expression = this.expression;
 	}
 	
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
+	
 }

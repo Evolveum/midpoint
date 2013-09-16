@@ -271,7 +271,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjects(ShadowType.class, query, result);
+	      provisioningService.searchObjects(ShadowType.class, query, null, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -309,7 +309,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+	      provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -551,7 +551,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjects(ShadowType.class, query, result);
+	      provisioningService.searchObjects(ShadowType.class, query, null, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (CommunicationException e) {
@@ -588,7 +588,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
       try {
     	  
 	      // WHEN
-	      provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+	      provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
 	      
 	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
 		} catch (CommunicationException e) {

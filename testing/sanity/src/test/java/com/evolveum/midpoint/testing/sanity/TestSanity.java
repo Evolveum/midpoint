@@ -1196,7 +1196,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(ShadowType.class, q, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, q, null, handler, result);
 
         // THEN
 

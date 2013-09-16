@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -416,7 +417,7 @@ public class ContextLoader {
 			if (shadow == null) {
 				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
-				GetOperationOptions options = GetOperationOptions.createNoFetch();
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 				try {
 					shadow = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 				} catch (ObjectNotFoundException e) {
@@ -533,7 +534,7 @@ public class ContextLoader {
 					try {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 						// We need to fetch from provisioning and not repository so the correct definition will be set.
-						GetOperationOptions options = GetOperationOptions.createNoFetch();
+						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
@@ -579,7 +580,7 @@ public class ContextLoader {
 					try {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 						// We need to fetch from provisioning and not repository so the correct definition will be set.
-						GetOperationOptions options = GetOperationOptions.createNoFetch();
+						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
@@ -588,7 +589,7 @@ public class ContextLoader {
 					} catch (ObjectNotFoundException e) {
 						try{
 						// Broken accountRef. We need to try again with raw options, because the error should be thrown becaue of non-existent resource
-						GetOperationOptions options = GetOperationOptions.createRaw();
+						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						accountContext = getOrCreateBrokenAccountContext(context, oid);
 						accountContext.setFresh(true);
@@ -661,7 +662,7 @@ public class ContextLoader {
 					}
 					// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 					// We need to fetch from provisioning and not repository so the correct definition will be set.
-					GetOperationOptions options = GetOperationOptions.createNoFetch();
+					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 					account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 					// We will not set old account if the delta is delete. The
 					// account does not really exists now.
@@ -801,7 +802,9 @@ public class ContextLoader {
 					}
 				} else {
 					projContext.setExists(true);
-					GetOperationOptions options = projContext.isDoReconciliation() ? GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
+					GetOperationOptions rootOptions = projContext.isDoReconciliation() ? 
+							GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
+					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 //						if (projContext.isDoReconciliation()) {
 //							options = GetOperationOptions.createDoNotDiscovery();
 ////							projContext.setFullShadow(true);

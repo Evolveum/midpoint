@@ -349,7 +349,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-				query, result);
+				query, null, result);
 		
 		// THEN
 		result.computeStatus();
