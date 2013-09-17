@@ -926,12 +926,171 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="executionStatus" type="tns:NodeExecutionStatusType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Actual node status from the point of executing tasks.
+                                This field is TRANSIENT. It must only be used in runtime. It should
+                                never be stored in the repository.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="errorStatus" type="tns:NodeErrorStatusType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                More detailed characterization of the error state.
+                                This field is TRANSIENT. It must only be used in runtime. It should
+                                never be stored in the repository.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="connectionResult" type="tns:OperationResultType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation that connected to this node.
+                                This field is TRANSIENT. It must only be used in runtime. It should
+                                never be stored in the repository.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:element name="node" type="tns:NodeType" substitutionGroup="c:object"/>
+
+    <xsd:simpleType name="NodeExecutionStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="running">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is running, task scheduler is running.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RUNNING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="paused">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is running, scheduler is paused.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PAUSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node down (this status is available only for remote nodes, of course).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node error (see NodeErrorStatus for more details).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="communicationError">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Status unknown due to communication error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMMUNICATION_ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="NodeErrorStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Status of this node w.r.t. error conditions.
+                Generally speaking, if NodeErrorStatus != OK, tasks cannot be scheduled on this node.
+                This is a dynamic information, not stored in the repository.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ok">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Everything is OK.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="duplicateNodeIdOrName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        More nodes with the same ID or name (currently ID is the same as name, but in the future they might be different).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DUPLICATE_NODE_ID_OR_NAME"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="nonClusteredNodeWithOthers">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A non-clustered node runs along other (clustered or non-clustered) nodes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NON_CLUSTERED_NODE_WITH_OTHERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="localConfigurationError">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local task manager is not configured properly, so it cannot even be started.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOCAL_CONFIGURATION_ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="localInitializationError">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other kind of initialization error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOCAL_INITIALIZATION_ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="nodeRegistrationFailed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        It was not possible to register node in repository due to a permanent error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NODE_REGISTRATION_FAILED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="TaskType">
         <xsd:annotation>
@@ -984,12 +1143,56 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="subtask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Set of task's subtasks.
+                                TRANSIENT attribute. In the repository the parent-child relationship is stored using "parent" property.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:subtaskRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subtaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Set of task's subtasks references.
+                                TRANSIENT attribute. In the repository the parent-child relationship is stored using "parent" property.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="dependent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Dependent tasks, i.e. tasks that wait for the completion of this task.
                                 Task identifiers (not OIDs) are used here.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="dependentTask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Dependent tasks, i.e. tasks that wait for the completion of this task.
+                                TRANSIENT attribute. In the repository only the identifiers are stored (see "dependent" attribute).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:dependentTaskRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="dependentTaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Dependent tasks references, i.e. tasks that wait for the completion of this task.
+                                TRANSIENT attribute. In the repository only the identifiers are stored (see "dependent" attribute).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
@@ -1012,8 +1215,16 @@
                             <xsd:documentation>
                                 Identifier of the node that currently executes this task.
                                 (In case of node crash, the value here may be out-of-date.)
-
-                                NOTE: This attribute is currently not used, its use is planned.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="nodeAsObserved" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier of the node that executes this task, as observed by querying cluster nodes
+                                about tasks that are currently executing.
+                                TRANSIENT. This value is not stored in the repository.
+                                (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1054,8 +1265,6 @@
                             <xsd:documentation>
                                 Top-level state of the 'result' (OperationResultType).
                                 It is put here for ease of use - mainly filtering, displaying, and so on.
-
-                                NOTE: This attribute is currently not used; its use is planned.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1091,6 +1300,15 @@
                                 The moment when the task was marked as closed. (May be different from
                                 lastRunFinishTimestamp, e.g. when task waits for its children to finish
                                 and then closes automatically.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="nextRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The time when the task should start again. (Null if no further execution is scheduled.)
+                                TRANSIENT. This value is not stored in the repo, it is queried dynamically.
+                                (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

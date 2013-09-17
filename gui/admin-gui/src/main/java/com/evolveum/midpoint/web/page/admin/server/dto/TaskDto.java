@@ -22,12 +22,16 @@ import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,7 +52,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -74,35 +81,22 @@ public class TaskDto extends Selectable {
     public static final String F_WORKFLOW_HISTORY = "workflowHistory";
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
 
-    private String oid;
-    private String identifier;
-    private String name;
-    private String description;
-    private String category;
     private List<String> handlerUriList;
     private String parentTaskName;
     private String parentTaskOid;
 
-    private boolean recurring;
-    private boolean bound;
+    // scheduling information
     private Integer interval;
     private String cronSpecification;
     private Date notStartBefore;
     private Date notStartAfter;
     private MisfireActionType misfireAction;
-    private boolean runUntilNodeDown;
-    private ThreadStopActionType threadStop;
-    
-    private TaskExecutionStatus rawExecutionStatus;
-    private TaskDtoExecutionStatus execution;
-    private String executingAt;
+
     private List<OperationResult> opResult;
     private OperationResult taskOperationResult;
-    private OperationResultStatus status;
 
     private ModelOperationStatusDto modelOperationStatusDto;
 
-    private ObjectReferenceType objectRef;
     private ObjectTypes objectRefType;
     private String objectRefName;
 
@@ -122,166 +116,205 @@ public class TaskDto extends Selectable {
     private List<DeltaDto> workflowDeltasIn, workflowDeltasOut;
     private List<WfHistoryEventDto> workflowHistory;
 
-    public TaskDto(Task task, ClusterStatusInformation clusterStatusInfo, TaskManager taskManager, ModelInteractionService modelInteractionService, TaskDtoProviderOptions options) throws SchemaException, ObjectNotFoundException {
-        Validate.notNull(task, "Task must not be null.");
-        Validate.notNull(clusterStatusInfo, "Cluster status info must not be null.");
-        Validate.notNull(taskManager, "Task manager must not be null.");
+    private TaskType taskType;
 
-        OperationResult thisOpResult = new OperationResult(OPERATION_NEW);
+    //region Construction
+    public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService, TaskManager taskManager, TaskDtoProviderOptions options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        Validate.notNull(taskType, "Task must not be null.");
+        Validate.notNull(modelService);
+        Validate.notNull(taskService);
+        Validate.notNull(modelInteractionService);
+        Validate.notNull(taskManager);
+        Validate.notNull(parentResult);
 
-        oid = task.getOid();
-        identifier = task.getTaskIdentifier();
-        name = WebMiscUtil.getOrigStringFromPoly(task.getName());
-        description = task.getDescription();
-        category = task.getCategory();
+        this.taskType = taskType;
 
+        OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
+        fillInHandlerUriList(taskType);
+        fillInScheduleAttributes(taskType);
+        fillInObjectRefAttributes(taskType, modelService, taskManager, options, thisOpResult);
+        fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
+        fillInOperationResultAttributes(taskType);
+        if (options.isRetrieveModelContext()) {
+            fillInModelContext(taskType, modelInteractionService, thisOpResult);
+        }
+        fillInWorkflowAttributes(taskType);
+        thisOpResult.computeStatusIfUnknown();
+    }
+
+    private void fillInHandlerUriList(TaskType taskType) {
         handlerUriList = new ArrayList<String>();
-        if (task.getHandlerUri() != null) {
-            handlerUriList.add(task.getHandlerUri());
+        if (taskType.getHandlerUri() != null) {
+            handlerUriList.add(taskType.getHandlerUri());
         } else {
             handlerUriList.add("-");        // todo separate presentation from model
         }
-        if (task.getOtherHandlersUriStack() != null) {
-            List<UriStackEntry> stack = task.getOtherHandlersUriStack().getUriStackEntry();
+        if (taskType.getOtherHandlersUriStack() != null) {
+            List<UriStackEntry> stack = taskType.getOtherHandlersUriStack().getUriStackEntry();
             for (int i = stack.size()-1; i >= 0; i--) {
                 handlerUriList.add(stack.get(i).getHandlerUri());
             }
         }
+    }
 
-        recurring = task.isCycle();
-        bound = task.isTightlyBound();
-        
-        // init Schedule
-        if(task.getSchedule() != null){
-        	interval = task.getSchedule().getInterval();
-            cronSpecification = task.getSchedule().getCronLikePattern();
-            if(task.getSchedule().getMisfireAction() == null){
-            	misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
+    private void fillInScheduleAttributes(TaskType taskType) {
+        if (taskType.getSchedule() != null){
+            interval = taskType.getSchedule().getInterval();
+            cronSpecification = taskType.getSchedule().getCronLikePattern();
+            if (taskType.getSchedule().getMisfireAction() == null){
+                misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
             } else {
-            	misfireAction = task.getSchedule().getMisfireAction();
+                misfireAction = taskType.getSchedule().getMisfireAction();
             }
-            notStartBefore = MiscUtil.asDate(task.getSchedule().getEarliestStartTime());
-            notStartAfter = MiscUtil.asDate(task.getSchedule().getLatestStartTime());
+            notStartBefore = MiscUtil.asDate(taskType.getSchedule().getEarliestStartTime());
+            notStartAfter = MiscUtil.asDate(taskType.getSchedule().getLatestStartTime());
         }
-        
-        if(task.getThreadStopAction() == null){
-        	threadStop = ThreadStopActionType.RESTART;
+    }
+
+    private void fillInObjectRefAttributes(TaskType taskType, ModelService modelService, TaskManager taskManager, TaskDtoProviderOptions options, OperationResult thisOpResult) {
+        if (taskType.getObjectRef() != null) {
+            if (taskType.getObjectRef().getType() != null) {
+                this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(taskType.getObjectRef().getType());
+            }
+            if (options.isResolveObjectRef()) {
+                this.objectRefName = getTaskObjectName(taskType, taskManager, modelService, thisOpResult);
+            }
+        }
+    }
+
+    private String getTaskObjectName(TaskType taskType, TaskManager taskManager, ModelService modelService, OperationResult thisOpResult) {
+        PrismReference objectRef = taskType.asPrismObject().findReference(TaskType.F_OBJECT_REF);
+        if (objectRef == null) {
+            return null;
+        }
+        PrismObject<ObjectType> object = null;
+        if (objectRef.getValue().getObject() != null) {
+            object = objectRef.getValue().getObject();
         } else {
-        	threadStop = task.getThreadStopAction();
-        }
-        
-        if(ThreadStopActionType.CLOSE.equals(threadStop) || ThreadStopActionType.SUSPEND.equals(threadStop)){
-        	runUntilNodeDown = true;
-        } else {
-        	runUntilNodeDown = false;
-        }
-
-        Node n = null;
-        if (options.isUseClusterInformation()) {
-            n = clusterStatusInfo.findNodeInfoForTask(oid);
-        }
-        this.executingAt = n != null ? n.getNodeIdentifier() : null;
-
-        rawExecutionStatus = task.getExecutionStatus();
-        execution = TaskDtoExecutionStatus.fromTaskExecutionStatus(rawExecutionStatus, n != null);
-        if (!options.isUseClusterInformation() && execution == TaskDtoExecutionStatus.RUNNABLE) {
-            execution = TaskDtoExecutionStatus.RUNNING_OR_RUNNABLE;
-        }
-
-        lastRunFinishTimestampLong = task.getLastRunFinishTimestamp();
-        lastRunStartTimestampLong = task.getLastRunStartTimestamp();
-        completionTimestampLong = task.getCompletionTimestamp();
-        if (options.isGetNextRunStartTime()) {
-            nextRunStartTimeLong = task.getNextRunStartTime(new OperationResult("dummy"));
-        }
-
-        this.objectRef = task.getObjectRef();
-        if (this.objectRef != null && task.getObjectRef().getType() != null) {
-            this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(task.getObjectRef().getType());
-        }
-
-        if (options.isResolveObjectRef() && this.objectRef != null) {
+            Throwable failReason = null;
             try {
-                PrismObject<? extends ObjectType> o = task.getObject(ObjectType.class, thisOpResult);
-                this.objectRefName = WebMiscUtil.getName(o);
+                object = modelService.getObject(ObjectType.class, objectRef.getOid(), GetOperationOptions.createRetrieveNameOnlyOptions(), taskManager.createTaskInstance(), thisOpResult);
             } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve task's object because it does not exist; oid = " + task.getObjectOid(), e);
+                failReason = e;
             } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve task's object because of schema exception; oid = " + task.getObjectOid(), e);
+                failReason = e;
+            } catch (SecurityViolationException e) {
+                failReason = e;
+            } catch (CommunicationException e) {
+                failReason = e;
+            } catch (ConfigurationException e) {
+                failReason = e;
+            }
+            if (failReason != null) {
+                String message = "Couldn't get the name of referenced object with OID " + objectRef.getOid() + " for task " + taskType.getOid();
+                LoggingUtils.logException(LOGGER, message, failReason);
+                thisOpResult.recordWarning(message, failReason);
+                return null;
             }
         }
+        return WebMiscUtil.getName(object);
+    }
 
-        this.binding = task.getBinding();
-        this.recurrence = task.getRecurrenceStatus();
-
-        opResult = new ArrayList<OperationResult>();
-        taskOperationResult = task.getResult();
-        
-        OperationResult result = task.getResult();
-        if (result != null) {
-            status = result.getStatus();
-            
-            opResult.add(result);
-            opResult.addAll(result.getSubresults());
+    private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, OperationResult thisOpResult) {
+        if (options.isGetTaskParent() && taskType.getParent() != null) {
+            Throwable failReason = null;
+            try {
+                TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), GetOperationOptions.createRetrieveNameOnlyOptions(), thisOpResult).asObjectable();
+                if (parentTaskType != null) {
+                    parentTaskName = parentTaskType.getName() != null ? parentTaskType.getName().getOrig() : "(unnamed)";       // todo i18n
+                    parentTaskOid = parentTaskType.getOid();
+                }
+            } catch (SchemaException e) {
+                failReason = e;
+            } catch (ObjectNotFoundException e) {
+                failReason = e;
+            }
+            if (failReason != null) {
+                LoggingUtils.logException(LOGGER, "Couldn't retrieve parent task for task {}", failReason, taskType.getOid());
+            }
         }
+    }
 
-        if (options.isRetrieveModelContext()) {
-            PrismContext prismContext = task.getTaskPrismObject().getPrismContext();
-            PrismContainer<LensContextType> modelContextContainer = (PrismContainer) task.getExtensionItem(SchemaConstants.MODEL_CONTEXT_NAME);
-            if (modelContextContainer != null) {
-                Object value = modelContextContainer.getValue().asContainerable();
-                if (value != null) {
-                    if (!(value instanceof LensContextType)) {
-                        throw new SystemException("Model context information in task " + task + " is of wrong type: " + value.getClass());
-                    }
-                    try {
-                        ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
-                        modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
-                    } catch (SchemaException e) {   // todo report to result
-                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
-                    } catch (CommunicationException e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
-                    } catch (ConfigurationException e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, task);
-                    }
+    private void fillInOperationResultAttributes(TaskType taskType) {
+        taskOperationResult = OperationResult.createOperationResult(taskType.getResult());
+        opResult = new ArrayList<OperationResult>();
+        if (taskOperationResult != null) {
+            opResult.add(taskOperationResult );
+            opResult.addAll(taskOperationResult.getSubresults());
+        }
+    }
+
+    private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, OperationResult result) throws ObjectNotFoundException {
+        PrismContainer<LensContextType> modelContextContainer =
+                (PrismContainer) taskType.asPrismObject().findItem(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_CONTEXT_NAME));
+        if (modelContextContainer != null) {
+            Object value = modelContextContainer.getValue().asContainerable();
+            if (value != null) {
+                if (!(value instanceof LensContextType)) {
+                    throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
+                }
+                try {
+                    ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
+                    modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
+                } catch (SchemaException e) {   // todo report to result
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebMiscUtil.getIdentification(taskType));
+                } catch (CommunicationException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebMiscUtil.getIdentification(taskType));
+                } catch (ConfigurationException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebMiscUtil.getIdentification(taskType));
                 }
             }
         }
+    }
 
+    private void fillInWorkflowAttributes(TaskType taskType) throws SchemaException {
         // todo do this through WfTaskUtil
-        PrismProperty<String> wfProcessInstanceId = task.getExtensionProperty(Constants.WFPROCESSID_PROPERTY_NAME);
+        PrismProperty<String> wfProcessInstanceId = getExtensionProperty(taskType, Constants.WFPROCESSID_PROPERTY_NAME);
         if (wfProcessInstanceId != null) {
-
             workflowShadowTask = true;
             workflowProcessInstanceId = wfProcessInstanceId.getRealValue();
         } else {
             workflowShadowTask = false;
         }
 
-        PrismProperty<Boolean> finished = task.getExtensionProperty(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
+        PrismProperty<Boolean> finished = getExtensionProperty(taskType, Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
         workflowProcessInstanceFinished = finished != null && Boolean.TRUE.equals(finished.getRealValue());
 
-        PrismProperty<String> lastDetails = task.getExtensionProperty(Constants.WFLAST_DETAILS_PROPERTY_NAME);
+        PrismProperty<String> lastDetails = getExtensionProperty(taskType, Constants.WFLAST_DETAILS_PROPERTY_NAME);
         if (lastDetails != null) {
             workflowLastDetails = lastDetails.getRealValue();
         }
 
-        workflowDeltasIn = retrieveDeltasToProcess(task);
-        workflowDeltasOut = retrieveResultingDeltas(task);
-        workflowHistory = prepareWorkflowHistory(task);
-
-        if (options.isGetTaskParent()) {
-            Task parent = task.getParentTask(result);
-            if (parent != null) {
-                parentTaskName = parent.getName() != null ? parent.getName().getOrig() : "(unnamed)";       // todo i18n
-                parentTaskOid = parent.getOid();
-            }
-        }
+        workflowDeltasIn = retrieveDeltasToProcess(taskType);
+        workflowDeltasOut = retrieveResultingDeltas(taskType);
+        workflowHistory = prepareWorkflowHistory(taskType);
     }
 
-    private List<WfHistoryEventDto> prepareWorkflowHistory(Task task) {
+    private List<DeltaDto> retrieveDeltasToProcess(TaskType taskType) throws SchemaException {
+        List<DeltaDto> retval = new ArrayList<DeltaDto>();
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+        if (deltaTypePrismProperty != null) {
+            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
+                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, taskType.asPrismObject().getPrismContext())));
+            }
+        }
+        return retval;
+    }
+
+    public List<DeltaDto> retrieveResultingDeltas(TaskType taskType) throws SchemaException {
+        List<DeltaDto> retval = new ArrayList<DeltaDto>();
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, Constants.WFRESULTING_DELTA_PROPERTY_NAME);
+        if (deltaTypePrismProperty != null) {
+            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
+                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, taskType.asPrismObject().getPrismContext())));
+            }
+        }
+        return retval;
+    }
+
+    private List<WfHistoryEventDto> prepareWorkflowHistory(TaskType taskType) {
         List<WfHistoryEventDto> retval = new ArrayList<WfHistoryEventDto>();
-        PrismProperty<String> wfStatus = task.getExtensionProperty(Constants.WFSTATUS_PROPERTY_NAME);
+        PrismProperty<String> wfStatus = getExtensionProperty(taskType, Constants.WFSTATUS_PROPERTY_NAME);
         if (wfStatus != null) {
             for (String entry : wfStatus.getRealValues()) {
                 retval.add(new WfHistoryEventDto(entry));
@@ -290,66 +323,25 @@ public class TaskDto extends Selectable {
         }
         return retval;
     }
+    //endregion
 
-    private List<DeltaDto> retrieveDeltasToProcess(Task task) throws SchemaException {
-
-        List<DeltaDto> retval = new ArrayList<DeltaDto>();
-
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
-        if (deltaTypePrismProperty != null) {
-            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
-                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, task.getTaskPrismObject().getPrismContext())));
-            }
-        }
-        return retval;
-    }
-
-    public List<DeltaDto> retrieveResultingDeltas(Task task) throws SchemaException {
-
-        List<DeltaDto> retval = new ArrayList<DeltaDto>();
-
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
-        if (deltaTypePrismProperty != null) {
-            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
-                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, task.getTaskPrismObject().getPrismContext())));
-            }
-        }
-        return retval;
-    }
-
-
+    //region Getters
     public String getCategory() {
-        return category;
+        return taskType.getCategory();
     }
     
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
     public List<String> getHandlerUriList() {
         return handlerUriList;
     }
 
-    public void setHandlerUriList(List<String> handlerUriList) {
-        this.handlerUriList = handlerUriList;
-    }
-
     public boolean getBound() {
-		return bound;
+		return taskType.getBinding() == TaskBindingType.TIGHT;
 	}
 	
-	public void setBound(boolean bound) {
-		this.bound = bound;
-	}
-
 	public Integer getInterval() {
 		return interval;
 	}
 	
-	public void setInterval(Integer interval) {
-		this.interval = interval;
-	}
-
 	public String getCronSpecification() {
 		return cronSpecification;
 	}
@@ -367,42 +359,36 @@ public class TaskDto extends Selectable {
 	}
 
 	public boolean getRunUntilNodeDown() {
-		return runUntilNodeDown;
-	}
+        return ThreadStopActionType.CLOSE.equals(taskType.getThreadStopAction()) || ThreadStopActionType.SUSPEND.equals(taskType.getThreadStopAction());
+    }
 
 	public ThreadStopActionType getThreadStop() {
-		return threadStop;
-	}
-
-	public void setThreadStop(ThreadStopActionType threadStop) {
-		this.threadStop = threadStop;
-	}
+        if (taskType.getThreadStopAction() == null){
+            return ThreadStopActionType.RESTART;
+        } else {
+            return taskType.getThreadStopAction();
+        }
+    }
 
 	public boolean getRecurring() {
-		return recurring;
+		return taskType.getRecurrence() == TaskRecurrenceType.RECURRING;
 	}
 	
-	public void setRecurring(boolean recurring) {
-		this.recurring = recurring;
-	}
-
 	public Long getCurrentRuntime() {
         if (isRunNotFinished()) {
             if (isAliveClusterwide()) {
                 return System.currentTimeMillis() - lastRunStartTimestampLong;
             }
         }
-
         return null;
     }
 
     public TaskDtoExecutionStatus getExecution() {
-        return execution;
+        return TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
     }
 
     public String getExecutingAt() {
-        //return executingAt != null ? executingAt.getNodeIdentifier() : null;
-        return executingAt;
+        return taskType.getNodeAsObserved();
     }
 
     public List<OperationResult> getResult() {
@@ -410,19 +396,19 @@ public class TaskDto extends Selectable {
 	}
 
 	public String getName() {
-        return name;
+        return taskType.getName() != null ? taskType.getName().getOrig() : null;
     }
 	
 	public void setName(String name) {
-        this.name = name;
+        taskType.setName(new PolyStringType(name));
     }
 
     public String getDescription() {
-        return description;
+        return taskType.getDescription();
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        taskType.setDescription(description);
     }
 
     public String getObjectRefName() {
@@ -442,23 +428,15 @@ public class TaskDto extends Selectable {
     }
 
     public ObjectReferenceType getObjectRef() {
-        return objectRef;
+        return taskType.getObjectRef();
     }
 
     public String getOid() {
-        return oid;
+        return taskType.getOid();
     }
     
-    public void setOid(String oid) {
-        this.oid = oid;
-    }
-
     public String getIdentifier() {
-        return identifier;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+        return taskType.getTaskIdentifier();
     }
 
     public Long getNextRunStartTimeLong() {
@@ -468,11 +446,11 @@ public class TaskDto extends Selectable {
     public Long getScheduledToStartAgain() {
         long current = System.currentTimeMillis();
 
-        if (execution == TaskDtoExecutionStatus.RUNNING) {
-            if (!recurring) {
+        if (getExecution() == TaskDtoExecutionStatus.RUNNING) {
+            if (!getRecurring()) {
                 return null;
-            } else if (bound) {
-                return -1L;             // runs continually
+            } else if (getBound()) {
+                return -1L;             // runs continually; todo provide some information also in this case
             }
         }
 
@@ -490,7 +468,7 @@ public class TaskDto extends Selectable {
     }
 
     public OperationResultStatus getStatus() {
-        return status;
+        return taskOperationResult != null ? taskOperationResult.getStatus() : null;
     }
 
     private boolean isRunNotFinished() {
@@ -499,7 +477,7 @@ public class TaskDto extends Selectable {
     }
 
     private boolean isAliveClusterwide() {
-        return executingAt != null;
+        return getExecutingAt() != null;
     }
 
 	public MisfireActionType getMisfireAction() {
@@ -511,11 +489,7 @@ public class TaskDto extends Selectable {
 	}
 
 	public TaskExecutionStatus getRawExecutionStatus() {
-		return rawExecutionStatus;
-	}
-
-	public void setRawExecutionStatus(TaskExecutionStatus rawExecutionStatus) {
-		this.rawExecutionStatus = rawExecutionStatus;
+		return TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 	}
 
 	public List<OperationResult> getOpResult() {
@@ -554,52 +528,8 @@ public class TaskDto extends Selectable {
 		this.notStartAfter = notStartAfter;
 	}
 
-	public void setRunUntilNodeDown(boolean runUntilNodeDown) {
-		this.runUntilNodeDown = runUntilNodeDown;
-	}
-
-	public void setExecution(TaskDtoExecutionStatus execution) {
-		this.execution = execution;
-	}
-
-	public void setExecutingAt(String executingAt) {
-		this.executingAt = executingAt;
-	}
-
-	public void setStatus(OperationResultStatus status) {
-		this.status = status;
-	}
-
-	public void setObjectRef(ObjectReferenceType objectRef) {
-		this.objectRef = objectRef;
-	}
-
-	public void setObjectRefType(ObjectTypes objectRefType) {
-		this.objectRefType = objectRefType;
-	}
-
-	public void setObjectRefName(String objectRefName) {
-		this.objectRefName = objectRefName;
-	}
-
-	public void setLastRunStartTimestampLong(Long lastRunStartTimestampLong) {
-		this.lastRunStartTimestampLong = lastRunStartTimestampLong;
-	}
-
-	public void setLastRunFinishTimestampLong(Long lastRunFinishTimestampLong) {
-		this.lastRunFinishTimestampLong = lastRunFinishTimestampLong;
-	}
-
-	public void setNextRunStartTimeLong(Long nextRunStartTimeLong) {
-		this.nextRunStartTimeLong = nextRunStartTimeLong;
-	}
-
     public Long getCompletionTimestamp() {
         return completionTimestampLong;
-    }
-
-    public void setCompletionTimestampLong(Long completionTimestampLong) {
-        this.completionTimestampLong = completionTimestampLong;
     }
 
     public ModelOperationStatusDto getModelOperationStatus() {
@@ -618,24 +548,12 @@ public class TaskDto extends Selectable {
         return workflowShadowTask;
     }
 
-    public void setWorkflowShadowTask(boolean workflowShadowTask) {
-        this.workflowShadowTask = workflowShadowTask;
-    }
-
     public String getWorkflowProcessInstanceId() {
         return workflowProcessInstanceId;
     }
 
     public boolean isWorkflowProcessInstanceFinished() {
         return workflowProcessInstanceFinished;
-    }
-
-    public void setWorkflowProcessInstanceId(String workflowProcessInstanceId) {
-        this.workflowProcessInstanceId = workflowProcessInstanceId;
-    }
-
-    public void setWorkflowProcessInstanceFinished(boolean workflowProcessInstanceFinished) {
-        this.workflowProcessInstanceFinished = workflowProcessInstanceFinished;
     }
 
     public String getWorkflowLastDetails() {
@@ -661,6 +579,7 @@ public class TaskDto extends Selectable {
     public OperationResult getTaskOperationResult() {
         return taskOperationResult;
     }
+    //endregion
 
     public static List<String> getOids(List<TaskDto> taskDtoList) {
         List<String> retval = new ArrayList<String>();
@@ -668,5 +587,13 @@ public class TaskDto extends Selectable {
             retval.add(taskDto.getOid());
         }
         return retval;
+    }
+
+    private PrismProperty getExtensionProperty(TaskType taskType, QName propertyName) {
+        return taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
+    }
+
+    public void setThreadStop(ThreadStopActionType value) {
+        taskType.setThreadStopAction(value);
     }
 }

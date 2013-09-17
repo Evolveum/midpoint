@@ -26,8 +26,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.hibernate.annotations.*;
-import org.hibernate.bytecode.internal.javassist.FieldHandled;
-import org.hibernate.bytecode.internal.javassist.FieldHandler;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -442,28 +440,28 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
             jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
         }
 
-        if (RUtil.hasToLoadPath(UserType.F_EMPLOYEE_TYPE, options)) {
+        if (SelectorOptions.hasToLoadPath(UserType.F_EMPLOYEE_TYPE, options)) {
             List types = RUtil.safeSetToList(repo.getEmployeeType());
             if (!types.isEmpty()) {
                 jaxb.getEmployeeType().addAll(types);
             }
         }
 
-        if (RUtil.hasToLoadPath(UserType.F_ORGANIZATIONAL_UNIT, options)) {
+        if (SelectorOptions.hasToLoadPath(UserType.F_ORGANIZATIONAL_UNIT, options)) {
             List units = RUtil.safeSetPolyToList(repo.getOrganizationalUnit());
             if (!units.isEmpty()) {
                 jaxb.getOrganizationalUnit().addAll(units);
             }
         }
 
-        if (RUtil.hasToLoadPath(UserType.F_ORGANIZATION, options)) {
+        if (SelectorOptions.hasToLoadPath(UserType.F_ORGANIZATION, options)) {
             List units = RUtil.safeSetPolyToList(repo.getOrganization());
             if (!units.isEmpty()) {
                 jaxb.getOrganization().addAll(units);
             }
         }
 
-        if (RUtil.hasToLoadPath(UserType.F_RESULT, options)) {
+        if (SelectorOptions.hasToLoadPath(UserType.F_RESULT, options)) {
             if (repo.getResult() != null) {
                 jaxb.setResult(repo.getResult().toJAXB(prismContext));
             }

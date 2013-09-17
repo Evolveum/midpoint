@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.TaskManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -62,8 +63,11 @@ public class ModelObjectResolver implements ObjectResolver {
 
 	@Autowired(required = true)
 	private transient ProvisioningService provisioning;
-	
-	@Autowired(required = true)
+
+    @Autowired
+    private transient TaskManager taskManager;
+
+    @Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	
@@ -106,10 +110,10 @@ public class ModelObjectResolver implements ObjectResolver {
 		return ((ObjectType) getObjectSimple((Class)typeClass, oid, options, task, result)).asPrismObject();
 	}
 	
-	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task, 
+	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task,
 			OperationResult result) throws ObjectNotFoundException {
 		try {
-			return getObject(clazz, oid, options, task, result);
+			return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
 		} catch (SystemException ex) {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
@@ -123,25 +127,34 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 	}
 	
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, GetOperationOptions rootOptions, Task task,  
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;
-			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
-				object = provisioning.getObject(clazz, oid, options, task, result);
-				if (object == null) {
-					throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
-							+" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
-				}
-			} else {
-				object = cacheRepositoryService.getObject(clazz, oid, null, result);
-				if (object == null) {
-					throw new SystemException("Got null result from repository.getObject while looking for "+clazz.getSimpleName()
-							+" with OID "+oid+"; using repository implementation "+cacheRepositoryService.getClass().getName());
-				}
-			}
+            ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
+            switch (manager) {
+                case PROVISIONING:
+                    object = provisioning.getObject(clazz, oid, SelectorOptions.findRootOptions(options), task, result);
+                    if (object == null) {
+                        throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
+                                +" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
+                    }
+                    break;
+                case TASK_MANAGER:
+                    object = taskManager.getObject(clazz, oid, options, task, result);
+                    if (object == null) {
+                        throw new SystemException("Got null result from taskManager.getObject while looking for "+clazz.getSimpleName()
+                                +" with OID "+oid+"; using task manager implementation "+taskManager.getClass().getName());
+                    }
+                    break;
+                default:
+                    object = cacheRepositoryService.getObject(clazz, oid, options, result);
+                    if (object == null) {
+                        throw new SystemException("Got null result from repository.getObject while looking for "+clazz.getSimpleName()
+                                +" with OID "+oid+"; using repository implementation "+cacheRepositoryService.getClass().getName());
+                    }
+            }
 			objectType = object.asObjectable();
 			if (!clazz.isInstance(objectType)) {
 				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid

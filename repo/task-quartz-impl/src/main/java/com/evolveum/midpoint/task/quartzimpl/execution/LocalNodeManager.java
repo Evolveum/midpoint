@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeExecutionStatusType;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
@@ -282,15 +284,15 @@ public class LocalNodeManager {
 
 
 
-    public NodeExecutionStatus getLocalNodeExecutionStatus() {
+    public NodeExecutionStatusType getLocalNodeExecutionStatus() {
 
-        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatus.OK) {
-            return NodeExecutionStatus.ERROR;
+        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
+            return NodeExecutionStatusType.ERROR;
         } else {
             Scheduler quartzScheduler = getGlobalExecutionManager().getQuartzScheduler();
 
             if (quartzScheduler == null) {      // this should not occur if error status is OK
-                return NodeExecutionStatus.COMMUNICATION_ERROR;
+                return NodeExecutionStatusType.COMMUNICATION_ERROR;
             }
 
             boolean quartzRunning;
@@ -298,9 +300,9 @@ public class LocalNodeManager {
                 quartzRunning = quartzScheduler.isStarted() && !quartzScheduler.isInStandbyMode() && !quartzScheduler.isShutdown();
             } catch (SchedulerException e) {
                 LoggingUtils.logException(LOGGER, "Cannot determine Quartz scheduler state", e);
-                return NodeExecutionStatus.COMMUNICATION_ERROR;
+                return NodeExecutionStatusType.COMMUNICATION_ERROR;
             }
-            return quartzRunning ? NodeExecutionStatus.RUNNING : NodeExecutionStatus.PAUSED;
+            return quartzRunning ? NodeExecutionStatusType.RUNNING : NodeExecutionStatusType.PAUSED;
         }
     }
 

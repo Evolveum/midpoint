@@ -51,7 +51,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -177,6 +176,13 @@ public final class WebMiscUtil {
         PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
 
         return name != null ? name.getOrig() : null;
+    }
+
+    public static String getIdentification(ObjectType object) {
+        if (object == null) {
+            return null;
+        }
+        return getName(object.asPrismObject()) + " (" + object.getOid() + ")";
     }
 
     public static PolyStringType createPolyFromOrigString(String str) {
@@ -398,6 +404,4 @@ public final class WebMiscUtil {
 
         return result.isSuccess() || result.isHandledError();
     }
-
-	
 }
