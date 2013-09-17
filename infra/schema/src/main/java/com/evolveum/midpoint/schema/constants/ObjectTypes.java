@@ -28,71 +28,83 @@ import javax.xml.namespace.QName;
  */
 public enum ObjectTypes {
 
-	@Deprecated
+    @Deprecated
     ACCOUNT("schema.objectTypes.account", SchemaConstants.C_ACCOUNT_SHADOW_TYPE, SchemaConstants.C_ACCOUNT,
-            AccountShadowType.class, true),
+            AccountShadowType.class, ObjectManager.PROVISIONING),
 
     CONNECTOR("schema.objectTypes.connector", SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
-            ConnectorType.class, true),
+            ConnectorType.class, ObjectManager.PROVISIONING),
 
     CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.C_CONNECTOR_HOST_TYPE,
-            SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, true),
+            SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, ObjectManager.PROVISIONING),
 
     GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.C_GENERIC_OBJECT_TYPE,
-            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, false),
+            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, ObjectManager.MODEL),
 
     RESOURCE("schema.objectTypes.resource", SchemaConstants.C_RESOURCE_TYPE, SchemaConstants.C_RESOURCE,
-            ResourceType.class, true),
+            ResourceType.class, ObjectManager.PROVISIONING),
 
     USER("schema.objectTypes.user", SchemaConstants.C_USER_TYPE, SchemaConstants.C_USER, UserType.class,
-            false),
+            ObjectManager.MODEL),
 
     OBJECT_TEMPLATE("schema.objectTypes.objectTemplate", SchemaConstants.C_OBJECT_TEMPLATE_TYPE,
-            SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, false),
+            SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, ObjectManager.MODEL),
 
     SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration",
             SchemaConstants.C_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.C_SYSTEM_CONFIGURATION,
-            SystemConfigurationType.class, false),
+            SystemConfigurationType.class, ObjectManager.MODEL),
 
     TASK("schema.objectTypes.task", SchemaConstants.C_TASK_TYPE, SchemaConstants.C_TASK, TaskType.class,
-            false),
+            ObjectManager.TASK_MANAGER),
 
     SHADOW("schema.objectTypes.shadow",
             SchemaConstants.C_SHADOW_TYPE, SchemaConstants.C_SHADOW,
-            ShadowType.class, true),
+            ShadowType.class, ObjectManager.PROVISIONING),
 
     OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
-            ObjectType.class, false),
+            ObjectType.class, ObjectManager.MODEL),
 
-    ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, false),
+    ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, ObjectManager.MODEL),
 
     PASSWORD_POLICY("schema.objectTypes.valuePolicy", ValuePolicyType.COMPLEX_TYPE,
-            SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class, false),
+            SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class, ObjectManager.MODEL),
 
-    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false),
+    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, ObjectManager.TASK_MANAGER),
 
-    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, false),
+    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, ObjectManager.MODEL),
 
     ABSTRACT_ROLE("schema.objectTypes.abstractRole", AbstractRoleType.COMPLEX_TYPE, SchemaConstants.C_ABSTRACT_ROLE,
-            AbstractRoleType.class, false);
+            AbstractRoleType.class, ObjectManager.MODEL);
+
+    public static enum ObjectManager {
+        PROVISIONING, TASK_MANAGER, WORKFLOW, MODEL, REPOSITORY;
+    }
 
     private String localizationKey;
     private QName type;
     private QName name;
     private Class<? extends ObjectType> classDefinition;
-    private boolean managedByProvisioning;
+    private ObjectManager objectManager;
 
     private ObjectTypes(String key, QName type, QName name, Class<? extends ObjectType> classDefinition,
-                        boolean managedByProvisioning) {
+                        ObjectManager objectManager) {
         this.localizationKey = key;
         this.type = type;
         this.name = name;
         this.classDefinition = classDefinition;
-        this.managedByProvisioning = managedByProvisioning;
+        this.objectManager = objectManager;
     }
 
     public boolean isManagedByProvisioning() {
-        return managedByProvisioning;
+        return objectManager == ObjectManager.PROVISIONING;
+    }
+
+    public boolean isManagedByTaskManager() {
+        return objectManager == ObjectManager.TASK_MANAGER;
+    }
+
+    public boolean isManagedByWorkflow() {
+        return objectManager == ObjectManager.WORKFLOW;
     }
 
     public String getLocalizationKey() {
@@ -117,6 +129,10 @@ public enum ObjectTypes {
 
     public String getObjectTypeUri() {
         return QNameUtil.qNameToUri(getTypeQName());
+    }
+
+    public ObjectManager getObjectManager() {
+        return objectManager;
     }
 
     public static ObjectTypes getObjectType(String objectType) {
@@ -228,4 +244,18 @@ public enum ObjectTypes {
 
         return false;
     }
+
+    public static ObjectManager getObjectManagerForClass(Class<? extends ObjectType> clazz) {
+        Validate.notNull(clazz, "Class must not be null.");
+
+        for (ObjectTypes type : ObjectTypes.values()) {
+            if (type.getClassDefinition().isAssignableFrom(clazz)) {
+                return type.getObjectManager();
+            }
+        }
+
+        return null;
+    }
+
 }
+

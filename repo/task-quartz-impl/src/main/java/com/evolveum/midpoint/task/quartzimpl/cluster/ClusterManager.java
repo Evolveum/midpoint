@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
-import java.util.List;
-
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -24,7 +22,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.task.api.Node;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -37,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+
+import java.util.List;
 
 /**
  * Responsible for keeping the cluster consistent.
@@ -203,8 +202,7 @@ public class ClusterManager {
     }
 
 
-    public String dumpNodeInfo(Node nodeInfo) {
-        NodeType node = nodeInfo.getNodeType().asObjectable();
+    public String dumpNodeInfo(NodeType node) {
         return node.getNodeIdentifier() + " (" + node.getHostname() + ")";
     }
 

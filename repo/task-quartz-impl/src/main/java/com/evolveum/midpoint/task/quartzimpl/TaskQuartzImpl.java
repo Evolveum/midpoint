@@ -91,11 +91,6 @@ public class TaskQuartzImpl implements Task {
 
 	private volatile boolean canRun;
 
-    // current information about the node on which this task executes at
-    // filled-in by searchTasks (see its description in TaskManager API)
-
-    private Node currentlyExecutesAt;
-
     private TaskManagerQuartzImpl taskManager;
     private RepositoryService repositoryService;
 
@@ -2148,16 +2143,6 @@ public class TaskQuartzImpl implements Task {
 	private PrismContext getPrismContext() {
 		return taskManager.getPrismContext();
 	}
-
-
-    @Override
-    public Node currentlyExecutesAt() {
-        return currentlyExecutesAt;
-    }
-
-    void setCurrentlyExecutesAt(Node node) {
-        currentlyExecutesAt = node;
-    }
 
     @Override
     public Task createSubtask() {

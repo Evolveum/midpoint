@@ -16,23 +16,44 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -49,33 +70,28 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ClusterStatusInformation;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -89,8 +105,6 @@ public class PageTaskEdit extends PageAdminTasks {
 	public static final String PARAM_TASK_EDIT_ID = "taskEditOid";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
-	private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
-
 
     private static final String ID_IDENTIFIER = "identifier";
     private static final String ID_HANDLER_URI_LIST = "handlerUriList";
@@ -146,16 +160,16 @@ public class PageTaskEdit extends PageAdminTasks {
 
     private TaskDto loadTask() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
-        TaskManager manager = getTaskManager();
+        Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
+
         StringValue taskOid = parameters.get(PARAM_TASK_EDIT_ID);
 
-        ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result);
         TaskDto taskDto = null;
-		Task loadedTask = null;
 		try {
-			loadedTask = manager.getTask(taskOid.toString(), result);
-            taskDto = prepareTaskDto(loadedTask, info, manager, getModelInteractionService(), result);
-			result.recordSuccess();
+            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK);
+            TaskType loadedTask = getModelService().getObject(TaskType.class, taskOid.toString(), options, operationTask, result).asObjectable();
+            taskDto = prepareTaskDto(loadedTask, result);
+			result.computeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get task.", ex);
 		}
@@ -164,9 +178,8 @@ public class PageTaskEdit extends PageAdminTasks {
 			showResult(result);
 		}
 
-		if (loadedTask == null) {
+		if (taskDto == null) {
 			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
-
 			if (!result.isSuccess()) {
 				showResultInSession(result);
 			}
@@ -175,14 +188,11 @@ public class PageTaskEdit extends PageAdminTasks {
 		return taskDto;
 	}
 
-    private TaskDto prepareTaskDto(Task task, ClusterStatusInformation info, TaskManager manager, ModelInteractionService modelInteractionService, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        TaskDto taskDto = new TaskDto(task, info, manager, modelInteractionService, TaskDtoProviderOptions.fullOptions());
-
-        for (Task child : task.listSubtasks(result)) {
-            taskDto.addChildTaskDto(prepareTaskDto(child, info, manager, modelInteractionService, result));
+    private TaskDto prepareTaskDto(TaskType task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(), getTaskManager(), TaskDtoProviderOptions.fullOptions(), result);
+        for (TaskType child : task.getSubtask()) {
+            taskDto.addChildTaskDto(prepareTaskDto(child, result));
         }
-
         return taskDto;
     }
 

@@ -7,7 +7,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -257,28 +256,28 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(UserType.F_LINK_REF,
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_LINK_REF, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_LINK_REF, options));
 
         //sample
         options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD),
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_CREDENTIALS, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_CREDENTIALS, options));
 
         //sample
         options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_RESULT, options));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_METADATA, options));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_ASSIGNMENT, options));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_LINK_REF, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_RESULT, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_METADATA, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_ASSIGNMENT, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_LINK_REF, options));
 
         //sample
         options = null;
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_RESULT, options));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_METADATA, options));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_ASSIGNMENT, options));
-        AssertJUnit.assertTrue(RUtil.hasToLoadPath(UserType.F_LINK_REF, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_RESULT, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_METADATA, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_ASSIGNMENT, options));
+        AssertJUnit.assertTrue(SelectorOptions.hasToLoadPath(UserType.F_LINK_REF, options));
     }
 }

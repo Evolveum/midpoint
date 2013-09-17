@@ -16,16 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ClusterStatusInformation;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import org.apache.wicket.Component;
 
 import java.util.Iterator;
@@ -40,8 +40,6 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
     private static final String DOT_CLASS = TaskDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_TASKS = DOT_CLASS + "listTasks";
     private static final String OPERATION_COUNT_TASKS = DOT_CLASS + "countTasks";
-
-    private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
 
     private TaskDtoProviderOptions options;
 
@@ -59,17 +57,8 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_TASKS);
+        Task operationTask = getTaskManager().createTaskInstance(OPERATION_LIST_TASKS);
         try {
-//            SortParam sortParam = getSort();
-//            OrderDirectionType order;
-//            if (sortParam.isAscending()) {
-//                order = OrderDirectionType.ASCENDING;
-//            } else {
-//                order = OrderDirectionType.DESCENDING;
-//            }
-//
-//            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
-
         	ObjectPaging paging = createPaging(first, count);
         	ObjectQuery query = getQuery();
         	if (query == null){
@@ -77,16 +66,9 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
         	}
         	query.setPaging(paging);
         	
-            TaskManager manager = getTaskManager();
-            ClusterStatusInformation info =
-                    options.isUseClusterInformation() ?
-                            manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result) :
-                            new ClusterStatusInformation();
-
-            List<Task> tasks = manager.searchTasks(query, info, result);
-
-            for (Task task : tasks) {
-                TaskDto taskDto = new TaskDto(task, info, manager, getModelInteractionService(), options);
+            List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, null, operationTask, result);
+            for (PrismObject<TaskType> task : tasks) {
+                TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), options, result);
                 getAvailableData().add(taskDto);
             }
         } catch (Exception ex) {
@@ -97,7 +79,6 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
                 result.recomputeStatus();
             }
         }
-
         return getAvailableData().iterator();
     }
 
@@ -105,17 +86,17 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
     protected int internalSize() {
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_TASKS);
+        Task task = getTaskManager().createTaskInstance(OPERATION_COUNT_TASKS);
         try {
-            count = getTaskManager().countTasks(getQuery(), result);
+            count = getModel().countObjects(TaskType.class, getQuery(), null, task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Unhandled exception when counting tasks", ex);
             result.recordFatalError("Couldn't count tasks.", ex);
         }
-
         if (!result.isSuccess()) {
             getPage().showResult(result);
         }
-
         return count;
     }
 }
