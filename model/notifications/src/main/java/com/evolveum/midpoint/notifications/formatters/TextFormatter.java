@@ -83,7 +83,9 @@ public class TextFormatter {
         Validate.notNull(shadowType, "shadowType is null");
 
         StringBuilder retval = new StringBuilder();
-        formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, showOperationalAttributes);
+        if (shadowType.getAttributes() != null) {
+            formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, showOperationalAttributes);
+        }
         return retval.toString();
     }
 
