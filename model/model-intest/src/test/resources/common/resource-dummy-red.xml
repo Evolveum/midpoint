@@ -204,6 +204,11 @@
 					<source>
 						<path>$user/description</path>
 					</source>
+					<expression>
+						<script>
+							<code>description + " -- " + basic.getResourceIcfConfigurationPropertyValue(resource, 'instanceId') + ' resource'</code>
+						</script>
+					</expression>
 				</outbound>
 			</attribute>
 			<attribute>

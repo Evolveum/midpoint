@@ -660,7 +660,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			try {
 				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
-					list = provisioning.searchObjects(type, query, result);
+					list = provisioning.searchObjects(type, query, null, result);
 				} else {
 					list = cacheRepositoryService.searchObjects(type, query, options, result);
 				}
@@ -743,7 +743,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			try {
 				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
-					provisioning.searchObjectsIterative(type, query, internalHandler, result);
+					provisioning.searchObjectsIterative(type, query, null, internalHandler, result);
 				} else {
 					cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result);
 				}

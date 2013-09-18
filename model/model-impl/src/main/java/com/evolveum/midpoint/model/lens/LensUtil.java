@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -515,7 +516,8 @@ public class LensUtil {
 		
 		try{
 		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-				accCtx.getOid(), GetOperationOptions.createDoNotDiscovery(), null, result);
+				accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+				null, result);
 		// TODO: use setLoadedObject() instead?
 		accCtx.setObjectCurrent(objectOld);
 		ShadowType oldShadow = objectOld.asObjectable();

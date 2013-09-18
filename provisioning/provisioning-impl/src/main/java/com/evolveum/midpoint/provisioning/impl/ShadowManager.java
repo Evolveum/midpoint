@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
@@ -56,6 +57,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -449,6 +452,71 @@ public class ShadowManager {
 		// LOGGER.trace("created query " + DOMUtil.printDom(filter));
 
 		return query;
+	}
+	
+	public void searchObjectsIterativeRepository(
+			RefinedObjectClassDefinition objectClassDef,
+			final ResourceType resourceType, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			com.evolveum.midpoint.schema.ResultHandler<ShadowType> repoHandler, OperationResult parentResult) throws SchemaException {
+		
+		ObjectQuery repoQuery = query.clone();
+		processQueryMatchingRules(repoQuery, objectClassDef);
+		
+		repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, parentResult);
+		
+	}
+
+	/**
+	 * Visit the query and normalize values (or set matching rules) as needed
+	 */
+	private void processQueryMatchingRules(ObjectQuery repoQuery, final RefinedObjectClassDefinition objectClassDef) {
+		ObjectFilter filter = repoQuery.getFilter();
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(ObjectFilter filter) {
+				try {
+					processQueryMatchingRuleFilter(filter, objectClassDef);
+				} catch (SchemaException e) {
+					throw new SystemException(e);
+				}
+			}
+		};
+		filter.accept(visitor);
+	}
+	
+	private <T> void processQueryMatchingRuleFilter(ObjectFilter filter, RefinedObjectClassDefinition objectClassDef) throws SchemaException {
+		if (!(filter instanceof EqualsFilter)) {
+			return;
+		}
+		EqualsFilter eqFilter = (EqualsFilter)filter;
+		ItemPath parentPath = eqFilter.getParentPath();
+		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
+			return;
+		}
+		QName attrName = eqFilter.getName();
+		RefinedAttributeDefinition rAttrDef = objectClassDef.findAttributeDefinition(attrName);
+		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
+		if (matchingRuleQName == null) {
+			return;
+		}
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
+		if (matchingRule == null) {
+			// TODO: warning?
+			return;
+		}
+		List<PrismValue> newValues = new ArrayList<PrismValue>();
+		for (PrismValue pval: eqFilter.getValues()) {
+			PrismPropertyValue<T> ppval = (PrismPropertyValue<T>)pval;
+			T normalizedRealValue = matchingRule.normalize(ppval.getValue());
+			PrismPropertyValue<T> newPPval = ppval.clone();
+			newPPval.setValue(normalizedRealValue);
+			newValues.add(newPPval);
+		}
+		eqFilter.getValues().clear();
+		eqFilter.getValues().addAll((Collection) newValues);
+		LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
+				attrName, newValues);
 	}
 
 	/**
