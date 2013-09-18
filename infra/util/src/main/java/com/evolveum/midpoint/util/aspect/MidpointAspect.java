@@ -62,6 +62,7 @@ public class MidpointAspect {
 	public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
 	public static final String SUBSYSTEM_MODEL = "MODEL";
 	public static final String SUBSYSTEM_UCF = "UCF";
+    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
 	
 	public static final String[] SUBSYSTEMS = { SUBSYSTEM_REPOSITORY, SUBSYSTEM_TASKMANAGER, SUBSYSTEM_PROVISIONING, 
 		SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, SUBSYSTEM_MODEL, SUBSYSTEM_UCF };
@@ -95,6 +96,13 @@ public class MidpointAspect {
 	public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
 		return wrapSubsystem(pjp, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
 	}
+
+    @Around("entriesIntoWorkflow()")
+    public Object proccessWorkflowNdc(ProceedingJoinPoint pjp) throws Throwable {
+        return wrapSubsystem(pjp, SUBSYSTEM_WORKFLOW);
+    }
+
+
 
 	// This is made public to use in testing
 	public static String swapSubsystemMark(String subsystemName) {
@@ -171,11 +179,12 @@ public class MidpointAspect {
                 }
             }
 
+            //We dont need profiling on method start in current version
 			// if profiling info is needed - start
-            if(isProfilingActive){
-                LOGGER.info("Profiling is active: onStart");
-			    AspectProfilingFilters.applyGranularityFilterOnStart(pjp, subsystem);
-            }
+            //if(isProfilingActive){
+            //    LOGGER.info("Profiling is active: onStart");
+			//    AspectProfilingFilters.applyGranularityFilterOnStart(pjp, subsystem);
+            //}
 
 			// Process original call
 			try {
@@ -242,7 +251,7 @@ public class MidpointAspect {
             }
 
             if(isProfilingActive){
-                LOGGER.info("Profiling is active: OnEnd.");
+                //LOGGER.info("Profiling is active: OnEnd.");
                 AspectProfilingFilters.applyGranularityFilterOnEnd(pjp, subsystem, startTime);
             }
 
@@ -275,6 +284,11 @@ public class MidpointAspect {
 	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
 	public void entriesIntoResourceObjectChangeListener() {
 	}
+
+    @Pointcut("execution(* com.evolveum.midpoint.wf.api.WorkflowService.*(..))")
+    public void entriesIntoWorkflow(){
+
+    }
 
 
 	/**

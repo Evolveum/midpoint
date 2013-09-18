@@ -43,7 +43,7 @@ public class ProfilingLogbackFilter extends Filter<ILoggingEvent> {
     private FilterReply neutralReply = FilterReply.NEUTRAL;
 
     private final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
-    private final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.MidpointAspect";
+    private final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
 
     /* BEHAVIOR */
     @Override

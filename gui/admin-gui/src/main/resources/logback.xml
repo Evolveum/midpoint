@@ -23,7 +23,7 @@
         <Append>true</Append>
         <File>${catalina.base}/logs/idm.log</File>
         <encoder>
-            <pattern>%date [%thread][%X{subSystem}] %-5level \(%logger{46}\): %message%n</pattern>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${catalina.base}/logs/idm.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -55,7 +55,7 @@
     <!-- Appender for profiling purposes -->
 
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
-    <logger name="PROFILING" level="TRACE"/>
+    <logger name="PROFILING" level="INFO"/>
     <logger name="com.evolveum.midpoint" level="INFO" />
     <logger name="com.evolveum.midpoint.web.util.MidPointProfilingServletFilter" level="TRACE">
         <appender-ref ref="IDM-PROFILE_LOG"/>

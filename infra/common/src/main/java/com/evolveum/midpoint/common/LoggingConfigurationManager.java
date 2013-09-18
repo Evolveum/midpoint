@@ -49,7 +49,7 @@ public class LoggingConfigurationManager {
 	final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
-    private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.MidpointAspect";
+    private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
 
     private static String currentlyUsedVersion = null;
