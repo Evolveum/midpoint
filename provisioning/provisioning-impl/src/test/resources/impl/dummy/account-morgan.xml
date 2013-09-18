@@ -27,6 +27,8 @@
 		<icfs:name>morgan</icfs:name>
 		<ri:fullname>Captain Morgan</ri:fullname>
 		<ri:ship>Satisfaction</ri:ship>
+		<ri:weapon>cutlass</ri:weapon>
+		<ri:weapon>pistol</ri:weapon>
 	</attributes>
 	<credentials>
 		<password>

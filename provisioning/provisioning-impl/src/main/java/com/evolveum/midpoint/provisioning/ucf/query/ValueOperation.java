@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
@@ -69,7 +70,12 @@ public class ValueOperation extends Operation {
 						// See MID-1460
 						throw new UnsupportedOperationException("Equals filter with a null value is NOT supported by ICF");
 					} else {
-						return FilterBuilder.equalTo(AttributeBuilder.build(icfName, convertedValues));
+						Attribute attr = AttributeBuilder.build(icfName, convertedValues);
+						if (valueFilter.getDefinition().isSingleValue()) {
+							return FilterBuilder.equalTo(attr);
+						} else {
+							return FilterBuilder.containsAllValues(attr);
+						}
 					}
 				
 				} else if (objectFilter instanceof SubstringFilter) {
