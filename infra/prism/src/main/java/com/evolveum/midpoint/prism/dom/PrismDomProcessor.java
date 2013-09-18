@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.prism.dom;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,6 +110,19 @@ public class PrismDomProcessor {
 
 	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
 		Document parsedDocument = DOMUtil.parseFile(file);
+		Element element = DOMUtil.getFirstChildElement(parsedDocument);
+		if (element == null) {
+			return null;
+		}
+		try {
+			return parseObject(element);
+		} catch (SchemaException e) {
+			throw new SchemaException(e.getMessage() + " while parsing file " + file, e);
+		}
+	}
+	
+	public <T extends Objectable> PrismObject<T> parseObject(InputStream file) throws SchemaException, IOException {
+		Document parsedDocument = DOMUtil.parse(file);
 		Element element = DOMUtil.getFirstChildElement(parsedDocument);
 		if (element == null) {
 			return null;

@@ -20,6 +20,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
        xmlns:ssec="http://cxf.apache.org/spring-security"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
@@ -27,6 +28,8 @@
      http://www.springframework.org/schema/context/spring-context-3.0.xsd
      http://cxf.apache.org/jaxws
      http://cxf.apache.org/schemas/jaxws.xsd
+     http://cxf.apache.org/jaxrs
+     http://cxf.apache.org/schemas/jaxrs.xsd
      http://cxf.apache.org/spring-security
      http://cxf-spring-security.googlecode.com/svn/trunk/cxf-spring-security/src/main/resources/schemas/spring-security.xsd"
        default-lazy-init="false"
@@ -290,6 +293,18 @@
 
         </jaxws:outInterceptors>
     </jaxws:endpoint>
+    
+    <jaxrs:server id="restService" address="/restApi/">
+        <jaxrs:serviceBeans>
+        	<bean class="com.evolveum.midpoint.model.ModelRestService"/>
+        </jaxrs:serviceBeans>
+      <jaxrs:providers>
+      <ref bean="jaxbProvider" />
+     
+    </jaxrs:providers>
+   
+    </jaxrs:server>
+     <bean id="jaxbProvider" class="com.evolveum.midpoint.model.MidpointXmlProvider"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
         <constructor-arg>

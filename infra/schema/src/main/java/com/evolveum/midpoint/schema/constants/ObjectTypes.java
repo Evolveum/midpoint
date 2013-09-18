@@ -30,65 +30,67 @@ public enum ObjectTypes {
 
 	@Deprecated
     ACCOUNT("schema.objectTypes.account", SchemaConstants.C_ACCOUNT_SHADOW_TYPE, SchemaConstants.C_ACCOUNT,
-            AccountShadowType.class, true),
+            AccountShadowType.class, true, "accounts"),
 
     CONNECTOR("schema.objectTypes.connector", SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
-            ConnectorType.class, true),
+            ConnectorType.class, true, "connectors"),
 
     CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.C_CONNECTOR_HOST_TYPE,
-            SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, true),
+            SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, true, "connectorHosts"),
 
     GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.C_GENERIC_OBJECT_TYPE,
-            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, false),
+            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, false, "genericObjects"),
 
     RESOURCE("schema.objectTypes.resource", SchemaConstants.C_RESOURCE_TYPE, SchemaConstants.C_RESOURCE,
-            ResourceType.class, true),
+            ResourceType.class, true, "resources"),
 
     USER("schema.objectTypes.user", SchemaConstants.C_USER_TYPE, SchemaConstants.C_USER, UserType.class,
-            false),
+            false, "users"),
 
     OBJECT_TEMPLATE("schema.objectTypes.objectTemplate", SchemaConstants.C_OBJECT_TEMPLATE_TYPE,
-            SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, false),
+            SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, false, "objectTemplates"),
 
     SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration",
             SchemaConstants.C_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.C_SYSTEM_CONFIGURATION,
-            SystemConfigurationType.class, false),
+            SystemConfigurationType.class, false, "systemConfigurations"),
 
     TASK("schema.objectTypes.task", SchemaConstants.C_TASK_TYPE, SchemaConstants.C_TASK, TaskType.class,
-            false),
+            false, "tasks"),
 
     SHADOW("schema.objectTypes.shadow",
             SchemaConstants.C_SHADOW_TYPE, SchemaConstants.C_SHADOW,
-            ShadowType.class, true),
+            ShadowType.class, true, "shadows"),
 
     OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
-            ObjectType.class, false),
+            ObjectType.class, false, "objects"),
 
-    ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, false),
+    ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, false, "roles"),
 
     PASSWORD_POLICY("schema.objectTypes.valuePolicy", ValuePolicyType.COMPLEX_TYPE,
-            SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class, false),
+            SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class, false, "passwordPolicies"),
 
-    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false),
+    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false, "nodes"),
 
-    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, false),
+    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, false, "orgs"),
 
     ABSTRACT_ROLE("schema.objectTypes.abstractRole", AbstractRoleType.COMPLEX_TYPE, SchemaConstants.C_ABSTRACT_ROLE,
-            AbstractRoleType.class, false);
+            AbstractRoleType.class, false, "abstractRoles");
 
     private String localizationKey;
     private QName type;
     private QName name;
     private Class<? extends ObjectType> classDefinition;
     private boolean managedByProvisioning;
+    private String restType;
 
     private ObjectTypes(String key, QName type, QName name, Class<? extends ObjectType> classDefinition,
-                        boolean managedByProvisioning) {
+                        boolean managedByProvisioning, String restType) {
         this.localizationKey = key;
         this.type = type;
         this.name = name;
         this.classDefinition = classDefinition;
         this.managedByProvisioning = managedByProvisioning;
+        this.restType = restType;
     }
 
     public boolean isManagedByProvisioning() {
@@ -114,6 +116,14 @@ public enum ObjectTypes {
     public Class<? extends ObjectType> getClassDefinition() {
         return classDefinition;
     }
+    
+    public String getRestType() {
+		return restType;
+	}
+    
+    public void setRestType(String restType) {
+		this.restType = restType;
+	}
 
     public String getObjectTypeUri() {
         return QNameUtil.qNameToUri(getTypeQName());
@@ -227,5 +237,17 @@ public enum ObjectTypes {
         }
 
         return false;
+    }
+    
+    public static Class getClassFromRestType(String restType){
+    	Validate.notNull(restType, "Rest type must not be null.");
+    	
+    	for (ObjectTypes type : ObjectTypes.values()){
+    		if (type.getRestType().equals(restType)){
+    			return type.getClassDefinition();
+    		}
+    	}
+    	
+    	throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
 }
