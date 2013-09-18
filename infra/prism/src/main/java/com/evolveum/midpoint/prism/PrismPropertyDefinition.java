@@ -157,7 +157,7 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
 	@Override
 	public PrismPropertyDefinition<T> clone() {
-        	PrismPropertyDefinition<T> clone = new PrismPropertyDefinition<T>(getName(), getDefaultName(), getValueType(), getPrismContext());
+        	PrismPropertyDefinition<T> clone = new PrismPropertyDefinition<T>(getName(), getDefaultName(), getTypeName(), getPrismContext());
         	copyDefinitionData(clone);
         	return clone;
 	}

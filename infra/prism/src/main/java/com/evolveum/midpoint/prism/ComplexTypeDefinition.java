@@ -204,6 +204,15 @@ public class ComplexTypeDefinition extends Definition {
 	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz) {
         return clazz.isAssignableFrom(def.getClass()) && name.equals(def.getName());
 	}
+	
+	/**
+	 * Merge provided definition into this definition.
+	 */
+	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
+		for (ItemDefinition otherItemDef: otherComplexTypeDef.getDefinitions()) {
+			add(otherItemDef.clone());
+		}
+	}
 
 	@Override
 	void revive(PrismContext prismContext) {
@@ -300,4 +309,5 @@ public class ComplexTypeDefinition extends Definition {
     protected String getDebugDumpClassName() {
         return "CTD";
     }
+
 }
