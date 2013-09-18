@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *  TODO - refactoring was done here, therefore notes and other TODOs are not relevant. Work in progress here
  *  TODO - add profiling to Workflow and Notification subsystems
  *
  *  IMPORTANT:
@@ -35,9 +34,6 @@ import java.util.Map;
  *  4. INDENT feature has been deprecated since we don't need tree indenting in monitored files
  *
  *  TODO - add descriptive description
- *  TODO - Think and create simple design for sync cycles and other synchronous events
- *
- *  TODO - prepare methodBased filters to every monitored midPoint interface (we don't need to monitor some methods)
  *
  *  @author shood
  * */
@@ -54,6 +50,7 @@ public class AspectProfilingFilters {
     public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
     public static final String SUBSYSTEM_MODEL = "MODEL";
     public static final String SUBSYSTEM_UCF = "UCF";
+    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
 
     private static boolean isRepositoryProfiled = false;
     private static boolean isTaskManagerProfiled = false;
@@ -61,19 +58,57 @@ public class AspectProfilingFilters {
     private static boolean isResourceObjectChangeListenerProfiled = false;
     private static boolean isModelProfiled = false;
     private static boolean isUcfProfiled = false;
+    private static boolean isWorkflowProfiled = false;
+
+    private static final boolean GET_OBJECT_TYPE_REPOSITORY = true;
+    private static final boolean GET_OBJECT_TYPE_TASK_MANAGER = true;
+    private static final boolean GET_OBJECT_TYPE_PROVISIONING = true;
+    private static final boolean GET_OBJECT_TYPE_SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = false;
+    private static final boolean GET_OBJECT_TYPE_MODEL = true;
+    private static final boolean GET_OBJECT_TYPE_UCF = false;
+    private static final boolean GET_OBJECT_TYPE_WORKFLOW = true;
+
+    private static final String MODEL_EXECUTE_CHANGES = "executeChanges";
 
     //Model subsystem constants
     public static final String DELTA_ADD = "ADD";
     public static final String DELTA_REPLACE = "REPLACE";
     public static final String DELTA_DELETE = "DELETE";
 
-    //Other
-    private static String ARROW_RIGHT = "->";
+    /* GETTERS AND SETTERS */
+    public static boolean isRepositoryProfiled() {
+        return isRepositoryProfiled;
+    }
+
+    public static boolean isTaskManagerProfiled() {
+        return isTaskManagerProfiled;
+    }
+
+    public static boolean isProvisioningProfiled() {
+        return isProvisioningProfiled;
+    }
+
+    public static boolean isResourceObjectChangeListenerProfiled() {
+        return isResourceObjectChangeListenerProfiled;
+    }
+
+    public static boolean isModelProfiled() {
+        return isModelProfiled;
+    }
+
+    public static boolean isUcfProfiled() {
+        return isUcfProfiled;
+    }
+
+    public static boolean isWorkflowProfiled() {
+        return isWorkflowProfiled;
+    }
 
     /* BEHAVIOR - STATIC */
     /*
     *   Here, we will decide, what filter will be applied (based on subsystem) on method entry
     */
+    /*
     public static void applyGranularityFilterOnStart(ProceedingJoinPoint pjp, String subsystem){
 
         if(pjp == null)
@@ -93,6 +128,7 @@ public class AspectProfilingFilters {
             applyResourceObjectChangeListenerFilterOnStar(pjp);
         }
     }   //applyGranularityFilterOnStart
+    */
 
     /*
     *   Here, we will decide, what filter will be applied (based on subsystem) on method end
@@ -102,108 +138,88 @@ public class AspectProfilingFilters {
         if(pjp == null)
             return;
 
-        if(SUBSYSTEM_REPOSITORY.equals(subsystem)){
+        if(isRepositoryProfiled && SUBSYSTEM_REPOSITORY.equals(subsystem)){
             applyRepositoryFilterOnEnd(pjp, startTime);
-        } else if(SUBSYSTEM_MODEL.equals(subsystem)){
+        } else if(isModelProfiled && SUBSYSTEM_MODEL.equals(subsystem)){
             applyModelFilterOnEnd(pjp, startTime) ;
-        } else if (SUBSYSTEM_PROVISIONING.equals(subsystem)){
+        } else if (isProvisioningProfiled && SUBSYSTEM_PROVISIONING.equals(subsystem)){
             applyProvisioningFilterOnEnd(pjp, startTime);
-        } else if (SUBSYSTEM_TASKMANAGER.equals(subsystem)){
+        } else if (isTaskManagerProfiled && SUBSYSTEM_TASKMANAGER.equals(subsystem)){
             applyTaskManagerFilterOnEnd(pjp, startTime);
-        } else if (SUBSYSTEM_UCF.equals(subsystem)){
+        } else if (isUcfProfiled && SUBSYSTEM_UCF.equals(subsystem)){
             applyUcfFilterOnEnd(pjp, startTime);
-        } else if(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER.equals(subsystem)){
-            applyapplyResourceObjectChangeListenerFilterOnStarFilterOnEnd(pjp, startTime);
+        } else if(isResourceObjectChangeListenerProfiled && SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER.equals(subsystem)){
+            applyResourceObjectChangeListenerFilterOnEnd(pjp, startTime);
+        } else if(isWorkflowProfiled && SUBSYSTEM_WORKFLOW.equals(subsystem)){
+            applyWorkflowFilterOnEnd(pjp, startTime);
         }
+
+        ProfilingDataManager.getInstance().dumpToLog();
+
     }   //applyGranularityFilterOnEnd
 
-   /*
-   *   ResourceObjectChangeListener filter - on method entry
-   * */
-    private static void applyResourceObjectChangeListenerFilterOnStar(ProceedingJoinPoint pjp){
-
-    }   //applyResourceObjectChangeListenerFilterOnStar
+    /*
+    *   Workflow Filter - on method exit
+    * */
+    private static void applyWorkflowFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
+        ProfilingDataLog profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_WORKFLOW, startTime);
+        ProfilingDataManager.getInstance().addWorkflowLog(profilingEvent.getMethodName(), profilingEvent);
+    }   //applyWorkflowFilterOnEnd
 
     /*
     *   ResourceObjectChangeListener Filter - on method exit
     * */
-    private static void applyapplyResourceObjectChangeListenerFilterOnStarFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
-
+    private static void applyResourceObjectChangeListenerFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
+        ProfilingDataLog profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, startTime);
+        ProfilingDataManager.getInstance().addResourceObjectChangeListenerLog(profilingEvent.getMethodName(), profilingEvent);
     }   //applyapplyResourceObjectChangeListenerFilterOnStarFilterOnEnd
-
-    /*
-    *   UCF filter - on method entry
-    * */
-    private static void applyUcfFilterOnStar(ProceedingJoinPoint pjp){
-
-    }   //applyUcfFilterOnStar
 
     /*
     *   UCF Filter - on method exit
     * */
     private static void applyUcfFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
-
+        ProfilingDataLog profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_UCF, startTime);
+        ProfilingDataManager.getInstance().addUcfLog(profilingEvent.getMethodName(), profilingEvent);
     }   //applyUcfFilterOnEnd
-
-    /*
-    *   Task Manager filter - on method entry
-    * */
-    private static void applyTaskManagerFilterOnStar(ProceedingJoinPoint pjp){
-
-    }   //applyTaskManagerFilterOnStar
 
     /*
     *   Task Manager Filter - on method exit
     * */
     private static void applyTaskManagerFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
-
+        ProfilingDataLog profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_TASK_MANAGER, startTime);
+        ProfilingDataManager.getInstance().addTaskManagerLog(profilingEvent.getMethodName(), profilingEvent);
     }   //applyTaskManagerFilterOnEnd
-
-    /*
-    *   Provisioning filter - on method entry
-    * */
-    private static void applyProvisioningFilterOnStar(ProceedingJoinPoint pjp){
-
-    }   //applyProvisioningFilterOnStar
 
     /*
     *   Provisioning Filter - on method exit
     * */
     private static void applyProvisioningFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
-
+        ProfilingDataLog profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_PROVISIONING, startTime);
+        ProfilingDataManager.getInstance().addProvisioningLog(profilingEvent.getMethodName(), profilingEvent);
     }   //applyProvisioningFilterOnEnd
-
-    /*
-    *   Model Filter - on method entry
-    * */
-    private static void applyModelFilterOnStart(ProceedingJoinPoint pjp){
-
-    }   //applyModelFilterOnStart
 
     /*
     *   Model filter - on method exit
     * */
     private static void applyModelFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
+        ProfilingDataLog profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_MODEL, startTime);
 
+        if(MODEL_EXECUTE_CHANGES.equals(profilingEvent.getMethodName())){
+            profilingEvent.setObjectType(getDeltaType(pjp));
+        }
+
+        //TODO - remove this
+        profilingEvent.logProfilingEvent(LOGGER);
+
+        ProfilingDataManager.getInstance().addModelLog(profilingEvent.getMethodName(), profilingEvent);
     }   //applyModelFilterOnEnd
-
-
-    /*
-    *   Repository Filter - entry
-    *
-    *   On debug level - we only want to log fine-grained information (RepositoryCache implementation of RepositoryService)
-    *   On trace level - information from SqlRepositoryServiceImpl + operation arguments are logged as well
-    *
-    * */
-    private static void applyRepositoryFilterOnStart(ProceedingJoinPoint pjp){
-
-    }   //applyRepositoryFilter
 
     /*
      *   Repository Filter - exit
      */
     private static void applyRepositoryFilterOnEnd(ProceedingJoinPoint pjp, long startTime){
-
+        ProfilingDataLog profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_REPOSITORY, startTime);
+        ProfilingDataManager.getInstance().addRepositoryLog(profilingEvent.getMethodName(), profilingEvent);
     }   //applyRepositoryFilterOnEnd
 
 
@@ -235,25 +251,8 @@ public class AspectProfilingFilters {
     /*
      *  Calculates estimated time on method exit
      */
-    private static String calculateTime(long startTime){
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(" etime: ");
-        // Mark end of processing
-        long elapsed = System.nanoTime() - startTime;
-        sb.append((long) (elapsed / 1000000));
-        sb.append('.');
-        long mikros = (long) (elapsed / 1000) % 1000;
-
-        if (mikros < 100)
-            sb.append('0');
-        if (mikros < 10)
-            sb.append('0');
-
-        sb.append(mikros);
-        sb.append(" ms");
-
-        return sb.toString();
+    private static long calculateTime(long startTime){
+        return (System.nanoTime() - startTime);
     }   //calculateTime
 
     /*
@@ -275,8 +274,6 @@ public class AspectProfilingFilters {
     /**
      * Get joinpoint class name if available
      *
-     * @param pjp
-     * @return
      */
     private static String getClassName(ProceedingJoinPoint pjp) {
         String className = null;
@@ -286,6 +283,34 @@ public class AspectProfilingFilters {
         }
         return className;
     }   //getClassName
+
+    /*
+    *   Retrieves method name from pjp object
+    * */
+    private static String getMethodName(ProceedingJoinPoint pjp){
+        return pjp.getSignature().getName();
+    }   //getMethodName
+
+    /*
+    *   Prepares ProfilingDataLog object from provided ProceedingJoinPoint object
+    *
+    *   Based on entry boolean getObjectType - method adds working objectType to ProfilingDataLog object
+    * */
+    private static ProfilingDataLog prepareProfilingDataLog(ProceedingJoinPoint pjp, boolean getObjectType, long startTime){
+        long eTime = calculateTime(startTime);
+        long timestamp = System.currentTimeMillis();
+        String className = getClassName(pjp);
+        String method = getMethodName(pjp);
+
+        ProfilingDataLog profilingEvent = new ProfilingDataLog(className, method, eTime, timestamp);
+
+        if(getObjectType){
+            String type = getOperationType(pjp);
+            profilingEvent.setObjectType(type);
+        }
+
+        return profilingEvent;
+    }   //prepareProfilingDataLog
 
     /*
     *   Configure profiled subsystems
@@ -298,6 +323,7 @@ public class AspectProfilingFilters {
         isResourceObjectChangeListenerProfiled = subsystems.get(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
         isTaskManagerProfiled = subsystems.get(SUBSYSTEM_TASKMANAGER);
         isUcfProfiled = subsystems.get(SUBSYSTEM_UCF);
+        isWorkflowProfiled = subsystems.get(SUBSYSTEM_WORKFLOW);
 
     }   //subsystemConfiguration
 

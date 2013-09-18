@@ -7481,6 +7481,7 @@
 			<xsd:element name="ucf" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
 			<xsd:element name="resourceObjectChangeListener" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
 			<xsd:element name="taskManager" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+            <xsd:element name="workflow" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
 			<!-- Subsystems end -->
         </xsd:sequence>
     </xsd:complexType>
