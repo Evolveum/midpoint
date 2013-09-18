@@ -1114,8 +1114,9 @@ public class TestDummy extends AbstractDummyTest {
 		// never seen before, so there is no shadow
 		// for it yet.
 		DummyAccount newAccount = new DummyAccount("meathook");
-		newAccount.addAttributeValues("fullname", "Meathook");
-		newAccount.addAttributeValues("ship", "Sea Monkey");
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Meathook");
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook");
 		newAccount.setEnabled(true);
 		newAccount.setPassword("parrotMonster");
 		dummyResource.addAccount(newAccount);
@@ -1979,6 +1980,28 @@ public class TestDummy extends AbstractDummyTest {
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null, null, true,
 				"daemon", "Will");
+	}
+	
+	@Test
+	public void test163SearchWeaponCutlass() throws Exception {
+		final String TEST_NAME = "test163SearchWeaponCutlass";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// Make sure there is an account on resource that the provisioning has
+		// never seen before, so there is no shadow
+		// for it yet.
+		DummyAccount newAccount = new DummyAccount("carla");
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Carla");
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass");
+		newAccount.setEnabled(true);
+		dummyResource.addAccount(newAccount);
+
+		IntegrationTestTools.display("dummy", dummyResource.dump());
+		
+		testSeachIterativeSingleAttrFilter(TEST_NAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", null, true,
+				"morgan", "carla");
 	}
 	
 	@Test
