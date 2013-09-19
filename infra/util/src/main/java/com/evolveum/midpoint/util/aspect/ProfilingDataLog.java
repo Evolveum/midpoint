@@ -21,7 +21,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import java.util.Date;
 
 /**
- *  TODO - add descriptive description
+ *  This is a blueprint for single method call, or ProfilingEvent as we call it. In here, we capture some
+ *  attributes for each method call, specifically:
+ *     className with package name
+ *     method name
+ *     objectType with which method works (or deltaType for some model methods)
+ *     executionTimestamp - when method call was performed
+ *     estimatedTime - method call duration
  *
  *
  *  @author shood

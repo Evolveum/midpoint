@@ -19,9 +19,16 @@ package com.evolveum.midpoint.util.aspect;
 import com.evolveum.midpoint.util.logging.Trace;
 
 /**
- *  TODO - add some cool description
+ *  This class provides functionality as a holder for method performance statistics. Currently, we are monitoring
+ *  and updating following statistics:
+ *     longest method call - MAX
+ *     quickest method call - MIN
+ *     average length of method call - MEAN
+ *     number of method calls - USAGE_COUNT
  *
- *  TODO - consider thread synchronization during statistics computations
+ *  We also update these statistics every time specific method call is captured by MidpointAspect class and then
+ *  processed by AspectProfilingFilters. This is performed in update() method that is synchronized for obvious
+ *  reasons.
  *
  *  @author shood
  * */
