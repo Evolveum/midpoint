@@ -25,15 +25,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *  TODO - add profiling to Workflow and Notification subsystems
- *
- *  IMPORTANT:
- *  1. RepositoryCache->getVersion is currently not logged on any level
- *  2. for debug purposes, provisioning is on TRACE level for now
+ *  IMPORTANT NOTES:
  *  3. Web subsystem filter was removed - this functionality is already covered with servlet filter
- *  4. INDENT feature has been deprecated since we don't need tree indenting in monitored files
  *
- *  TODO - add descriptive description
+ *  This class contains main filters for aspect events captured in MidpointAspect class. Here, we perform
+ *  filtering based on subsystems and on subsystem profiling configuration (which is applied in this
+ *  class as well). Some special filters are applied on events based on event method specification.
+ *
+ *  Currently, we only capture events after they're finished. This may be easily altered to capture events
+ *  in the beginning of their execution, but this choice would double dump log size and that is not what
+ *  we want.
+ *
+ *  After filtering, events are further processed by ProfilingDataManager singleton object
  *
  *  @author shood
  * */
@@ -208,9 +211,6 @@ public class AspectProfilingFilters {
             profilingEvent.setObjectType(getDeltaType(pjp));
         }
 
-        //TODO - remove this
-        profilingEvent.logProfilingEvent(LOGGER);
-
         ProfilingDataManager.getInstance().addModelLog(profilingEvent.getMethodName(), profilingEvent);
     }   //applyModelFilterOnEnd
 
@@ -225,7 +225,7 @@ public class AspectProfilingFilters {
 
     /*===== SOME HELP METHODS =====*/
     /*
-     *  Returns ObejctType with what operation operates
+     *  Returns ObjectType with what operation operates
      */
     private static String getOperationType(ProceedingJoinPoint pjp){
         Object[] args = pjp.getArgs();
@@ -242,7 +242,6 @@ public class AspectProfilingFilters {
                 return splitType[splitType.length -1];
 
         } catch (Throwable t){
-            //TODO - do we want to throw exceptions to profiling files?
             LOGGER.error("Internal error formatting a value: {}", args[0], t);
             return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage()+" value="+args[0];
         }

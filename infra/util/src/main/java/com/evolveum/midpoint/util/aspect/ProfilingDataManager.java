@@ -23,12 +23,13 @@ import java.sql.Timestamp;
 import java.util.*;
 
 /**
- *  Notes:
+ *  IMPORTANT NOTES:
  *  1. Default dump interval is set to 30 minutes
  *
- *  TODO - ADD descriptive description
- *
  *  This is a Singleton Class
+ *
+ *  ProfilingDataManager serves as a head of profiling data manipulation, configuration and dumping to log.
+ *  Some of processes in this class are synchronized for obvious reasons.
  *
  *  @author shood
  * */
@@ -41,7 +42,10 @@ public class ProfilingDataManager {
 
     /* CONSTANTS */
     private static final int DEFAULT_DUMP_INTERVAL = 30;
-    private static final byte TOP_TEN_METHOD_NUMBER = 10;
+    private static final byte TOP_TEN_METHOD_NUMBER = 5;
+
+    /* COMPARATOR */
+    private static final ArrayComparator arrayComparator = new ArrayComparator();
 
     /* LOGGER */
     private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
@@ -73,7 +77,7 @@ public class ProfilingDataManager {
 
     /* Some more print constants */
     private static final String PRINT_RIGHT_ARROW = "->";
-    private static final String PRINT_TOP_TEN_HEADER = "TOP 10 slowest calls:\n";
+    private static final String PRINT_TOP_TEN_HEADER = "TOP 5 slowest calls:\n";
 
     /* ===BEHAVIOR=== */
     /*
@@ -94,13 +98,9 @@ public class ProfilingDataManager {
     private ProfilingDataManager(int dumpInterval) {
         //Configure timestamps
         this.minuteDumpInterval = dumpInterval;
-        //LOGGER.info("LAST: " + lastDumpTimestamp + " next: " + nextDumpTimestamp);
-        //LOGGER.info("MINUTES: " + minuteDumpInterval);
         long secondDumpInterval = minutesToMillis(minuteDumpInterval);
-        //LOGGER.info("DUMP INTERVAL: " + secondDumpInterval);
         lastDumpTimestamp = System.currentTimeMillis();
         nextDumpTimestamp = lastDumpTimestamp + secondDumpInterval;
-        //LOGGER.info("LAST: " + lastDumpTimestamp + " next: " + nextDumpTimestamp);
 
     }   //ProfilingDataManager
 
@@ -108,8 +108,6 @@ public class ProfilingDataManager {
      *  Configures ProfilingDataManager - can be called from outside
      * */
     public void configureProfilingDataManager(Map<String, Boolean> profiledSubsystems, Integer dumpInterval, boolean subsystemProfilingActive){
-
-        //LOGGER.info("CONFIGURING SUBSYSTEM PROFILING");
 
         if(subsystemProfilingActive){
             MidpointAspect.activateSubsystemProfiling();
@@ -119,13 +117,10 @@ public class ProfilingDataManager {
 
         AspectProfilingFilters.subsystemConfiguration(profiledSubsystems);
 
-        //LOGGER.info("Current dump interval before: " + minuteDumpInterval);
         //Configure the dump interval
         if(dumpInterval != null && dumpInterval > 0){
             minuteDumpInterval = dumpInterval;
         }
-
-        //LOGGER.info("Current dump interval after: " + minuteDumpInterval);
 
         profilingDataManager = new ProfilingDataManager(minuteDumpInterval);
 
@@ -230,41 +225,32 @@ public class ProfilingDataManager {
     * */
     public synchronized void dumpToLog(){
 
-        //LOGGER.info("Current: " + System.currentTimeMillis() + ", NEXT: " + nextDumpTimestamp);
         long currentTime = System.currentTimeMillis();
 
         if(currentTime >= nextDumpTimestamp){
             if(LOGGER.isDebugEnabled()){
 
-                //LOGGER.info("DUMP TO LOG!");
 
                 //Print everything
                 if(AspectProfilingFilters.isModelProfiled()){
-                    //LOGGER.info("printing subsystem MODEL");
                     printMap(modelLogMap, modelTopTenMap);
                 }
                 if(AspectProfilingFilters.isProvisioningProfiled()) {
-                    //LOGGER.info("printing subsystem PROVISIONING");
                     printMap(provisioningLogMap, provisioningTopTenMap);
                 }
                 if(AspectProfilingFilters.isRepositoryProfiled())  {
-                    //LOGGER.info("printing subsystem REPOSITORY");
                     printMap(repositoryLogMap, repositoryTopTenMap);
                 }
                 if(AspectProfilingFilters.isTaskManagerProfiled()) {
-                    //LOGGER.info("printing subsystem TASK MANAGER");
                     printMap(taskManagerLogMap, taskManagerTopTenMap);
                 }
                 if(AspectProfilingFilters.isUcfProfiled()) {
-                    //LOGGER.info("printing subsystem UCF");
                     printMap(ucfLogMap, ucfTopTenMap);
                 }
                 if(AspectProfilingFilters.isWorkflowProfiled()){
-                    //LOGGER.info("printing subsystem WORKFLOW");
                     printMap(workflowLogMap, workflowTopTenMap);
                 }
                 if(AspectProfilingFilters.isResourceObjectChangeListenerProfiled()) {
-                    //LOGGER.info("printing subsystem ROCL");
                     printMap(resourceObjectChangeListenerLogMap, resourceObjectChangeListenerTopTenMap);
                 }
 
@@ -272,7 +258,6 @@ public class ProfilingDataManager {
                 lastDumpTimestamp = currentTime;
                 nextDumpTimestamp = lastDumpTimestamp + minutesToMillis(minuteDumpInterval);
                 cleanEverything();
-                //LOGGER.info("Last: " + lastDumpTimestamp + " , NEXT: " + nextDumpTimestamp);
             }
         }
     }   //dumpToLog
@@ -300,7 +285,6 @@ public class ProfilingDataManager {
     *   Updates top 10 list of slowest method calls
     * */
     private static void updateTopTenMap(Map<String, ArrayList<ProfilingDataLog>> topTenMap, Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key){
-        long previousMin = logMap.get(key).getCurrentTopTenMin();
 
         if(!topTenMap.containsKey(key)){
             ArrayList<ProfilingDataLog> helpList = new ArrayList<ProfilingDataLog>();
@@ -309,24 +293,18 @@ public class ProfilingDataManager {
         } else {
             if(topTenMap.get(key).size() < TOP_TEN_METHOD_NUMBER){
                 topTenMap.get(key).add(eventLog);
+                sort(topTenMap.get(key));
             } else {
-                //LOGGER.info("CURRENT: " + eventLog.getEstimatedTime() + " cMIN: " + previousMin + " MAX: " + logMap.get(key).getMax());
-                if(previousMin < eventLog.getEstimatedTime()){
+                if(topTenMap.get(key).get(topTenMap.get(key).size()-1).getEstimatedTime() < eventLog.getEstimatedTime()){
                     topTenMap.get(key).add(eventLog);
+                    sort(topTenMap.get(key));
+                    logMap.get(key).setCurrentTopTenMin(topTenMap.get(key).get(topTenMap.get(key).size()-1).getEstimatedTime());
                 }
             }
 
-            if(previousMin < eventLog.getEstimatedTime())
-                logMap.get(key).setCurrentTopTenMin(eventLog.getEstimatedTime());
-
             //If we have more than 10 top ten slow methods, we need to delete the fastest one
-            if(topTenMap.get(key).size() >= TOP_TEN_METHOD_NUMBER){
-                for(ProfilingDataLog event: topTenMap.get(key)){
-                    if(event.getEstimatedTime() == previousMin){
-                        topTenMap.get(key).remove(event);
-                        break;
-                    }
-                }
+            if(topTenMap.get(key).size() > TOP_TEN_METHOD_NUMBER){
+                topTenMap.get(key).remove(topTenMap.get(key).size()-1);
             }
         }
 
@@ -336,7 +314,6 @@ public class ProfilingDataManager {
     *   prints provided map to log
     * */
     private static void printMap(Map<String, MethodUsageStatistics> logMap, Map<String, ArrayList<ProfilingDataLog>> topTenMap){
-        //LOGGER.info("Print data log map!");
 
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
@@ -354,7 +331,6 @@ public class ProfilingDataManager {
             }
         }
 
-        //LOGGER.info("PRINTING DEBUG!");
         LOGGER.debug(sb.toString());
 
     }   //printMap
@@ -362,21 +338,14 @@ public class ProfilingDataManager {
     /*
     *   Print top ten arrayList of ProfilingData logs
     * */
-    private static String printTopTenMap(List<ProfilingDataLog> topTenList, String key){
-        //LOGGER.info("PRINT TOP TEN MAP");
+    private static String printTopTenMap(ArrayList<ProfilingDataLog> topTenList, String key){
         StringBuilder sb = new StringBuilder();
 
         sb.append(PRINT_TOP_TEN_HEADER);
 
         //First, we need to sort the list by
-        Collections.sort(topTenList, new Comparator<ProfilingDataLog>() {
-            @Override
-            public int compare(ProfilingDataLog o1, ProfilingDataLog o2) {
-                return ((Long)o2.getEstimatedTime()).compareTo(o1.getEstimatedTime());
-            }
-        });
+        sort(topTenList);
 
-        //LOGGER.info("TOPTENLIST SIZE: " + topTenList.size());
         int counter = 0;
         for(ProfilingDataLog log: topTenList){
             sb.append(log.appendToLogger());
@@ -408,6 +377,26 @@ public class ProfilingDataManager {
         resourceObjectChangeListenerLogMap.clear();
     }   //cleanEverything
 
+    /*
+     *  Sorts ArrayList provided as the parameter
+     */
+    private static ArrayList<ProfilingDataLog> sort(ArrayList<ProfilingDataLog> list){
+        Collections.sort(list, arrayComparator);
+        return list;
+    }
+
+    /*
+    *   Inner class ArrayComparator
+    *   Compares two ProfilingDataLogs based on estimatedTime parameter
+    * */
+    private static class ArrayComparator implements Comparator<ProfilingDataLog>{
+
+        @Override
+        public int compare(ProfilingDataLog o1, ProfilingDataLog o2) {
+            return ((Long)o2.getEstimatedTime()).compareTo(o1.getEstimatedTime());
+        }
+
+    }   //ArrayComparator inner-class
 
 
 }
