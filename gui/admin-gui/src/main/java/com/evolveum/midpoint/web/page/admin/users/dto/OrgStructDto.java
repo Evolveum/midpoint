@@ -22,7 +22,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jvnet.jaxb2_commons.lang.Validate;
@@ -66,7 +70,7 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 					orgUnitList = new ArrayList<NodeDto>();
 				}
 				OrgType org = (OrgType) nodeObject;
-				orgUnitList.add(new NodeDto(parent, org.getDisplayName().toString(), org.getOid(),
+				orgUnitList.add(new NodeDto(parent, getName(org.getDisplayName(), org.getName()), org.getOid(),
 						NodeType.FOLDER));
 
 			} else if (nodeObject instanceof UserType) {
@@ -82,11 +86,19 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 						}
 					}
 				}
-				userList.add(new NodeDto(parent, user.getFullName().toString(), user.getOid(), getRelation(
-						parent, user)));
+				userList.add(new NodeDto(parent, getName(user.getFullName(), user.getName()), user.getOid(),
+                        getRelation(parent, user)));
 			}
 		}
 	}
+
+    private String getName(PolyStringType name, PolyStringType defaultValue) {
+        if (name != null && StringUtils.isNotEmpty(name.getOrig())) {
+            return name.getOrig();
+        }
+
+        return defaultValue.getOrig();
+    }
 
 	public IModel<String> getTitle() {
 		if (orgUnitList != null && !orgUnitList.isEmpty()) {
