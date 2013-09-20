@@ -247,7 +247,9 @@
         <property name="provisioningService">
             <ref bean="provisioningService"/>
         </property>
-
+        <property name="contextFactory">
+            <ref bean="contextFactory"/>
+        </property>
     </bean>
 
     <bean id="filterManager" class="com.evolveum.midpoint.common.filter.FilterManagerImpl">

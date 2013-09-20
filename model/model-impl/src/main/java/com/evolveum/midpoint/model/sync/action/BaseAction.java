@@ -113,7 +113,15 @@ public abstract class BaseAction implements Action {
         this.provisioningService = provisioningService;
     }
 
-    @Override
+    public ContextFactory getContextFactory() {
+		return contextFactory;
+	}
+
+	public void setContextFactory(ContextFactory contextFactory) {
+		this.contextFactory = contextFactory;
+	}
+
+	@Override
     public List<Object> getParameters() {
         if (parameters == null) {
             parameters = new ArrayList<Object>();
