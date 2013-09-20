@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -70,9 +71,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
  * @author semancik
  *
  */
-public class LensProjectionContext<O extends ObjectType> extends LensElementContext<O> implements ModelProjectionContext<O> {
+public class LensProjectionContext extends LensElementContext<ShadowType> implements ModelProjectionContext {
 	
-	private ObjectDelta<O> syncDelta;
+	private ObjectDelta<ShadowType> syncDelta;
 	
 	/**
 	 * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
@@ -157,17 +158,17 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      */
     transient private ResourceType resource;
     
-    LensProjectionContext(Class<O> objectTypeClass, LensContext<? extends ObjectType, O> lensContext, ResourceShadowDiscriminator resourceAccountType) {
-    	super(objectTypeClass, lensContext);
+    LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
+    	super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
         this.isAssigned = false;
     }
 
-	public ObjectDelta<O> getSyncDelta() {
+	public ObjectDelta<ShadowType> getSyncDelta() {
 		return syncDelta;
 	}
 
-	public void setSyncDelta(ObjectDelta<O> syncDelta) {
+	public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
 		this.syncDelta = syncDelta;
 	}
 
@@ -241,7 +242,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		return resourceShadowDiscriminator.isThombstone();
 	}
 
-	public void addAccountSyncDelta(ObjectDelta<O> delta) throws SchemaException {
+	public void addAccountSyncDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
         if (syncDelta == null) {
         	syncDelta = delta;
         } else {
@@ -521,20 +522,20 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      * Assuming that oldAccount is already set (or is null if it does not exist)
      */
     public void recompute() throws SchemaException {
-        ObjectDelta<O> accDelta = getDelta();
+        ObjectDelta<ShadowType> accDelta = getDelta();
 
-        PrismObject<O> base = getObjectCurrent();
+        PrismObject<ShadowType> base = getObjectCurrent();
         if (base == null) {
         	base = getObjectOld();
         }
-        ObjectDelta<O> syncDelta = getSyncDelta();
+        ObjectDelta<ShadowType> syncDelta = getSyncDelta();
         if (base == null && syncDelta != null
                 && ChangeType.ADD.equals(syncDelta.getChangeType())) {
-            PrismObject<O> objectToAdd = syncDelta.getObjectToAdd();
+            PrismObject<ShadowType> objectToAdd = syncDelta.getObjectToAdd();
             if (objectToAdd != null) {
-                PrismObjectDefinition<O> objectDefinition = objectToAdd.getDefinition();
+                PrismObjectDefinition<ShadowType> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                base = new PrismObject<O>(objectToAdd.getName(), objectDefinition, getNotNullPrismContext());
+                base = new PrismObject<ShadowType>(objectToAdd.getName(), objectDefinition, getNotNullPrismContext());
                 base = syncDelta.computeChangedObject(base);
             }
         }
@@ -548,7 +549,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         if (base == null && accDelta.isModify()) {
         	RefinedObjectClassDefinition rAccountDef = getRefinedAccountDefinition();
         	if (rAccountDef != null) {
-        		base = (PrismObject<O>) rAccountDef.createBlankShadow();
+        		base = (PrismObject<ShadowType>) rAccountDef.createBlankShadow();
         	}
         }
 
@@ -579,7 +580,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		distributeResourceDelta(getSecondaryDelta(), resource);
 	}
 	
-	private void distributeResourceObject(PrismObject<O> object, PrismObject<ResourceType> resource) {
+	private void distributeResourceObject(PrismObject<ShadowType> object, PrismObject<ResourceType> resource) {
 		if (object == null) {
 			return;
 		}
@@ -595,7 +596,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		}
 	}
 
-	private void distributeResourceDelta(ObjectDelta<O> delta, PrismObject<ResourceType> resource) {
+	private void distributeResourceDelta(ObjectDelta<ShadowType> delta, PrismObject<ResourceType> resource) {
 		if (delta == null) {
 			return;
 		}
@@ -625,13 +626,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	 * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
 	 * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
 	 */
-	public ObjectDelta<O> getExecutableDelta() throws SchemaException {
+	public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
 		SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
-		ObjectDelta<O> origDelta = getDelta();
+		ObjectDelta<ShadowType> origDelta = getDelta();
 		if (policyDecision == SynchronizationPolicyDecision.ADD) {
             if (origDelta == null || origDelta.isModify()) {
             	// We need to convert modify delta to ADD
-            	ObjectDelta<O> addDelta = new ObjectDelta<O>(getObjectTypeClass(),
+            	ObjectDelta<ShadowType> addDelta = new ObjectDelta<ShadowType>(getObjectTypeClass(),
                 		ChangeType.ADD, getPrismContext());
                 RefinedObjectClassDefinition rAccount = getRefinedAccountDefinition();
 
@@ -639,7 +640,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator() 
                     		+ " not found in the context, but it should be there");
                 }
-                PrismObject<O> newAccount = (PrismObject<O>) rAccount.createBlankShadow();
+                PrismObject<ShadowType> newAccount = (PrismObject<ShadowType>) rAccount.createBlankShadow();
                 addDelta.setObjectToAdd(newAccount);
                 
                 if (origDelta != null) {
@@ -650,7 +651,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
             // Any delta is OK
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-        	ObjectDelta<O> deleteDelta = new ObjectDelta<O>(getObjectTypeClass(),
+        	ObjectDelta<ShadowType> deleteDelta = new ObjectDelta<ShadowType>(getObjectTypeClass(),
             		ChangeType.DELETE, getPrismContext());
             String oid = getOid();
             if (oid == null) {
@@ -753,13 +754,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 
 	@Override
-	public LensProjectionContext<O> clone(LensContext lensContext) {
-		LensProjectionContext<O> clone = new LensProjectionContext<O>(getObjectTypeClass(), lensContext, resourceShadowDiscriminator);
+	public LensProjectionContext clone(LensContext<? extends FocusType> lensContext) {
+		LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 		copyValues(clone, lensContext);
 		return clone;
 	}
 	
-	protected void copyValues(LensProjectionContext<O> clone, LensContext lensContext) {
+	protected void copyValues(LensProjectionContext clone, LensContext<? extends FocusType> lensContext) {
 		super.copyValues(clone, lensContext);
 		// do NOT clone transient values such as accountConstructionDeltaSetTriple
 		// these are not meant to be cloned and they are also not directly clonnable
@@ -867,7 +868,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 
 	private String getHumanReadableIdentifier() {
-		PrismObject<O> object = getObjectNew();
+		PrismObject<ShadowType> object = getObjectNew();
 		if (object == null) {
 			object = getObjectOld();
 		}
@@ -1053,15 +1054,14 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         }
         ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(projectionContextType.getResourceShadowDiscriminator());
 
-        LensProjectionContext projectionContext;
-        try {
-            projectionContext = new LensProjectionContext(Class.forName(objectTypeClassString), lensContext, resourceShadowDiscriminator);
-        } catch (ClassNotFoundException e) {
-            throw new SystemException("Couldn't instantiate LensProjectionContext because object type class couldn't be found", e);
-        }
+        LensProjectionContext projectionContext = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 
         projectionContext.retrieveFromLensElementContextType(projectionContextType, result);
-        projectionContext.syncDelta = projectionContextType.getSyncDelta() != null ? DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext()) : null;
+        if (projectionContextType.getSyncDelta() != null) {
+			projectionContext.syncDelta = DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext());
+        } else {
+			projectionContext.syncDelta = null;
+		}
         projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
         projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
         projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;

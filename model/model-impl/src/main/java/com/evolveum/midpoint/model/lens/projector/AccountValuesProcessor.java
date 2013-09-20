@@ -128,8 +128,8 @@ public class AccountValuesProcessor {
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 	
-	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, 
-			LensProjectionContext<P> projectionContext, String activityDescription, OperationResult result) 
+	public <F extends FocusType> void process(LensContext<F> context, 
+			LensProjectionContext projectionContext, String activityDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, 
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -140,12 +140,12 @@ public class AccountValuesProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processAccounts((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, 
+    	processAccounts(context, projectionContext, 
     			activityDescription, result);
 	}
 	
-	public void processAccounts(LensContext<UserType,ShadowType> context, 
-			LensProjectionContext<ShadowType> accountContext, String activityDescription, OperationResult result) 
+	public <F extends FocusType> void processAccounts(LensContext<F> context, 
+			LensProjectionContext accountContext, String activityDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		
@@ -256,7 +256,7 @@ public class AccountValuesProcessor {
 		        
 		        // Check constraints
 		        boolean conflict = true;
-		        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
+		        ShadowConstraintsChecker<F> checker = new ShadowConstraintsChecker<F>(accountContext);
 		        
 		        if (skipUniquenessCheck) {
 		        	skipUniquenessCheck = false;
@@ -396,7 +396,7 @@ public class AccountValuesProcessor {
 					
 	}
 	
-	private boolean willResetIterationCounter(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+	private boolean willResetIterationCounter(LensProjectionContext accountContext) throws SchemaException {
 		ObjectDelta<ShadowType> accountDelta = accountContext.getDelta();
 		if (accountDelta == null) {
 			return false;
@@ -417,7 +417,7 @@ public class AccountValuesProcessor {
 		return false;
 	}
 
-	private boolean hasIterationExpression(LensProjectionContext<ShadowType> accountContext) {
+	private boolean hasIterationExpression(LensProjectionContext accountContext) {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
 			return false;
@@ -438,7 +438,7 @@ public class AccountValuesProcessor {
 		return false;
 	}
 
-	private int determineMaxIterations(LensProjectionContext<ShadowType> accountContext) {
+	private int determineMaxIterations(LensProjectionContext accountContext) {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef != null) {
 			IterationSpecificationType iteration = accDef.getIteration();
@@ -449,8 +449,8 @@ public class AccountValuesProcessor {
 		return 0;
 	}
 
-	private String formatIterationToken(LensContext<UserType,ShadowType> context, 
-			LensProjectionContext<ShadowType> accountContext, int iteration, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <F extends FocusType> String formatIterationToken(LensContext<F> context, 
+			LensProjectionContext accountContext, int iteration, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
 			return formatIterationTokenDefault(iteration);
@@ -494,8 +494,8 @@ public class AccountValuesProcessor {
 		return realValue;
 	}
 		
-	private Map<QName, Object> createExpressionVariables(LensContext<UserType,ShadowType> context, 
-			LensProjectionContext<ShadowType> accountContext) {
+	private <F extends FocusType> Map<QName, Object> createExpressionVariables(LensContext<F> context, 
+			LensProjectionContext accountContext) {
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectNew());
 		variables.put(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectNew());
@@ -511,8 +511,8 @@ public class AccountValuesProcessor {
 		return Integer.toString(iteration);
 	}
 
-	private boolean evaluateIterationCondition(LensContext<UserType, ShadowType> context, 
-			LensProjectionContext<ShadowType> accountContext, int iteration, String iterationToken, 
+	private <F extends FocusType> boolean evaluateIterationCondition(LensContext<F> context, 
+			LensProjectionContext accountContext, int iteration, String iterationToken, 
 			boolean beforeIteration, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
@@ -563,8 +563,8 @@ public class AccountValuesProcessor {
 	 * Check that the primary deltas do not violate schema and policies
 	 * TODO: implement schema check 
 	 */
-	public void checkSchemaAndPolicies(LensContext<UserType,ShadowType> context, 
-			LensProjectionContext<ShadowType> accountContext, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException {
+	public <F extends FocusType> void checkSchemaAndPolicies(LensContext<F> context, 
+			LensProjectionContext accountContext, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException {
 		ObjectDelta<ShadowType> primaryDelta = accountContext.getPrimaryDelta();
 		if (primaryDelta == null || primaryDelta.isDelete()) {
 			return;
@@ -607,7 +607,7 @@ public class AccountValuesProcessor {
 	/**
 	 * Remove the intermediate results of values processing such as secondary deltas.
 	 */
-	private void cleanupContext(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+	private void cleanupContext(LensProjectionContext accountContext) throws SchemaException {
 		// We must NOT clean up activation computation. This has happened before, it will not happen again
 		// and it does not depend on iteration
 		ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
@@ -633,7 +633,7 @@ public class AccountValuesProcessor {
 	/**
 	 * Adds deltas for iteration and iterationToken to the shadow if needed.
 	 */
-	private void addIterationTokenDeltas(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+	private void addIterationTokenDeltas(LensProjectionContext accountContext) throws SchemaException {
 		PrismObject<ShadowType> shadowCurrent = accountContext.getObjectCurrent();
 		if (shadowCurrent != null) {
 			Integer iterationOld = shadowCurrent.asObjectable().getIteration();

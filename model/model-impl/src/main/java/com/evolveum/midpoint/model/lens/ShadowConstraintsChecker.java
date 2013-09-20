@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -63,27 +64,27 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
  * @author semancik
  *
  */
-public class ShadowConstraintsChecker {
+public class ShadowConstraintsChecker<F extends FocusType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 	
-	private LensProjectionContext<ShadowType> accountContext;
-	private LensContext<UserType, ShadowType> context;
+	private LensProjectionContext accountContext;
+	private LensContext<F> context;
 	private PrismContext prismContext;
 	private ProvisioningService provisioningService;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject conflictingShadow;
 
-	public ShadowConstraintsChecker(LensProjectionContext<ShadowType> accountContext) {
+	public ShadowConstraintsChecker(LensProjectionContext accountContext) {
 		this.accountContext = accountContext;
 	}
 	
-	public LensProjectionContext<ShadowType> getAccountContext() {
+	public LensProjectionContext getAccountContext() {
 		return accountContext;
 	}
 
-	public void setAccountContext(LensProjectionContext<ShadowType> accountContext) {
+	public void setAccountContext(LensProjectionContext accountContext) {
 		this.accountContext = accountContext;
 	}
 
@@ -103,11 +104,11 @@ public class ShadowConstraintsChecker {
 		this.provisioningService = provisioningService;
 	}
 
-	public LensContext<UserType, ShadowType> getContext() {
+	public LensContext<F> getContext() {
 		return context;
 	}
 	
-	public void setContext(LensContext<UserType, ShadowType> context) {
+	public void setContext(LensContext<F> context) {
 		this.context = context;
 	}
 	
@@ -170,7 +171,7 @@ public class ShadowConstraintsChecker {
 	}
 	
 	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedObjectClassDefinition accountDefinition,
-			ResourceType resourceType, String oid, LensContext<UserType, ShadowType> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ResourceType resourceType, String oid, LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
@@ -219,7 +220,7 @@ public class ShadowConstraintsChecker {
 			message("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ": "
 					+ foundObjects.get(0));
 
-			LensProjectionContext<ShadowType> foundContext = context.findProjectionContextByOid(foundObjects
+			LensProjectionContext foundContext = context.findProjectionContextByOid(foundObjects
 					.get(0).getOid());
 			if (foundContext != null) {
 				if (foundContext.getResourceShadowDiscriminator() != null) {

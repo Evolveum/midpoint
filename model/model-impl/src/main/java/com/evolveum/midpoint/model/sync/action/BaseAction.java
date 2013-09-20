@@ -35,6 +35,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -85,6 +87,7 @@ public abstract class BaseAction implements Action {
     private ProvisioningService provisioningService;
     private PrismContext prismContext;
     private AuditService auditService;
+    private ContextFactory contextFactory;
     
 	public AuditService getAuditService() {
     	return auditService;
@@ -190,13 +193,11 @@ public abstract class BaseAction implements Action {
     /**
      * Creates empty lens context, filling in only the very basic metadata (such as channel).
      */
-    protected LensContext<UserType, ShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
-    	LensContext<UserType, ShadowType> context = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, getPrismContext(), getProvisioningService());
-    	context.setChannel(change.getSourceChannel());
-    	return context;
+    protected <F extends FocusType> LensContext<F> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
+    	return contextFactory.createSyncContext(change);
     }
 
-    protected LensProjectionContext<ShadowType> createAccountLensContext(LensContext<UserType, ShadowType> context,
+    protected <F extends FocusType> LensProjectionContext createAccountLensContext(LensContext<F> context,
             ResourceObjectShadowChangeDescription change, SynchronizationIntent syncIntent,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.trace("Creating account context for sync change.");
@@ -206,7 +207,7 @@ public abstract class BaseAction implements Action {
         String accountType = getAccountTypeFromChange(change);
         boolean thombstone = isThombstone(change);
 		ResourceShadowDiscriminator resourceAccountType = new ResourceShadowDiscriminator(resource.getOid(), accountType, thombstone);
-		LensProjectionContext<ShadowType> accountContext = context.createProjectionContext(resourceAccountType);
+		LensProjectionContext accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
 
@@ -258,7 +259,7 @@ public abstract class BaseAction implements Action {
 		return objectDelta.isDelete();
 	}
 
-	private void updateAccountActivation(LensProjectionContext<ShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
+	private void updateAccountActivation(LensProjectionContext accContext, ActivationDecision activationDecision) throws SchemaException {
         PrismObject<ShadowType> object = accContext.getObjectOld();
         if (object == null) {
             LOGGER.trace("Account object is null, skipping activation property check/update.");
@@ -351,7 +352,7 @@ public abstract class BaseAction implements Action {
         return change.getCurrentShadow().getOid();
     }
 
-    protected void synchronizeUser(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected <F extends FocusType> void synchronizeUser(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Validate.notNull(context, "Sync context must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
         try {
@@ -387,13 +388,13 @@ public abstract class BaseAction implements Action {
 		}
     }
 
-	private void logSynchronizationError(Throwable ex, LensContext<UserType,ShadowType> context) {
+	private <F extends FocusType> void logSynchronizationError(Throwable ex, LensContext<F> context) {
 		if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Synchronization error: {}\n{})", ex.getMessage(), context.dump());
     	}
 	}
 
-	protected void executeChanges(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected <F extends FocusType> void executeChanges(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notNull(context, "Sync context must not be null.");
         try {
             getExecutor().executeChanges(context, task, result);
@@ -424,7 +425,7 @@ public abstract class BaseAction implements Action {
 		} 
     }
 	
-	private void logExecutionError(Throwable ex, LensContext<UserType,ShadowType> context) {
+	private <F extends FocusType> void logExecutionError(Throwable ex, LensContext<F> context) {
 		if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Execution error: {}\n{})", ex.getMessage(), context.dump());
     	}

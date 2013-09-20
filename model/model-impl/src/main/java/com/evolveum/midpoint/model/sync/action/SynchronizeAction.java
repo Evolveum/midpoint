@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
@@ -92,11 +93,11 @@ public class SynchronizeAction extends BaseAction {
             throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, ShadowType> context = null;
+        LensContext<?> context = null;
         try {
             context = createLensContext(userType, change.getResource().asObjectable(), userTemplate, change);
 
-            LensProjectionContext<ShadowType> accountContext = createAccountLensContext(context, change,
+            LensProjectionContext accountContext = createAccountLensContext(context, change,
                     SynchronizationIntent.SYNCHRONIZE, null);
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
@@ -129,15 +130,16 @@ public class SynchronizeAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, ShadowType> createLensContext(UserType user, ResourceType resource, ObjectTemplateType userTemplate, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private <F extends FocusType> LensContext<F> createLensContext(F user, ResourceType resource, ObjectTemplateType userTemplate, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
+        // HACK!!!!!!!!!!!! TODO!!!!!!!!!!!!!
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
         		UserType.COMPLEX_TYPE);
 
-        LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
-        LensFocusContext<UserType> focusContext = context.createFocusContext();
-        PrismObject<UserType> oldUser = user.asPrismObject();
+        LensContext<F> context = createEmptyLensContext(change);
+        LensFocusContext<F> focusContext = context.createFocusContext();
+        PrismObject<F> oldUser = user.asPrismObject();
         focusContext.setLoadedObject(oldUser);
         context.rememberResource(resource);
         context.setUserTemplate(userTemplate);

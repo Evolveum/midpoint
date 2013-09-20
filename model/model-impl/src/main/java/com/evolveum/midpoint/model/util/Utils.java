@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -322,7 +323,7 @@ public final class Utils {
         setRequestee(task, oid);
     }
 
-    public static <F extends ObjectType> void setRequestee(Task task, LensFocusContext<F> context) {
+    public static <F extends FocusType> void setRequestee(Task task, LensFocusContext<F> context) {
         setRequestee(task, context.getLensContext());
     }
 

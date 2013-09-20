@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
@@ -43,7 +44,7 @@ import org.apache.commons.lang.StringUtils;
  * @author semancik
  *
  */
-public class LensFocusContext<O extends ObjectType> extends LensElementContext<O> {
+public class LensFocusContext<O extends FocusType> extends LensElementContext<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
 
@@ -53,7 +54,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return getLensContext().getProjectionWave();
 	}
 
-	public LensFocusContext(Class<O> objectTypeClass, LensContext<O, ? extends ObjectType> lensContext) {
+	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
 		super(objectTypeClass, lensContext);
 	}
 

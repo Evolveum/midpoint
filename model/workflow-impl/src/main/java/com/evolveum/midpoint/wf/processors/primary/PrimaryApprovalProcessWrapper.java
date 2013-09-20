@@ -67,7 +67,7 @@ public interface PrimaryApprovalProcessWrapper {
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)
      * @return list of start process instructions
      */
-    List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
+    List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * Returns the name of process instance details GUI panel. (Currently not used.)

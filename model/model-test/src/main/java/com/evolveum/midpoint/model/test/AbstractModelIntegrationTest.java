@@ -1145,8 +1145,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 	}
 	
-	protected void assertResolvedResourceRefs(ModelContext<UserType,ShadowType> context) {
-		for (ModelProjectionContext<ShadowType> projectionContext: context.getProjectionContexts()) {
+	protected <F extends FocusType> void assertResolvedResourceRefs(ModelContext<F> context) {
+		for (ModelProjectionContext projectionContext: context.getProjectionContexts()) {
 			assertResolvedResourceRefs(projectionContext.getObjectOld(), "objectOld in "+projectionContext);
 			assertResolvedResourceRefs(projectionContext.getObjectNew(), "objectNew in "+projectionContext);
 			assertResolvedResourceRefs(projectionContext.getPrimaryDelta(), "primaryDelta in "+projectionContext);

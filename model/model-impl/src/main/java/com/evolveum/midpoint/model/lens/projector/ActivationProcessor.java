@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceActivationDefinitionType;
@@ -94,24 +95,24 @@ public class ActivationProcessor {
     @Autowired(required = true)
     private MappingEvaluationHelper mappingHelper;
 
-    public <F extends ObjectType, P extends ObjectType> void processActivation(LensContext<F,P> context, 
-    		LensProjectionContext<P> projectionContext, XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    public <F extends FocusType> void processActivation(LensContext<F> context, 
+    		LensProjectionContext projectionContext, XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
-    		processActivationMetadata((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
+    		processActivationMetadata(context, projectionContext, now, result);
     		return;
     	}
     	if (focusContext.getObjectTypeClass() != UserType.class) {
     		// We can do this only for user.
-    		processActivationMetadata((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
+    		processActivationMetadata(context, projectionContext, now, result);
     		return;
     	}
-    	processActivationUserCurrent((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
-    	processActivationMetadata((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
-    	processActivationUserFuture((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, now, result);
+    	processActivationUserCurrent(context, projectionContext, now, result);
+    	processActivationMetadata(context, projectionContext, now, result);
+    	processActivationUserFuture(context, projectionContext, now, result);
     }
 
-    public void processActivationUserCurrent(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
+    public <F extends FocusType> void processActivationUserCurrent(LensContext<F> context, LensProjectionContext accCtx, 
     		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	String accCtxDesc = accCtx.toHumanReadableString();
     	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
@@ -198,7 +199,7 @@ public class ActivationProcessor {
     	
     	accCtx.setSynchronizationPolicyDecision(decision);
     	
-        PrismObject<UserType> focusNew = context.getFocusContext().getObjectNew();
+        PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
         if (focusNew == null) {
             // This must be a user delete or something similar. No point in proceeding
             LOGGER.trace("focusNew is null, skipping activation processing of {}", accCtxDesc);
@@ -258,7 +259,7 @@ public class ActivationProcessor {
     	
     }
 
-    public void processActivationMetadata(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
+    public <F extends FocusType> void processActivationMetadata(LensContext<F> context, LensProjectionContext accCtx, 
     		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	ObjectDelta<ShadowType> projDelta = accCtx.getDelta();
     	if (projDelta == null) {
@@ -277,7 +278,7 @@ public class ActivationProcessor {
     	
     }
     
-    public void processActivationUserFuture(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, 
+    public <F extends FocusType> void processActivationUserFuture(LensContext<F> context, LensProjectionContext accCtx, 
     		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	String accCtxDesc = accCtx.toHumanReadableString();
     	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
@@ -293,7 +294,7 @@ public class ActivationProcessor {
     	
     	evaluateExistenceMapping(context, accCtx, now, false, result);
     	
-        PrismObject<UserType> focusNew = context.getFocusContext().getObjectNew();
+        PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
         if (focusNew == null) {
             // This must be a user delete or something similar. No point in proceeding
             LOGGER.trace("focusNew is null, skipping activation processing of {}", accCtxDesc);
@@ -340,8 +341,8 @@ public class ActivationProcessor {
     }
 
     
-    private boolean evaluateExistenceMapping(final LensContext<UserType,ShadowType> context, 
-    		final LensProjectionContext<ShadowType> accCtx, final XMLGregorianCalendar now, final boolean current, 
+    private <F extends FocusType> boolean evaluateExistenceMapping(final LensContext<F> context, 
+    		final LensProjectionContext accCtx, final XMLGregorianCalendar now, final boolean current, 
     		final OperationResult result) 
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	String accCtxDesc = accCtx.toHumanReadableString();
@@ -429,8 +430,8 @@ public class ActivationProcessor {
         return nonNegativeValues.iterator().next().getValue();
     }
     
-	private <T> PropertyDelta<T> evaluateActivationMapping(final LensContext<UserType,ShadowType> context, 
-			final LensProjectionContext<ShadowType> accCtx, ResourceBidirectionalMappingType bidirectionalMappingType, 
+	private <T, F extends FocusType> PropertyDelta<T> evaluateActivationMapping(final LensContext<F> context, 
+			final LensProjectionContext accCtx, ResourceBidirectionalMappingType bidirectionalMappingType, 
 			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
    			final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final boolean current, 
    			String desc, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
@@ -595,7 +596,7 @@ public class ActivationProcessor {
         return projectionPropertyDelta;
     }
 
-	private ItemDeltaItem<PrismPropertyValue<Boolean>> getLegalIdi(LensProjectionContext<ShadowType> accCtx) throws SchemaException {
+	private ItemDeltaItem<PrismPropertyValue<Boolean>> getLegalIdi(LensProjectionContext accCtx) throws SchemaException {
 		Boolean legal = accCtx.isLegal();
 		Boolean legalOld = accCtx.isLegalOld();
 		
@@ -617,7 +618,8 @@ public class ActivationProcessor {
 		}
 	}
 
-	private ItemDeltaItem<PrismPropertyValue<Boolean>> getFocusExistsIdi(LensFocusContext<UserType> lensFocusContext) throws SchemaException {
+	private <F extends FocusType> ItemDeltaItem<PrismPropertyValue<Boolean>> getFocusExistsIdi(
+			LensFocusContext<F> lensFocusContext) throws SchemaException {
 		Boolean existsOld = null;
 		Boolean existsNew = null;
 		

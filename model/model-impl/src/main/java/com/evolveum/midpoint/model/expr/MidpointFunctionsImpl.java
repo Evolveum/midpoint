@@ -327,17 +327,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
     
-    public boolean hasLinkedAccount(String resourceOid) {
-    	LensContext<ObjectType, ShadowType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+    public <F extends FocusType> boolean hasLinkedAccount(String resourceOid) {
+    	LensContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
     	if (ctx == null) {
     		throw new IllegalStateException("No lens context");
     	}
-    	LensFocusContext<ObjectType> focusContext = ctx.getFocusContext();
+    	LensFocusContext<F> focusContext = ctx.getFocusContext();
     	if (focusContext == null) {
     		throw new IllegalStateException("No focus in lens context");
     	}
     	ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, null);
-		LensProjectionContext<ShadowType> projectionContext = ctx.findProjectionContext(rat);
+		LensProjectionContext projectionContext = ctx.findProjectionContext(rat);
 		if (projectionContext == null) {
 			return false;
 		}
@@ -505,7 +505,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
     }
 
-    public LensContextType wrapModelContext(LensContext<?,?> lensContext) throws SchemaException {
+    public LensContextType wrapModelContext(LensContext<?> lensContext) throws SchemaException {
         return lensContext.toPrismContainer().getValue().asContainerable();
     }
 }

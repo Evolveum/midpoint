@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -70,15 +71,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author semancik
  *
  */
-public class AccountConstruction implements DebugDumpable, Dumpable {
+public class AccountConstruction<F extends FocusType> implements DebugDumpable, Dumpable {
 
 	private AssignmentPath assignmentPath;
 	private ConstructionType accountConstructionType;
 	private ObjectType source;
 	private OriginType originType;
 	private String channel;
-	private LensContext<?, ?> lensContext;
-	private ObjectDeltaObject<UserType> userOdo;
+	private LensContext<F> lensContext;
+	private ObjectDeltaObject<F> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private MappingFactory valueConstructionFactory;
@@ -123,15 +124,15 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		this.channel = channel;
 	}
 	
-	public LensContext<?, ?> getLensContext() {
+	public LensContext<F> getLensContext() {
 		return lensContext;
 	}
 
-	public void setLensContext(LensContext<?, ?> lensContext) {
+	public void setLensContext(LensContext<F> lensContext) {
 		this.lensContext = lensContext;
 	}
 
-	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
+	public void setUserOdo(ObjectDeltaObject<F> userOdo) {
 		this.userOdo = userOdo;
 	}
 

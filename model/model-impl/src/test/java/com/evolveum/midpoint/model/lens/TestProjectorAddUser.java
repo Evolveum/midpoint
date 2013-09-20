@@ -145,7 +145,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 		Task task = taskManager.createTaskInstance("Add User With Template");
 		OperationResult result = task.getResult();
 		
-		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, PrismTestUtil.getPrismContext(), provisioning);
+		LensContext<UserType> syncContext = new LensContext<UserType>(UserType.class, PrismTestUtil.getPrismContext(), provisioning);
 		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);

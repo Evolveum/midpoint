@@ -102,7 +102,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
 
         OperationResult result = new OperationResult("test100SerializeContext");
 
-        LensContext<UserType, ShadowType> context = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, prismContext, provisioningService);
+        LensContext<UserType> context = new LensContext<UserType>(UserType.class, prismContext, provisioningService);
         PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BARBOSSA_FILENAME));
         CryptoUtil.encryptValues(protector, bill);
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(bill);
@@ -114,7 +114,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         container.clearActualValue();
         System.out.println("XML value = " + container.getXmlValue());
         LensContextType contextTypeRetrieved = container.getValue();
-        LensContext<UserType, ShadowType> contextRetrieved = LensContext.fromLensContextType(contextTypeRetrieved, prismContext, provisioningService, result);
+        LensContext<UserType> contextRetrieved = LensContext.fromLensContextType(contextTypeRetrieved, prismContext, provisioningService, result);
 
         assertEquals("Context after serialization/deserialization does not match context before it (object to add is changed)", context.getFocusContext().getPrimaryDelta().getObjectToAdd(), contextRetrieved.getFocusContext().getPrimaryDelta().getObjectToAdd());
     }

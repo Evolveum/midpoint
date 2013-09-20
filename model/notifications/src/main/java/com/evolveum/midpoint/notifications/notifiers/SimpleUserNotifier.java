@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -99,8 +100,11 @@ public class SimpleUserNotifier extends GeneralNotifier {
 
         boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
-        ModelContext<UserType,? extends ObjectType> modelContext = (ModelContext) ((ModelEvent) event).getModelContext();
-        ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+        ModelContext<? extends FocusType> modelContext = (ModelContext) ((ModelEvent) event).getModelContext();
+        if (modelContext.getFocusClass() != UserType.class) {
+        	return null;
+        }
+        ModelElementContext<UserType> focusContext = (ModelElementContext<UserType>) modelContext.getFocusContext();
         PrismObject<UserType> user = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
         UserType userType = user.asObjectable();
         String oid = focusContext.getOid();

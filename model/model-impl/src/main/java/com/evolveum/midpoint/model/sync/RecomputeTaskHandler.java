@@ -145,7 +145,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing user {}", user);
 
-		LensContext<UserType, ShadowType> syncContext = contextFactory.createRecomputeContext(user, task, result);
+		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
 		}

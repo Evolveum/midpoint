@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
@@ -128,8 +129,8 @@ public class ModifyUserAction extends BaseAction {
             throw new ObjectNotFoundException(message);
         }
 
-        LensContext<UserType, ShadowType> context = null;
-        LensProjectionContext<ShadowType> accountContext = null;
+        LensContext<UserType> context = null;
+        LensProjectionContext accountContext = null;
         try {
             context = createSyncContext(userType, change.getResource().asObjectable(), userTemplate, change);
             accountContext = createAccountLensContext(context, change,
@@ -158,8 +159,8 @@ public class ModifyUserAction extends BaseAction {
     /**
 	 * A chance to update the context before a sync is executed. For use in subclasses.
 	 */
-	protected void updateContextBeforeSync(LensContext<UserType, ShadowType> context, 
-			LensProjectionContext<ShadowType> accountContext) {
+	protected <F extends FocusType> void updateContextBeforeSync(LensContext<F> context, 
+			LensProjectionContext accountContext) {
 		// Nothing to do here
 	}
 
@@ -175,15 +176,16 @@ public class ModifyUserAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, ShadowType> createSyncContext(UserType user, ResourceType resource, ObjectTemplateType userTemplate, ResourceObjectShadowChangeDescription change) throws SchemaException {
+    private <F extends FocusType> LensContext<F> createSyncContext(F user, ResourceType resource, ObjectTemplateType userTemplate, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.trace("Creating sync context.");
 
-        PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
+        // HACK!!!!!!!!!!!!!!! TODO!!!!!!!!!!!!!
+        PrismObjectDefinition<F> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
         		UserType.COMPLEX_TYPE);
 
-        LensContext<UserType, ShadowType> context = createEmptyLensContext(change);
-        LensFocusContext<UserType> focusContext = context.createFocusContext();
-        PrismObject<UserType> oldUser = user.asPrismObject();
+        LensContext<F> context = createEmptyLensContext(change);
+        LensFocusContext<F> focusContext = context.createFocusContext();
+        PrismObject<F> oldUser = user.asPrismObject();
         focusContext.setLoadedObject(oldUser);
         context.rememberResource(resource);
         context.setUserTemplate(userTemplate);
@@ -218,13 +220,13 @@ public class ModifyUserAction extends BaseAction {
         return context;
     }
 
-    private void createActivationPropertyDelta(LensContext<UserType, ShadowType> context, ActivationDecision activationDecision,
+    private <F extends FocusType> void createActivationPropertyDelta(LensContext<F> context, ActivationDecision activationDecision,
             ActivationStatusType oldValue) {
 
-    	LensFocusContext<UserType> focusContext = context.getFocusContext();
-        ObjectDelta<UserType> userDelta = focusContext.getSecondaryDelta(0);
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+        ObjectDelta<F> userDelta = focusContext.getSecondaryDelta(0);
         if (userDelta == null) {
-            userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, getPrismContext());
+            userDelta = new ObjectDelta<F>(focusContext.getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             userDelta.setOid(focusContext.getObjectOld().getOid());
             focusContext.setSecondaryDelta(userDelta, 0);
         }

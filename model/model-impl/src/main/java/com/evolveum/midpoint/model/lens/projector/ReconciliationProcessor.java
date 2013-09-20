@@ -66,6 +66,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -99,8 +100,8 @@ public class ReconciliationProcessor {
 			+ ".processReconciliation";
 	private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
-	<F extends ObjectType, P extends ObjectType> void processReconciliation(LensContext<F, P> context,
-			LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException,
+	<F extends FocusType> void processReconciliation(LensContext<F> context,
+			LensProjectionContext projectionContext, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -111,12 +112,11 @@ public class ReconciliationProcessor {
 			// We can do this only for user.
 			return;
 		}
-		processReconciliationUser((LensContext<UserType, ShadowType>) context,
-				(LensProjectionContext<ShadowType>) projectionContext, result);
+		processReconciliationUser(context, projectionContext, result);
 	}
 
-	void processReconciliationUser(LensContext<UserType, ShadowType> context,
-			LensProjectionContext<ShadowType> accContext, OperationResult result) throws SchemaException,
+	<F extends FocusType> void processReconciliationUser(LensContext<F> context,
+			LensProjectionContext accContext, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -178,7 +178,7 @@ public class ReconciliationProcessor {
 	}
 
 	private void reconcileAccount(
-			LensProjectionContext<ShadowType> accCtx,
+			LensProjectionContext accCtx,
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes,
 			RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
@@ -320,7 +320,7 @@ public class ReconciliationProcessor {
 		}
 	}
 
-	private void decideIfTolerate(LensProjectionContext<ShadowType> accCtx,
+	private void decideIfTolerate(LensProjectionContext accCtx,
 			RefinedAttributeDefinition attributeDefinition,
 			Collection<PrismPropertyValue<Object>> arePValues,
 			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePValues,
@@ -365,7 +365,7 @@ public class ReconciliationProcessor {
 	}
 	
 
-	private <T> void recordDelta(ValueMatcher valueMatcher, LensProjectionContext<ShadowType> accCtx,
+	private <T> void recordDelta(ValueMatcher valueMatcher, LensProjectionContext accCtx,
 			ResourceAttributeDefinition attrDef, ModificationType changeType, T value, ObjectType originObject)
 			throws SchemaException {
 

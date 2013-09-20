@@ -41,8 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  */
 public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 	
-	private List<LensContext<?,?>> contexts = new ArrayList<LensContext<?,?>>();
-	private LensContext<?,?> lastAsyncContext = null;
+	private List<LensContext<?>> contexts = new ArrayList<LensContext<?>>();
+	private LensContext<?> lastAsyncContext = null;
 	private boolean record = false;
 	private boolean asynchronous = false;
 
@@ -62,7 +62,7 @@ public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 		this.asynchronous = asynchronous;
 	}
 
-	public List<LensContext<?, ?>> getContexts() {
+	public List<LensContext<?>> getContexts() {
 		return contexts;
 	}
 	
@@ -77,7 +77,7 @@ public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 		lastAsyncContext = null;
 	}
 
-	public LensContext<?, ?> getLastAsyncContext() {
+	public LensContext<?> getLastAsyncContext() {
 		return lastAsyncContext;
 	}
 

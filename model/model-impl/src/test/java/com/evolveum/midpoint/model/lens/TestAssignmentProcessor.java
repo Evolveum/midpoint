@@ -97,7 +97,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test001OutboundEmpty");
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         context.recompute();
 
@@ -120,7 +120,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test002ModifyUser");
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
@@ -142,9 +142,9 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
@@ -180,7 +180,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test011AddAssignmentAddAccountDirect");
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         context.recompute();
@@ -201,9 +201,9 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
@@ -220,7 +220,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
@@ -241,9 +241,9 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
@@ -287,7 +287,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccountAssignment");
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
@@ -309,9 +309,9 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
@@ -382,7 +382,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         // GIVEN
         OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test031DeleteAssignmentModifyAccount");
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
@@ -407,9 +407,9 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
@@ -466,7 +466,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
 	        repoAddObjectFromFile(USER_LARGO_FILENAME, UserType.class, result);
 	        
-	        LensContext<UserType, ShadowType> context = createUserAccountContext();
+	        LensContext<UserType> context = createUserAccountContext();
 	        fillContextWithUser(context, USER_LARGO_OID, result);
 	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, result);
 	        context.recompute();
@@ -495,7 +495,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.", ContainerDelta.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(), UserType.F_ASSIGNMENT));
 	        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 	        
-	        LensProjectionContext<ShadowType> accContext = context.getProjectionContexts().iterator().next();
+	        LensProjectionContext accContext = context.getProjectionContexts().iterator().next();
 	        
 	        assertNoDecision(accContext);
 	        assertLegal(accContext);
@@ -613,15 +613,15 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 		return null;
 	}
 
-	private void assertLegal(LensProjectionContext<ShadowType> accContext) {
+	private void assertLegal(LensProjectionContext accContext) {
 		assertEquals("Expected projection "+accContext+" not legal", Boolean.TRUE, accContext.isLegal());
 	}
 
-	private void assertIllegal(LensProjectionContext<ShadowType> accContext) {
+	private void assertIllegal(LensProjectionContext accContext) {
 		assertEquals("Expected projection "+accContext+" not illegal", Boolean.FALSE, accContext.isLegal());
 	}
 
-	private void assertNoDecision(LensProjectionContext<ShadowType> accContext) {
+	private void assertNoDecision(LensProjectionContext accContext) {
 		assertNull("Projection "+accContext+" has decision "+accContext.getSynchronizationPolicyDecision()+" while not expecting any", accContext.getSynchronizationPolicyDecision());
 	}
     

@@ -56,6 +56,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
@@ -102,7 +103,7 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
-	public <F extends ObjectType, P extends ObjectType> HookOperationMode run(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends FocusType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
@@ -120,7 +121,7 @@ public class Clockwork {
         return click(context, task, result);
 	}
 	
-	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends FocusType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
 		// that. Check consistency afterwards (and it is also checked inside projector several times).
@@ -146,7 +147,7 @@ public class Clockwork {
 			
 			if (!context.isFresh()) {
 				context.cleanup();
-				projector.project((LensContext<F, ShadowType>)context, "PROJECTOR ("+state+")", result);
+				projector.project(context, "PROJECTOR ("+state+")", result);
 			} else {
 				LOGGER.trace("Skipping projection because the context is fresh");
 			}
@@ -242,17 +243,17 @@ public class Clockwork {
     }
 
 
-    private <F extends ObjectType, P extends ObjectType> void processInitialToPrimary(LensContext<F,P> context, Task task, OperationResult result) {
+    private <F extends FocusType> void processInitialToPrimary(LensContext<F> context, Task task, OperationResult result) {
 		// Context loaded, nothing special do. Bump state to PRIMARY.
 		context.setState(ModelState.PRIMARY);		
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processPrimaryToSecondary(LensContext<F,P> context, Task task, OperationResult result) {
+	private <F extends FocusType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) {
 		// Nothing to do now. The context is already recomputed.
 		context.setState(ModelState.SECONDARY);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processSecondary(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private <F extends FocusType> void processSecondary(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;
@@ -270,11 +271,11 @@ public class Clockwork {
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processFinal(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private <F extends FocusType> void processFinal(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		auditFinalExecution(context, task, result);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void audit(LensContext<F,P> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
+	private <F extends FocusType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
 		if (context.isLazyAuditRequest()) {
 			if (stage == AuditEventStage.REQUEST) {
 				// We skip auditing here, we will do it before execution
@@ -298,7 +299,7 @@ public class Clockwork {
 	 * Make sure that at least one execution is audited if a request was already audited. We don't want
 	 * request without execution in the audit logs.
 	 */
-	private <F extends ObjectType, P extends ObjectType> void auditFinalExecution(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException {
+	private <F extends FocusType> void auditFinalExecution(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
 		if (!context.isRequestAudited()) {
 			return;
 		}
@@ -308,12 +309,12 @@ public class Clockwork {
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processClockworkException(LensContext<F,P> context, Exception e, Task task, OperationResult result) throws SchemaException {
+	private <F extends FocusType> void processClockworkException(LensContext<F> context, Exception e, Task task, OperationResult result) throws SchemaException {
 		result.recordFatalError(e);
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
 
-	private <F extends ObjectType, P extends ObjectType> void auditEvent(LensContext<F,P> context, AuditEventStage stage, 
+	private <F extends FocusType> void auditEvent(LensContext<F> context, AuditEventStage stage, 
 			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result) throws SchemaException {
 		
 		PrismObject<? extends ObjectType> primaryObject = null;
@@ -325,14 +326,14 @@ public class Clockwork {
 			}
 			primaryDelta = context.getFocusContext().getDelta();
 		} else {
-			Collection<LensProjectionContext<P>> projectionContexts = context.getProjectionContexts();
+			Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
 			if (projectionContexts == null || projectionContexts.isEmpty()) {
 				throw new IllegalStateException("No focus and no projectstions in "+context);
 			}
 			if (projectionContexts.size() > 1) {
 				throw new IllegalStateException("No focus and more than one projection in "+context);
 			}
-			LensProjectionContext<P> projection = projectionContexts.iterator().next();
+			LensProjectionContext projection = projectionContexts.iterator().next();
 			primaryObject = projection.getObjectOld();
 			if (primaryObject == null) {
 				primaryObject = projection.getObjectNew();

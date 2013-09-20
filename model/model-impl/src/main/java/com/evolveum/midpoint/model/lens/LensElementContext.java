@@ -63,11 +63,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private transient boolean isFresh = false;
 	
-	private LensContext<? extends ObjectType, ? extends ObjectType> lensContext;
+	private LensContext<? extends FocusType> lensContext;
 	
 	private transient PrismObjectDefinition<O> objectDefinition = null;
 	
-	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType, ? extends ObjectType> lensContext) {
+	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends FocusType> lensContext) {
 		super();
 		Validate.notNull(objectTypeClass, "Object class is null");
 		Validate.notNull(lensContext, "Lens context is null");
@@ -75,7 +75,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.objectTypeClass = objectTypeClass;
 	}
 
-	public LensContext<? extends ObjectType, ? extends ObjectType> getLensContext() {
+	public LensContext<? extends FocusType> getLensContext() {
 		return lensContext;
 	}
 	
@@ -437,7 +437,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		// TODO: object definition?
 	}
 	
-	public abstract LensElementContext<O> clone(LensContext lensContext);
+	public abstract LensElementContext<O> clone(LensContext<? extends FocusType> lensContext);
 	
 	protected void copyValues(LensElementContext<O> clone, LensContext lensContext) {
 		clone.lensContext = lensContext;

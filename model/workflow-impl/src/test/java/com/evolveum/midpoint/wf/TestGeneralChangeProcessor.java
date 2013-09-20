@@ -122,7 +122,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
                @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
-                   LensContext<UserType, ShadowType> context = createUserAccountContext();
+                   LensContext<UserType> context = createUserAccountContext();
                    fillContextWithUser(context, USER_JACK_OID, result);
                    addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                    return context;
@@ -153,7 +153,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
-        LensContext<UserType, ShadowType> context = (LensContext<UserType, ShadowType>) contextCreator.createModelContext(result);
+        LensContext<UserType> context = (LensContext<UserType>) contextCreator.createModelContext(result);
 
         display("Input context", context);
 

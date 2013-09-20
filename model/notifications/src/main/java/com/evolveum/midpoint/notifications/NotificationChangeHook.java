@@ -30,6 +30,7 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -122,8 +123,8 @@ public class NotificationChangeHook implements ChangeHook {
         return HookOperationMode.FOREGROUND;
     }
 
-    private Event createRequest(PrismObject<? extends ObjectType> object, Task task,
-                                ModelContext<UserType, ShadowType> modelContext) {
+    private <F extends FocusType> Event createRequest(PrismObject<? extends ObjectType> object, Task task,
+                                ModelContext<F> modelContext) {
 
         ModelEvent event = new ModelEvent(lightweightIdentifierGenerator);
         event.setModelContext(modelContext);

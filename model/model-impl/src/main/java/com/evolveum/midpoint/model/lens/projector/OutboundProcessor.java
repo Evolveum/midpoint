@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
@@ -83,7 +84,7 @@ public class OutboundProcessor {
     @Autowired(required = true)
     private MappingFactory mappingFactory;
 
-    void processOutbound(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws SchemaException,
+    <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
@@ -103,7 +104,7 @@ public class OutboundProcessor {
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
         
-        ObjectDeltaObject<UserType> userOdo = context.getFocusContext().getObjectDeltaObject();
+        ObjectDeltaObject<F> userOdo = context.getFocusContext().getObjectDeltaObject();
         ObjectDeltaObject<ShadowType> accountOdo = accCtx.getObjectDeltaObject();
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());

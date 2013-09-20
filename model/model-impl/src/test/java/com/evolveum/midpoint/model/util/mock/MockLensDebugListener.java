@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
@@ -33,11 +34,11 @@ public class MockLensDebugListener implements LensDebugListener {
 
 	private LensContext lastSyncContext;
 	
-	public <F extends ObjectType, P extends ObjectType>  LensContext<F, P> getLastSyncContext() {
+	public <F extends FocusType>  LensContext<F> getLastSyncContext() {
 		return lastSyncContext;
 	}
 
-	public <F extends ObjectType, P extends ObjectType> void setLastSyncContext(LensContext<F, P> lastSyncContext) {
+	public <F extends FocusType> void setLastSyncContext(LensContext<F> lastSyncContext) {
 		this.lastSyncContext = lastSyncContext;
 	}
 	
@@ -45,7 +46,7 @@ public class MockLensDebugListener implements LensDebugListener {
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void beforeSync(LensContext<F, P> context) {
+	public <F extends FocusType> void beforeSync(LensContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.dump());
 	}
 
@@ -53,7 +54,7 @@ public class MockLensDebugListener implements LensDebugListener {
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterSync(LensContext<F, P> context) {
+	public <F extends FocusType> void afterSync(LensContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.dump());
 		lastSyncContext = context;
 	}
