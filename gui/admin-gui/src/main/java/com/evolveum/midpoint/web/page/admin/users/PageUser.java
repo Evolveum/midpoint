@@ -710,7 +710,7 @@ public class PageUser extends PageAdminUsers {
         }
 		result.computeStatus();
 
-		if (!WebMiscUtil.showResultInPage(result)) {
+		if (WebMiscUtil.showResultInPage(result)) {
 			showResult(result);
 		}
 
