@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -192,6 +193,11 @@ public class PrismAsserts {
 		PrismPropertyDefinition definition = findProperty.getDefinition();
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
+	
+	public static void assertPropertyDefinition(ComplexTypeDefinition container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
+		PrismPropertyDefinition definition = container.findPropertyDefinition(propertyName);
+		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
+	}
 
     public static void assertPropertyDefinition(PrismProperty property, QName type, int minOccurs, int maxOccurs, Boolean indexed) {
         assertDefinition(property, type, minOccurs, maxOccurs);
@@ -217,9 +223,21 @@ public class PrismAsserts {
 		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +
 			expectedDisplayName + ", was " + definition.getDisplayName();
 	}
+	
+	public static void assertItemDefinitionDisplayName(ComplexTypeDefinition containerDef, QName propertyName, String expectedDisplayName) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName, ItemDefinition.class);
+		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +
+			expectedDisplayName + ", was " + definition.getDisplayName();
+	}
 
 	public static void assertItemDefinitionDisplayOrder(PrismContainerDefinition<?> containerDef, QName propertyName, Integer expectedDisplayOrder) {
 		ItemDefinition definition = containerDef.findItemDefinition(propertyName);
+		assert equals(expectedDisplayOrder, definition.getDisplayOrder()) : "Wrong display order for item "+propertyName+", expected " +
+		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
+	}
+	
+	public static void assertItemDefinitionDisplayOrder(ComplexTypeDefinition containerDef, QName propertyName, Integer expectedDisplayOrder) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName, ItemDefinition.class);
 		assert equals(expectedDisplayOrder, definition.getDisplayOrder()) : "Wrong display order for item "+propertyName+", expected " +
 		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
 	}

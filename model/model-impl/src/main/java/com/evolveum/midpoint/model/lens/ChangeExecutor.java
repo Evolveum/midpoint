@@ -517,7 +517,7 @@ public class ChangeExecutor {
         }
         
     	if (LOGGER.isTraceEnabled()) {
-    		logDeltaExecution(objectDelta, context, resource, null);
+    		logDeltaExecution(objectDelta, context, resource, null, task);
     	}
 
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
@@ -551,7 +551,7 @@ public class ChangeExecutor {
 	        		LOGGER.trace("EXECUTION result {}", result.getLastSubresult());
 	        	} else {
 	        		// Execution of deltas was not logged yet
-	        		logDeltaExecution(objectDelta, context, resource, result.getLastSubresult());
+	        		logDeltaExecution(objectDelta, context, resource, result.getLastSubresult(), task);
 	        	}
 	    	}
     	}
@@ -582,7 +582,7 @@ public class ChangeExecutor {
 
 	private <T extends ObjectType, F extends FocusType>
 				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F> context, 
-						ResourceType resource, OperationResult result) {
+						ResourceType resource, OperationResult result, Task task) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("---[ ");
 		if (result == null) {
@@ -593,9 +593,11 @@ public class ChangeExecutor {
 		sb.append(" delta of ").append(objectDelta.getObjectTypeClass().getSimpleName());
 		sb.append(" ]---------------------\n");
 		DebugUtil.debugDumpLabel(sb, "Channel", 0);
-		sb.append(" ").append(context.getChannel()).append("\n");
-		DebugUtil.debugDumpLabel(sb, "Wave", 0);
-		sb.append(" ").append(context.getExecutionWave()).append("\n");
+		sb.append(" ").append(getChannel(context, task)).append("\n");
+		if (context != null) {
+			DebugUtil.debugDumpLabel(sb, "Wave", 0);
+			sb.append(" ").append(context.getExecutionWave()).append("\n");
+		}
 		if (resource != null) {
 			sb.append("Resource: ").append(resource.toString()).append("\n");
 		}
@@ -632,7 +634,7 @@ public class ChangeExecutor {
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-        	if (options == null) {
+        	if (options == null && context != null) {
         		options = context.getOptions();
         	}
         	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
@@ -649,10 +651,10 @@ public class ChangeExecutor {
             result.addReturn("createdAccountOid", oid);
         } else {
         	RepoAddOptions addOpt = new RepoAddOptions();
-        	if (ModelExecuteOptions.isOverwrite(context.getOptions())){
+        	if (ModelExecuteOptions.isOverwrite(options)){
         		addOpt.setOverwrite(true);
         	}
-        	if (ModelExecuteOptions.isNoCrypt(context.getOptions())){
+        	if (ModelExecuteOptions.isNoCrypt(options)){
         		addOpt.setAllowUnencryptedValues(true);
         	}
             oid = cacheRepositoryService.addObject(objectToAdd, addOpt, result);

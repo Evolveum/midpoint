@@ -395,6 +395,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						RepositoryCache.exit();
 						throw new IllegalArgumentException(message);
 					}
+					confDelta = delta;
 				}
 				
 				if (confDelta != null) {

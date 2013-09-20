@@ -86,9 +86,10 @@ public class ContextFactory {
                     throw new IllegalStateException("More than one focus delta used in model operation");
                 }
 				focusDelta = (ObjectDelta<F>) delta;
-			} else {
-				// This must be projection delta
+			} else if (isProjectionClass(typeClass)) {
 				projectionDeltas.add((ObjectDelta<ShadowType>) delta);
+			} else {
+				throw new IllegalArgumentException("Attempt to construct a lens context with delta that neither focus nor projection: "+delta);
 			}
 		}
 		
